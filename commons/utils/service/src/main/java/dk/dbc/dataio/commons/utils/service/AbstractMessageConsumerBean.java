@@ -27,22 +27,20 @@ public abstract class AbstractMessageConsumerBean {
 
     /**
      * Message validation.
-     *
+     * <p>
      * For a message to be deemed valid the following invariants must be
      * upheld:
-     *   <ul>
-     *     <li>
-     *       message must be non-null and of type TextMessage
-     *     <li>
-     *       message payload must be non-null and non-empty
-     *     <li>
-     *       message must must have a non-null and non-empty JmsConstants.PAYLOAD_PROPERTY_NAME header property
-     *   </ul>
+     * <ul>
+     *   <li>
+     *     message must be non-null and of type TextMessage
+     *   <li>
+     *     message payload must be non-null and non-empty
+     *   <li>
+     *     message must must have a non-null and non-empty JmsConstants.PAYLOAD_PROPERTY_NAME header property
+     * </ul>
      *
      * @param message message to be validated
-     *
      * @return message as ConsumedMessage instance
-     *
      * @throws InvalidMessageException when message fails to validate
      */
     public ConsumedMessage validateMessage(Message message) throws InvalidMessageException {
@@ -75,11 +73,11 @@ public abstract class AbstractMessageConsumerBean {
 
     /**
      * Callback for all messages received.
-     *
+     * <p>
      * To prevent message poisoning where invalid messages will be re-delivered
      * forever, a message will first be validated with the validateMessage() method.
      * Any Invalid message will be removed from the message queue.
-     *
+     * <p>
      * Subsequently the message is handled by calling the handleConsumedMessage()
      * method. Any exception (checked or unchecked) thrown after the validation step
      * that is not an InvalidMessageException result in a IllegalStateException
@@ -112,12 +110,12 @@ public abstract class AbstractMessageConsumerBean {
      *
      * @param consumedMessage message to be handled
      * @throws InvalidMessageException if type not legal
-     * @throws ServiceException service exception
+     * @throws ServiceException        service exception
      */
     public abstract void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, ServiceException;
 
     public void confirmLegalChunkTypeOrThrow(Chunk chunk, Chunk.Type legalChunkType) throws InvalidMessageException {
-        if(chunk.getType() != legalChunkType) {
+        if (chunk.getType() != legalChunkType) {
             String errMsg = String.format(
                     "The chunk with id (jobId/chunkId) : [%d/%d] is of illegal type [%s] when [%s] was expected.",
                     chunk.getJobId(),
@@ -136,15 +134,16 @@ public abstract class AbstractMessageConsumerBean {
 
     /**
      * Extracts all headers from the message given as input
+     *
      * @param message input message
      * @return map containing extracted headers
      * @throws JMSException on failure to extract property names and values
      */
     private Map<String, Object> getHeaders(Message message) throws JMSException {
-        final Map<String, Object> headers = new HashMap <> ();
+        final Map<String, Object> headers = new HashMap<>();
         final Enumeration messagePropertyNames = message.getPropertyNames();
         while (messagePropertyNames.hasMoreElements()) {
-            String propertyName = (String) messagePropertyNames.nextElement ();
+            String propertyName = (String) messagePropertyNames.nextElement();
             headers.put(propertyName, message.getObjectProperty(propertyName));
         }
         return headers;

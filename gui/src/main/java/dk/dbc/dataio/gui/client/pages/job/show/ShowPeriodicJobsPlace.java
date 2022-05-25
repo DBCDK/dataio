@@ -31,6 +31,7 @@ public class ShowPeriodicJobsPlace extends AbstractBasePlace {
         public String getToken(ShowPeriodicJobsPlace place) {
             return place.getToken();
         }
+
         @Override
         public ShowPeriodicJobsPlace getPlace(String token) {
             return new ShowPeriodicJobsPlace(token);

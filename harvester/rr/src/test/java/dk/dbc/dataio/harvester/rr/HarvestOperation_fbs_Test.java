@@ -152,7 +152,7 @@ public class HarvestOperation_fbs_Test {
                     put(FIRST_RECORD_HEAD_ID.getBibliographicRecordId(), FIRST_RECORD_HEAD);
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordDTO>(){{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(SECOND_RECORD_ID.getBibliographicRecordId(), SECOND_RECORD);
                 }})
                 .thenReturn(new HashMap<String, RecordDTO>() {{
@@ -217,10 +217,10 @@ public class HarvestOperation_fbs_Test {
                 .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordDTO>(){{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(invalidRecord.getRecordId().toString(), invalidRecord);
                 }})
-                .thenReturn(new HashMap<String, RecordDTO>(){{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
@@ -309,8 +309,8 @@ public class HarvestOperation_fbs_Test {
                 .withConsumerId(CONSUMER_ID);
         try {
             return new HarvestOperation(config, harvesterJobBuilderFactory,
-                taskRepo, VIP_CORE_CONNECTION,
-                RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR, metricRegistry);
+                    taskRepo, VIP_CORE_CONNECTION,
+                    RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }

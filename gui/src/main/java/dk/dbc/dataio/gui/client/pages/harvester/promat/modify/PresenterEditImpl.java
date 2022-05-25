@@ -41,6 +41,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
                     e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(PromatHarvesterConfig config) {
             if (config == null) {
@@ -58,6 +59,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
                     e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(HarvesterConfig config) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());

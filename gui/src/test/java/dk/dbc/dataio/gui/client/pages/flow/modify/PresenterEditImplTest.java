@@ -33,9 +33,12 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
 
-    @Mock Texts mockedTexts;
-    @Mock EditPlace mockedEditPlace;
-    @Mock ViewGinjector mockedViewGinjector;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    EditPlace mockedEditPlace;
+    @Mock
+    ViewGinjector mockedViewGinjector;
 
     private ViewWidget editView;
 
@@ -191,9 +194,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
                 .setComponents(Collections.singletonList(new FlowComponentModelBuilder().setId(id).setVersion(version).build()))
                 .build();
     }
+
     private void assertFlowComponentModelsEquals(List<FlowComponentModel> flowComponentModelList1, List<FlowComponentModel> flowComponentModelList2) {
         assertThat(flowComponentModelList1.size(), is(flowComponentModelList2.size()));
-        for(int i = 0; i < flowComponentModelList1.size(); i ++) {
+        for (int i = 0; i < flowComponentModelList1.size(); i++) {
             assertFlowComponentModelEquals(flowComponentModelList1.get(i), flowComponentModelList2.get(i));
         }
     }
@@ -211,7 +215,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
     private void assertJavaScriptModulesEquals(List<String> javaScriptModules1, List<String> javaScriptModules2) {
         assertThat(javaScriptModules1.size(), is(javaScriptModules2.size()));
-        for(int i = 0; i < javaScriptModules1.size(); i++) {
+        for (int i = 0; i < javaScriptModules1.size(); i++) {
             assertThat(javaScriptModules1.get(i), is(javaScriptModules2.get(i)));
         }
     }

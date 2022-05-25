@@ -1,9 +1,9 @@
 package dk.dbc.dataio.gatekeeper;
 
-import dk.dbc.httpclient.HttpClient;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.httpclient.HttpClient;
+import dk.dbc.invariant.InvariantUtil;
 import org.apache.http.client.config.RequestConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;

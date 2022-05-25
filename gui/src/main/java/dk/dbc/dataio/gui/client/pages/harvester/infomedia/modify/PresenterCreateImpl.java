@@ -44,7 +44,8 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
     /**
      * This has no implementation because "Create" does not have a delete button!
      */
-    public void deleteButtonPressed() {}
+    public void deleteButtonPressed() {
+    }
 
     class CreateHarvesterConfigAsyncCallback implements AsyncCallback<InfomediaHarvesterConfig> {
         @Override
@@ -53,6 +54,7 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
             getView().setErrorText(ProxyErrorTranslator
                     .toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(InfomediaHarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());

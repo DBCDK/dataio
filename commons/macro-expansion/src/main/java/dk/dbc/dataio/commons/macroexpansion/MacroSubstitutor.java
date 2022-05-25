@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.commons.macroexpansion;
 
 import org.apache.commons.text.StringSubstitutor;
@@ -88,71 +87,72 @@ public class MacroSubstitutor {
      * Known variables are:
      * </p>
      * <p>
-     *      ${__CURRENT_YEAR__}
-     *          := year based on the instantiation time for this
-     *             object as Coordinated Universal Time (UTC).
+     * ${__CURRENT_YEAR__}
+     * := year based on the instantiation time for this
+     * object as Coordinated Universal Time (UTC).
      * </p>
      * <p>
-     *      ${__PREVIOUS_YEAR__}
-     *          := previous year based on the instantiation time
-     *             for this object as Coordinated Universal Time (UTC).
+     * ${__PREVIOUS_YEAR__}
+     * := previous year based on the instantiation time
+     * for this object as Coordinated Universal Time (UTC).
      * </p>
      * <p>
-     *      ${__NOW__}
-     *          := time of instantiation for this object as
-     *          Coordinated Universal Time (UTC) string.
+     * ${__NOW__}
+     * := time of instantiation for this object as
+     * Coordinated Universal Time (UTC) string.
      * </p>
      * <p>
-     *      ${__WEEKCODE_[CATALOGUE]__}
-     *          := weekcode as string for the given CATALOGUE
-     *             in relation to the current local date,
-     *              e.g. ${__WEEKCODE_EMS__}.
+     * ${__WEEKCODE_[CATALOGUE]__}
+     * := weekcode as string for the given CATALOGUE
+     * in relation to the current local date,
+     * e.g. ${__WEEKCODE_EMS__}.
      * </p>
      * <p>
-     *      ${__WEEKCODE_[CATALOGUE]_MINUS_[WEEKS]__}
-     *          := weekcode as string for the given CATALOGUE
-     *              in relations to the current local date minus WEEKS,
-     *              e.g ${__WEEKCODE_EMS_MINUS_10__}.
+     * ${__WEEKCODE_[CATALOGUE]_MINUS_[WEEKS]__}
+     * := weekcode as string for the given CATALOGUE
+     * in relations to the current local date minus WEEKS,
+     * e.g ${__WEEKCODE_EMS_MINUS_10__}.
      * </p>
      * <p>
-     *      ${__WEEKCODE_[CATALOGUE]_PLUS_[WEEKS]__}
-     *          := weekcode as string for the given CATALOGUE
-     *              in relations to the current local date plus WEEKS,
-     *              e.g ${__WEEKCODE_EMS_PLUS_10__}.
+     * ${__WEEKCODE_[CATALOGUE]_PLUS_[WEEKS]__}
+     * := weekcode as string for the given CATALOGUE
+     * in relations to the current local date plus WEEKS,
+     * e.g ${__WEEKCODE_EMS_PLUS_10__}.
      * </p>
      * <p>
-     *      ${__NEXTWEEK_[CATALOGUE]__}
-     *          := weekcode for next week as string for the given CATALOGUE
-     *             in relation to the current local date,
-     *              e.g. ${__NEXTWEEK_DBF__}
+     * ${__NEXTWEEK_[CATALOGUE]__}
+     * := weekcode for next week as string for the given CATALOGUE
+     * in relation to the current local date,
+     * e.g. ${__NEXTWEEK_DBF__}
      * </p>
      * <p>
-     *      ${__DEFERRED_PERIOD_3_MONTHS__}
-     *          := datetime range matching the date of a deferred period
-     *             of three months back in time relative to the instantiation
-     *             time for this object.
+     * ${__DEFERRED_PERIOD_3_MONTHS__}
+     * := datetime range matching the date of a deferred period
+     * of three months back in time relative to the instantiation
+     * time for this object.
      * </p>
      * <p>
-     *      ${__DEFERRED_PERIOD_YESTERDAY__}
-     *          := datetime range matching the date of yesterday
-     *          relative to the instantiation time for this object.
+     * ${__DEFERRED_PERIOD_YESTERDAY__}
+     * := datetime range matching the date of yesterday
+     * relative to the instantiation time for this object.
      * </p>
      * <p>
-     *      ${__NOW_MINUS_[DAYS]__}
-     *          := date as string for today minus the specified number of days
+     * ${__NOW_MINUS_[DAYS]__}
+     * := date as string for today minus the specified number of days
      * </p>
      * <p>
-     *      ${__NOW_BACK_MINUS_[DAYS]__}
-     *          := date interval as string for today to today minus the specified number of days
+     * ${__NOW_BACK_MINUS_[DAYS]__}
+     * := date interval as string for today to today minus the specified number of days
      * </p>
      * <p>
-     *     ${__VPA__}
-     *          := VPA query
+     * ${__VPA__}
+     * := VPA query
      * </p>
      * <p>
-     *     ${__VPT__}
-     *          := VPT query
+     * ${__VPT__}
+     * := VPT query
      * </p>
+     *
      * @param str string on which to do variable substitution
      * @return result of the replace operation with all occurrences of known variables replaced
      */

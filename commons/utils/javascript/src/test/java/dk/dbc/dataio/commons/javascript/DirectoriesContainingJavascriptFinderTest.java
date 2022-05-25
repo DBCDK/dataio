@@ -34,13 +34,13 @@ public class DirectoriesContainingJavascriptFinderTest {
         assertThat(javascriptDirectories.size(), is(4));
 
         List<String> javascriptDirectoriesAsString = new ArrayList<>();
-        for(Path p : javascriptDirectories) {
+        for (Path p : javascriptDirectories) {
             javascriptDirectoriesAsString.add(p.toString());
         }
-        assertThat("Could not find dir: /root/dir1", javascriptDirectoriesAsString.contains(folder.getRoot()+"/root/dir1"), is(true));
-        assertThat("Could not find dir: /root/dir2", javascriptDirectoriesAsString.contains(folder.getRoot()+"/root/dir2"), is(true));
-        assertThat("Could not find dir: /root/dir2/dir3", javascriptDirectoriesAsString.contains(folder.getRoot()+"/root/dir2/dir3"), is(true));
-        assertThat("Could not find dir: /root/dir5/dir6", javascriptDirectoriesAsString.contains(folder.getRoot()+"/root/dir5/dir6"), is(true));
+        assertThat("Could not find dir: /root/dir1", javascriptDirectoriesAsString.contains(folder.getRoot() + "/root/dir1"), is(true));
+        assertThat("Could not find dir: /root/dir2", javascriptDirectoriesAsString.contains(folder.getRoot() + "/root/dir2"), is(true));
+        assertThat("Could not find dir: /root/dir2/dir3", javascriptDirectoriesAsString.contains(folder.getRoot() + "/root/dir2/dir3"), is(true));
+        assertThat("Could not find dir: /root/dir5/dir6", javascriptDirectoriesAsString.contains(folder.getRoot() + "/root/dir5/dir6"), is(true));
     }
 
     /*

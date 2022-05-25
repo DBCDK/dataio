@@ -86,6 +86,7 @@ public class SortableListModel {
 
     /**
      * Gets the enabled  boolean, stating whether the component is enabled or not
+     *
      * @return True: The component is enabled, False: The component is disabled
      */
     public boolean getEnabled() {
@@ -94,6 +95,7 @@ public class SortableListModel {
 
     /**
      * Gets the key value of the selected widget in the model
+     *
      * @return The key value of the selected widget
      */
     public String getSelectedItem() {
@@ -121,7 +123,7 @@ public class SortableListModel {
      * Clears all items from the list, and replaces it with the supplied items
      * A boolean parameter direct the method to send a fireevent upon completion
      *
-     * @param items Items to set in the new list
+     * @param items     Items to set in the new list
      * @param fireEvent Boolean to direct the method to send a ValueChangeEvent
      */
     void put(Map<String, String> items, boolean fireEvent) {
@@ -160,6 +162,7 @@ public class SortableListModel {
 
     /**
      * Sets the sorting in the list to be Manual or Automatic
+     *
      * @param manualSorting Manual sorting if true, Automatic if false
      */
     void setManualSorting(Boolean manualSorting) {
@@ -189,7 +192,7 @@ public class SortableListModel {
         });
         // Refresh the display according to the model
         refresh();
-        }
+    }
 
     /**
      * Sets an item on the display to be selected and set all others not selected
@@ -293,12 +296,14 @@ public class SortableListModel {
      */
     private void triggerValueChangeEvent() {
         if (valueChangeHandler != null) {
-            valueChangeHandler.onValueChange(new ValueChangeEvent<Map<String, String>>(get()) {});
+            valueChangeHandler.onValueChange(new ValueChangeEvent<Map<String, String>>(get()) {
+            });
         }
     }
 
     /**
      * Enables or disables manual dragging in the list
+     *
      * @param dragEnable Enables or disables manual dragging
      */
     private void setDragEnable(boolean dragEnable) {
@@ -313,6 +318,7 @@ public class SortableListModel {
 
     /**
      * Sets if items in the list is grayed out
+     *
      * @param grayed True makes all items grayed, false makes them normal
      */
     private void setGrayed(boolean grayed) {

@@ -39,67 +39,89 @@ public class BaseJobFilterTest {
     private HandlerRegistration clickHandlerRegistration;
     private boolean instantiateJobFilterMethodCalled = false;
 
-    @Mock private JobFilter mockedJobFilter;
-    @Mock private JobFilterPanel mockedJobFilterPanel;
-    @Mock private HandlerRegistration mockedClickHandlerRegistration;
-    @Mock private AbstractBasePlace mockedPlace;
-    @Mock private ChangeHandler mockedChangeHandler;
+    @Mock
+    private JobFilter mockedJobFilter;
+    @Mock
+    private JobFilterPanel mockedJobFilterPanel;
+    @Mock
+    private HandlerRegistration mockedClickHandlerRegistration;
+    @Mock
+    private AbstractBasePlace mockedPlace;
+    @Mock
+    private ChangeHandler mockedChangeHandler;
 
 
     class ConcreteBaseJobFilter extends BaseJobFilter {
         String storedName;
+
         ConcreteBaseJobFilter(String name, boolean invertFilter) {
             super(mock(Texts.class), mock(Resources.class), invertFilter);
             this.storedName = name;
         }
+
         @Override
         public String getName() {
             return storedName;
         }
+
         @Override
         public JobListCriteria getValue() {
             return new JobListCriteria();
         }
+
         @Override
         public void setParameter(String filterParameter) {
         }
+
         @Override
         public String getParameter() {
             return "parm";
         }
+
         public Texts getTexts() {
             return texts;
         }
+
         Widget getThisAsWidget() {
             return thisAsWidget;
         }
+
         void setParentJobFilter(JobFilter jobFilter) {
             parentJobFilter = jobFilter;
         }
+
         JobFilter getParentJobFilter() {
             return parentJobFilter;
         }
+
         void setFilterPanel(JobFilterPanel filterPanel) {
             this.filterPanel = filterPanel;
         }
+
         JobFilterPanel getFilterPanel() {
             return filterPanel;
         }
+
         boolean getInvertFilter() {
             return initialInvertFilterValue;
         }
+
         void setClickHandlerRegistration(HandlerRegistration reg) {
             this.clickHandlerRegistration = reg;
         }
+
         HandlerRegistration getClickHandlerRegistration() {
             return clickHandlerRegistration;
         }
+
         @Override
         public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
             return null;
         }
+
         @Override
-        public void localSetParameter(String filterParameter) {}
+        public void localSetParameter(String filterParameter) {
+        }
     }
 
     class BaseJobFilterWithOverriddenAddMethod extends ConcreteBaseJobFilter {
@@ -107,6 +129,7 @@ public class BaseJobFilterTest {
             super(name, true);
             instantiateJobFilterMethodCalled = false;
         }
+
         @Override
         public void instantiateJobFilter(boolean notifyPlace) {
             instantiateJobFilterMethodCalled = true;
@@ -280,7 +303,7 @@ public class BaseJobFilterTest {
         jobFilter.removeJobFilter(true);
 
         // Verify test
-        verify(mockedPlace).addParameter("ConcreteBaseJobFilter", false,"parm");
+        verify(mockedPlace).addParameter("ConcreteBaseJobFilter", false, "parm");
         verifyNoMoreInteractions(mockedPlace);
         getAttributes(jobFilter);
         verify(mockedClickHandlerRegistration).removeHandler();
@@ -427,7 +450,7 @@ public class BaseJobFilterTest {
         jobFilter.handleFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.REMOVE_BUTTON);
 
         // Verify test
-        verify(mockedPlace).addParameter("ConcreteBaseJobFilter", false,"parm");
+        verify(mockedPlace).addParameter("ConcreteBaseJobFilter", false, "parm");
         verifyNoMoreInteractions(mockedPlace);
         getAttributes(jobFilter);
         verify(mockedClickHandlerRegistration).removeHandler();

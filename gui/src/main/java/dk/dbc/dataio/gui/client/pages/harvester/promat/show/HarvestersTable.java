@@ -46,7 +46,8 @@ public class HarvestersTable extends CellTable {
 
     /**
      * This method sets the harvester data for the table
-     * @param presenter The presenter
+     *
+     * @param presenter  The presenter
      * @param harvesters The harvester data
      */
     public void setHarvesters(Presenter presenter, List<PromatHarvesterConfig> harvesters) {
@@ -141,8 +142,9 @@ public class HarvestersTable extends CellTable {
 
     /**
      * Constructs a SafeHtml snippet constituting a text with a popup mouseover help text
+     *
      * @param headerText header text to be displayed
-     * @param helpText popup help text
+     * @param helpText   popup help text
      * @return SafeHtml snippet
      */
     SafeHtml textWithToolTip(String headerText, String helpText) {

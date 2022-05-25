@@ -86,7 +86,7 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
         return jobStoreProxy.setWorkflowNote(workflowNoteModel, jobId);
     }
 
-@Override
+    @Override
     public ItemModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, int chunkId, short itemId) throws ProxyException {
         return jobStoreProxy.setWorkflowNote(workflowNoteModel, jobId, chunkId, itemId);
     }

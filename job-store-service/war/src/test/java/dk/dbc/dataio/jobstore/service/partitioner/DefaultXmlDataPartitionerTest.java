@@ -15,8 +15,8 @@ import java.util.Iterator;
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
 
 @SuppressWarnings("Duplicates")
@@ -45,13 +45,13 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     public void next_dataPartitionerResultContainsExpectedChunkItemAndNullValuedRecordInfo() {
         final String xml = XML_HEADER
                 + "<topLevel>"
-                +   "<collection xmlns=\"info:lc/xmlns/marcxchange-v1\">"
-                +     "<record>"
-                +       "<marcx:datafield xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" tag=\"001\">"
-                +         "<marcx:subfield code=\"a\">123456</marcx:subfield>"
-                +       "</marcx:datafield>"
-                +     "</record>"
-                +   "</collection>"
+                + "<collection xmlns=\"info:lc/xmlns/marcxchange-v1\">"
+                + "<record>"
+                + "<marcx:datafield xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" tag=\"001\">"
+                + "<marcx:subfield code=\"a\">123456</marcx:subfield>"
+                + "</marcx:datafield>"
+                + "</record>"
+                + "</collection>"
                 + "</topLevel>";
         final ChunkItem expectedResult = new ChunkItemBuilder().setData(xml).build();
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
@@ -189,15 +189,16 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     @Test
     public void xmlActualEncodingDiffersFromDeclared_throws() {
         final String xml =
-                  "<?xml version='1.0' encoding='UTF-8'?>"
-                + "<test>"
-                + "<child1>æøå</child1>"
-                + "</test>";
+                "<?xml version='1.0' encoding='UTF-8'?>"
+                        + "<test>"
+                        + "<child1>æøå</child1>"
+                        + "</test>";
         final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml, StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8.name());
         try {
             dataPartitioner.iterator();
             fail("No PrematureEndOfDataException thrown");
-        } catch (PrematureEndOfDataException e) {}
+        } catch (PrematureEndOfDataException e) {
+        }
     }
 
     @Test

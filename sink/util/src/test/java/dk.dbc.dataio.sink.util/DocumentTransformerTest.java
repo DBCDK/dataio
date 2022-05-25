@@ -115,15 +115,15 @@ public class DocumentTransformerTest {
     }
 
     private String getXmlSingleElement() {
-        return  "<ns:root xmlns:ns=\"ns\">" +
-                    "<ns:element attribute=\"attributeValue\"/>" +
+        return "<ns:root xmlns:ns=\"ns\">" +
+                "<ns:element attribute=\"attributeValue\"/>" +
                 "</ns:root>";
     }
 
     private String getXmlMultipleElements() {
-        return  "<ns:root xmlns:ns=\"ns\">" +
-                    "<ns:element attribute=\"attributeValue\"/>" +
-                    "<ns:element attribute=\"attributeValue\"/>" +
+        return "<ns:root xmlns:ns=\"ns\">" +
+                "<ns:element attribute=\"attributeValue\"/>" +
+                "<ns:element attribute=\"attributeValue\"/>" +
                 "</ns:root>";
     }
 }

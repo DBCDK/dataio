@@ -5,8 +5,8 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.es.entity.es.DiagnosticsEntity;
 import dk.dbc.dataio.sink.es.entity.es.SuppliedRecordsEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskPackageRecordStructureEntity;
@@ -25,9 +25,9 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ESTaskPackageUtilTest {
     private static final long JOB_ID = 11L;
@@ -164,7 +164,6 @@ public class ESTaskPackageUtilTest {
     }
 
 
-
     /// -- added
     @Test
     public void getChunkForTaskPackage() throws SQLException, ClassNotFoundException, IOException {
@@ -192,7 +191,7 @@ public class ESTaskPackageUtilTest {
                 .addAddiRecordWithFailed(ADDI_OK, "reference in 014 00 a to 26907268 unknown")
                 .createTaskpackageEntity();
 
-        final Chunk chunk = ESTaskPackageUtil.getChunkForTaskPackage( taskPackage, placeholderChunk);
+        final Chunk chunk = ESTaskPackageUtil.getChunkForTaskPackage(taskPackage, placeholderChunk);
         final Iterator<ChunkItem> iterator = chunk.iterator();
         ChunkItem next = iterator.next();
         assertThat("ChunkItem0.getStatus()", next.getStatus(), is(ChunkItem.Status.IGNORE));
@@ -255,7 +254,7 @@ public class ESTaskPackageUtilTest {
                 .addAddiRecordWithSuccess(ADDI_OK, "pid:0b")
                 .createTaskpackageEntity();
 
-        final Chunk chunk = ESTaskPackageUtil.getChunkForTaskPackage( taskPackage, placeholderChunk);
+        final Chunk chunk = ESTaskPackageUtil.getChunkForTaskPackage(taskPackage, placeholderChunk);
         final Iterator<ChunkItem> iterator = chunk.iterator();
         ChunkItem next = iterator.next();
         assertThat("ChunkItem0.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
@@ -271,14 +270,14 @@ public class ESTaskPackageUtilTest {
 
     private static class TPCreator {
 
-        private TaskSpecificUpdateEntity taskPackage=new TaskSpecificUpdateEntity();
-        private List<SuppliedRecordsEntity> records=new ArrayList<>();
+        private TaskSpecificUpdateEntity taskPackage = new TaskSpecificUpdateEntity();
+        private List<SuppliedRecordsEntity> records = new ArrayList<>();
         private List<TaskPackageRecordStructureEntity> taskPackageRecordStructures = new ArrayList<>();
 
 
         public TPCreator(String dbname) {
             taskPackage.setDatabasename(dbname);
-            taskPackage.setTargetreference( 1 );
+            taskPackage.setTargetreference(1);
         }
 
         public TPCreator addAddiRecordWithSuccess(String addi, String record_id) {
@@ -286,7 +285,7 @@ public class ESTaskPackageUtilTest {
                 throw new NullPointerException("Arguements to addAddiRecordWithSuccess can not be null!");
             }
 
-            int lbnr=records.size();
+            int lbnr = records.size();
             createRecordStructure(lbnr, record_id, TaskPackageRecordStructureEntity.RecordStatus.SUCCESS);
 
             createSuppliedRecord(lbnr, addi);
@@ -300,7 +299,7 @@ public class ESTaskPackageUtilTest {
                 throw new NullPointerException("Arguements to addAddiRecordWithQueued can not be null!");
             }
 
-            int lbnr=records.size();
+            int lbnr = records.size();
             createRecordStructure(lbnr, "", TaskPackageRecordStructureEntity.RecordStatus.QUEUED);
             createSuppliedRecord(lbnr, addi);
 
@@ -311,7 +310,7 @@ public class ESTaskPackageUtilTest {
             if (addi == null) {
                 throw new NullPointerException("Arguements to addAddiRecordWithInprocess can not be null!");
             }
-            int lbnr=records.size();
+            int lbnr = records.size();
             createRecordStructure(lbnr, "", TaskPackageRecordStructureEntity.RecordStatus.IN_PROCESS);
             createSuppliedRecord(lbnr, addi);
 
@@ -322,7 +321,7 @@ public class ESTaskPackageUtilTest {
             if (addi == null || message == null) {
                 throw new NullPointerException("Arguements to addAddiRecordWithFailed can not be null!");
             }
-            int lbnr=records.size();
+            int lbnr = records.size();
             createRecordStructure_withDiag(lbnr, "", TaskPackageRecordStructureEntity.RecordStatus.FAILURE, message);
             createSuppliedRecord(lbnr, addi);
 
@@ -339,33 +338,33 @@ public class ESTaskPackageUtilTest {
         }
 
         private void createSuppliedRecord(int lbnr, String addi) {
-            SuppliedRecordsEntity suppliedRecord=new SuppliedRecordsEntity();
-            suppliedRecord.lbnr=lbnr;
+            SuppliedRecordsEntity suppliedRecord = new SuppliedRecordsEntity();
+            suppliedRecord.lbnr = lbnr;
             suppliedRecord.metaData = addi;
             suppliedRecord.record = "Missing".getBytes();
-            records.add( suppliedRecord );
+            records.add(suppliedRecord);
         }
 
-        private void createRecordStructure(int lbnr, String record_id, TaskPackageRecordStructureEntity.RecordStatus recordStatus ) {
-            TaskPackageRecordStructureEntity recordStructure=new TaskPackageRecordStructureEntity();
+        private void createRecordStructure(int lbnr, String record_id, TaskPackageRecordStructureEntity.RecordStatus recordStatus) {
+            TaskPackageRecordStructureEntity recordStructure = new TaskPackageRecordStructureEntity();
             recordStructure.lbnr = lbnr;
-            recordStructure.recordStatus= recordStatus;
+            recordStructure.recordStatus = recordStatus;
             recordStructure.record_id = record_id;
             taskPackageRecordStructures.add(recordStructure);
         }
 
-        private void createRecordStructure_withDiag(int lbnr, String record_id, TaskPackageRecordStructureEntity.RecordStatus recordStatus, String message ) {
-            TaskPackageRecordStructureEntity recordStructure=new TaskPackageRecordStructureEntity();
+        private void createRecordStructure_withDiag(int lbnr, String record_id, TaskPackageRecordStructureEntity.RecordStatus recordStatus, String message) {
+            TaskPackageRecordStructureEntity recordStructure = new TaskPackageRecordStructureEntity();
             recordStructure.lbnr = lbnr;
-            recordStructure.recordStatus= recordStatus;
+            recordStructure.recordStatus = recordStatus;
             recordStructure.record_id = record_id;
             recordStructure.diagnosticId = 1;
             List<DiagnosticsEntity> diags = new ArrayList<>();
-            diags.add( new DiagnosticsEntity(0, message));
+            diags.add(new DiagnosticsEntity(0, message));
 
 
-            recordStructure.setDiagnosticsEntities( diags );
-            taskPackageRecordStructures.add( recordStructure);
+            recordStructure.setDiagnosticsEntities(diags);
+            taskPackageRecordStructures.add(recordStructure);
         }
     }
 

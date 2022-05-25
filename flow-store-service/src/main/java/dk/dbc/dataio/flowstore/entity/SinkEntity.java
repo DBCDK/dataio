@@ -8,7 +8,7 @@ import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 
 @Entity
-@SqlResultSetMapping(name="Sink.implicit", entities = {
+@SqlResultSetMapping(name = "Sink.implicit", entities = {
         @EntityResult(entityClass = SinkEntity.class)}
 )
 @NamedNativeQueries({

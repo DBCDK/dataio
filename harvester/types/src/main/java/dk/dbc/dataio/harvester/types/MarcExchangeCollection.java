@@ -55,10 +55,11 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
     /**
      * Extracts record from given MARC Exchange document (either as collection or
      * standalone record) and adds it to this collection
-     * @param memberData  MARC Exchange document as byte array
+     *
+     * @param memberData MARC Exchange document as byte array
      * @throws HarvesterInvalidRecordException If given null-valued memberData argument,
-     * if given byte array can not be parsed as marcXchange,
-     * if given memberData is itself a collection with more than one record.
+     *                                         if given byte array can not be parsed as marcXchange,
+     *                                         if given memberData is itself a collection with more than one record.
      */
     public void addMember(byte[] memberData) throws HarvesterException {
         if (memberData == null) {

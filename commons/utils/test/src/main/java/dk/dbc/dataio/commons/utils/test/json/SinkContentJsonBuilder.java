@@ -31,7 +31,7 @@ public class SinkContentJsonBuilder extends JsonBuilder {
     }
 
     public SinkContentJsonBuilder setSinkConfig(String sinkConfig) {
-            this.sinkConfig = sinkConfig;
+        this.sinkConfig = sinkConfig;
         return this;
     }
 
@@ -49,7 +49,7 @@ public class SinkContentJsonBuilder extends JsonBuilder {
         stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("description", description));
         stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("sinkType", sinkType == null? null : sinkType.name()));
+        stringBuilder.append(asTextMember("sinkType", sinkType == null ? null : sinkType.name()));
         stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asObjectMember("sinkConfig", sinkConfig));
         stringBuilder.append(MEMBER_DELIMITER);

@@ -13,11 +13,14 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     // Instantiate UI Binder
-    interface MyUiBinder extends UiBinder<Widget, ViewWidget> {}
+    interface MyUiBinder extends UiBinder<Widget, ViewWidget> {
+    }
+
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
     // UI Fields
-    @UiField CellTable flowsTable;
+    @UiField
+    CellTable flowsTable;
 
     public ViewWidget() {
         super("");
@@ -26,6 +29,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     /**
      * Ui Handler to catch click events on the create button
+     *
      * @param event Clicked event
      */
     @UiHandler("createButton")

@@ -45,8 +45,7 @@ public class JobRerunProxyImpl implements JobRerunProxy {
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             log.error("JobRerunProxy: parse - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
-        }
-        catch(FlowStoreServiceConnectorException e) {
+        } catch (FlowStoreServiceConnectorException e) {
             log.error("JobRerunProxy: parse - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }

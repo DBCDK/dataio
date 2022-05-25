@@ -110,8 +110,8 @@ public final class ItemModelMapper {
      * @return true if a diagnostic with level FATAL is located, otherwise false
      */
     private static boolean hasFatalDiagnostic(List<Diagnostic> diagnostics) {
-        for(Diagnostic diagnostic : diagnostics) {
-            if(diagnostic.getLevel() == Diagnostic.Level.FATAL) {
+        for (Diagnostic diagnostic : diagnostics) {
+            if (diagnostic.getLevel() == Diagnostic.Level.FATAL) {
                 return true;
             }
         }
@@ -200,9 +200,9 @@ public final class ItemModelMapper {
     private static ItemModel.LifeCycle searchAll(State state) {
         ItemModel.LifeCycle lifeCycle = ItemModel.LifeCycle.PARTITIONING; //Default value;
         if (state.allPhasesAreDone()) {
-            if(state.getPhase(State.Phase.PARTITIONING).getFailed() > 0) {
+            if (state.getPhase(State.Phase.PARTITIONING).getFailed() > 0) {
                 lifeCycle = ItemModel.LifeCycle.PARTITIONING_FAILED;
-            } else if(state.getPhase(State.Phase.PARTITIONING).getIgnored() > 0) {
+            } else if (state.getPhase(State.Phase.PARTITIONING).getIgnored() > 0) {
                 lifeCycle = ItemModel.LifeCycle.PARTITIONING_IGNORED;
             } else if (state.getPhase(State.Phase.PROCESSING).getFailed() > 0) {
                 lifeCycle = ItemModel.LifeCycle.PROCESSING_FAILED;
@@ -210,7 +210,7 @@ public final class ItemModelMapper {
                 lifeCycle = ItemModel.LifeCycle.PROCESSING_IGNORED;
             } else if (state.getPhase(State.Phase.DELIVERING).getFailed() > 0) {
                 lifeCycle = ItemModel.LifeCycle.DELIVERING_FAILED;
-            } else if(state.getPhase(State.Phase.DELIVERING).getIgnored() > 0) {
+            } else if (state.getPhase(State.Phase.DELIVERING).getIgnored() > 0) {
                 lifeCycle = ItemModel.LifeCycle.DELIVERING_IGNORED;
             } else {
                 lifeCycle = ItemModel.LifeCycle.DONE;

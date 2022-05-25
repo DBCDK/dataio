@@ -7,12 +7,10 @@ import dk.dbc.dataio.gui.client.pages.navigation.NavigationPanel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
- *
  * This is the main panel for the dataio user interface
  * The main panel is divided in two areas:
- *  o The Navigation area (maintained by Navigation Panel)
- *  o The Content area (maintained by Content Panel)
- *
+ * o The Navigation area (maintained by Navigation Panel)
+ * o The Content area (maintained by Content Panel)
  */
 public class MainPanel extends DockLayoutPanel {
     public static final String GUIID_MAIN_PANEL = "main-panel";

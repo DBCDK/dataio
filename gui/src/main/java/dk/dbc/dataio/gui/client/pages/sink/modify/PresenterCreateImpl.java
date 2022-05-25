@@ -20,7 +20,8 @@ public class PresenterCreateImpl extends PresenterImpl {
 
     /**
      * Constructor
-     * @param header            header
+     *
+     * @param header header
      */
     public PresenterCreateImpl(String header) {
         super(header);
@@ -30,8 +31,9 @@ public class PresenterCreateImpl extends PresenterImpl {
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -112,5 +114,6 @@ public class PresenterCreateImpl extends PresenterImpl {
     /**
      * This has no implementation because "Create" does not have a delete button!
      */
-    public void deleteButtonPressed() {}
+    public void deleteButtonPressed() {
+    }
 }

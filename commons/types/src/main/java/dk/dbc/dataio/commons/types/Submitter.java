@@ -7,8 +7,8 @@ import dk.dbc.invariant.InvariantUtil;
 import java.io.Serializable;
 
 /**
-* Submitter DTO class.
-*/
+ * Submitter DTO class.
+ */
 public class Submitter implements Serializable {
     private static final long serialVersionUID = -2728868887371312413L;
 
@@ -19,11 +19,10 @@ public class Submitter implements Serializable {
     /**
      * Class constructor
      *
-     * @param id submitter id (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
+     * @param id      submitter id (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
      * @param version submitter version (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_VERSION_LOWER_BOUND})
      * @param content submitter content
-     *
-     * @throws NullPointerException if given null-valued content argument
+     * @throws NullPointerException     if given null-valued content argument
      * @throws IllegalArgumentException if value of id or version is less than lower bound
      */
     @JsonCreator

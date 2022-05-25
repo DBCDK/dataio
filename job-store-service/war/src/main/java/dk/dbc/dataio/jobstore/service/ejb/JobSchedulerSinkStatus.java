@@ -47,7 +47,7 @@ class JobSchedulerSinkStatus {
         }
 
         boolean isDirectSubmitMode() {
-                return getMode() != JobSchedulerBean.QueueSubmitMode.BULK;
+            return getMode() != JobSchedulerBean.QueueSubmitMode.BULK;
         }
     }
 }

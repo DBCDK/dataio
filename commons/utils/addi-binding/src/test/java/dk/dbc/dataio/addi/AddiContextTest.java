@@ -15,7 +15,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class AddiContextTest {
     public static final String ES_REFERENCE_DATA_XML_TEMPLATE =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-            "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">%s%s%s</es:referencedata>";
+                    "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">%s%s%s</es:referencedata>";
 
     public static final String ES_DIRECTIVES =
             "<es:info submitter=\"820040\" format=\"katalog\" language=\"dan\" contentFrom=\"820040\"/>";

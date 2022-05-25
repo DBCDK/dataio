@@ -7,13 +7,16 @@ import java.util.Set;
 public class JobRerunScheme implements Serializable {
 
     public static final String TICKLE_TOTAL = "dataio/sinks/tickle-repo/total";
-    public enum Action { COPY, RERUN_ALL, RERUN_FAILED }
-    public enum Type { RR, TICKLE, ORIGINAL_FILE }
+
+    public enum Action {COPY, RERUN_ALL, RERUN_FAILED}
+
+    public enum Type {RR, TICKLE, ORIGINAL_FILE}
 
     private Set<Action> actions;
     private Type type;
 
-    public JobRerunScheme() {}
+    public JobRerunScheme() {
+    }
 
     public Type getType() {
         return type;

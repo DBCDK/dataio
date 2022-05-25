@@ -29,12 +29,13 @@ public class LogEntriesBean {
 
     /**
      * Retrieves log for given item in given chunk in given job
-     * @param jobId ID of job
+     *
+     * @param jobId   ID of job
      * @param chunkId ID of chunk in job
-     * @param itemId ID of item in chunk
+     * @param itemId  ID of item in chunk
      * @return a HTTP 200 OK response with log entries as text
-     *         a HTTP 404 NOT_FOUND response in case no log entries could be found
-     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     * a HTTP 404 NOT_FOUND response in case no log entries could be found
+     * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      */
     @GET
     @Path(LogStoreServiceConstants.ITEM_LOG_ENTRY_COLLECTION)

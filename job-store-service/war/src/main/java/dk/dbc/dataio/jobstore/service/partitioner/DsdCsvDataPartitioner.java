@@ -12,12 +12,13 @@ import java.io.InputStream;
 public class DsdCsvDataPartitioner extends CsvDataPartitioner {
     /**
      * Creates new instance of DataPartitioner for CSV data
-     * @param inputStream stream from which csv records can be read
+     *
+     * @param inputStream  stream from which csv records can be read
      * @param encodingName encoding specified in job specification
-     * @throws NullPointerException if given null-valued argument
+     * @return new instance of DsdCsvDataPartitioner
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
      * @throws InvalidEncodingException if encoding can not be deduced from given encoding name
-     * @return new instance of DsdCsvDataPartitioner
      */
     public static DsdCsvDataPartitioner newInstance(InputStream inputStream, String encodingName)
             throws NullPointerException, IllegalArgumentException, InvalidEncodingException {

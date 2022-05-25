@@ -18,7 +18,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class QueueProviderFilter extends BaseFlowBinderFilter {
-    interface QueueProviderFilterUiBinder extends UiBinder<HTMLPanel, QueueProviderFilter> {}
+    interface QueueProviderFilterUiBinder extends UiBinder<HTMLPanel, QueueProviderFilter> {
+    }
 
     private static QueueProviderFilterUiBinder ourUiBinder = GWT.create(QueueProviderFilterUiBinder.class);
 
@@ -38,10 +39,12 @@ public class QueueProviderFilter extends BaseFlowBinderFilter {
         setParameter(parameter);
     }
 
-    @UiField PromptedTextBox queueProvider;
+    @UiField
+    PromptedTextBox queueProvider;
 
     /**
      * Event handler for handling changes in the queue provider value
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler("queueProvider")
@@ -73,6 +76,7 @@ public class QueueProviderFilter extends BaseFlowBinderFilter {
     /**
      * Sets the selection according to the key value, setup in the parameter attribute<br>
      * The value is given in url as a plain string
+     *
      * @param filterParameter filter parameters to be used by this filter
      */
     @Override
@@ -90,6 +94,7 @@ public class QueueProviderFilter extends BaseFlowBinderFilter {
     /**
      * Explicitly focus/unfocus this widget. Only one widget can have focus
      * at a time, and the widget that does will receive all keyboard events.
+     *
      * @param focused whether this widget should take focus or release it
      */
     @Override
@@ -99,6 +104,6 @@ public class QueueProviderFilter extends BaseFlowBinderFilter {
 
     @Override
     public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
-        return queueProvider.addChangeHandler( changeHandler );
+        return queueProvider.addChangeHandler(changeHandler);
     }
 }

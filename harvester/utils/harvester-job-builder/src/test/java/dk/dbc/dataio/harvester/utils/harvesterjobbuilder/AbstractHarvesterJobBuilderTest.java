@@ -65,13 +65,13 @@ public class AbstractHarvesterJobBuilderTest {
 
     @Test
     public void constructor_jobStoreServiceConnectorArgIsNull_throws() {
-        assertThat(() ->  new AbstractHarvesterJobBuilderImpl(binaryFileStore, fileStoreServiceConnector, null, jobSpecificationTemplate),
+        assertThat(() -> new AbstractHarvesterJobBuilderImpl(binaryFileStore, fileStoreServiceConnector, null, jobSpecificationTemplate),
                 isThrowing(NullPointerException.class));
     }
 
     @Test
     public void constructor_jobSpecificationTemplateArgIsNull_throws() {
-        assertThat(() ->  new AbstractHarvesterJobBuilderImpl(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector, null),
+        assertThat(() -> new AbstractHarvesterJobBuilderImpl(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector, null),
                 isThrowing(NullPointerException.class));
     }
 
@@ -249,4 +249,4 @@ public class AbstractHarvesterJobBuilderTest {
                 .withDataFile("placeholder")
                 .withType(JobSpecification.Type.TEST);
     }
- }
+}

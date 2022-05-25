@@ -150,7 +150,7 @@ public class HarvestOperationTest {
     @Test
     public void breakOnMaxBatchSizeExceeded()
             throws HarvesterException, OaiConnectorException,
-                   FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+            FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         final Header header = new Header();
         header.setIdentifier("recordId");
         final Record record = new Record();

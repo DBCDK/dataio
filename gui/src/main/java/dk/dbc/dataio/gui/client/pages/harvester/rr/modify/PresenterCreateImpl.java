@@ -15,9 +15,10 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl {
     /**
      * Constructor
+     *
      * @param header The header
      */
-    public PresenterCreateImpl( String header) {
+    public PresenterCreateImpl(String header) {
         super(header);
 
     }
@@ -26,8 +27,9 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -41,7 +43,7 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
     @Override
     public void initializeModel() {
 
-        RRHarvesterConfig rrHarvesterConfig = new RRHarvesterConfig(1,1, new RRHarvesterConfig.Content()
+        RRHarvesterConfig rrHarvesterConfig = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()
                 .withEnabled(false)
                 .withType(JobSpecification.Type.TRANSIENT)
                 .withIncludeRelations(true)
@@ -66,7 +68,8 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
     /**
      * This has no implementation because "Create" does not have a delete button!
      */
-    public void deleteButtonPressed() {}
+    public void deleteButtonPressed() {
+    }
 
 
     /*
@@ -79,6 +82,7 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
             String msg = "HarvesterConfig.id: [new Harvester]";
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(RRHarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());

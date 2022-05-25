@@ -23,15 +23,14 @@ public class SubmitterContent implements Serializable {
     /**
      * Class constructor
      *
-     * @param number submitter number (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
-     * @param name submitter name
+     * @param number      submitter number (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
+     * @param name        submitter name
      * @param description submitter description
-     * @param priority priority of this submitter
-     * @param enabled flag setting the status of the submitter (enabled or disabled for job creation)
-     *
-     * @throws NullPointerException if given null-valued name or description argument
+     * @param priority    priority of this submitter
+     * @param enabled     flag setting the status of the submitter (enabled or disabled for job creation)
+     * @throws NullPointerException     if given null-valued name or description argument
      * @throws IllegalArgumentException if given empty-valued name or description argument, or if
-     * value of number is not larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND}
+     *                                  value of number is not larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND}
      */
     @JsonCreator
     public SubmitterContent(@JsonProperty("number") long number,

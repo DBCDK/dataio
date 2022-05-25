@@ -1,4 +1,3 @@
-
 package dk.dbc.oclc.wciru;
 
 
@@ -18,5 +17,7 @@ public class WciruServiceConnectorRetryException extends WciruServiceConnectorEx
         this.numberOfRetries = numberOfRetries;
     }
 
-    public int getNumberOfRetries() { return numberOfRetries; }
+    public int getNumberOfRetries() {
+        return numberOfRetries;
+    }
 }

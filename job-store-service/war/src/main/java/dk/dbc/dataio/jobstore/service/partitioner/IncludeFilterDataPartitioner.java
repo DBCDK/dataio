@@ -1,7 +1,7 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.nio.charset.Charset;
 import java.util.BitSet;

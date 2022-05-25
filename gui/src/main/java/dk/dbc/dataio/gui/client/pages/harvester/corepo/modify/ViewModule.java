@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.modify;
 
 import com.google.gwt.inject.client.AbstractGinModule;

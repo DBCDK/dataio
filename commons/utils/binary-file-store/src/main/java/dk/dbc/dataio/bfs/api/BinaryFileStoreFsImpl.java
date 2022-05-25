@@ -12,8 +12,9 @@ public class BinaryFileStoreFsImpl implements BinaryFileStore {
 
     /**
      * Class constructor
+     *
      * @param base base path of file system store
-     * @throws NullPointerException if given null-valued base argument
+     * @throws NullPointerException     if given null-valued base argument
      * @throws IllegalArgumentException if given base path is non-absolute
      */
     public BinaryFileStoreFsImpl(Path base) throws NullPointerException, IllegalArgumentException {
@@ -26,9 +27,10 @@ public class BinaryFileStoreFsImpl implements BinaryFileStore {
 
     /**
      * Returns file system binary file representation associated with given path
+     *
      * @param path binary file path relative to base path specified in constructor
      * @return binary file representation
-     * @throws NullPointerException if given null-valued path argument
+     * @throws NullPointerException     if given null-valued path argument
      * @throws IllegalArgumentException if given absolute path
      */
     @Override

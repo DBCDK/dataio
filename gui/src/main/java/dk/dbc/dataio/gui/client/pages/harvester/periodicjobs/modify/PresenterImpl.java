@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;

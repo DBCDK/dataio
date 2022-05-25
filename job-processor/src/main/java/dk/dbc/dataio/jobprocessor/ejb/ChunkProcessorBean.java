@@ -38,8 +38,9 @@ public class ChunkProcessorBean {
 
     /**
      * Processes given chunk with business logic dictated by given flow
-     * @param chunk chunk
-     * @param flow flow containing business logic
+     *
+     * @param chunk          chunk
+     * @param flow           flow containing business logic
      * @param additionalArgs supplementary process data
      * @return result of processing
      */
@@ -78,7 +79,8 @@ public class ChunkProcessorBean {
 
     /**
      * Returns flow identified by given ID and version if already cached by this processor thread
-     * @param flowId flow ID
+     *
+     * @param flowId      flow ID
      * @param flowVersion flow version
      * @return Flow instance if cached, empty if not
      */
@@ -121,7 +123,7 @@ public class ChunkProcessorBean {
     private List<ChunkItem> processItemsWithNextRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, String additionalArgs) {
         if (!flowCacheEntry.next.isEmpty()) {
             return processItems(chunk, new ChunkItemProcessor(chunk.getJobId(), chunk.getChunkId(),
-                flowCacheEntry.next, additionalArgs));
+                    flowCacheEntry.next, additionalArgs));
         }
         return null;
     }

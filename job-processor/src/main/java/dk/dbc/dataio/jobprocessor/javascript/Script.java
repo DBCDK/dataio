@@ -9,7 +9,7 @@ import java.util.List;
 public class Script {
     public static final String INTERNAL_LOAD_REQUIRE_CACHE = "__internal_load_require_cache";
     public static final String DEFINE_REQUIRE_CACHE_FUNCTION_JAVASCRIPT = "use(\"Require\");\n" +
-            "function "+ INTERNAL_LOAD_REQUIRE_CACHE + "( json ) {\n" +
+            "function " + INTERNAL_LOAD_REQUIRE_CACHE + "( json ) {\n" +
             "Require.setCache( JSON.parse(json) );\n" +
             "};";
 
@@ -19,15 +19,15 @@ public class Script {
 
     public Script(String scriptId, String invocationMethod,
                   List<StringSourceSchemeHandler.Script> javascripts,
-                  String requireCacheJson ) throws Throwable {
+                  String requireCacheJson) throws Throwable {
         final ModuleHandler mh = new ModuleHandler();
         StringSourceSchemeHandler sssh = new StringSourceSchemeHandler(javascripts);
         mh.registerHandler("string", sssh);
         mh.addSearchPath(new SchemeURI("string", "."));
         jsEnvironment = new Environment();
         jsEnvironment.registerUseFunction(mh);
-        if( requireCacheJson != null ) {
-            loadRequireCache( requireCacheJson );
+        if (requireCacheJson != null) {
+            loadRequireCache(requireCacheJson);
         }
         jsEnvironment.eval(javascripts.get(0).javascript);
         this.scriptId = scriptId;

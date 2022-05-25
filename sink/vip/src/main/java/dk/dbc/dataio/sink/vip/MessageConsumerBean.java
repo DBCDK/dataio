@@ -36,7 +36,8 @@ import java.util.Optional;
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
-    @EJB ConfigBean configBean;
+    @EJB
+    ConfigBean configBean;
 
     private VipSinkConfig config;
     private VipCoreConnector vipCoreConnector;

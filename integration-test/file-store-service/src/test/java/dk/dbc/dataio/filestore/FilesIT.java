@@ -73,8 +73,9 @@ public class FilesIT {
         Testcontainers.exposeHostPorts(Integer.parseInt(
                 System.getProperty("filestore.it.postgresql.port")));
     }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(FilesIT.class);
-    private static final int MiB = 1024*1024;
+    private static final int MiB = 1024 * 1024;
     private static final int BUFFER_SIZE = 8192;
 
     @ClassRule
@@ -187,11 +188,11 @@ public class FilesIT {
 
         // Then the file of type marcconv which is more than three months old is no longer present.
         //   The rest is left untouched.
-        final InputStream bazContent  = fileStoreServiceConnector
+        final InputStream bazContent = fileStoreServiceConnector
                 .getFile(bazFileId);
         final InputStream recentMarcconvContent = fileStoreServiceConnector
                 .getFile(recentMarcconvFileId);
-        assertThat("recent marcconv file is still there",StringUtil.asString(recentMarcconvContent), is("marcconv sink output data. More recent."));
+        assertThat("recent marcconv file is still there", StringUtil.asString(recentMarcconvContent), is("marcconv sink output data. More recent."));
         assertThat("baz file still there", StringUtil.asString(bazContent), is("baz"));
         assertThat(() -> fileStoreServiceConnector.getFile(marcconvFileId), isThrowing(FileStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
@@ -221,9 +222,9 @@ public class FilesIT {
         final InputStream inputStream = new ByteArrayInputStream(data);
         final String fileId = fileStoreServiceConnector.addFile(inputStream);
 
-            // Then...
+        // Then...
         final long byteSize = fileStoreServiceConnector.getByteSize(fileId);
-        assertThat(byteSize, is((long)data.length));
+        assertThat(byteSize, is((long) data.length));
     }
 
     /**
@@ -283,9 +284,9 @@ public class FilesIT {
 
     /**
      * Given: a deployed file-store service
-     *  When: adding a gzip'ed fil
-     *  Then: the file content can be retrieved in its decompressed form
-     *   And: the file byte size is reported for its decompressed form
+     * When: adding a gzip'ed fil
+     * Then: the file content can be retrieved in its decompressed form
+     * And: the file byte size is reported for its decompressed form
      */
     @Test
     public void gzipDefaultHandling() throws IOException, FileStoreServiceConnectorException {

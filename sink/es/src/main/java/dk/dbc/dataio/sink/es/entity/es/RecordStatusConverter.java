@@ -9,20 +9,19 @@ import static dk.dbc.dataio.sink.es.entity.es.TaskPackageRecordStructureEntity.R
 /**
  * Created by ja7 on 05-10-14.
  * JPA Converter Class for enum RecordStatus
- *
-           recordStatus        [3] IMPLICIT INTEGER{
-                                    success      (1),
-                                    queued       (2),
-                                    inProcess    (3),
-                                    failure      (4)}}
-
+ * <p>
+ * recordStatus        [3] IMPLICIT INTEGER{
+ * success      (1),
+ * queued       (2),
+ * inProcess    (3),
+ * failure      (4)}}
  */
 @Converter(autoApply = true)
-public class RecordStatusConverter  implements AttributeConverter<RecordStatus, Integer> {
+public class RecordStatusConverter implements AttributeConverter<RecordStatus, Integer> {
 
     @Override
     public Integer convertToDatabaseColumn(TaskPackageRecordStructureEntity.RecordStatus recordStatus) {
-        switch ( recordStatus ) {
+        switch (recordStatus) {
             case SUCCESS:
                 return 1;
             case QUEUED:
@@ -38,7 +37,7 @@ public class RecordStatusConverter  implements AttributeConverter<RecordStatus, 
 
     @Override
     public RecordStatus convertToEntityAttribute(Integer integer) {
-        switch ( integer ) {
+        switch (integer) {
             case 1:
                 return RecordStatus.SUCCESS;
             case 2:

@@ -39,13 +39,18 @@ public class SinkMessageProducerBeanTest {
 
     private final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
     private final Sink sink = new SinkBuilder().build();
-    private final FlowStoreReferences flowStoreReferences = new FlowStoreReferences(); {
+    private final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+
+    {
         flowStoreReferences.setReference(FlowStoreReferences.Elements.SINK,
                 new FlowStoreReference(sink.getId(), sink.getVersion(), sink.getContent().getName()));
         flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER,
                 new FlowStoreReference(42, 1, "test-binder"));
     }
-    private final JobEntity jobEntity = new JobEntity();{
+
+    private final JobEntity jobEntity = new JobEntity();
+
+    {
         jobEntity.setCachedSink(sinkCacheEntity);
         jobEntity.setFlowStoreReferences(flowStoreReferences);
     }

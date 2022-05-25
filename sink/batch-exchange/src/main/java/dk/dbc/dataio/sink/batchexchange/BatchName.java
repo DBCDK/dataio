@@ -31,6 +31,7 @@ public class BatchName {
 
     /**
      * Creates new batch name from chunk
+     *
      * @param chunk chunk for which a batch name is to be generated
      * @return BatchName object
      */
@@ -40,6 +41,7 @@ public class BatchName {
 
     /**
      * Creates new batch name from given string which must be formatted as [JOB_ID]-[CHUNK_ID]
+     *
      * @param name name to be parsed
      * @return BatchName object
      * @throws IllegalArgumentException if given invalid name string

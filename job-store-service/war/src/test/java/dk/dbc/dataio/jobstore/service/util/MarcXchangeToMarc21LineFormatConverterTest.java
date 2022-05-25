@@ -31,7 +31,7 @@ public class MarcXchangeToMarc21LineFormatConverterTest {
     private final String endTag = "\n";
     private final String expectedRecordAsLineFormat =
             "245 12 $aA *programmer is born$beveryday@dbc\n" +
-            "530    $ithis is to be used in test$ testing blank subfield code\n";
+                    "530    $ithis is to be used in test$ testing blank subfield code\n";
 
     private final ChunkItem chunkItemFailed = buildChunkItem(
             asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE);
@@ -73,8 +73,8 @@ public class MarcXchangeToMarc21LineFormatConverterTest {
 
         final String e01Expected =
                 e0100 + "$a" + firstDiagnosticMessage + "\n" +
-                e0100 + "$a" + secondDiagnosticMessage + "\n" +
-                e0100 + "$a" + thirdDiagnosticMessage + "\n";
+                        e0100 + "$a" + secondDiagnosticMessage + "\n" +
+                        e0100 + "$a" + thirdDiagnosticMessage + "\n";
         assertThat(StringUtil.asString(danmarc2LineFormat),
                 is(expectedRecordAsLineFormat + e01Expected + endTag));
     }

@@ -29,6 +29,7 @@ public class JobQueueRepository extends RepositoryBase {
 
     /**
      * Adds given {@link JobQueueEntity} to queue in waiting state
+     *
      * @param jobQueueEntity entry to be added to queue
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -39,6 +40,7 @@ public class JobQueueRepository extends RepositoryBase {
 
     /**
      * Removes given {@link JobQueueEntity} from queue
+     *
      * @param jobQueueEntity entry to be removed
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -64,6 +66,7 @@ public class JobQueueRepository extends RepositoryBase {
      * Exclusively seizes head of queue for given {@link Sink} if it
      * is in {@link dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.State#WAITING} state
      * and updates it to {@link dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.State#IN_PROGRESS}
+     *
      * @param sink {@link Sink} for which the head entry is to be seized
      * @return {@link JobQueueEntity} if the head entry was seized, empty if not
      */
@@ -71,7 +74,7 @@ public class JobQueueRepository extends RepositoryBase {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public Optional<JobQueueEntity> seizeHeadOfQueueIfWaiting(Sink sink) {
         final TypedQuery<JobQueueEntity> query = entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_BY_SINK_AND_AVAILABLE_SUBMITTER,
-                JobQueueEntity.class)
+                        JobQueueEntity.class)
                 .setParameter(JobQueueEntity.FIELD_SINK_ID, sink.getId());
 
         final List rs = query.getResultList();

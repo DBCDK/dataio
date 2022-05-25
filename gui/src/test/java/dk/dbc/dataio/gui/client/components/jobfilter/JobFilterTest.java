@@ -49,20 +49,34 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class JobFilterTest {
-    @Mock Scheduler.ScheduledCommand mockedAddCommand1;
-    @Mock Scheduler.ScheduledCommand mockedAddCommand2;
-    @Mock JobFilterList.JobFilterItem mockedJobFilterItem1;
-    @Mock JobFilterList.JobFilterItem mockedJobFilterItem2;
-    @Mock BaseJobFilter mockedJobFilter1;
-    @Mock BaseJobFilter mockedJobFilter2;
-    @Mock ChangeHandler mockedChangeHandler;
-    @Mock JobFilterPanel mockedJobFilterPanel;
-    @Mock BaseJobFilter mockedBaseJobFilterWidget;
-    @Mock AbstractBasePlace mockedPlace;
-    @Mock Presenter mockedPresenter;
-    @Mock View mockedView;
-    @Mock PopupListBox mockedChangeColorSchemeListBox;
-    @Mock JobFilter mockedJobFilter;
+    @Mock
+    Scheduler.ScheduledCommand mockedAddCommand1;
+    @Mock
+    Scheduler.ScheduledCommand mockedAddCommand2;
+    @Mock
+    JobFilterList.JobFilterItem mockedJobFilterItem1;
+    @Mock
+    JobFilterList.JobFilterItem mockedJobFilterItem2;
+    @Mock
+    BaseJobFilter mockedJobFilter1;
+    @Mock
+    BaseJobFilter mockedJobFilter2;
+    @Mock
+    ChangeHandler mockedChangeHandler;
+    @Mock
+    JobFilterPanel mockedJobFilterPanel;
+    @Mock
+    BaseJobFilter mockedBaseJobFilterWidget;
+    @Mock
+    AbstractBasePlace mockedPlace;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    View mockedView;
+    @Mock
+    PopupListBox mockedChangeColorSchemeListBox;
+    @Mock
+    JobFilter mockedJobFilter;
 
     private List<JobFilterList.JobFilterItem> twoJobFilterList = new ArrayList<>();
     private Map<String, List<JobFilterList.JobFilterItem>> nonEmptyFilters = new java.util.HashMap<>();
@@ -540,6 +554,7 @@ public class JobFilterTest {
     private void setupJobFilterToReturnModel(JobFilter jobFilter, JobListCriteria model, boolean invert) {
         when(jobFilter.jobFilterContainer.iterator()).thenReturn(new Iterator<Widget>() {
             boolean next = true;
+
             @Override
             public boolean hasNext() {
                 if (next) {
@@ -549,6 +564,7 @@ public class JobFilterTest {
                     return false;
                 }
             }
+
             @Override
             public Widget next() {
                 return mockedJobFilterPanel;
@@ -556,6 +572,7 @@ public class JobFilterTest {
         });
         when(mockedJobFilterPanel.iterator()).thenReturn(new Iterator<Widget>() {
             boolean next = true;
+
             @Override
             public boolean hasNext() {
                 if (next) {
@@ -565,6 +582,7 @@ public class JobFilterTest {
                     return false;
                 }
             }
+
             @Override
             public Widget next() {
                 return mockedBaseJobFilterWidget;

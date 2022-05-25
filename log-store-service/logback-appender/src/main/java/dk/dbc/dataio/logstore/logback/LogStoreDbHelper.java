@@ -16,7 +16,8 @@ public class LogStoreDbHelper {
     public static final int CHUNK_ID = 13;
     public static final int ITEM_ID = 14;
 
-    private LogStoreDbHelper() {}
+    private LogStoreDbHelper() {
+    }
 
     public static String getInsertSQL() {
         return "INSERT INTO LOGENTRY(TIMESTAMP, FORMATTED_MESSAGE, LOGGER_NAME, LEVEL_STRING, THREAD_NAME, CALLER_FILENAME, CALLER_CLASS, CALLER_METHOD, CALLER_LINE, STACK_TRACE, MDC, JOB_ID, CHUNK_ID, ITEM_ID)" +

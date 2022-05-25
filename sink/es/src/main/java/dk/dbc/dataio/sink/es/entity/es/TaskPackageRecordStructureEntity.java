@@ -37,10 +37,10 @@ public class TaskPackageRecordStructureEntity {
     https://en.wikibooks.org/wiki/Java_Persistence/OneToMany#Unidirectional_OneToMany.2C_No_Inverse_ManyToOne.2C_No_Join_Table_.28JPA_2.0_ONLY.29
     */
 
-    private transient List<DiagnosticsEntity> diagnosticsEntities=new ArrayList<>();
+    private transient List<DiagnosticsEntity> diagnosticsEntities = new ArrayList<>();
 
-    public List<DiagnosticsEntity> getDiagnosticsEntities( ) {
-        if( diagnosticsEntities.isEmpty() && diagnosticId!=null) {
+    public List<DiagnosticsEntity> getDiagnosticsEntities() {
+        if (diagnosticsEntities.isEmpty() && diagnosticId != null) {
             throw new IllegalStateException("loadDiagnosticsEntities must be called before getDiagnosticesEntities");
         }
         return diagnosticsEntities;
@@ -53,11 +53,11 @@ public class TaskPackageRecordStructureEntity {
     private void fetch_DiagnosticsEntityList(EntityManager em) {
         TypedQuery<DiagnosticsEntity> q = em.createNamedQuery("Diagnostics.findById", DiagnosticsEntity.class);
         q.setParameter("id", diagnosticId);
-        diagnosticsEntities=q.getResultList();
+        diagnosticsEntities = q.getResultList();
     }
 
     public void loadDiagnosticsEntities(EntityManager entityManager) {
-        fetch_DiagnosticsEntityList( entityManager );
+        fetch_DiagnosticsEntityList(entityManager);
     }
 
 

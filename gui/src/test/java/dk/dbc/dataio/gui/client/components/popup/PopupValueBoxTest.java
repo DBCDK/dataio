@@ -27,15 +27,24 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PopupValueBoxTest {
-    @Mock TextBox mockedWidget;
-    @Mock FlowPanel mockedBasePanel;
-    @Mock DialogBox mockedDialogBox;
-    @Mock VerticalPanel mockedContainerPanel;
-    @Mock FlowPanel mockedButtonPanel;
-    @Mock Button mockedOkButton;
-    @Mock Button mockedCancelButton;
-    @Mock Button mockedExtraButton;
-    @Mock ValueChangeHandler mockedValueChangeHandler;
+    @Mock
+    TextBox mockedWidget;
+    @Mock
+    FlowPanel mockedBasePanel;
+    @Mock
+    DialogBox mockedDialogBox;
+    @Mock
+    VerticalPanel mockedContainerPanel;
+    @Mock
+    FlowPanel mockedButtonPanel;
+    @Mock
+    Button mockedOkButton;
+    @Mock
+    Button mockedCancelButton;
+    @Mock
+    Button mockedExtraButton;
+    @Mock
+    ValueChangeHandler mockedValueChangeHandler;
 
     /**
      * Subject Under Test

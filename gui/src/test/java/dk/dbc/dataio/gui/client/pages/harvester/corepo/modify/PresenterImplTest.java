@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.modify;
 
 import com.google.gwt.user.client.ui.Label;
@@ -29,10 +27,10 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
@@ -40,17 +38,28 @@ public class PresenterImplTest extends PresenterImplTestBase {
     /*
      * Mocks
      */
-    @Mock private Texts mockedTexts;
-    @Mock private View mockedView;
-    @Mock private PromptedTextBox mockedName;
-    @Mock private PromptedTextArea mockedDescription;
-    @Mock private PromptedTextBox mockedResource;
-    @Mock private PromptedList mockedRrHarvester;
-    @Mock private PromptedCheckBox mockedEnabled;
-    @Mock private Label mockedStatus;
-    @Mock private Widget mockedWidget;
-    @Mock private CoRepoHarvesterConfig mockedConfig;
-    @Mock private CoRepoHarvesterConfig.Content mockedContent;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private View mockedView;
+    @Mock
+    private PromptedTextBox mockedName;
+    @Mock
+    private PromptedTextArea mockedDescription;
+    @Mock
+    private PromptedTextBox mockedResource;
+    @Mock
+    private PromptedList mockedRrHarvester;
+    @Mock
+    private PromptedCheckBox mockedEnabled;
+    @Mock
+    private Label mockedStatus;
+    @Mock
+    private Widget mockedWidget;
+    @Mock
+    private CoRepoHarvesterConfig mockedConfig;
+    @Mock
+    private CoRepoHarvesterConfig.Content mockedContent;
 
     /*
      * Subject Under Test
@@ -73,14 +82,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         public PresenterImplConcrete(String header) {
             super(header);
         }
-        @Override void initializeModel() {
+
+        @Override
+        void initializeModel() {
             initializeModelCalled = true;
         }
-        @Override void saveModel() {
+
+        @Override
+        void saveModel() {
             saveModelCalled = true;
         }
-        @Override public void deleteButtonPressed() {}
-        String getHeader() { return header; }
+
+        @Override
+        public void deleteButtonPressed() {
+        }
+
+        String getHeader() {
+            return header;
+        }
     }
 
 

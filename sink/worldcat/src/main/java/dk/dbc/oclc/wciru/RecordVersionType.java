@@ -7,8 +7,8 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "recordVersionType", propOrder = {
-    "versionType",
-    "versionValue"
+        "versionType",
+        "versionValue"
 })
 public class RecordVersionType {
 

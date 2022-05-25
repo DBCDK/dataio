@@ -20,7 +20,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class PriorityFilter extends BaseSubmitterFilter {
-    interface PriorityFilterUiBinder extends UiBinder<HTMLPanel, PriorityFilter> {}
+    interface PriorityFilterUiBinder extends UiBinder<HTMLPanel, PriorityFilter> {
+    }
 
     private static PriorityFilterUiBinder ourUiBinder = GWT.create(PriorityFilterUiBinder.class);
 
@@ -43,10 +44,12 @@ public class PriorityFilter extends BaseSubmitterFilter {
         setParameter(parameter);
     }
 
-    @UiField PromptedList priorityList;
+    @UiField
+    PromptedList priorityList;
 
     /**
      * Event handler for handling changes in the priority selection
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler("priorityList")

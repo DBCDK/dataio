@@ -79,7 +79,7 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
                     .withDelivery(delivery)
                     .withMacroSubstitutor(getMacroSubstitutor(delivery))
                     .createLocalFile();
-            if (localFile.length()>0) {
+            if (localFile.length() > 0) {
                 uploadLocalFileToFtp(ftpPickup, localFile, remoteFile);
                 LOGGER.info("jobId '{}' uploaded to ftp host '{}'.", chunk.getJobId(), ftpPickup.getFtpHost());
             } else {

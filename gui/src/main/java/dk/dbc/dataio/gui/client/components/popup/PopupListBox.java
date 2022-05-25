@@ -41,7 +41,8 @@ public class PopupListBox extends PopupValueBox<ListBoxHasValue, Map<String, Str
 
     /**
      * Adds an item to the list of available items in the list
-     * @param item The text of the item to add to the list
+     *
+     * @param item  The text of the item to add to the list
      * @param value The item's value, to be submitted if it is part of a FormPanel
      */
     public void addItem(String item, String value) {
@@ -50,6 +51,7 @@ public class PopupListBox extends PopupValueBox<ListBoxHasValue, Map<String, Str
 
     /**
      * Sets the possibility of setting more than one list item in the list
+     *
      * @param multipleSelect If true, it is possible to select more than one item in the list.
      */
     public void setMultipleSelect(Boolean multipleSelect) {
@@ -81,6 +83,7 @@ public class PopupListBox extends PopupValueBox<ListBoxHasValue, Map<String, Str
      * The reason for making it larger than 2 is, that ListBox uses the standard html tag SELECT to
      * construct the list - and if the size is being set to 1, a combo box is shown instead. And this
      * is task of the browser, so we cannot prevent that (unless using something different from a SELECT tag)</p>
+     *
      * @param count Number of items in the listbox
      */
     private void setListBoxSize(int count) {

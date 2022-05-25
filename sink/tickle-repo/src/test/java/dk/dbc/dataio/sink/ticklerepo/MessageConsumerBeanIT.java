@@ -95,7 +95,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         persistenceContext.run(() -> messageConsumerBean.handleConsumedMessage(message));
 
         assertThat(messageConsumerBean.tickleRepo.lookupDataSet(new DataSet()
-                .withName(tickleAttributes1.getDatasetName()))
+                        .withName(tickleAttributes1.getDatasetName()))
                 .isPresent(), is(true));
     }
 
@@ -278,7 +278,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                 is(StringUtil.asString(toAddiRecord(chunk.getItems().get(4).getData()).getContentData(), StandardCharsets.ISO_8859_1)));
     }
 
-     /*  When: handling chunk containing successful end-of-job chunk item
+    /*  When: handling chunk containing successful end-of-job chunk item
      *   Then: the tickle repo batch is closed
      */
     @Test
@@ -428,10 +428,10 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         return new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(new ArrayList<>())
                 .appendItem(ChunkItem.ignoredChunkItem()
-                            .withId(0)
-                            .withType(ChunkItem.Type.STRING)
-                            .withData("IGNORED")
-                            .withTrackingId("ignored item"))
+                        .withId(0)
+                        .withType(ChunkItem.Type.STRING)
+                        .withData("IGNORED")
+                        .withTrackingId("ignored item"))
                 .build();
     }
 
@@ -439,9 +439,9 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         return new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(new ArrayList<>())
                 .appendItem(ChunkItem.successfulChunkItem()
-                            .withId(0)
-                            .withType(ChunkItem.Type.JOB_END)
-                            .withData("END"))
+                        .withId(0)
+                        .withType(ChunkItem.Type.JOB_END)
+                        .withData("END"))
                 .build();
     }
 
@@ -449,9 +449,9 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         return new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(new ArrayList<>())
                 .appendItem(ChunkItem.failedChunkItem()
-                            .withId(0)
-                            .withType(ChunkItem.Type.JOB_END)
-                            .withData("END"))
+                        .withId(0)
+                        .withType(ChunkItem.Type.JOB_END)
+                        .withData("END"))
                 .build();
     }
 

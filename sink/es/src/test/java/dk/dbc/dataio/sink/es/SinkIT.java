@@ -63,7 +63,7 @@ public abstract class SinkIT {
         try {
             ES_INFLIGHT_DATASOURCE = JPATestUtils.getIntegrationTestDataSource(ES_INFLIGHT_DATABASE_NAME);
             ES_DATASOURCE = JPATestUtils.getIntegrationTestDataSource(ES_INFLIGHT_DATABASE_NAME);
-        } catch( SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException("Test Setup error Unable to connect to test database");
         }
     }
@@ -259,6 +259,7 @@ public abstract class SinkIT {
         public void setMessageDrivenContext(MessageDrivenContext messageDrivenContext) {
             this.messageDrivenContext = messageDrivenContext;
         }
+
         public MessageDrivenContext getMessageDrivenContext() {
             return this.messageDrivenContext;
         }

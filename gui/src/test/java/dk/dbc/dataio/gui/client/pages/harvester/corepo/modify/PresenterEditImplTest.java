@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.modify;
 
 import com.google.gwt.user.client.ui.Button;
@@ -31,18 +29,29 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
-    @Mock private EditPlace mockedPlace;
-    @Mock private Texts mockedTexts;
-    @Mock private View mockedView;
-    @Mock private PromptedTextBox mockedName;
-    @Mock private PromptedTextArea mockedDescription;
-    @Mock private PromptedTextBox mockedResource;
-    @Mock private PromptedList mockedRrHarvester;
-    @Mock private PromptedCheckBox mockedEnabled;
-    @Mock private Label mockedStatus;
-    @Mock private Button mockedDeleteButton;
+    @Mock
+    private EditPlace mockedPlace;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private View mockedView;
+    @Mock
+    private PromptedTextBox mockedName;
+    @Mock
+    private PromptedTextArea mockedDescription;
+    @Mock
+    private PromptedTextBox mockedResource;
+    @Mock
+    private PromptedList mockedRrHarvester;
+    @Mock
+    private PromptedCheckBox mockedEnabled;
+    @Mock
+    private Label mockedStatus;
+    @Mock
+    private Button mockedDeleteButton;
 
-    @Mock private Widget mockedWidget;
+    @Mock
+    private Widget mockedWidget;
 
 
     private PresenterEditImpl presenter;

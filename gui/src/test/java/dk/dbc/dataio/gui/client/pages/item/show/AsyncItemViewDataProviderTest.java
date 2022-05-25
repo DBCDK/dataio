@@ -10,9 +10,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -20,9 +20,12 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class AsyncItemViewDataProviderTest {
 
-    @Mock CommonGinjector mockedCommonInjector;
-    @Mock View mockedView;
-    @Mock JobStoreProxyAsync mockedJobStoreProxy;
+    @Mock
+    CommonGinjector mockedCommonInjector;
+    @Mock
+    View mockedView;
+    @Mock
+    JobStoreProxyAsync mockedJobStoreProxy;
 
     private AsyncItemViewDataProvider objectUnderTest;
 
@@ -44,7 +47,7 @@ public class AsyncItemViewDataProviderTest {
     @Test
     public void testSetNewBaseCriteria_criteriaIdentical_RefreshNotInvoked() throws Exception {
 
-        objectUnderTest = new AsyncItemViewDataProvider(mockedView );
+        objectUnderTest = new AsyncItemViewDataProvider(mockedView);
         objectUnderTest.setBaseCriteria(ItemListCriteria.Field.JOB_ID, objectUnderTest.baseCriteria);
 
         verify(mockedView, times(0)).refreshItemsTable();

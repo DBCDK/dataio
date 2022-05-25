@@ -7,14 +7,14 @@ import dk.dbc.autonomen.AutoNomenSuggestions;
 
 import java.util.List;
 
-@JacksonXmlRootElement(localName="record")
+@JacksonXmlRootElement(localName = "record")
 public class Record {
     private Infomedia infomedia;
 
     @JacksonXmlProperty(localName = "author-name-suggestion")
     @JacksonXmlElementWrapper(localName = "author-name-suggestions")
     private List<AutoNomenSuggestions> autoNomenSuggestions;
-    
+
     public Infomedia getInfomedia() {
         return infomedia;
     }

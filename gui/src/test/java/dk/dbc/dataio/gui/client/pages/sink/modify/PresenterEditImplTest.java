@@ -31,9 +31,12 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
-    @Mock private EditPlace mockedEditPlace;
-    @Mock private ViewGinjector mockedViewGinjector;
-    @Mock private SinkModel mockedSinkModel;
+    @Mock
+    private EditPlace mockedEditPlace;
+    @Mock
+    private ViewGinjector mockedViewGinjector;
+    @Mock
+    private SinkModel mockedSinkModel;
 
     private View editView;
 

@@ -17,7 +17,7 @@ public interface DataPartitioner extends Iterable<DataPartitionerResult> {
     default void drainItems(int itemsToRemove) {
         if (itemsToRemove < 0) throw new IllegalArgumentException("Unable to drain a negative number of items");
         final Iterator<DataPartitionerResult> iterator = this.iterator();
-        while (--itemsToRemove >=0) {
+        while (--itemsToRemove >= 0) {
             try {
                 iterator.next();
             } catch (PrematureEndOfDataException e) {

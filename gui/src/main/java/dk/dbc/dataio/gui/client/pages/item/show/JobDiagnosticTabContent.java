@@ -22,5 +22,6 @@ public class JobDiagnosticTabContent extends Composite {
     protected Texts texts;
 
     // UI Fields
-    @UiField CellTable jobDiagnosticTable;
+    @UiField
+    CellTable jobDiagnosticTable;
 }

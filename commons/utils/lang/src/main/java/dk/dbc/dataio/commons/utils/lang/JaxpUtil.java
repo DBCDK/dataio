@@ -56,13 +56,11 @@ public class JaxpUtil {
      * Parses the content of the given input source as an XML document
      *
      * @param xml containing the content to be parsed
-     *
      * @return Document a new DOM Document object representation of the parsed content
-     *
-     * @throws NullPointerException if given null valued xml argument
+     * @throws NullPointerException         if given null valued xml argument
      * @throws ParserConfigurationException if a DocumentBuilder cannot be created
-     * @throws SAXException if any parse errors occur
-     * @throws IOException if any IO errors occur
+     * @throws SAXException                 if any parse errors occur
+     * @throws IOException                  if any IO errors occur
      */
     public static Document parseDocument(InputSource xml)
             throws NullPointerException, ParserConfigurationException, SAXException, IOException {
@@ -76,17 +74,15 @@ public class JaxpUtil {
      * Parses the content of the given input string as an XML document
      *
      * @param xml containing the content to be parsed
-     *
      * @return Document a new DOM Document object representation of the parsed content
-     *
-     * @throws NullPointerException if given null valued xml argument
+     * @throws NullPointerException     if given null valued xml argument
      * @throws IllegalArgumentException if given empty valued xml argument
-     * @throws IllegalStateException if a DocumentBuilder cannot be created
-     * @throws SAXException if any parse errors occur
-     * @throws IOException if any IO errors occur
+     * @throws IllegalStateException    if a DocumentBuilder cannot be created
+     * @throws SAXException             if any parse errors occur
+     * @throws IOException              if any IO errors occur
      */
     public static Document parseDocument(String xml) throws NullPointerException, IllegalArgumentException, IOException, SAXException, IllegalStateException {
-        try{
+        try {
             InvariantUtil.checkNotNullNotEmptyOrThrow(xml, "xml");
             InputSource inputSource = new InputSource(new StringReader(xml));
             return parseDocument(inputSource);
@@ -99,9 +95,7 @@ public class JaxpUtil {
      * Transforms an XML Node into a string containing the corresponding XML
      *
      * @param node a DOM Node to be transformed into its string representation
-     *
      * @return string representation of the node
-     *
      * @throws NullPointerException if given null valued node argument
      * @throws TransformerException if a Transformer instance cannot be created or
      *                              if an unrecoverable error occurs during the course of
@@ -119,15 +113,16 @@ public class JaxpUtil {
 
     /**
      * Converts a byte array to its XML document representation
+     *
      * @param bytes input bytes
      * @return document representation
-     * @throws NullPointerException if given null-valued bytes argument
-     * @throws IOException If any IO errors occur.
-     * @throws SAXException If any parse errors occur
+     * @throws NullPointerException  if given null-valued bytes argument
+     * @throws IOException           If any IO errors occur.
+     * @throws SAXException          If any parse errors occur
      * @throws IllegalStateException if a DocumentBuilder cannot be created
      */
     public static Document toDocument(byte[] bytes) throws IOException, SAXException, IllegalStateException {
-        try{
+        try {
             final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
             final DocumentBuilderFactory documentBuilderFactory = JaxpUtil.documentBuilderFactory.get();
             final DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
@@ -139,14 +134,15 @@ public class JaxpUtil {
 
     /**
      * Converts an element into its XML document representation
+     *
      * @param element element to be represented as a document
      * @return document representation
      * @throws IllegalStateException if a DocumentBuilder cannot be created
      */
     public static Document toDocument(Element element) throws IllegalStateException {
-        try{
+        try {
             final DocumentBuilderFactory documentBuilderFactory = JaxpUtil.documentBuilderFactory.get();
-            final  DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            final DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
             final Document document = documentBuilder.newDocument();
             final Node importedNode = document.importNode(element, true);
             document.appendChild(importedNode);
@@ -158,6 +154,7 @@ public class JaxpUtil {
 
     /**
      * Transforms a document into a byte array
+     *
      * @param document document representation
      * @return document content as byte array
      * @throws NullPointerException if given null-valued document argument

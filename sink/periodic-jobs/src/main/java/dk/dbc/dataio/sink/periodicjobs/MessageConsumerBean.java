@@ -38,7 +38,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     @PersistenceContext(unitName = "periodic-jobs_PU")
     EntityManager entityManager;
 
-    @EJB PeriodicJobsFinalizerBean periodicJobsFinalizerBean;
+    @EJB
+    PeriodicJobsFinalizerBean periodicJobsFinalizerBean;
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage)
@@ -197,7 +198,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     }
 
     private int getRecordNumber(int chunkId, int itemId) {
-        return 10*chunkId + itemId;
+        return 10 * chunkId + itemId;
     }
 
     private String getDefaultSortKey(int recordNumber) {

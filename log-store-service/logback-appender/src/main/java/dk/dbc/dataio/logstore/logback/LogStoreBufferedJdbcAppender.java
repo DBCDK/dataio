@@ -59,7 +59,7 @@ public class LogStoreBufferedJdbcAppender extends DBAppenderBase<ILoggingEvent> 
             final String trackingId = mdcPropertyMap.get(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY);
             if (trackingId != null) {
                 final String lockObject = getLockObject(trackingId);
-                synchronized(lockObject) {
+                synchronized (lockObject) {
                     if (!loggingEvents.containsKey(lockObject)) {
                         loggingEvents.put(lockObject, new ArrayList<ILoggingEvent>());
                     }

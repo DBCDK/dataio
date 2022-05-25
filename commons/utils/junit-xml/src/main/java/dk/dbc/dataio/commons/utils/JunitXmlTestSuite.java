@@ -16,6 +16,7 @@ public class JunitXmlTestSuite implements AutoCloseable {
 
     /**
      * Writes given {@link JunitXmlTestCase} to this test suite
+     *
      * @param testCase test case to be written
      * @throws XMLStreamException on failure to write test case
      */

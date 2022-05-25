@@ -23,32 +23,32 @@ import java.util.concurrent.TimeUnit;
 /**
  * Handles Chunk messages received from the job-store
  * Test Job Chunk Processor
- *
  */
 @MessageDriven(activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "jms/dataio/processor"),
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"), }
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),}
 )
 public class TestJobProcessorMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestJobProcessorMessageConsumerBean.class);
 
-    private static final List<Chunk> chunksReceived =new ArrayList<>();
-    private static final Semaphore processBlocker=new Semaphore(0);
+    private static final List<Chunk> chunksReceived = new ArrayList<>();
+    private static final Semaphore processBlocker = new Semaphore(0);
 
     JSONBContext jsonbContext = new JSONBContext();
 
 
     @SuppressWarnings("EjbClassWarningsInspection")
     static void waitForProcessingOfChunks(String message, int numberOfChunksToWaitFor) throws Exception {
-        StopWatch timer=new StopWatch();
-        if( ! processBlocker.tryAcquire( numberOfChunksToWaitFor, 20, TimeUnit.SECONDS ) ) {
-            throw new Exception("Unittest Errors unable to acquire "+ numberOfChunksToWaitFor + " in 10 Seconds :"+message);
+        StopWatch timer = new StopWatch();
+        if (!processBlocker.tryAcquire(numberOfChunksToWaitFor, 20, TimeUnit.SECONDS)) {
+            throw new Exception("Unittest Errors unable to acquire " + numberOfChunksToWaitFor + " in 10 Seconds :" + message);
         }
         LOGGER.info("Waiting in took waitForProcessingOfChunks {} {} ms", numberOfChunksToWaitFor, timer.getElapsedTime());
     }
 
     /**
      * Processes Chunk received in consumed message
+     *
      * @param consumedMessage message to be handled
      * @throws InvalidMessageException if message payload can not be unmarshalled to chunk instance
      */
@@ -62,7 +62,7 @@ public class TestJobProcessorMessageConsumerBean extends AbstractMessageConsumer
         } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid Chunk type %s",
                     consumedMessage.getMessageId(), consumedMessage.getHeaderValue(JmsConstants.CHUNK_PAYLOAD_TYPE, String.class)), e);
-        } catch( JobStoreException e ) {
+        } catch (JobStoreException e) {
             throw new InvalidMessageException(String.format("Message<%s> Failed in JobStore %s",
                     consumedMessage.getMessageId(), e.getMessage(), e));
         }
@@ -92,7 +92,7 @@ public class TestJobProcessorMessageConsumerBean extends AbstractMessageConsumer
 
     @SuppressWarnings("EjbClassWarningsInspection")
     public static int getChunksReceivedCount() {
-        synchronized (( chunksReceived )) {
+        synchronized ((chunksReceived)) {
             return chunksReceived.size();
         }
     }

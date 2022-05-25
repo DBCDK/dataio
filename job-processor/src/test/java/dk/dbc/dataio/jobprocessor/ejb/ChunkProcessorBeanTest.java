@@ -402,9 +402,9 @@ public class ChunkProcessorBeanTest {
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED)
                 .setItems(Collections.singletonList(
                         ChunkItem.successfulChunkItem()
-                            .withId(0)
-                            .withType(ChunkItem.Type.ADDI, ChunkItem.Type.BYTES)
-                            .withData(addiRecord.getBytes())))
+                                .withId(0)
+                                .withType(ChunkItem.Type.ADDI, ChunkItem.Type.BYTES)
+                                .withData(addiRecord.getBytes())))
                 .build();
 
         final ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptReturnConcatenation,

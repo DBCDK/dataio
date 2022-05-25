@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.modify;
 
 import com.google.gwt.event.shared.EventBus;
@@ -19,7 +17,8 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     /**
      * Constructor
-     * @param place the edit place
+     *
+     * @param place  the edit place
      * @param header The header
      */
     public PresenterEditImpl(Place place, String header) {
@@ -31,8 +30,9 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -70,6 +70,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 String msg = "CoRepoHarvesterConfig.id: " + config.getId();
                 getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
             }
+
             @Override
             public void onSuccess(Void aVoid) {
                 getView().status.setText(getTexts().status_CoRepoHarvesterSuccessfullyDeleted());
@@ -90,6 +91,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             String msg = "CoRepoHarvesterConfig.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(CoRepoHarvesterConfig coRepoHarvesterConfig) {
             if (coRepoHarvesterConfig == null) {
@@ -107,6 +109,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             String msg = "CoRepoHarvesterConfig.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(HarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());

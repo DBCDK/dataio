@@ -10,6 +10,7 @@ public class WorkflowNoteModelBuilder {
 
     /**
      * Sets the processed indicator for the workflow note
+     *
      * @param processed boolean
      * @return The WorkflowNoteModelBuilder object itself (for chaining)
      */
@@ -20,6 +21,7 @@ public class WorkflowNoteModelBuilder {
 
     /**
      * Sets the assignee for the workflow note
+     *
      * @param assignee the person assigned
      * @return The WorkflowNoteModelBuilder object itself (for chaining)
      */
@@ -30,6 +32,7 @@ public class WorkflowNoteModelBuilder {
 
     /**
      * Sets the description for the workflow note
+     *
      * @param description the description
      * @return The WorkflowNoteModelBuilder object itself (for chaining)
      */
@@ -40,6 +43,7 @@ public class WorkflowNoteModelBuilder {
 
     /**
      * Build the WorkflowNoteModel object
+     *
      * @return The WorkflowNoteModel object
      */
     public WorkflowNoteModel build() {

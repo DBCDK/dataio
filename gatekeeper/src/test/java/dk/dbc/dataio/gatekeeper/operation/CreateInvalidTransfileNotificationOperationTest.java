@@ -1,13 +1,13 @@
 package dk.dbc.dataio.gatekeeper.operation;
 
 import dk.dbc.dataio.commons.types.Constants;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.Notification;
+import dk.dbc.httpclient.HttpClient;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

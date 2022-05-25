@@ -22,6 +22,7 @@ public class AddiContext {
 
     /**
      * Extracts ES reference data from given Addi record
+     *
      * @param addiRecord addi record from which to extract ES reference data
      * @return ES reference data
      * @throws AddiException if given null-valued Addi record or on failure to extract ES reference data

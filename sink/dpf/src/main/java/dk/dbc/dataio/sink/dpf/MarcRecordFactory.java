@@ -9,7 +9,8 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 public class MarcRecordFactory {
-    private MarcRecordFactory() {}
+    private MarcRecordFactory() {
+    }
 
     public static MarcRecord fromMarcXchange(byte[] bytes) throws MarcReaderException {
         final MarcXchangeV1Reader reader = new MarcXchangeV1Reader(

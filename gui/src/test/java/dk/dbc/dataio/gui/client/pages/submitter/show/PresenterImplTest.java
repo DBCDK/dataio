@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.gui.client.pages.submitter.show;
 
 
@@ -28,33 +27,41 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
-    @Mock private View mockedView;
-    @Mock private Widget mockedViewWidget;
-    @Mock private ProxyException mockedProxyException;
-    @Mock private SingleSelectionModel<SubmitterModel> mockedSelectionModel;
-    @Mock private ListDataProvider<SubmitterModel> mockedDataProvider;
-    @Mock private ViewGinjector mockedViewGinjector;
-    @Mock private Texts mockedTexts;
-    @Mock private SubmitterFilter mockedSubmitterFilter;
+    @Mock
+    private View mockedView;
+    @Mock
+    private Widget mockedViewWidget;
+    @Mock
+    private ProxyException mockedProxyException;
+    @Mock
+    private SingleSelectionModel<SubmitterModel> mockedSelectionModel;
+    @Mock
+    private ListDataProvider<SubmitterModel> mockedDataProvider;
+    @Mock
+    private ViewGinjector mockedViewGinjector;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private SubmitterFilter mockedSubmitterFilter;
 
     static String MOCKED_MENU_SUBMITTERS = "Mocked Submitter Text";
     static String MOCKED_NO_FLOW_BINDERS = "Mocked No Flow Binders";
@@ -87,6 +94,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         public PresenterImplConcrete() {
             super(mockedPlaceController, mockedView, header);
         }
+
         FetchSubmittersCallback fetchSubmittersCallback = new FetchSubmittersCallback();
         GetFlowBindersForSubmitterCallback getFlowBindersForSubmitterCallback = new GetFlowBindersForSubmitterCallback();
     }

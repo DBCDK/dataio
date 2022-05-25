@@ -18,7 +18,8 @@ public class InfomediaHarvesterConfig extends HarvesterConfig<InfomediaHarvester
         super(id, version, content);
     }
 
-    public InfomediaHarvesterConfig() { }
+    public InfomediaHarvesterConfig() {
+    }
 
     @Override
     public String getLogId() {
@@ -27,29 +28,41 @@ public class InfomediaHarvesterConfig extends HarvesterConfig<InfomediaHarvester
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Content implements Serializable {
-        public Content() { }
+        public Content() {
+        }
 
-        /** ID of harvest operation */
+        /**
+         * ID of harvest operation
+         */
         private String id;
 
         /**
          * Harvest schedule as standard UNIX crontab expression
          * with five fields minute, hour, day of month, month, and
          * day of week
+         *
          * @see <a href="https://www.unix.com/man-page/linux/5/crontab/">crontab</a>
          **/
         private String schedule;
 
-        /** Description */
+        /**
+         * Description
+         */
         private String description;
 
-        /** Destination for harvested items */
+        /**
+         * Destination for harvested items
+         */
         private String destination;
 
-        /** Format of harvested items */
+        /**
+         * Format of harvested items
+         */
         private String format;
 
-        /** Flag Indicating if the configuration is enabled */
+        /**
+         * Flag Indicating if the configuration is enabled
+         */
         @JsonProperty
         private boolean enabled = false;
 

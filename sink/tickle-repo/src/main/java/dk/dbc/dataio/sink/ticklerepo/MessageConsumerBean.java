@@ -71,7 +71,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             final Batch batch = getBatch(chunk);
 
             final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-            if(chunk.isTerminationChunk()) {
+            if (chunk.isTerminationChunk()) {
                 try {
                     // Give the before-last message enough time to commit
                     // its records to the tickle-repo before initiating
@@ -81,7 +81,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     // small risk that the end-chunk would reach this bean
                     // before all data was available.)
                     Thread.sleep(5000);
-                } catch(InterruptedException e) {
+                } catch (InterruptedException e) {
                     throw new SinkException(e);
                 }
                 result.insertItem(handleJobEnd(chunk.getItems().get(0), batch));
@@ -91,7 +91,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             }
 
             uploadChunk(result);
-        } catch( Exception any ) {
+        } catch (Exception any) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
             metricsHandler.increment(TickleCounterMetrics.UNHANDLED_EXCEPTIONS);
             throw any;
@@ -188,7 +188,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     long handleChunkItemStartTime = System.currentTimeMillis();
                     ChunkItem item = putInTickleBatch(batch, chunkItem);
                     metricsHandler.update(TickleTimerMetrics.HANDLE_CHUNK_ITEM, Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime),
-                            new Tag("dataset", Integer.toString( batch.getDataset() )));
+                            new Tag("dataset", Integer.toString(batch.getDataset())));
                     return item;
                 case FAILURE:
                     return ChunkItem.ignoredChunkItem()

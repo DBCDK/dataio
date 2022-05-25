@@ -35,14 +35,16 @@ public class ESTaskPackageUtilIT extends SinkIT {
 
 
     private EntityManager em;
+
     @Before
     public void setUp() throws Exception {
-        em=JPATestUtils.getIntegrationTestEntityManager("esIT");
+        em = JPATestUtils.getIntegrationTestEntityManager("esIT");
         em.getTransaction().begin();
         em.createNativeQuery("delete from taskpackage").executeUpdate();
         em.createNativeQuery("delete from esinflight").executeUpdate();
         em.getTransaction().commit();
     }
+
     @Test
     public void insertTaskPackage_singleSimpleRecordInWorkload_happyPath() throws Exception {
 
@@ -50,11 +52,11 @@ public class ESTaskPackageUtilIT extends SinkIT {
         final EsWorkload esWorkload = newEsWorkload(simpleAddiString);
 
         em.getTransaction().begin();
-        int targetRefernce=ESTaskPackageUtil.insertTaskPackage(em, DB_NAME, esWorkload);
+        int targetRefernce = ESTaskPackageUtil.insertTaskPackage(em, DB_NAME, esWorkload);
         em.getTransaction().commit();
-        JPATestUtils.clearEntityManagerCache( em );
+        JPATestUtils.clearEntityManagerCache(em);
 
-        TaskSpecificUpdateEntity resultTP=em.find(TaskSpecificUpdateEntity.class, targetRefernce);
+        TaskSpecificUpdateEntity resultTP = em.find(TaskSpecificUpdateEntity.class, targetRefernce);
 
         assertThat(targetRefernce, is(resultTP.getTargetreference().intValue()));
     }
@@ -98,7 +100,6 @@ public class ESTaskPackageUtilIT extends SinkIT {
         JPATestUtils.runSqlFromResource(em, this, "EsTaskPackageUtilIT_findCompletionStatus_testdata.sql");
 
 
-
         List<Integer> targetReferences = new ArrayList<>();
 
         for (int i = 1; i <= 10; i++) {
@@ -117,54 +118,54 @@ public class ESTaskPackageUtilIT extends SinkIT {
     }
 
     @Test
-      public void findCompletionStatusForTaskpackages_MAX_WHERE_IN_SIZE_exeeded_allTaskPackagesFound()
-              throws SQLException, ClassNotFoundException, IOException, URISyntaxException {
+    public void findCompletionStatusForTaskpackages_MAX_WHERE_IN_SIZE_exeeded_allTaskPackagesFound()
+            throws SQLException, ClassNotFoundException, IOException, URISyntaxException {
 
-          JPATestUtils.runSqlFromResource(em, this, "EsTaskPackageUtilIT_findCompletionStatus_testdata.sql");
+        JPATestUtils.runSqlFromResource(em, this, "EsTaskPackageUtilIT_findCompletionStatus_testdata.sql");
 
-          ESTaskPackageUtil.MAX_WHERE_IN_SIZE = 6;
+        ESTaskPackageUtil.MAX_WHERE_IN_SIZE = 6;
 
-          List<Integer> targetReferences = new ArrayList<>();
-          for (int i = 1; i <= 10; i++) {
-              targetReferences.add(i);
-          }
+        List<Integer> targetReferences = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            targetReferences.add(i);
+        }
 
-          final Map<Integer, ESTaskPackageUtil.TaskStatus> completionStatusForTaskpackages =
-                  ESTaskPackageUtil.findCompletionStatusForTaskpackages(JPATestUtils.getConnection(), targetReferences);
+        final Map<Integer, ESTaskPackageUtil.TaskStatus> completionStatusForTaskpackages =
+                ESTaskPackageUtil.findCompletionStatusForTaskpackages(JPATestUtils.getConnection(), targetReferences);
 
-          assertThat(completionStatusForTaskpackages, is(notNullValue()));
-          assertThat(completionStatusForTaskpackages.size(), is(targetReferences.size()));
-          for (Integer targetReference : targetReferences) {
-              assertThat(completionStatusForTaskpackages.containsKey(targetReference), is(true));
-              final ESTaskPackageUtil.TaskStatus taskStatus = completionStatusForTaskpackages.get(targetReference);
-              assertThat(taskStatus.getTaskStatus(), is(TaskPackageEntity.TaskStatus.PENDING));
-          }
-      }
+        assertThat(completionStatusForTaskpackages, is(notNullValue()));
+        assertThat(completionStatusForTaskpackages.size(), is(targetReferences.size()));
+        for (Integer targetReference : targetReferences) {
+            assertThat(completionStatusForTaskpackages.containsKey(targetReference), is(true));
+            final ESTaskPackageUtil.TaskStatus taskStatus = completionStatusForTaskpackages.get(targetReference);
+            assertThat(taskStatus.getTaskStatus(), is(TaskPackageEntity.TaskStatus.PENDING));
+        }
+    }
 
 
     @Test
     public void insertMultiblePackages() throws Exception {
         final String simpleAddiString = "1\na\n1\nb\n";
-        List<Integer> targetRefences=new ArrayList<>();
+        List<Integer> targetRefences = new ArrayList<>();
 
-        for( int i=0; i<10 ; ++i) {
+        for (int i = 0; i < 10; ++i) {
             final EsWorkload esWorkload = new EsWorkload(new ChunkBuilder(Chunk.Type.DELIVERED).setJobId(i).build(),
                     Collections.singletonList(newAddiRecordFromString(simpleAddiString)), USER_ID, ACTION);
 
 
             em.getTransaction().begin();
             int targetRefernce = ESTaskPackageUtil.insertTaskPackage(em, DB_NAME, esWorkload);
-            targetRefences.add( targetRefernce );
+            targetRefences.add(targetRefernce);
             em.getTransaction().commit();
         }
-        JPATestUtils.clearEntityManagerCache( em );
+        JPATestUtils.clearEntityManagerCache(em);
 
-        for( Integer targetRefernce : targetRefences ) {
+        for (Integer targetRefernce : targetRefences) {
             TaskSpecificUpdateEntity resultTP = em.find(TaskSpecificUpdateEntity.class, targetRefernce);
 
             assertThat(targetRefernce, is(resultTP.getTargetreference().intValue()));
-        };
-
+        }
+        ;
 
 
     }

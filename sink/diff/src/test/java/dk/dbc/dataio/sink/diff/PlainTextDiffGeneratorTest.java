@@ -11,14 +11,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class PlainTextDiffGeneratorTest extends AbstractDiffGeneratorTest {
     private static final byte[] DOC1 = (
             "first\n" +
-            "second\n" +
-            "third\n").getBytes(StandardCharsets.UTF_8);
+                    "second\n" +
+                    "third\n").getBytes(StandardCharsets.UTF_8);
 
     private static final byte[] DOC2 = (
             "first\n" +
-            "second\n" +
-            "second and ½\n" +
-            "third\n").getBytes(StandardCharsets.UTF_8);
+                    "second\n" +
+                    "second and ½\n" +
+                    "third\n").getBytes(StandardCharsets.UTF_8);
 
     private final ExternalToolDiffGenerator diffGenerator = newExternalToolDiffGenerator();
 

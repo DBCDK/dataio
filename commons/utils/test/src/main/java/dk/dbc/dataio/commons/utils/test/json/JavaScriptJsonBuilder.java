@@ -17,7 +17,8 @@ public class JavaScriptJsonBuilder extends JsonBuilder {
     public String build() {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(START_OBJECT);
-        stringBuilder.append(asTextMember("javascript", javascript)); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asTextMember("javascript", javascript));
+        stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("moduleName", moduleName));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();

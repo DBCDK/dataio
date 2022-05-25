@@ -31,18 +31,23 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class MapEntryTest {
     @SuppressWarnings("deprecation")
-    @Mock com.google.gwt.user.client.Element mockedElement;
+    @Mock
+    com.google.gwt.user.client.Element mockedElement;
     @SuppressWarnings("deprecation")
-    @Mock com.google.gwt.user.client.Element mockedKeyElement;
+    @Mock
+    com.google.gwt.user.client.Element mockedKeyElement;
     @SuppressWarnings("deprecation")
-    @Mock com.google.gwt.user.client.Element mockedValueElement;
-    @Mock Style mockedKeyStyle;
-    @Mock Style mockedValueStyle;
-    @Mock ValueChangeHandler mockedValueChangeHandler;
+    @Mock
+    com.google.gwt.user.client.Element mockedValueElement;
+    @Mock
+    Style mockedKeyStyle;
+    @Mock
+    Style mockedValueStyle;
+    @Mock
+    ValueChangeHandler mockedValueChangeHandler;
 
 
     MapEntry mapEntry;
-
 
 
     @Test

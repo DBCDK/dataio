@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.modify;
 
 import com.google.gwt.core.client.GWT;
@@ -22,7 +20,9 @@ import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    interface HarvesterBinder extends UiBinder<HTMLPanel, View> {}
+    interface HarvesterBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static HarvesterBinder uiBinder = GWT.create(HarvesterBinder.class);
     private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
@@ -38,15 +38,24 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
 
-    @UiField PromptedTextBox name;
-    @UiField PromptedTextArea description;
-    @UiField PromptedTextBox resource;
-    @UiField PromptedList rrHarvester;
-    @UiField PromptedCheckBox enabled;
-    @UiField Button saveButton;
-    @UiField Button deleteButton;
-    @UiField Label status;
-    @UiField PopupBox<Label> confirmation;
+    @UiField
+    PromptedTextBox name;
+    @UiField
+    PromptedTextArea description;
+    @UiField
+    PromptedTextBox resource;
+    @UiField
+    PromptedList rrHarvester;
+    @UiField
+    PromptedCheckBox enabled;
+    @UiField
+    Button saveButton;
+    @UiField
+    Button deleteButton;
+    @UiField
+    Label status;
+    @UiField
+    PopupBox<Label> confirmation;
 
 
     @SuppressWarnings("unused")

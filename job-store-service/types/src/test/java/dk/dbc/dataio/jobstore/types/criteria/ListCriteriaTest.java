@@ -72,8 +72,8 @@ public class ListCriteriaTest {
         final ListCriteriaImpl listCriteria = new ListCriteriaImpl().where(other);
 
 
-        assertThat(listCriteria.getFiltering().get(0).getMembers().get(0).getFilter(), is( filters.get(0)));
-        assertThat(listCriteria.getFiltering().get(0).getMembers().get(1).getFilter(), is( filters.get(1)));
+        assertThat(listCriteria.getFiltering().get(0).getMembers().get(0).getFilter(), is(filters.get(0)));
+        assertThat(listCriteria.getFiltering().get(0).getMembers().get(1).getFilter(), is(filters.get(1)));
     }
 
 
@@ -94,11 +94,11 @@ public class ListCriteriaTest {
                 .and(filters.get(1))
                 .and(other);
 
-        assertThat(listCriteria.getFiltering().get(0).getMembers().get(0).getFilter(), is( filters.get(0)));
-        assertThat(listCriteria.getFiltering().get(0).getMembers().get(1).getFilter(), is( filters.get(1)));
+        assertThat(listCriteria.getFiltering().get(0).getMembers().get(0).getFilter(), is(filters.get(0)));
+        assertThat(listCriteria.getFiltering().get(0).getMembers().get(1).getFilter(), is(filters.get(1)));
 
-        assertThat(listCriteria.getFiltering().get(1).getMembers().get(0).getFilter(), is( filters.get(2)));
-        assertThat(listCriteria.getFiltering().get(1).getMembers().get(1).getFilter(), is( filters.get(3)));
+        assertThat(listCriteria.getFiltering().get(1).getMembers().get(0).getFilter(), is(filters.get(2)));
+        assertThat(listCriteria.getFiltering().get(1).getMembers().get(1).getFilter(), is(filters.get(3)));
 
     }
 

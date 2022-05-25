@@ -8,7 +8,8 @@ import dk.dbc.commons.jsonb.JSONBContext;
 public class ConverterJSONBContext {
     private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
 
-    private ConverterJSONBContext() {}
+    private ConverterJSONBContext() {
+    }
 
     public static JSONBContext getInstance() {
         return JSONB_CONTEXT;

@@ -10,6 +10,7 @@ public interface RecordHarvestTaskQueue {
     boolean isEmpty() throws HarvesterException;
 
     int estimatedSize();
+
     int basedOnJob();
 
     void commit();

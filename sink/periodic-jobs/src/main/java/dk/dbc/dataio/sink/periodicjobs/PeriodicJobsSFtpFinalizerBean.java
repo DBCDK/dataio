@@ -58,7 +58,7 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     private Chunk deliverEmptyFile(Chunk chunk, PeriodicJobsDelivery delivery) {
         final String remoteFile = getRemoteFilename(delivery) + ".EMPTY";
         final SFtpPickup sFtpPickup = (SFtpPickup) delivery.getConfig().getContent().getPickup();
-        try(SFtpClient sFtpClient = open(sFtpPickup)) {
+        try (SFtpClient sFtpClient = open(sFtpPickup)) {
             sFtpClient.putContent(remoteFile, new ByteArrayInputStream("".getBytes()));
         }
         return newResultChunk(chunk,
@@ -77,7 +77,7 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
                     .withTmpFile(localFile)
                     .withMacroSubstitutor(getMacroSubstitutor(delivery))
                     .createLocalFile();
-            if (localFile.length()>0) {
+            if (localFile.length() > 0) {
                 uploadLocalFileToSFtp(sftpPickup, localFile, remoteFile);
                 LOGGER.info("jobId '{}' uploaded to sftp host '{}'.", chunk.getJobId(), sftpPickup.getsFtpHost());
             } else {
@@ -97,24 +97,24 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     private SFtpClient open(SFtpPickup sFtpPickup) {
         ProxySOCKS5 proxyHandlerBean = null;
-        if (!proxyHost.isEmpty()  && !proxyPort.isEmpty()  && !proxyUser.isEmpty() && !proxyPassword.isEmpty()) {
+        if (!proxyHost.isEmpty() && !proxyPort.isEmpty() && !proxyUser.isEmpty() && !proxyPassword.isEmpty()) {
             proxyHandlerBean = new ProxySOCKS5(proxyHost, Integer.parseInt(proxyPort));
             proxyHandlerBean.setUserPasswd(proxyUser, proxyPassword);
         }
         return new SFtpClient(
                 new SFTPConfig()
-                .withHost(sFtpPickup.getsFtpHost())
-                .withPort(Integer.parseInt(sFtpPickup.getsFtpPort()))
-                .withUsername(sFtpPickup.getsFtpUser())
-                .withPassword(sFtpPickup.getsFtpPassword())
-                .withDir(sFtpPickup.getsFtpSubdirectory()),
+                        .withHost(sFtpPickup.getsFtpHost())
+                        .withPort(Integer.parseInt(sFtpPickup.getsFtpPort()))
+                        .withUsername(sFtpPickup.getsFtpUser())
+                        .withPassword(sFtpPickup.getsFtpPassword())
+                        .withDir(sFtpPickup.getsFtpSubdirectory()),
                 proxyHandlerBean,
                 Arrays.asList(nonProxyedDomains.split("\\s*,\\s*")));
     }
 
     private void uploadLocalFileToSFtp(SFtpPickup sFtpPickup, File local, String remote) throws SinkException {
         try (BufferedInputStream dataBlockStream = new BufferedInputStream(new FileInputStream(local), 1024);
-            SFtpClient sFtpClient = open(sFtpPickup)) {
+             SFtpClient sFtpClient = open(sFtpPickup)) {
             sFtpClient.putContent(remote, dataBlockStream);
         } catch (IOException e) {
             throw new SinkException(e);

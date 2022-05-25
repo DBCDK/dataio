@@ -10,7 +10,7 @@ import java.util.List;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "stringOrXmlFragment", namespace = "http://www.loc.gov/zing/srw/", propOrder = {
-    "content"
+        "content"
 })
 public class StringOrXmlFragment {
 

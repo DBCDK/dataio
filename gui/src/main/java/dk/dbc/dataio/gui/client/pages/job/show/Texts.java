@@ -125,7 +125,6 @@ public interface Texts extends Constants {
     String button_clear();
 
 
-
     // Error texts
     @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_InputFieldValidationError();

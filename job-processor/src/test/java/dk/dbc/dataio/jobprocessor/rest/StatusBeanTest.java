@@ -26,7 +26,8 @@ public class StatusBeanTest {
         try {
             statusBean.getStatus();
             fail("no JobProcessorCapacityExceededException thrown");
-        } catch (JobProcessorCapacityExceededException ignored) {}
+        } catch (JobProcessorCapacityExceededException ignored) {
+        }
     }
 
     @Test
@@ -36,7 +37,8 @@ public class StatusBeanTest {
         try {
             statusBean.getStatus();
             fail("no JobProcessorTerminallyIllException thrown");
-        } catch (JobProcessorTerminallyIllException ignored) {}
+        } catch (JobProcessorTerminallyIllException ignored) {
+        }
     }
 
     private StatusBean createStatusBean() {

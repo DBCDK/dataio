@@ -24,8 +24,8 @@ public class ImsServiceConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImsServiceConnector.class);
     public static final String CONNECT_TIMEOUT_PROPERTY = "com.sun.xml.ws.connect.timeout";
     public static final String REQUEST_TIMEOUT_PROPERTY = "com.sun.xml.ws.request.timeout";
-    public static final int CONNECT_TIMEOUT_DEFAULT_IN_MS =  1 * 60 * 1000;    // 1 minute
-    public static final int REQUEST_TIMEOUT_DEFAULT_IN_MS =  3 * 60 * 1000;    // 3 minutes
+    public static final int CONNECT_TIMEOUT_DEFAULT_IN_MS = 1 * 60 * 1000;    // 1 minute
+    public static final int REQUEST_TIMEOUT_DEFAULT_IN_MS = 3 * 60 * 1000;    // 3 minutes
 
     private RetryPolicy<Object> retryPolicy = new RetryPolicy<Object>()
             .handle(WebServiceException.class)
@@ -54,7 +54,8 @@ public class ImsServiceConnector {
 
     /**
      * Calls updateMarcXchange operation of the ims Web service
-     * @param trackingId unique ID for each chunk within the job
+     *
+     * @param trackingId         unique ID for each chunk within the job
      * @param marcXchangeRecords list of marcXchange records to set on updateMarcXchangeRequest
      * @return list containing UpdateMarcXchangeResults
      * @throws WebServiceException on failure communicating with the ims web service
@@ -70,7 +71,7 @@ public class ImsServiceConnector {
     private UpdateMarcXchangePortType getProxy(UpdateMarcXchangeServices services) {
         final UpdateMarcXchangePortType proxy = services.getUpdateMarcXchangePort();
         // We don't want to rely on the endpoint from the WSDL
-        BindingProvider bindingProvider = (BindingProvider)proxy;
+        BindingProvider bindingProvider = (BindingProvider) proxy;
         bindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
         // FixMe: timeouts should be made configurable
         bindingProvider.getRequestContext().put(CONNECT_TIMEOUT_PROPERTY, CONNECT_TIMEOUT_DEFAULT_IN_MS);

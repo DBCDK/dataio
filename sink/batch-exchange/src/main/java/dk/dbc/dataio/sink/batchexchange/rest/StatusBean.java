@@ -12,7 +12,7 @@ import javax.ws.rs.core.Response;
 @Stateless
 @Path("/")
 public class StatusBean implements ServiceStatus {
-    @PersistenceContext(unitName="batchExchangePU")
+    @PersistenceContext(unitName = "batchExchangePU")
     private EntityManager entityManager;
 
     @Override

@@ -60,7 +60,7 @@ public final class FlowComponentModelMapper {
 
     private static List<String> getJavaScriptNames(List<JavaScript> javascripts) {
         List<String> javascriptNames = new ArrayList<>();
-        for (JavaScript javaScript: javascripts) {
+        for (JavaScript javaScript : javascripts) {
             javascriptNames.add(javaScript.getModuleName());
         }
         return javascriptNames;
@@ -92,15 +92,16 @@ public final class FlowComponentModelMapper {
 
     /**
      * Maps a model to a flow component content, containing the java scripts given as input
-     * @param model FlowComponentModel
+     *
+     * @param model               FlowComponentModel
      * @param requiredJavaScripts List javaScript and requireCache
      * @return flowComponentContent
      */
-    public static FlowComponentContent toFlowComponentContent(FlowComponentModel model, fetchRequiredJavaScriptResult requiredJavaScripts) throws IllegalArgumentException{
+    public static FlowComponentContent toFlowComponentContent(FlowComponentModel model, fetchRequiredJavaScriptResult requiredJavaScripts) throws IllegalArgumentException {
         if (model.isInputFieldsEmptyModulesExcluded()) {
             throw new IllegalArgumentException("The fields in the Flow Component Model cannot be empty");
         }
-        if (requiredJavaScripts == null ) {
+        if (requiredJavaScripts == null) {
             throw new IllegalArgumentException("The list of java scripts cannot be null or empty");
         }
         if (requiredJavaScripts.javaScripts == null || requiredJavaScripts.javaScripts.isEmpty()) {
@@ -108,7 +109,7 @@ public final class FlowComponentModelMapper {
         }
 
         List<String> matches = model.getDataioPatternMatches();
-        if(!matches.isEmpty()) {
+        if (!matches.isEmpty()) {
             throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
         }
 
@@ -124,7 +125,7 @@ public final class FlowComponentModelMapper {
         //TODO handle require
     }
 
-    public static FlowComponentContent toNext(FlowComponentModel model, fetchRequiredJavaScriptResult requiredJavaScripts) throws IllegalArgumentException{
+    public static FlowComponentContent toNext(FlowComponentModel model, fetchRequiredJavaScriptResult requiredJavaScripts) throws IllegalArgumentException {
         return new FlowComponentContent(
                 model.getName(),
                 model.getSvnProject(),
@@ -143,10 +144,10 @@ public final class FlowComponentModelMapper {
 
     private static String buildPatternMatchesErrorMsg(List<String> matches) {
         StringBuilder stringBuilder = new StringBuilder("Illegal characters found in flowComponent name:");
-        for(String match : matches) {
+        for (String match : matches) {
             stringBuilder.append(" [").append(match).append("],");
         }
-        return stringBuilder.deleteCharAt(stringBuilder.length() -1).toString();
+        return stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
     }
 
 }

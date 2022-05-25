@@ -56,9 +56,9 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -632,7 +632,7 @@ public class FlowStoreProxyImplTest {
         }
     }
 
-     /*
+    /*
      * Test deleteFlow
      */
 
@@ -1982,9 +1982,9 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final List<RRHarvesterConfig> rrHarvesterConfigs = new ArrayList<>();
-        rrHarvesterConfigs.add( new RRHarvesterConfig(1,1,
+        rrHarvesterConfigs.add(new RRHarvesterConfig(1, 1,
                 new RRHarvesterConfig.Content().withId("Id-1")
-        ) );
+        ));
 
         when(flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class)).thenReturn(rrHarvesterConfigs);
 
@@ -1992,8 +1992,8 @@ public class FlowStoreProxyImplTest {
 
         assertNotNull(result);
         assertThat(result.size(), is(1));
-        for ( RRHarvesterConfig entry: result ) {
-            switch(entry.getContent().getId()) {
+        for (RRHarvesterConfig entry : result) {
+            switch (entry.getContent().getId()) {
                 case "Id-1":
                 case "Id-2":
                     break;

@@ -17,11 +17,11 @@ import javax.persistence.Table;
 
 @Entity
 @SqlResultSetMapping(name = "SinkCacheEntity.implicit", entities = {
-    @EntityResult(entityClass=SinkCacheEntity.class)}
+        @EntityResult(entityClass = SinkCacheEntity.class)}
 )
 @NamedNativeQueries({
-    @NamedNativeQuery(name = SinkCacheEntity.NAMED_QUERY_SET_CACHE,
-        query = "select * from set_sinkcache(?checksum, ?sink)", resultSetMapping = "SinkCacheEntity.implicit")
+        @NamedNativeQuery(name = SinkCacheEntity.NAMED_QUERY_SET_CACHE,
+                query = "select * from set_sinkcache(?checksum, ?sink)", resultSetMapping = "SinkCacheEntity.implicit")
 })
 @Table(name = "sinkcache")
 public class SinkCacheEntity {

@@ -34,7 +34,7 @@ public class GatekeeperDestinationsIT extends AbstractFlowStoreServiceContainerT
      * and contains the same information as the gatekeeper destination given as input
      */
     @Test
-    public void createGatekeeperDestination_ok() throws Exception{
+    public void createGatekeeperDestination_ok() throws Exception {
         // When...
         final GatekeeperDestination gatekeeperDestinationPrePersist = new GatekeeperDestinationBuilder()
                 .setDestination("GatekeeperDestinationsIT.createGatekeeperDestination_ok")
@@ -89,7 +89,7 @@ public class GatekeeperDestinationsIT extends AbstractFlowStoreServiceContainerT
             fail("Unique constraint was not detected as input to createGatekeeperDestination().");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(406));
         }
@@ -133,12 +133,12 @@ public class GatekeeperDestinationsIT extends AbstractFlowStoreServiceContainerT
 
         // Then...
         assertNotNull(gatekeeperDestinations);
-        assertThat(gatekeeperDestinations.size() >= 3, is (true));
+        assertThat(gatekeeperDestinations.size() >= 3, is(true));
 
         // And...
-        assertThat(gatekeeperDestinations.get(0), is (sortsFirst));
-        assertThat(gatekeeperDestinations.get(1), is (sortsSecond));
-        assertThat(gatekeeperDestinations.get(2), is (sortsThird));
+        assertThat(gatekeeperDestinations.get(0), is(sortsFirst));
+        assertThat(gatekeeperDestinations.get(1), is(sortsSecond));
+        assertThat(gatekeeperDestinations.get(2), is(sortsThird));
     }
 
     /**
@@ -176,7 +176,7 @@ public class GatekeeperDestinationsIT extends AbstractFlowStoreServiceContainerT
             fail("None existing Gatekeeper destination was not detected");
 
             // Then ...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(Response.Status.fromStatusCode(e.getStatusCode()), is(NOT_FOUND));
         }
@@ -188,7 +188,7 @@ public class GatekeeperDestinationsIT extends AbstractFlowStoreServiceContainerT
      * Then : assert the correct fields have been set with the correct values
      */
     @Test
-    public void updateGatekeeperDestination_ok() throws Exception{
+    public void updateGatekeeperDestination_ok() throws Exception {
 
         // Given...
         GatekeeperDestination originalGatekeeperDestination = flowStoreServiceConnector.createGatekeeperDestination(
@@ -238,7 +238,7 @@ public class GatekeeperDestinationsIT extends AbstractFlowStoreServiceContainerT
     /**
      * Given: a deployed flow-store service
      * When : JSON posted to the gatekeeper/destinations path with an identifier (update), where the id of the gatekeeper destination object
-     *        does not match the id given in path.
+     * does not match the id given in path.
      * Then : request returns with a BAD REQUEST http status code
      */
     @Test
@@ -275,7 +275,7 @@ public class GatekeeperDestinationsIT extends AbstractFlowStoreServiceContainerT
             fail("None existing gatekeeper id was not detected as input to updateGatekeeperDestination().");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
         }
@@ -284,12 +284,12 @@ public class GatekeeperDestinationsIT extends AbstractFlowStoreServiceContainerT
     /**
      * Given: a deployed flow-store service with two valid gatekeeper destinations stored
      * When : valid JSON is POSTed to the gatekeeper/destinations path with an identifier (update) but with a combination of values that are
-     *        already in use by another existing gatekeeper destination
+     * already in use by another existing gatekeeper destination
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT_ACCEPTABLE http status code
      */
     @Test
-    public void updateGatekeeperDestination_noneUniqueValues_NotAcceptable() throws FlowStoreServiceConnectorException{
+    public void updateGatekeeperDestination_noneUniqueValues_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
         GatekeeperDestination gatekeeperDestinationA = flowStoreServiceConnector.createGatekeeperDestination(
                 new GatekeeperDestinationBuilder()
@@ -312,7 +312,7 @@ public class GatekeeperDestinationsIT extends AbstractFlowStoreServiceContainerT
 
             fail("Primary key violation was not detected as input to updateGatekeeperDestination().");
             // Then...
-        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(406));
         }

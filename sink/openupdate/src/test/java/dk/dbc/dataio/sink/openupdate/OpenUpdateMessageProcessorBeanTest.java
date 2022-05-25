@@ -77,6 +77,7 @@ public class OpenUpdateMessageProcessorBeanTest {
             .setContent(flowBinderContent)
             .build();
     private final OpenUpdateMessageProcessorBean openUpdateMessageProcessorBean = new OpenUpdateMessageProcessorBean();
+
     {
         openUpdateMessageProcessorBean.flowStoreServiceConnectorBean = flowStoreServiceConnectorBean;
         openUpdateMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;

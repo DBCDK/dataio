@@ -3,8 +3,8 @@ package dk.dbc.dataio.gatekeeper.operation;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
+import dk.dbc.invariant.InvariantUtil;
 
 /**
  * Factory class for the creation of job specifications from trans file entries
@@ -15,7 +15,8 @@ public class JobSpecificationFactory {
     public static final String PACKAGING_DANBIB_DEFAULT = "iso";
     public static final String ENCODING_DANBIB_DEFAULT = "latin-1";
 
-    private JobSpecificationFactory() {}
+    private JobSpecificationFactory() {
+    }
 
     /**
      * Creates job specification from given transfile line using
@@ -23,12 +24,13 @@ public class JobSpecificationFactory {
      * is {@value #DESTINATION_DANBIB} missing values for packaging and/or
      * encoding fields will be set to {@value PACKAGING_DANBIB_DEFAULT} and
      * {@value ENCODING_DANBIB_DEFAULT} respectively.
-     * @param line transfile line to convert into job specification
+     *
+     * @param line          transfile line to convert into job specification
      * @param transfileName name of parent transfile
-     * @param fileStoreId file-store service ID of data file referenced in transfile line
-     * @param rawTransfile transfile content (can be null)
+     * @param fileStoreId   file-store service ID of data file referenced in transfile line
+     * @param rawTransfile  transfile content (can be null)
      * @return JobSpecification instance
-     * @throws NullPointerException if given null-valued argument
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued fileStoreId argument
      */
     public static JobSpecification createJobSpecification(TransFile.Line line, String transfileName, String fileStoreId, byte[] rawTransfile)
@@ -75,8 +77,8 @@ public class JobSpecificationFactory {
 
     private static long getSubmitterIdOrMissing(String transfileName) {
         if (transfileName == null ||
-            transfileName.trim().isEmpty() ||
-            Constants.MISSING_FIELD_VALUE.equals(transfileName)) {
+                transfileName.trim().isEmpty() ||
+                Constants.MISSING_FIELD_VALUE.equals(transfileName)) {
             return Constants.MISSING_SUBMITTER_VALUE;
         }
         try {

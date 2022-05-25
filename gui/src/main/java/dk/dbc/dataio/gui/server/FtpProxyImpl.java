@@ -24,6 +24,7 @@ public class FtpProxyImpl implements FtpProxy {
 
     /**
      * Default Constructor
+     *
      * @throws ProxyException The Proxy Exception
      */
     public FtpProxyImpl() throws ProxyException {
@@ -32,6 +33,7 @@ public class FtpProxyImpl implements FtpProxy {
 
     /**
      * This version of the constructor is intended to be used for testing. The purpose being, that the FtpClient can be injected in the proxy.
+     *
      * @param ftpClient The FTP Client to use
      * @throws ProxyException The Proxy Exception
      */
@@ -77,7 +79,8 @@ public class FtpProxyImpl implements FtpProxy {
 
     /**
      * Handle exceptions thrown by the FtpClient and the Jndi Service and wrap them in ProxyExceptions
-     * @param exception generic exception which in turn can be both Checked and Unchecked
+     *
+     * @param exception        generic exception which in turn can be both Checked and Unchecked
      * @param callerMethodName calling method name for logging
      * @throws ProxyException GUI exception
      */
@@ -92,11 +95,10 @@ public class FtpProxyImpl implements FtpProxy {
     }
 
     /**
-     *
-     * @param caller The name of the caller method
+     * @param caller        The name of the caller method
      * @param exceptionText The text for the exception
-     * @param proxyError The Proxy Error
-     * @param exception The caught exception
+     * @param proxyError    The Proxy Error
+     * @param exception     The caught exception
      * @throws ProxyException The new common exception
      */
     private void logAndThrowError(String caller, String exceptionText, ProxyError proxyError, Exception exception) throws ProxyException {

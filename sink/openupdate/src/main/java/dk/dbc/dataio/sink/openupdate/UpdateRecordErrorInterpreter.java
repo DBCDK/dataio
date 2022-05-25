@@ -32,7 +32,8 @@ class UpdateRecordErrorInterpreter {
 
     private Set<String> ignoredValidationErrors;
 
-    public UpdateRecordErrorInterpreter() {}
+    public UpdateRecordErrorInterpreter() {
+    }
 
     public UpdateRecordErrorInterpreter(Set<String> ignoredValidationErrors) {
         this.ignoredValidationErrors = ignoredValidationErrors;
@@ -40,8 +41,9 @@ class UpdateRecordErrorInterpreter {
 
     /**
      * Interprets an UpdateRecordResult and returns a list of diagnostics
+     *
      * @param updateRecordResult web service result to interpret
-     * @param addiRecord Addi record containing the corresponding MARC record used to access the field and subfield
+     * @param addiRecord         Addi record containing the corresponding MARC record used to access the field and subfield
      * @return list of Diagnostics
      */
     List<Diagnostic> getDiagnostics(UpdateRecordResult updateRecordResult, AddiRecord addiRecord) {
@@ -51,7 +53,7 @@ class UpdateRecordErrorInterpreter {
             if (messages != null && !messages.isEmpty()) {
                 final MarcRecord marcRecord = toMarcRecord(addiRecord);
 
-                for (MessageEntry message: messages) {
+                for (MessageEntry message : messages) {
                     final Diagnostic diagnostic = toDiagnostic(message, marcRecord);
                     if (NON_FATAL_ERROR_MESSAGE.equals(diagnostic.getMessage())) {
                         LOGGER.debug("Update service result contains non-fatal '{}' message", diagnostic.getMessage());
@@ -71,6 +73,7 @@ class UpdateRecordErrorInterpreter {
 
     /**
      * Gets a MarcRecord from the given Addi record
+     *
      * @param addiRecord Addi record containing MARC record
      * @return MarcRecord object or null of no MARC record could be extracted
      */
@@ -86,7 +89,8 @@ class UpdateRecordErrorInterpreter {
 
     /**
      * Converts a message entry into its corresponding diagnostic
-     * @param message message entry
+     *
+     * @param message    message entry
      * @param marcRecord MARC record used to access the field and subfield
      * @return Diagnostic object
      */
@@ -120,7 +124,8 @@ class UpdateRecordErrorInterpreter {
 
     /**
      * Extracts datafield if identified by given message entry from given MARC record
-     * @param message message entry
+     *
+     * @param message    message entry
      * @param marcRecord MARC record containing identified datafield
      * @return DataField or empty
      */
@@ -138,7 +143,8 @@ class UpdateRecordErrorInterpreter {
 
     /**
      * Extracts subfield if identified by given message entry from given datafield
-     * @param message message entry
+     *
+     * @param message   message entry
      * @param datafield datafield containing identified subfield
      * @return SubField or empty
      */
@@ -157,6 +163,7 @@ class UpdateRecordErrorInterpreter {
 
     /**
      * Converts message entry type to its corresponding diagnostic level
+     *
      * @param message message entry
      * @return Diagnostic.Level
      */

@@ -42,14 +42,14 @@ public class JavascriptUtil {
      * <p>
      * <b>Notice:</b> the order of the returned values is unspecified.
      *
-     * @param reader with the javascript.
+     * @param reader     with the javascript.
      * @param sourceName the filename of the source.
      * @return A <code>List</code> of <code>Strings</code> containing the
      * function names from the javascript in unspecified order.
      * @throws IOException if the <code>Reader</code> containing the javascript
-     * can not be read.
-     * @throws Exception if the javascript could not be evaluated
-     * @throws Exception if an error in the evaluated javascript is found
+     *                     can not be read.
+     * @throws Exception   if the javascript could not be evaluated
+     * @throws Exception   if an error in the evaluated javascript is found
      */
     public static List<String> getAllToplevelFunctionsInJavascript(Reader reader, String sourceName) throws Throwable {
         Environment jsEnvironment = new Environment();
@@ -128,14 +128,14 @@ public class JavascriptUtil {
      * <code>ReferenceError</code> to the line containing the code
      * {@code var s = Something.somefunc();}
      *
-     * @param reader with the javascript.
+     * @param reader     with the javascript.
      * @param sourceName the filename of the source.
      * @return A <code>List</code> of <code>Strings</code> containing the
      * function names from the javascript.
      * @throws IOException if the <code>Reader</code> containing the javascript
-     * can not be read.
-     * @throws Exception if the javascript could not be evaluated
-     * @throws Exception if an error in the evaluated javascript is found
+     *                     can not be read.
+     * @throws Exception   if the javascript could not be evaluated
+     * @throws Exception   if an error in the evaluated javascript is found
      */
     public static List<String> getAllToplevelFunctionsInJavascriptWithFakeUseFunction(Reader reader, String sourceName) throws Throwable {
         Environment jsEnvironment = new Environment();
@@ -195,7 +195,8 @@ public class JavascriptUtil {
 
     /**
      * Resolves all dependencies for given javascript by traversing given folder
-     * @param root folder containing dependencies, sub folders are added to search path in alphabetical sort order
+     *
+     * @param root       folder containing dependencies, sub folders are added to search path in alphabetical sort order
      * @param javascript script to resolve
      * @return dependencies
      * @throws Exception on failure to eval dependencies

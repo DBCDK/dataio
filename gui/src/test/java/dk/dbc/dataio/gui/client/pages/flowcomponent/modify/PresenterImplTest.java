@@ -38,9 +38,12 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
 
-    @Mock private Texts mockedTexts;
-    @Mock private JavaScriptProjectFetcherAsync mockedJavaScriptProjectFetcher;
-    @Mock private ViewGinjector mockedViewGinjector;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private JavaScriptProjectFetcherAsync mockedJavaScriptProjectFetcher;
+    @Mock
+    private ViewGinjector mockedViewGinjector;
 
     private static boolean initializeModelHasBeenCalled;
     private static boolean saveModelHasBeenCalled;
@@ -168,7 +171,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         assertThat(presenterImpl.availableRevisions.isEmpty(), is(true));
         presenterImpl.setAvailableRevisions(Arrays.asList(revisionInfo));
         assertThat(presenterImpl.availableRevisions.size(), is(1));
-        assertThat(presenterImpl.availableRevisions.get(0), is (Long.valueOf(revisionInfo.getRevision()).toString()));
+        assertThat(presenterImpl.availableRevisions.get(0), is(Long.valueOf(revisionInfo.getRevision()).toString()));
     }
 
     @Test
@@ -177,7 +180,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         assertThat(presenterImpl.availableScripts.isEmpty(), is(true));
         presenterImpl.setAvailableScripts(Collections.singletonList(JAVA_SCRIPT_NAME));
         assertThat(presenterImpl.availableScripts.size(), is(1));
-        assertThat(presenterImpl.availableScripts.get(0), is (JAVA_SCRIPT_NAME));
+        assertThat(presenterImpl.availableScripts.get(0), is(JAVA_SCRIPT_NAME));
     }
 
     @Test
@@ -186,7 +189,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         assertThat(presenterImpl.availableInvocationMethods.isEmpty(), is(true));
         presenterImpl.setAvailableInvocationMethods(Collections.singletonList(INVOCATION_METHOD));
         assertThat(presenterImpl.availableInvocationMethods.size(), is(1));
-        assertThat(presenterImpl.availableInvocationMethods.get(0), is (INVOCATION_METHOD));
+        assertThat(presenterImpl.availableInvocationMethods.get(0), is(INVOCATION_METHOD));
     }
 
     @Test
@@ -328,6 +331,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenter();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }
+
     private void setupPresenter() {
         presenterImpl = new PresenterImplConcrete(header);
         presenterImpl.commonInjector = mockedCommonGinjector;

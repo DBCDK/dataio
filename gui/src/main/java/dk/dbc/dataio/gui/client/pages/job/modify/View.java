@@ -16,26 +16,44 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
 
-    interface EditJobBinder extends UiBinder<HTMLPanel, View> {}
+    interface EditJobBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static EditJobBinder uiBinder = GWT.create(EditJobBinder.class);
 
-    @UiField Label header;
-    @UiField PromptedTextBox jobId;
-    @UiField PromptedTextBox packaging;
-    @UiField PromptedTextBox format;
-    @UiField PromptedTextBox charset;
-    @UiField PromptedTextBox destination;
-    @UiField PromptedTextBox mailForNotificationAboutVerification;
-    @UiField PromptedTextBox mailForNotificationAboutProcessing;
-    @UiField PromptedTextBox resultMailInitials;
-    @UiField PromptedTextBox type;
-    @UiField PromptedTextBox jobcreationtime;
-    @UiField PromptedTextBox jobcompletiontime;
-    @UiField PromptedTextBox datafile;
-    @UiField PromptedTextBox partnumber;
-    @UiField Button rerunButton;
+    @UiField
+    Label header;
+    @UiField
+    PromptedTextBox jobId;
+    @UiField
+    PromptedTextBox packaging;
+    @UiField
+    PromptedTextBox format;
+    @UiField
+    PromptedTextBox charset;
+    @UiField
+    PromptedTextBox destination;
+    @UiField
+    PromptedTextBox mailForNotificationAboutVerification;
+    @UiField
+    PromptedTextBox mailForNotificationAboutProcessing;
+    @UiField
+    PromptedTextBox resultMailInitials;
+    @UiField
+    PromptedTextBox type;
+    @UiField
+    PromptedTextBox jobcreationtime;
+    @UiField
+    PromptedTextBox jobcompletiontime;
+    @UiField
+    PromptedTextBox datafile;
+    @UiField
+    PromptedTextBox partnumber;
+    @UiField
+    Button rerunButton;
 
-    @UiField Label status;
+    @UiField
+    Label status;
 
     public View() {
         super("");

@@ -10,6 +10,7 @@ import java.util.Map;
  * <p>
  * This class is not thread safe.
  * </p>
+ *
  * @param <K> the type of key
  * @param <V> the type of value
  */

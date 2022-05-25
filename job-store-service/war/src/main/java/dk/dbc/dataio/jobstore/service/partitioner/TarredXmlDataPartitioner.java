@@ -94,7 +94,7 @@ public class TarredXmlDataPartitioner implements DataPartitioner {
                         boundedInputStream, encodingExpected, positionInDatafile)
                         .iterator();
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new UnrecoverableDataException(e);
         }
     }

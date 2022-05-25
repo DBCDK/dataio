@@ -35,16 +35,18 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
 
-    @Mock private Texts mockedTexts;
-    @Mock private ViewGinjector mockedViewGinjector;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private ViewGinjector mockedViewGinjector;
 
     private View view;
 

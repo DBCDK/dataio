@@ -16,6 +16,7 @@ import com.google.gwt.user.client.ui.TextArea;
 public class EditTransFileView extends FlowPanel implements HasValue<EditTransFileView.EditTransFileData>, Focusable {
     interface UiTrafficBinder extends UiBinder<HTMLPanel, EditTransFileView> {
     }
+
     private static UiTrafficBinder uiBinder = GWT.create(UiTrafficBinder.class);
 
     public class EditTransFileData {
@@ -27,6 +28,7 @@ public class EditTransFileView extends FlowPanel implements HasValue<EditTransFi
             this.name = name;
             this.content = content;
         }
+
         EditTransFileData(String name, String content, String mail) {
             this(name, content);
             this.mail = mail;
@@ -38,10 +40,14 @@ public class EditTransFileView extends FlowPanel implements HasValue<EditTransFi
     }
 
     String transFileName;
-    @UiField HTMLPanel transFileContentContainer;
-    @UiField TextArea transFileContent;
-    @UiField HTMLPanel mailNotificationContainer;
-    @UiField Element mailNotification;
+    @UiField
+    HTMLPanel transFileContentContainer;
+    @UiField
+    TextArea transFileContent;
+    @UiField
+    HTMLPanel mailNotificationContainer;
+    @UiField
+    Element mailNotification;
 
 
     /*

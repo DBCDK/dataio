@@ -22,8 +22,8 @@ import java.sql.Timestamp;
 @Entity
 @Table(name = "notification")
 @NamedQueries(
-    @NamedQuery(name = NotificationEntity.SELECT_BY_TYPE,
-        query = "SELECT notification FROM NotificationEntity notification WHERE notification.type = :type ORDER BY notification.timeOfCreation DESC")
+        @NamedQuery(name = NotificationEntity.SELECT_BY_TYPE,
+                query = "SELECT notification FROM NotificationEntity notification WHERE notification.type = :type ORDER BY notification.timeOfCreation DESC")
 )
 public class NotificationEntity {
     public static final String SELECT_BY_TYPE = "NotificationEntity.byType";
@@ -70,7 +70,8 @@ public class NotificationEntity {
 
     private Integer jobId;
 
-    public NotificationEntity() {}
+    public NotificationEntity() {
+    }
 
     public Integer getId() {
         return id;

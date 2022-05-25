@@ -19,40 +19,40 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ja7 on 06-05-16.
- *
+ * <p>
  * Test message comsumer bean.
  */
 @MessageDriven(activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "jms/dataio/sinks"),
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"), }
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),}
 )
 public class TestSinkMessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TestSinkMessageConsumerBean.class);
 
-    private static final List<Chunk> chunksReceived =new ArrayList<>();
-    private static final Semaphore processBlocker=new Semaphore(0);
+    private static final List<Chunk> chunksReceived = new ArrayList<>();
+    private static final Semaphore processBlocker = new Semaphore(0);
 
     JSONBContext jsonbContext = new JSONBContext();
-    
+
     @SuppressWarnings("EjbClassWarningsInspection")
     static void waitForDeliveringOfChunks(String message, int numberOfChunksToWaitFor) throws Exception {
-         StopWatch timer=new StopWatch();
-         if( ! processBlocker.tryAcquire( numberOfChunksToWaitFor, 10, TimeUnit.SECONDS ) ) {
-             throw new Exception("Unittest Errors unable to acquire "+ numberOfChunksToWaitFor + " in 10 Seconds : "+message);
-         }
-         LOGGER.info("Waiting in took waitForDeliveringOfChunks {}  {} ms", numberOfChunksToWaitFor, timer.getElapsedTime());
-     }
+        StopWatch timer = new StopWatch();
+        if (!processBlocker.tryAcquire(numberOfChunksToWaitFor, 10, TimeUnit.SECONDS)) {
+            throw new Exception("Unittest Errors unable to acquire " + numberOfChunksToWaitFor + " in 10 Seconds : " + message);
+        }
+        LOGGER.info("Waiting in took waitForDeliveringOfChunks {}  {} ms", numberOfChunksToWaitFor, timer.getElapsedTime());
+    }
 
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, ServiceException {
         final Chunk chunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("Handled chunk {}/{}", chunk.getJobId(), chunk.getChunkId() );
+        LOGGER.info("Handled chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
         synchronized (chunksReceived) {
             try {
                 chunksReceived.add(chunk);
-                TestJobStoreConnection.sendChunkToJobstoreAsType( chunk, Chunk.Type.DELIVERED);
+                TestJobStoreConnection.sendChunkToJobstoreAsType(chunk, Chunk.Type.DELIVERED);
             } finally {
                 processBlocker.release();
             }
@@ -70,7 +70,7 @@ public class TestSinkMessageConsumerBean extends AbstractSinkMessageConsumerBean
 
     @SuppressWarnings("EjbClassWarningsInspection")
     public static int getChunksReceivedCount() {
-        synchronized (( chunksReceived )) {
+        synchronized ((chunksReceived)) {
             return chunksReceived.size();
         }
     }

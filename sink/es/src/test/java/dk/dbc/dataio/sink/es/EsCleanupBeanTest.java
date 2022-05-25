@@ -167,7 +167,7 @@ public class EsCleanupBeanTest {
 
     @Test
     public void cleanup_InFlightNoTargetReferenceFound_chunkIsRedelivered() throws SinkException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException, JSONBException {
-        when(esInFlightAdmin.buildEsInFlight(any(Chunk.class), anyInt(),anyString(), anyInt(), anyLong())).thenReturn(esInFlight41_1);
+        when(esInFlightAdmin.buildEsInFlight(any(Chunk.class), anyInt(), anyString(), anyInt(), anyLong())).thenReturn(esInFlight41_1);
         when(esInFlightAdmin.listEsInFlight(SINK_ID)).thenReturn(Collections.singletonList(esInFlight41_1));
         when(esConnector.getCompletionStatusForESTaskpackages(anyList()))
                 .thenReturn(Collections.emptyMap());

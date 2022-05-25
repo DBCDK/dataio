@@ -9,6 +9,7 @@ import java.util.Set;
 public interface KeyGenerator {
     /**
      * Generates keys determining chunk ordering during sequence analysis
+     *
      * @param data chunk data for which keys are generated
      * @return set of keys
      */

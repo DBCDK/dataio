@@ -12,10 +12,12 @@ import java.util.Objects;
 
 /**
  * Class representing a logical grouping of filters
+ *
  * @param <T> ListFilterField subtype
  */
-public class ListFilterGroup<T extends ListFilterField> implements Iterable<ListFilterGroup.Member<T>>, Serializable{
+public class ListFilterGroup<T extends ListFilterField> implements Iterable<ListFilterGroup.Member<T>>, Serializable {
     private boolean not = false;
+
     /**
      * Logical operators used to combine filter clauses
      */
@@ -30,7 +32,8 @@ public class ListFilterGroup<T extends ListFilterField> implements Iterable<List
 
         /**
          * Constructor
-         * @param filter filter (not null)
+         *
+         * @param filter          filter (not null)
          * @param logicalOperator logical combiner (not null)
          * @throws NullPointerException if given null-valued filter or logicalOperator argument
          */

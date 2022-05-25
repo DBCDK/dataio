@@ -22,8 +22,10 @@ public class ScheduledHarvestBean extends AbstractScheduledHarvestBean<Harvester
         PromatHarvesterConfig, HarvesterConfigurationBean> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledHarvestBean.class);
 
-    @EJB HarvesterBean harvesterBean;
-    @EJB HarvesterConfigurationBean harvesterConfigurationBean;
+    @EJB
+    HarvesterBean harvesterBean;
+    @EJB
+    HarvesterConfigurationBean harvesterConfigurationBean;
 
     @Override
     public HarvesterBean getHarvesterBeanImpl() {

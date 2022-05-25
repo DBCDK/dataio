@@ -32,20 +32,33 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PopupBoxTest {
-    @Mock KeyPressEvent mockedKeyPressEvent;
-    @Mock TextBox mockedWidget;
-    @Mock FlowPanel mockedBasePanel;
-    @Mock DialogBox mockedDialogBox;
-    @Mock VerticalPanel mockedContainerPanel;
-    @Mock FlowPanel mockedButtonPanel;
-    @Mock Button mockedOkButton;
-    @Mock Button mockedCancelButton;
-    @Mock Button mockedExtraButton;
-    @Mock ClickEvent mockedClickEvent;
-    @Mock ValueChangeHandler mockedValueChangeHandler;
+    @Mock
+    KeyPressEvent mockedKeyPressEvent;
+    @Mock
+    TextBox mockedWidget;
+    @Mock
+    FlowPanel mockedBasePanel;
+    @Mock
+    DialogBox mockedDialogBox;
+    @Mock
+    VerticalPanel mockedContainerPanel;
+    @Mock
+    FlowPanel mockedButtonPanel;
+    @Mock
+    Button mockedOkButton;
+    @Mock
+    Button mockedCancelButton;
+    @Mock
+    Button mockedExtraButton;
+    @Mock
+    ClickEvent mockedClickEvent;
+    @Mock
+    ValueChangeHandler mockedValueChangeHandler;
     @SuppressWarnings("deprecation")
-    @Mock com.google.gwt.user.client.Element mockedElement;
-    @Mock DialogHandler mockedDialogHandler;
+    @Mock
+    com.google.gwt.user.client.Element mockedElement;
+    @Mock
+    DialogHandler mockedDialogHandler;
 
 
     /**

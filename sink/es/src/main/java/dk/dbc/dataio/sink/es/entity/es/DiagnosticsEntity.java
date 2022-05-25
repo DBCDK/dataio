@@ -37,7 +37,7 @@ public class DiagnosticsEntity {
     @Column(name = "condition")
     public Integer errorCode = 100;
     @Column(name = "addinfo")
-    public String additionalInformation="";
+    public String additionalInformation = "";
 
 
     public DiagnosticsEntity() {

@@ -17,10 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -35,11 +35,16 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class SinkJobFilterTest {
-    @Mock private Texts mockedTexts;
-    @Mock private Resources mockedResources;
-    @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
-    @Mock private ChangeHandler mockedChangeHandler;
-    @Mock private HandlerRegistration mockedSinkListHandlerRegistration;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private Resources mockedResources;
+    @Mock
+    private FlowStoreProxyAsync mockedFlowStoreProxy;
+    @Mock
+    private ChangeHandler mockedChangeHandler;
+    @Mock
+    private HandlerRegistration mockedSinkListHandlerRegistration;
 
 
     //
@@ -272,6 +277,7 @@ public class SinkJobFilterTest {
         ConcreteSinkJobFilter(Texts texts, Resources resources, String parameter, FlowStoreProxyAsync flowStoreProxy) {
             super(texts, resources, parameter, flowStoreProxy, true);
         }
+
         FetchSinksCallback fetchSinksCallback = new FetchSinksCallback();
     }
 

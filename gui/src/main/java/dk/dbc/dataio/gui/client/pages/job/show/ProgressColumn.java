@@ -28,10 +28,8 @@ public class ProgressColumn extends Column<JobModel, MultiProgressBar> {
     }
 
 
-
     /**
      * Default constructor
-     *
      */
     public ProgressColumn() {
         super(new ProgressCell());
@@ -39,6 +37,7 @@ public class ProgressColumn extends Column<JobModel, MultiProgressBar> {
 
     /**
      * This method instantiates a new MultiProgressBar widget, and takes its values from the supplied JobModel parameter
+     *
      * @param model The job model, that contains the values to be displayed in the Progress Bar
      * @return The newly instantiated MultiProgressBar widget
      */
@@ -49,9 +48,9 @@ public class ProgressColumn extends Column<JobModel, MultiProgressBar> {
         }
         final String DELIMITER = "/";
         String delivered = String.valueOf(model.getStateModel().getDeliveredCounter());
-        String processed = String.valueOf(model.getStateModel().getProcessedCounter() );
-        String processedAndNotDone = String.valueOf(model.getStateModel().getProcessedCounter()<model.getStateModel().getDeliveredCounter() ? 0 : model.getStateModel().getProcessedCounter()-model.getStateModel().getDeliveredCounter());
-        String remaining = String.valueOf(model.getNumberOfItems()<model.getStateModel().getProcessedCounter() ? 0 : model.getNumberOfItems()-model.getStateModel().getProcessedCounter());
+        String processed = String.valueOf(model.getStateModel().getProcessedCounter());
+        String processedAndNotDone = String.valueOf(model.getStateModel().getProcessedCounter() < model.getStateModel().getDeliveredCounter() ? 0 : model.getStateModel().getProcessedCounter() - model.getStateModel().getDeliveredCounter());
+        String remaining = String.valueOf(model.getNumberOfItems() < model.getStateModel().getProcessedCounter() ? 0 : model.getNumberOfItems() - model.getStateModel().getProcessedCounter());
         String total = String.valueOf(model.getNumberOfItems());
         String caption = delivered + DELIMITER + processedAndNotDone + DELIMITER + remaining;
         return new MultiProgressBar(caption, delivered, processed, total);

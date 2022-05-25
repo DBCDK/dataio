@@ -19,16 +19,20 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
-    @Mock private Texts mockedTexts;
-    @Mock private EditPlace mockedEditPlace;
-    @Mock private ViewGinjector mockedViewGinjector;
-    @Mock private DataBinder mockedDataBinder;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private EditPlace mockedEditPlace;
+    @Mock
+    private ViewGinjector mockedViewGinjector;
+    @Mock
+    private DataBinder mockedDataBinder;
 
     private View editView;
     private PresenterEditImpl presenterEditImpl;
     private final static long DEFAULT_SUBMITTER_ID = 426L;
 
-    class PresenterEditImplConcrete <Place extends EditPlace> extends PresenterEditImpl {
+    class PresenterEditImplConcrete<Place extends EditPlace> extends PresenterEditImpl {
         public PresenterEditImplConcrete(Place place, String header) {
             super(place, header);
             commonInjector = mockedCommonGinjector;
@@ -37,7 +41,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
         public GetSubmitterModelFilteredAsyncCallback getSubmitterModelFilteredAsyncCallback = new GetSubmitterModelFilteredAsyncCallback();
     }
-        //------------------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------------
 
     @Before
     public void setupMockedObjects() {

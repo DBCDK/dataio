@@ -7,4 +7,5 @@ import javax.ws.rs.Path;
 
 @Stateless
 @Path("/")
-public class StatusBean implements ServiceStatus {}
+public class StatusBean implements ServiceStatus {
+}

@@ -19,6 +19,7 @@ package dk.dbc.dataio.commons.utils.cache;
 public interface Cache<K, V> {
     /**
      * Gets an entry from the cache.
+     *
      * @param key the key whose associated value is to be returned
      * @return the element, or null, if it does not exist.
      * @throws NullPointerException if the key is null
@@ -31,6 +32,7 @@ public interface Cache<K, V> {
      * More formally, returns true if and only if this cache contains a
      * mapping for a key k such that key.equals(k).
      * (There can be at most one such mapping.)</p>
+     *
      * @param key key whose presence in this cache is to be tested.
      * @return true if this map contains a mapping for the specified key
      * @throws NullPointerException if key is null
@@ -44,6 +46,7 @@ public interface Cache<K, V> {
      * value is replaced by the specified value.  (A cache c is said to
      * contain a mapping for a key k if and only if {@link
      * #containsKey(Object) c.containsKey(k)} would return true.)
+     *
      * @param key   key with which the specified value is to be associated
      * @param value value to be associated with the specified key
      * @throws NullPointerException if key is null or if value is null

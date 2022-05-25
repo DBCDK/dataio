@@ -14,7 +14,7 @@ public class ItemInfoSnapshotBuilder {
     private int chunkId = 2;
     private int jobId = 1;
     private Date timeOfCreation = new Date();
-    private Date timeOfLastModification = new Date() ;
+    private Date timeOfLastModification = new Date();
     private Date timeOfCompletion = new Date();
     private State state = new State();
     private WorkflowNote workflowNote = null;

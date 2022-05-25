@@ -6,6 +6,7 @@ public enum Priority {
     LOW(1);
 
     final int value;
+
     Priority(int value) {
         this.value = value;
     }

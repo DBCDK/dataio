@@ -35,9 +35,10 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * Default constructor
-     * @param placeController   PlaceController for navigation
-     * @param view              Global flow binders View, necessary for keeping filter state, etc.
-     * @param header            Breadcrumb header text
+     *
+     * @param placeController PlaceController for navigation
+     * @param view            Global flow binders View, necessary for keeping filter state, etc.
+     * @param header          Breadcrumb header text
      */
     public PresenterImpl(PlaceController placeController, View view, String header) {
         this.placeController = placeController;
@@ -73,6 +74,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method opens a new view, for editing the flowbinder in question
+     *
      * @param model The model for the flowbinder to edit
      */
     @Override
@@ -129,6 +131,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onFilteredFailure(Throwable e) {
             view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
+
         @Override
         public void onSuccess(List<FlowBinderModel> models) {
             setFlowBindersAndDecipherSelection(new HashSet<>(view.flowBindersTable.dataProvider.getList()), models);

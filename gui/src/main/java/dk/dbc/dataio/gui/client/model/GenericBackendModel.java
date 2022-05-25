@@ -9,7 +9,8 @@ public class GenericBackendModel implements IsSerializable {
 
     /**
      * Constructor
-     * @param id the id of the generic model
+     *
+     * @param id      the id of the generic model
      * @param version the version of the generic model
      */
     protected GenericBackendModel(long id, long version) {
@@ -25,6 +26,7 @@ public class GenericBackendModel implements IsSerializable {
 
     /**
      * Get id
+     *
      * @return id of the generic model
      */
     public long getId() {
@@ -33,6 +35,7 @@ public class GenericBackendModel implements IsSerializable {
 
     /**
      * Set id
+     *
      * @param id of the generic model
      */
     public void setId(long id) {
@@ -41,6 +44,7 @@ public class GenericBackendModel implements IsSerializable {
 
     /**
      * Get version
+     *
      * @return version of the generic model
      */
     public long getVersion() {
@@ -49,6 +53,7 @@ public class GenericBackendModel implements IsSerializable {
 
     /**
      * Set version
+     *
      * @param version of the generic model
      */
     public void setVersion(long version) {

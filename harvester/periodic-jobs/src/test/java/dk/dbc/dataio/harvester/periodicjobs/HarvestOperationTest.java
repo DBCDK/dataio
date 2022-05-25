@@ -78,7 +78,7 @@ public class HarvestOperationTest {
             environmentVariables.set("TZ", "Europe/Copenhagen");
             binaryFileStore = new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath());
             fileStoreServiceConnector = new MockedFileStoreServiceConnector();
-                ((MockedFileStoreServiceConnector) fileStoreServiceConnector)
+            ((MockedFileStoreServiceConnector) fileStoreServiceConnector)
                     .destinations.add(tmpFolder.newFile().toPath());
             when(jobStoreServiceConnector.addJob(any(JobInputStream.class)))
                     .thenReturn(new JobInfoSnapshot());
@@ -136,7 +136,7 @@ public class HarvestOperationTest {
 
     @Test
     public void executeWithRecordIdsFile() throws HarvesterException, IOException, JobStoreServiceConnectorException,
-                                                  FlowStoreServiceConnectorException {
+            FlowStoreServiceConnectorException {
         final Path originalFile = Paths.get("src/test/resources/record-ids.txt");
         final Path copy = Paths.get("target/record-ids.txt");
         Files.copy(originalFile, copy, StandardCopyOption.REPLACE_EXISTING);
@@ -166,7 +166,7 @@ public class HarvestOperationTest {
     @Test
     public void executeWithRecordIdsFileWhenTimeOfSearchIsNotDefined()
             throws HarvesterException, IOException, JobStoreServiceConnectorException,
-                   FlowStoreServiceConnectorException {
+            FlowStoreServiceConnectorException {
         final Path originalFile = Paths.get("src/test/resources/record-ids.txt");
         final Path copy = Paths.get("target/record-ids.txt");
         Files.copy(originalFile, copy, StandardCopyOption.REPLACE_EXISTING);

@@ -18,9 +18,7 @@ public interface JavaScriptProjectFetcher extends RemoteService {
      * all commited revisions for project pointed to by given URL
      *
      * @param projectUrl project URL
-     *
      * @return list of revision information in descending revision order
-     *
      * @throws JavaScriptProjectFetcherException if unable to fetch revision information
      */
     List<RevisionInfo> fetchRevisions(String projectUrl) throws JavaScriptProjectFetcherException;
@@ -30,10 +28,8 @@ public interface JavaScriptProjectFetcher extends RemoteService {
      * revision of project pointed to by given URL
      *
      * @param projectUrl project URL
-     * @param revision project revision
-     *
+     * @param revision   project revision
      * @return list of file names
-     *
      * @throws JavaScriptProjectFetcherException if unable to fetch files
      */
     List<String> fetchJavaScriptFileNames(String projectUrl, long revision) throws JavaScriptProjectFetcherException;
@@ -42,12 +38,10 @@ public interface JavaScriptProjectFetcher extends RemoteService {
      * Fetches names of all potential invocation methods contained in specified
      * javaScript file in given revision of project pointed to by given URL
      *
-     * @param projectUrl project URL
-     * @param revision project revision
+     * @param projectUrl         project URL
+     * @param revision           project revision
      * @param javaScriptFileName name of script file
-     *
      * @return list of method names in alphabetical order
-     *
      * @throws JavaScriptProjectFetcherException if unable to fetch method names
      */
     List<String> fetchJavaScriptInvocationMethods(String projectUrl, long revision, String javaScriptFileName) throws JavaScriptProjectFetcherException;
@@ -56,13 +50,11 @@ public interface JavaScriptProjectFetcher extends RemoteService {
      * Feches script content of specified javaScript file (and any of its dependencies)
      * in given revision of project pointed to by given URL
      *
-     * @param projectUrl project URL
-     * @param revision project revision
+     * @param projectUrl         project URL
+     * @param revision           project revision
      * @param javaScriptFileName name of script file
      * @param javaScriptFunction name of invocation function in script file
-     *
      * @return list of javaScripts
-     *
      * @throws JavaScriptProjectFetcherException if unable to fetch javaScript content
      */
     fetchRequiredJavaScriptResult fetchRequiredJavaScript(String projectUrl, long revision, String javaScriptFileName, String javaScriptFunction) throws JavaScriptProjectFetcherException;
@@ -72,6 +64,7 @@ public interface JavaScriptProjectFetcher extends RemoteService {
      */
     class Factory {
         private static JavaScriptProjectFetcherAsync asyncInstance = null;
+
         public static JavaScriptProjectFetcherAsync getAsyncInstance() {
             if (asyncInstance == null) {
                 asyncInstance = GWT.create(JavaScriptProjectFetcher.class);

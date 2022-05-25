@@ -11,7 +11,8 @@ public class InvalidTransfileNotificationContext implements NotificationContext 
     private String transfileContent;
     private String cause;
 
-    public InvalidTransfileNotificationContext() {}  // GWT demands this empty constructor - therefore: Do not delete it, though nobody uses it :)
+    public InvalidTransfileNotificationContext() {
+    }  // GWT demands this empty constructor - therefore: Do not delete it, though nobody uses it :)
 
     @JsonCreator
     public InvalidTransfileNotificationContext(
@@ -27,6 +28,7 @@ public class InvalidTransfileNotificationContext implements NotificationContext 
         this.transfileContent = transfileContent;
         this.cause = cause;
     }
+
     public String getTransfileName() {
         return transfileName;
     }

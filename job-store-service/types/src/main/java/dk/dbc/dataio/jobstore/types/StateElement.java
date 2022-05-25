@@ -49,12 +49,12 @@ public class StateElement implements Serializable {
     }
 
     public StateElement withBeginDate(Date beginDate) {
-        this.beginDate = beginDate == null? null : new Date(beginDate.getTime());
+        this.beginDate = beginDate == null ? null : new Date(beginDate.getTime());
         return this;
     }
 
     public StateElement withEndDate(Date endDate) {
-        this.endDate = endDate == null? null : new Date(endDate.getTime());
+        this.endDate = endDate == null ? null : new Date(endDate.getTime());
         return this;
     }
 

@@ -27,7 +27,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class ImsServiceConnectorTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(
-        new WireMockConfiguration().dynamicPort(), false);
+            new WireMockConfiguration().dynamicPort(), false);
 
     @Test(expected = NullPointerException.class)
     public void constructor_endpointArgIsNull_throws() {
@@ -65,7 +65,7 @@ public class ImsServiceConnectorTest {
         final ImsServiceConnector imsServiceConnector = new ImsServiceConnector(getWireMockEndpoint())
                 .withRetryPolicy(new RetryPolicy().withMaxRetries(0));
         imsServiceConnector.updateMarcXchange(requestResponse.getTrackingId(),
-            requestResponse.getMarcXchangeRecordsForRequest());
+                requestResponse.getMarcXchangeRecordsForRequest());
     }
 
     public static abstract class ImsServiceRequestResponse {
@@ -92,10 +92,10 @@ public class ImsServiceConnectorTest {
 
         public void stub() {
             stubFor(post(urlPathMatching("/"))
-                .withRequestBody(equalToXml(requestBody))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody(responseBody)));
+                    .withRequestBody(equalToXml(requestBody))
+                    .willReturn(aResponse()
+                            .withStatus(200)
+                            .withBody(responseBody)));
         }
 
         private MarcXchangeRecord toMarcXchangeRecord(ChunkItem chunkItem) {

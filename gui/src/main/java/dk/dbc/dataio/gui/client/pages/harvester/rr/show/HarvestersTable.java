@@ -62,7 +62,8 @@ public class HarvestersTable extends CellTable {
 
     /**
      * This method sets the harvester data for the table
-     * @param presenter The presenter
+     *
+     * @param presenter  The presenter
      * @param harvesters The harvester data
      */
     public void setHarvesters(Presenter presenter, List<RRHarvesterConfig> harvesters) {
@@ -70,7 +71,7 @@ public class HarvestersTable extends CellTable {
         dataProvider.getList().clear();
 
         if (!harvesters.isEmpty()) {
-            for (RRHarvesterConfig RRHarvesterConfig: harvesters ) {
+            for (RRHarvesterConfig RRHarvesterConfig : harvesters) {
                 dataProvider.getList().add(RRHarvesterConfig);
             }
         }
@@ -294,6 +295,7 @@ public class HarvestersTable extends CellTable {
 
     /**
      * This method constructs the Status column
+     *
      * @return the constructed Status column
      */
     private Column constructStatusColumn() {
@@ -307,6 +309,7 @@ public class HarvestersTable extends CellTable {
 
     /**
      * This method constructs the Action column
+     *
      * @return The constructed Action column
      */
     private Column constructActionColumn() {
@@ -328,8 +331,9 @@ public class HarvestersTable extends CellTable {
 
     /**
      * This metods constructs a SafeHtml snippet, that constitutes a text with a popup mouseover help text
+     *
      * @param headerText The headertext to be displayed
-     * @param helpText The popup help text
+     * @param helpText   The popup help text
      * @return The SafeHtml snippet
      */
     SafeHtml textWithToolTip(String headerText, String helpText) {
@@ -339,9 +343,10 @@ public class HarvestersTable extends CellTable {
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
-    DoubleClickHandler getDoubleClickHandler(){
+    DoubleClickHandler getDoubleClickHandler() {
         return doubleClickEvent -> {
             RRHarvesterConfig selected = selectionModel.getSelectedObject();
             if (selected != null) {

@@ -34,7 +34,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * Default constructor
      *
      * @param placeController Common place controller
-     * @param header breadcrumb Header text
+     * @param header          breadcrumb Header text
      */
     public PresenterImpl(PlaceController placeController, String header) {
         this.placeController = placeController;
@@ -61,6 +61,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method opens a new view, for editing the sink in question
+     *
      * @param model The model for the sink to edit
      */
     @Override
@@ -93,7 +94,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * The view and selection model are updated accordingly
      *
      * @param dataProviderSet The set of data already stored in the view
-     * @param models the list of sinks returned from flow store proxy
+     * @param models          the list of sinks returned from flow store proxy
      */
     private void setSinksAndDecipherSelection(Set<SinkModel> dataProviderSet, List<SinkModel> models) {
         if (dataProviderSet.size() > models.size() || dataProviderSet.size() == 0) {

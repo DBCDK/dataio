@@ -74,15 +74,23 @@ public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implem
     }
 
     private static JavaScriptProjectFetcherError toJavaScriptProjectFetcherError(JavaScriptProjectError error) {
-        switch(error) {
-            case SCM_SERVER_ERROR:              return JavaScriptProjectFetcherError.SCM_SERVER_ERROR;
-            case SCM_INVALID_URL:               return JavaScriptProjectFetcherError.SCM_INVALID_URL;
-            case SCM_ILLEGAL_PROJECT_NAME:      return JavaScriptProjectFetcherError.SCM_ILLEGAL_PROJECT_NAME;
-            case SCM_RESOURCE_NOT_FOUND:        return JavaScriptProjectFetcherError.SCM_RESOURCE_NOT_FOUND;
-            case JAVASCRIPT_EVAL_ERROR:         return JavaScriptProjectFetcherError.JAVASCRIPT_EVAL_ERROR;
-            case JAVASCRIPT_REFERENCE_ERROR:    return JavaScriptProjectFetcherError.JAVASCRIPT_REFERENCE_ERROR;
-            case JAVASCRIPT_READ_ERROR:         return JavaScriptProjectFetcherError.JAVASCRIPT_READ_ERROR;
-            default:                            return JavaScriptProjectFetcherError.UNKNOWN;
+        switch (error) {
+            case SCM_SERVER_ERROR:
+                return JavaScriptProjectFetcherError.SCM_SERVER_ERROR;
+            case SCM_INVALID_URL:
+                return JavaScriptProjectFetcherError.SCM_INVALID_URL;
+            case SCM_ILLEGAL_PROJECT_NAME:
+                return JavaScriptProjectFetcherError.SCM_ILLEGAL_PROJECT_NAME;
+            case SCM_RESOURCE_NOT_FOUND:
+                return JavaScriptProjectFetcherError.SCM_RESOURCE_NOT_FOUND;
+            case JAVASCRIPT_EVAL_ERROR:
+                return JavaScriptProjectFetcherError.JAVASCRIPT_EVAL_ERROR;
+            case JAVASCRIPT_REFERENCE_ERROR:
+                return JavaScriptProjectFetcherError.JAVASCRIPT_REFERENCE_ERROR;
+            case JAVASCRIPT_READ_ERROR:
+                return JavaScriptProjectFetcherError.JAVASCRIPT_READ_ERROR;
+            default:
+                return JavaScriptProjectFetcherError.UNKNOWN;
         }
     }
 }

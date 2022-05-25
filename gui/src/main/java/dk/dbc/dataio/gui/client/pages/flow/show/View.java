@@ -186,12 +186,13 @@ public class View extends ViewWidget {
 
     /**
      * Formats a list of flow components to be shown in a cell
+     *
      * @param flowComponentModels A list of Flow Component Models
      * @return A list of text formatted Flow Components
      */
     private String formatFlowComponents(List<FlowComponentModel> flowComponentModels) {
         List<String> parameters = new ArrayList<String>();
-        for(FlowComponentModel model : flowComponentModels){
+        for (FlowComponentModel model : flowComponentModels) {
             parameters.add(Format.inBracketsPairString(model.getName(), formatRevision(model)));
         }
         return Format.commaSeparate(parameters);
@@ -208,7 +209,7 @@ public class View extends ViewWidget {
     private String formatRevision(FlowComponentModel flowComponentModel) {
         List<String> parameters = new ArrayList<String>();
         parameters.add(formatSvnRevision(flowComponentModel));
-        if(flowComponentModel.getSvnNext() != null
+        if (flowComponentModel.getSvnNext() != null
                 && !flowComponentModel.getSvnNext().isEmpty()) {
             parameters.add(formatSvnNext(flowComponentModel));
         }
@@ -217,33 +218,36 @@ public class View extends ViewWidget {
 
     /**
      * Formats an SVN Revision number
+     *
      * @param flowComponentModel The Flow Component Model
      * @return The formatted SVN Revision number
      */
-    private String formatSvnRevision(FlowComponentModel flowComponentModel){
+    private String formatSvnRevision(FlowComponentModel flowComponentModel) {
         return "SVN Rev. " + flowComponentModel.getSvnRevision();
     }
 
     /**
      * Formats an SVN Next number
+     *
      * @param flowComponentModel The Flow Component Model
      * @return The formatted SVN Next number
      */
-    private String formatSvnNext(FlowComponentModel flowComponentModel){
+    private String formatSvnNext(FlowComponentModel flowComponentModel) {
         return "SVN Next. " + flowComponentModel.getSvnNext();
     }
 
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
-    private DoubleClickHandler getDoubleClickHandler(){
+    private DoubleClickHandler getDoubleClickHandler() {
         DoubleClickHandler handler = new DoubleClickHandler() {
             @Override
             public void onDoubleClick(DoubleClickEvent doubleClickEvent) {
                 FlowModel selected = selectionModel.getSelectedObject();
-                if(selected != null) {
+                if (selected != null) {
                     presenter.editFlow(selected);
                 }
             }

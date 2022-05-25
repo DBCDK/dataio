@@ -14,7 +14,8 @@ import javax.ws.rs.core.Response;
 @Stateless
 @Path("/")
 public class StatusBean implements ServiceStatus {
-    @EJB CapacityBean capacityBean;
+    @EJB
+    CapacityBean capacityBean;
 
     @EJB
     HealthBean healthBean;
@@ -27,8 +28,8 @@ public class StatusBean implements ServiceStatus {
         }
         if (healthBean.isTerminallyIll()) {
             throw new JobProcessorTerminallyIllException(String.format(
-                "Processor on shard '%s' has reported itself terminally ill, forcing restart",
-                healthBean.getShardId()), healthBean.getCause());
+                    "Processor on shard '%s' has reported itself terminally ill, forcing restart",
+                    healthBean.getShardId()), healthBean.getCause());
         }
         return Response.ok().build();
     }

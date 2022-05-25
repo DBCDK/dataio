@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 public final class Urls extends HashMap<String, String> {
     private static final Urls instance = new Urls();
+
     static {
         instance.put("ELK_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("ELK_URL"));
         instance.put("FILESTORE_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("FILESTORE_URL"));
@@ -18,7 +19,8 @@ public final class Urls extends HashMap<String, String> {
         instance.put("SUBVERSION_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("SUBVERSION_URL"));
     }
 
-    private Urls() {}
+    private Urls() {
+    }
 
     public static Urls getInstance() {
         return instance;

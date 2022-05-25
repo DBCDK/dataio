@@ -11,6 +11,7 @@ import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 public interface JobRerunProxy extends RemoteService {
 
     JobRerunScheme parse(JobModel jobModel) throws ProxyException;
+
     void close();
 
     class Factory {

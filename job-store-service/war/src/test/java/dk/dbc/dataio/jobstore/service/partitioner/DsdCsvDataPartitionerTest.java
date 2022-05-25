@@ -17,8 +17,8 @@ public class DsdCsvDataPartitionerTest {
     public void partitioningCSV() {
         final String csvRecords =
                 "a,\"b, with whitespace and comma\",\n" +
-                "\"d has unbalanced\"\",and,fails\n" +
-                "\"\"\"g\"\"\",\"h contains<p><a href=\"\"url\"\">html</a>\"";
+                        "\"d has unbalanced\"\",and,fails\n" +
+                        "\"\"\"g\"\"\",\"h contains<p><a href=\"\"url\"\">html</a>\"";
 
         final DsdCsvDataPartitioner partitioner =
                 DsdCsvDataPartitioner.newInstance(StringUtil.asInputStream(csvRecords), StandardCharsets.UTF_8.name());

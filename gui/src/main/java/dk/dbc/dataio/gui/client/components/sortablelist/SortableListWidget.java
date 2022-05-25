@@ -15,11 +15,13 @@ import java.util.Map;
 public class SortableListWidget extends Composite implements HasValue<Map<String, String>> {
     interface SortableListWidgetUiBinder extends UiBinder<HTMLPanel, SortableListWidget> {
     }
+
     private static SortableListWidgetUiBinder ourUiBinder = GWT.create(SortableListWidgetUiBinder.class);
 
     protected SortableListModel model = null;
 
-    @UiField FlowPanel list;
+    @UiField
+    FlowPanel list;
 
 
     /**

@@ -7,8 +7,8 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
-import dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify.EditPlace;
 import dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify.CreatePlace;
+import dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 
@@ -26,6 +26,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * Default constructor
+     *
      * @param placeController The placecontroller
      */
     public PresenterImpl(PlaceController placeController) {
@@ -56,6 +57,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method starts the edit harvester page
+     *
      * @param id The id of the harvester configuration to edit
      */
     @Override
@@ -87,6 +89,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onFilteredFailure(Throwable caught) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(caught, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
+
         @Override
         public void onSuccess(List<TickleRepoHarvesterConfig> tickleRepoHarvesterConfigs) {
             getView().setHarvesters(tickleRepoHarvesterConfigs);

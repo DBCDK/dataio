@@ -80,20 +80,18 @@ public class JobsBean {
     /**
      * Adds new job based on POSTed job input stream, and persists it in the underlying data store
      *
-     * @param uriInfo application and request URI information
+     * @param uriInfo            application and request URI information
      * @param jobInputStreamData job input stream data as json
-     *
      * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content,
-     *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
-     *
-     * @throws JSONBException on marshalling failure
+     * a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 400 BAD_REQUEST response on referenced entities not found,
+     * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on failure to add job
      */
     @POST
     @Path(JobStoreServiceConstants.JOB_COLLECTION)
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response addJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JSONBException, JobStoreException {
         LOGGER.trace("JobInputStream: {}", jobInputStreamData);
@@ -111,7 +109,7 @@ public class JobsBean {
             return Response.status(BAD_REQUEST)
                     .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                     .build();
-        } catch(InvalidInputException e) {
+        } catch (InvalidInputException e) {
             return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
         }
     }
@@ -119,20 +117,18 @@ public class JobsBean {
     /**
      * Adds new acceptance test job based on POSTed job input stream, and persists it in the underlying data store
      *
-     * @param uriInfo application and request URI information
+     * @param uriInfo            application and request URI information
      * @param jobInputStreamData job input stream data as json
-     *
      * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content,
-     *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
-     *
-     * @throws JSONBException on marshalling failure
+     * a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 400 BAD_REQUEST response on referenced entities not found,
+     * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on failure to add job
      */
     @POST
     @Path(JobStoreServiceConstants.JOB_COLLECTION_ACCTESTS)
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response addAccTestJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JSONBException, JobStoreException {
         final AccTestJobInputStream jobInputStream;
@@ -149,7 +145,7 @@ public class JobsBean {
             return Response.status(BAD_REQUEST)
                     .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                     .build();
-        } catch(InvalidInputException e) {
+        } catch (InvalidInputException e) {
             return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
         }
     }
@@ -157,20 +153,21 @@ public class JobsBean {
     /**
      * Adds new "empty" (meaning no items) job based on POSTed job input stream,
      * and persists it in the underlying data store
-     * @param uriInfo application and request URI information
+     *
+     * @param uriInfo            application and request URI information
      * @param jobInputStreamData job input stream data as json
      * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
-     *         a HTTP 400 BAD_REQUEST response if job type does not support empty jobs,
-     *         a HTTP 400 BAD_REQUEST response if specified datafile does not designate the special empty job constant,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content,
-     *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
-     * @throws JSONBException on marshalling failure
+     * a HTTP 400 BAD_REQUEST response if job type does not support empty jobs,
+     * a HTTP 400 BAD_REQUEST response if specified datafile does not designate the special empty job constant,
+     * a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 400 BAD_REQUEST response on referenced entities not found,
+     * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on failure to add job
      */
     @POST
     @Path(JobStoreServiceConstants.JOB_COLLECTION_EMPTY)
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response addEmptyJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JSONBException, JobStoreException {
         try {
@@ -202,7 +199,7 @@ public class JobsBean {
                     .entity(jsonbContext.marshall(new JobError(
                             JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                     .build();
-        } catch(InvalidInputException e) {
+        } catch (InvalidInputException e) {
             return Response.status(BAD_REQUEST)
                     .entity(jsonbContext.marshall(e.getJobError()))
                     .build();
@@ -213,17 +210,17 @@ public class JobsBean {
      * Sets the workflow note from POSTed workflow note string on the given job, and persists it in the underlying data store
      *
      * @param workflowNoteString the workflow note to set on the job entity
-     * @param jobId of the job entity
+     * @param jobId              of the job entity
      * @return a HTTP 200 OK response with jobInfoSnapshot as JSON,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content,
-     *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
-     * @throws JSONBException on marshalling failure
+     * a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 400 BAD_REQUEST response on referenced entities not found,
+     * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on failure to set workflow note
      */
     @POST
     @Path(JobStoreServiceConstants.JOB_WORKFLOW_NOTE)
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response setWorkflowNote(String workflowNoteString, @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
         LOGGER.trace("jobId: {}, workflowNote: {}", jobId, workflowNoteString);
@@ -246,19 +243,19 @@ public class JobsBean {
      * Sets the workflow note from POSTed workflow note string on the given item, and persists it in the underlying data store
      *
      * @param workflowNoteString the workflow note to set on the item entity
-     * @param jobId of the referenced job
-     * @param chunkId of the referenced job
-     * @param itemId of the item
+     * @param jobId              of the referenced job
+     * @param chunkId            of the referenced job
+     * @param itemId             of the item
      * @return a HTTP 200 OK response with jobInfoSnapshot as JSON,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content,
-     *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
-     * @throws JSONBException on marshalling failure
+     * a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 400 BAD_REQUEST response on referenced entities not found,
+     * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on failure to set workflow note
      */
     @POST
     @Path(JobStoreServiceConstants.ITEM_WORKFLOW_NOTE)
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response setWorkflowNote(String workflowNoteString,
                                     @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
@@ -283,31 +280,29 @@ public class JobsBean {
     /**
      * Adds chunk with type: PROCESSED (updates existing job by adding chunk)
      *
-     * @param uriInfo application and request URI information
+     * @param uriInfo   application and request URI information
      * @param chunkData chunk data as json
-     * @param jobId job id
-     * @param chunkId chunk id
-     *
+     * @param jobId     job id
+     * @param chunkId   chunk id
      * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
-     *         a HTTP 202 ACCEPTED response when attempting to add already existing chunk
-     *         a HTTP 400 BAD_REQUEST response on invalid json content,
-     *         a HTTP 400 BAD_REQUEST response on illegal number of items (not matching that of the internal chunk entity),
-     *         a HTTP 400 BAD_REQUEST response on referenced items not found,
-     *         a HTTP 400 BAD_REQUEST response on failure to update item entities,
-     *
-     * @throws JSONBException on marshalling failure
+     * a HTTP 202 ACCEPTED response when attempting to add already existing chunk
+     * a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 400 BAD_REQUEST response on illegal number of items (not matching that of the internal chunk entity),
+     * a HTTP 400 BAD_REQUEST response on referenced items not found,
+     * a HTTP 400 BAD_REQUEST response on failure to update item entities,
+     * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on failure to update job
      */
     @POST
     @Path(JobStoreServiceConstants.JOB_CHUNK_PROCESSED)
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response addChunkProcessed(
-        @Context UriInfo uriInfo,
-        String chunkData,
-        @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
-        @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JSONBException, JobStoreException {
+            @Context UriInfo uriInfo,
+            String chunkData,
+            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
+            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JSONBException, JobStoreException {
 
         final Chunk processedChunk;
         try {
@@ -316,7 +311,7 @@ public class JobsBean {
             return buildBadRequestResponse(e);
         }
 
-        jobSchedulerBean.chunkProcessingDone( processedChunk );
+        jobSchedulerBean.chunkProcessingDone(processedChunk);
 
         return addChunk(uriInfo, jobId, chunkId, Chunk.Type.PROCESSED, processedChunk);
     }
@@ -324,32 +319,30 @@ public class JobsBean {
     /**
      * Adds chunk with type: DELIVERED (updates existing job by adding chunk)
      *
-     * @param uriInfo application and request URI information
+     * @param uriInfo   application and request URI information
      * @param chunkData chunk data as json
-     * @param jobId job id
-     * @param chunkId chunk id
-     *
+     * @param jobId     job id
+     * @param chunkId   chunk id
      * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
-     *         a HTTP 202 ACCEPTED response when attempting to add already existing chunk
-     *         a HTTP 400 BAD_REQUEST response on invalid json content,
-     *         a HTTP 400 BAD_REQUEST response on illegal number of items (not matching that of the internal chunk entity),
-     *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
-     *         a HTTP 400 BAD_REQUEST response on failure to update item entities,
-     *
-     * @throws JSONBException on marshalling failure
+     * a HTTP 202 ACCEPTED response when attempting to add already existing chunk
+     * a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 400 BAD_REQUEST response on illegal number of items (not matching that of the internal chunk entity),
+     * a HTTP 400 BAD_REQUEST response on referenced entities not found,
+     * a HTTP 400 BAD_REQUEST response on failure to update item entities,
+     * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on failure to update job
      */
     @POST
     @Path(JobStoreServiceConstants.JOB_CHUNK_DELIVERED)
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response addChunkDelivered(
 
-        @Context UriInfo uriInfo,
-        String chunkData,
-        @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
-        @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JSONBException, JobStoreException {
+            @Context UriInfo uriInfo,
+            String chunkData,
+            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
+            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JSONBException, JobStoreException {
 
         final Chunk deliveredChunk;
         try {
@@ -358,7 +351,7 @@ public class JobsBean {
             return buildBadRequestResponse(e);
         }
 
-        jobSchedulerBean.chunkDeliveringDone( deliveredChunk );
+        jobSchedulerBean.chunkDeliveringDone(deliveredChunk);
 
         // Todo check hvordan job afsluttes.
         return addChunk(uriInfo, jobId, chunkId, Chunk.Type.DELIVERED, deliveredChunk);
@@ -366,15 +359,15 @@ public class JobsBean {
 
     @POST
     @Path(JobStoreServiceConstants.JOB_COLLECTION_QUERIES)
-    @Consumes({ MediaType.TEXT_PLAIN })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.TEXT_PLAIN})
+    @Produces({MediaType.APPLICATION_JSON})
     public Response listJobsByPost(String query) throws JSONBException {
         return listJobsByIOQL(query);
     }
 
     @GET
     @Path(JobStoreServiceConstants.JOB_COLLECTION_QUERIES)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response listJobsByGet(@QueryParam("q") String query) throws JSONBException {
         return listJobsByIOQL(query);
     }
@@ -394,15 +387,15 @@ public class JobsBean {
 
     @POST
     @Path(JobStoreServiceConstants.JOB_COLLECTION_COUNT)
-    @Consumes({ MediaType.TEXT_PLAIN })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.TEXT_PLAIN})
+    @Produces({MediaType.APPLICATION_JSON})
     public Response countJobsByPost(String query) throws JSONBException {
         return countJobsByIOQL(query);
     }
 
     @GET
     @Path(JobStoreServiceConstants.JOB_COLLECTION_COUNT)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response countJobsByGet(@QueryParam("q") String query) throws JSONBException {
         return countJobsByIOQL(query);
     }
@@ -422,15 +415,15 @@ public class JobsBean {
 
     @POST
     @Path(JobStoreServiceConstants.ITEM_COLLECTION_QUERIES)
-    @Consumes({ MediaType.TEXT_PLAIN })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.TEXT_PLAIN})
+    @Produces({MediaType.APPLICATION_JSON})
     public Response listItemsByPost(String query) throws JSONBException {
         return listItemsByIOQL(query);
     }
 
     @GET
     @Path(JobStoreServiceConstants.ITEM_COLLECTION_QUERIES)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response listItemsByGet(@QueryParam("q") String query) throws JSONBException {
         return listItemsByIOQL(query);
     }
@@ -450,15 +443,15 @@ public class JobsBean {
 
     @POST
     @Path(JobStoreServiceConstants.ITEM_COLLECTION_COUNT)
-    @Consumes({ MediaType.TEXT_PLAIN })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.TEXT_PLAIN})
+    @Produces({MediaType.APPLICATION_JSON})
     public Response countItemsByPost(String query) throws JSONBException {
         return countItemsByIOQL(query);
     }
 
     @GET
     @Path(JobStoreServiceConstants.ITEM_COLLECTION_COUNT)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response countItemsByGet(@QueryParam("q") String query) throws JSONBException {
         return countItemsByIOQL(query);
     }
@@ -478,15 +471,16 @@ public class JobsBean {
 
     /**
      * Retrieves job listing from the underlying data store determined by given search criteria
+     *
      * @param jobListCriteriaData JSON representation of JobListCriteria
      * @return a HTTP 200 OK response with list of JobInfoSnapshots for selected jobs,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 400 BAD_REQUEST response on invalid json content,
      * @throws JSONBException on marshalling failure
      */
     @POST
     @Path(JobStoreServiceConstants.JOB_COLLECTION_SEARCHES)
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     //@Stopwatch
     public Response listJobs(String jobListCriteriaData) throws JSONBException {
         try {
@@ -502,23 +496,24 @@ public class JobsBean {
         }
     }
 
-   /**
+    /**
      * Retrieves job listing from the underlying data store determined by given search criteria
+     *
      * @param jobListCriteriaData JSON representation of JobListCriteria
      * @return a HTTP 200 OK response with list of JobInfoSnapshots for selected jobs,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 400 BAD_REQUEST response on invalid json content,
      * @throws JSONBException on marshalling failure
      */
     @POST
     @Path(JobStoreServiceConstants.JOB_COLLECTION_SEARCHES_COUNT)
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response countJobs(String jobListCriteriaData) throws JSONBException {
         try {
             final JobListCriteria jobListCriteria = jsonbContext.unmarshall(jobListCriteriaData, JobListCriteria.class);
             final long count = jobStoreRepository.countJobs(jobListCriteria);
-            LOGGER.debug("count Response {}",count);
+            LOGGER.debug("count Response {}", count);
             return Response.ok().entity(jsonbContext.marshall(count)).build();
         } catch (JSONBException e) {
             LOGGER.warn("Bad request: {}", e.getMessage());
@@ -530,18 +525,18 @@ public class JobsBean {
     }
 
 
-
     /**
      * Retrieves item listing from the underlying data store determined by given search criteria
+     *
      * @param itemListCriteriaData JSON representation of ItemListCriteria
      * @return a HTTP 200 OK response with list of ItemInfoSnapshots for selected items,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 400 BAD_REQUEST response on invalid json content,
      * @throws JSONBException on marshalling failure
      */
     @POST
     @Path(JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES)
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response listItems(String itemListCriteriaData) throws JSONBException {
         try {
@@ -560,15 +555,16 @@ public class JobsBean {
 
     /**
      * Retrieves item count from the underlying data store determined by given search criteria
+     *
      * @param itemListCriteriaData JSON representation of ItemListCriteria
      * @return a HTTP 200 OK response with count of selected items,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 400 BAD_REQUEST response on invalid json content,
      * @throws JSONBException on marshalling failure
      */
     @POST
     @Path(JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES_COUNT)
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response countItems(String itemListCriteriaData) throws JSONBException {
         try {
@@ -586,17 +582,16 @@ public class JobsBean {
 
     /**
      * Retrieves the flow cashed for the specified job.
+     *
      * @param jobId of job to retrieve cashed flow from
-     *
      * @return a HTTP 200 OK response with flow as JSON,
-     *         a HTTP 400 BAD_REQUEST response on failure to retrieve job
-     *
-     * @throws JSONBException on marshalling failure
+     * a HTTP 400 BAD_REQUEST response on failure to retrieve job
+     * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on failure to retrieve job
      */
     @GET
     @Path(JobStoreServiceConstants.JOB_CACHED_FLOW)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getCachedFlow(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
         try {
@@ -609,14 +604,13 @@ public class JobsBean {
 
     /**
      * Retrieves partitioned chunk item
-     * @param jobId the job id
+     *
+     * @param jobId   the job id
      * @param chunkId the chunk id
-     * @param itemId the itemId
-     *
+     * @param itemId  the itemId
      * @return a HTTP 200 OK response with partitioned chunk item as entity,
-     *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
-     *
-     * @throws JSONBException on marshalling failure
+     * a HTTP 400 BAD_REQUEST response on failure to retrieve item
+     * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on failure to retrieve job
      */
     @GET
@@ -624,23 +618,22 @@ public class JobsBean {
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getPartitionedResult(
-        @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
-        @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
-        @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
+            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
+            @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
 
         return getChunkItemForPhase(jobId, chunkId, itemId, State.Phase.PARTITIONING);
     }
 
     /**
      * Retrieves processed chunk item
-     * @param jobId the job id
+     *
+     * @param jobId   the job id
      * @param chunkId the chunk id
-     * @param itemId the itemId
-     *
+     * @param itemId  the itemId
      * @return a HTTP 200 OK response with processed chunk item as entity,
-     *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
-     *
-     * @throws JSONBException on marshalling failure
+     * a HTTP 400 BAD_REQUEST response on failure to retrieve item
+     * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on failure to retrieve job
      */
     @GET
@@ -648,23 +641,22 @@ public class JobsBean {
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getProcessingResult(
-        @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
-        @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
-        @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
+            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
+            @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
 
         return getChunkItemForPhase(jobId, chunkId, itemId, State.Phase.PROCESSING);
     }
 
     /**
      * Retrieves delivered chunk item
-     * @param jobId the job id
+     *
+     * @param jobId   the job id
      * @param chunkId the chunk id
-     * @param itemId the itemId
-     *
+     * @param itemId  the itemId
      * @return a HTTP 200 OK response with delivered chunk item as entity,
-     *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
-     *
-     * @throws JSONBException on marshalling failure
+     * a HTTP 400 BAD_REQUEST response on failure to retrieve item
+     * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on failure to retrieve job
      */
     @GET
@@ -672,23 +664,22 @@ public class JobsBean {
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getDeliveringResult(
-        @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
-        @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
-        @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
+            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
+            @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
 
         return getChunkItemForPhase(jobId, chunkId, itemId, State.Phase.DELIVERING);
     }
 
     /**
-     * @param jobId the job id
+     * @param jobId   the job id
      * @param chunkId the chunk id
-     * @param itemId the item idjobs/{jobId}/chunks/{chunkId}/processed
-     * @param phase the phase of the item (PARTITIONING, PROCESSING, DELIVERING)
+     * @param itemId  the item idjobs/{jobId}/chunks/{chunkId}/processed
+     * @param phase   the phase of the item (PARTITIONING, PROCESSING, DELIVERING)
      * @return a HTTP 200 OK response with chunk item as String,
-     *         a HTTP 404 NOT_FOUND response on failure to retrieve item
-     *
+     * a HTTP 404 NOT_FOUND response on failure to retrieve item
      * @throws JobStoreException on failure to retrieve job
-     * @throws JSONBException on marshalling failure
+     * @throws JSONBException    on marshalling failure
      */
     Response getChunkItemForPhase(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException, JSONBException {
         try {
@@ -701,19 +692,18 @@ public class JobsBean {
 
     /**
      * Retrieves processed next chunk item
-     * @param jobId the job id
+     *
+     * @param jobId   the job id
      * @param chunkId the chunk id
-     * @param itemId the itemId
-     *
+     * @param itemId  the itemId
      * @return a HTTP 200 OK response with processed next chunk item as entity,
-     *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
-     *
-     * @throws JSONBException on marshalling failure
+     * a HTTP 400 BAD_REQUEST response on failure to retrieve item
+     * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on failure to retrieve item
      */
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getProcessedNextResult(
             @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
@@ -730,13 +720,14 @@ public class JobsBean {
 
     /**
      * Retrieves list of notifications associated with job
+     *
      * @param jobId id of job for which to retrieve notifications
      * @return a HTTP 200 OK response with list of notifications as JSON String
      * @throws JSONBException on marshalling failure
      */
     @GET
     @Path(JobStoreServiceConstants.JOB_NOTIFICATIONS)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getNotificationsForJob(
             @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException {
@@ -746,8 +737,9 @@ public class JobsBean {
 
     /**
      * Activate a purge job manually.
+     *
      * @return a HTTP 200 OK response.
-     * @throws FileStoreServiceConnectorException on failure to connect to FileStore
+     * @throws FileStoreServiceConnectorException                    on failure to connect to FileStore
      * @throws LogStoreServiceConnectorUnexpectedStatusCodeException on failure to connect to logStore
      */
     @DELETE
@@ -760,25 +752,24 @@ public class JobsBean {
 
     /**
      * @param uriInfo application and request URI information
-     * @param jobId job id
+     * @param jobId   job id
      * @param chunkId chunk id
-     * @param type chunk type (PARTITIONED, PROCESSED, DELIVERED)
-     * @param chunk chunk data
-     *
+     * @param type    chunk type (PARTITIONED, PROCESSED, DELIVERED)
+     * @param chunk   chunk data
      * @return HTTP 201 CREATED response on success, HTTP 400 BAD_REQUEST response on failure to update job
-     * @throws JSONBException on marshalling failure
+     * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on referenced entities not found
      */
     Response addChunk(
-        UriInfo uriInfo,
-        long jobId,
-        long chunkId,
-        Chunk.Type type,
-        Chunk chunk) throws JobStoreException, JSONBException {
+            UriInfo uriInfo,
+            long jobId,
+            long chunkId,
+            Chunk.Type type,
+            Chunk chunk) throws JobStoreException, JSONBException {
 
         try {
             JobError jobError = getChunkInputDataError(jobId, chunkId, chunk, type);
-            if(jobError == null) {
+            if (jobError == null) {
                 JobInfoSnapshot jobInfoSnapshot = jobStore.addChunk(chunk);
                 return Response.created(getUri(uriInfo, Long.toString(chunk.getChunkId())))
                         .entity(jsonbContext.marshall(jobInfoSnapshot))
@@ -787,34 +778,33 @@ public class JobsBean {
                 return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(jobError)).build();
             }
 
-        } catch(InvalidInputException e) {
+        } catch (InvalidInputException e) {
             return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
-        } catch(DuplicateChunkException e) {
+        } catch (DuplicateChunkException e) {
             return Response.status(ACCEPTED).entity(jsonbContext.marshall(e.getJobError())).build();
         }
     }
 
     /**
-     *
-     * @param jobId job id
+     * @param jobId   job id
      * @param chunkId chunk id
-     * @param chunk chunk
-     * @param type chunk type
+     * @param chunk   chunk
+     * @param type    chunk type
      * @return jobError containing the relevant error message, null if input data is valid
      */
     private JobError getChunkInputDataError(long jobId, long chunkId, Chunk chunk, Chunk.Type type) {
         JobError jobError = null;
-        if(jobId != chunk.getJobId()) {
+        if (jobId != chunk.getJobId()) {
             jobError = new JobError(
                     JobError.Code.INVALID_JOB_IDENTIFIER,
                     String.format("jobId: %s did not match Chunk.jobId: %s", jobId, chunk.getJobId()),
                     JobError.NO_STACKTRACE);
-        } else if(chunkId != chunk.getChunkId()) {
+        } else if (chunkId != chunk.getChunkId()) {
             jobError = new JobError(
                     JobError.Code.INVALID_CHUNK_IDENTIFIER,
                     String.format("chunkId: %s did not match Chunk.chunkId: %s", chunkId, chunk.getChunkId()),
                     JobError.NO_STACKTRACE);
-        } else if(type != chunk.getType()) {
+        } else if (type != chunk.getType()) {
             jobError = new JobError(
                     JobError.Code.INVALID_CHUNK_TYPE,
                     String.format("type: %s did not match Chunk.type: %s", type, chunk.getType()),
@@ -825,7 +815,7 @@ public class JobsBean {
 
     private Response buildBadRequestResponse(JSONBException e) throws JSONBException {
         return Response.status(BAD_REQUEST).entity(
-                jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                        jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                 .build();
     }
 

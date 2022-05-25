@@ -122,7 +122,7 @@ public class GwtQueryBuilder {
     }
 
     private static void updateJsonValues(Map<String, JsonValue> jsonValues,
-                                  String identifier, Object value, boolean isArrayProperty) {
+                                         String identifier, Object value, boolean isArrayProperty) {
         final String[] identifierParts = splitIdentifier(identifier);
         if (identifierParts.length > 2) {
             throw new IllegalArgumentException("Identifier has too many levels: " + identifier);
@@ -147,14 +147,22 @@ public class GwtQueryBuilder {
 
     private static BiClause.Operator toBiClauseOperator(GwtQueryClause.BiOperator biOperator) {
         switch (biOperator) {
-            case EQUALS: return BiClause.Operator.EQUALS;
-            case GREATER_THAN: return BiClause.Operator.GREATER_THAN;
-            case GREATER_THAN_OR_EQUAL_TO: return BiClause.Operator.GREATER_THAN_OR_EQUAL_TO;
-            case JSON_LEFT_CONTAINS: return BiClause.Operator.JSON_LEFT_CONTAINS;
-            case LESS_THAN: return BiClause.Operator.LESS_THAN;
-            case LESS_THAN_OR_EQUAL_TO: return BiClause.Operator.LESS_THAN_OR_EQUAL_TO;
-            case NOT_EQUALS: return BiClause.Operator.NOT_EQUALS;
-            default: throw new IllegalArgumentException("Unknown operator: " + biOperator);
+            case EQUALS:
+                return BiClause.Operator.EQUALS;
+            case GREATER_THAN:
+                return BiClause.Operator.GREATER_THAN;
+            case GREATER_THAN_OR_EQUAL_TO:
+                return BiClause.Operator.GREATER_THAN_OR_EQUAL_TO;
+            case JSON_LEFT_CONTAINS:
+                return BiClause.Operator.JSON_LEFT_CONTAINS;
+            case LESS_THAN:
+                return BiClause.Operator.LESS_THAN;
+            case LESS_THAN_OR_EQUAL_TO:
+                return BiClause.Operator.LESS_THAN_OR_EQUAL_TO;
+            case NOT_EQUALS:
+                return BiClause.Operator.NOT_EQUALS;
+            default:
+                throw new IllegalArgumentException("Unknown operator: " + biOperator);
         }
     }
 }

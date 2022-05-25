@@ -9,25 +9,27 @@ import java.util.Set;
 
 /**
  * Data partitioner for "Kulturstyrelsen VIP" data CSV format
- *      withDelimiter('|')
- *      withQuote('"')
- *      withRecordSeparator("\r\n")
- *      withIgnoreEmptyLines(true)
+ * withDelimiter('|')
+ * withQuote('"')
+ * withRecordSeparator("\r\n")
+ * withIgnoreEmptyLines(true)
  */
 public class VipCsvDataPartitioner extends CsvDataPartitioner {
     private static final Set<String> HEADERS = new HashSet<>();
+
     static {
         HEADERS.add("Feltnavn|Kodevaerdi|Kodetekst");
     }
 
     /**
      * Creates new instance of DataPartitioner for VIP CSV data
-     * @param inputStream stream from which csv records can be read
+     *
+     * @param inputStream  stream from which csv records can be read
      * @param encodingName encoding specified in job specification
-     * @throws NullPointerException if given null-valued argument
+     * @return new instance of VipCsvDataPartitioner
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
      * @throws InvalidEncodingException if encoding can not be deduced from given encoding name
-     * @return new instance of VipCsvDataPartitioner
      */
     public static VipCsvDataPartitioner newInstance(InputStream inputStream, String encodingName)
             throws NullPointerException, IllegalArgumentException, InvalidEncodingException {

@@ -24,12 +24,13 @@ public class AddiUnwrapper implements ChunkItemUnwrapper {
      * If chunk type is {@link dk.dbc.dataio.commons.types.ChunkItem.Type#UNKNOWN}
      * and content NOT contains an Addi record, the chunk item is
      * added to the result list unchanged.
+     *
      * @param wrappedChunkItem chunk item containing Addi records
      * @return list of unwrapped chunk items
      * @throws NullPointerException if given null valued chunk item
-     * @throws JobStoreException if wrapping type of given chunk item is not
-     * {@link dk.dbc.dataio.commons.types.ChunkItem.Type#ADDI} or
-     * {@link dk.dbc.dataio.commons.types.ChunkItem.Type#UNKNOWN}
+     * @throws JobStoreException    if wrapping type of given chunk item is not
+     *                              {@link dk.dbc.dataio.commons.types.ChunkItem.Type#ADDI} or
+     *                              {@link dk.dbc.dataio.commons.types.ChunkItem.Type#UNKNOWN}
      */
     @Override
     public List<ChunkItem> unwrap(ChunkItem wrappedChunkItem) throws NullPointerException, JobStoreException {
@@ -77,7 +78,7 @@ public class AddiUnwrapper implements ChunkItemUnwrapper {
 
                 record = addiReader.getNextRecord();
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             LOGGER.warn("Failed to parse chunk item as Addi", e);
             unwrappedChunkItems.add(wrappedChunkItem);
         }

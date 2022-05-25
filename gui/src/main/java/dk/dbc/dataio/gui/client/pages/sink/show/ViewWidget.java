@@ -15,14 +15,18 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     ViewGinjector injector = GWT.create(ViewGinjector.class);
 
     // Instantiate UI Binder
-    interface MyUiBinder extends UiBinder<Widget, ViewWidget> {}
+    interface MyUiBinder extends UiBinder<Widget, ViewWidget> {
+    }
+
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
     // UI Fields
-    @UiField CellTable sinksTable;
+    @UiField
+    CellTable sinksTable;
 
     /**
      * Default constructor
+     *
      * @param header header
      */
     public ViewWidget(String header) {
@@ -32,6 +36,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     /**
      * Ui Handler to catch click events on the create button
+     *
      * @param event Clicked event
      */
     @UiHandler("createButton")

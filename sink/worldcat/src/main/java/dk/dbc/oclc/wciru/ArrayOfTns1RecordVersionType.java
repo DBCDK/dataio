@@ -9,7 +9,7 @@ import java.util.List;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ArrayOf_tns1_recordVersionType", namespace = "http://Update.os.oclc.ORG", propOrder = {
-    "item"
+        "item"
 })
 public class ArrayOfTns1RecordVersionType {
 

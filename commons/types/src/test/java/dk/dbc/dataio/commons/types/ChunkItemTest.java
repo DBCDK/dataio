@@ -41,12 +41,12 @@ public class ChunkItemTest {
 
         chunkItem.withDiagnostics(ObjectFactory.buildFatalDiagnostic("Test Fatal"));
         assertThat("diagnostics after first append", chunkItem.getDiagnostics(), notNullValue());
-        assertThat("number of diagnostics after first append", chunkItem.getDiagnostics().size(),is(1));
+        assertThat("number of diagnostics after first append", chunkItem.getDiagnostics().size(), is(1));
         assertThat("chunk item status", chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
 
         chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Test Fatal2"));
         assertThat("diagnostics after second append", chunkItem.getDiagnostics(), notNullValue());
-        assertThat("number of diagnostics after second append", chunkItem.getDiagnostics().size(),is(2));
+        assertThat("number of diagnostics after second append", chunkItem.getDiagnostics().size(), is(2));
     }
 
     @Test
@@ -85,7 +85,7 @@ public class ChunkItemTest {
     @Test
     public void withType_typeArgCanBeNull() {
         final ChunkItem chunkItem = new ChunkItem()
-            .withType((Type[]) null);
+                .withType((Type[]) null);
         assertThat(chunkItem.getType(), is(nullValue()));
     }
 
@@ -96,7 +96,7 @@ public class ChunkItemTest {
         assertThat(instance.getId(), is(ID));
         assertThat(instance.getData(), is(DATA));
         assertThat(instance.getStatus(), is(STATUS));
-        assertThat(instance.getType(), is( Arrays.asList(Type.UNKNOWN, Type.GENERICXML)));
+        assertThat(instance.getType(), is(Arrays.asList(Type.UNKNOWN, Type.GENERICXML)));
         assertThat(instance.getEncoding(), is(StandardCharsets.UTF_8));
     }
 

@@ -21,7 +21,8 @@ import java.util.Arrays;
 public class DoubleList extends Composite implements HasValue<PopupDoubleList.DoubleListData>, Focusable {
     final static String SPLIT_BY_COMMA = "\\s*,\\s*";
 
-    interface JSModulesListUiBinder extends UiBinder<HTMLPanel, DoubleList> {}
+    interface JSModulesListUiBinder extends UiBinder<HTMLPanel, DoubleList> {
+    }
 
     private static JSModulesListUiBinder ourUiBinder = GWT.create(JSModulesListUiBinder.class);
 
@@ -30,10 +31,14 @@ public class DoubleList extends Composite implements HasValue<PopupDoubleList.Do
      * UI Fields
      */
 
-    @UiField Label headerLeft;
-    @UiField Label bodyLeft;
-    @UiField Label headerRight;
-    @UiField Label bodyRight;
+    @UiField
+    Label headerLeft;
+    @UiField
+    Label bodyLeft;
+    @UiField
+    Label headerRight;
+    @UiField
+    Label bodyRight;
 
 
     /**
@@ -52,6 +57,7 @@ public class DoubleList extends Composite implements HasValue<PopupDoubleList.Do
 
     /**
      * Get tab index - no implementation is needed
+     *
      * @return Zero always
      */
     @Override
@@ -61,6 +67,7 @@ public class DoubleList extends Composite implements HasValue<PopupDoubleList.Do
 
     /**
      * Set accesskey - no implementation is needed
+     *
      * @param c Access key
      */
     @Override
@@ -69,6 +76,7 @@ public class DoubleList extends Composite implements HasValue<PopupDoubleList.Do
 
     /**
      * Set focus - no implementation is needed
+     *
      * @param setFocus Boolean to determine if focus should be set
      */
     @Override
@@ -77,6 +85,7 @@ public class DoubleList extends Composite implements HasValue<PopupDoubleList.Do
 
     /**
      * Set Tab index - no implementation is needed
+     *
      * @param tabIndex The tab index to set - no implementation is needed
      */
     @Override
@@ -90,6 +99,7 @@ public class DoubleList extends Composite implements HasValue<PopupDoubleList.Do
 
     /**
      * Gets the value of the double list
+     *
      * @return The value of the double list
      */
     @Override
@@ -104,6 +114,7 @@ public class DoubleList extends Composite implements HasValue<PopupDoubleList.Do
 
     /**
      * Sets the value of the Double List
+     *
      * @param doubleListData The value of the Double List
      */
     @Override
@@ -113,8 +124,9 @@ public class DoubleList extends Composite implements HasValue<PopupDoubleList.Do
 
     /**
      * Sets the value of the Double List
+     *
      * @param doubleListData The value of the Double List
-     * @param fireEvent This is not implemented, since widget data is readonly
+     * @param fireEvent      This is not implemented, since widget data is readonly
      */
     @Override
     public void setValue(PopupDoubleList.DoubleListData doubleListData, boolean fireEvent) {
@@ -129,6 +141,7 @@ public class DoubleList extends Composite implements HasValue<PopupDoubleList.Do
 
     /**
      * Adds a value change handler - No implementation, since widget data is readonly
+     *
      * @param valueChangeHandler The new changehandler to set
      * @return A Handler registration object - always null, due to empty implementation
      */

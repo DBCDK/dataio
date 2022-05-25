@@ -8,12 +8,12 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
-  * FlowBinder unit tests
-  * <p>
-  * The test methods of this class uses the following naming convention:
-  *
-  *  unitOfWork_stateUnderTest_expectedBehavior
-  */
+ * FlowBinder unit tests
+ * <p>
+ * The test methods of this class uses the following naming convention:
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
+ */
 public class FlowBinderTest {
     @Test
     public void setContent_jsonDataArgIsValidFlowBinderContentJson_setsFlowId() throws Exception {
@@ -42,7 +42,7 @@ public class FlowBinderTest {
     @Test(expected = JSONBException.class)
     public void setContent_jsonDataArgIsEmpty_throws() throws Exception {
         final FlowBinder binder = new FlowBinder();
-                binder.setContent("");
+        binder.setContent("");
     }
 
     @Test(expected = IllegalArgumentException.class)

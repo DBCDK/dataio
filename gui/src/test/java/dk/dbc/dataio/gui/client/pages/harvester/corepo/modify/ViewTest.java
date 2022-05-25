@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.modify;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -25,9 +23,12 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
-    @Mock Presenter mockedPresenter;
-    @Mock ValueChangeEvent mockedValueChangeEvent;
-    @Mock ClickEvent mockedClickEvent;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    ValueChangeEvent mockedValueChangeEvent;
+    @Mock
+    ClickEvent mockedClickEvent;
 
     // Subject Under Test
     private View view;

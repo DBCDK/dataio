@@ -23,8 +23,8 @@ import java.util.List;
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -62,7 +62,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
     }
 
     @Test
-     public void createFlowBinder_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException {
+    public void createFlowBinder_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException {
         assertThat(() -> createFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
@@ -77,9 +77,9 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
     private FlowBinder createFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().build();
         final HttpPost httpPost = new HttpPost(failSafeHttpClient)
-                    .withBaseUrl(FLOW_STORE_URL)
-                    .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS)
-                    .withJsonData(flowBinderContent);
+                .withBaseUrl(FLOW_STORE_URL)
+                .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS)
+                .withJsonData(flowBinderContent);
         when(failSafeHttpClient.execute(httpPost))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         return flowStoreServiceConnector.createFlowBinder(flowBinderContent);
@@ -131,8 +131,8 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
     // Helper method
     private List<FlowBinder> findAllFlowBinders_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final HttpGet httpGet = new HttpGet(failSafeHttpClient)
-                    .withBaseUrl(FLOW_STORE_URL)
-                    .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS);
+                .withBaseUrl(FLOW_STORE_URL)
+                .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS);
         when(failSafeHttpClient.execute(httpGet))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         return flowStoreServiceConnector.findAllFlowBinders();
@@ -193,13 +193,13 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
         final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().build();
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER_CONTENT)
-                    .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
         final HttpPost httpPost = new HttpPost(failSafeHttpClient)
-                    .withBaseUrl(FLOW_STORE_URL)
-                    .withPathElements(path.build())
-                    .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
-                    .withJsonData(flowBinderContent);
+                .withBaseUrl(FLOW_STORE_URL)
+                .withPathElements(path.build())
+                .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
+                .withJsonData(flowBinderContent);
 
         when(failSafeHttpClient.execute(httpPost))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
@@ -251,13 +251,13 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
 
     private FlowBinder getFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final HttpGet httpGet = new HttpGet(failSafeHttpClient)
-                    .withBaseUrl(FLOW_STORE_URL)
-                    .withPathElements(new String[] {FlowStoreServiceConstants.FLOW_BINDER_RESOLVE})
-                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_PACKAGING, "packaging")
-                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_FORMAT, "format")
-                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_CHARSET, "charset")
-                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_SUBMITTER, Long.toString(1))
-                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_DESTINATION, "destination");
+                .withBaseUrl(FLOW_STORE_URL)
+                .withPathElements(new String[]{FlowStoreServiceConstants.FLOW_BINDER_RESOLVE})
+                .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_PACKAGING, "packaging")
+                .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_FORMAT, "format")
+                .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_CHARSET, "charset")
+                .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_SUBMITTER, Long.toString(1))
+                .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_DESTINATION, "destination");
 
         when(failSafeHttpClient.execute(httpGet))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));

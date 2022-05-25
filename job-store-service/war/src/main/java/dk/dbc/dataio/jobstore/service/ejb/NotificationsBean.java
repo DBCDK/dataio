@@ -35,9 +35,10 @@ public class NotificationsBean {
 
     /**
      * Adds a Notification for later processing
+     *
      * @param jsonRequest JSON representation of an {@link AddNotificationRequest} instance
      * @return a HTTP 200 OK response with {@link Notification} entity if notification data is valid,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content
+     * a HTTP 400 BAD_REQUEST response on invalid json content
      * @throws JobStoreException on internal failure to marshall notification context
      */
     @POST
@@ -47,7 +48,7 @@ public class NotificationsBean {
     @Stopwatch
     public Response addNotification(String jsonRequest) throws JobStoreException {
         final AddNotificationRequest addNotificationRequest;
-        try{
+        try {
             addNotificationRequest = jsonbContext.unmarshall(jsonRequest, AddNotificationRequest.class);
         } catch (JSONBException e) {
             return Response.status(BAD_REQUEST)
@@ -64,6 +65,7 @@ public class NotificationsBean {
 
     /**
      * Lists notifications of type INVALID_TRANSFILE
+     *
      * @return a HTTP 200 OK response with list of
      * {@link dk.dbc.dataio.jobstore.service.entity.NotificationEntity} entity
      * @throws JobStoreException on internal failure to marshall notifications

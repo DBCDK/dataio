@@ -36,10 +36,11 @@ public class HarvesterBean {
      * Executes harvest operation in batches (each batch in its own transactional
      * scope to avoid tearing down any controlling timers in case of an exception)
      * creating the corresponding jobs in the job-store if data is retrieved.
+     *
      * @param config harvest configuration
      * @return number of items harvested
      * @throws IllegalStateException on low-level binary file operation failure
-     * @throws HarvesterException on failure to complete harvest operation
+     * @throws HarvesterException    on failure to complete harvest operation
      */
     @Asynchronous
     @Lock(LockType.READ)
@@ -58,10 +59,11 @@ public class HarvesterBean {
 
     /**
      * Executes harvest operation
+     *
      * @param config harvest configuration
      * @return number of items harvested in batch
      * @throws IllegalStateException on low-level binary file operation failure
-     * @throws HarvesterException on failure to complete harvest operation
+     * @throws HarvesterException    on failure to complete harvest operation
      */
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)

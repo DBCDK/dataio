@@ -100,7 +100,8 @@ public class TaskRecordsIterator implements RecordsIterator {
     }
 
     private abstract class IterateBy implements Iterator<Record> {
-        public void close() {}
+        public void close() {
+        }
     }
 
     public class IterateByList extends IterateBy {
@@ -142,8 +143,8 @@ public class TaskRecordsIterator implements RecordsIterator {
             }
 
             final Record record = tickleRepo.lookupRecord(new Record()
-                    .withDataset(dataSetId)
-                    .withLocalId(metaData.bibliographicRecordId()))
+                            .withDataset(dataSetId)
+                            .withLocalId(metaData.bibliographicRecordId()))
                     .orElse(null);
             if (record == null) {
                 LOGGER.warn("Record with bibliographicRecordId '{}' was not found in dataset {}",

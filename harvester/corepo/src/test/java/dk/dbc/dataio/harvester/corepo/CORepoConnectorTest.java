@@ -43,7 +43,7 @@ public class CORepoConnectorTest {
 
     @Test
     public void predicateAppliedWhenReturningChangesInRepository() throws RepositoryException {
-        when(coRepoDAO.searchRepository(anyString())).thenReturn(new IRepositoryIdentifier[] {
+        when(coRepoDAO.searchRepository(anyString())).thenReturn(new IRepositoryIdentifier[]{
                 new Identifier("unit:135"),
                 new Identifier("870970-basis:test1"),
                 new Identifier("work:246"),

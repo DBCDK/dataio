@@ -36,7 +36,7 @@ public class AbstractScheduledHarvestBeanTest {
                 .thenReturn(Collections.singletonList(config));
         when(harvesterBean.harvest(config))
                 .thenReturn(new MockedFuture()
-                                    .withDone(true));
+                        .withDone(true));
     }
 
     @Test

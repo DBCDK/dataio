@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * Chunk item DTO class.
- *
+ * <p>
  * This class is NOT thread safe.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -24,8 +24,10 @@ public class ChunkItem implements Serializable {
     public static final ChunkItem UNDEFINED = null;
     private static final long serialVersionUID = -7214362358523195493L;
 
-    public enum Status { SUCCESS, FAILURE, IGNORE }
-    public enum Type { UNKNOWN,
+    public enum Status {SUCCESS, FAILURE, IGNORE}
+
+    public enum Type {
+        UNKNOWN,
         ADDI,
         DANMARC2_LINEFORMAT,
         MARC21_LINEFORMAT,
@@ -68,10 +70,11 @@ public class ChunkItem implements Serializable {
 
     /**
      * Class constructor (deprecated)
-     * @param id item identifier, must be larger than {@value Constants#CHUNK_ITEM_ID_LOWER_BOUND}
-     * @param data item data, can be empty, but not null
-     * @param status item status can not be null
-     * @param type item type as list to support Embeddable formats, can also be null or empty
+     *
+     * @param id       item identifier, must be larger than {@value Constants#CHUNK_ITEM_ID_LOWER_BOUND}
+     * @param data     item data, can be empty, but not null
+     * @param status   item status can not be null
+     * @param type     item type as list to support Embeddable formats, can also be null or empty
      * @param encoding item charset encoding, can also be null
      */
     public ChunkItem(long id, byte[] data, Status status, List<Type> type, Charset encoding) {
@@ -86,8 +89,9 @@ public class ChunkItem implements Serializable {
 
     /**
      * Class constructor (used to enforce invariant checks during deserialization)
-     * @param id item identifier, must be larger than {@value Constants#CHUNK_ITEM_ID_LOWER_BOUND}
-     * @param data item data, can be empty, but not null
+     *
+     * @param id     item identifier, must be larger than {@value Constants#CHUNK_ITEM_ID_LOWER_BOUND}
+     * @param data   item data, can be empty, but not null
      * @param status item status can not be null
      */
     @JsonCreator
@@ -163,8 +167,9 @@ public class ChunkItem implements Serializable {
 
     /**
      * If given list of diagnostics is not null or empty:
-     *   - If any one of the diagnostics has a level different from WARNING, then status of this chunk item is set to FAILURE.
-     *   - Given diagnostics are appended to this chunk item.
+     * - If any one of the diagnostics has a level different from WARNING, then status of this chunk item is set to FAILURE.
+     * - Given diagnostics are appended to this chunk item.
+     *
      * @param diagnostics containing list of descriptions of the reasons for failure
      * @return reference to self
      */
@@ -184,6 +189,7 @@ public class ChunkItem implements Serializable {
 
     /**
      * Alias for withDiagnostic() with a single diagnostic argument.
+     *
      * @param diagnostic diagnostic to be appended to this chunk item
      */
     public void appendDiagnostics(Diagnostic diagnostic) {
@@ -192,6 +198,7 @@ public class ChunkItem implements Serializable {
 
     /**
      * Alias for withDiagnostic() with a multiple diagnostic arguments.
+     *
      * @param diagnostics diagnostics to be appended to this chunk item
      */
     public void appendDiagnostics(List<Diagnostic> diagnostics) {

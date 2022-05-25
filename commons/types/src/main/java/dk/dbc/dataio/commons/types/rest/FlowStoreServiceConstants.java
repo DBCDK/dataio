@@ -45,5 +45,6 @@ public class FlowStoreServiceConstants {
     public static final String GATEKEEPER_DESTINATIONS = "gatekeeper/destinations";
     public static final String GATEKEEPER_DESTINATION = "gatekeeper/destinations/{id}";
 
-    private FlowStoreServiceConstants() { }
+    private FlowStoreServiceConstants() {
+    }
 }

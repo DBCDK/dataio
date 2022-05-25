@@ -29,7 +29,7 @@ public class WorldCatHarvestOperation extends HarvestOperation {
                                     TaskRepo taskRepo, VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector, OcnRepo ocnRepo, MetricRegistry metricRegistry)
             throws SQLException, QueueException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
-            new VipCoreConnection(vipCoreLibraryRulesConnector), null, ocnRepo, null, metricRegistry);
+                new VipCoreConnection(vipCoreLibraryRulesConnector), null, ocnRepo, null, metricRegistry);
     }
 
     WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
@@ -43,6 +43,7 @@ public class WorldCatHarvestOperation extends HarvestOperation {
     /**
      * Runs this harvest operation, creating dataIO jobs from harvested records.
      * If any non-internal error occurs a record is marked as failed.
+     *
      * @return number of records processed
      * @throws HarvesterException on failure to complete harvest operation
      */
@@ -92,12 +93,12 @@ public class WorldCatHarvestOperation extends HarvestOperation {
         if (hasPid(addiMetaData)) {
             // single entity from exact ocn-repo key lookup
             return ocnRepo.lookupWorldCatEntity(new WorldCatEntity()
-                                .withPid(addiMetaData.pid()));
+                    .withPid(addiMetaData.pid()));
         }
         // potentially multiple entities from agencyId/bibliographicRecordId query
         return ocnRepo.lookupWorldCatEntity(new WorldCatEntity()
-                            .withAgencyId(addiMetaData.submitterNumber())
-                            .withBibliographicRecordId(addiMetaData.bibliographicRecordId()));
+                .withAgencyId(addiMetaData.submitterNumber())
+                .withBibliographicRecordId(addiMetaData.bibliographicRecordId()));
     }
 
     private RawRepoRecordHarvestTask mergeTaskWithWorldCatEntity(RawRepoRecordHarvestTask task, WorldCatEntity worldCatEntity) {

@@ -72,7 +72,7 @@ public class PgJobStoreRepositoryIT_CachingIT extends PgJobStoreRepositoryAbstra
     /**
      * Given    : a job store with empty flowcache
      * When     : creating new job entities with non-ACCTEST type and caching referencing flows which only differs on
-     *            their "next" components
+     * their "next" components
      * Then     : the flows are trimmed resulting in cache hits
      * And When :  creating new job entities with type ACCTEST
      * Then     : the flow is not trimmed resulting in cache insert.

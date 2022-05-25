@@ -90,13 +90,13 @@ public class AbstractJobStoreIT {
                 System.getProperty("postgresql.port").length() > 1) {
             DATABASE_PORT = Integer.parseInt(System.getProperty("postgresql.port"));
         } else {
-            DATABASE_NAME=System.getProperty("user.name");
+            DATABASE_NAME = System.getProperty("user.name");
         }
 
         datasource = new PGSimpleDataSource();
-        datasource.setDatabaseName( DATABASE_NAME );
+        datasource.setDatabaseName(DATABASE_NAME);
         datasource.setServerName("localhost");
-        datasource.setPortNumber( DATABASE_PORT );
+        datasource.setPortNumber(DATABASE_PORT);
         datasource.setUser(System.getProperty("user.name"));
         datasource.setPassword(System.getProperty("user.name"));
     }
@@ -115,7 +115,7 @@ public class AbstractJobStoreIT {
         final Map<String, String> properties = new HashMap<>();
         properties.put(JDBC_USER, System.getProperty("user.name"));
         properties.put(JDBC_PASSWORD, System.getProperty("user.name"));
-        properties.put(JDBC_URL, String.format("jdbc:postgresql://localhost:%s/%s",DATABASE_PORT, DATABASE_NAME));
+        properties.put(JDBC_URL, String.format("jdbc:postgresql://localhost:%s/%s", DATABASE_PORT, DATABASE_NAME));
         properties.put(JDBC_DRIVER, "org.postgresql.Driver");
         properties.put("eclipselink.logging.level", "FINE");
 
@@ -163,7 +163,7 @@ public class AbstractJobStoreIT {
 
     protected void persist(Object entity) {
         persistenceContext.run(() ->
-            entityManager.persist(entity));
+                entityManager.persist(entity));
     }
 
     protected JobEntity newJobEntity() {
@@ -218,10 +218,10 @@ public class AbstractJobStoreIT {
 
     protected JobQueueEntity newJobQueueEntity(JobEntity job) {
         return new JobQueueEntity()
-            .withJob(job)
-            .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML)
-            .withSinkId(0)
-            .withState(JobQueueEntity.State.WAITING);
+                .withJob(job)
+                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML)
+                .withSinkId(0)
+                .withState(JobQueueEntity.State.WAITING);
     }
 
     protected FlowCacheEntity newPersistedFlowCacheEntity() {
@@ -302,8 +302,8 @@ public class AbstractJobStoreIT {
 
     protected RerunEntity newRerunEntity(JobEntity job) {
         return new RerunEntity()
-            .withJob(job)
-            .withState(RerunEntity.State.WAITING);
+                .withJob(job)
+                .withState(RerunEntity.State.WAITING);
     }
 
     protected List<ChunkEntity> findAllChunks() {

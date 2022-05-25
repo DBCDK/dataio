@@ -1,9 +1,9 @@
 package dk.dbc.dataio.sink.testutil;
 
-import java.util.Enumeration;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
+import java.util.Enumeration;
 
 public class MockedTextMessage implements TextMessage {
     private String payload;

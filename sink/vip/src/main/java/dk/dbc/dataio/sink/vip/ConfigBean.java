@@ -20,7 +20,8 @@ import javax.ejb.Singleton;
 public class ConfigBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigBean.class);
 
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
     private long highestVersionSeen = 0;
     private VipSinkConfig config;
@@ -32,6 +33,7 @@ public class ConfigBean {
 
     /**
      * Refreshes the sink config contained in this bean by flow-store lookup if it is outdated
+     *
      * @param consumedMessage consumed message containing the version and the id of the sink
      * @throws SinkException on error to retrieve property for id or version or on error on fetching sink
      */

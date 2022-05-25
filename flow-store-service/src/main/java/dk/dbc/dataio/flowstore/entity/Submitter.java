@@ -27,16 +27,16 @@ import javax.persistence.Table;
 @NamedNativeQueries({
         @NamedNativeQuery(
                 name = Submitter.QUERY_FIND_ALL,
-                query = "SELECT * FROM "+Submitter.TABLE_NAME+" ORDER BY (content->>'number')::BIGINT ASC",
+                query = "SELECT * FROM " + Submitter.TABLE_NAME + " ORDER BY (content->>'number')::BIGINT ASC",
                 resultSetMapping = "Submitter.implicit"
         ),
         @NamedNativeQuery(
                 name = Submitter.QUERY_FIND_ALL_IDS,
-                query = "SELECT id FROM "+Submitter.TABLE_NAME
+                query = "SELECT id FROM " + Submitter.TABLE_NAME
         ),
         @NamedNativeQuery(
                 name = Submitter.QUERY_FIND_BY_CONTENT,
-                query = "SELECT * FROM "+Submitter.TABLE_NAME+" WHERE content @> ?::jsonb",
+                query = "SELECT * FROM " + Submitter.TABLE_NAME + " WHERE content @> ?::jsonb",
                 resultSetMapping = "Submitter.implicit"
         )
 })
@@ -48,9 +48,10 @@ public class Submitter extends Versioned {
 
     /**
      * {@inheritDoc}
-     * @throws NullPointerException if given null-valued data argument
+     *
+     * @throws NullPointerException     if given null-valued data argument
      * @throws IllegalArgumentException if given empty-valued data argument
-     * @throws JSONBException if non-json JSON string or if given JSON is invalid SubmitterContent
+     * @throws JSONBException           if non-json JSON string or if given JSON is invalid SubmitterContent
      */
     @Override
     public void setContent(String data) throws JSONBException {

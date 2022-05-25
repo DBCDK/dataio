@@ -16,7 +16,7 @@ public class ProcessingInstructions {
     private DpfRecord.State recordState;
     private List<String> errors = new ArrayList<>(0);
 
-   public int getSubmitter() {
+    public int getSubmitter() {
         return submitter;
     }
 

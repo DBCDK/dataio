@@ -55,11 +55,13 @@ public class SinkJobFilter extends BaseJobFilter {
         this.invertFilter = invertFilter;
     }
 
-    @UiField PromptedList sinkList;
+    @UiField
+    PromptedList sinkList;
 
 
     /**
      * Event handler for handling changes in the sink selection
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler("sinkList")
@@ -71,6 +73,7 @@ public class SinkJobFilter extends BaseJobFilter {
 
     /**
      * Fetches the name of this filter
+     *
      * @return The name of the filter
      */
     @Override
@@ -81,6 +84,7 @@ public class SinkJobFilter extends BaseJobFilter {
 
     /**
      * Gets the value of this job filter, which is the JobListCriteria to be used in the filter search
+     *
      * @return The JobListCriteria constructed by this job filter
      */
     @Override
@@ -94,6 +98,7 @@ public class SinkJobFilter extends BaseJobFilter {
     /**
      * Sets the selection according to the key value, setup in the parameter attribute<br>
      * The value is given in url as a plain integer, as an index to the sink
+     *
      * @param parameter The filter parameter to be used by this job filter
      */
     @Override
@@ -106,6 +111,7 @@ public class SinkJobFilter extends BaseJobFilter {
 
     /**
      * Gets the parameter value for the filter
+     *
      * @return The stored filter parameter for the specific job filter
      */
     @Override
@@ -132,6 +138,7 @@ public class SinkJobFilter extends BaseJobFilter {
         @Override
         public void onFilteredFailure(Throwable e) {
         }
+
         @Override
         public void onSuccess(List<SinkModel> models) {
             String NO_SINK_ID_SELECTED = "0";

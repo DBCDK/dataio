@@ -11,7 +11,7 @@ public class JobReplicatorInfo {
     private long submitterId;
     private String targetSinkName;
     private FlowStoreServiceConnector sourceFlowStoreConnector,
-        targetFlowStoreConnector;
+            targetFlowStoreConnector;
 
     public JobSpecification getJobSpecification() {
         return jobSpecification;

@@ -44,12 +44,12 @@ public class SinkResultTest {
 
     @Test
     public void constructor_chunkArgIsNull_throws() {
-        assertThat(()-> new SinkResult(null, unmarshaller), isThrowing(NullPointerException.class));
+        assertThat(() -> new SinkResult(null, unmarshaller), isThrowing(NullPointerException.class));
     }
 
     @Test
     public void constructor_unmarshallerArgIsNull_throws() {
-        assertThat(()-> new SinkResult(chunkBuilder.appendItem(successfulItem1.withId(0)).build(), null), isThrowing(NullPointerException.class));
+        assertThat(() -> new SinkResult(chunkBuilder.appendItem(successfulItem1.withId(0)).build(), null), isThrowing(NullPointerException.class));
     }
 
     @Test

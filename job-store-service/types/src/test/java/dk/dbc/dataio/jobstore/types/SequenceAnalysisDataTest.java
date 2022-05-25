@@ -41,6 +41,7 @@ public class SequenceAnalysisDataTest {
         try {
             sequenceAnalysisData.getData().add("third");
             fail("No exception thrown");
-        } catch (UnsupportedOperationException e) {}
+        } catch (UnsupportedOperationException e) {
+        }
     }
 }

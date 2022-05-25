@@ -4,29 +4,28 @@ import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
+import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.JobError;
-
+import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
+import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.dmat.service.connector.DMatServiceConnectorException;
 import dk.dbc.dmat.service.dto.RecordData;
 import dk.dbc.dmat.service.persistence.DMatRecord;
+import dk.dbc.log.DBCTrackedLogContext;
+import dk.dbc.util.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
-import dk.dbc.dataio.sink.types.SinkException;
-import dk.dbc.log.DBCTrackedLogContext;
-import dk.dbc.util.Timed;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import javax.inject.Inject;
@@ -96,7 +95,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                         Long.toString(chunkItem.getId()));
                 result.insertItem(handleChunkItem(chunkItem, id));
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             LOGGER.error("Caught unexpected exception when processing incomming chunks: {}", e.getMessage());
             metricsHandler.increment(DMatSinkCounterMetrics.UNEXPECTED_EXCEPTIONS);
         } finally {

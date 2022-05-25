@@ -24,7 +24,8 @@ import java.util.List;
 public class FlowFilter extends BaseFlowBinderFilter {
     private final static String NOOP = "0";
 
-    interface FlowFilterUiBinder extends UiBinder<HTMLPanel, FlowFilter> {}
+    interface FlowFilterUiBinder extends UiBinder<HTMLPanel, FlowFilter> {
+    }
 
     private static FlowFilterUiBinder ourUiBinder = GWT.create(FlowFilterUiBinder.class);
 
@@ -56,10 +57,12 @@ public class FlowFilter extends BaseFlowBinderFilter {
         this.invertFilter = invertFilter;
     }
 
-    @UiField PromptedList flowList;
+    @UiField
+    PromptedList flowList;
 
     /**
      * Event handler for handling changes in the flow selection
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler("flowList")
@@ -111,7 +114,8 @@ public class FlowFilter extends BaseFlowBinderFilter {
      */
     class FetchFlowsCallback extends FilteredAsyncCallback<List<FlowModel>> {
         @Override
-        public void onFilteredFailure(Throwable e) {}
+        public void onFilteredFailure(Throwable e) {
+        }
 
         @Override
         public void onSuccess(List<FlowModel> models) {

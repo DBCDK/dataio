@@ -11,7 +11,8 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  */
 public class Place extends AbstractBasePlace {
 
-    public Place() {}
+    public Place() {
+    }
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
@@ -24,6 +25,7 @@ public class Place extends AbstractBasePlace {
         public String getToken(Place place) {
             return "";
         }
+
         @Override
         public Place getPlace(String token) {
             return new Place();

@@ -151,7 +151,7 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
         env().getPersistenceContext().run(() -> conversionFinalizerBean.handleTerminationChunk(chunk));
 
         final StoredConversionParam storedConversionParam = env().getPersistenceContext().run(() ->
-            env().getEntityManager().find(StoredConversionParam.class, Math.toIntExact(chunk.getJobId())));
+                env().getEntityManager().find(StoredConversionParam.class, Math.toIntExact(chunk.getJobId())));
         assertThat("StoredConversionParam", storedConversionParam, is(nullValue()));
 
         final ConversionMetadata expectedMetadata = new ConversionMetadata(ConversionFinalizerBean.ORIGIN)
@@ -200,7 +200,7 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
         final Chunk chunk = new Chunk(jobInfoSnapshot.getJobId(), 3, Chunk.Type.DELIVERED);
         try {
             env().getPersistenceContext().run(() ->
-                conversionFinalizerBean.handleTerminationChunk(chunk));
+                    conversionFinalizerBean.handleTerminationChunk(chunk));
             fail("no RuntimeException thrown");
         } catch (RuntimeException e) {
             assertThat("SinkException thrown",

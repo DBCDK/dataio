@@ -38,7 +38,7 @@ public class ChunkItemBuilder {
         return this;
     }
 
-    public ChunkItemBuilder setType(ChunkItem.Type type ) {
+    public ChunkItemBuilder setType(ChunkItem.Type type) {
         this.type = Collections.singletonList(type);
         return this;
     }

@@ -18,10 +18,10 @@ import static org.junit.Assert.fail;
 
 /**
  * SubmitterModelMapper unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class SubmitterModelMapperTest {
     // Default Submitters
@@ -108,8 +108,8 @@ public class SubmitterModelMapperTest {
         try {
             SubmitterModelMapper.toSubmitterContent(model);
             fail("Illegal submitter name not detected");
-        } catch(IllegalArgumentException e) {
-            assertThat(e.getMessage().contains(expectedIllegalCharacters), is (true));
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage().contains(expectedIllegalCharacters), is(true));
         }
     }
 

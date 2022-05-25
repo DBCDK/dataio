@@ -35,6 +35,7 @@ public class PromatCaseXmlTransformer {
 
     /**
      * Transforms given {@link PromatCase} into XML
+     *
      * @param promatCase Promat case
      * @return XML representation of Promat case
      * @throws HarvesterException if unable to transform
@@ -52,28 +53,28 @@ public class PromatCaseXmlTransformer {
         return stringWriter.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    /** Without this mixin class case tasks would be output as
-    * <pre>
-    * {@code
-    *   <tasks>
-    *     <tasks>...</tasks>
-    *     <tasks>...</tasks>
-    *     ...
-    *   </tasks>
-    * }
-    * </pre>
-    * instead of
-    * <pre>
-    * {@code
-    *   <tasks>
-    *     <task>...</task>
-    *     <task>...</task>
-    *     ...
-    *   </tasks>
-    * }
-    * </pre>
-    *
-    */
+    /**
+     * Without this mixin class case tasks would be output as
+     * <pre>
+     * {@code
+     *   <tasks>
+     *     <tasks>...</tasks>
+     *     <tasks>...</tasks>
+     *     ...
+     *   </tasks>
+     * }
+     * </pre>
+     * instead of
+     * <pre>
+     * {@code
+     *   <tasks>
+     *     <task>...</task>
+     *     <task>...</task>
+     *     ...
+     *   </tasks>
+     * }
+     * </pre>
+     */
     @SuppressWarnings("PMD")
     public static abstract class PromatCaseMixin {
         @JsonProperty("task")

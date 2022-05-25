@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
@@ -28,6 +26,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * Default constructor
+     *
      * @param placeController The placecontroller
      */
     @SuppressWarnings("unused")
@@ -59,6 +58,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method starts the edit harvester page
+     *
      * @param id The id of the harvester configuration to edit
      */
     @Override
@@ -101,6 +101,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onFilteredFailure(Throwable caught) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(caught, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
+
         @Override
         public void onSuccess(List<CoRepoHarvesterConfig> coRepoHarvesterConfigs) {
             getView().setHarvesters(coRepoHarvesterConfigs);

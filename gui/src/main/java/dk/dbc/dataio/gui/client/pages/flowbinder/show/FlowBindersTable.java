@@ -88,6 +88,7 @@ public class FlowBindersTable extends CellTable {
 
     /**
      * Sets the presenter to allow communication back to the presenter
+     *
      * @param presenter The presenter to set
      */
     public void setPresenter(Presenter presenter) {
@@ -149,6 +150,7 @@ public class FlowBindersTable extends CellTable {
 
     /**
      * This method constructs a sort handler for a String column
+     *
      * @param column The column to sort
      * @return The list handler for the column
      */
@@ -162,16 +164,18 @@ public class FlowBindersTable extends CellTable {
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
-    DoubleClickHandler getDoubleClickHandler(){
+    DoubleClickHandler getDoubleClickHandler() {
         return doubleClickEvent -> {
-            editFlowBinder(((SingleSelectionModel<FlowBinderModel>)getSelectionModel()).getSelectedObject());
+            editFlowBinder(((SingleSelectionModel<FlowBinderModel>) getSelectionModel()).getSelectedObject());
         };
     }
 
     /**
      * This method activates the edit flowbinder page
+     *
      * @param model The model to edit
      */
     private void editFlowBinder(FlowBinderModel model) {
@@ -182,8 +186,9 @@ public class FlowBindersTable extends CellTable {
 
     /**
      * This metods constructs a SafeHtml snippet, that constitutes a text with a popup mouseover help text
+     *
      * @param headerText The headertext to be displayed
-     * @param helpText The popup help text
+     * @param helpText   The popup help text
      * @return The SafeHtml snippet
      */
     SafeHtml textWithToolTip(String headerText, String helpText) {
@@ -199,6 +204,7 @@ public class FlowBindersTable extends CellTable {
         public SafeHtmlCell() {
             super("click", "keydown");
         }
+
         @Override
         public void render(Cell.Context context, SafeHtml value, SafeHtmlBuilder sb) {
             if (value != null) {
@@ -248,7 +254,7 @@ public class FlowBindersTable extends CellTable {
         private void showSubmittersInPopupList(List<SubmitterModel> submitters) {
             Collections.sort(submitters, (sm1, sm2) -> Long.valueOf(sm1.getNumber()).compareTo(Long.valueOf(sm2.getNumber())));
             view.popupList.clear();
-            for (SubmitterModel model: submitters) {
+            for (SubmitterModel model : submitters) {
                 view.popupList.addItem(Format.inBracketsPairString(model.getNumber(), model.getName()), model.getNumber());
             }
             view.popupList.show();

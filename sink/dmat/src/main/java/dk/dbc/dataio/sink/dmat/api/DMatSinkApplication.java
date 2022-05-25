@@ -12,6 +12,7 @@ import java.util.Set;
 @ApplicationPath("/")
 public class DMatSinkApplication extends Application {
     private static final Set<Class<?>> classes = new HashSet<>();
+
     static {
         classes.add(StatusBean.class);
     }

@@ -9,7 +9,7 @@ import java.util.Objects;
 
 /**
  * Created by ja7 on 23-09-14.
- *
+ * <p>
  * Entity Mapping for SuppliedRecords.. ignores originalrecord
  */
 @Entity

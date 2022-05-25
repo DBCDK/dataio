@@ -40,6 +40,7 @@ public class Place extends AbstractBasePlace {
         public String getToken(Place place) {
             return place.getToken();
         }
+
         @Override
         public Place getPlace(String token) {
             return new Place(token);

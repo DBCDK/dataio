@@ -41,7 +41,7 @@ public class FlowManager {
 
     public Flow getFlow(String flowName, Long revision) throws FlowStoreServiceConnectorException, JavaScriptProjectException, IllegalStateException, IOException, JSONBException {
         final Flow flow = flowStoreServiceConnector.findFlowByName(flowName);
-        if(flow.getContent().getComponents().size() > 1) {
+        if (flow.getContent().getComponents().size() > 1) {
             throw new IllegalStateException("more than one flow component referenced by flow");
         }
         validateSvnRevision(flow, revision);
@@ -69,14 +69,14 @@ public class FlowManager {
 
     private void validateSvnRevision(Flow flow, long svnRevision) throws FlowStoreServiceConnectorException {
         final FlowComponent nestedFlowComponent = flow.getContent().getComponents().get(0);
-        if(nestedFlowComponent.getContent().getSvnRevision() > svnRevision) {
+        if (nestedFlowComponent.getContent().getSvnRevision() > svnRevision) {
             throw new IllegalStateException(String.format("flow: '%s' with svnRevision %s cannot be downgraded to svnRevision %s",
                     nestedFlowComponent.getContent().getName(),
                     nestedFlowComponent.getContent().getSvnRevision(),
                     svnRevision));
         }
         final FlowComponent flowComponent = flowStoreServiceConnector.getFlowComponent(nestedFlowComponent.getId());
-        if(flowComponent.getContent().getSvnRevision() > svnRevision) {
+        if (flowComponent.getContent().getSvnRevision() > svnRevision) {
             throw new IllegalStateException(String.format("flowComponent: '%s' with svnRevision %s cannot be downgraded to svnRevision %s",
                     flowComponent.getContent(),
                     flowComponent.getContent().getSvnRevision(),

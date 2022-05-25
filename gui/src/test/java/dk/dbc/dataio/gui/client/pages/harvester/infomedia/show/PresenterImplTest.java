@@ -23,10 +23,14 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
-    @Mock PlaceController mockedPlaceController;
-    @Mock View mockedView;
-    @Mock Widget mockedViewWidget;
-    @Mock ViewGinjector mockedViewGinjector;
+    @Mock
+    PlaceController mockedPlaceController;
+    @Mock
+    View mockedView;
+    @Mock
+    Widget mockedViewWidget;
+    @Mock
+    ViewGinjector mockedViewGinjector;
 
     @Before
     public void setupExpectations() {

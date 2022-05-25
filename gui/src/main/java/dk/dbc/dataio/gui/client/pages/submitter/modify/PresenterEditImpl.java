@@ -10,13 +10,14 @@ import dk.dbc.dataio.gui.client.model.SubmitterModel;
 /**
  * Concrete Presenter Implementation Class for Submitter Edit
  */
-public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
+public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     private Long id;
 
     /**
      * Constructor
-     * @param place     the place
-     * @param header    Breadcrumb header text
+     *
+     * @param place  the place
+     * @param header Breadcrumb header text
      */
     public PresenterEditImpl(Place place, String header) {
         super(header);
@@ -27,8 +28,9 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {

@@ -33,8 +33,9 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
 
     /**
      * Constructor
-     * @param texts Internationalized texts to be used by this class
-     * @param resources Resources to be used by this class
+     *
+     * @param texts          Internationalized texts to be used by this class
+     * @param resources      Resources to be used by this class
      * @param invertedFilter True: This is an inverted filter, False: This is not an inverted filter
      */
     public BaseSubmitterFilter(Texts texts, Resources resources, boolean invertedFilter) {
@@ -45,6 +46,7 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
 
     /**
      * This method codes the behavior when adding the actual filter (activating the menu)
+     *
      * @param parentJobFilter parent filter where the current filter is being added to
      * @return scheduler command to be used when adding the filter
      */
@@ -63,6 +65,7 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
      * If the actual filter has already been added, nothing will happen. <br>
      * Apart from adding the filter, a Click Handler is registered to assure,
      * that a click on any of the buttons will trigger an action.
+     *
      * @param notifyPlace Determines whether to notify the place about the changes
      */
     public void instantiateFilter(boolean notifyPlace) {
@@ -82,6 +85,7 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
      * Sets the parameter value for the filter<br>
      * The default implementation assumes, that the filter is always active,
      * and there is therefore no value to set
+     *
      * @param filterParameter filter parameter for the specific filter
      */
     public void setParameter(String filterParameter) {
@@ -92,7 +96,8 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
      * Sets the parameter value for the filter<br>
      * The default implementation assumes, that the filter is always active,
      * and there is therefore no value to set
-     * @param inverted True if filter is inverted, false if not
+     *
+     * @param inverted        True if filter is inverted, false if not
      * @param filterParameter filter parameter for the specific filter
      */
     public void setParameter(boolean inverted, String filterParameter) {
@@ -106,6 +111,7 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
      * Removes this filter from the list of active filters.
      * The associated Click Handler is de-registered to assure,
      * that no ghost events will be triggered
+     *
      * @param notifyPlace Determines whether to notify the place about the changes
      */
     void removeFilter(boolean notifyPlace) {
@@ -142,6 +148,7 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
 
     /**
      * Test whether this is an inverted filter.
+     *
      * @return True if the filter is an inverted, false not
      */
     boolean isInvertFilter() {
@@ -150,6 +157,7 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
 
     /**
      * Handles a Filter Panel Event, and takes action upon it
+     *
      * @param button The button event
      */
     void handleFilterPanelEvent(SubmitterFilterPanelEvent.FilterPanelButton button) {
@@ -181,6 +189,7 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
 
     /**
      * Gets the widget's position in the tab index.
+     *
      * @return the widget's tab index
      */
     public int getTabIndex() {
@@ -191,6 +200,7 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
     /**
      * Sets the widget's 'access key'. This key is used (in conjunction with
      * a browser-specific modifier key) to automatically focus the widget.
+     *
      * @param accessKey the widget's access key
      */
     public void setAccessKey(char accessKey) {
@@ -200,6 +210,7 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
     /**
      * Explicitly focus/unfocus this widget. Only one widget can have focus at a time,
      * and the widget that does will receive all keyboard events.
+     *
      * @param focused whether this widget should take focus or release it
      */
     public void setFocus(boolean focused) {
@@ -210,6 +221,7 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
      * Sets the widget's position in the tab index. If more than one widget has the same tab index,
      * each such widget will receive focus in an arbitrary order. Setting the tab index to -1 will
      * cause this widget to be removed from the tab order.
+     *
      * @param index the widget's tab index
      */
     public void setTabIndex(int index) {
@@ -220,6 +232,7 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
      * Gets the parameter value for the filter<br>
      * The default implementation always returns an empty string,
      * since the assumption is that the filter is always active
+     *
      * @return stored filter parameter for the specific filter
      */
     public String getParameter() {
@@ -230,12 +243,14 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
      * Adds a ChangeHandler for this filter<br>
      * The default implementation assumes that there is no changeable input elements on the form,
      * and there are consequently no change handler to add since it is not needed.
+     *
      * @param changeHandler ChangeHandler for this filter
      * @return HandlerRegistration object to be used to remove the filter
      */
     @Override
     public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
-        return () -> {};  // Returns a handler registration object, that is empty
+        return () -> {
+        };  // Returns a handler registration object, that is empty
     }
 
     /**
@@ -247,6 +262,7 @@ public abstract class BaseSubmitterFilter extends Composite implements HasChange
 
     /**
      * Sets the parameter value for the filter
+     *
      * @param filterParameter filter parameter for the specific filter
      */
     public abstract void localSetParameter(String filterParameter);

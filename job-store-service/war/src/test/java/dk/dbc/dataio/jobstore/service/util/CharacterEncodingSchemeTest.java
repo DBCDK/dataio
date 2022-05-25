@@ -14,6 +14,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class CharacterEncodingSchemeTest {
     private final Charset marc8 = new Marc8Charset();
+
     @Test
     public void charsetOf_normalizesName() {
         assertThat("latin1", CharacterEncodingScheme.charsetOf("latin1"), is(StandardCharsets.ISO_8859_1));

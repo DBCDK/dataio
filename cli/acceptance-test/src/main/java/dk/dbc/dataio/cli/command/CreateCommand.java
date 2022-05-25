@@ -70,7 +70,7 @@ public class CreateCommand extends Command<CreateOptions> {
     private void initializeManagers() throws UrlResolverServiceConnectorException, JSONBException {
         LOGGER.info("Retrieving endpoints using {}", options.guiUrl);
         final Map<String, String> endpoints = getEndpoints();
-        for(Map.Entry<String, String> entry : options.overriddenEndpoints.entrySet()) {
+        for (Map.Entry<String, String> entry : options.overriddenEndpoints.entrySet()) {
             endpoints.put(entry.getKey(), entry.getValue());
         }
 

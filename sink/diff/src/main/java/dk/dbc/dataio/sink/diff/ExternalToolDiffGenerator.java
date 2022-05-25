@@ -37,9 +37,10 @@ public class ExternalToolDiffGenerator {
      * Creates diff string through external tool, returning
      * empty string   : if the two input parameters are identical or semantic identical.
      * diff as string : if the two input parameters are different from one another.
-     * @param kind the kind of diff to generate
+     *
+     * @param kind    the kind of diff to generate
      * @param current the current item data
-     * @param next the next item data
+     * @param next    the next item data
      * @return the diff string
      * @throws DiffGeneratorException on failure to create diff
      */
@@ -63,10 +64,10 @@ public class ExternalToolDiffGenerator {
                     kind.getTool(), tempFile1.getAbsolutePath(), tempFile2.getAbsolutePath()));
             final StringBuilder out = new StringBuilder();
             final StreamHandler outHandler = new StreamHandler(p.getInputStream(),
-                (line) -> out.append(line).append("\n"), stdoutDone::setTrue);
+                    (line) -> out.append(line).append("\n"), stdoutDone::setTrue);
             final StringBuilder err = new StringBuilder();
             final StreamHandler errHandler = new StreamHandler(p.getErrorStream(),
-                (line) -> err.append(line).append("\n"), stderrDone::setTrue);
+                    (line) -> err.append(line).append("\n"), stderrDone::setTrue);
 
             //Thread outputThread = threadFactory.newThread(outHandler);
             final Thread outputThread = new Thread(outHandler);
@@ -92,7 +93,7 @@ public class ExternalToolDiffGenerator {
         } catch (IOException | InterruptedException e) {
             throw new DiffGeneratorException(kind.getTool() +
                     " failed to compare input", e);
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             LOGGER.error("Unexpected exception: ", e);
             throw e;
         } finally {
@@ -109,6 +110,7 @@ public class ExternalToolDiffGenerator {
         private InputStream is;
         private Consumer<String> consumer;
         private Runnable done;
+
         public StreamHandler(InputStream is, Consumer<String> consumer, Runnable done) {
             this.is = is;
             this.consumer = consumer;
@@ -117,21 +119,23 @@ public class ExternalToolDiffGenerator {
 
         @Override
         public void run() {
-            try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     consumer.accept(line);
                 }
-            } catch(IOException e) {
+            } catch (IOException e) {
                 consumer.accept("caught exception: " + e.toString());
             } finally {
                 done.run();
             }
         }
     }
+
     // convenience class because Boolean is immutable
     private class BooleanHolder {
         boolean value;
+
         public void setTrue() {
             value = true;
         }

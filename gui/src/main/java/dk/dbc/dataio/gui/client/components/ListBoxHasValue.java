@@ -30,6 +30,7 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map<String, Str
 
     /**
      * Gets the value of the selected item
+     *
      * @return The value of the selected item
      */
     @Override
@@ -51,6 +52,7 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map<String, Str
      * Sets the selection to the item, matching the input parameter
      * If no match is found within the list, the selection will not be changed
      * No Value Change event is fired
+     *
      * @param value The item to be the future selected item
      */
     @Override
@@ -61,13 +63,14 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map<String, Str
     /**
      * Sets the selection to the item, matching the input parameter
      * If no match is found within the list, the selection will not be changed
-     * @param value The item to be the future selected item
+     *
+     * @param value      The item to be the future selected item
      * @param fireEvents If true, a Value Change event will be fired if a match is found
      */
     @Override
     public void setValue(Map<String, String> value, boolean fireEvents) {
         if (value != null) {
-            for (int i=0; i<getItemCount(); i++) {
+            for (int i = 0; i < getItemCount(); i++) {
                 setItemSelected(i, value.containsKey(getValue(i)));
             }
         }
@@ -78,6 +81,7 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map<String, Str
 
     /**
      * Adds a Value Change Handler
+     *
      * @param changeHandler The Value Change Handler
      * @return A Remove Handler to be used, if the event handler needs to be removed
      */
@@ -97,7 +101,8 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map<String, Str
      */
     private void triggerValueChangeEvent() {
         if (valueChangeHandler != null) {
-            valueChangeHandler.onValueChange(new ValueChangeEvent<Map<String, String>>(getValue()) {});
+            valueChangeHandler.onValueChange(new ValueChangeEvent<Map<String, String>>(getValue()) {
+            });
         }
     }
 

@@ -72,6 +72,7 @@ public class ChunkItemWithWorldCatAttributes extends ChunkItem {
 
     /**
      * Adds holdings marked as DELETE for each symbol in given list not present in current attributes
+     *
      * @param formerActiveHoldingSymbols list of symbols to compare with current attributes
      */
     public void addDiscontinuedHoldings(List<String> formerActiveHoldingSymbols) {

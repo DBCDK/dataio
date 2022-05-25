@@ -7,6 +7,7 @@ package dk.dbc.dataio.querylanguage;
  */
 public class Ordering {
     public enum Order {ASC, DESC}
+
     public enum SortCase {LOWER, UPPER}
 
     private String identifier;

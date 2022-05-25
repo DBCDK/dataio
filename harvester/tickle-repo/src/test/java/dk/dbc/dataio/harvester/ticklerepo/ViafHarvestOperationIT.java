@@ -63,7 +63,7 @@ public class ViafHarvestOperationIT extends IntegrationTest {
 
     @Before
     public void setupMocks() throws IOException, JobStoreServiceConnectorException,
-                                    RecordServiceConnectorException {
+            RecordServiceConnectorException {
         // Enable JNDI lookup of base path for BinaryFileStoreBean
         final File testFolder = tmpFolder.newFolder();
         InMemoryInitialContextFactory.bind("bfs/home", testFolder.toString());
@@ -184,32 +184,32 @@ public class ViafHarvestOperationIT extends IntegrationTest {
     private String getViafMarcXchangeRecord(String viafId, String dbcId) {
         return
                 "<record>" +
-                    "<leader>321</leader>" +
-                    "<datafield ind1='0' ind2='0' tag='001'>" +
+                        "<leader>321</leader>" +
+                        "<datafield ind1='0' ind2='0' tag='001'>" +
                         "<subfield code='a'>" + viafId + "</subfield>" +
-                    "</datafield>" +
-                    (dbcId != null ?
-                    "<datafield ind1='0' ind2='0' tag='700'>" +
-                        "<subfield code='0'>(DBC)870979" + dbcId + "</subfield>" +
-                    "</datafield>" : "") +
-                "</record>";
+                        "</datafield>" +
+                        (dbcId != null ?
+                                "<datafield ind1='0' ind2='0' tag='700'>" +
+                                        "<subfield code='0'>(DBC)870979" + dbcId + "</subfield>" +
+                                        "</datafield>" : "") +
+                        "</record>";
     }
 
     private String getDbcMarcXchangeRecord(String dbcId) {
         return
                 "<record>" +
-                    "<leader>654</leader>" +
-                    "<datafield ind1='0' ind2='0' tag='001'>" +
+                        "<leader>654</leader>" +
+                        "<datafield ind1='0' ind2='0' tag='001'>" +
                         "<subfield code='a'>" + DBC_RECORD_ID + "</subfield>" +
-                    "</datafield>" +
-                "</record>";
+                        "</datafield>" +
+                        "</record>";
     }
 
     private String getMarcXchangeCollectionFor(String... records) {
         return
                 "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                "<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
+                        "<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
                         String.join("", records) +
-                "</collection>";
+                        "</collection>";
     }
 }

@@ -15,6 +15,7 @@ public class GroupHeaderIncludePredicate implements Predicate<PeriodicJobsDataBl
     /**
      * Returns true if a group header for a datablock exists, and only if
      * the same header has not already been seen for another datablock.
+     *
      * @param dataBlock datablock to test for group header inclusion
      * @return true ir false on whether or not to include group header
      */

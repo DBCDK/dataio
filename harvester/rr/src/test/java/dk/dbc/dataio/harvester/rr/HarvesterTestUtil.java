@@ -6,7 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HarvesterTestUtil {
-    private HarvesterTestUtil() {}
+    private HarvesterTestUtil() {
+    }
 
     public static List<RRHarvesterConfig> getRRHarvesterConfigs(RRHarvesterConfig.Content... entries) {
         final List<RRHarvesterConfig> configs = new ArrayList<>(entries.length);

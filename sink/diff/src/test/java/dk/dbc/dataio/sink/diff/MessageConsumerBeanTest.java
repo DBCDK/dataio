@@ -267,9 +267,9 @@ public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
                 .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "expected failure")
                         .withTag(FailRecord.class.getName()));
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
-            .setItems(Collections.singletonList(currentItem))
-            .setNextItems(Collections.singletonList(nextItem))
-            .build();
+                .setItems(Collections.singletonList(currentItem))
+                .setNextItems(Collections.singletonList(nextItem))
+                .build();
 
         final Chunk result = newMessageConsumerBean().handleChunk(chunk);
         assertThat("number of chunk items", result.size(), is(1));

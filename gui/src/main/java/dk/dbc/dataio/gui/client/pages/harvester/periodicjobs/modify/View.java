@@ -64,52 +64,95 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
-    @UiField HTMLPanel httpSection;
-    @UiField HTMLPanel mailSection;
-    @UiField HTMLPanel ftpSection;
-    @UiField HTMLPanel sftpSection;
+    @UiField
+    HTMLPanel httpSection;
+    @UiField
+    HTMLPanel mailSection;
+    @UiField
+    HTMLPanel ftpSection;
+    @UiField
+    HTMLPanel sftpSection;
 
-    @UiField PromptedList pickupTypeSelection;
-    @UiField PromptedList harvesterTypeSelection;
-    @UiField PromptedTextBox name;
-    @UiField PromptedTextBox schedule;
-    @UiField PromptedTextArea description;
-    @UiField PromptedTextBox resource;
-    @UiField PromptedTextArea query;
-    @UiField PromptedAnchorWithButton queryFileId;
-    @UiField PromptedFileStoreUpload fileStoreUpload;
-    @UiField PromptedTextBox collection;
-    @UiField PromptedTextBox destination;
-    @UiField PromptedTextBox format;
-    @UiField PromptedTextBox submitter;
-    @UiField PromptedTextBox contact;
-    @UiField PromptedDateTimeBox timeOfLastHarvest;
-    @UiField PromptedTextBox overrideFilename;
-    @UiField PromptedCheckBox enabled;
-    @UiField PromptedTextBox httpReceivingAgency;
-    @UiField PromptedTextBox mailRecipient;
-    @UiField PromptedTextBox mailSubject;
-    @UiField PromptedTextBox mailMimetype;
-    @UiField PromptedTextArea mailBody;
-    @UiField PromptedTextBox mailRecordLimit;
-    @UiField PromptedTextBox ftpAddress;
-    @UiField PromptedTextBox ftpUser;
-    @UiField PromptedTextBox ftpPassword;
-    @UiField PromptedTextBox ftpSubdir;
-    @UiField PromptedTextBox sftpAddress;
-    @UiField PromptedTextBox sFtpUser;
-    @UiField PromptedTextBox sftpPassword;
-    @UiField PromptedTextBox sftpSubdir;
-    @UiField PromptedTextArea contentFooter;
-    @UiField PromptedTextArea contentHeader;
+    @UiField
+    PromptedList pickupTypeSelection;
+    @UiField
+    PromptedList harvesterTypeSelection;
+    @UiField
+    PromptedTextBox name;
+    @UiField
+    PromptedTextBox schedule;
+    @UiField
+    PromptedTextArea description;
+    @UiField
+    PromptedTextBox resource;
+    @UiField
+    PromptedTextArea query;
+    @UiField
+    PromptedAnchorWithButton queryFileId;
+    @UiField
+    PromptedFileStoreUpload fileStoreUpload;
+    @UiField
+    PromptedTextBox collection;
+    @UiField
+    PromptedTextBox destination;
+    @UiField
+    PromptedTextBox format;
+    @UiField
+    PromptedTextBox submitter;
+    @UiField
+    PromptedTextBox contact;
+    @UiField
+    PromptedDateTimeBox timeOfLastHarvest;
+    @UiField
+    PromptedTextBox overrideFilename;
+    @UiField
+    PromptedCheckBox enabled;
+    @UiField
+    PromptedTextBox httpReceivingAgency;
+    @UiField
+    PromptedTextBox mailRecipient;
+    @UiField
+    PromptedTextBox mailSubject;
+    @UiField
+    PromptedTextBox mailMimetype;
+    @UiField
+    PromptedTextArea mailBody;
+    @UiField
+    PromptedTextBox mailRecordLimit;
+    @UiField
+    PromptedTextBox ftpAddress;
+    @UiField
+    PromptedTextBox ftpUser;
+    @UiField
+    PromptedTextBox ftpPassword;
+    @UiField
+    PromptedTextBox ftpSubdir;
+    @UiField
+    PromptedTextBox sftpAddress;
+    @UiField
+    PromptedTextBox sFtpUser;
+    @UiField
+    PromptedTextBox sftpPassword;
+    @UiField
+    PromptedTextBox sftpSubdir;
+    @UiField
+    PromptedTextArea contentFooter;
+    @UiField
+    PromptedTextArea contentHeader;
 
 
-    @UiField Button saveButton;
-    @UiField Button deleteButton;
-    @UiField Button runButton;
-    @UiField Label status;
-    @UiField TextArea queryStatus;
-    @UiField PopupBox<Label> confirmation;
+    @UiField
+    Button saveButton;
+    @UiField
+    Button deleteButton;
+    @UiField
+    Button runButton;
+    @UiField
+    Label status;
+    @UiField
+    TextArea queryStatus;
+    @UiField
+    PopupBox<Label> confirmation;
 
     @SuppressWarnings("unused")
     @UiHandler("pickupTypeSelection")

@@ -64,7 +64,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             LOGGER.info("Adding chunk {}/{} to batch {}", chunk.getJobId(), chunk.getChunkId(), batch);
 
             try {
-                for(ChunkItem chunkItem : chunk) {
+                for (ChunkItem chunkItem : chunk) {
                     final String trackingId = getTrackingId(chunkItem, batch);
                     DBCTrackedLogContext.setTrackingId(trackingId);
 
@@ -82,7 +82,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 DBCTrackedLogContext.remove();
             }
 
-        } catch( Exception any ) {
+        } catch (Exception any) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
             metricRegistry.counter(exceptionCounterMetadata).inc();
             throw any;

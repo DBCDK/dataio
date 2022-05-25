@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.modify;
 
 
@@ -16,6 +14,7 @@ import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl {
     /**
      * Constructor
+     *
      * @param header The header
      */
     public PresenterCreateImpl(String header) {
@@ -27,8 +26,9 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -51,7 +51,7 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
                         .withResource("")
                         .withRrHarvester(0)
                         .withEnabled(false)
-            );
+        );
         setCoRepoHarvesterConfig(coRepoHarvesterConfig);
         updateAllFieldsAccordingToCurrentState();
     }
@@ -69,7 +69,8 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
     /**
      * This has no implementation because "Create" does not have a delete button!
      */
-    public void deleteButtonPressed() {}
+    public void deleteButtonPressed() {
+    }
 
 
     /*
@@ -82,6 +83,7 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
             String msg = "HarvesterConfig.id: [new Harvester]";
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(CoRepoHarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());

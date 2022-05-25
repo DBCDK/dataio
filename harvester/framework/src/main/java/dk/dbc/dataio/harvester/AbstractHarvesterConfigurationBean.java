@@ -4,7 +4,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import java.util.Optional;
 import org.slf4j.Logger;
 
 import javax.ejb.EJB;
@@ -12,13 +11,14 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Abstract base class for harvester configurations
  *
  * @param <T> type parameter for harvester configuration type
  */
-public abstract class AbstractHarvesterConfigurationBean<T extends HarvesterConfig<?>>  {
+public abstract class AbstractHarvesterConfigurationBean<T extends HarvesterConfig<?>> {
     protected List<T> configs;
 
     @EJB
@@ -26,6 +26,7 @@ public abstract class AbstractHarvesterConfigurationBean<T extends HarvesterConf
 
     /**
      * Reloads configuration
+     *
      * @throws HarvesterException on failure to lookup configuration resource
      */
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
@@ -47,7 +48,6 @@ public abstract class AbstractHarvesterConfigurationBean<T extends HarvesterConf
     }
 
     /**
-     *
      * @param id harvester config id
      * @return harvesterconfig including disabled configs
      * @throws HarvesterException All flowstore exceptions are transformed to harvester exceptions
@@ -57,7 +57,7 @@ public abstract class AbstractHarvesterConfigurationBean<T extends HarvesterConf
             List<T> allConfigs = flowStoreServiceConnectorBean.getConnector().findHarvesterConfigsByType(getConfigClass());
             return allConfigs.stream().filter(config -> config.getId() == id).findFirst();
         } catch (FlowStoreServiceConnectorException e) {
-            throw new HarvesterException(String.format("Exception caught while fetching harvester config with id %d",id), e);
+            throw new HarvesterException(String.format("Exception caught while fetching harvester config with id %d", id), e);
         }
     }
 

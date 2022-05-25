@@ -40,9 +40,9 @@ public class Chunk implements Iterable<ChunkItem> {
     private String encoding;
 
     /**
-     * @param jobId cannot be negative.
+     * @param jobId   cannot be negative.
      * @param chunkId cannot be negative.
-     * @param type of job (PARTITIONED, PROCESSED, DELIVERED)
+     * @param type    of job (PARTITIONED, PROCESSED, DELIVERED)
      */
     public Chunk(long jobId, long chunkId, Type type) {
         if (jobId < 0 || chunkId < 0) {

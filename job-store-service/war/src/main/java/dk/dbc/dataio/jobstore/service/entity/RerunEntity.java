@@ -49,12 +49,13 @@ public class RerunEntity {
     private Timestamp timeOfCreation;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="jobId", updatable = false)
+    @JoinColumn(name = "jobId", updatable = false)
     private JobEntity job;
 
     private Boolean includeFailedOnly;
 
-    public RerunEntity() {}
+    public RerunEntity() {
+    }
 
     public int getId() {
         return id;

@@ -1,13 +1,13 @@
 package dk.dbc.dataio.gatekeeper.operation;
 
 import dk.dbc.dataio.commons.types.Constants;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.Notification;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.nio.file.Path;
 

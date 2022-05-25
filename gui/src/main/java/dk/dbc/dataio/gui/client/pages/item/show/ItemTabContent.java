@@ -6,7 +6,7 @@ import com.google.gwt.user.client.ui.HTML;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 
-public class ItemTabContent extends HTML{
+public class ItemTabContent extends HTML {
     private Texts texts;
     private JobStoreProxyAsync jobStoreProxy;
     private final static String NBSP = new String(new char[4]).replace("\0", "\u00A0");
@@ -30,6 +30,7 @@ public class ItemTabContent extends HTML{
         public void onFailure(Throwable throwable) {
             setText(texts.error_CouldNotFetchData());
         }
+
         @Override
         public void onSuccess(String data) {
             setHTML(formatXml(data));

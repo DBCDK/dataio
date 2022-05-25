@@ -53,8 +53,8 @@ public class LogStoreJdbcAppender extends DBAppenderBase<ILoggingEvent> {
     public void append(ILoggingEvent event) {
         //long startTime = System.currentTimeMillis();
         try (
-            Connection connection = connectionSource.getConnection();
-            PreparedStatement insertStatement = connection.prepareStatement(getInsertSQL())) {
+                Connection connection = connectionSource.getConnection();
+                PreparedStatement insertStatement = connection.prepareStatement(getInsertSQL())) {
             connection.setAutoCommit(false);
 
             bindEventToPreparedStatement(event, insertStatement);

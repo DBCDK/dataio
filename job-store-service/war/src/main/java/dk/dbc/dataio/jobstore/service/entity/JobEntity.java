@@ -79,7 +79,8 @@ public class JobEntity {
     @Convert(converter = WorkflowNoteConverter.class)
     private WorkflowNote workflowNote;
 
-    public JobEntity() {}
+    public JobEntity() {
+    }
 
     public int getId() {
         return id;
@@ -209,12 +210,14 @@ public class JobEntity {
 
     /**
      * pt. it's only used by the Tickle Repo JobScheduling code for Correct TerminationChunkScheduling
+     *
      * @return DatasetId for the job.
      */
     public long lookupDataSetId() {
         return getSpecification().getSubmitterId();
 
     }
+
     public boolean hasFailedItems() {
         /*
         Due to bytecode manipulation being done internally in eclipselink

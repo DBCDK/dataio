@@ -28,8 +28,10 @@ public abstract class PeriodicJobsPickupFinalizer {
     @PersistenceContext(unitName = "periodic-jobs_PU")
     EntityManager entityManager;
 
-    @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-    @Inject WeekResolverConnector weekResolverConnector;
+    @EJB
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @Inject
+    WeekResolverConnector weekResolverConnector;
 
     JobStoreServiceConnector jobStoreServiceConnector;
 
@@ -89,10 +91,10 @@ public abstract class PeriodicJobsPickupFinalizer {
 
     private String getDefaultRemoteFilename(PeriodicJobsDelivery delivery) {
         return delivery.getConfig().getContent()
-                    .getName()
-                    .toLowerCase()
-                    .replaceAll("[^\\p{ASCII}]", "")
-                    .replaceAll("\\s+", "_") + "." + delivery.getJobId();
+                .getName()
+                .toLowerCase()
+                .replaceAll("[^\\p{ASCII}]", "")
+                .replaceAll("\\s+", "_") + "." + delivery.getJobId();
     }
 
     private JobInfoSnapshot getJobInfoSnapshot(long jobId) throws SinkException {

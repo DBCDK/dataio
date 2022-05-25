@@ -1,14 +1,14 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import dk.dbc.dataio.harvester.types.HarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpDelete;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
-import dk.dbc.dataio.harvester.types.HarvesterConfig;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;

@@ -38,10 +38,14 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
-    @Mock Presenter mockedPresenter;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock static ClickEvent mockedClickEvent;
-    @Mock private ViewGinjector mockedViewGinjector;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock
+    static ClickEvent mockedClickEvent;
+    @Mock
+    private ViewGinjector mockedViewGinjector;
 
 
     // Test Data
@@ -54,7 +58,8 @@ public class ViewTest {
     private View view;
 
     // Mocked Texts
-    @Mock static Texts mockedTexts;
+    @Mock
+    static Texts mockedTexts;
     final static String MOCKED_LABEL_SINKS = "Mocked Text: label_Sinks";
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: button_Edit";
     final static String MOCKED_COLUMNHEADER_TYPE = "Mocked Text: columnHeader_Type";
@@ -70,6 +75,7 @@ public class ViewTest {
         public ViewConcrete() {
             super();
         }
+
         @Override
         public Texts getTexts() {
             return mockedTexts;
@@ -106,7 +112,7 @@ public class ViewTest {
 
         // Verify invocations
         verify(view.sinksTable).addRangeChangeHandler(any(RangeChangeEvent.Handler.class));
-        verify(view.sinksTable).setRowCount(0,true);
+        verify(view.sinksTable).setRowCount(0, true);
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_TYPE));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_DESCRIPTION));

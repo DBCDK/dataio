@@ -6,5 +6,6 @@ import com.google.gwt.inject.client.Ginjector;
 @GinModules(ViewModule.class)
 public interface ViewPeriodicJobsGinjector extends Ginjector {
     View getView();
+
     Texts getTexts();
 }

@@ -13,13 +13,18 @@ import dk.dbc.dataio.gui.client.components.popup.PopupListBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    interface MyUiBinder extends UiBinder<Widget, View> {}
+    interface MyUiBinder extends UiBinder<Widget, View> {
+    }
+
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
     // UI Fields
-    @UiField(provided=true) FlowBindersTable flowBindersTable;
-    @UiField PopupListBox popupList;
-    @UiField FlowBinderFilter flowBinderFilter;
+    @UiField(provided = true)
+    FlowBindersTable flowBindersTable;
+    @UiField
+    PopupListBox popupList;
+    @UiField
+    FlowBinderFilter flowBinderFilter;
 
     /**
      * Default constructor
@@ -30,7 +35,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Constructor
-     * @param header    Breadcrumb header text
+     *
+     * @param header Breadcrumb header text
      */
     public View(String header) {
         super(header);
@@ -45,6 +51,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Ui Handler to catch click events on the create button
+     *
      * @param event Clicked event
      */
     @UiHandler("createButton")

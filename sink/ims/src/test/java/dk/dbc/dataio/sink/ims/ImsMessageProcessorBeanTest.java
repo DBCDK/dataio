@@ -78,6 +78,7 @@ public class ImsMessageProcessorBeanTest {
     }
 
     private final ImsMessageProcessorBean imsMessageProcessorBean = new ImsMessageProcessorBean();
+
     {
         imsMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         imsMessageProcessorBean.imsConfigBean = imsConfigBean;

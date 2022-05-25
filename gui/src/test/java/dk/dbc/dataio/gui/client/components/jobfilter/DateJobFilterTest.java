@@ -16,8 +16,8 @@ import java.util.Date;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -33,9 +33,12 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class DateJobFilterTest {
-    @Mock private Texts mockedTexts;
-    @Mock private Resources mockedResources;
-    @Mock private ChangeHandler mockedChangeHandler;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private Resources mockedResources;
+    @Mock
+    private ChangeHandler mockedChangeHandler;
 
 
     //
@@ -171,7 +174,7 @@ public class DateJobFilterTest {
     @Test
     public void getValue_fromDateNotEmptyAndToDateNotEmpty_fromCriteria() {
         final String FROM_DATE = "2015-10-21 10:00:00";
-        final String TO_DATE =   "2015-10-21 20:00:00";
+        final String TO_DATE = "2015-10-21 20:00:00";
 
         // Test Preparation
         DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
@@ -395,9 +398,9 @@ public class DateJobFilterTest {
      * Private methods
      */
     private String calculateDate(int days) {
-        final Integer ONE_DAY_IN_MILLISECONDS = 24*60*60*1000;
+        final Integer ONE_DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
         final String DEFAULT_EMPTY_TIME = "00:00:00";
-        String date = Format.formatLongDate(new Date(System.currentTimeMillis() - days*ONE_DAY_IN_MILLISECONDS));
+        String date = Format.formatLongDate(new Date(System.currentTimeMillis() - days * ONE_DAY_IN_MILLISECONDS));
         return date.substring(0, date.length() - DEFAULT_EMPTY_TIME.length()) + DEFAULT_EMPTY_TIME;
     }
 

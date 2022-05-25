@@ -20,7 +20,8 @@ public class DMatHarvesterConfig
         super(id, version, content);
     }
 
-    public DMatHarvesterConfig() { }
+    public DMatHarvesterConfig() {
+    }
 
     @Override
     public String getLogId() {
@@ -29,7 +30,8 @@ public class DMatHarvesterConfig
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Content implements Serializable {
-        public Content() {}
+        public Content() {
+        }
 
         private String name;
 
@@ -39,6 +41,7 @@ public class DMatHarvesterConfig
          * Harvest schedule as standard UNIX crontab expression
          * with five fields minute, hour, day of month, month, and
          * day of week
+         *
          * @see <a href="https://github.com/DBCDK/run-schedule">run-schedule</a>
          **/
         private String schedule;
@@ -95,7 +98,7 @@ public class DMatHarvesterConfig
             return this;
         }
 
-       public String getDestination() {
+        public String getDestination() {
             return destination;
         }
 

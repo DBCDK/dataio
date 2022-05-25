@@ -17,9 +17,12 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
-    @Mock ViewGinjector viewInjector;
-    @Mock Texts texts;
-    @Mock View view;
+    @Mock
+    ViewGinjector viewInjector;
+    @Mock
+    Texts texts;
+    @Mock
+    View view;
 
     private PresenterImpl presenter;
 
@@ -37,11 +40,14 @@ public class PresenterImplTest {
             config = new InfomediaHarvesterConfig(1, 1, new InfomediaHarvesterConfig.Content());
         }
 
-        @Override void saveModel() {
+        @Override
+        void saveModel() {
             saved = true;
         }
 
-        @Override public void deleteButtonPressed() {}
+        @Override
+        public void deleteButtonPressed() {
+        }
 
         public boolean isSaved() {
             return saved;
@@ -93,7 +99,7 @@ public class PresenterImplTest {
     public void nextPublicationDateChanged() {
         presenter.nextPublicationDateChanged("2019-06-10 00:00:00");
         assertThat(presenter.config.getContent().getNextPublicationDate(),
-                is(new Date(1560117600000L + 2*3600*1000)));
+                is(new Date(1560117600000L + 2 * 3600 * 1000)));
     }
 
     @Test

@@ -26,8 +26,8 @@ import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -40,13 +40,20 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
-    @Mock private Presenter mockedPresenter;
-    @Mock private dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock private ViewGinjector mockedViewInjector;
-    @Mock private CommonGinjector mockedCommonInjector;
-    @Mock private Texts mockedTexts;
-    @Mock private PopupListBox mockedPopupList;
-    @Mock private ListBoxHasValue mockedListBox;
+    @Mock
+    private Presenter mockedPresenter;
+    @Mock
+    private dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock
+    private ViewGinjector mockedViewInjector;
+    @Mock
+    private CommonGinjector mockedCommonInjector;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private PopupListBox mockedPopupList;
+    @Mock
+    private ListBoxHasValue mockedListBox;
 
 
     // Test Data
@@ -72,6 +79,7 @@ public class ViewTest {
         public ViewConcrete() {
             super();
         }
+
         @Override
         public Texts getTexts() {
             return mockedTexts;
@@ -152,7 +160,7 @@ public class ViewTest {
                 new FlowBinderModelBuilder().setId(111).setName("one").build(),
                 new FlowBinderModelBuilder().setId(222).setName("two").build(),
                 new FlowBinderModelBuilder().setId(333).setName("three").build()
-                ));
+        ));
 
         // Verify Test
         verify(view.popupList).clear();

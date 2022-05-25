@@ -24,10 +24,10 @@ public class MarcXchangeRecordUnmarshallerTest {
 
     @Test
     public void toMarcXchangeRecord_validCollection_returns() throws JAXBException {
-            MarcXchangeRecord marcXchangeRecord = marcXchangeRecordUnmarshaller.toMarcXchangeRecord(
-                    new ChunkItemBuilder().setData(collection).setId(3).build());
+        MarcXchangeRecord marcXchangeRecord = marcXchangeRecordUnmarshaller.toMarcXchangeRecord(
+                new ChunkItemBuilder().setData(collection).setId(3).build());
 
-            assertThat(marcXchangeRecord.getMarcXchangeRecordId(), is("3"));
+        assertThat(marcXchangeRecord.getMarcXchangeRecordId(), is("3"));
     }
 
     @Test

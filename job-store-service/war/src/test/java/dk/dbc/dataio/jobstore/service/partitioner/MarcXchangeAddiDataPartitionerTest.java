@@ -31,11 +31,19 @@ public class MarcXchangeAddiDataPartitionerTest extends AbstractPartitionerTestB
     @Test
     public void newInstance_inputStreamArgIsInvalid_throws() {
         assertThat(() -> MarcXchangeAddiDataPartitioner.newInstance(
-                new InputStream() {
-                    @Override public boolean markSupported() {return false;}
-                    @Override public int read() throws IOException {return 0;}},
-                UTF_8_ENCODING),
-                    isThrowing(IllegalArgumentException.class));
+                        new InputStream() {
+                            @Override
+                            public boolean markSupported() {
+                                return false;
+                            }
+
+                            @Override
+                            public int read() throws IOException {
+                                return 0;
+                            }
+                        },
+                        UTF_8_ENCODING),
+                isThrowing(IllegalArgumentException.class));
     }
 
     @Test(expected = NullPointerException.class)
@@ -81,8 +89,8 @@ public class MarcXchangeAddiDataPartitionerTest extends AbstractPartitionerTestB
                 is(Collections.singletonList(ChunkItem.Type.BYTES)));
         assertThat("chunk item data", StringUtil.asString(chunkItem.getData()),
                 is(StringUtil.asString(addiRecord.getBytes())));
-         assertThat("chunk item has diagnostic", !chunkItem.getDiagnostics().isEmpty(),
-                 is(true));
+        assertThat("chunk item has diagnostic", !chunkItem.getDiagnostics().isEmpty(),
+                is(true));
         assertThat("chunk item has ERROR level diagnostic", chunkItem.getDiagnostics().get(0).getLevel(),
                 is(Diagnostic.Level.ERROR));
     }

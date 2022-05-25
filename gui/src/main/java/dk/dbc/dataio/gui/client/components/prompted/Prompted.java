@@ -25,6 +25,7 @@ public class Prompted<T, W extends UIObject & IsWidget & HasValue<T> & HasEnable
 
     /**
      * Constructor
+     *
      * @param widget The contained widget
      */
     public Prompted(W widget) {
@@ -39,6 +40,7 @@ public class Prompted<T, W extends UIObject & IsWidget & HasValue<T> & HasEnable
 
     /**
      * Constructor
+     *
      * @param widget The contained widget
      * @param prompt The prompt string
      */
@@ -49,6 +51,7 @@ public class Prompted<T, W extends UIObject & IsWidget & HasValue<T> & HasEnable
 
     /**
      * Sets the Gui Id to be used to identify this component in the DOM
+     *
      * @param guiId The Gui Id to identify this component in the DOM
      */
     public void setGuiId(String guiId) {
@@ -57,6 +60,7 @@ public class Prompted<T, W extends UIObject & IsWidget & HasValue<T> & HasEnable
 
     /**
      * Gets the Gui Id to be used to identify this component in the DOM
+     *
      * @return The Gui Id to identify this component in the DOM
      */
     public String getGuiId() {
@@ -65,6 +69,7 @@ public class Prompted<T, W extends UIObject & IsWidget & HasValue<T> & HasEnable
 
     /**
      * Sets the Prompt text
+     *
      * @param prompt The Prompt text
      */
     public void setPrompt(String prompt) {
@@ -73,6 +78,7 @@ public class Prompted<T, W extends UIObject & IsWidget & HasValue<T> & HasEnable
 
     /**
      * Gets the Prompt text
+     *
      * @return The Prompt text
      */
     public String getPrompt() {
@@ -85,6 +91,7 @@ public class Prompted<T, W extends UIObject & IsWidget & HasValue<T> & HasEnable
      *     <li>non-stacked (default): The prompt text is displayed to the left of the entry field</li>
      *     <li>stacked: The prompt text is display vertically on top of the entry field</li>
      * </ul>
+     *
      * @param promptStyle stacked or non-stacked
      */
     public void setPromptStyle(String promptStyle) {
@@ -99,6 +106,7 @@ public class Prompted<T, W extends UIObject & IsWidget & HasValue<T> & HasEnable
 
     /**
      * Sets the Max Length of the text box in number of characters that can be entered
+     *
      * @param maxLength The Max Length of the text box
      */
     public void setMaxLength(String maxLength) {
@@ -107,6 +115,7 @@ public class Prompted<T, W extends UIObject & IsWidget & HasValue<T> & HasEnable
 
     /**
      * Sets the Tool Tip to be used. Tool Tips will be shown, whenever the user hovers over the component
+     *
      * @param toolTip The Tool Tip to be shown to the user
      */
     public void setToolTip(String toolTip) {
@@ -114,7 +123,6 @@ public class Prompted<T, W extends UIObject & IsWidget & HasValue<T> & HasEnable
             new Tooltip((FocusWidget) widget, toolTip);
         }
     }
-
 
 
     // Implementation of methods from the interface Focusable

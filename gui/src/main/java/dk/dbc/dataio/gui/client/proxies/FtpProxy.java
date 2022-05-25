@@ -13,6 +13,7 @@ public interface FtpProxy extends RemoteService {
 
     class Factory {
         private static FtpProxyAsync asyncInstance = null;
+
         public static FtpProxyAsync getAsyncInstance() {
             if (asyncInstance == null) {
                 asyncInstance = GWT.create(FtpProxy.class);

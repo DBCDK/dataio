@@ -17,10 +17,10 @@ import java.util.Optional;
 /**
  * The responsibility of this class is to ensure that volume records are
  * returned with their parents and possibly grandparents.
- *
+ * <p>
  * This class assumes it is called in a transactional context with regards to
  * the given entity manager.
- *
+ * <p>
  * This class is not thread safe.
  */
 public class VolumeIncludeParents extends JobItemReorderer {
@@ -57,9 +57,12 @@ public class VolumeIncludeParents extends JobItemReorderer {
            section and head records are removed from the
            scratchpad. */
         switch (recordInfo.getType()) {
-            case VOLUME:  return SortOrder.VOLUME_DELETE;
-            case SECTION: return SortOrder.SECTION_DELETE;
-            default:      return SortOrder.HEAD_DELETE;
+            case VOLUME:
+                return SortOrder.VOLUME_DELETE;
+            case SECTION:
+                return SortOrder.SECTION_DELETE;
+            default:
+                return SortOrder.HEAD_DELETE;
         }
     }
 
@@ -114,8 +117,8 @@ public class VolumeIncludeParents extends JobItemReorderer {
             final MarcXchangeV1Writer writer = new MarcXchangeV1Writer();
             final ChunkItem volume = collection.get(0);
             return ChunkItem.successfulChunkItem()
-                        .withType(volume.getType().toArray(new ChunkItem.Type[0]))
-                        .withData(writer.writeCollection(marcRecords, volume.getEncoding()));
+                    .withType(volume.getType().toArray(new ChunkItem.Type[0]))
+                    .withData(writer.writeCollection(marcRecords, volume.getEncoding()));
         } catch (MarcReaderException e) {
             throw new RuntimeException("An error occurred while reducing MARC records", e);
         }

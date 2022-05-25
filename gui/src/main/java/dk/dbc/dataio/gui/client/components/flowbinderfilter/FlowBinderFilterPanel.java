@@ -41,10 +41,11 @@ import java.util.Iterator;
  *    <g:Label>Panel content...</g:Label>
  * </dio:FlowBinderFilterPanel>
  * }</pre>
- *
  */
 public class FlowBinderFilterPanel extends Composite implements HasWidgets, HasFlowBinderFilterPanelHandlers {
-    interface TitledFlowBinderFilterPanelUiBinder extends UiBinder<HTMLPanel, FlowBinderFilterPanel> {}
+    interface TitledFlowBinderFilterPanelUiBinder extends UiBinder<HTMLPanel, FlowBinderFilterPanel> {
+    }
+
     protected Resources resources;
 
     private static TitledFlowBinderFilterPanelUiBinder ourUiBinder =
@@ -52,16 +53,20 @@ public class FlowBinderFilterPanel extends Composite implements HasWidgets, HasF
 
     FlowBinderFilterPanelHandler flowBinderFilterPanelHandler = null;  // This is package private because of test - should be private
 
-    @UiField PushButton invertButton;
-    @UiField PushButton deleteButton;
-    @UiField SimplePanel content;
+    @UiField
+    PushButton invertButton;
+    @UiField
+    PushButton deleteButton;
+    @UiField
+    SimplePanel content;
 
     private Boolean invertFilter = true;
 
     /**
      * Constructor taking the title of the panel and the deleteButton image as parameters (mandatory in UI Binder)
-     * @param title The title of the panel
-     * @param resources the resource for the panel
+     *
+     * @param title        The title of the panel
+     * @param resources    the resource for the panel
      * @param invertFilter True if filter is inverted, false if not
      */
     @UiConstructor
@@ -93,6 +98,7 @@ public class FlowBinderFilterPanel extends Composite implements HasWidgets, HasF
 
     /**
      * Test whether this filter inverted
+     *
      * @return True if the filter is inverted, false if not
      */
     public boolean isInvertFilter() {
@@ -101,6 +107,7 @@ public class FlowBinderFilterPanel extends Composite implements HasWidgets, HasF
 
     /**
      * Set the filter inverted
+     *
      * @param invert Sets whether the job filter is inverted
      */
     public void setInvertFilter(boolean invert) {
@@ -110,6 +117,7 @@ public class FlowBinderFilterPanel extends Composite implements HasWidgets, HasF
 
     /**
      * Adds a widget to the panel
+     *
      * @param widget The widget to add to the panel
      */
     @Override
@@ -127,6 +135,7 @@ public class FlowBinderFilterPanel extends Composite implements HasWidgets, HasF
 
     /**
      * Gets an iterator for the contained widgets.
+     *
      * @return The iterator for the contained widgets.
      */
     @Override
@@ -136,6 +145,7 @@ public class FlowBinderFilterPanel extends Composite implements HasWidgets, HasF
 
     /**
      * Removes a widget from this panel
+     *
      * @param widget The widget to be removed
      * @return True if the widget was present
      */
@@ -146,6 +156,7 @@ public class FlowBinderFilterPanel extends Composite implements HasWidgets, HasF
 
     /**
      * Sets the delete deleteButton image
+     *
      * @param resources The resources to be used for fetching the deleteButton images
      */
     private void setDeleteButtonImage(Resources resources) {
@@ -157,6 +168,7 @@ public class FlowBinderFilterPanel extends Composite implements HasWidgets, HasF
      * Sets the invert button image
      * Please note, that an invert button shall be shown with a Plus sign, since we want to show the action: Plus means make not inverted
      * Similarly, a Minus sign means not-inverted - in the meaning, that a click on the button makes it inverted.
+     *
      * @param inverted Determines whether to show a minus button (true) or a plus button (false)
      */
     private void setInvertButtonImage(boolean inverted) {
@@ -171,6 +183,7 @@ public class FlowBinderFilterPanel extends Composite implements HasWidgets, HasF
 
     /**
      * Adds a FlowBinderFilterPanel handler to be fired upon click on one of the buttons
+     *
      * @param handler filter Panel handler
      * @return A Handler Registration object for destroying the handler when no longer in use.
      */
@@ -182,6 +195,7 @@ public class FlowBinderFilterPanel extends Composite implements HasWidgets, HasF
 
     /**
      * Triggers a ClickEvent
+     *
      * @param button The button, that is being triggered
      */
     protected void triggerFilterPanelEvent(FlowBinderFilterPanelEvent.FilterPanelButton button) {

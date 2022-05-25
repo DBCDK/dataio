@@ -31,8 +31,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * Default constructor
      *
-     * @param placeController   PlaceController for navigation
-     * @param header            Breadcrumb header text
+     * @param placeController PlaceController for navigation
+     * @param header          Breadcrumb header text
      */
     public PresenterImpl(PlaceController placeController, String header) {
         this.placeController = placeController;
@@ -59,6 +59,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method opens a new view, for editing the flow component in question
+     *
      * @param model The model for the flow component to edit
      */
     @Override

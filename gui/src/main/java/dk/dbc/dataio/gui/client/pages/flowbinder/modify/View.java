@@ -26,7 +26,9 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 import java.util.Map;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    interface FlowbinderBinder extends UiBinder<HTMLPanel, View> {}
+    interface FlowbinderBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static FlowbinderBinder uiBinder = GWT.create(FlowbinderBinder.class);
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
@@ -35,27 +37,45 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         add(uiBinder.createAndBindUi(this));
     }
 
-    @UiFactory PopupBox<Label> getPopupBox() {
+    @UiFactory
+    PopupBox<Label> getPopupBox() {
         return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
-    @UiField PromptedTextBox name;
-    @UiField PromptedTextArea description;
-    @UiField PromptedTextBox frame;
-    @UiField PromptedTextBox format;
-    @UiField PromptedTextBox charset;
-    @UiField PromptedTextBox destination;
-    @UiField PromptedList priority;
-    @UiField PromptedList recordSplitter;
-    @UiField PromptedMultiList submitters;
-    @UiField PromptedList flow;
-    @UiField PromptedList sink;
-    @UiField HTMLPanel updateSinkSection;
-    @UiField PromptedList queueProvider;
-    @UiField Button deleteButton;
-    @UiField Label status;
-    @UiField PopupListBox popupListBox;
-    @UiField PopupBox<Label> confirmation;
+    @UiField
+    PromptedTextBox name;
+    @UiField
+    PromptedTextArea description;
+    @UiField
+    PromptedTextBox frame;
+    @UiField
+    PromptedTextBox format;
+    @UiField
+    PromptedTextBox charset;
+    @UiField
+    PromptedTextBox destination;
+    @UiField
+    PromptedList priority;
+    @UiField
+    PromptedList recordSplitter;
+    @UiField
+    PromptedMultiList submitters;
+    @UiField
+    PromptedList flow;
+    @UiField
+    PromptedList sink;
+    @UiField
+    HTMLPanel updateSinkSection;
+    @UiField
+    PromptedList queueProvider;
+    @UiField
+    Button deleteButton;
+    @UiField
+    Label status;
+    @UiField
+    PopupListBox popupListBox;
+    @UiField
+    PopupBox<Label> confirmation;
 
     @UiHandler("name")
     void nameChanged(BlurEvent event) {

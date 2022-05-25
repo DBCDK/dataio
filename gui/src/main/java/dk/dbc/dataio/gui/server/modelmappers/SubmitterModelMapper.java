@@ -13,14 +13,16 @@ public final class SubmitterModelMapper {
     /**
      * Private Constructor prevents instantiation of this static class
      */
-    private SubmitterModelMapper(){}
+    private SubmitterModelMapper() {
+    }
 
     /**
      * Maps a Submitter to a Model
+     *
      * @param submitter, the submitter to map to a model
      * @return model
      */
-    public static SubmitterModel toModel(Submitter submitter){
+    public static SubmitterModel toModel(Submitter submitter) {
         return new SubmitterModel(
                 submitter.getId(),
                 submitter.getVersion(),
@@ -33,18 +35,19 @@ public final class SubmitterModelMapper {
 
     /**
      * Maps a model to submitter content
+     *
      * @param model, the model to map to submitter content
      * @return submitterContent
      * @throws IllegalArgumentException if any model values were illegal
      */
     public static SubmitterContent toSubmitterContent(SubmitterModel model) throws IllegalArgumentException {
 
-        if(model.isInputFieldsEmpty()) {
+        if (model.isInputFieldsEmpty()) {
             throw new IllegalArgumentException("model.number, model.name, model.description cannot be empty");
         }
 
         List<String> matches = model.getDataioPatternMatches();
-        if(!matches.isEmpty()) {
+        if (!matches.isEmpty()) {
             throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
         }
 
@@ -70,16 +73,16 @@ public final class SubmitterModelMapper {
         return submitterModels;
     }
 
-     /*
+    /*
      * private helper methods
      */
 
     private static String buildPatternMatchesErrorMsg(List<String> matches) {
         StringBuilder stringBuilder = new StringBuilder("Illegal characters found in submitter name:");
-        for(String match : matches) {
+        for (String match : matches) {
             stringBuilder.append(" [").append(match).append("],");
         }
-        return stringBuilder.deleteCharAt(stringBuilder.length() -1).toString();
+        return stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
     }
 
 }

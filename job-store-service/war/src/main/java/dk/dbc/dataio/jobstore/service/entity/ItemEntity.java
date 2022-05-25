@@ -209,7 +209,8 @@ public class ItemEntity {
         private int jobId;
 
         /* Private constructor in order to keep class static */
-        private Key(){}
+        private Key() {
+        }
 
         public Key(int jobId, int chunkId, short id) {
             this.id = id;
@@ -280,10 +281,14 @@ public class ItemEntity {
 
     public ChunkItem getChunkItemForPhase(State.Phase phase) {
         switch (phase) {
-            case PARTITIONING: return getPartitioningOutcome();
-            case PROCESSING: return getProcessingOutcome();
-            case DELIVERING: return getDeliveringOutcome();
-            default: throw new IllegalStateException(String.format("Unknown phase: '%s'", phase));
+            case PARTITIONING:
+                return getPartitioningOutcome();
+            case PROCESSING:
+                return getProcessingOutcome();
+            case DELIVERING:
+                return getDeliveringOutcome();
+            default:
+                throw new IllegalStateException(String.format("Unknown phase: '%s'", phase));
         }
     }
 
@@ -306,7 +311,7 @@ public class ItemEntity {
         final StateElement stateElement = state.getPhase(phase);
         if (stateElement.getSucceeded() == 1) {
             return ChunkItem.Status.SUCCESS;
-        } else if(stateElement.getFailed() == 1) {
+        } else if (stateElement.getFailed() == 1) {
             return ChunkItem.Status.FAILURE;
         } else {
             return ChunkItem.Status.IGNORE;
@@ -315,6 +320,7 @@ public class ItemEntity {
 
     /**
      * Converts a java.sql.Timestamp to a java.util.Date
+     *
      * @param timestamp to convert
      * @return new Date representation of the timestamp, null if the timestamp is null
      */

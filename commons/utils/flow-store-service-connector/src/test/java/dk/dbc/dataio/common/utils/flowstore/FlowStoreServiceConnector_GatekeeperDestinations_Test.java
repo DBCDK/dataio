@@ -2,13 +2,13 @@ package dk.dbc.dataio.common.utils.flowstore;
 
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.test.model.GatekeeperDestinationBuilder;
+import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpDelete;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.test.model.GatekeeperDestinationBuilder;
-import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -36,7 +36,7 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
     public void createGatekeeperDestination_gatekeeperDestinationCreated_returnsGatekeeperDestination() throws FlowStoreServiceConnectorException {
         final GatekeeperDestination expectedGatekeeperDestination = new GatekeeperDestinationBuilder().build();
         final GatekeeperDestination gatekeeperDestination = createGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(
-                        Response.Status.CREATED.getStatusCode(), expectedGatekeeperDestination);
+                Response.Status.CREATED.getStatusCode(), expectedGatekeeperDestination);
         assertThat(gatekeeperDestination, is(expectedGatekeeperDestination));
     }
 
@@ -56,9 +56,9 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
         final GatekeeperDestination gatekeeperDestination = new GatekeeperDestinationBuilder().build();
 
         final HttpPost httpPost = new HttpPost(failSafeHttpClient)
-                    .withBaseUrl(FLOW_STORE_URL)
-                    .withPathElements(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS)
-                    .withJsonData(gatekeeperDestination);
+                .withBaseUrl(FLOW_STORE_URL)
+                .withPathElements(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS)
+                .withJsonData(gatekeeperDestination);
 
         when(failSafeHttpClient.execute(httpPost))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
@@ -106,8 +106,8 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
 
     private List<GatekeeperDestination> findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final HttpGet httpGet = new HttpGet(failSafeHttpClient)
-                    .withBaseUrl(FLOW_STORE_URL)
-                    .withPathElements(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS);
+                .withBaseUrl(FLOW_STORE_URL)
+                .withPathElements(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS);
 
         when(failSafeHttpClient.execute(httpGet))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
@@ -145,7 +145,7 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
     // **************************************************** update gatekeeper destination tests *****************************************************************
 
     @Test
-    public void updateGatekeeperDestination_gatekeeperDestinationIsUpdated_returnsGatekeeperDestination() throws FlowStoreServiceConnectorException{
+    public void updateGatekeeperDestination_gatekeeperDestinationIsUpdated_returnsGatekeeperDestination() throws FlowStoreServiceConnectorException {
         final GatekeeperDestination modifiedGatekeeperDestination = new GatekeeperDestinationBuilder().setPackaging("lin").build();
 
         // Subject under test

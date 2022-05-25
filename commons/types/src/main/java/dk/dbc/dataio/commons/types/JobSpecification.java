@@ -19,7 +19,7 @@ public class JobSpecification implements Serializable {
     public static final String EMPTY_RESULT_MAIL_INITIALS = "";
     public static int JOB_EXPIRATION_AGE_IN_DAYS = 365;
 
-    public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST, INFOMEDIA, PERIODIC, COMPACTED }
+    public enum Type {TRANSIENT, PERSISTENT, TEST, ACCTEST, INFOMEDIA, PERIODIC, COMPACTED}
 
     private String packaging;
     private String format;
@@ -35,21 +35,22 @@ public class JobSpecification implements Serializable {
     private Ancestry ancestry;
 
     @JsonCreator
-    public JobSpecification() {}
+    public JobSpecification() {
+    }
 
     public static JobSpecification from(JobSpecification jobSpecification) {
         JobSpecification newJobSpecification = new JobSpecification();
-        newJobSpecification.packaging                              = jobSpecification.packaging;
-        newJobSpecification.format                                 = jobSpecification.format;
-        newJobSpecification.charset                                = jobSpecification.charset;
-        newJobSpecification.destination                            = jobSpecification.destination;
-        newJobSpecification.submitterId                            = jobSpecification.submitterId;
-        newJobSpecification.mailForNotificationAboutVerification   = jobSpecification.mailForNotificationAboutVerification;
-        newJobSpecification.mailForNotificationAboutProcessing     = jobSpecification.mailForNotificationAboutProcessing;
-        newJobSpecification.resultmailInitials                     = jobSpecification.resultmailInitials;
-        newJobSpecification.dataFile                               = jobSpecification.dataFile;
-        newJobSpecification.type                                   = jobSpecification.type;
-        newJobSpecification.ancestry                               = jobSpecification.ancestry;
+        newJobSpecification.packaging = jobSpecification.packaging;
+        newJobSpecification.format = jobSpecification.format;
+        newJobSpecification.charset = jobSpecification.charset;
+        newJobSpecification.destination = jobSpecification.destination;
+        newJobSpecification.submitterId = jobSpecification.submitterId;
+        newJobSpecification.mailForNotificationAboutVerification = jobSpecification.mailForNotificationAboutVerification;
+        newJobSpecification.mailForNotificationAboutProcessing = jobSpecification.mailForNotificationAboutProcessing;
+        newJobSpecification.resultmailInitials = jobSpecification.resultmailInitials;
+        newJobSpecification.dataFile = jobSpecification.dataFile;
+        newJobSpecification.type = jobSpecification.type;
+        newJobSpecification.ancestry = jobSpecification.ancestry;
         return newJobSpecification;
     }
 
@@ -104,7 +105,7 @@ public class JobSpecification implements Serializable {
     }
 
     public JobSpecification withSubmitterId(long submitterId) {
-        if(submitterId < Constants.PERSISTENCE_ID_LOWER_BOUND) {
+        if (submitterId < Constants.PERSISTENCE_ID_LOWER_BOUND) {
             final String message = "Value of parameter submitterId must be larger than or equal to " + Constants.PERSISTENCE_ID_LOWER_BOUND;
             throw new IllegalArgumentException(message);
         } else {
@@ -230,7 +231,8 @@ public class JobSpecification implements Serializable {
         private byte[] details;
         private int previousJobId;
 
-        public Ancestry() {}
+        public Ancestry() {
+        }
 
         public String getHarvesterToken() {
             return harvesterToken;

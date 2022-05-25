@@ -63,7 +63,7 @@ public class FlowStoreReferencesTest {
     @Test
     public void setReference_sinkReference_withSinkReferenceSet() {
         FlowStoreReference flowStoreReference = new FlowStoreReference(1, 2, "SinkName");
-        FlowStoreReferences flowStoreReferences = new FlowStoreReferences().withReference(FlowStoreReferences.Elements.SINK ,flowStoreReference );
+        FlowStoreReferences flowStoreReferences = new FlowStoreReferences().withReference(FlowStoreReferences.Elements.SINK, flowStoreReference);
         FlowStoreReference flowBinderReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK);
         assertThat(flowBinderReference, is(notNullValue()));
         assertThat(flowBinderReference, is(flowStoreReference));

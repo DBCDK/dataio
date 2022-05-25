@@ -17,9 +17,12 @@ public class ConversionFactory {
         }
         final String trimmedPackaging = packaging.get().trim().toLowerCase();
         switch (trimmedPackaging) {
-            case "iso": return newConversionISO2709(param);
-            case "":    return new ConversionNOOP();
-            default:    throw new ConversionException("Unknown conversion: " + trimmedPackaging);
+            case "iso":
+                return newConversionISO2709(param);
+            case "":
+                return new ConversionNOOP();
+            default:
+                throw new ConversionException("Unknown conversion: " + trimmedPackaging);
         }
     }
 

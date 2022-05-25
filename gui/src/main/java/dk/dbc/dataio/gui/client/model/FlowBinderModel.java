@@ -23,24 +23,24 @@ public class FlowBinderModel extends GenericBackendModel {
 
 
     public FlowBinderModel() {
-        this(0L, 0L, "", "", "", "", "", "", Priority.NORMAL.getValue(),  "", new FlowModel(), new ArrayList<>(), new SinkModel(), "");
+        this(0L, 0L, "", "", "", "", "", "", Priority.NORMAL.getValue(), "", new FlowModel(), new ArrayList<>(), new SinkModel(), "");
     }
 
     /**
-     * @param id The ID of the Flow Binder
-     * @param version The version of the Flow Binder
-     * @param name The name of the Flow Binder
-     * @param description The description for the Flow Binder
-     * @param packaging The packaging of the Flow Binder
-     * @param format The format of the Flow Binder
-     * @param charset The charset for the Flow Binder
-     * @param destination The destination of the Flow Binder
-     * @param priority The priority of the Flow Binder
-     * @param recordSplitter The record splitter of the Flow Binder
-     * @param flowModel The flow model of the Flow Binder
+     * @param id              The ID of the Flow Binder
+     * @param version         The version of the Flow Binder
+     * @param name            The name of the Flow Binder
+     * @param description     The description for the Flow Binder
+     * @param packaging       The packaging of the Flow Binder
+     * @param format          The format of the Flow Binder
+     * @param charset         The charset for the Flow Binder
+     * @param destination     The destination of the Flow Binder
+     * @param priority        The priority of the Flow Binder
+     * @param recordSplitter  The record splitter of the Flow Binder
+     * @param flowModel       The flow model of the Flow Binder
      * @param submitterModels The submitter models for the Flow Binder
-     * @param sinkModel The sink model of the Flow Binder
-     * @param queueProvider The Queue Provider for the Flow Binder
+     * @param sinkModel       The sink model of the Flow Binder
+     * @param queueProvider   The Queue Provider for the Flow Binder
      */
     public FlowBinderModel(long id, long version, String name, String description, String packaging, String format, String charset, String destination, Integer priority, String recordSplitter, FlowModel flowModel, List<SubmitterModel> submitterModels, SinkModel sinkModel, String queueProvider) {
         super(id, version);
@@ -62,7 +62,7 @@ public class FlowBinderModel extends GenericBackendModel {
      * @param model The model to clone
      */
     public FlowBinderModel(FlowBinderModel model) {
-        this(   model.getId(),
+        this(model.getId(),
                 model.getVersion(),
                 model.getName(),
                 model.getDescription(),
@@ -296,6 +296,7 @@ public class FlowBinderModel extends GenericBackendModel {
 
     /**
      * Checks for empty String values
+     *
      * @return true if no empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
@@ -346,6 +347,7 @@ public class FlowBinderModel extends GenericBackendModel {
     /**
      * Checks if the flow binder name contains illegal characters.
      * A-Å, 0-9, - (minus), + (plus), _ (underscore) and space is valid
+     *
      * @return a list containing illegal characters found. Empty list if none found.
      */
     public List<String> getDataioPatternMatches() {

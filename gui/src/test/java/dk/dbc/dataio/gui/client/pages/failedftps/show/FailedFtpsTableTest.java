@@ -33,13 +33,20 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class FailedFtpsTableTest {
 
-    @Mock ListDataProvider<Notification> mockedDataProvider;
-    @Mock List<Notification> mockedNotificationList;
-    @Mock Texts mockedTexts;
-    @Mock View mockedView;
-    @Mock Presenter mockedPresenter;
-    @Mock Column mockedColumn;
-    @Mock SingleSelectionModel mockedSelectionModel;
+    @Mock
+    ListDataProvider<Notification> mockedDataProvider;
+    @Mock
+    List<Notification> mockedNotificationList;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    View mockedView;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    Column mockedColumn;
+    @Mock
+    SingleSelectionModel mockedSelectionModel;
 
 
     @Before
@@ -92,9 +99,9 @@ public class FailedFtpsTableTest {
                 new InvalidTransfileNotificationContext("TransFileNameX", "TransFileContentX", "CauseX");
         Notification testNotification =
                 new Notification()
-                .withTimeOfCreation(new Date(1234567890123L))
-                .withStatus(Notification.Status.COMPLETED)
-                .withContext(testNotificationContext);
+                        .withTimeOfCreation(new Date(1234567890123L))
+                        .withStatus(Notification.Status.COMPLETED)
+                        .withContext(testNotificationContext);
 
         // Subject Under Test
         assertThat(failedFtpsTable.getColumnCount(), is(3));

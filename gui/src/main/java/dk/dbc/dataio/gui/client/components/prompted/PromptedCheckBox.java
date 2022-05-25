@@ -10,16 +10,17 @@ import com.google.gwt.user.client.ui.HasValue;
 
 public class PromptedCheckBox extends PromptedData implements HasValue<Boolean> {
 
-    @UiField final CheckBox checkBox = new CheckBox();
+    @UiField
+    final CheckBox checkBox = new CheckBox();
 
 
     /**
      * UiBinder Constructor
-     * @param guiId The GUI Id to be set in the DOM
+     *
+     * @param guiId  The GUI Id to be set in the DOM
      * @param prompt The prompt text
      */
-    public @UiConstructor
-    PromptedCheckBox(String guiId, String prompt) {
+    public @UiConstructor PromptedCheckBox(String guiId, String prompt) {
         super(guiId, prompt);
         checkBox.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
         add(checkBox);
@@ -27,6 +28,7 @@ public class PromptedCheckBox extends PromptedData implements HasValue<Boolean> 
 
     /**
      * Gets the current boolean value for the CheckBox
+     *
      * @return The current value: True if selected, False if not
      */
     @Override
@@ -36,6 +38,7 @@ public class PromptedCheckBox extends PromptedData implements HasValue<Boolean> 
 
     /**
      * Sets the value of the CheckBox
+     *
      * @param value The value to set for the CheckBox: True if selected, False if not
      */
     @Override
@@ -45,7 +48,8 @@ public class PromptedCheckBox extends PromptedData implements HasValue<Boolean> 
 
     /**
      * Sets the value of the CheckBox, and fires an event, if the fireEvents parameter is set
-     * @param value The value to set for the CheckBox: True if selected, False if not
+     *
+     * @param value      The value to set for the CheckBox: True if selected, False if not
      * @param fireEvents Fires an event, if set
      */
     @Override
@@ -66,6 +70,7 @@ public class PromptedCheckBox extends PromptedData implements HasValue<Boolean> 
 
     /**
      * Enables or disables the CheckBox
+     *
      * @param enabled If true, the CheckBox is enabled, if false, the CheckBox is disabled
      */
     public void setEnabled(boolean enabled) {
@@ -76,7 +81,8 @@ public class PromptedCheckBox extends PromptedData implements HasValue<Boolean> 
      * Fires a change event
      */
     public void fireChangeEvent() {
-        class TextBoxChangedEvent extends ChangeEvent {}
+        class TextBoxChangedEvent extends ChangeEvent {
+        }
         checkBox.fireEvent(new TextBoxChangedEvent());
     }
 

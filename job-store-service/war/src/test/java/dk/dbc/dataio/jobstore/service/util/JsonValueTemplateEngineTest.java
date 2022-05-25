@@ -146,7 +146,7 @@ public class JsonValueTemplateEngineTest {
     @Test
     public void apply_templateWithPropertySelectingValueWithMissingFieldValueConstant() {
         final String path = "field";
-        final String json = "{\"field\": \"" + Constants.MISSING_FIELD_VALUE +"\"}";
+        final String json = "{\"field\": \"" + Constants.MISSING_FIELD_VALUE + "\"}";
         final String output = templateEngine.apply(String.format(template, path), json);
         assertThat(output, is(expectedEmptyScalarOutput));
     }
@@ -173,7 +173,7 @@ public class JsonValueTemplateEngineTest {
         final String dateString = "Fri Sep 18 07:42:07 CEST 2015";
 
         final String template = "dateMacro=__DATE__{field}";
-        final String json = "{\"field\": " + dateTime +"}";
+        final String json = "{\"field\": " + dateTime + "}";
         final String output = templateEngine.apply(template, json);
         assertThat(output, is("dateMacro=" + dateString));
     }

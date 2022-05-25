@@ -16,7 +16,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * Constructor
      *
-     * @param header    Breadcrumb header text
+     * @param header Breadcrumb header text
      */
     public PresenterImpl(String header) {
         this.header = header;
@@ -27,8 +27,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * start method
      * Is called by PlaceManager, whenever the Place is being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {

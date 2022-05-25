@@ -7,8 +7,8 @@ import dk.dbc.invariant.InvariantUtil;
 import java.io.Serializable;
 
 /**
-* Sink DTO class.
-*/
+ * Sink DTO class.
+ */
 public class Sink implements Serializable {
     private static final long serialVersionUID = -1110221413046923805L;
 
@@ -19,11 +19,10 @@ public class Sink implements Serializable {
     /**
      * Class constructor
      *
-     * @param id sink id (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
+     * @param id      sink id (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
      * @param version sink version (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_VERSION_LOWER_BOUND})
      * @param content sink content
-     *
-     * @throws NullPointerException if given null-valued content
+     * @throws NullPointerException     if given null-valued content
      * @throws IllegalArgumentException if value of id or version is not larger than or equal to lower bound
      */
     @JsonCreator

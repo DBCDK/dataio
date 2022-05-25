@@ -52,7 +52,7 @@ public class FormattedOutput {
 
         private void formatBrokerResult() {
             buffer.append("PID: ").append(pid.toString())
-                  .append(" OCN: ").append(brokerResult.getOcn());
+                    .append(" OCN: ").append(brokerResult.getOcn());
             for (WciruServiceBroker.Event brokerEvent : brokerResult.getEvents()) {
                 final String formattedBrokerEvent = formatBrokerEvent(brokerEvent);
                 buffer.append("\n\n>> ").append(formattedBrokerEvent);

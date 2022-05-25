@@ -37,7 +37,7 @@ public class ScheduledHarvestBeanTest {
     }
 
     @Test
-     void canRunWithValidSchedule() {
+    void canRunWithValidSchedule() {
         final PromatHarvesterConfig config = new PromatHarvesterConfig(1, 2,
                 new PromatHarvesterConfig.Content()
                         .withSchedule("* * * * *")

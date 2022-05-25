@@ -16,7 +16,8 @@ public final class TrackingIdGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(TrackingIdGenerator.class);
     private static String ipAddress;
     private static final String SEPARATOR = "-";
-    static{
+
+    static {
         try {
             //the raw IP address in a string format.
             ipAddress = InetAddress.getLocalHost().getHostAddress();
@@ -30,7 +31,7 @@ public final class TrackingIdGenerator {
         return ipAddress + SEPARATOR + jobId + SEPARATOR + chunkId + SEPARATOR + itemId;
     }
 
-    public static String getTrackingId(long submitterId, String recordId,  int jobId, int chunkId, short itemId) {
+    public static String getTrackingId(long submitterId, String recordId, int jobId, int chunkId, short itemId) {
         return "{" + recordId + ":" + submitterId + "}" + SEPARATOR + jobId + SEPARATOR + chunkId + SEPARATOR + itemId;
     }
 

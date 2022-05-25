@@ -56,7 +56,8 @@ public class FileAttributesTest {
         assertThat(fileAttributes.getCreationTime(), is(creationTime));
     }
 
-    @Test public void setBytesRead_bytesReadIsSet_bytesReadIsReturnedWithUpdatedValue() {
+    @Test
+    public void setBytesRead_bytesReadIsSet_bytesReadIsReturnedWithUpdatedValue() {
         final FileAttributes fileAttributes = new FileAttributes(creationTime, path);
         assertThat(fileAttributes.getByteSize(), is(0L));
         fileAttributes.setByteSize(42);

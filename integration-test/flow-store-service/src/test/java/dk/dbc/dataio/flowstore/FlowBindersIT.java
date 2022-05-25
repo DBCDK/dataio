@@ -139,7 +139,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
             flowStoreServiceConnector.createFlowBinder(duplicateFlowBinderContent);
             fail("Primary key violation was not detected as input to createFlowBinder()");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(406));
         }
@@ -174,7 +174,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
             // When...
             flowStoreServiceConnector.createFlowBinder(flowBinderContent);
             fail("Failed pre-condition was not detected as input to createFlowBinder()");
-        // Then...
+            // Then...
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(412));
@@ -310,7 +310,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
 
             // And...
             assertSearchKeysExist(flowBinder, submitter.getContent().getNumber());
-       }
+        }
     }
 
     /**
@@ -335,13 +335,13 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
                 .setNumber(new Date().getTime())
                 .build());
 
-       final FlowBinder flowBinderSortsThird = flowStoreServiceConnector.createFlowBinder(new FlowBinderContentBuilder()
-               .setName("c_" + ns)
-               .setDestination(ns + ".1")
-               .setFlowId(flow.getId())
-               .setSinkId(sink.getId())
-               .setSubmitterIds(Collections.singletonList(submitter.getId()))
-               .build());
+        final FlowBinder flowBinderSortsThird = flowStoreServiceConnector.createFlowBinder(new FlowBinderContentBuilder()
+                .setName("c_" + ns)
+                .setDestination(ns + ".1")
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
+                .build());
 
         final FlowBinder flowBinderSortsFirst = flowStoreServiceConnector.createFlowBinder(new FlowBinderContentBuilder()
                 .setName("a_" + ns)
@@ -447,7 +447,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
                 .setNumber(new Date().getTime())
                 .build());
 
-       final FlowBinder originalFlowBinder = flowStoreServiceConnector.createFlowBinder(new FlowBinderContentBuilder()
+        final FlowBinder originalFlowBinder = flowStoreServiceConnector.createFlowBinder(new FlowBinderContentBuilder()
                 .setName(ns)
                 .setDestination(ns)
                 .setFlowId(flow.getId())
@@ -476,7 +476,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
             flowStoreServiceConnector.getFlowBinder(new Date().getTime());
             fail("It seems as if we do get a FlowBinder, though we didn't expect one!");
             // Then...
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
         }
@@ -545,7 +545,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * Then : request returns with a BAD REQUEST http status code
      */
     @Test
-    public void updateFlowBinder_invalidJson_BadRequest() throws FlowStoreServiceConnectorException{
+    public void updateFlowBinder_invalidJson_BadRequest() throws FlowStoreServiceConnectorException {
         final String ns = "FlowBindersIT.updateFlowBinder_invalidJson_BadRequest";
 
         // Given ...
@@ -588,7 +588,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
             fail("Wrong flow binder Id was not detected as input to updateFlowBinder()");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
         }
@@ -598,12 +598,12 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * Given: a deployed flow-store service
      * And  : Two valid flow binders are already stored
      * When : valid JSON is POSTed to the flow binders path with an identifier (update) but with a name that is already
-     *        in use by one of the existing flow binders
+     * in use by one of the existing flow binders
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT_ACCEPTABLE http status code
      */
     @Test
-    public void updateFlowBinder_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException{
+    public void updateFlowBinder_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException {
         final String ns = "FlowBindersIT.updateFlowBinder_duplicateName_NotAcceptable";
 
         FlowBinder flowBinder1 = createFlowBinderWithReferencedObjects(ns);
@@ -633,7 +633,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
 
             fail("Primary key violation was not detected as input to updateFlowBinder()");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(406));
         }
@@ -643,9 +643,9 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * Given: a deployed flow-store service
      * And  : a valid flow binder with given id is already stored and the flow binder is opened for edit by two different users
      * And  : the first user updates the flow binder, valid JSON is POSTed to the flow binders path with an identifier (update)
-     *        and correct version number
+     * and correct version number
      * When : the second user attempts to update the original version of the flow binder, valid JSON is POSTed to the flow binders
-     *        path with an identifier (update) and wrong version number
+     * path with an identifier (update) and wrong version number
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a CONFLICT http status code
      */
@@ -683,7 +683,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
             fail("Edit conflict, in the case of multiple updates, was not detected as input to updateFlowBinder()");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(409));
         }
@@ -692,7 +692,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
     /**
      * Given: a deployed flow-store service
      * When : valid JSON is POSTed to the flow binders path with an identifier (update) but the referenced
-     *        flow could not be located in the underlying database
+     * flow could not be located in the underlying database
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a PRECONDITION FAILED http status code
      */
@@ -718,7 +718,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
     /**
      * Given: a deployed flow-store service
      * When : valid JSON is POSTed to the flow binders path with an identifier (update) but the referenced
-     *        sink could not be located in the underlying database
+     * sink could not be located in the underlying database
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a PRECONDITION FAILED http status code
      */
@@ -743,7 +743,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
     /**
      * Given: a deployed flow-store service
      * When : valid JSON is POSTed to the flow binders path with an identifier (update) but the referenced
-     *        submitter could not be located in the underlying database
+     * submitter could not be located in the underlying database
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a PRECONDITION FAILED http status code
      */
@@ -847,7 +847,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
         try {
             flowStoreServiceConnector.getFlowBinder(flowBinder.getId());
             fail("FlowBinder was not deleted");
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // We expect this exception from getFlowBinder(...) method when no flow binder exists!
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
         }
@@ -869,7 +869,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
             fail("None existing flow binder was not detected");
 
             // Then ...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And...
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
         }
@@ -878,9 +878,9 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
     /**
      * Given: a deployed flow-store service and a flow binder is stored.
      * And  : the flow binder is updated and, valid JSON is POSTed to the flow binders path with an identifier (update)
-     *        and correct version number
+     * and correct version number
      * When : attempting to delete the flow binder with the previous version number, valid JSON is POSTed to the flow binders
-     *        path with an identifier (delete) and wrong version number
+     * path with an identifier (delete) and wrong version number
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a CONFLICT http status code
      */
@@ -912,7 +912,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
             fail("FlowBinder was deleted");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And...
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
 
@@ -954,7 +954,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void resolveFlowBinder_nonExistingPackaging_NotFound() throws FlowStoreServiceConnectorException{
+    public void resolveFlowBinder_nonExistingPackaging_NotFound() throws FlowStoreServiceConnectorException {
         final String ns = "FlowBindersIT.resolveFlowBinder_nonExistingPackaging_NotFound";
 
         // Given...
@@ -971,7 +971,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
                     flowBinder.getContent().getDestination());
             fail("Invalid request to getFlowBinder() was not detected");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
             assertThat(e.getFlowStoreError(), not(nullValue()));
@@ -987,7 +987,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void resolveFlowBinder_nonExistingFormat_NotFound() throws FlowStoreServiceConnectorException{
+    public void resolveFlowBinder_nonExistingFormat_NotFound() throws FlowStoreServiceConnectorException {
         final String ns = "FlowBindersIT.resolveFlowBinder_nonExistingFormat_NotFound";
 
         // Given...
@@ -1004,7 +1004,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
                     flowBinder.getContent().getDestination());
             fail("Invalid request to getFlowBinder() was not detected");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
             assertThat(e.getFlowStoreError(), not(nullValue()));
@@ -1020,7 +1020,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void resolveFlowBinder_nonExistingCharset_NotFound() throws FlowStoreServiceConnectorException{
+    public void resolveFlowBinder_nonExistingCharset_NotFound() throws FlowStoreServiceConnectorException {
         final String ns = "FlowBindersIT.resolveFlowBinder_nonExistingCharset_NotFound";
 
         // Given...
@@ -1037,7 +1037,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
                     flowBinder.getContent().getDestination());
             fail("Invalid request to getFlowBinder() was not detected");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
             assertThat(e.getFlowStoreError(), not(nullValue()));
@@ -1053,7 +1053,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void resolveFlowBinder_nonExistingSubmitterNumber_NotFound() throws FlowStoreServiceConnectorException{
+    public void resolveFlowBinder_nonExistingSubmitterNumber_NotFound() throws FlowStoreServiceConnectorException {
         final String ns = "FlowBindersIT.resolveFlowBinder_nonExistingSubmitterNumber_NotFound";
 
         // Given...
@@ -1069,7 +1069,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
                     flowBinder.getContent().getDestination());
             fail("Invalid request to getFlowBinder() was not detected");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
             assertThat(e.getFlowStoreError(), not(nullValue()));
@@ -1085,7 +1085,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void resolveFlowBinder_nonExistingDestination_NotFound() throws FlowStoreServiceConnectorException{
+    public void resolveFlowBinder_nonExistingDestination_NotFound() throws FlowStoreServiceConnectorException {
         final String ns = "FlowBindersIT.resolveFlowBinder_nonExistingDestination_NotFound";
 
         // Given...
@@ -1102,7 +1102,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
                     "nonExistingDestination");
             fail("Invalid request to getFlowBinder() was not detected");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
             assertThat(e.getFlowStoreError(), not(nullValue()));
@@ -1113,8 +1113,9 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
 
     /**
      * This method attempts to locate a non-existing flow binder via search keys
+     *
      * @param flowBinderContent holding search keys values
-     * @param submitterNumber of the submitter referenced by the flow binder
+     * @param submitterNumber   of the submitter referenced by the flow binder
      */
     private void assertSearchKeysDoNotExist(FlowBinderContent flowBinderContent, long submitterNumber) throws FlowStoreServiceConnectorException {
         try {
@@ -1126,7 +1127,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
                     flowBinderContent.getDestination());
 
             fail("Search keys matched flow binder");
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e1) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e1) {
             assertThat(e1.getStatusCode(), is(404));
         }
     }
@@ -1134,7 +1135,8 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
     /**
      * Retrieves a flow binder through search keys.
      * Asserts that the flow binder returned is the same as expected
-     * @param flowBinder the existing flow binder
+     *
+     * @param flowBinder      the existing flow binder
      * @param submitterNumber of the submitter referenced by the flow binder
      */
     private void assertSearchKeysExist(FlowBinder flowBinder, long submitterNumber) throws FlowStoreServiceConnectorException {
@@ -1155,13 +1157,13 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * a flow, a sink or a submitter
      */
     private void assertPreconditionFailed(FlowBinderContent flowBinderContentForUpdate, FlowBinder flowBinder, long submitterNumber)
-            throws FlowStoreServiceConnectorException{
+            throws FlowStoreServiceConnectorException {
         try {
             flowStoreServiceConnector.updateFlowBinder(flowBinderContentForUpdate, flowBinder.getId(), flowBinder.getVersion());
             fail("None existing reference was not detected as input to updateFlowBinder()");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(412));
 
@@ -1173,9 +1175,10 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
 
     /**
      * Creates a new flow binder with pre-defined values. The referenced sink, flow and submitter is also created
+     *
      * @return the created flow binder
      */
-    private FlowBinder createFlowBinderWithReferencedObjects(String ns) throws FlowStoreServiceConnectorException{
+    private FlowBinder createFlowBinderWithReferencedObjects(String ns) throws FlowStoreServiceConnectorException {
         final Flow flow = flowStoreServiceConnector.createFlow(new FlowContentBuilder()
                 .setName(ns)
                 .build());
@@ -1187,7 +1190,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
                 .setNumber(new Date().getTime())
                 .build());
 
-        FlowBinderContent flowBinderContent =  new FlowBinderContentBuilder()
+        FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
                 .setName(ns)
                 .setDestination(ns)
                 .setFlowId(flow.getId())

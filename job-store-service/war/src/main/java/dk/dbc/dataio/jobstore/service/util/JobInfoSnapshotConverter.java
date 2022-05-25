@@ -11,10 +11,10 @@ public final class JobInfoSnapshotConverter {
     /**
      * Private Constructor prevents instantiation of this static class
      */
-    private JobInfoSnapshotConverter() {}
+    private JobInfoSnapshotConverter() {
+    }
 
     /**
-     *
      * Maps information from a job entity to a JobInfoSnapshot
      *
      * @param jobEntity the job entity

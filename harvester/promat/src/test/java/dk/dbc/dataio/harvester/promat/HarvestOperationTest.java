@@ -52,7 +52,8 @@ class HarvestOperationTest {
     private PromatServiceConnector promatServiceConnector;
     private Path harvesterTmpFile;
 
-    @TempDir Path tempDir;
+    @TempDir
+    Path tempDir;
 
     @BeforeEach
     void setupMocks() throws JobStoreServiceConnectorException {
@@ -71,7 +72,7 @@ class HarvestOperationTest {
 
     @Test
     void harvestCases() throws HarvesterException, PromatServiceConnectorException, JobStoreServiceConnectorException,
-                               FlowStoreServiceConnectorException {
+            FlowStoreServiceConnectorException {
         final LocalDate creationDate = LocalDate.of(2021, 1, 20);
 
         final List<PromatCase> cases = new ArrayList<>();
@@ -157,50 +158,50 @@ class HarvestOperationTest {
         final List<Expectation> addiContentExpectations = new ArrayList<>();
         addiContentExpectations.add(new Expectation(
                 "<PromatCase>" +
-                    "<id>1001</id>" +
-                    "<created>2021-01-20</created>" +
-                    "<tasks>" +
+                        "<id>1001</id>" +
+                        "<created>2021-01-20</created>" +
+                        "<tasks>" +
                         "<task>" +
-                            "<id>0</id>" +
-                            "<taskFieldType>BKM</taskFieldType>" +
-                            "<data>yes</data>" +
+                        "<id>0</id>" +
+                        "<taskFieldType>BKM</taskFieldType>" +
+                        "<data>yes</data>" +
                         "</task>" +
                         "<task>" +
-                            "<id>0</id>" +
-                            "<taskFieldType>BRIEF</taskFieldType>" +
-                            "<recordId>41414141</recordId>" +
+                        "<id>0</id>" +
+                        "<taskFieldType>BRIEF</taskFieldType>" +
+                        "<recordId>41414141</recordId>" +
                         "</task>" +
-                    "</tasks>" +
-                    "<codes>" +
+                        "</tasks>" +
+                        "<codes>" +
                         "<code>BKM202110</code>" +
                         "<code>BKX202107</code>" +
-                    "</codes>" +
-                "</PromatCase>"));
+                        "</codes>" +
+                        "</PromatCase>"));
         addiContentExpectations.add(new Expectation(
                 "<PromatCase>" +
-                    "<id>1002</id>" +
-                    "<created>2021-01-20</created>" +
-                    "<tasks>" +
+                        "<id>1002</id>" +
+                        "<created>2021-01-20</created>" +
+                        "<tasks>" +
                         "<task>" +
-                            "<id>0</id>" +
-                            "<taskFieldType>BRIEF</taskFieldType>" +
-                            "<recordId>42424242</recordId>" +
+                        "<id>0</id>" +
+                        "<taskFieldType>BRIEF</taskFieldType>" +
+                        "<recordId>42424242</recordId>" +
                         "</task>" +
-                    "</tasks>" +
-                "</PromatCase>"));
+                        "</tasks>" +
+                        "</PromatCase>"));
         addiContentExpectations.add(new Expectation(
                 "<PromatCase>" +
-                    "<id>1003</id>" +
-                    "<created>2021-01-20</created>" +
-                    "<status>PENDING_REVERT</status>" +
-                    "<tasks>" +
+                        "<id>1003</id>" +
+                        "<created>2021-01-20</created>" +
+                        "<status>PENDING_REVERT</status>" +
+                        "<tasks>" +
                         "<task>" +
-                            "<id>0</id>" +
-                            "<taskFieldType>BRIEF</taskFieldType>" +
-                            "<recordId>43434343</recordId>" +
+                        "<id>0</id>" +
+                        "<taskFieldType>BRIEF</taskFieldType>" +
+                        "<recordId>43434343</recordId>" +
                         "</task>" +
-                    "</tasks>" +
-                "</PromatCase>"));
+                        "</tasks>" +
+                        "</PromatCase>"));
 
         final PromatHarvesterConfig config = newConfig();
         final HarvestOperation harvestOperation = newHarvestOperation(config);
@@ -220,7 +221,7 @@ class HarvestOperationTest {
 
     @Test
     void noCasesToHarvest() throws HarvesterException, PromatServiceConnectorException, JobStoreServiceConnectorException,
-                                   FlowStoreServiceConnectorException {
+            FlowStoreServiceConnectorException {
         when(promatServiceConnector.listCases(new ListCasesParams()
                 .withFormat(ListCasesParams.Format.EXPORT)
                 .withStatus(CaseStatus.PENDING_EXPORT)

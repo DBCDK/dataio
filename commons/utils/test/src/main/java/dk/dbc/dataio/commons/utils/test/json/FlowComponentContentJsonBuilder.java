@@ -49,15 +49,21 @@ public class FlowComponentContentJsonBuilder extends JsonBuilder {
         return this;
     }
 
-   public String build() {
+    public String build() {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(START_OBJECT);
-        stringBuilder.append(asTextMember("name", name)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("svnProjectForInvocationJavascript", svnProjectForInvocationJavascript)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asLongMember("svnRevision", svnRevision)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("invocationJavascriptName", invocationJavascriptName)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("invocationMethod", invocationMethod)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asObjectArray("javascripts", javascripts)); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asTextMember("name", name));
+        stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asTextMember("svnProjectForInvocationJavascript", svnProjectForInvocationJavascript));
+        stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asLongMember("svnRevision", svnRevision));
+        stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asTextMember("invocationJavascriptName", invocationJavascriptName));
+        stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asTextMember("invocationMethod", invocationMethod));
+        stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asObjectArray("javascripts", javascripts));
+        stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("description", description));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();

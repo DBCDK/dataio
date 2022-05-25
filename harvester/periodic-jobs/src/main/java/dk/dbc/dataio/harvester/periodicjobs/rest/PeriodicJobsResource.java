@@ -5,7 +5,6 @@ import dk.dbc.dataio.harvester.periodicjobs.HarvesterConfigurationBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 
-import java.util.Optional;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ws.rs.Consumes;
@@ -13,6 +12,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Optional;
 
 @Path("/jobs")
 public class PeriodicJobsResource {

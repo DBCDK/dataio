@@ -43,19 +43,17 @@ public class GatekeeperDestinationsBean {
     /**
      * Creates a new gatekeeper destination
      *
-     * @param uriInfo URI information
+     * @param uriInfo               URI information
      * @param gatekeeperDestination The gatekeeperDestination to save
-     *
      * @return a HTTP 201 response with gatekeeper destination as JSON,
-     *         a HTTP 406 response in case of Unique Constraint Violation
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 406 response in case of Unique Constraint Violation
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException on failure to create json gatekeeperDestination
      */
     @POST
     @Path(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS)
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response createGatekeeperDestination(@Context UriInfo uriInfo, String gatekeeperDestination) throws JSONBException {
         LOGGER.trace("GateKeeperDestination {}", gatekeeperDestination);
@@ -69,12 +67,13 @@ public class GatekeeperDestinationsBean {
 
     /**
      * Returns list of all stored gatekeeper destinations sorted by submitterNumber in ascending order
+     *
      * @return a HTTP OK response with result list as JSON
      * @throws JSONBException on failure to create result list as JSON
      */
     @GET
     @Path(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response findAllGatekeeperDestinations() throws JSONBException {
         final Query query = entityManager.createNamedQuery(GatekeeperDestinationEntity.QUERY_FIND_ALL);
         final List results = query.getResultList();
@@ -88,10 +87,9 @@ public class GatekeeperDestinationsBean {
      * Deletes an existing gatekeeper destination
      *
      * @param id of the gatekeeper destination
-     *
      * @return a HTTP 204 response with no content,
-     *         a HTTP 404 response in case of gatekeeper destination not found
-     *         a HTTP 500 response in case of general error.
+     * a HTTP 404 response in case of gatekeeper destination not found
+     * a HTTP 500 response in case of general error.
      */
     @DELETE
     @Path(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
@@ -100,7 +98,7 @@ public class GatekeeperDestinationsBean {
 
         final GatekeeperDestinationEntity gatekeeperDestinationEntity = entityManager.find(GatekeeperDestinationEntity.class, id);
 
-        if(gatekeeperDestinationEntity == null) {
+        if (gatekeeperDestinationEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
 
@@ -112,13 +110,11 @@ public class GatekeeperDestinationsBean {
      * Updates an existing gatekeeper destination
      *
      * @param gatekeeperDestinationJson the gatekeeper destination holding the values to update as json
-     * @param id of the gatekeeper destination to update
-     *
+     * @param id                        of the gatekeeper destination to update
      * @return a HTTP 200 response with gatekeeper destination as JSON,
-     *         a HTTP 404 response in case of gatekeeper destination not found
-     *         a HTTP 406 response in case of uniqueness constraint violation
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 404 response in case of gatekeeper destination not found
+     * a HTTP 406 response in case of uniqueness constraint violation
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException on failure to unmarshal to gatekeeperDestination
      */
     @POST
@@ -131,7 +127,7 @@ public class GatekeeperDestinationsBean {
 
         final GatekeeperDestination gatekeeperDestination = jsonbContext.unmarshall(gatekeeperDestinationJson, GatekeeperDestination.class);
 
-        if(id != gatekeeperDestination.getId()) {
+        if (id != gatekeeperDestination.getId()) {
             return Response.status(Response.Status.BAD_REQUEST).entity(NULL_ENTITY).build();
         }
 
@@ -157,7 +153,6 @@ public class GatekeeperDestinationsBean {
      */
 
     /**
-     *
      * @param gatekeeperDestination to persist
      * @return persisted gatekeeperDestination
      * @throws JSONBException JSONBException on failure unmarshalling to gatekeeperDestinationEntity

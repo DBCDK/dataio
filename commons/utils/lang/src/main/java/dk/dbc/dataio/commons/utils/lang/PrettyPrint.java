@@ -21,10 +21,11 @@ public abstract class PrettyPrint {
 
 
     /**
-     *  Determines if data given as input is xml alike and should be pretty printed as xml:
-     *  if TRUE : returns pretty printed xml String
-     *  if FALSE: Returns data as String
-     * @param bytes containing data
+     * Determines if data given as input is xml alike and should be pretty printed as xml:
+     * if TRUE : returns pretty printed xml String
+     * if FALSE: Returns data as String
+     *
+     * @param bytes    containing data
      * @param encoding of data
      * @return data as String
      */
@@ -41,7 +42,8 @@ public abstract class PrettyPrint {
 
     /**
      * Adds tabs and new lines to a json string
-     * @param bytes containing data
+     *
+     * @param bytes    containing data
      * @param encoding of data
      * @return he string pretty printed as json
      * @throws JSONBException on failure to to unmarshall
@@ -53,13 +55,14 @@ public abstract class PrettyPrint {
 
     /**
      * Combines string elements to print
+     *
      * @param elements to print
      * @return the elements combined as one String
      */
     public static String combinePrintElements(String... elements) {
         StringBuilder stringBuilder = new StringBuilder();
-        for(String element : elements) {
-            if(stringBuilder.length() == 0) {
+        for (String element : elements) {
+            if (stringBuilder.length() == 0) {
                 stringBuilder.append(element);
             } else {
                 stringBuilder.append(LINEBREAK).append(LINEBREAK).append(element);
@@ -74,6 +77,7 @@ public abstract class PrettyPrint {
 
     /**
      * Adds tabs and new lines to a xml string
+     *
      * @param xml the string to pretty print as xml
      * @return the string pretty printed as xml
      */
@@ -107,7 +111,7 @@ public abstract class PrettyPrint {
                     printTabs(tabCount, prettyPrintXml);
                     prettyPrintXml.append(str4);
                 }
-                if (!str2.equals(LINEBREAK)){
+                if (!str2.equals(LINEBREAK)) {
                     prettyPrintXml.append(LINEBREAK);
                 }
             }

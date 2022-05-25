@@ -28,16 +28,16 @@ public class UpdateRecordResultMarshallerTest {
 
         assertThat(new UpdateRecordResultMarshaller().asXml(updateRecordResult), is(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-                "<updateRecordResult xmlns=\"http://oss.dbc.dk/ns/catalogingUpdate\">" +
-                    "<updateStatus>failed</updateStatus>" +
-                    "<messages>" +
+                        "<updateRecordResult xmlns=\"http://oss.dbc.dk/ns/catalogingUpdate\">" +
+                        "<updateStatus>failed</updateStatus>" +
+                        "<messages>" +
                         "<messageEntry>" +
-                            "<type>error</type>" +
-                            "<ordinalPositionOfField>1</ordinalPositionOfField>" +
-                            "<ordinalPositionOfSubfield>1</ordinalPositionOfSubfield>" +
-                            "<message>UpdateRecordResultMarshallerTest validation error</message>" +
+                        "<type>error</type>" +
+                        "<ordinalPositionOfField>1</ordinalPositionOfField>" +
+                        "<ordinalPositionOfSubfield>1</ordinalPositionOfSubfield>" +
+                        "<message>UpdateRecordResultMarshallerTest validation error</message>" +
                         "</messageEntry>" +
-                    "</messages>" +
-                "</updateRecordResult>"));
+                        "</messages>" +
+                        "</updateRecordResult>"));
     }
 }

@@ -9,8 +9,8 @@ import java.util.List;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "diagnosticsType", namespace = "http://www.loc.gov/zing/srw/", propOrder = {
-    "diagnostic",
-    "extraDiagData"
+        "diagnostic",
+        "extraDiagData"
 })
 public class DiagnosticsType {
 

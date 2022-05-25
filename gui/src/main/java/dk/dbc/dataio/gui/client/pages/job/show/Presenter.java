@@ -10,20 +10,36 @@ import java.util.Map;
 
 public interface Presenter extends GenericPresenter {
     void itemSelected(JobModel jobModel);
+
     void updateSelectedJobs();
+
     void refresh();
+
     void showJob();
+
     void showLog();
+
     void clearLog();
+
     void showHistory();
+
     void changeColorSchemeListBoxShow();
+
     void changeColorScheme(Map<String, String> colorScheme);
+
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, String jobId);
+
     WorkflowNoteModel preProcessAssignee(WorkflowNoteModel workflowNoteModel, String assignee);
+
     void setIsMultipleRerun(boolean isMultipleRerun);
+
     void getJobRerunScheme(JobModel jobModel);
+
     void rerun();
+
     List<JobModel> getShownJobModels();
+
     List<JobModel> validRerunJobsFilter(List<JobModel> jobModels);
+
     void setPlace(AbstractBasePlace place);
 }

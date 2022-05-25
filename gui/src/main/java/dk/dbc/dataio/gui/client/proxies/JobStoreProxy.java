@@ -17,19 +17,33 @@ import java.util.List;
 @RemoteServiceRelativePath("JobStoreProxy")
 public interface JobStoreProxy extends RemoteService {
     List<JobModel> listJobs(JobListCriteria model) throws ProxyException;
+
     JobModel fetchEarliestActiveJob(int sinkId) throws ProxyException;
+
     long countJobs(JobListCriteria model) throws ProxyException;
+
     List<ItemModel> listItems(ItemListCriteria.Field searchType, ItemListCriteria criteria) throws ProxyException;
+
     long countItems(ItemListCriteria criteria) throws ProxyException;
+
     String getItemData(ItemModel itemModel, ItemModel.LifeCycle lifeCycle) throws ProxyException;
+
     String getProcessedNextResult(int jobId, int chunkId, short itemId) throws ProxyException;
+
     List<Notification> listJobNotificationsForJob(int jobId) throws ProxyException;
+
     JobModel reSubmitJob(JobModel jobModel) throws ProxyException;
+
     List<JobModel> reSubmitJobs(List<JobModel> jobModels) throws ProxyException;
+
     List<Notification> listInvalidTransfileNotifications() throws ProxyException;
+
     JobModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId) throws ProxyException;
+
     ItemModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, int chunkId, short itemId) throws ProxyException;
+
     List<SinkStatusTable.SinkStatusModel> getSinkStatusModels() throws ProxyException;
+
     void createJobRerun(int jobId, boolean failedItemsOnly) throws ProxyException;
 
     void close();

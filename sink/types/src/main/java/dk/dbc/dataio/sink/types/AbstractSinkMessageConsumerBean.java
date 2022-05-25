@@ -17,15 +17,17 @@ import javax.ejb.EJB;
 public abstract class AbstractSinkMessageConsumerBean extends AbstractMessageConsumerBean {
     private final JSONBContext jsonbContext = new JSONBContext();
 
-    @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @EJB
+    public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     /**
      * Unmarshalls payload from given consumed message into ChunkResult
+     *
      * @param consumedMessage consumed message
      * @return consumed message payload as ChunkResult
-     * @throws NullPointerException if given null-valued consumedMessage
+     * @throws NullPointerException    if given null-valued consumedMessage
      * @throws InvalidMessageException if message payload type differs from Chunk,
-     * if message payload can not be unmarshalled, or if resulting chunk contains no items.
+     *                                 if message payload can not be unmarshalled, or if resulting chunk contains no items.
      */
     protected Chunk unmarshallPayload(ConsumedMessage consumedMessage) throws NullPointerException, InvalidMessageException {
         String payloadType = consumedMessage.getHeaderValue(JmsConstants.PAYLOAD_PROPERTY_NAME, String.class);

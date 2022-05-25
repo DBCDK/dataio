@@ -18,7 +18,8 @@ public class SupplementaryProcessDataJsonBuilder extends JsonBuilder {
     public String build() {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(START_OBJECT);
-        stringBuilder.append(asLongMember("submitter", submitter)); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asLongMember("submitter", submitter));
+        stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("format", format));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();

@@ -57,6 +57,7 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_TaskRecordHarvest();
+
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Save();
 

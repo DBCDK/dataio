@@ -92,7 +92,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void rerun() {
-        if(isMultipleRerun) {
+        if (isMultipleRerun) {
             rerunMultiple(validRerunJobsFilter(getShownJobModels()));
         } else {
             rerunSingle(view.selectionModel.getSelectedObject(), view.popupSelectBox.isRightSelected());
@@ -135,9 +135,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public List<JobModel> validRerunJobsFilter(List<JobModel> jobModels) {
-        List<JobModel>  validJobModels = new ArrayList<>();
+        List<JobModel> validJobModels = new ArrayList<>();
         for (JobModel jobModel : jobModels) {
-             if (jobModel.getType() != JobSpecification.Type.COMPACTED) {
+            if (jobModel.getType() != JobSpecification.Type.COMPACTED) {
                 validJobModels.add(jobModel);
             }
         }
@@ -334,6 +334,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class GetJobRerunSchemeFilteredAsyncCallback extends FilteredAsyncCallback<JobRerunScheme> {
 
         private JobModel jobModel;
+
         GetJobRerunSchemeFilteredAsyncCallback(JobModel jobModel) {
             this.jobModel = jobModel;
         }
@@ -345,8 +346,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         @Override
         public void onSuccess(JobRerunScheme jobRerunScheme) {
-            if(!isMultipleRerun) {
-                if(jobRerunScheme.getActions().contains(JobRerunScheme.Action.RERUN_FAILED)) {
+            if (!isMultipleRerun) {
+                if (jobRerunScheme.getActions().contains(JobRerunScheme.Action.RERUN_FAILED)) {
                     view.setPopupSelectBoxVisible();
                 } else {
                     executeRerun(jobModel, jobRerunScheme, false);

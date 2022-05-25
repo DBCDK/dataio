@@ -24,7 +24,7 @@ public class ChunkEntity {
      */
 
     @EmbeddedId
-    private Key key=new Key(-1,-1);
+    private Key key = new Key(-1, -1);
 
     @Column(nullable = false)
     private String dataFileId;
@@ -102,12 +102,12 @@ public class ChunkEntity {
 
     // builder api
     public ChunkEntity withJobId(int jobId) {
-        this.key.setJobId(jobId );
+        this.key.setJobId(jobId);
         return this;
     }
 
     public ChunkEntity withChunkId(int chunkId) {
-        this.key.setId( chunkId );
+        this.key.setId(chunkId);
         return this;
     }
 
@@ -147,7 +147,8 @@ public class ChunkEntity {
         private int jobId;
 
         /* Private constructor in order to keep class static */
-        private Key(){}
+        private Key() {
+        }
 
         public Key(int id, int jobId) {
             this.id = id;

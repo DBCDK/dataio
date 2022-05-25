@@ -52,10 +52,11 @@ public class JsonValueTemplateEngine {
 
     /**
      * Applies property substitution to given template
+     *
      * @param template template with ${json_path}, __DATE__{json_path} and __SUM__{json_path_csv} properties
-     * @param json json value used to lookup property values
+     * @param json     json value used to lookup property values
      * @return result of substituting property values in the template
-     * @throws NullPointerException if given null-valued argument
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given invalid json string
      */
     public String apply(String template, String json) throws NullPointerException, IllegalArgumentException {
@@ -64,12 +65,13 @@ public class JsonValueTemplateEngine {
 
     /**
      * Applies property substitution to given template
-     * @param template template with ${json_path}, __DATE__{json_path} and __SUM__{json_path_csv} properties
-     * @param json json value used to lookup property values
+     *
+     * @param template   template with ${json_path}, __DATE__{json_path} and __SUM__{json_path_csv} properties
+     * @param json       json value used to lookup property values
      * @param overwrites a map containing key (property) / value(property value).
-     *                        If an overwrite is present it will take precedence over the json value.
+     *                   If an overwrite is present it will take precedence over the json value.
      * @return result of substituting property values in the template
-     * @throws NullPointerException if given null-valued argument
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given invalid json string
      */
     public String apply(String template, String json, Map<String, String> overwrites) {
@@ -88,11 +90,11 @@ public class JsonValueTemplateEngine {
             final String currentPath = paths[0];
             final ArrayList<String> replacements = new ArrayList<>(paths.length);
 
-            if(overwrites.containsKey(currentPath.trim())) {
+            if (overwrites.containsKey(currentPath.trim())) {
                 replacements.add(overwrites.get(currentPath.trim()));
             }
 
-            if(replacements.isEmpty()) {
+            if (replacements.isEmpty()) {
                 Arrays.stream(paths)
                         .map(path -> getReplacementValue(path.trim().split("\\."), jsonTree))
                         .filter(replacementList -> !replacementList.isEmpty())
@@ -101,9 +103,11 @@ public class JsonValueTemplateEngine {
 
             final String replacement;
             switch (matcher.group(1)) {
-                case "__DATE__": replacement = asDateString(replacements);
+                case "__DATE__":
+                    replacement = asDateString(replacements);
                     break;
-                case "__SUM__": replacement = asSum(replacements);
+                case "__SUM__":
+                    replacement = asSum(replacements);
                     break;
                 default:
                     if (replacements.isEmpty()) {
@@ -181,8 +185,8 @@ public class JsonValueTemplateEngine {
         try {
             return replacements.isEmpty() ? EMPTY_VALUE
                     : String.valueOf(replacements.stream()
-                        .mapToLong(Long::valueOf)
-                        .sum());
+                    .mapToLong(Long::valueOf)
+                    .sum());
         } catch (NumberFormatException e) {
             return EMPTY_VALUE;
         }

@@ -32,37 +32,68 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
-    @Mock private EditPlace mockedPlace;
-    @Mock private Texts mockedTexts;
-    @Mock private View mockedView;
-    @Mock private PromptedTextBox mockedName;
-    @Mock private PromptedTextBox mockedDescription;
-    @Mock private PromptedTextBox mockedResource;
-    @Mock private PromptedTextBox mockedTargetUrl;
-    @Mock private PromptedTextBox mockedTargetGroup;
-    @Mock private PromptedTextBox mockedTargetUser;
-    @Mock private PromptedPasswordTextBox mockedTargetPassword;
-    @Mock private PromptedTextBox mockedConsumerId;
-    @Mock private PromptedTextBox mockedSize;
-    @Mock private PromptedMultiList mockedFormatOverrides;
-    @Mock private PromptedCheckBox mockedRelations;
-    @Mock private PromptedCheckBox mockedExpand;
-    @Mock private PromptedCheckBox mockedLibraryRules;
-    @Mock private PromptedList mockedHarvesterType;
-    @Mock private PromptedTextBox mockedHoldingsTarget;
-    @Mock private PromptedTextBox mockedDestination;
-    @Mock private PromptedTextBox mockedFormat;
-    @Mock private PromptedList mockedType;
-    @Mock private PromptedTextArea mockedNote;
-    @Mock private PromptedCheckBox mockedEnabled;
-    @Mock private Button mockedUpdateButton;
-    @Mock private Label mockedStatus;
-    @Mock private PopupMapEntry mockedPopupFormatOverrideEntry;
-    @Mock private Widget mockedWidget;
-    @Mock private Map mockedMap;
-    @Mock private RRHarvesterConfig mockedConfig;
-    @Mock private RRHarvesterConfig.Content mockedContent;
-    @Mock private Button mockedDeleteButton;
+    @Mock
+    private EditPlace mockedPlace;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private View mockedView;
+    @Mock
+    private PromptedTextBox mockedName;
+    @Mock
+    private PromptedTextBox mockedDescription;
+    @Mock
+    private PromptedTextBox mockedResource;
+    @Mock
+    private PromptedTextBox mockedTargetUrl;
+    @Mock
+    private PromptedTextBox mockedTargetGroup;
+    @Mock
+    private PromptedTextBox mockedTargetUser;
+    @Mock
+    private PromptedPasswordTextBox mockedTargetPassword;
+    @Mock
+    private PromptedTextBox mockedConsumerId;
+    @Mock
+    private PromptedTextBox mockedSize;
+    @Mock
+    private PromptedMultiList mockedFormatOverrides;
+    @Mock
+    private PromptedCheckBox mockedRelations;
+    @Mock
+    private PromptedCheckBox mockedExpand;
+    @Mock
+    private PromptedCheckBox mockedLibraryRules;
+    @Mock
+    private PromptedList mockedHarvesterType;
+    @Mock
+    private PromptedTextBox mockedHoldingsTarget;
+    @Mock
+    private PromptedTextBox mockedDestination;
+    @Mock
+    private PromptedTextBox mockedFormat;
+    @Mock
+    private PromptedList mockedType;
+    @Mock
+    private PromptedTextArea mockedNote;
+    @Mock
+    private PromptedCheckBox mockedEnabled;
+    @Mock
+    private Button mockedUpdateButton;
+    @Mock
+    private Label mockedStatus;
+    @Mock
+    private PopupMapEntry mockedPopupFormatOverrideEntry;
+    @Mock
+    private Widget mockedWidget;
+    @Mock
+    private Map mockedMap;
+    @Mock
+    private RRHarvesterConfig mockedConfig;
+    @Mock
+    private RRHarvesterConfig.Content mockedContent;
+    @Mock
+    private Button mockedDeleteButton;
 
 
     private PresenterEditImpl presenter;
@@ -89,6 +120,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
                     .withNote("Note123")
                     .withEnabled(true);
     private final RRHarvesterConfig rrHarvesterConfig = new RRHarvesterConfig(123L, 234L, content);
+
     @Before
     public void prepareTestData() {
         formatOverrides.put(123, "value123");

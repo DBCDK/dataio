@@ -41,6 +41,7 @@ public class BinaryFileStoreBean implements BinaryFileStore {
 
     /**
      * Returns binary file representation associated with given path
+     *
      * @param path binary file path
      * @return binary file representation
      */

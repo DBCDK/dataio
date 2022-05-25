@@ -10,12 +10,14 @@ import com.google.gwt.user.client.ui.Label;
  */
 public class PromptedLabel extends PromptedData {
 
-    @UiField final Label label = new Label();
+    @UiField
+    final Label label = new Label();
 
 
     /**
      * Constructor
      * This is the @UiConstructor, meaning that the two parameters are mandatory inputs, when used by UiBinder
+     *
      * @param guiId  The GUI Id
      * @param prompt The prompt label for the widgt
      */
@@ -35,6 +37,7 @@ public class PromptedLabel extends PromptedData {
 
     /**
      * Sets the text for the label
+     *
      * @param value The text value for the label
      */
     public void setText(String value) {
@@ -43,6 +46,7 @@ public class PromptedLabel extends PromptedData {
 
     /**
      * Fetches the text from the label
+     *
      * @return The text for the label
      */
     public String getText() {

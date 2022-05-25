@@ -11,8 +11,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,15 +27,24 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class PopupSelectBoxTest {
 
-    @Mock RadioButton mockedRadioButtonLeft;
-    @Mock RadioButton mockedRadioButtonRight;
-    @Mock FlowPanel mockedRadioButtonsPanel;
-    @Mock TextBox mockedWidget;
-    @Mock FlowPanel mockedBasePanel;
-    @Mock DialogBox mockedDialogBox;
-    @Mock VerticalPanel mockedContainerPanel;
-    @Mock FlowPanel mockedButtonPanel;
-    @Mock ValueChangeEvent mockedValueChangeEvent;
+    @Mock
+    RadioButton mockedRadioButtonLeft;
+    @Mock
+    RadioButton mockedRadioButtonRight;
+    @Mock
+    FlowPanel mockedRadioButtonsPanel;
+    @Mock
+    TextBox mockedWidget;
+    @Mock
+    FlowPanel mockedBasePanel;
+    @Mock
+    DialogBox mockedDialogBox;
+    @Mock
+    VerticalPanel mockedContainerPanel;
+    @Mock
+    FlowPanel mockedButtonPanel;
+    @Mock
+    ValueChangeEvent mockedValueChangeEvent;
 
     private PopupSelectBox popupSelectBox;
 

@@ -71,13 +71,13 @@ public class FileStoreBeanTest {
     @Test
     public void addMetadata() {
         FileAttributes fileAttributes = new FileAttributes(new Date(),
-            Paths.get("path"));
+                Paths.get("path"));
         when(entityManager.find(eq(FileAttributes.class), anyLong()))
-            .thenReturn(fileAttributes);
+                .thenReturn(fileAttributes);
         FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         fileStoreBean.addMetaData("123456", "{\"meta\": \"data\"}");
         assertThat("added metadata", fileAttributes.getMetadata(),
-            is("{\"meta\": \"data\"}"));
+                is("{\"meta\": \"data\"}"));
     }
 
     @Test(expected = NullPointerException.class)
@@ -177,21 +177,23 @@ public class FileStoreBeanTest {
     }
 
     @Test
-    public void getByteSize_fileIdIsEmpty_throws() throws IllegalArgumentException{
+    public void getByteSize_fileIdIsEmpty_throws() throws IllegalArgumentException {
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         try {
             fileStoreBean.getByteSize("", true);
             fail("getByteSize: Invalid file ID was not detected");
-        } catch (IllegalArgumentException e) {}
+        } catch (IllegalArgumentException e) {
+        }
     }
 
     @Test
-    public void getByteSize_fileIdIsNull_throws() throws IllegalArgumentException{
+    public void getByteSize_fileIdIsNull_throws() throws IllegalArgumentException {
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         try {
             fileStoreBean.getByteSize(null, true);
             fail("getByteSize: Invalid file ID was not detected");
-        } catch (NullPointerException e) {}
+        } catch (NullPointerException e) {
+        }
     }
 
     @Test
@@ -200,20 +202,22 @@ public class FileStoreBeanTest {
         try {
             fileStoreBean.getByteSize("notANumber", true);
             fail("getByteSize: Invalid file ID was not detected");
-        } catch(IllegalArgumentException e) {}
+        } catch (IllegalArgumentException e) {
+        }
     }
 
     @Test
-    public void getByteSize_filAttributesNotFound_throws() throws IllegalArgumentException{
+    public void getByteSize_filAttributesNotFound_throws() throws IllegalArgumentException {
         when(entityManager.find(eq(FileAttributes.class), eq(Long.valueOf(fileId)))).thenReturn(null);
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         try {
             fileStoreBean.getByteSize(fileId, true);
-        } catch (EJBException e) {}
+        } catch (EJBException e) {
+        }
     }
 
     @Test
-    public void getByteSize_fileAttributesExist_returnsByteSize() throws IllegalArgumentException{
+    public void getByteSize_fileAttributesExist_returnsByteSize() throws IllegalArgumentException {
         FileAttributes fileAttributes = new FileAttributes(new Date(), path);
         when(entityManager.find(FileAttributes.class, Long.parseLong(fileId))).thenReturn(fileAttributes);
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();

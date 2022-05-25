@@ -29,7 +29,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * Default constructor
      *
      * @param placeController The Placecontroller
-     * @param header breadcrumb Header text
+     * @param header          breadcrumb Header text
      */
     public PresenterImpl(PlaceController placeController, String header) {
         this.placeController = placeController;
@@ -60,13 +60,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method links to the Jobs view, showing only sinks with the given id, and highlights the earliest active job
+     *
      * @param sinkId The sink to use as the key for the filtering
      */
     public void showJobsFilteredBySink(long sinkId) {
         ShowJobsPlace showJobsPlace = new ShowJobsPlace(
                 SinkJobFilter.class.getSimpleName() + "=" + sinkId +                          // "SinkJobFilter=xxx"
-                "&" + JobStatusFilter.class.getSimpleName() +                                       // "&ActiveJobFilter"
-                "&" + dk.dbc.dataio.gui.client.pages.job.show.PresenterImpl.SHOW_EARLIEST_ACTIVE);  // "&ShowEarliestActive"
+                        "&" + JobStatusFilter.class.getSimpleName() +                                       // "&ActiveJobFilter"
+                        "&" + dk.dbc.dataio.gui.client.pages.job.show.PresenterImpl.SHOW_EARLIEST_ACTIVE);  // "&ShowEarliestActive"
         placeController.goTo(showJobsPlace);
     }
 
@@ -92,6 +93,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onFilteredFailure(Throwable throwable) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(throwable, commonInjector.getProxyErrorTexts(), null));
         }
+
         @Override
         public void onSuccess(List<SinkStatusTable.SinkStatusModel> sinkStatusSnapshots) {
             getView().setSinkStatus(sinkStatusSnapshots);

@@ -20,9 +20,10 @@ public class DanMarc2LineFormatReorderingDataPartitioner extends DanMarc2LineFor
 
     /**
      * Creates new instance of DanMarc2 LineFormat re-ordering DataPartitioner
-     * @param inputStream stream from which data to be partitioned can be read
+     *
+     * @param inputStream       stream from which data to be partitioned can be read
      * @param specifiedEncoding encoding from job specification (currently only latin 1 is supported).
-     * @param reorderer record ordering handler
+     * @param reorderer         record ordering handler
      * @return new instance of data partitioner
      * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument

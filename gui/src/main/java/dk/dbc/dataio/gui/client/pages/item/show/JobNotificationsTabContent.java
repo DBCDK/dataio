@@ -19,7 +19,8 @@ public class JobNotificationsTabContent extends Composite {
     }
 
     // UI Fields
-    @UiField FlowPanel jobNotificationContainer;
+    @UiField
+    FlowPanel jobNotificationContainer;
 
     /*
      * Public methods
@@ -27,6 +28,7 @@ public class JobNotificationsTabContent extends Composite {
 
     /**
      * Get the number of Job Notifications in the panel
+     *
      * @return Number of Job Notifications in the panel
      */
     public int getNotificationsCount() {
@@ -35,6 +37,7 @@ public class JobNotificationsTabContent extends Composite {
 
     /**
      * Adds a Job Notification panel to the container
+     *
      * @param panel The Job Notification panel to add to the container
      */
     public void add(JobNotificationPanel panel) {

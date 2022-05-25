@@ -17,15 +17,15 @@ public class ServiceUtil {
     private static final Logger log = LoggerFactory.getLogger(ServiceUtil.class);
     private static final JSONBContext jsonbContext = new JSONBContext();
 
-    private ServiceUtil() { }
+    private ServiceUtil() {
+    }
 
     /**
      * Builds service method response
      *
      * @param status HTTP status code of response
      * @param entity entity to include in response
-     * @param <T> type parameter for entity type
-     *
+     * @param <T>    type parameter for entity type
      * @return response object
      */
     public static <T> Response buildResponse(Response.Status status, T entity) {
@@ -37,7 +37,6 @@ public class ServiceUtil {
      * constructed from given exception
      *
      * @param ex exception to wrap
-     *
      * @return JSON string representation of ServiceError object
      */
     public static String asJsonError(Exception ex) {
@@ -48,9 +47,8 @@ public class ServiceUtil {
      * Returns JSON string representation of dk.dbc.dataio.commons.types.ServiceError object
      * constructed from given exception and message
      *
-     * @param ex exception to wrap
+     * @param ex      exception to wrap
      * @param message describing the error
-     *
      * @return JSON string representation of ServiceError object
      */
     public static String asJsonError(Exception ex, String message) {

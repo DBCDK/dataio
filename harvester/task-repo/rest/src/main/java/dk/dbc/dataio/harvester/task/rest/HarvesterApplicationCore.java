@@ -6,6 +6,7 @@ import java.util.Set;
 
 public abstract class HarvesterApplicationCore extends Application {
     public static final Set<Class<?>> classes = new HashSet<>();
+
     static {
         classes.add(HarvestTasksBean.class);
     }

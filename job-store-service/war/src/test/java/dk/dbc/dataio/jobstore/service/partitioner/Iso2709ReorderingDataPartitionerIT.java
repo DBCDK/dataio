@@ -87,7 +87,8 @@ public class Iso2709ReorderingDataPartitionerIT {
                         result.getPositionInDatafile(), is(expectedPositions.remove()));
                 ResultSummary.of(result)
                         .ifPresent(results::add);
-            }});
+            }
+        });
         assertThat("results", results, is(expectedResults));
     }
 
@@ -141,7 +142,8 @@ public class Iso2709ReorderingDataPartitionerIT {
                         result.getPositionInDatafile(), is(expectedPositions.remove()));
                 ResultSummary.of(result)
                         .ifPresent(results::add);
-            }});
+            }
+        });
         assertThat("results", results, is(expectedResults));
     }
 }

@@ -4,8 +4,8 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
-import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
+import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 
 public class ClientFactoryImpl implements ClientFactory {
 
@@ -26,7 +26,8 @@ public class ClientFactoryImpl implements ClientFactory {
     // History Mapper
     private final AppPlaceHistoryMapper historyMapper = GWT.create(AppPlaceHistoryMapper.class);
 
-    private ClientFactoryImpl() {}
+    private ClientFactoryImpl() {
+    }
 
     @Override
     public GlobalViewsFactory getGlobalViewsFactory() {

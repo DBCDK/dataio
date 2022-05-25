@@ -24,7 +24,9 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 import java.util.Map;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    interface HarvesterBinder extends UiBinder<HTMLPanel, View> {}
+    interface HarvesterBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static HarvesterBinder uiBinder = GWT.create(HarvesterBinder.class);
     private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
@@ -41,28 +43,48 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
 
-    @UiField PromptedTextBox name;
-    @UiField PromptedTextBox description;
-    @UiField PromptedTextBox resource;
-    @UiField PromptedTextBox consumerId;
-    @UiField PromptedTextBox size;
-    @UiField PromptedMultiList formatOverrides;
-    @UiField PromptedCheckBox relations;
-    @UiField PromptedCheckBox expand;
-    @UiField PromptedCheckBox libraryRules;
-    @UiField PromptedList harvesterType;
-    @UiField PromptedTextBox holdingsTarget;
-    @UiField PromptedTextBox destination;
-    @UiField PromptedTextBox format;
-    @UiField PromptedList type;
-    @UiField PromptedTextArea note;
-    @UiField PromptedCheckBox enabled;
-    @UiField Label status;
-    @UiField PopupMapEntry popupFormatOverrideEntry;
-    @UiField Button updateButton;
-    @UiField Button deleteButton;
-    @UiField PopupBox<Label> confirmation;
-
+    @UiField
+    PromptedTextBox name;
+    @UiField
+    PromptedTextBox description;
+    @UiField
+    PromptedTextBox resource;
+    @UiField
+    PromptedTextBox consumerId;
+    @UiField
+    PromptedTextBox size;
+    @UiField
+    PromptedMultiList formatOverrides;
+    @UiField
+    PromptedCheckBox relations;
+    @UiField
+    PromptedCheckBox expand;
+    @UiField
+    PromptedCheckBox libraryRules;
+    @UiField
+    PromptedList harvesterType;
+    @UiField
+    PromptedTextBox holdingsTarget;
+    @UiField
+    PromptedTextBox destination;
+    @UiField
+    PromptedTextBox format;
+    @UiField
+    PromptedList type;
+    @UiField
+    PromptedTextArea note;
+    @UiField
+    PromptedCheckBox enabled;
+    @UiField
+    Label status;
+    @UiField
+    PopupMapEntry popupFormatOverrideEntry;
+    @UiField
+    Button updateButton;
+    @UiField
+    Button deleteButton;
+    @UiField
+    PopupBox<Label> confirmation;
 
 
     @SuppressWarnings("unused")
@@ -178,7 +200,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @SuppressWarnings("unused")
     @UiHandler("popupFormatOverrideEntry")
-    void popupFormatOverrideOkButton(DialogEvent event)  {
+    void popupFormatOverrideOkButton(DialogEvent event) {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
             String overrideKey = popupFormatOverrideEntry.getValue().getKey();
             String overrideValue = popupFormatOverrideEntry.getValue().getValue();
@@ -219,7 +241,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     void setFormatOverrides(Map<String, String> formats) {
         this.formatOverrides.clear();
-        for (String key: formats.keySet()) {
+        for (String key : formats.keySet()) {
             this.formatOverrides.addValue(prepareFormatOverride(key, formats.get(key)), key);
         }
     }

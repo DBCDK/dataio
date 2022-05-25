@@ -23,9 +23,10 @@ public class MarcRecordInfo extends RecordInfo {
 
     /**
      * constructor
-     * @param id identifier of marc record
-     * @param type type of marc record
-     * @param isDelete flag indicating if marc record is delete marked
+     *
+     * @param id             identifier of marc record
+     * @param type           type of marc record
+     * @param isDelete       flag indicating if marc record is delete marked
      * @param parentRelation identifier of marc record parent, can be null or empty
      */
     @JsonCreator
@@ -49,7 +50,7 @@ public class MarcRecordInfo extends RecordInfo {
     @Override
     public Set<String> getKeys(SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
         final Set<String> keys = super.getKeys(sequenceAnalysisOption);
-        if(sequenceAnalysisOption == SinkContent.SequenceAnalysisOption.ALL && parentRelation != null) {
+        if (sequenceAnalysisOption == SinkContent.SequenceAnalysisOption.ALL && parentRelation != null) {
             keys.add(parentRelation);
         }
         return keys;

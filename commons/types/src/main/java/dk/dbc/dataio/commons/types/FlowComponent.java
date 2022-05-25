@@ -24,12 +24,11 @@ public class FlowComponent implements Serializable {
     /**
      * Class constructor
      *
-     * @param id flow component id (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
+     * @param id      flow component id (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
      * @param version flow component version (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_VERSION_LOWER_BOUND})
      * @param content flow component content
-     * @param next next edition of flow component (can be null)
-     *
-     * @throws NullPointerException when given null valued argument
+     * @param next    next edition of flow component (can be null)
+     * @throws NullPointerException     when given null valued argument
      * @throws IllegalArgumentException if value of id or version is not larger than or equal to lower bound
      */
     @JsonCreator

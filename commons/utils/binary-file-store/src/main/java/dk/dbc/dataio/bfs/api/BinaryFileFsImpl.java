@@ -28,12 +28,13 @@ import java.util.zip.GZIPInputStream;
 public class BinaryFileFsImpl implements BinaryFile {
     public static final int BUFFER_SIZE = 8192;
 
-    private enum Compression { BZIP2, GZIP, RAW }
+    private enum Compression {BZIP2, GZIP, RAW}
 
     private final Path path;
 
     /**
      * Class constructor
+     *
      * @param path path to binary file
      * @throws NullPointerException if given null-valued path
      */
@@ -43,10 +44,11 @@ public class BinaryFileFsImpl implements BinaryFile {
 
     /**
      * Writes content of given input stream to this file creating parent directories as needed
+     *
      * @param is input stream of bytes to be written
-     * @throws NullPointerException if given null valued is argument
+     * @throws NullPointerException  if given null valued is argument
      * @throws IllegalStateException if trying to write to a file that already exists, or
-     * on general failure to write file
+     *                               on general failure to write file
      */
     @Override
     public void write(final InputStream is) throws IllegalArgumentException, IllegalStateException {
@@ -75,9 +77,10 @@ public class BinaryFileFsImpl implements BinaryFile {
 
     /**
      * Appends to this file
+     *
      * @param bytes bytes to be appended
      * @throws IllegalStateException if trying to append to a non-existing file,
-     * or on general failure to append
+     *                               or on general failure to append
      */
     @Override
     public void append(final byte[] bytes) {
@@ -98,7 +101,7 @@ public class BinaryFileFsImpl implements BinaryFile {
     /**
      * @return an OutputStream for writing to this file
      * @throws IllegalStateException if file already has content written or on general failure
-     * to create OutputStream
+     *                               to create OutputStream
      */
     @Override
     public OutputStream openOutputStream() throws IllegalStateException {
@@ -109,7 +112,7 @@ public class BinaryFileFsImpl implements BinaryFile {
      * @param append boolean which if true allows for appending on an existing file
      * @return an OutputStream for writing to this file
      * @throws IllegalStateException if file already has content written and append is false or on general failure
-     * to create OutputStream
+     *                               to create OutputStream
      */
     @Override
     public OutputStream openOutputStream(boolean append) throws IllegalStateException {
@@ -126,6 +129,7 @@ public class BinaryFileFsImpl implements BinaryFile {
 
     /**
      * Deletes this file (if it exists)
+     *
      * @throws IllegalStateException on general failure to delete existing file
      */
     @Override
@@ -141,10 +145,11 @@ public class BinaryFileFsImpl implements BinaryFile {
 
     /**
      * Reads content of this file into given output stream
+     *
      * @param os output stream to which bytes are written
-     * @throws NullPointerException if given null-valued os argument
+     * @throws NullPointerException  if given null-valued os argument
      * @throws IllegalStateException if trying to read a file which does not exists, or on
-     * general failure to read file
+     *                               general failure to read file
      */
     @Override
     public void read(final OutputStream os) throws IllegalArgumentException, IllegalStateException {
@@ -154,11 +159,12 @@ public class BinaryFileFsImpl implements BinaryFile {
     /**
      * Reads content of this file into given output stream,
      * decompressing it if decompress flag is set to true.
-     * @param os output stream to which bytes are written
+     *
+     * @param os         output stream to which bytes are written
      * @param decompress on-the-fly decompression flag
-     * @throws NullPointerException if given null-valued os argument
+     * @throws NullPointerException  if given null-valued os argument
      * @throws IllegalStateException if trying to read a file which does not exists, or on
-     * general failure to read file
+     *                               general failure to read file
      */
     @Override
     public void read(final OutputStream os, final boolean decompress)
@@ -186,9 +192,12 @@ public class BinaryFileFsImpl implements BinaryFile {
             return new BufferedInputStream(new FileInputStream(path.toFile()));
         }
         switch (compression) {
-            case BZIP2: return new BZip2CompressorInputStream(new FileInputStream(path.toFile()));
-            case GZIP: return new GZIPInputStream(new BufferedInputStream(new FileInputStream(path.toFile())));
-            default: return new BufferedInputStream(new FileInputStream(path.toFile()));
+            case BZIP2:
+                return new BZip2CompressorInputStream(new FileInputStream(path.toFile()));
+            case GZIP:
+                return new GZIPInputStream(new BufferedInputStream(new FileInputStream(path.toFile())));
+            default:
+                return new BufferedInputStream(new FileInputStream(path.toFile()));
         }
     }
 
@@ -201,9 +210,12 @@ public class BinaryFileFsImpl implements BinaryFile {
                 return Compression.RAW;
             }
             switch (info.getContentType()) {
-                case BZIP2: return Compression.BZIP2;
-                case GZIP: return Compression.GZIP;
-                default: return Compression.RAW;
+                case BZIP2:
+                    return Compression.BZIP2;
+                case GZIP:
+                    return Compression.GZIP;
+                default:
+                    return Compression.RAW;
             }
         } catch (IOException e) {
             throw new IllegalStateException(e);
@@ -213,7 +225,7 @@ public class BinaryFileFsImpl implements BinaryFile {
     /**
      * @return an InputStream for reading from this file
      * @throws IllegalStateException if file has no content, or on general failure to
-     * create InputStream
+     *                               create InputStream
      */
     @Override
     public InputStream openInputStream() throws IllegalStateException {
@@ -242,13 +254,15 @@ public class BinaryFileFsImpl implements BinaryFile {
         final Compression compression = getCompression();
         if (decompressed) {
             switch (compression) {
-                case BZIP2: return -4_348_520;  // Unfortunately the bz2 format does not contain
-                                                // any information about the uncompressed size in
-                                                // its metadata, so we simply return the negative
-                                                // value of the bz2 magic number to indicate to the
-                                                // caller that the returned size is not available.
-                                                // bz2 magic number BZh == HEX 42 5A 68 == DEC 4.348.520
-                case GZIP: return getGzipDecompressedSize();
+                case BZIP2:
+                    return -4_348_520;  // Unfortunately the bz2 format does not contain
+                // any information about the uncompressed size in
+                // its metadata, so we simply return the negative
+                // value of the bz2 magic number to indicate to the
+                // caller that the returned size is not available.
+                // bz2 magic number BZh == HEX 42 5A 68 == DEC 4.348.520
+                case GZIP:
+                    return getGzipDecompressedSize();
             }
         }
         try {

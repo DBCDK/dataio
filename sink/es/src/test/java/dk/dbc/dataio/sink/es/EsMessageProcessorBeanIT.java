@@ -60,7 +60,7 @@ public class EsMessageProcessorBeanIT extends SinkIT {
         final int itemsInChunk = 10;
         final List<ChunkItem> items = new ArrayList<>(itemsInChunk);
         items.add(new ChunkItemBuilder().setId(0).setStatus(ChunkItem.Status.IGNORE).build());
-        for(long i=1; i<itemsInChunk; i++) {
+        for (long i = 1; i < itemsInChunk; i++) {
             items.add(new ChunkItemBuilder().setId(i).setStatus(ChunkItem.Status.FAILURE).build());
         }
         final Chunk processorChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(items).build();

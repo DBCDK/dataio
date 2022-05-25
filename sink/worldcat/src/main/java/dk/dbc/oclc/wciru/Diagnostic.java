@@ -8,9 +8,9 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "diagnostic", namespace = "http://www.loc.gov/zing/srw/diagnostic/", propOrder = {
-    "uri",
-    "details",
-    "message"
+        "uri",
+        "details",
+        "message"
 })
 public class Diagnostic {
 

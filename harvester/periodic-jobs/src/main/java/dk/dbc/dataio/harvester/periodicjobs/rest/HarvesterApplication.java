@@ -12,6 +12,7 @@ import java.util.Set;
 @ApplicationPath("/")
 public class HarvesterApplication extends Application {
     private static final Set<Class<?>> CLASSES = new HashSet<>();
+
     static {
         CLASSES.add(StatusBean.class);
         CLASSES.add(PeriodicJobsResource.class);

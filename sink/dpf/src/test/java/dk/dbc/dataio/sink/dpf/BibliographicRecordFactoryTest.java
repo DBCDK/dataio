@@ -26,13 +26,13 @@ public class BibliographicRecordFactoryTest {
             throws MarcReaderException, BibliographicRecordFactoryException, TransformerException {
         final String marcXchange =
                 "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                "<record xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
+                        "<record xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
                         "<leader>00000     22000000 4500 </leader>" +
                         "<datafield ind1='0' ind2='0' tag='001'>" +
-                            "<subfield code='a'>123456</subfield>" +
-                            "<subfield code='b'>870970</subfield>" +
+                        "<subfield code='a'>123456</subfield>" +
+                        "<subfield code='b'>870970</subfield>" +
                         "</datafield>" +
-                "</record>";
+                        "</record>";
 
         final MarcRecord marcRecord = MarcRecordFactory.fromMarcXchange(marcXchange.getBytes(StandardCharsets.UTF_8));
 

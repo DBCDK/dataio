@@ -45,6 +45,7 @@ public class FailedFtpsTable extends CellTable {
 
     /**
      * Sets the presenter to allow communication back to the presenter
+     *
      * @param presenter The presenter to set
      */
     public void setPresenter(Presenter presenter) {
@@ -65,16 +66,18 @@ public class FailedFtpsTable extends CellTable {
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
-    DoubleClickHandler getDoubleClickHandler(){
+    DoubleClickHandler getDoubleClickHandler() {
         return doubleClickEvent -> {
-            showTransFileContent(((SingleSelectionModel<Notification>)getSelectionModel()).getSelectedObject());
+            showTransFileContent(((SingleSelectionModel<Notification>) getSelectionModel()).getSelectedObject());
         };
     }
 
     /**
      * This method activates the show transfile content page
+     *
      * @param notification The notification to show
      */
     private void showTransFileContent(Notification notification) {

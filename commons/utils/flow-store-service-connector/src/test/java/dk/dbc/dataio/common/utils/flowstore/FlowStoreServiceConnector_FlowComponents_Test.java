@@ -60,9 +60,9 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
     private FlowComponent createFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
         final HttpPost httpPost = new HttpPost(failSafeHttpClient)
-                    .withBaseUrl(FLOW_STORE_URL)
-                    .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS)
-                    .withJsonData(flowComponentContent);
+                .withBaseUrl(FLOW_STORE_URL)
+                .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS)
+                .withJsonData(flowComponentContent);
 
         when(failSafeHttpClient.execute(httpPost))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
@@ -230,8 +230,8 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
     // Helper method
     private List<FlowComponentView> getAllFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final HttpGet httpGet = new HttpGet(failSafeHttpClient)
-                    .withBaseUrl(FLOW_STORE_URL)
-                    .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS);
+                .withBaseUrl(FLOW_STORE_URL)
+                .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS);
 
         when(failSafeHttpClient.execute(httpGet))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));

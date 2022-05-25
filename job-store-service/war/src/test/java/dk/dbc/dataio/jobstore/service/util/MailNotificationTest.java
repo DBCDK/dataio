@@ -225,7 +225,7 @@ public class MailNotificationTest {
         assertThat("Number of notifications for destination", inbox.size(), is(1));
 
         // Assert that the mail consists of 2 parts: Content and attachment
-        Multipart multipart = (Multipart)inbox.get(0).getContent();
+        Multipart multipart = (Multipart) inbox.get(0).getContent();
         assertThat("Number of parts which the mail consist of", multipart.getCount(), is(2));
 
         // Assert that first part contains the expected resource content
@@ -251,7 +251,7 @@ public class MailNotificationTest {
         assertThat("Number of notifications for destination", inbox.size(), is(1));
 
         // Assert that the mail consists of 2 parts: Content and attachment
-        Multipart multipart = (Multipart)inbox.get(0).getContent();
+        Multipart multipart = (Multipart) inbox.get(0).getContent();
         assertThat("Number of parts which the mail consist of", multipart.getCount(), is(2));
 
         // Assert that first part contains the expected resource content

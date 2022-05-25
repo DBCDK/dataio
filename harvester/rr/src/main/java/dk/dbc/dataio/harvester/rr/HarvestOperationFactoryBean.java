@@ -48,18 +48,18 @@ public class HarvestOperationFactoryBean {
             switch (config.getContent().getHarvesterType()) {
                 case IMS:
                     return new ImsHarvestOperation(config,
-                        harvesterJobBuilderFactory, taskRepo,
+                            harvesterJobBuilderFactory, taskRepo,
                             vipCoreLibraryRulesConnector, metricRegistry);
                 case WORLDCAT:
                     return new WorldCatHarvestOperation(config,
-                        harvesterJobBuilderFactory, taskRepo, vipCoreLibraryRulesConnector,
-                        ocnRepo, metricRegistry);
+                            harvesterJobBuilderFactory, taskRepo, vipCoreLibraryRulesConnector,
+                            ocnRepo, metricRegistry);
                 default:
                     return new HarvestOperation(config,
-                        harvesterJobBuilderFactory, taskRepo,
+                            harvesterJobBuilderFactory, taskRepo,
                             vipCoreLibraryRulesConnector, metricRegistry);
             }
-        } catch(ConfigurationException | QueueException | SQLException e) {
+        } catch (ConfigurationException | QueueException | SQLException e) {
             throw new IllegalStateException("ConfigurationException thrown", e);
         }
     }

@@ -7,8 +7,8 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.mockito.Mockito.mock;
 
 public class FileStoreServiceConnectorBeanTest {

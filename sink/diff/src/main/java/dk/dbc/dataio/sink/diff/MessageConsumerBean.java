@@ -45,12 +45,13 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
      * <br/>  - If the diff produces an empty string, the item is converted into a SUCCESS item in result.
      * <br/>  - If the diff produces a non-empty string, the item is converted into a FAILURE item in result.
      * <br/>  - If a DiffGeneratorException is thrown while comparing, the item is converted into a FAILURE item result.
+     *
      * @param chunk processed chunk
      * @return result of diff
      * @throws SinkException on failure to produce diff
      */
     Chunk handleChunk(Chunk chunk) throws SinkException {
-        if(!chunk.hasNextItems()) {
+        if (!chunk.hasNextItems()) {
             return failWithMissingNextItem(chunk);
         }
 
@@ -150,10 +151,10 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private ChunkItem getChunkItemWithDiffResult(ChunkItemPair pair) {
         if (Arrays.equals(pair.current.getData(), pair.next.getData())) {
             return ChunkItem.successfulChunkItem()
-                        .withId(pair.current.getId())
-                        .withData("Current and next output were identical")
-                        .withType(ChunkItem.Type.STRING)
-                        .withTrackingId(pair.current.getTrackingId());
+                    .withId(pair.current.getId())
+                    .withData("Current and next output were identical")
+                    .withType(ChunkItem.Type.STRING)
+                    .withTrackingId(pair.current.getTrackingId());
         }
 
         String diff;
@@ -197,9 +198,12 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     private static String statusToString(ChunkItem.Status status) {
         switch (status) {
-            case FAILURE: return "Failure";
-            case SUCCESS: return "Success";
-            case IGNORE: return "Ignore";
+            case FAILURE:
+                return "Failure";
+            case SUCCESS:
+                return "Success";
+            case IGNORE:
+                return "Ignore";
             default:
                 return "Internal Error: Unknown Status";
         }

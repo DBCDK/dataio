@@ -21,14 +21,14 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "reordereditem")
 @NamedQueries({
-    @NamedQuery(name = ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY_NAME, query = ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY),
-    @NamedQuery(name = ReorderedItemEntity.GET_NEXT_ITEM_BY_JOBID_QUERY_NAME, query = ReorderedItemEntity.GET_NEXT_ITEM_BY_JOBID_QUERY)
+        @NamedQuery(name = ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY_NAME, query = ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY),
+        @NamedQuery(name = ReorderedItemEntity.GET_NEXT_ITEM_BY_JOBID_QUERY_NAME, query = ReorderedItemEntity.GET_NEXT_ITEM_BY_JOBID_QUERY)
 })
-@SqlResultSetMapping(name="ReorderedItemEntity", entities = {
-    @EntityResult(entityClass=ReorderedItemEntity.class)}
+@SqlResultSetMapping(name = "ReorderedItemEntity", entities = {
+        @EntityResult(entityClass = ReorderedItemEntity.class)}
 )
 @NamedNativeQueries({
-    @NamedNativeQuery(name = ReorderedItemEntity.QUERY_GET_PARENT,
+        @NamedNativeQuery(name = ReorderedItemEntity.QUERY_GET_PARENT,
                 query = "SELECT * FROM reorderedItem WHERE jobId = ? AND recordInfo @> ?::jsonb ORDER BY id DESC",
                 resultSetMapping = "ReorderedItemEntity")
 })

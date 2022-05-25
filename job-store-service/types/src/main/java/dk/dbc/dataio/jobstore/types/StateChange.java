@@ -30,6 +30,7 @@ public class StateChange {
 
     /**
      * Sets the begin date
+     *
      * @param beginDate marking the start time
      * @return the begin date of the state change
      */
@@ -47,6 +48,7 @@ public class StateChange {
 
     /**
      * Sets the end date
+     *
      * @param endDate marking the end time
      * @return the end date of the state change
      */
@@ -64,6 +66,7 @@ public class StateChange {
 
     /**
      * Sets succeeded count
+     *
      * @param succeeded number (must be equal to or larger than 0)
      * @return the succeeded count
      */
@@ -74,6 +77,7 @@ public class StateChange {
 
     /**
      * Increments succeeded count
+     *
      * @param delta increment (must be equal to or larger than 0)
      * @return the incremented succeeded counter
      */
@@ -91,6 +95,7 @@ public class StateChange {
 
     /**
      * Sets failed count
+     *
      * @param failed number (must be equal to or larger than 0)
      * @return the failed count
      */
@@ -101,6 +106,7 @@ public class StateChange {
 
     /**
      * Increments failed count
+     *
      * @param delta increment (must be equal to or larger than 0)
      * @return the incremented failed counter
      */
@@ -118,6 +124,7 @@ public class StateChange {
 
     /**
      * Sets ignored count
+     *
      * @param ignored number (must be equal to or larger than 0)
      * @return the ignored count
      */
@@ -128,11 +135,12 @@ public class StateChange {
 
     /**
      * Increments ignored count
+     *
      * @param delta increment (must be equal to or larger than 0)
      * @return the incremented ignored count
      */
     public StateChange incIgnored(int delta) throws IllegalArgumentException {
-        ignored += InvariantUtil.checkIntLowerBoundOrThrow(delta ,"delta", 0);
+        ignored += InvariantUtil.checkIntLowerBoundOrThrow(delta, "delta", 0);
         return this;
     }
 
@@ -146,6 +154,7 @@ public class StateChange {
     /**
      * /**
      * Sets the phase
+     *
      * @param phase (partitioning, processing, delivering)
      * @return the requested phase
      */

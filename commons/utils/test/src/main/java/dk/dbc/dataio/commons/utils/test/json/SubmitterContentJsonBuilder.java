@@ -31,9 +31,12 @@ public class SubmitterContentJsonBuilder extends JsonBuilder {
     public String build() {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(START_OBJECT);
-        stringBuilder.append(asLongMember("number", number)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("name", name)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("description", description)); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asLongMember("number", number));
+        stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asTextMember("name", name));
+        stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asTextMember("description", description));
+        stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("priority", priority.name()));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();

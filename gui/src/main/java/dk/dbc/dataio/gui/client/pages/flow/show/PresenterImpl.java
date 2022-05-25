@@ -47,9 +47,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
 
-
     /**
      * This method opens a new view, for editing the flow in question
+     *
      * @param model The model for the flow to edit
      */
     @Override
@@ -60,6 +60,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method refreshes all flowcomponents in the flow, passed as a parameter in the call to the method
+     *
      * @param model The flow model, in which all flow components is refreshed
      */
     @Override
@@ -115,6 +116,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         getView().setPresenter(this);
         getView().setHeader(commonInjector.getMenuTexts().menu_Flows());
     }
+
     private View getView() {
         return viewInjector.getView();
     }

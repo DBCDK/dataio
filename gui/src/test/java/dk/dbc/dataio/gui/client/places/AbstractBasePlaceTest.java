@@ -17,10 +17,10 @@ import static org.hamcrest.Matchers.nullValue;
 
 /**
  * PresenterCreateImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class AbstractBasePlaceTest {
@@ -29,9 +29,11 @@ public class AbstractBasePlaceTest {
         ConcreteAbstractBasePlace(String... tokens) {
             super(tokens);
         }
+
         ConcreteAbstractBasePlace(String url) {
             super(url);
         }
+
         @Override
         public Activity createPresenter(ClientFactory clientFactory) {
             return null;
@@ -54,7 +56,7 @@ public class AbstractBasePlaceTest {
     @Test
     public void constructorWithUrl_nullUrl_emptyUrlStored() {
         // Subject under test
-        AbstractBasePlace place = new ConcreteAbstractBasePlace((String)null);
+        AbstractBasePlace place = new ConcreteAbstractBasePlace((String) null);
 
         // Test validation
         assertThat(place.getToken(), is(""));

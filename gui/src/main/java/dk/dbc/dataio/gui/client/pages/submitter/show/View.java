@@ -59,13 +59,14 @@ public class View extends ViewWidget {
     /**
      * Shows the flowbinders passed as a parameter in the call to the method
      * as elements in the popup list in alphabetically order
+     *
      * @param flowBinders The flowbinders to display
      */
     void showFlowBinders(List<FlowBinderModel> flowBinders) {
         if (flowBinders != null) {
             flowBinders.sort(Comparator.comparing(FlowBinderModel::getName));
             popupList.clear();
-            for (FlowBinderModel model: flowBinders) {
+            for (FlowBinderModel model : flowBinders) {
                 popupList.addItem(model.getName(), Long.toString(model.getId()));
             }
             popupList.show();

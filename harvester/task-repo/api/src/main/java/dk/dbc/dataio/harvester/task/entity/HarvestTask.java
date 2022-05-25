@@ -19,9 +19,9 @@ import java.util.List;
 @Entity
 @Table(name = "task")
 @NamedNativeQueries({
-    @NamedNativeQuery(name = HarvestTask.QUERY_FIND_NEXT,
-            query = "SELECT * from task WHERE configId = ?configId ORDER BY id ASC FOR UPDATE SKIP LOCKED",
-            resultClass = HarvestTask.class),
+        @NamedNativeQuery(name = HarvestTask.QUERY_FIND_NEXT,
+                query = "SELECT * from task WHERE configId = ?configId ORDER BY id ASC FOR UPDATE SKIP LOCKED",
+                resultClass = HarvestTask.class),
 })
 public class HarvestTask {
     public static final String QUERY_FIND_NEXT = "HarvestTask.next";
@@ -51,7 +51,8 @@ public class HarvestTask {
     @Convert(converter = HarvestTaskSelectorConverter.class)
     private HarvestTaskSelector selector;
 
-    public HarvestTask() {}
+    public HarvestTask() {
+    }
 
     public int getId() {
         return id;

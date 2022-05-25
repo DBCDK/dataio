@@ -19,7 +19,8 @@ public class FlowBinderIdent implements Serializable {
     }
 
     // For GWT serialization
-    private FlowBinderIdent() {}
+    private FlowBinderIdent() {
+    }
 
     public String getFlowBinderName() {
         return flowBinderName;

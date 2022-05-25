@@ -64,7 +64,7 @@ public class BatchFinalizerBean {
     /**
      * Builds and uploads chunk for next completed batch in the
      * batch-exchange (if any).
-     *
+     * <p>
      * This method runs in its own transactional scope to avoid
      * tearing down any controlling timers.
      *
@@ -88,7 +88,7 @@ public class BatchFinalizerBean {
         entityManager.remove(batch);
 
         final SimpleTimer batchEntryTimer = metricRegistry.simpleTimer(batchEntryTimerMetadata);
-        for (BatchEntry batchEntry: batchEntries) {
+        for (BatchEntry batchEntry : batchEntries) {
             if (batchEntry.getTimeOfCompletion() != null) {
                 batchEntryTimer.update(Duration.ofMillis(
                         batchEntry.getTimeOfCompletion().getTime() - batchEntry.getTimeOfCreation().getTime()));
@@ -99,8 +99,7 @@ public class BatchFinalizerBean {
     }
 
     private Batch findCompletedBatch() {
-        @SuppressWarnings("unchecked")
-        final List<Batch> batch = entityManager
+        @SuppressWarnings("unchecked") final List<Batch> batch = entityManager
                 .createNamedQuery(Batch.GET_COMPLETED_BATCH_QUERY_NAME)
                 .getResultList();
         if (batch.isEmpty()) {
@@ -135,7 +134,7 @@ public class BatchFinalizerBean {
                 // After adding the diagnostics, also update the errors metrics
                 List<Diagnostic> diagnostics = extractBatchEntryData(batchEntry, dataBuffer);
                 chunkItem.appendDiagnostics(diagnostics);
-                if (diagnostics.stream().anyMatch( diagnostic -> diagnostic.getLevel() != Diagnostic.Level.WARNING) ) {
+                if (diagnostics.stream().anyMatch(diagnostic -> diagnostic.getLevel() != Diagnostic.Level.WARNING)) {
                     metricRegistry.counter(batchErrorCounterMetadata).inc();
                 }
 
@@ -161,10 +160,14 @@ public class BatchFinalizerBean {
 
     private ChunkItem.Status convertBatchEntryStatus(BatchEntry.Status batchEntryStatus) {
         switch (batchEntryStatus) {
-            case FAILED: return ChunkItem.Status.FAILURE;
-            case IGNORED: return ChunkItem.Status.IGNORE;
-            case OK: return ChunkItem.Status.SUCCESS;
-            default: throw new IllegalStateException("illegal batch entry status " + batchEntryStatus);
+            case FAILED:
+                return ChunkItem.Status.FAILURE;
+            case IGNORED:
+                return ChunkItem.Status.IGNORE;
+            case OK:
+                return ChunkItem.Status.SUCCESS;
+            default:
+                throw new IllegalStateException("illegal batch entry status " + batchEntryStatus);
         }
     }
 

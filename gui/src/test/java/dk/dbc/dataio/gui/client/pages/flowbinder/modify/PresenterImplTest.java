@@ -49,8 +49,10 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
 
-    @Mock private Texts mockedTexts;
-    @Mock private ViewGinjector mockedViewInjector;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private ViewGinjector mockedViewInjector;
 
     private static boolean initializeModelHasBeenCalled;
     private static boolean saveModelHasBeenCalled;
@@ -438,7 +440,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         assertThat(presenterImpl.model.getSinkModel().getSinkName(), is(sinkModel3.getSinkName()));
     }
 
-    @Test public void sinkChanged_openUpdateSink_queryProviderIsSet() {
+    @Test
+    public void sinkChanged_openUpdateSink_queryProviderIsSet() {
         initializeAndStartPresenter();
 
         presenterImpl.model.setQueueProvider(null);
@@ -451,7 +454,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(view.queueProvider, times(1)).setValue(presenterImpl.model.getQueueProvider());
     }
 
-    @Test public void sinkChanged_toNoneOpenUpdateSink_queryProviderIsSet() {
+    @Test
+    public void sinkChanged_toNoneOpenUpdateSink_queryProviderIsSet() {
         initializeAndStartPresenter();
 
         presenterImpl.sinkChanged("301");
@@ -619,6 +623,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenterImpl();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }
+
     private void setupPresenterImpl() {
         presenterImpl = new PresenterImplConcrete(header);
         presenterImpl.commonInjector = mockedCommonGinjector;

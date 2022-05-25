@@ -17,7 +17,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 public class AbstractMessageConsumerBeanTest {
-    protected enum HandleConsumedMessageReaction { ACCEPT, INVALID, THROW }
+    protected enum HandleConsumedMessageReaction {ACCEPT, INVALID, THROW}
 
     private static final String PAYLOAD = "{'key': 'value'}";
     private static final String PAYLOAD_TYPE = HandleConsumedMessageReaction.ACCEPT.toString();
@@ -174,6 +174,7 @@ public class AbstractMessageConsumerBeanTest {
         public MessageDrivenContext getMessageDrivenContext() {
             return messageDrivenContext;
         }
+
         public void setMessageDrivenContext(MessageDrivenContext messageDrivenContext) {
             this.messageDrivenContext = messageDrivenContext;
         }
@@ -191,6 +192,7 @@ public class AbstractMessageConsumerBeanTest {
 
         public static class TestableMessageConsumerBeanException extends ServiceException {
             private static final long serialVersionUID = -1908673274650168855L;
+
             public TestableMessageConsumerBeanException(String message) {
                 super(message);
             }

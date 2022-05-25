@@ -11,9 +11,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -28,9 +28,12 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class ErrorJobFilterTest {
-    @Mock private Texts mockedTexts;
-    @Mock private Resources mockedResources;
-    @Mock private ChangeHandler mockedChangeHandler;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private Resources mockedResources;
+    @Mock
+    private ChangeHandler mockedChangeHandler;
 
 
     //

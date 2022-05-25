@@ -9,11 +9,11 @@ import java.math.BigInteger;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "recordType", namespace = "http://www.loc.gov/zing/srw/", propOrder = {
-    "recordSchema",
-    "recordPacking",
-    "recordData",
-    "recordPosition",
-    "extraRecordData"
+        "recordSchema",
+        "recordPacking",
+        "recordData",
+        "recordPosition",
+        "extraRecordData"
 })
 public class RecordType {
 

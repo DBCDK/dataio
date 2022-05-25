@@ -30,11 +30,14 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     // Instantiate UI Binder
-    interface MyUiBinder extends UiBinder<Widget, ViewWidget> {}
+    interface MyUiBinder extends UiBinder<Widget, ViewWidget> {
+    }
+
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
     /**
      * Default constructor
+     *
      * @param headerText, the text for the header in the view
      */
     public ViewWidget(String headerText) {
@@ -46,26 +49,45 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     }
 
     // UI Fields
-    @UiField CellTable jobsTable;
-    @UiField JobFilter jobFilter;
-    @UiField SimplePager pagerTop;
-    @UiField SimplePager pagerBottom;
-    @UiField Button refreshButton;
-    @UiField Button rerunAllShownJobsButton;
-    @UiField PromptedList numberOfShownJobsSelection;
-    @UiField TextBox jobIdInputField;
-    @UiField PushButton showJobButton;
-    @UiField DialogBox rerunAllShownJobsConfirmationDialog;
-    @UiField Label rerunJobsCount;
-    @UiField Label rerunJobsList;
-    @UiField Label rerunJobsConfirmation;
-    @UiField Button rerunOkButton;
-    @UiField PopupSelectBox popupSelectBox;
-    @UiField PushButton changeColorSchemeButton;
-    @UiField PushButton logButton;
+    @UiField
+    CellTable jobsTable;
+    @UiField
+    JobFilter jobFilter;
+    @UiField
+    SimplePager pagerTop;
+    @UiField
+    SimplePager pagerBottom;
+    @UiField
+    Button refreshButton;
+    @UiField
+    Button rerunAllShownJobsButton;
+    @UiField
+    PromptedList numberOfShownJobsSelection;
+    @UiField
+    TextBox jobIdInputField;
+    @UiField
+    PushButton showJobButton;
+    @UiField
+    DialogBox rerunAllShownJobsConfirmationDialog;
+    @UiField
+    Label rerunJobsCount;
+    @UiField
+    Label rerunJobsList;
+    @UiField
+    Label rerunJobsConfirmation;
+    @UiField
+    Button rerunOkButton;
+    @UiField
+    PopupSelectBox popupSelectBox;
+    @UiField
+    PushButton changeColorSchemeButton;
+    @UiField
+    PushButton logButton;
     // Only public due to JobFilterTest
-    @UiField public PopupListBox changeColorSchemeListBox;
-    @UiField CheckBox autoRefresh;
+    @UiField
+    public PopupListBox changeColorSchemeListBox;
+    @UiField
+    CheckBox autoRefresh;
 
 
     @UiFactory
@@ -83,7 +105,8 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @SuppressWarnings("unused")
     void jobFilterChanged(ChangeEvent event) {
         presenter.updateSelectedJobs();
-        logButton.fireEvent(new ClickEvent(){});
+        logButton.fireEvent(new ClickEvent() {
+        });
     }
 
     @UiHandler("refreshButton")
@@ -139,7 +162,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     @UiHandler("jobIdInputField")
     void onKeyDown(KeyDownEvent event) {
-        if(event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
+        if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
             presenter.showJob();
         }
     }
@@ -192,7 +215,9 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     // Abstract methods
     abstract void rerunAllShownJobs();
+
     abstract void rerunAllShownJobsConfirmed();
+
     abstract void setAutoRefresh(boolean autoRefresh);
 
 }

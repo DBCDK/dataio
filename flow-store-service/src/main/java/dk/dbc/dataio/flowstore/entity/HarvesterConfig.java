@@ -20,12 +20,12 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "harvester_configs")
-@SqlResultSetMapping(name="HarvesterConfig.implicit", entities = {
+@SqlResultSetMapping(name = "HarvesterConfig.implicit", entities = {
         @EntityResult(entityClass = HarvesterConfig.class)}
 )
 @NamedQueries({
-    @NamedQuery(name = HarvesterConfig.QUERY_FIND_ALL_OF_TYPE,
-        query = "SELECT harvesterConfig FROM HarvesterConfig harvesterConfig where harvesterConfig.type = :type"),
+        @NamedQuery(name = HarvesterConfig.QUERY_FIND_ALL_OF_TYPE,
+                query = "SELECT harvesterConfig FROM HarvesterConfig harvesterConfig where harvesterConfig.type = :type"),
 })
 @NamedNativeQueries({
         @NamedNativeQuery(name = HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE,
@@ -54,18 +54,18 @@ public class HarvesterConfig extends Versioned {
     // fluent Api
 
     public HarvesterConfig withId(Long id) {
-        this.setId( id );
+        this.setId(id);
         return this;
     }
 
     public HarvesterConfig withVersion(Long version) {
-            super.setVersion( version );
-            return this;
-         }
+        super.setVersion(version);
+        return this;
+    }
 
 
     public HarvesterConfig withContent(String content) throws JSONBException {
-        this.setContent( content) ;
+        this.setContent(content);
         return this;
     }
 
@@ -87,7 +87,6 @@ public class HarvesterConfig extends Versioned {
     public int hashCode() {
         return Objects.hash(getType());
     }
-
 
 
     @Override

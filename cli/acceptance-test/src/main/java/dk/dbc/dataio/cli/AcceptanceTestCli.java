@@ -11,9 +11,9 @@ import dk.dbc.dataio.cli.options.Options;
 /**
  * dataIO acceptance test command line interface
  * <p>
- *     To show usage run
- *
- *     %&gt; java -jar dataio-cli-acctest.jar
+ * To show usage run
+ * <p>
+ * %&gt; java -jar dataio-cli-acctest.jar
  * </p>
  */
 public class AcceptanceTestCli {
@@ -46,9 +46,11 @@ public class AcceptanceTestCli {
             }
 
             switch (argParser.getParsedCommand()) {
-                case "create": new CreateCommand(createOptions).execute();
+                case "create":
+                    new CreateCommand(createOptions).execute();
                     break;
-                case "commit": new CommitCommand(commitOptions).execute();
+                case "commit":
+                    new CommitCommand(commitOptions).execute();
                     break;
                 default:
                     argParser.usage();

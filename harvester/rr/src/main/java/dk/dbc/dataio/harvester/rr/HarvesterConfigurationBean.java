@@ -28,6 +28,7 @@ public class HarvesterConfigurationBean {
 
     /**
      * Reloads configuration
+     *
      * @throws dk.dbc.dataio.harvester.types.HarvesterException on failure to lookup configuration resource
      */
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)

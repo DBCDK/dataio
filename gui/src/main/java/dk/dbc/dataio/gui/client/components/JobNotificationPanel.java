@@ -21,16 +21,24 @@ public class JobNotificationPanel extends Composite {
     // UI Fields
     @UiField
     PromptedLabel jobId;
-    @UiField PromptedLabel destination;
-    @UiField PromptedLabel timeOfCreation;
-    @UiField PromptedLabel timeOfLastModification;
-    @UiField PromptedLabel type;
-    @UiField PromptedLabel status;
-    @UiField PromptedLabel statusMessage;
-    @UiField InlineHTML content;
+    @UiField
+    PromptedLabel destination;
+    @UiField
+    PromptedLabel timeOfCreation;
+    @UiField
+    PromptedLabel timeOfLastModification;
+    @UiField
+    PromptedLabel type;
+    @UiField
+    PromptedLabel status;
+    @UiField
+    PromptedLabel statusMessage;
+    @UiField
+    InlineHTML content;
 
     /**
      * Set job id
+     *
      * @param jobId The Job Id
      */
     public void setJobId(String jobId) {
@@ -39,6 +47,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * Set destination
+     *
      * @param destination The destination mail address
      */
     public void setDestination(String destination) {
@@ -47,6 +56,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * Set Time of Creation
+     *
      * @param timeOfCreation The time of creation
      */
     public void setTimeOfCreation(String timeOfCreation) {
@@ -55,6 +65,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * Set time of last modification
+     *
      * @param timeOfLastModification The time of the last modification
      */
     public void setTimeOfLastModification(String timeOfLastModification) {
@@ -63,6 +74,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * Set Type
+     *
      * @param type The type of the Job Notification
      */
     public void setType(String type) {
@@ -71,6 +83,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * Set Status
+     *
      * @param status The status of the Job Notification mail
      */
     public void setStatus(String status) {
@@ -79,6 +92,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * The status message
+     *
      * @param statusMessage The status message
      */
     public void setStatusMessage(String statusMessage) {
@@ -87,6 +101,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * Set the content of the Job Notification (the body of the mail)
+     *
      * @param content The content of the Job Notification
      */
     public void setContent(String content) {

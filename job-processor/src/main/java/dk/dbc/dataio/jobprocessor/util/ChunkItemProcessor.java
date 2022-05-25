@@ -130,11 +130,11 @@ public class ChunkItemProcessor {
                 "Exception caught during javascript processing",
                 stackTraceString, null, null);
         return ChunkItem.failedChunkItem()
-                    .withId(chunkItem.getId())
-                    .withData(diagnostic.getStacktrace())
-                    .withType(ChunkItem.Type.STRING)
-                    .withTrackingId(chunkItem.getTrackingId())
-                    .withDiagnostics(diagnostic);
+                .withId(chunkItem.getId())
+                .withData(diagnostic.getStacktrace())
+                .withType(ChunkItem.Type.STRING)
+                .withTrackingId(chunkItem.getTrackingId())
+                .withDiagnostics(diagnostic);
     }
 
     private String logstoreMdcPut(ChunkItem chunkItem) {

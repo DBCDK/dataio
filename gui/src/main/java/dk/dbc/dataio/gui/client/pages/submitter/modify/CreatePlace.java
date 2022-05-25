@@ -26,6 +26,7 @@ public class CreatePlace extends AbstractBasePlace {
         public String getToken(CreatePlace place) {
             return "";
         }
+
         @Override
         public CreatePlace getPlace(String token) {
             return new CreatePlace();

@@ -46,7 +46,7 @@ public class JobInfoSnapshotConverterTest {
 
     private void assertJobInfoSnapshotEquals(JobInfoSnapshot jobInfoSnapshot, JobEntity jobEntity) {
         assertThat(jobInfoSnapshot.getState(), is(jobEntity.getState()));
-        assertThat(jobInfoSnapshot.isEoj(), is (jobEntity.isEoj()));
+        assertThat(jobInfoSnapshot.isEoj(), is(jobEntity.isEoj()));
         assertThat(jobInfoSnapshot.getPartNumber(), is(jobEntity.getPartNumber()));
         assertThat(jobInfoSnapshot.getSpecification(), is(jobEntity.getSpecification()));
         assertThat(jobInfoSnapshot.getNumberOfChunks(), is(jobEntity.getNumberOfChunks()));

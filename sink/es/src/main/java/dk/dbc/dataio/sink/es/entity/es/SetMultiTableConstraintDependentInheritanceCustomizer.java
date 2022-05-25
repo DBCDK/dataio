@@ -5,13 +5,12 @@ import org.eclipse.persistence.descriptors.ClassDescriptor;
 
 /**
  * Created by ja7 on 24-09-14.
- *
+ * <p>
  * JPA Description Customizer used to work around EclipseLink/JPA specification bug
- *   Se    Bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=333100
- *
+ * Se    Bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=333100
+ * <p>
  * Workaround taken from.
  * http://stackoverflow.com/questions/21384589/jpa-inheritance-foreign-key-constraint-fails
- *
  */
 public class SetMultiTableConstraintDependentInheritanceCustomizer implements DescriptorCustomizer {
 

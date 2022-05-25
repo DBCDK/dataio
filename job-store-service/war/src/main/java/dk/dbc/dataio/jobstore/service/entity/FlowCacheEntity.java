@@ -16,12 +16,12 @@ import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 
 @Entity
-@SqlResultSetMapping(name="FlowCacheEntity.implicit", entities = {
-    @EntityResult(entityClass=FlowCacheEntity.class)}
+@SqlResultSetMapping(name = "FlowCacheEntity.implicit", entities = {
+        @EntityResult(entityClass = FlowCacheEntity.class)}
 )
 @NamedNativeQueries({
-    @NamedNativeQuery(name = FlowCacheEntity.NAMED_QUERY_SET_CACHE,
-        query = "select * from set_flowcache(?checksum, ?flow)", resultSetMapping = "FlowCacheEntity.implicit")
+        @NamedNativeQuery(name = FlowCacheEntity.NAMED_QUERY_SET_CACHE,
+                query = "select * from set_flowcache(?checksum, ?flow)", resultSetMapping = "FlowCacheEntity.implicit")
 })
 @Table(name = "flowcache")
 public class FlowCacheEntity {

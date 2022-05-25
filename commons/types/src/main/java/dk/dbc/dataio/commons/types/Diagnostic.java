@@ -23,10 +23,10 @@ public class Diagnostic {
 
     @JsonCreator
     public Diagnostic(@JsonProperty("level") Level level,
-                       @JsonProperty("message") String message,
-                       @JsonProperty("stacktrace") String stacktrace,
-                       @JsonProperty("tag") String tag,
-                       @JsonProperty("attribute") String attribute) {
+                      @JsonProperty("message") String message,
+                      @JsonProperty("stacktrace") String stacktrace,
+                      @JsonProperty("tag") String tag,
+                      @JsonProperty("attribute") String attribute) {
         this.level = InvariantUtil.checkNotNullOrThrow(level, "level");
         this.message = InvariantUtil.checkNotNullNotEmptyOrThrow(message, "message");
         this.stacktrace = stacktrace;  // stacktrace is optional

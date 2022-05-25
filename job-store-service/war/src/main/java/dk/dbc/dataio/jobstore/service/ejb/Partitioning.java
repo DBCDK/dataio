@@ -81,8 +81,8 @@ public class Partitioning {
         if (result != null) {
             Throwable cause;
             while (null != (cause = result.getCause()) && result != cause) {
-                if (   cause instanceof PrematureEndOfDataException
-                    || cause instanceof TransactionRolledbackLocalException) {
+                if (cause instanceof PrematureEndOfDataException
+                        || cause instanceof TransactionRolledbackLocalException) {
                     result = cause;
                     break;
                 }

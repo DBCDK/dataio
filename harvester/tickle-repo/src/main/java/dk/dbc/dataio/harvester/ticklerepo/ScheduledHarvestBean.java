@@ -56,6 +56,7 @@ public class ScheduledHarvestBean {
 
     /**
      * (Re)starts harvester with given schedule.
+     *
      * @param scheduleExpression harvest schedule
      */
     @Lock(LockType.WRITE)

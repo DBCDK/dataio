@@ -29,8 +29,7 @@ public class PromptedTextArea extends PromptedData implements HasValue<String> {
         add(textArea);
     }
 
-    public @UiConstructor
-    PromptedTextArea(String guiId, String prompt, String maxLength) {
+    public @UiConstructor PromptedTextArea(String guiId, String prompt, String maxLength) {
         this(guiId, prompt);
         if (!maxLength.isEmpty()) {
             textArea.getElement().setAttribute("Maxlength", maxLength);
@@ -95,7 +94,7 @@ public class PromptedTextArea extends PromptedData implements HasValue<String> {
         return textArea.addChangeHandler(handler);
     }
 
-    public HandlerRegistration addBlurHandler(BlurHandler handler){
+    public HandlerRegistration addBlurHandler(BlurHandler handler) {
         return textArea.addBlurHandler(handler);
     }
 

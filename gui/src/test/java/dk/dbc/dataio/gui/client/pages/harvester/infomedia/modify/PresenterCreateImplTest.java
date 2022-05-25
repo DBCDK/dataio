@@ -16,8 +16,10 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterCreateImplTest {
-    @Mock CommonGinjector commonInjector;
-    @Mock FlowStoreProxyAsync flowStoreProxyAsync;
+    @Mock
+    CommonGinjector commonInjector;
+    @Mock
+    FlowStoreProxyAsync flowStoreProxyAsync;
 
     private PresenterCreateImpl presenter;
 

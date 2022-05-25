@@ -15,19 +15,19 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * JaxpUtil unit tests
  * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class JaxpUtilTest {
     private final String xmlRecord = "<data/>";
     private final String xmlRecordWithNamespace = "<ns:data xmlns:ns=\"http://test.dbc.dk/ns\"/>";
 
-    @Test(expected=NullPointerException.class)
+    @Test(expected = NullPointerException.class)
     public void parseDocumentTakingInputSourceParameter_xmlArgIsNull_throwsNullPointerException() throws Exception {
         JaxpUtil.parseDocument((InputSource) null);
     }
 
-    @Test(expected=SAXException.class)
+    @Test(expected = SAXException.class)
     public void parseDocumentTakingInputSourceParameter_xmlArgIsInvalidXml_throwsSAXException() throws Exception {
         JaxpUtil.parseDocument(stringToInputSource("not xml"));
     }
@@ -44,18 +44,18 @@ public class JaxpUtilTest {
         assertThat(doc, is(notNullValue()));
     }
 
-    @Test(expected=NullPointerException.class)
+    @Test(expected = NullPointerException.class)
     public void parseDocumentTakingStringParameter_xmlArgIsNull_throwsNullPointerException() throws Exception {
         String xml = null;
         JaxpUtil.parseDocument(xml);
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void parseDocumentTakingStringParameter_xmlArgIsEmpty_throwsIllegalArgumentException() throws Exception {
         JaxpUtil.parseDocument("");
     }
 
-    @Test(expected=SAXException.class)
+    @Test(expected = SAXException.class)
     public void parseDocumentTakingStringParameter_xmlArgIsInvalidXml_throwsSAXException() throws Exception {
         JaxpUtil.parseDocument("not xml");
     }
@@ -72,7 +72,7 @@ public class JaxpUtilTest {
         assertThat(doc, is(notNullValue()));
     }
 
-    @Test(expected=NullPointerException.class)
+    @Test(expected = NullPointerException.class)
     public void asString_nodeArgIsNull_throwsNullPointerException() throws Exception {
         JaxpUtil.asString(null);
     }

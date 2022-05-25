@@ -27,6 +27,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * Default constructor
+     *
      * @param placeController The place controller
      */
     public PresenterImpl(PlaceController placeController) {
@@ -57,6 +58,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method starts the edit harvester page
+     *
      * @param id The id of the harvester configuration to edit
      */
     @Override

@@ -27,19 +27,19 @@ public class TestablePartitioningParamBuilder {
     private EntityManager entityManager = mock(EntityManager.class);
     private String records =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-            + "<records>"
-            + "<record>first</record>"
-            + "<record>second</record>"
-            + "<record>third</record>"
-            + "<record>fourth</record>"
-            + "<record>fifth</record>"
-            + "<record>sixth</record>"
-            + "<record>seventh</record>"
-            + "<record>eighth</record>"
-            + "<record>ninth</record>"
-            + "<record>tenth</record>"
-            + "<record>eleventh</record>"
-            + "</records>";
+                    + "<records>"
+                    + "<record>first</record>"
+                    + "<record>second</record>"
+                    + "<record>third</record>"
+                    + "<record>fourth</record>"
+                    + "<record>fifth</record>"
+                    + "<record>sixth</record>"
+                    + "<record>seventh</record>"
+                    + "<record>eighth</record>"
+                    + "<record>ninth</record>"
+                    + "<record>tenth</record>"
+                    + "<record>eleventh</record>"
+                    + "</records>";
 
     private List<Diagnostic> diagnostics = new ArrayList<>();
     private InputStream dataFileInputStream = new ByteArrayInputStream(records.getBytes(StandardCharsets.UTF_8));

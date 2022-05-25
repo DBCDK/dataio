@@ -14,7 +14,8 @@ import dk.dbc.dataio.gui.client.components.Tooltip;
 
 public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
-    @UiField final TextBox textBox = new TextBox();
+    @UiField
+    final TextBox textBox = new TextBox();
 
 
     /**
@@ -26,10 +27,10 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     /**
      * Constructor to be used in UI Binder
+     *
      * @param prompt The prompt text
      */
-    public @UiConstructor
-    PromptedTextBox(String prompt) {
+    public @UiConstructor PromptedTextBox(String prompt) {
         super(prompt);
         textBox.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
         add(textBox);
@@ -37,6 +38,7 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     /**
      * Sets the Tool Tip to be used. Tool Tips will be shown, whenever the user hovers over the component
+     *
      * @param toolTip The Tool Tip to be shown to the user
      */
     public void setToolTip(String toolTip) {
@@ -48,6 +50,7 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     /**
      * Sets the Max Length of the text box in number of characters that can be entered
+     *
      * @param maxLength The Max Length of the text box
      */
     public void setMaxLength(String maxLength) {
@@ -56,6 +59,7 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     /**
      * Gets the value of the entered text as a String
+     *
      * @return The value of the entered text
      */
     @Override
@@ -65,6 +69,7 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     /**
      * Sets the text in the Text box in the component
+     *
      * @param value The text to be set in the textbox
      */
     @Override
@@ -74,7 +79,8 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     /**
      * Sets the text in the Text box in the component
-     * @param value The text to be set in the textbox
+     *
+     * @param value      The text to be set in the textbox
      * @param fireEvents If true, an event is fired to signal that the value has changed
      */
     @Override
@@ -102,6 +108,7 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     /**
      * Sets the text in the textbox. No event will be fired.
+     *
      * @param value The text to be set in the textbox
      */
     public void setText(String value) {
@@ -110,6 +117,7 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     /**
      * Gets the value of the entered text as a String
+     *
      * @return The value of the entered text
      */
     public String getText() {
@@ -118,6 +126,7 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     /**
      * Enables or disables the component
+     *
      * @param enabled True: Enables the component, False: Disables the component
      */
     public void setEnabled(boolean enabled) {
@@ -126,6 +135,7 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     /**
      * Tells, whether the component is enabled or disabled
+     *
      * @return True: Enabled, False: Disabled
      */
     public boolean isEnabled() {
@@ -134,6 +144,7 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     /**
      * Sets the focus on this component
+     *
      * @param focused If true, the component is focused, if false, the component is de-focused (blurred)
      */
     public void setFocus(boolean focused) {
@@ -142,6 +153,7 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     /**
      * Adds a KeyDownHandler
+     *
      * @param handler The KeyDownHandler
      * @return The HandlerRegistration object to be used to remove the handler
      */
@@ -153,12 +165,14 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
      * Fires a Change event
      */
     public void fireChangeEvent() {
-        class TextBoxChangedEvent extends ChangeEvent {}
+        class TextBoxChangedEvent extends ChangeEvent {
+        }
         textBox.fireEvent(new TextBoxChangedEvent());
     }
 
     /**
      * Adds a ChangeHandler to this component
+     *
      * @param handler The ChangeHandler
      * @return The HandlerRegistration object to be used to remove the handler
      */
@@ -168,10 +182,11 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     /**
      * Adds a BlurHandler to this component
+     *
      * @param handler The BlurHandler
      * @return The HandlerRegistration object to be used to remove the handler
      */
-    public HandlerRegistration addBlurHandler(BlurHandler handler){
+    public HandlerRegistration addBlurHandler(BlurHandler handler) {
         return textBox.addBlurHandler(handler);
     }
 }

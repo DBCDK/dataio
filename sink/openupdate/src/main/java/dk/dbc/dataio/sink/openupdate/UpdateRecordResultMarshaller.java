@@ -30,6 +30,7 @@ public class UpdateRecordResultMarshaller {
 
     /**
      * Converts a updateRecordResult instance to String
+     *
      * @param updateRecordResult to convert
      * @return string representation of the updateRecordResult provided as input
      * @throws JAXBException If any unexpected problem occurs during the marshalling.

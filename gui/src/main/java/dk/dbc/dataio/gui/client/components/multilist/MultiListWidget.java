@@ -27,9 +27,12 @@ public class MultiListWidget extends Composite implements HasValue<Map<String, S
 
     ClickHandler buttonClickHandler = null;
 
-    @UiField SortableList list;
-    @UiField PushButton removeButton;
-    @UiField PushButton addButton;
+    @UiField
+    SortableList list;
+    @UiField
+    PushButton removeButton;
+    @UiField
+    PushButton addButton;
 
 
     @UiConstructor

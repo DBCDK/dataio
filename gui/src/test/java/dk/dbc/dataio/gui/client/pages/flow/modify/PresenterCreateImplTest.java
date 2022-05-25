@@ -25,16 +25,18 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterCreateImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterCreateImplTest extends PresenterImplTestBase {
 
-    @Mock Texts mockedTexts;
-    @Mock ViewGinjector mockedViewGinjector;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    ViewGinjector mockedViewGinjector;
 
     private ViewWidget createView;
 
@@ -71,6 +73,7 @@ public class PresenterCreateImplTest extends PresenterImplTestBase {
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
     }
+
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
         setupPresenterAndStart();
@@ -91,7 +94,6 @@ public class PresenterCreateImplTest extends PresenterImplTestBase {
         assertThat(createView.showAvailableFlowComponents, is(false));
         verifyNoMoreInteractions(createView.flowComponents);  // To make sure, that there are no addValue() calls
     }
-
 
 
     @Test

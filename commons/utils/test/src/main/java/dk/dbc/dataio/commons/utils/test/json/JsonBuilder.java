@@ -22,7 +22,7 @@ public abstract class JsonBuilder {
 
     protected String asLongMember(String memberName, Long memberValue) {
         final String memberValueAsString = (memberValue == null) ? NULL_VALUE
-            : Long.toString(memberValue);
+                : Long.toString(memberValue);
         return String.format("\"%s\": %s", memberName, memberValueAsString);
     }
 
@@ -52,7 +52,7 @@ public abstract class JsonBuilder {
 
     protected String asLongArray(String memberName, List<Long> memberValues) {
         final String memberValuesAsString = (memberValues == null) ? NULL_VALUE
-            : String.format("%s%s%s", START_ARRAY, joinLongs(",", memberValues), END_ARRAY);
+                : String.format("%s%s%s", START_ARRAY, joinLongs(",", memberValues), END_ARRAY);
         return String.format("\"%s\": %s", memberName, memberValuesAsString);
     }
 

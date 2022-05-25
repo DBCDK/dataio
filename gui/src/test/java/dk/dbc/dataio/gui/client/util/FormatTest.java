@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.gui.client.util;
 
 import org.junit.Test;
@@ -15,10 +14,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Format unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class FormatTest {
 
@@ -72,7 +71,7 @@ public class FormatTest {
         final List<String> matchesFound = getDataioPatternMatches(invalidInputStr);
         char[] charArray = invalidInputStr.toCharArray();
         assertThat(matchesFound.size(), is(charArray.length));
-        for(int i = 0; i < matchesFound.size(); i++) {
+        for (int i = 0; i < matchesFound.size(); i++) {
             assertThat(matchesFound.get(i), is(String.valueOf(charArray[i])));
         }
     }
@@ -92,7 +91,7 @@ public class FormatTest {
         final List<String> matchesFound = getPatternMatches(invalidInputStr, alphaNumericPattern);
         char[] charArray = invalidInputStr.toCharArray();
         assertThat(matchesFound.size(), is(charArray.length));
-        for(int i = 0; i < matchesFound.size(); i++) {
+        for (int i = 0; i < matchesFound.size(); i++) {
             assertThat(matchesFound.get(i), is(String.valueOf(charArray[i])));
         }
     }

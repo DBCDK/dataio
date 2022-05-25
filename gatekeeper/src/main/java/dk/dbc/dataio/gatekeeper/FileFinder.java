@@ -21,11 +21,12 @@ public class FileFinder {
      * Finds all files in given directory ending with the specified
      * file extension(s) ordered by ascending creation time (one second granularity)
      * and then by filename
-     * @param dir directory to search
+     *
+     * @param dir        directory to search
      * @param extensions only match files with given extensions (dot is not required)
      * @return list of matching files
      * @throws NullPointerException if given null-valued argument
-     * @throws IOException if directory does not exists or similar error condition
+     * @throws IOException          if directory does not exists or similar error condition
      */
     public static List<Path> findFilesWithExtension(Path dir, Set<String> extensions)
             throws NullPointerException, IOException {

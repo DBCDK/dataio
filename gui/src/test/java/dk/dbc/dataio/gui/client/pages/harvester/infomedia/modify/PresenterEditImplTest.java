@@ -16,9 +16,12 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest {
-    @Mock EditPlace editPlace;
-    @Mock CommonGinjector commonInjector;
-    @Mock FlowStoreProxyAsync flowStoreProxyAsync;
+    @Mock
+    EditPlace editPlace;
+    @Mock
+    CommonGinjector commonInjector;
+    @Mock
+    FlowStoreProxyAsync flowStoreProxyAsync;
 
     private PresenterEditImpl presenter;
 

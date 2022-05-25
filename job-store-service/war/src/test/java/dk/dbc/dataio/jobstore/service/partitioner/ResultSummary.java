@@ -22,6 +22,7 @@ import static dk.dbc.marc.binding.MarcRecord.hasTag;
 public final class ResultSummary {
     /**
      * Transforms non-empty {@link DataPartitionerResult} into a {@link ResultSummary}
+     *
      * @param dataPartitionerResult result to be transformed
      * @return optional result summary
      */
@@ -44,7 +45,7 @@ public final class ResultSummary {
         try {
             final List<String> ids = new ArrayList<>();
             final MarcXchangeV1Reader reader = new MarcXchangeV1Reader(
-                        new ByteArrayInputStream(chunkItem.getData()), chunkItem.getEncoding());
+                    new ByteArrayInputStream(chunkItem.getData()), chunkItem.getEncoding());
             MarcRecord marcRecord = reader.read();
             while (marcRecord != null) {
                 marcRecord.getField(DataField.class, hasTag("001"))
@@ -58,7 +59,8 @@ public final class ResultSummary {
         }
     }
 
-    public ResultSummary() {}
+    public ResultSummary() {
+    }
 
     private ChunkItem.Status status;
     private List<String> ids = new ArrayList<>();

@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.commons.addi.AddiRecord;
@@ -177,7 +176,7 @@ public class HarvestOperation implements AutoCloseable {
                                 createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
 
                 metricRegistry.simpleTimer(taskDurationTimerMetadata,
-                        new Tag("config", config.getContent().getId()))
+                                new Tag("config", config.getContent().getId()))
                         .update(Duration.ofMillis(System.currentTimeMillis() - taskStartTime));
             }
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
@@ -187,7 +186,7 @@ public class HarvestOperation implements AutoCloseable {
             getHarvesterJobBuilder(recordHarvestTask.getAddiMetaData().submitterNumber())
                     .addRecord(
                             createAddiRecord(recordHarvestTask.getAddiMetaData().withDiagnostic(
-                                    new Diagnostic(Diagnostic.Level.FATAL, errorMsg)),
+                                            new Diagnostic(Diagnostic.Level.FATAL, errorMsg)),
                                     recordData != null ? recordData.getContent() : null));
 
             metricRegistry.counter(taskErrorCounterMetadata,
@@ -424,5 +423,6 @@ public class HarvestOperation implements AutoCloseable {
     }
 
     @Override
-    public void close() {}
+    public void close() {
+    }
 }

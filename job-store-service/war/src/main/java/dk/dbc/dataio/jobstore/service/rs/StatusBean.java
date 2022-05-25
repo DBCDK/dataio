@@ -46,7 +46,7 @@ public class StatusBean implements ServiceStatus {
 
     @GET
     @Path(JobStoreServiceConstants.SINKS_STATUS)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getSinkStatusList() throws JSONBException {
         LOGGER.trace("getSinkStatusList called");
@@ -64,7 +64,7 @@ public class StatusBean implements ServiceStatus {
 
     @GET
     @Path(JobStoreServiceConstants.SINK_STATUS)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getSinkStatus(@PathParam(JobStoreServiceConstants.SINK_ID_VARIABLE) long sinkId) throws JSONBException {
         LOGGER.trace("getSinkStatus called with id {}", sinkId);

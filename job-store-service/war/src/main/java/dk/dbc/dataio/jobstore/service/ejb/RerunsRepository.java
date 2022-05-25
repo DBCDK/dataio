@@ -23,6 +23,7 @@ public class RerunsRepository extends RepositoryBase {
 
     /**
      * Adds given {@link RerunEntity} to queue in waiting state
+     *
      * @param rerunEntity entry to be added to queue
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -33,6 +34,7 @@ public class RerunsRepository extends RepositoryBase {
 
     /**
      * Removes given {@link RerunEntity} from queue
+     *
      * @param rerunEntity entry to be removed
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -47,6 +49,7 @@ public class RerunsRepository extends RepositoryBase {
      * Exclusively seizes head of queue if it is in
      * {@link dk.dbc.dataio.jobstore.service.entity.RerunEntity.State#WAITING} state
      * and updates it to {@link dk.dbc.dataio.jobstore.service.entity.RerunEntity.State#IN_PROGRESS}
+     *
      * @return {@link RerunEntity} if the head entry was seized, empty if not
      */
     @Stopwatch
@@ -65,6 +68,7 @@ public class RerunsRepository extends RepositoryBase {
     /**
      * Resets given {@link RerunEntity} to its {@link dk.dbc.dataio.jobstore.service.entity.RerunEntity.State#WAITING}
      * state
+     *
      * @param rerunEntity entry to be reset
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)

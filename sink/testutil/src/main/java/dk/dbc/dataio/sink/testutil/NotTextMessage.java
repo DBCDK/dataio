@@ -1,9 +1,9 @@
 package dk.dbc.dataio.sink.testutil;
 
-import java.util.Enumeration;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
+import java.util.Enumeration;
 
 public class NotTextMessage implements Message {
 

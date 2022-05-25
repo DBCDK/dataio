@@ -141,11 +141,11 @@ public class ChunkItemExporterTest {
                 .setInd1('0')
                 .setInd2('0')
                 .addSubfield(new SubField()
-                    .setCode('a')
-                    .setData("A *programmer is born"))
+                        .setCode('a')
+                        .setData("A *programmer is born"))
                 .addSubfield(new SubField()
-                    .setCode('b')
-                    .setData("everyday@dbc"));
+                        .setCode('b')
+                        .setData("everyday@dbc"));
         return new MarcRecord()
                 .setLeader(new Leader().setData(DanMarc2LineFormatReader.DEFAULT_LEADER))
                 .addAllFields(Collections.singletonList(dataField245));

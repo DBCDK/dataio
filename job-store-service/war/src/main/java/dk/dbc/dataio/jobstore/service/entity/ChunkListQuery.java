@@ -1,7 +1,7 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +23,7 @@ public class ChunkListQuery extends ListQuery<ChunkListCriteria, ChunkListCriter
 
     /**
      * Constructor
+     *
      * @param entityManager EntityManager used for native query creation and execution
      * @throws NullPointerException if given null-valued entityManager argument
      */
@@ -35,9 +36,10 @@ public class ChunkListQuery extends ListQuery<ChunkListCriteria, ChunkListCriter
 
     /**
      * Creates and executes chunk listing query with given criteria
+     *
      * @param criteria query criteria
      * @return list of entities for selected chunks
-     * @throws NullPointerException if given null-valued criteria argument
+     * @throws NullPointerException                   if given null-valued criteria argument
      * @throws javax.persistence.PersistenceException if unable to flushNotifications query
      */
     @Override

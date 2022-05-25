@@ -27,14 +27,14 @@ public class SubmitterModelTest {
     @Test
     public void validateNumber_validNumberInput_returnsTrue() {
         SubmitterModel model = getTestModel();
-        assertThat( model.isNumberValid(), is(true));
+        assertThat(model.isNumberValid(), is(true));
     }
 
     @Test
     public void validateNumber_invalidNumberInput_returnsFalse() {
         SubmitterModel model = getTestModel();
         model.setNumber("InvalidNumber");
-        assertThat( model.isNumberValid(), is(false));
+        assertThat(model.isNumberValid(), is(false));
     }
 
     @Test

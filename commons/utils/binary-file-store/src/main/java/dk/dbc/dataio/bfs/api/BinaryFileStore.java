@@ -8,6 +8,7 @@ import java.nio.file.Path;
 public interface BinaryFileStore {
     /**
      * Returns binary file representation associated with given path
+     *
      * @param path binary file path
      * @return binary file representation
      */

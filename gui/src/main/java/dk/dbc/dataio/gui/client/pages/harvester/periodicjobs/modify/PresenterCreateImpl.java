@@ -53,7 +53,8 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
     }
 
     @Override
-    public void runButtonPressed() {}
+    public void runButtonPressed() {
+    }
 
     @Override
     public void validateSolrButtonPressed() {
@@ -78,7 +79,7 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
         } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.MAIL) {
             config.getContent().withPickup(new MailPickup());
             view.mailSection.setVisible(true);
-        } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.FTP){
+        } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.FTP) {
             config.getContent().withPickup(new FtpPickup());
             view.overrideFilename.setVisible(true);
             view.ftpSection.setVisible(true);
@@ -100,6 +101,7 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
             getView().setErrorText(ProxyErrorTranslator
                     .toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(PeriodicJobsHarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());

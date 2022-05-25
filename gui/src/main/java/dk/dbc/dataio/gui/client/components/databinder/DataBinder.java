@@ -14,11 +14,11 @@ import java.util.function.Consumer;
 
 /**
  * Data Binder base class for synchronizing the data for the derived class with a model<br>
- *<br>
+ * <br>
  * The class is on an experimental basis at the moment. It has not been finalized and is NOT ready for use.<br>
- *<br>
+ * <br>
  * How to use:<br>
- *<br>
+ * <br>
  * In a UI Binder file, add a component, as eg. the PromptedTextBox as follows:<br>
  * <pre>
  * {@code
@@ -41,11 +41,10 @@ import java.util.function.Consumer;
  * The other direction needs still to be implemented.<br>
  * <br>
  * Furthermore, the PromptedTextBox needs to implement the two additional interfaces: HasEnabled and Focusable<br>
- *
  */
 public class DataBinder<T, W extends IsWidget & HasValue<T> & HasEnabled & Focusable> extends FlowPanel implements IsWidget, HasValue<T>, HasEnabled, Focusable {
     W widget;
-//    Supplier supplier;
+    //    Supplier supplier;
     Consumer consumer;
 
     public DataBinder(W widget/*, Supplier<T> supplier*/, Consumer<T> consumer) {
@@ -64,6 +63,7 @@ public class DataBinder<T, W extends IsWidget & HasValue<T> & HasEnabled & Focus
 
     /**
      * Sets the Gui Id to be used to identify this component in the DOM
+     *
      * @param guiId The Gui Id to identify this component in the DOM
      */
     public void setGuiId(String guiId) {

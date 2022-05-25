@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 
@@ -12,8 +11,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -21,10 +20,10 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class JavascriptLogTabContentTest {
@@ -32,9 +31,12 @@ public class JavascriptLogTabContentTest {
     final String CANNOT_FETCH_JAVASCRIPT_LOG = "Mocked Cannot fetch javascript log";
     private final static String NBSP = new String(new char[8]).replace("\0", "\u00A0");
 
-    @Mock LogStoreProxyAsync mockedLogStoreProxy;
-    @Mock Texts mockedTexts;
-    @Mock Throwable mockedThrowable;
+    @Mock
+    LogStoreProxyAsync mockedLogStoreProxy;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    Throwable mockedThrowable;
 
 
     class JavascriptLogTabContentConcrete extends JavascriptLogTabContent {

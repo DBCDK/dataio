@@ -27,18 +27,20 @@ import java.net.URI;
 @Stateless
 @Path("/")
 public class HarvestTasksBean {
-    @EJB TaskRepo taskRepo;
+    @EJB
+    TaskRepo taskRepo;
 
     private JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Creates a new harvest task
-     * @param uriInfo URI information
+     *
+     * @param uriInfo   URI information
      * @param harvestId ID of harvest for which to create task
-     * @param request harvest request
+     * @param request   harvest request
      * @return a HTTP 201 CREATED response,
-     *         a HTTP 400 BAD REQUEST response on unknown request type or if request is invalid JSON,
-     *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
+     * a HTTP 400 BAD REQUEST response on unknown request type or if request is invalid JSON,
+     * a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      */
     @POST
     @Path(HarvesterServiceConstants.HARVEST_TASKS)

@@ -18,7 +18,8 @@ import javax.enterprise.inject.Specializes;
 public class TestFlowStoreServiceConnectorBean extends FlowStoreServiceConnectorBean {
     @Override
     @PostConstruct
-    public void initializeConnector() {}
+    public void initializeConnector() {
+    }
 
     @Override
     public FlowStoreServiceConnector getConnector() {

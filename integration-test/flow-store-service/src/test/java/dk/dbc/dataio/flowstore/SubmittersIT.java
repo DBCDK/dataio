@@ -28,8 +28,8 @@ import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 /**
@@ -77,7 +77,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
         // Verify that the submitter is deleted
         try {
             flowStoreServiceConnector.getSubmitter(id);
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // We expect this exception from getSubmitter(...) method when no submitter exists!
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
         }
@@ -88,7 +88,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
         final long nonExistingSubmitterId = new Date().getTime();
         try {
             flowStoreServiceConnector.deleteSubmitter(nonExistingSubmitterId, 1);
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // We expect this exception from getSubmitter(...) method when no submitter exists!
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
         }
@@ -123,7 +123,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
         try {
             // Subject Under Test
             flowStoreServiceConnector.deleteSubmitter(id, firstVersion);
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
         }
     }
@@ -150,7 +150,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
 
         try {
             flowStoreServiceConnector.deleteSubmitter(submitter.getId(), submitter.getVersion());
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
         }
     }
@@ -195,18 +195,18 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
             flowStoreServiceConnector.createSubmitter(content2);
             fail("Primary key violation was not detected as input to createSubmitter().");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(406));
         }
     }
 
-   /*
-    * Given: a deployed flow-store service containing submitter resource
-    * When : adding submitter with the same number
-    * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
-    * And  : request returns with a NOT ACCEPTABLE http status code
-    */
+    /*
+     * Given: a deployed flow-store service containing submitter resource
+     * When : adding submitter with the same number
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT ACCEPTABLE http status code
+     */
     @Test
     public void createSubmitter_duplicateNumber_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
@@ -226,7 +226,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
             flowStoreServiceConnector.createSubmitter(content2);
             fail("Primary key violation was not detected as input to createSubmitter().");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(406));
         }
@@ -239,7 +239,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
      * And  : assert that the submitter found has an id, a version and contains the same information as the submitter created
      */
     @Test
-    public void getSubmitter_ok() throws Exception{
+    public void getSubmitter_ok() throws Exception {
         // When...
         final SubmitterContent submitterContent = new SubmitterContentBuilder()
                 .setName("SubmittersIT.getSubmitter_ok")
@@ -261,14 +261,14 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void getSubmitter_wrongIdNumber_NotFound() throws FlowStoreServiceConnectorException{
-        try{
+    public void getSubmitter_wrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
+        try {
             // When...
             flowStoreServiceConnector.getSubmitter(new Date().getTime());
 
             fail("Invalid request to getSubmitter() was not detected");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
         }
@@ -304,14 +304,14 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void getSubmitterBySubmitterNumber_WrongSubmitterNumber_NotFound() throws FlowStoreServiceConnectorException{
+    public void getSubmitterBySubmitterNumber_WrongSubmitterNumber_NotFound() throws FlowStoreServiceConnectorException {
         try {
             // When...
             flowStoreServiceConnector.getSubmitterBySubmitterNumber(new Date().getTime());
 
             fail("Invalid request to getSubmitterBySubmitterNumber() was not detected.");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
         }
@@ -375,15 +375,15 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
-   /*
-    * Given: a deployed flow-store service
-    * When : valid JSON is POSTed to the submitters path with an identifier (update) and wrong id number
-    * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
-    * And  : request returns with a NOT_FOUND http status code
-    */
+    /*
+     * Given: a deployed flow-store service
+     * When : valid JSON is POSTed to the submitters path with an identifier (update) and wrong id number
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
     @Test
     public void updateSubmitter_wrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
-        try{
+        try {
             // When...
             final SubmitterContent content = new SubmitterContentBuilder()
                     .setName("SubmittersIT.updateSubmitter_wrongIdNumber_NotFound")
@@ -393,7 +393,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
 
             fail("Wrong submitter Id was not detected as input to updateSubmitter().");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
         }
@@ -408,7 +408,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT_ACCEPTABLE http status code
      */
     @Test
-    public void updateSubmitter_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException{
+    public void updateSubmitter_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
         final String FIRST_SUBMITTER_NAME = "SubmittersIT.updateSubmitter_duplicateName_NotAcceptable.A";
         final String SECOND_SUBMITTER_NAME = "SubmittersIT.updateSubmitter_duplicateName_NotAcceptable.B";
@@ -431,8 +431,8 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
             flowStoreServiceConnector.updateSubmitter(content1, submitter.getId(), submitter.getVersion());
 
             fail("Primary key violation was not detected as input to updateSubmitter().");
-        // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            // Then...
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
         }
@@ -520,7 +520,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
 
         // Then...
         assertNotNull(listOfSubmitters);
-        assertThat(listOfSubmitters.size() >= 3, is (true));
+        assertThat(listOfSubmitters.size() >= 3, is(true));
 
         // And...
         assertThat(listOfSubmitters.get(0).getContent().getName(),
@@ -559,7 +559,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
                 "submitters:content @> '{\"number\": " + submitterB.getContent().getNumber() + "}'");
 
         // Then...
-        assertThat(listOfSubmitters.size(), is (1));
+        assertThat(listOfSubmitters.size(), is(1));
 
         // And...
         assertThat(listOfSubmitters.get(0).getContent().getName(),
@@ -604,7 +604,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
                 createFlowBinderForSubmitter(submitterRequested,
                         "SubmittersIT.getFlowBindersForSubmitter.flowBinder2");
         createFlowBinderForSubmitter(submitter,
-                        "SubmittersIT.getFlowBindersForSubmitter.flowBinder3");
+                "SubmittersIT.getFlowBindersForSubmitter.flowBinder3");
 
         // When...
         final List<FlowBinderIdent> flowBinders =
@@ -620,7 +620,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
     }
 
     private FlowBinder createFlowBinderForSubmitter(Submitter submitter, String flowBinderName)
-            throws FlowStoreServiceConnectorException{
+            throws FlowStoreServiceConnectorException {
 
         final Flow flow = flowStoreServiceConnector.createFlow(new FlowContentBuilder()
                 .setName(flowBinderName + "Flow")

@@ -24,12 +24,18 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class AsyncJobViewDataProviderTest {
 
-    @Mock CommonGinjector mockedCommonInjector;
-    @Mock View mockedView;
-    @Mock JobStoreProxyAsync mockedJobStoreProxy;
-    @Mock SingleSelectionModel<JobModel> mockedSelectionModel;
-    @Mock JobFilter mockedJobFilter;
-    @Mock ProvidesKey mockedKeyProvider;
+    @Mock
+    CommonGinjector mockedCommonInjector;
+    @Mock
+    View mockedView;
+    @Mock
+    JobStoreProxyAsync mockedJobStoreProxy;
+    @Mock
+    SingleSelectionModel<JobModel> mockedSelectionModel;
+    @Mock
+    JobFilter mockedJobFilter;
+    @Mock
+    ProvidesKey mockedKeyProvider;
 
     private AsyncJobViewDataProvider objectUnderTest;
 

@@ -37,6 +37,7 @@ public class TransFile {
 
     /**
      * Return new transfile representation
+     *
      * @param transfile path of transfile to parse
      * @throws NullPointerException if given null-valued transfile path
      */
@@ -173,8 +174,9 @@ public class TransFile {
 
         /**
          * Constructor
+         *
          * @param line transfile raw line value
-         * @throws NullPointerException if given null-valued line
+         * @throws NullPointerException     if given null-valued line
          * @throws IllegalArgumentException if given empty-valued line
          */
         public Line(String line) throws NullPointerException, IllegalArgumentException {
@@ -209,6 +211,7 @@ public class TransFile {
 
         /**
          * Gets value of field
+         *
          * @param fieldName name of field
          * @return value of field or null if field did not exist in line
          */
@@ -218,7 +221,8 @@ public class TransFile {
 
         /**
          * Sets value of field
-         * @param fieldName name of field
+         *
+         * @param fieldName  name of field
          * @param fieldValue value of field
          */
         public void setField(String fieldName, String fieldValue) {

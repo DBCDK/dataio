@@ -16,6 +16,7 @@ public class PromptedData extends FlowPanel {
 
     /**
      * Constructor
+     *
      * @param prompt The Prompt text for the component
      */
     public PromptedData(String prompt) {
@@ -28,7 +29,8 @@ public class PromptedData extends FlowPanel {
 
     /**
      * Constructor
-     * @param guiId The Gui Id to identify this component in the DOM
+     *
+     * @param guiId  The Gui Id to identify this component in the DOM
      * @param prompt The Prompt text for the component
      */
     public PromptedData(String guiId, String prompt) {
@@ -38,6 +40,7 @@ public class PromptedData extends FlowPanel {
 
     /**
      * Sets the Gui Id to be used to identify this component in the DOM
+     *
      * @param guiId The Gui Id to identify this component in the DOM
      */
     public void setGuiId(String guiId) {
@@ -46,6 +49,7 @@ public class PromptedData extends FlowPanel {
 
     /**
      * Gets the Gui Id to be used to identify this component in the DOM
+     *
      * @return The Gui Id to identify this component in the DOM
      */
     public String getGuiId() {
@@ -54,6 +58,7 @@ public class PromptedData extends FlowPanel {
 
     /**
      * Sets the Prompt text
+     *
      * @param prompt The Prompt text
      */
     public void setPrompt(String prompt) {
@@ -62,6 +67,7 @@ public class PromptedData extends FlowPanel {
 
     /**
      * Gets the Prompt text
+     *
      * @return The Prompt text
      */
     public String getPrompt() {
@@ -74,6 +80,7 @@ public class PromptedData extends FlowPanel {
      *     <li>non-stacked (default): The prompt text is displayed to the left of the entry field</li>
      *     <li>stacked: The prompt text is display vertically on top of the entry field</li>
      * </ul>
+     *
      * @param promptStyle stacked or non-stacked
      */
     public void setPromptStyle(String promptStyle) {

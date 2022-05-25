@@ -25,8 +25,10 @@ import java.nio.charset.StandardCharsets;
 public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(DmqMessageConsumerBean.class);
 
-    @EJB PgJobStore jobStoreBean;
-    @EJB JobSchedulerBean jobSchedulerBean;
+    @EJB
+    PgJobStore jobStoreBean;
+    @EJB
+    JobSchedulerBean jobSchedulerBean;
 
     JSONBContext jsonbContext = new JSONBContext();
 

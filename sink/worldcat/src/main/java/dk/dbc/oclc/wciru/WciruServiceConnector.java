@@ -68,10 +68,11 @@ public class WciruServiceConnector {
 
         /**
          * Class constructor
-         * @param maxNumberOfRetries maximum number of retries of unsuccessful operation
+         *
+         * @param maxNumberOfRetries                maximum number of retries of unsuccessful operation
          * @param millisecondsToSleepBetweenRetries wait time between retries in milliseconds
-         * @param knownFailureDiagnostics only operations failing with a diagnostic from this set is eligible for retry
-         * @throws NullPointerException when given null valued knownFailureDiagnostics argument
+         * @param knownFailureDiagnostics           only operations failing with a diagnostic from this set is eligible for retry
+         * @throws NullPointerException     when given null valued knownFailureDiagnostics argument
          * @throws IllegalArgumentException when given maxNumberOfRetries or millisecondsToSleepBetweenRetries arguments are less than zero
          */
         public RetryScheme(int maxNumberOfRetries, int millisecondsToSleepBetweenRetries, Set<String> knownFailureDiagnostics)
@@ -90,6 +91,7 @@ public class WciruServiceConnector {
 
         /**
          * Tests whether or not given {@link Diagnostic} is to be suppressed
+         *
          * @param diagnostic {@link Diagnostic} to test
          * @return true if matching known suppressed {@link Diagnostic}, otherwise false
          */
@@ -147,12 +149,13 @@ public class WciruServiceConnector {
 
     /**
      * class constructor
-     * @param baseUrl web service base URL on the form "http(s)://host:port/path"
-     * @param userId user ID for authentication
-     * @param password password for authentication
-     * @param projectId an OCLC defined identifier used to associate incoming requests with a WCIRU inbound profile
+     *
+     * @param baseUrl     web service base URL on the form "http(s)://host:port/path"
+     * @param userId      user ID for authentication
+     * @param password    password for authentication
+     * @param projectId   an OCLC defined identifier used to associate incoming requests with a WCIRU inbound profile
      * @param retryScheme retry scheme for failed operations
-     * @throws NullPointerException if passed any null valued arguments
+     * @throws NullPointerException     if passed any null valued arguments
      * @throws IllegalArgumentException if passed any empty String arguments
      */
     public WciruServiceConnector(String baseUrl, String userId, String password, String projectId, RetryScheme retryScheme) {
@@ -176,9 +179,10 @@ public class WciruServiceConnector {
      * the given record results in an add or an update operation at the
      * remote endpoint, this is all handled transparently by the method
      * call.
-     * @param record bibliographic record representation
+     *
+     * @param record        bibliographic record representation
      * @param holdingSymbol client holding symbol
-     * @param oclcId OCLC defined id, where a non-null value indicates an update
+     * @param oclcId        OCLC defined id, where a non-null value indicates an update
      * @return web service response object
      * @throws WciruServiceConnectorException when unable to add record data
      */
@@ -202,13 +206,14 @@ public class WciruServiceConnector {
      * the given record results in an add or an update operation at the
      * remote endpoint, this is all handled transparently by the method
      * call.
-     * @param record bibliographic record representation
+     *
+     * @param record        bibliographic record representation
      * @param holdingSymbol client holding symbol
-     * @param oclcId OCLC defined id, where a non-null value indicates an update
+     * @param oclcId        OCLC defined id, where a non-null value indicates an update
      * @return web service response object
      * @throws WciruServiceConnectorException when unable to add record data
-     * @throws NullPointerException if passed null valued record argument
-     * @throws IllegalArgumentException if passed empty record or holdingSymbol argument
+     * @throws NullPointerException           if passed null valued record argument
+     * @throws IllegalArgumentException       if passed empty record or holdingSymbol argument
      */
     public UpdateResponseType addOrUpdateRecord(String record, String holdingSymbol, String oclcId)
             throws WciruServiceConnectorException, NullPointerException, IllegalArgumentException {
@@ -217,7 +222,7 @@ public class WciruServiceConnector {
             // We convert the XML fragment string to a DOM element to
             // avoid double encodings in request.
             recordNode = JaxpUtil.parseDocument(record).getDocumentElement();
-        } catch(IOException | SAXException e) {
+        } catch (IOException | SAXException e) {
             throw new WciruServiceConnectorException(String.format("Unable to handle XML fragment '%s'", record), e);
         }
         return addOrUpdateRecord(recordNode, holdingSymbol, oclcId);
@@ -225,14 +230,15 @@ public class WciruServiceConnector {
 
     /**
      * Replaces record in WorldCat
-     * @param record bibliographic record representation
-     * @param oclcId OCLC defined id of record to replace
+     *
+     * @param record        bibliographic record representation
+     * @param oclcId        OCLC defined id of record to replace
      * @param holdingSymbol valid OCLC symbol
      * @param holdingAction "I" for insertion or "D" for deletion
      * @return web service response object
      * @throws WciruServiceConnectorException when unable to add record data
-     * @throws NullPointerException if passed null valued argument
-     * @throws IllegalArgumentException if passed empty valued argument or invalid holding action
+     * @throws NullPointerException           if passed null valued argument
+     * @throws IllegalArgumentException       if passed empty valued argument or invalid holding action
      */
     public UpdateResponseType replaceRecord(Element record, String oclcId, String holdingSymbol, String holdingAction)
             throws WciruServiceConnectorException, NullPointerException, IllegalArgumentException {
@@ -247,12 +253,13 @@ public class WciruServiceConnector {
 
     /**
      * Deletes a record in WorldCat
+     *
      * @param record bibliographic record representation
      * @param oclcId OCLC defined id of record to delete
      * @return web service response object
      * @throws WciruServiceConnectorException When unable to delete record
-     * @throws NullPointerException if passed null valued argument
-     * @throws IllegalArgumentException if passed empty valued argument
+     * @throws NullPointerException           if passed null valued argument
+     * @throws IllegalArgumentException       if passed empty valued argument
      */
     public UpdateResponseType deleteRecord(Element record, String oclcId)
             throws WciruServiceConnectorException, NullPointerException, IllegalArgumentException {
@@ -319,7 +326,7 @@ public class WciruServiceConnector {
         final UpdateInterface proxy = service.getUpdate();
 
         // We don't want to rely on the endpoint from the WSDL
-        final BindingProvider bindingProvider = (BindingProvider)proxy;
+        final BindingProvider bindingProvider = (BindingProvider) proxy;
         bindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, baseUrl);
         // setConnectTimeout() - 1 minute
         bindingProvider.getRequestContext().put("com.sun.xml.ws.connect.timeout", 1 * 60 * 1000);
@@ -343,7 +350,7 @@ public class WciruServiceConnector {
         editReplace.setEditReplaceType(holdingAction);
         if (holdingAction.equals("I")) {
             editReplace.setNewValue(holdingSymbol);
-        } else if(holdingAction.equals("D")) {
+        } else if (holdingAction.equals("D")) {
             editReplace.setOldValue(holdingSymbol);
         }
         extraRequestData.setEditReplace(editReplace);

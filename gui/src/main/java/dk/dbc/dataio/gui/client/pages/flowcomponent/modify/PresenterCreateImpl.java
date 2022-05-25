@@ -9,11 +9,13 @@ public class PresenterCreateImpl extends PresenterImpl {
 
     /**
      * Constructor
-     * @param header    Breadcrumb header text
+     *
+     * @param header Breadcrumb header text
      */
     public PresenterCreateImpl(String header) {
         super(header);
     }
+
     /**
      * getModel - initializes the model
      * When starting the form, the fields should be empty, therefore an empty Model is instantiated
@@ -37,6 +39,7 @@ public class PresenterCreateImpl extends PresenterImpl {
     /**
      * This has no implementation because "Create" does not have a delete button!
      */
-    public void deleteButtonPressed() {}
+    public void deleteButtonPressed() {
+    }
 
 }

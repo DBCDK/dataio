@@ -14,12 +14,16 @@ import java.util.List;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
     // Instantiate UI Binder
-    interface MyUiBinder extends UiBinder<Widget, View> {}
+    interface MyUiBinder extends UiBinder<Widget, View> {
+    }
+
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
     // UI Fields
-    @UiField Button refreshButton;
-    @UiField(provided=true) SinkStatusTable sinkStatusTable;
+    @UiField
+    Button refreshButton;
+    @UiField(provided = true)
+    SinkStatusTable sinkStatusTable;
 
     /**
      * Default empty constructor
@@ -30,6 +34,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Default constructor
+     *
      * @param header header
      */
     public View(String header) {
@@ -55,6 +60,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Setup the supplied data to the view
+     *
      * @param sinkStatus Sink Status data to set in the view
      */
     public void setSinkStatus(List<SinkStatusTable.SinkStatusModel> sinkStatus) {

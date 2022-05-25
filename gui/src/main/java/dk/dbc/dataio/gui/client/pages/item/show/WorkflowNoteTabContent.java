@@ -17,5 +17,6 @@ public class WorkflowNoteTabContent extends Composite {
         initWidget(ourUiBinder.createAndBindUi(this));
     }
 
-    @UiField TextArea note;
+    @UiField
+    TextArea note;
 }

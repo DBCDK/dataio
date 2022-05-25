@@ -21,9 +21,11 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     private static UiTrafficBinder uiBinder = GWT.create(UiTrafficBinder.class);
 
-    @UiField(provided=true) FailedFtpsTable failedFtpsTable;
+    @UiField(provided = true)
+    FailedFtpsTable failedFtpsTable;
 
-    @UiField(provided=true) PopupValueBox<EditTransFileView, EditTransFileView.EditTransFileData> editTransFilePopup;
+    @UiField(provided = true)
+    PopupValueBox<EditTransFileView, EditTransFileView.EditTransFileData> editTransFilePopup;
 
 
     public View() {
@@ -60,6 +62,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Displays a warning to the user
+     *
      * @param warning The warning to display
      */
     void displayWarning(String warning) {
@@ -77,9 +80,10 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * This method show the Failed Ftp's Popup box with the values given in the parameter list
-     * @param transfileName The name of the Transfile
+     *
+     * @param transfileName    The name of the Transfile
      * @param transfileContent The content of the Transfile
-     * @param mailContent The content of the Mail, sent to the user
+     * @param mailContent      The content of the Mail, sent to the user
      */
     void showFailedFtp(String transfileName, String transfileContent, String mailContent) {
         editTransFilePopup.show();

@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.dataio.commons.types.Chunk;

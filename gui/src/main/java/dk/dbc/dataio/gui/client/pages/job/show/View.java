@@ -70,7 +70,7 @@ public class View extends ViewWidget {
     /* Package scoped Constructor used for unit testing. */
     View(String headerText, Boolean setupColumns) {
         super(headerText);
-        if( setupColumns ) {
+        if (setupColumns) {
             setupColumns();
         }
         dataProvider = new AsyncJobViewDataProvider(this, keyProvider);
@@ -101,6 +101,7 @@ public class View extends ViewWidget {
 
     /**
      * Sets the Page Size
+     *
      * @param pageSize New page size
      */
     public void setPageSize(int pageSize) {
@@ -110,6 +111,7 @@ public class View extends ViewWidget {
 
     /**
      * Returns the information about whether the Assignee Field has focus
+     *
      * @return True: Assignee field has focus, False: Assignee field has not focus
      */
     public boolean hasAssigneeFieldFocus() {
@@ -170,6 +172,7 @@ public class View extends ViewWidget {
 
     /**
      * Sets the autorefresh feature in the Data View Provider
+     *
      * @param autoRefresh If true, auto refresh should be enabled, otherwise it should be disabled.
      */
     void setAutoRefresh(boolean autoRefresh) {
@@ -183,8 +186,9 @@ public class View extends ViewWidget {
 
     /**
      * Sets the three texts in the Confirmation Dialog Box
-     * @param count The text to set for the jobs counter
-     * @param list The text to set for the jobs list
+     *
+     * @param count        The text to set for the jobs counter
+     * @param list         The text to set for the jobs list
      * @param confirmation The text to set for the confirmation text
      */
     private void setDialogTexts(String count, String list, String confirmation) {
@@ -196,11 +200,12 @@ public class View extends ViewWidget {
 
     /**
      * Finds all job id's from the shown jobs in the jobs table
+     *
      * @return List of Job Ids
      */
     private List<String> getShownJobIds() {
         List<String> jobIds = new ArrayList<>();
-        for (JobModel model: presenter.validRerunJobsFilter(presenter.getShownJobModels())) {
+        for (JobModel model : presenter.validRerunJobsFilter(presenter.getShownJobModels())) {
             jobIds.add(model.getJobId());
         }
         return jobIds;
@@ -275,10 +280,12 @@ public class View extends ViewWidget {
             public Boolean getValue(JobModel jobModel) {
                 return jobModel != null && jobModel.getWorkflowNoteModel() != null && jobModel.getWorkflowNoteModel().isProcessed();
             }
+
             @Override
             public String getCellStyleNames(Cell.Context context, JobModel model) {
                 return workFlowColumnsVisible ? "visible" : "invisible";
             }
+
             @Override
             public void onBrowserEvent(Cell.Context context, Element elem, JobModel jobModel, NativeEvent event) {
                 if (Event.as(event).getTypeInt() == Event.ONCHANGE) {
@@ -318,10 +325,12 @@ public class View extends ViewWidget {
                 }
                 super.onBrowserEvent(context, elem, object, event);
             }
+
             @Override
             public String getValue(JobModel model) {
                 return model != null && model.getWorkflowNoteModel() != null ? model.getWorkflowNoteModel().getAssignee() : null;
             }
+
             @Override
             public String getCellStyleNames(Cell.Context context, JobModel model) {
                 if (model != null && model.getWorkflowNoteModel() != null && !model.getWorkflowNoteModel().getDescription().isEmpty()) {
@@ -330,6 +339,7 @@ public class View extends ViewWidget {
                     return workFlowColumnsVisible ? "visible" : "invisible";
                 }
             }
+
             @Override
             public void render(Cell.Context context, JobModel jobModel, SafeHtmlBuilder sb) {
                 if (jobModel != null) {
@@ -508,18 +518,19 @@ public class View extends ViewWidget {
      */
     Column constructRerunColumn() {
         ButtonCell rerunButtonCell = new ButtonCell();
-        Column<JobModel,String> rerunButtonColumn = new Column<JobModel,String>(rerunButtonCell) {
+        Column<JobModel, String> rerunButtonColumn = new Column<JobModel, String>(rerunButtonCell) {
             public String getValue(JobModel object) {
                 return getTexts().button_RerunJob();
             }
+
             @Override
             public String getCellStyleNames(Cell.Context context, JobModel model) {
                 return workFlowColumnsVisible ? "visible" : "invisible";
             }
         };
         rerunButtonColumn.setFieldUpdater((index, selectedRowModel, value) -> {
-            if(selectedRowModel != null) {
-                if(selectedRowModel.getJobCompletionTime().isEmpty()) {
+            if (selectedRowModel != null) {
+                if (selectedRowModel.getJobCompletionTime().isEmpty()) {
                     setErrorText(getTexts().error_JobNotFinishedError());
                 } else {
                     presenter.setIsMultipleRerun(false);
@@ -536,6 +547,7 @@ public class View extends ViewWidget {
 
     /**
      * This method fetches the texts attribute
+     *
      * @return The texts for this class
      */
     Texts getTexts() {
@@ -545,12 +557,13 @@ public class View extends ViewWidget {
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
-    private DoubleClickHandler getDoubleClickHandler(){
+    private DoubleClickHandler getDoubleClickHandler() {
         return doubleClickEvent -> {
             JobModel selected = selectionModel.getSelectedObject();
-            if(selected != null) {
+            if (selected != null) {
                 presenter.itemSelected(selected);
             }
         };
@@ -558,6 +571,7 @@ public class View extends ViewWidget {
 
     /**
      * Fetches the Hide/Show symbol to be shown as the header text for the hide/show column
+     *
      * @return The Hide/Show symbol
      */
     private String getHideShowSymbol() {
@@ -566,6 +580,7 @@ public class View extends ViewWidget {
 
     /**
      * Fetches the css class to be used for a cell
+     *
      * @return The CSS class name for a cell
      */
     private String getHideShowStyle() {
@@ -574,6 +589,7 @@ public class View extends ViewWidget {
 
     /**
      * Hides or Shows a hideable column
+     *
      * @param hide Boolean stating whether to show or hide a column: True=hide, False=show
      */
     void HideColumn(boolean hide) { // Should have been private, but is package-private to enable unit test
@@ -599,6 +615,7 @@ public class View extends ViewWidget {
      */
     class HidableColumnHeader extends Header<String> {
         private String headerText;
+
         public HidableColumnHeader(String text) {
             super(new TextCell());
             headerText = text;

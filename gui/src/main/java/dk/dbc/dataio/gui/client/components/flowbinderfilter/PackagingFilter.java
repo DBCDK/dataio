@@ -18,7 +18,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class PackagingFilter extends BaseFlowBinderFilter {
-    interface PackagingFilterUiBinder extends UiBinder<HTMLPanel, PackagingFilter> {}
+    interface PackagingFilterUiBinder extends UiBinder<HTMLPanel, PackagingFilter> {
+    }
 
     private static PackagingFilterUiBinder ourUiBinder = GWT.create(PackagingFilterUiBinder.class);
 
@@ -38,10 +39,12 @@ public class PackagingFilter extends BaseFlowBinderFilter {
         setParameter(parameter);
     }
 
-    @UiField PromptedTextBox packaging;
+    @UiField
+    PromptedTextBox packaging;
 
     /**
      * Event handler for handling changes in the packaging value
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler("packaging")
@@ -73,6 +76,7 @@ public class PackagingFilter extends BaseFlowBinderFilter {
     /**
      * Sets the selection according to the key value, setup in the parameter attribute<br>
      * The value is given in url as a plain string
+     *
      * @param filterParameter filter parameters to be used by this filter
      */
     @Override
@@ -90,6 +94,7 @@ public class PackagingFilter extends BaseFlowBinderFilter {
     /**
      * Explicitly focus/unfocus this widget. Only one widget can have focus
      * at a time, and the widget that does will receive all keyboard events.
+     *
      * @param focused whether this widget should take focus or release it
      */
     @Override
@@ -99,6 +104,6 @@ public class PackagingFilter extends BaseFlowBinderFilter {
 
     @Override
     public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
-        return packaging.addChangeHandler( changeHandler );
+        return packaging.addChangeHandler(changeHandler);
     }
 }

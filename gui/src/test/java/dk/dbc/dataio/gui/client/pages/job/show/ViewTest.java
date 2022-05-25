@@ -21,10 +21,10 @@ import org.mockito.Mock;
 import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
@@ -45,13 +45,20 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
 
-    @Mock private CommonGinjector mockedCommonInjector;
-    @Mock private ViewJobsGinjector mockedViewInjector;
-    @Mock private Presenter mockedPresenter;
-    @Mock private dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock private AsyncJobViewDataProvider mockedDataProvider;
-    @Mock private ImageResource mockedImageResource;
-    @Mock private Cell.Context mockedContext;
+    @Mock
+    private CommonGinjector mockedCommonInjector;
+    @Mock
+    private ViewJobsGinjector mockedViewInjector;
+    @Mock
+    private Presenter mockedPresenter;
+    @Mock
+    private dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock
+    private AsyncJobViewDataProvider mockedDataProvider;
+    @Mock
+    private ImageResource mockedImageResource;
+    @Mock
+    private Cell.Context mockedContext;
 
     private static final String VISIBLE = "visible";
     private static final String INVISIBLE = "invisible";
@@ -63,7 +70,8 @@ public class ViewTest {
     private ViewConcrete view;
 
     // Mocked Texts
-    @Mock private static Texts mockedTexts;
+    @Mock
+    private static Texts mockedTexts;
     private final static String MOCKED_LABEL_RERUNJOB = "Mocked Text: label_RerunJob";
     private final static String MOCKED_LABEL_RERUNJOBS = "Mocked Text: label_RerunJobs - count = @COUNT@";
     private final static String MOCKED_LABEL_RERUNJOBNO = "Mocked Text: label_RerunJobNo";

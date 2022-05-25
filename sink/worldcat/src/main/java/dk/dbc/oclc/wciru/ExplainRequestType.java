@@ -6,12 +6,11 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "explainRequestType", propOrder = {
-    "recordPacking",
-    "extraRequestData"
+        "recordPacking",
+        "extraRequestData"
 })
 public class ExplainRequestType
-    extends RequestType
-{
+        extends RequestType {
 
     protected String recordPacking;
     protected ExtraDataType extraRequestData;
@@ -23,6 +22,7 @@ public class ExplainRequestType
     public void setRecordPacking(String value) {
         this.recordPacking = value;
     }
+
     public ExtraDataType getExtraRequestData() {
         return extraRequestData;
     }

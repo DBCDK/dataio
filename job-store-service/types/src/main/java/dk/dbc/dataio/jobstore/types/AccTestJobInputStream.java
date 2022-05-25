@@ -12,14 +12,14 @@ public class AccTestJobInputStream extends JobInputStream {
     private final RecordSplitterConstants.RecordSplitter typeOfDataPartitioner;
 
     /**
-     * @param jobSpecification the jobSpecification
-     * @param flow             the flow to use
+     * @param jobSpecification      the jobSpecification
+     * @param flow                  the flow to use
      * @param typeOfDataPartitioner the type of data partitioner to use
      * @throws NullPointerException if given null-valued argument
      */
     public AccTestJobInputStream(
             @JsonProperty("jobSpecification") JobSpecification jobSpecification,
-            @JsonProperty("flow")Flow flow,
+            @JsonProperty("flow") Flow flow,
             @JsonProperty("typeOfDataPartitioner") RecordSplitterConstants.RecordSplitter typeOfDataPartitioner) throws NullPointerException {
 
         super(jobSpecification);

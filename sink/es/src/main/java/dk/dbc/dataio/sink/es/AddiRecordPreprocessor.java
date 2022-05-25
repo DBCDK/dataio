@@ -17,7 +17,7 @@ public class AddiRecordPreprocessor {
 
     /**
      * This method pre-processes an addi record according to the following rules:
-     *
+     * <p>
      * If metadata contains sink-processing element with attribute encodeAs2709 set to true, the content data is converted to iso2709.
      * DBCTrackingId is added as attribute to metadata info element if a non-null tracking ID value is given.
      * All dataIO specific elements are stripped from the metadata of the returned addi record.

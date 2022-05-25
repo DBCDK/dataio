@@ -31,6 +31,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
                     public void onFailure(Throwable throwable) {
                         viewInjector.getView().setErrorText(viewInjector.getTexts().error_JndiElkUrlFetchError());
                     }
+
                     @Override
                     public void onSuccess(String jndiUrl) {
                         urlElk = jndiUrl;
@@ -57,6 +58,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * Opens a new tab in the browser, containing a search in ELK for the item with trackingId as supplied
+     *
      * @param trackingId The tracking ID to search for
      */
     @Override

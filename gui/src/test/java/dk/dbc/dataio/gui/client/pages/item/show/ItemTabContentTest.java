@@ -22,9 +22,12 @@ public class ItemTabContentTest {
     final ItemModel.LifeCycle LIFECYCLE = ItemModel.LifeCycle.PROCESSING;
     final ItemModel TEST_ITEM_MODEL = new ItemModelBuilder().setLifeCycle(ItemModel.LifeCycle.PROCESSING).build();
 
-    @Mock JobStoreProxyAsync mockedJobStoreProxy;
-    @Mock Texts mockedTexts;
-    @Mock Throwable mockedThrowable;
+    @Mock
+    JobStoreProxyAsync mockedJobStoreProxy;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    Throwable mockedThrowable;
 
 
     class ItemTabContentConcrete extends ItemTabContent {

@@ -29,27 +29,33 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 
 /**
-* PresenterImpl unit tests
-* <p/>
-* The test methods of this class uses the following naming convention:
-* <p/>
-* unitOfWork_stateUnderTest_expectedBehavior
-*/
+ * PresenterImpl unit tests
+ * <p/>
+ * The test methods of this class uses the following naming convention:
+ * <p/>
+ * unitOfWork_stateUnderTest_expectedBehavior
+ */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
 
-    @Mock ViewGinjector mockedViewInjector;
-    @Mock Presenter mockedPresenter;
-    @Mock SelectionChangeEvent mockedSelectionChangeEvent;
-    @Mock SingleSelectionModel mockedSelectionModel;
-    @Mock ItemModel mockedItemModel;
-    @Mock HandlerRegistration mockedHandlerRegistration;
+    @Mock
+    ViewGinjector mockedViewInjector;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    SelectionChangeEvent mockedSelectionChangeEvent;
+    @Mock
+    SingleSelectionModel mockedSelectionModel;
+    @Mock
+    ItemModel mockedItemModel;
+    @Mock
+    HandlerRegistration mockedHandlerRegistration;
 
     // Test Data
     private DiagnosticModel diagnosticModel = new DiagnosticModelBuilder().build();
@@ -67,12 +73,19 @@ public class ViewTest {
      * This is done in the following:
      */
 
-    @GwtMock ItemsListView mockedItemsList;
-    @Mock CellTable mockedItemsTable;
-    @GwtMock JobDiagnosticTabContent mockedJobDiagnosticTabContent;
-    @Mock CellTable mockedJobDiagnosticTable;
-    @Mock SimplePager mockedItemsPager;
-    @Mock DecoratedTabPanel mockedDetailedTabs;
+    @GwtMock
+    ItemsListView mockedItemsList;
+    @Mock
+    CellTable mockedItemsTable;
+    @GwtMock
+    JobDiagnosticTabContent mockedJobDiagnosticTabContent;
+    @Mock
+    CellTable mockedJobDiagnosticTable;
+    @Mock
+    SimplePager mockedItemsPager;
+    @Mock
+    DecoratedTabPanel mockedDetailedTabs;
+
     @Before
     public void setupMockedUiFields() {
         mockedItemsList.itemsTable = mockedItemsTable;
@@ -85,8 +98,10 @@ public class ViewTest {
     private ConcreteView view;
 
     // Mocked Texts
-    @Mock Texts mockedTexts;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuItems;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuItems;
     final static String MOCKED_MENU_ITEMS = "Mocked Poster";
     final static String MOCKED_COLUMN_ITEM = "Mocked Post";
     final static String MOCKED_COLUMN_FIXED = "Mocked Fixed";
@@ -107,6 +122,7 @@ public class ViewTest {
     final static String MOCKED_LIFECYCLE_DONE = "Mocked Done";
     final static String MOCKED_LIFECYCLE_UNKNOWN = "Mocked Ukendt Lifecycle";
     final static String MOCKED_TRACE = "Mocked Trace";
+
     @Before
     public void setupMockedTextsBehaviour() {
         when(mockedMenuItems.menu_Items()).thenReturn(MOCKED_MENU_ITEMS);

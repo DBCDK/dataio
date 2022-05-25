@@ -21,8 +21,8 @@ public class FlowStoreReference {
     }
 
     /*
-    * Getters
-    */
+     * Getters
+     */
     public long getId() {
         return id;
     }

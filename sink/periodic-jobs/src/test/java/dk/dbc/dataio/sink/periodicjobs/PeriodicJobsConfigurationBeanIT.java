@@ -67,11 +67,11 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
             throws JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
         final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot()
-            .withJobId((int) chunk.getJobId())
-            .withSpecification(
-                    new JobSpecification()
-                            .withAncestry(new JobSpecification.Ancestry()
-                                    .withHarvesterToken("periodic-jobs:1:2")));
+                .withJobId((int) chunk.getJobId())
+                .withSpecification(
+                        new JobSpecification()
+                                .withAncestry(new JobSpecification.Ancestry()
+                                        .withHarvesterToken("periodic-jobs:1:2")));
 
         when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class)))
                 .thenReturn(Collections.singletonList(jobInfoSnapshot));

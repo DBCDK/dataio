@@ -17,8 +17,9 @@ public class LogStoreTrackingId {
 
     /**
      * Constructs log-store tracking ID by parsing given string
+     *
      * @param trackingId string to be parsed into a tracking ID
-     * @throws NullPointerException if given null-valued trackingId argument
+     * @throws NullPointerException     if given null-valued trackingId argument
      * @throws IllegalArgumentException if given empty-valued or otherwise invalid trackingId argument
      */
     public LogStoreTrackingId(String trackingId) throws NullPointerException, IllegalArgumentException {
@@ -79,11 +80,12 @@ public class LogStoreTrackingId {
 
     /**
      * Factory method for tracking ID cration
-     * @param jobId job ID part
+     *
+     * @param jobId   job ID part
      * @param chunkId chunk ID part
-     * @param itemId item ID part
+     * @param itemId  item ID part
      * @return LogStoreTrackingId instance
-     * @throws NullPointerException if given null-valued jobId argument
+     * @throws NullPointerException     if given null-valued jobId argument
      * @throws IllegalArgumentException if given empty-valued jobId argument
      */
     public static LogStoreTrackingId create(String jobId, long chunkId, long itemId)

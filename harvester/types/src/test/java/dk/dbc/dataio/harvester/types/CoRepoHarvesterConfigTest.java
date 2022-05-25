@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.harvester.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -7,8 +5,8 @@ import org.junit.Test;
 
 import java.util.Date;
 
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class CoRepoHarvesterConfigTest {
     private final JSONBContext jsonbContext = new JSONBContext();

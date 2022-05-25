@@ -46,10 +46,12 @@ public class DateTimeBox extends Composite implements HasValue<String> {
     }
 
     // UI Fields
-    @UiField TextBox textBox;
-    @UiField PopupPanel datePickerPanel;
-    @UiField DatePicker datePicker;
-
+    @UiField
+    TextBox textBox;
+    @UiField
+    PopupPanel datePickerPanel;
+    @UiField
+    DatePicker datePicker;
 
 
     @UiHandler("textBox")
@@ -58,9 +60,19 @@ public class DateTimeBox extends Composite implements HasValue<String> {
         if (!event.isMetaKeyDown() && !event.isControlKeyDown()) {
             if (event.getCharCode() != 0) {
                 switch (event.getCharCode()) {
-                    case '0': case '1': case '2': case '3': case '4':
-                    case '5': case '6': case '7': case '8': case '9':
-                    case DATE_SEPARATOR: case TIME_SEPARATOR: case DATE_TIME_SEPARATOR:
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                    case DATE_SEPARATOR:
+                    case TIME_SEPARATOR:
+                    case DATE_TIME_SEPARATOR:
                         // These characters are all legal, and shall therefore not be cancelled
                         break;
                     default:
@@ -153,18 +165,18 @@ public class DateTimeBox extends Composite implements HasValue<String> {
     /**
      * Input format: "YYYY-MM-DD HH:MM:SS"
      * Output format: "YYYYMMDDHHMMSS"
-     *
+     * <p>
      * Missing data is created according to the following rules:
-     *   Year must be given
-     *   1 char Year is prepended with "200"
-     *   2 char Year is prepended with "20"
-     *   3 char Year is prepended with "2"
-     *   Default Month when missing is "01"
-     *   Default Day when missing is "01"
-     *   Default Hour when missing is "00"
-     *   Default Minutes when missing is "00"
-     *   Default Seconds when missing is "00"
-     *   Single digit Month, Day, Hours, Minutes and Second is prepended by "0"
+     * Year must be given
+     * 1 char Year is prepended with "200"
+     * 2 char Year is prepended with "20"
+     * 3 char Year is prepended with "2"
+     * Default Month when missing is "01"
+     * Default Day when missing is "01"
+     * Default Hour when missing is "00"
+     * Default Minutes when missing is "00"
+     * Default Seconds when missing is "00"
+     * Single digit Month, Day, Hours, Minutes and Second is prepended by "0"
      *
      * @param input Input date according to formats above
      * @return Output date according to formats above
@@ -202,32 +214,60 @@ public class DateTimeBox extends Composite implements HasValue<String> {
             year = dates[0];
         }
         switch (year.length()) {
-            case 0: result += "2000"; break;
-            case 1: result += "200" + year; break;
-            case 2: result += "20" + year; break;
-            case 3: result += "2" + year; break;
-            case 4: result += year; break;
-            default: result += year.substring(0,4); break;
+            case 0:
+                result += "2000";
+                break;
+            case 1:
+                result += "200" + year;
+                break;
+            case 2:
+                result += "20" + year;
+                break;
+            case 3:
+                result += "2" + year;
+                break;
+            case 4:
+                result += year;
+                break;
+            default:
+                result += year.substring(0, 4);
+                break;
         }
         if (dates.length > 1) {
             // There is a Month in dates[1]
             month = dates[1];
         }
         switch (month.length()) {
-            case 0: result += "01"; break;
-            case 1: result += "0" + month; break;
-            case 2: result += month; break;
-            default: result += month.substring(0,2); break;
+            case 0:
+                result += "01";
+                break;
+            case 1:
+                result += "0" + month;
+                break;
+            case 2:
+                result += month;
+                break;
+            default:
+                result += month.substring(0, 2);
+                break;
         }
         if (dates.length > 2) {
             // There is a Day in dates[2]
             day = dates[2];
         }
         switch (day.length()) {
-            case 0: result += "01"; break;
-            case 1: result += "0" + day; break;
-            case 2: result += day; break;
-            default: result += day.substring(0,2); break;
+            case 0:
+                result += "01";
+                break;
+            case 1:
+                result += "0" + day;
+                break;
+            case 2:
+                result += day;
+                break;
+            default:
+                result += day.substring(0, 2);
+                break;
         }
 
         // Normalize time
@@ -241,30 +281,54 @@ public class DateTimeBox extends Composite implements HasValue<String> {
             hour = times[0];
         }
         switch (hour.length()) {
-            case 0: result += "00"; break;
-            case 1: result += "0" + hour; break;
-            case 2: result += hour; break;
-            default: result += hour.substring(0,2); break;
+            case 0:
+                result += "00";
+                break;
+            case 1:
+                result += "0" + hour;
+                break;
+            case 2:
+                result += hour;
+                break;
+            default:
+                result += hour.substring(0, 2);
+                break;
         }
         if (times.length > 1) {
             // There is a Minute in times[1]
             minute = times[1];
         }
         switch (minute.length()) {
-            case 0: result += "00"; break;
-            case 1: result += "0" + minute; break;
-            case 2: result += minute; break;
-            default: result += minute.substring(0,2); break;
+            case 0:
+                result += "00";
+                break;
+            case 1:
+                result += "0" + minute;
+                break;
+            case 2:
+                result += minute;
+                break;
+            default:
+                result += minute.substring(0, 2);
+                break;
         }
         if (times.length > 2) {
             // There is a Second in times[2]
             second = times[2];
         }
         switch (second.length()) {
-            case 0: result += "00"; break;
-            case 1: result += "0" + second; break;
-            case 2: result += second; break;
-            default: result += second.substring(0,2); break;
+            case 0:
+                result += "00";
+                break;
+            case 1:
+                result += "0" + second;
+                break;
+            case 2:
+                result += second;
+                break;
+            default:
+                result += second.substring(0, 2);
+                break;
         }
         return result;
     }
@@ -345,8 +409,9 @@ public class DateTimeBox extends Composite implements HasValue<String> {
 
     /**
      * Right justifies a date in a pre-filled text string (the text overwrites the existing default text)
+     *
      * @param defaultString The pre filled text to use as a default string
-     * @param text The text to right justify, and overwrite the default string
+     * @param text          The text to right justify, and overwrite the default string
      * @return The resulting string
      */
     static String rightJustify(String defaultString, String text) {

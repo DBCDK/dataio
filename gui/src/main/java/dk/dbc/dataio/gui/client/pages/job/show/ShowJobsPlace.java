@@ -39,6 +39,7 @@ public class ShowJobsPlace extends AbstractBasePlace {
         public String getToken(ShowJobsPlace place) {
             return place.getToken();
         }
+
         @Override
         public ShowJobsPlace getPlace(String token) {
             return new ShowJobsPlace(token);

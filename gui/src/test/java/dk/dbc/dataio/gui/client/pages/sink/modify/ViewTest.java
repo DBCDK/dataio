@@ -28,11 +28,16 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
 
-    @Mock ViewGinjector mockedViewInjector;
-    @Mock Presenter mockedPresenter;
-    @Mock ValueChangeEvent mockedValueChangeEvent;
-    @Mock ClickEvent mockedClickEvent;
-    @Mock DialogEvent mockedDialogEvent;
+    @Mock
+    ViewGinjector mockedViewInjector;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    ValueChangeEvent mockedValueChangeEvent;
+    @Mock
+    ClickEvent mockedClickEvent;
+    @Mock
+    DialogEvent mockedDialogEvent;
 
 
     // Subject Under Test

@@ -15,10 +15,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * OpenUpdateSinkConfig unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class OpenUpdateSinkConfigTest {
     private static final String USER_ID = "userId";
@@ -53,7 +53,8 @@ public class OpenUpdateSinkConfigTest {
 
     @Test
     public void withEndpoint_webUrlArgIsEmpty_throws() {
-        assertThat(() -> new OpenUpdateSinkConfig().withEndpoint(""), isThrowing(IllegalArgumentException.class));;
+        assertThat(() -> new OpenUpdateSinkConfig().withEndpoint(""), isThrowing(IllegalArgumentException.class));
+        ;
     }
 
     @Test

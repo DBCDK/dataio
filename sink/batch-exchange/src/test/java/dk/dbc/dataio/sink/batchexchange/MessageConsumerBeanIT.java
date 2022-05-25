@@ -84,7 +84,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                 .build());
 
         // item with three addi records
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         outputStream.write(addiRecordX.getBytes());
         outputStream.write(addiRecordY.getBytes());
         outputStream.write(addiRecordX.getBytes());
@@ -114,8 +114,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("batch status", batch.getStatus(), is(Batch.Status.PENDING));
         assertThat("batch name", batch.getName(), is(BatchName.fromChunk(chunk).toString()));
 
-        @SuppressWarnings("unchecked")
-        final List<BatchEntry> entries = (List<BatchEntry>) entityManager
+        @SuppressWarnings("unchecked") final List<BatchEntry> entries = (List<BatchEntry>) entityManager
                 .createNamedQuery(BatchEntry.GET_BATCH_ENTRIES_QUERY_NAME)
                 .setParameter(1, batch.getId())
                 .setHint("eclipselink.refresh", true)

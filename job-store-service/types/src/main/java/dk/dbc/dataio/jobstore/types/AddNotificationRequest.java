@@ -12,8 +12,8 @@ public class AddNotificationRequest {
     @JsonCreator
     public AddNotificationRequest(
             @JsonProperty("destinationEmail") String destinationEmail,
-            @JsonProperty ("context") NotificationContext context,
-            @JsonProperty ("notificationType") Notification.Type notificationType) {
+            @JsonProperty("context") NotificationContext context,
+            @JsonProperty("notificationType") Notification.Type notificationType) {
 
         InvariantUtil.checkNotNullOrThrow(destinationEmail, "destinationEmail");
         InvariantUtil.checkNotNullOrThrow(context, "context");
@@ -27,9 +27,11 @@ public class AddNotificationRequest {
     public String getDestinationEmail() {
         return destinationEmail;
     }
+
     public NotificationContext getContext() {
         return context;
     }
+
     public Notification.Type getNotificationType() {
         return notificationType;
     }

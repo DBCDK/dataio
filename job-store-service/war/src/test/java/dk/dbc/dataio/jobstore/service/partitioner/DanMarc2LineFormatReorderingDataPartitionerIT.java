@@ -90,7 +90,8 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT {
                         result.getPositionInDatafile(), is(expectedPositions.remove()));
                 ResultSummary.of(result)
                         .ifPresent(results::add);
-            }});
+            }
+        });
         assertThat("results", results, is(expectedResults));
     }
 
@@ -147,7 +148,8 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT {
                         result.getPositionInDatafile(), is(expectedPositions.remove()));
                 ResultSummary.of(result)
                         .ifPresent(results::add);
-            }});
+            }
+        });
         assertThat("results", results, is(expectedResults));
     }
 }

@@ -11,13 +11,17 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
 
-    interface JobPurgeBinder extends UiBinder<HTMLPanel, View> {}
+    interface JobPurgeBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static JobPurgeBinder uiBinder = GWT.create(JobPurgeBinder.class);
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
-    @UiField Label header;
-    @UiField HTML text;
+    @UiField
+    Label header;
+    @UiField
+    HTML text;
 
     public View() {
         super("");

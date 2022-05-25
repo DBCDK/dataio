@@ -79,7 +79,7 @@ public class PartitioningParam {
             EntityManager entityManager,
             RecordSplitter recordSplitterType) throws NullPointerException {
         this(jobEntity, fileStoreServiceConnector, flowStoreServiceConnector,
-            entityManager, recordSplitterType, null);
+                entityManager, recordSplitterType, null);
     }
 
     public PartitioningParam(
@@ -188,14 +188,14 @@ public class PartitioningParam {
                     return getIso2709Partitioner();
                 case ISO2709_COLLECTION:
                     return Iso2709ReorderingDataPartitioner.newInstance(
-                        dataFileInputStream, jobEntity.getSpecification().getCharset(),
-                        new VolumeIncludeParents(jobEntity.getId(), entityManager));
+                            dataFileInputStream, jobEntity.getSpecification().getCharset(),
+                            new VolumeIncludeParents(jobEntity.getId(), entityManager));
                 case DANMARC2_LINE_FORMAT:
                     return getDanMarc2LineFormatPartitioner();
                 case DANMARC2_LINE_FORMAT_COLLECTION:
                     return DanMarc2LineFormatReorderingDataPartitioner.newInstance(
-                        dataFileInputStream, jobEntity.getSpecification().getCharset(),
-                        new VolumeIncludeParents(jobEntity.getId(), entityManager));
+                            dataFileInputStream, jobEntity.getSpecification().getCharset(),
+                            new VolumeIncludeParents(jobEntity.getId(), entityManager));
                 case ADDI_MARC_XML:
                     return MarcXchangeAddiDataPartitioner.newInstance(
                             dataFileInputStream, jobEntity.getSpecification().getCharset());
@@ -233,7 +233,7 @@ public class PartitioningParam {
 
     private String extractDataFileIdFromURN() {
         final String dataFileURN = jobEntity.getSpecification().getDataFile();
-        if(!Files.exists(Paths.get(dataFileURN))) {
+        if (!Files.exists(Paths.get(dataFileURN))) {
             try {
                 return new FileStoreUrn(dataFileURN).getFileId();
             } catch (URISyntaxException e) {

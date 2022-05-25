@@ -41,11 +41,12 @@ public class SinkMessageProducerBean {
 
     /**
      * Sends given processed chunk as JMS message with JSON payload to sink queue destination
-     * @param chunk processed chunk to be inserted as JSON string message payload
-     * @param job job to which the chunk belongs
+     *
+     * @param chunk    processed chunk to be inserted as JSON string message payload
+     * @param job      job to which the chunk belongs
      * @param priority message priority
      * @throws NullPointerException when given null-valued argument
-     * @throws JobStoreException when unable to send chunk to destination
+     * @throws JobStoreException    when unable to send chunk to destination
      */
     public void send(Chunk chunk, JobEntity job, int priority) throws NullPointerException, JobStoreException {
         final Sink destination = job.getCachedSink().getSink();
@@ -79,13 +80,14 @@ public class SinkMessageProducerBean {
      *   {@value JmsConstants#FLOW_BINDER_ID_PROPERTY_NAME}=[flow-binder ID]
      *   {@value JmsConstants#FLOW_BINDER_VERSION_PROPERTY_NAME}=[flow-binder version]
      * </pre>
-     * @param context active JMS context
-     * @param chunk processed chunk to be added as JSON string payload
-     * @param destination Sink instance for sink target
+     *
+     * @param context             active JMS context
+     * @param chunk               processed chunk to be added as JSON string payload
+     * @param destination         Sink instance for sink target
      * @param flowStoreReferences flow-store references for the job to which the given chunk belongs
      * @return TextMessage instance
      * @throws JSONBException when unable to marshall processor result instance to JSON
-     * @throws JMSException when unable to create JMS message
+     * @throws JMSException   when unable to create JMS message
      */
     public TextMessage createMessage(JMSContext context, Chunk chunk, Sink destination, FlowStoreReferences flowStoreReferences)
             throws JMSException, JSONBException {
@@ -97,7 +99,7 @@ public class SinkMessageProducerBean {
         message.setLongProperty(JmsConstants.SINK_ID_PROPERTY_NAME, sinkReference.getId());
         message.setLongProperty(JmsConstants.SINK_VERSION_PROPERTY_NAME, sinkReference.getVersion());
         // if the execution is towards the diff sink during an acceptance test run
-        if(flowBinderReference != null) {
+        if (flowBinderReference != null) {
             message.setLongProperty(JmsConstants.FLOW_BINDER_ID_PROPERTY_NAME, flowBinderReference.getId());
             message.setLongProperty(JmsConstants.FLOW_BINDER_VERSION_PROPERTY_NAME, flowBinderReference.getVersion());
         }

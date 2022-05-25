@@ -12,7 +12,7 @@ public class HarvesterJobBuilderFactory {
     private final JobStoreServiceConnector jobStoreServiceConnector;
 
     public HarvesterJobBuilderFactory(BinaryFileStore binaryFileStore,
-        FileStoreServiceConnector fileStoreServiceConnector, JobStoreServiceConnector jobStoreServiceConnector) {
+                                      FileStoreServiceConnector fileStoreServiceConnector, JobStoreServiceConnector jobStoreServiceConnector) {
         this.binaryFileStore = binaryFileStore;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;

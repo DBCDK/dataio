@@ -450,7 +450,7 @@ public class StateTest {
      */
 
     private void updateState(State state, List<StateChange> stateChangeList) {
-        for(StateChange stateChange : stateChangeList) {
+        for (StateChange stateChange : stateChangeList) {
             state.updateState(stateChange);
         }
     }

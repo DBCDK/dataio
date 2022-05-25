@@ -15,7 +15,7 @@ import java.util.Set;
  * This class contains information about a bibliographic record.
  * Some time in the future this will also encompass keys for sequence analysis.
  */
-@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include= JsonTypeInfo.As.PROPERTY, property="@class")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public class RecordInfo {
     protected final String id;
     @JsonProperty

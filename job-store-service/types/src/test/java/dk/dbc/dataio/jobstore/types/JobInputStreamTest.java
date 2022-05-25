@@ -40,4 +40,4 @@ public class JobInputStreamTest {
         assertThat(jobInputStream.getIsEndOfJob(), is(false));  // default value
         assertThat(jobInputStream.getJobSpecification(), is(jobSpecification));
     }
- }
+}

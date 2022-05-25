@@ -4,7 +4,6 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
@@ -14,6 +13,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,13 +38,14 @@ public abstract class AbstractHarvesterJobBuilder implements AutoCloseable {
 
     /**
      * Class constructor
-     * @param binaryFileStore binaryFileStore implementation for tmp file writing
+     *
+     * @param binaryFileStore           binaryFileStore implementation for tmp file writing
      * @param fileStoreServiceConnector file-store service connector for datafile uploads
-     * @param jobStoreServiceConnector job-store service connector for job creation
-     * @param jobSpecificationTemplate job specification template
+     * @param jobStoreServiceConnector  job-store service connector for job creation
+     * @param jobSpecificationTemplate  job specification template
      * @throws NullPointerException if given null-valued argument
-     * @throws HarvesterException on failure to create harvester data file
-     * backed by temporary binary file
+     * @throws HarvesterException   on failure to create harvester data file
+     *                              backed by temporary binary file
      */
     public AbstractHarvesterJobBuilder(BinaryFileStore binaryFileStore, FileStoreServiceConnector fileStoreServiceConnector, JobStoreServiceConnector jobStoreServiceConnector, JobSpecification jobSpecificationTemplate)
             throws NullPointerException, HarvesterException {
@@ -59,6 +60,7 @@ public abstract class AbstractHarvesterJobBuilder implements AutoCloseable {
     /**
      * Uploads harvester data file, if non-empty, to the file-store
      * and creates job in the job-store referencing the uploaded file
+     *
      * @return Optional containing job info snapshot for created job, or empty if no job was created
      * @throws HarvesterException on failure to upload to file-store or on failure to create job in job-store
      */
@@ -75,6 +77,7 @@ public abstract class AbstractHarvesterJobBuilder implements AutoCloseable {
 
     /**
      * Adds given Addi record to harvester data file
+     *
      * @param record Addi record to add
      * @throws HarvesterException if unable to add record
      */
@@ -87,13 +90,16 @@ public abstract class AbstractHarvesterJobBuilder implements AutoCloseable {
         recordsAdded++;
     }
 
-    /** @return number of records added */
+    /**
+     * @return number of records added
+     */
     public int getRecordsAdded() {
         return recordsAdded;
     }
 
     /**
      * Closes and deletes temporary file
+     *
      * @throws HarvesterException if unable to close temporary file
      */
     @Override

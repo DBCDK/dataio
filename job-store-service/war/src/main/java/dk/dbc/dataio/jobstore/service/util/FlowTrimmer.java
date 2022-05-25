@@ -24,6 +24,7 @@ public class FlowTrimmer {
 
     /**
      * Trims next components from given Flow JSON document
+     *
      * @param flowJson JSON document representing flow to be trimmed
      * @return trimmed flow as JSON document
      * @throws JSONBException if unable to unmarshall JSON document into internal representation

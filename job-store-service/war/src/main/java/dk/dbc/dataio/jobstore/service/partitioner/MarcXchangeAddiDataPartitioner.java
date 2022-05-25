@@ -39,12 +39,13 @@ import java.util.Optional;
 public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
     /**
      * Creates new instance of DataPartitioner for Addi records containing marcXchange content
-     * @param inputStream stream from which addi records can be read
+     *
+     * @param inputStream  stream from which addi records can be read
      * @param encodingName encoding specified in job specification
-     * @throws NullPointerException if given null-valued argument
+     * @return new instance of MarcXchangeAddiDataPartitioner
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument or if given stream is incompatible with AddiReader
      * @throws InvalidEncodingException if encoding can not be deduced from given encoding name
-     * @return new instance of MarcXchangeAddiDataPartitioner
      */
     public static MarcXchangeAddiDataPartitioner newInstance(InputStream inputStream, String encodingName)
             throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
@@ -58,7 +59,7 @@ public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
 
     @Override
     ChunkItem.Type[] getChunkItemType() {
-        return new ChunkItem.Type[] {ChunkItem.Type.ADDI, ChunkItem.Type.MARCXCHANGE};
+        return new ChunkItem.Type[]{ChunkItem.Type.ADDI, ChunkItem.Type.MARCXCHANGE};
     }
 
     @Override

@@ -21,7 +21,9 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
 
-    interface FlowComponentBinder extends UiBinder<HTMLPanel, View> {}
+    interface FlowComponentBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static FlowComponentBinder uiBinder = GWT.create(FlowComponentBinder.class);
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
@@ -30,21 +32,33 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         add(uiBinder.createAndBindUi(this));
     }
 
-    @UiFactory PopupBox<Label> getPopupBox() {
+    @UiFactory
+    PopupBox<Label> getPopupBox() {
         return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
-    @UiField PromptedTextBox name;
-    @UiField PromptedTextArea description;
-    @UiField PromptedTextBox project;
-    @UiField PromptedList revision;
-    @UiField PromptedList next;
-    @UiField PromptedList script;
-    @UiField PromptedList method;
-    @UiField Button deleteButton;
-    @UiField Label status;
-    @UiField Label busy;
-    @UiField PopupBox<Label> confirmation;
+    @UiField
+    PromptedTextBox name;
+    @UiField
+    PromptedTextArea description;
+    @UiField
+    PromptedTextBox project;
+    @UiField
+    PromptedList revision;
+    @UiField
+    PromptedList next;
+    @UiField
+    PromptedList script;
+    @UiField
+    PromptedList method;
+    @UiField
+    Button deleteButton;
+    @UiField
+    Label status;
+    @UiField
+    Label busy;
+    @UiField
+    PopupBox<Label> confirmation;
 
     @UiHandler("name")
     void keyPressedInNameField(KeyDownEvent event) {
@@ -73,7 +87,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @UiHandler("revision")
-     void revisionChanged(ValueChangeEvent<String> event) {
+    void revisionChanged(ValueChangeEvent<String> event) {
         presenter.revisionChanged(revision.getSelectedKey());
         presenter.keyPressed();
     }

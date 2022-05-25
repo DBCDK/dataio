@@ -15,6 +15,7 @@ import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl {
     /**
      * Constructor
+     *
      * @param header The header
      */
     public PresenterCreateImpl(String header) {
@@ -26,8 +27,9 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -52,7 +54,7 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
                         .withFormat("")
                         .withType(JobSpecification.Type.TRANSIENT)
                         .withEnabled(false)
-            );
+        );
         setTickleRepoHarvesterConfig(tickleRepoHarvesterConfig);
         updateAllFieldsAccordingToCurrentState();
     }
@@ -70,29 +72,34 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
     /**
      * This has no implementation because "Create" does not have a delete button!
      */
-    public void deleteButtonPressed() {}
+    public void deleteButtonPressed() {
+    }
 
     /**
      * This has no implementation because "Create" does not have a task record harvest button!
      */
-    public void taskRecordHarvestButtonPressed() {}
+    public void taskRecordHarvestButtonPressed() {
+    }
 
     /**
      * This has no implementation because "Create" does not have a delete outdated records button!
      */
     @Override
-    public void deleteOutdatedRecordsButtonPressed() {}
+    public void deleteOutdatedRecordsButtonPressed() {
+    }
 
     /**
      * This has no implementation because "Create" does not have a delete outdated records button!
      */
     @Override
-    public void deleteOutdatedRecords() {}
+    public void deleteOutdatedRecords() {
+    }
 
     /**
      * This has no implementation because "Create" does not have a task record harvest button!
      */
-    public void setRecordHarvestCount() {}
+    public void setRecordHarvestCount() {
+    }
 
 
     /*
@@ -105,6 +112,7 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
             String msg = "HarvesterConfig.id: [new Harvester]";
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(TickleRepoHarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());

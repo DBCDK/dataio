@@ -9,6 +9,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 public interface LogStoreProxy extends RemoteService {
 
     String getItemLog(String jobId, Long chunkId, Long itemId) throws ProxyException;
+
     void close();
 
     class Factory {

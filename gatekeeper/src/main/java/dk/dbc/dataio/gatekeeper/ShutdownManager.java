@@ -17,6 +17,7 @@ public class ShutdownManager {
     /**
      * Sets internal ready-to-exit state to false unless
      * shutdown-in-progress is already true
+     *
      * @return true if ready-to-exit state was changed, otherwise false
      */
     public synchronized boolean signalBusy() {

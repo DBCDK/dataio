@@ -56,11 +56,11 @@ public class ESTaskPackageIntegrationTestUtil {
      * @return A Deque of identifiers
      * @throws SQLException
      */
-    public static Deque< Integer> getIdentifiersFromTaskPackage(Connection connection, int targetRef) throws SQLException {
+    public static Deque<Integer> getIdentifiersFromTaskPackage(Connection connection, int targetRef) throws SQLException {
         final String statement = "SELECT lbnr FROM taskpackagerecordstructure WHERE targetreference = ? ORDER BY lbnr";
 
         PreparedStatement ps = null;
-        Deque< Integer> ids = new ArrayDeque<>();
+        Deque<Integer> ids = new ArrayDeque<>();
         try {
             ps = JDBCUtil.query(connection, statement, targetRef);
             ResultSet rs = ps.getResultSet();

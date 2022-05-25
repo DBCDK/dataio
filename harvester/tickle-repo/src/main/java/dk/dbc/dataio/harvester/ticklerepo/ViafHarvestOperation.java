@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.harvester.ticklerepo;
 
 import dk.dbc.commons.addi.AddiRecord;
@@ -70,7 +69,7 @@ public class ViafHarvestOperation extends HarvestOperation {
 
     private MarcRecord marcXchangeToMarcRecord(byte[] bytes) throws MarcReaderException {
         final MarcXchangeV1Reader marcXchangeReader = new MarcXchangeV1Reader(
-                    new ByteArrayInputStream(bytes), StandardCharsets.UTF_8);
+                new ByteArrayInputStream(bytes), StandardCharsets.UTF_8);
         return marcXchangeReader.read();
     }
 

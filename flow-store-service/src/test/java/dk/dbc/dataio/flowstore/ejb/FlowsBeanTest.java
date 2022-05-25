@@ -97,7 +97,7 @@ public class FlowsBeanTest {
         Response response = flowsBean.getFlow(1L);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
-        JsonNode entityNode = jsonbContext.getJsonTree((String)response.getEntity());
+        JsonNode entityNode = jsonbContext.getJsonTree((String) response.getEntity());
         assertThat(entityNode.get("content").get("name").textValue(), is("testFlow"));
     }
 
@@ -211,7 +211,7 @@ public class FlowsBeanTest {
         when(flowsBean.jsonbContext.unmarshall(anyString(), eq(FlowContent.class))).thenReturn(flowContent);
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
 
-        String flowContentJSON = new JSONBContext().marshall( flowContent);
+        String flowContentJSON = new JSONBContext().marshall(flowContent);
         flowsBean.updateFlow(flowContentJSON, null, 123L, 4321L, true);
     }
 
@@ -244,7 +244,7 @@ public class FlowsBeanTest {
 
         final FlowComponent persistedFlowComponent = mock(FlowComponent.class);
         when(ENTITY_MANAGER.find(eq(dk.dbc.dataio.flowstore.entity.FlowComponent.class), any())).thenReturn(persistedFlowComponent);
-        when(persistedFlowComponent.getVersion()).thenReturn(flowComponent.getVersion() +1);
+        when(persistedFlowComponent.getVersion()).thenReturn(flowComponent.getVersion() + 1);
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
         when(flow.getContent()).thenReturn("{}");
 
@@ -306,7 +306,7 @@ public class FlowsBeanTest {
     }
 
 
-    private String createEmptyFlowContentJSON( ) {
+    private String createEmptyFlowContentJSON() {
         try {
             final dk.dbc.dataio.commons.types.FlowComponent flowComponent = new FlowComponentBuilder().build();
             final FlowContent flowContent = new FlowContentBuilder()

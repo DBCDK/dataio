@@ -40,15 +40,15 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * JavaScriptProjectFetcherImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
-    JavascriptUtil.class,
-    SvnConnector.class
+        JavascriptUtil.class,
+        SvnConnector.class
 })
 public class JavaScriptSubversionProjectTest {
     private static final String JAVA_IO_TMPDIR = "java.io.tmpdir";
@@ -92,7 +92,7 @@ public class JavaScriptSubversionProjectTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_subversionScmEndpointArgIsNull_throws() throws Exception {
-         new JavaScriptSubversionProject(null);
+        new JavaScriptSubversionProject(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -204,11 +204,11 @@ public class JavaScriptSubversionProjectTest {
     @Test
     public void fetchJavaScriptFileNames_svnConnectorReturnsPaths_returnsNamesOfFilesWithJavaScriptExtension() throws Exception {
         final List<String> paths = new ArrayList<String>(Arrays.asList(
-            "main.js",          // expected in returned result
-            "main.js.bak",
-            "js.README",
-            "sub/aux.js",       // expected in returned result
-            "sub/mod.use.js"
+                "main.js",          // expected in returned result
+                "main.js.bak",
+                "js.README",
+                "sub/aux.js",       // expected in returned result
+                "sub/mod.use.js"
         ));
         final String projectUrl = subversionScmEndpoint + JavaScriptSubversionProject.URL_DELIMITER
                 + projectName + JavaScriptSubversionProject.URL_DELIMITER + JavaScriptSubversionProject.TRUNK_PATH;

@@ -24,7 +24,7 @@ public class PromptedAnchorWithButton extends PromptedAnchor {
         super(guiId, prompt);
     }
 
-    @UiChild(tagname="button")
+    @UiChild(tagname = "button")
     public void addButton(Label text, String value) {
         final Button button = new Button(text.getText());
         button.setStyleName(PROMPTED_ANCHOR_WITH_BUTTON_STYLE);
@@ -39,7 +39,8 @@ public class PromptedAnchorWithButton extends PromptedAnchor {
     }
 
     private void fireChangeEvent(String value) {
-        valueChangeHandler.onValueChange(new ValueChangeEvent<String>(value) {});
+        valueChangeHandler.onValueChange(new ValueChangeEvent<String>(value) {
+        });
     }
 
     public HandlerRegistration addValueChangeHandler(ValueChangeHandler<String> changeHandler) {

@@ -30,7 +30,8 @@ public class GatekeeperDestinationEntity {
     private String packaging;
     private String format;
 
-    public GatekeeperDestinationEntity() {}
+    public GatekeeperDestinationEntity() {
+    }
 
     public long getId() {
         return id;

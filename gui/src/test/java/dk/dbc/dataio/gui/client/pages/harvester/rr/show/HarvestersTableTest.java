@@ -28,21 +28,27 @@ import static org.mockito.Mockito.when;
  * <p/>
  * The test methods of this class uses the following naming convention:
  * <p/>
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class HarvestersTableTest {
 
-    @Mock Presenter mockedPresenter;
-    @Mock ListDataProvider<RRHarvesterConfig> mockedDataProvider;
-    @Mock List<RRHarvesterConfig> mockedHarvesterList;
-    @Mock Texts mockedTexts;
-    @Mock DoubleClickEvent mockedDoubleClickEvent;
-    @Mock SingleSelectionModel<RRHarvesterConfig> mockedSelectionModel;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    ListDataProvider<RRHarvesterConfig> mockedDataProvider;
+    @Mock
+    List<RRHarvesterConfig> mockedHarvesterList;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    DoubleClickEvent mockedDoubleClickEvent;
+    @Mock
+    SingleSelectionModel<RRHarvesterConfig> mockedSelectionModel;
 
     // Test Data
     private List<RRHarvesterConfig> testHarvesterConfig = new ArrayList<>();
-    private RRHarvesterConfig testHarvesterConfigEntry1 = new RRHarvesterConfig(1,2, new RRHarvesterConfig.Content()
+    private RRHarvesterConfig testHarvesterConfigEntry1 = new RRHarvesterConfig(1, 2, new RRHarvesterConfig.Content()
             .withId("ID1")
             .withDescription("Description1")
             .withEnabled(false)
@@ -77,7 +83,6 @@ public class HarvestersTableTest {
 
     // Subject Under Test
     private HarvestersTable harvestersTable;
-
 
 
     @Test

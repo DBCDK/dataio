@@ -35,10 +35,10 @@ import java.util.Iterator;
 
 /**
  * Data partitioner "default" CSV format
- *      withDelimiter(',')
- *      withQuote('"')
- *      withRecordSeparator("\r\n")
- *      withIgnoreEmptyLines(true)
+ * withDelimiter(',')
+ * withQuote('"')
+ * withRecordSeparator("\r\n")
+ * withIgnoreEmptyLines(true)
  */
 public class CsvDataPartitioner implements DataPartitioner {
     /*  Experimented with both commons-csv, super-csv and opencsv libraries.
@@ -62,12 +62,13 @@ public class CsvDataPartitioner implements DataPartitioner {
 
     /**
      * Creates new instance of DataPartitioner for CSV data
-     * @param inputStream stream from which csv records can be read
+     *
+     * @param inputStream  stream from which csv records can be read
      * @param encodingName encoding specified in job specification
-     * @throws NullPointerException if given null-valued argument
+     * @return new instance of CsvDataPartitioner
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
      * @throws InvalidEncodingException if encoding can not be deduced from given encoding name
-     * @return new instance of CsvDataPartitioner
      */
     public static CsvDataPartitioner newInstance(InputStream inputStream, String encodingName)
             throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
@@ -160,7 +161,7 @@ public class CsvDataPartitioner implements DataPartitioner {
                     .withEncoding(StandardCharsets.UTF_8);
             return new DataPartitionerResult(chunkItem, null, positionInDatafile);
         } catch (XMLStreamException e) {
-           return new DataPartitionerResult(ChunkItem.failedChunkItem()
+            return new DataPartitionerResult(ChunkItem.failedChunkItem()
                     .withData(csvLine)
                     .withType(ChunkItem.Type.STRING)
                     .withEncoding(StandardCharsets.UTF_8)

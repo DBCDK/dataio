@@ -15,7 +15,8 @@ public class TaskRepo {
     @PersistenceContext(unitName = "taskrepo_PU")
     EntityManager entityManager;
 
-    public TaskRepo() {}
+    public TaskRepo() {
+    }
 
     public TaskRepo(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -27,6 +28,7 @@ public class TaskRepo {
 
     /**
      * Returns next available harvest for specified harvester
+     *
      * @param configId configuration ID of specific harvester
      * @return task or empty of none available
      */

@@ -44,8 +44,7 @@ public class TickleHarvesterProxyImpl implements TickleHarvesterProxy {
         } catch (HarvesterTaskServiceConnectorUnexpectedStatusCodeException e) {
             log.error("TickleHarvesterProxy: createHarvestTask - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
-        }
-        catch(HarvesterTaskServiceConnectorException e) {
+        } catch (HarvesterTaskServiceConnectorException e) {
             log.error("TickleHarvesterProxy: createHarvestTask - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -58,8 +57,7 @@ public class TickleHarvesterProxyImpl implements TickleHarvesterProxy {
         } catch (HarvesterTaskServiceConnectorUnexpectedStatusCodeException e) {
             log.error("TickleHarvesterProxy: getDataSetSizeEstimate - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
-        }
-        catch(HarvesterTaskServiceConnectorException e) {
+        } catch (HarvesterTaskServiceConnectorException e) {
             log.error("TickleHarvesterProxy: getDataSetSizeEstimate - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -74,7 +72,7 @@ public class TickleHarvesterProxyImpl implements TickleHarvesterProxy {
             log.error("TickleHarvesterProxy: deleteOutdatedRecords - Unexpected Status Code Exception({})",
                     StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
-        } catch(HarvesterTaskServiceConnectorException e) {
+        } catch (HarvesterTaskServiceConnectorException e) {
             log.error("TickleHarvesterProxy: deleteOutdatedRecords - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }

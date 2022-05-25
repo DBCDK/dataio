@@ -119,13 +119,13 @@ public class AddiDataPartitionerTest {
     @Test
     public void partitioner_metaDataContainsPid_returnsRecordInfoWithPid() {
         final InputStream addiStream = StringUtil.asInputStream(
-            "14\n{\"pid\": \"pid\"}\n7\ncontent\n");
+                "14\n{\"pid\": \"pid\"}\n7\ncontent\n");
         final AddiDataPartitioner partitioner = AddiDataPartitioner
-            .newInstance(addiStream, UTF_8_ENCODING);
+                .newInstance(addiStream, UTF_8_ENCODING);
         final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
         final DataPartitionerResult dataPartitionerResult = iterator.next();
         assertThat("pid", dataPartitionerResult.getRecordInfo().getPid(),
-            is("pid"));
+                is("pid"));
     }
 
     @Test

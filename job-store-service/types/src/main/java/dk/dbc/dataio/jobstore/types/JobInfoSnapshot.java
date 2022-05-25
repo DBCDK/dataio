@@ -9,12 +9,13 @@ import java.util.Date;
 public class JobInfoSnapshot {
     private int jobId;
     private boolean eoj;
-    @JsonProperty ("hasFatalError") private boolean fatalError;
+    @JsonProperty("hasFatalError")
+    private boolean fatalError;
     private int partNumber;
     private int numberOfChunks;
     private int numberOfItems;
     private Date timeOfCreation;
-    private Date timeOfLastModification ;
+    private Date timeOfLastModification;
     private Date timeOfCompletion;
     private JobSpecification specification;
     private State state;
@@ -22,7 +23,8 @@ public class JobInfoSnapshot {
     private WorkflowNote workflowNote;
 
     @JsonCreator
-    public JobInfoSnapshot() {}
+    public JobInfoSnapshot() {
+    }
 
     public int getJobId() {
         return jobId;
@@ -80,7 +82,7 @@ public class JobInfoSnapshot {
     }
 
     public Date getTimeOfCreation() {
-        return this.timeOfCreation == null? null : new Date(this.timeOfCreation.getTime());
+        return this.timeOfCreation == null ? null : new Date(this.timeOfCreation.getTime());
     }
 
     public JobInfoSnapshot withTimeOfCreation(Date timeOfCreation) {
@@ -98,7 +100,7 @@ public class JobInfoSnapshot {
     }
 
     public Date getTimeOfCompletion() {
-        return this.timeOfCompletion == null? null : new Date(this.timeOfCompletion.getTime());
+        return this.timeOfCompletion == null ? null : new Date(this.timeOfCompletion.getTime());
     }
 
     public JobInfoSnapshot withTimeOfCompletion(Date timeOfCompletion) {

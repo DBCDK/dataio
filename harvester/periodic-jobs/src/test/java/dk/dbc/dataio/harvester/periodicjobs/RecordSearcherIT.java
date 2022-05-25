@@ -143,7 +143,8 @@ public class RecordSearcherIT {
         long waitMs = 0L;
         long maxWaitMs = 20 * 1000L;
         boolean allReplicasUp = false;
-        waitLoop: while (waitMs < maxWaitMs && !allReplicasUp) {
+        waitLoop:
+        while (waitMs < maxWaitMs && !allReplicasUp) {
             Thread.sleep(500L);
             waitMs += 500L;
 

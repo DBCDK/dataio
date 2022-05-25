@@ -9,7 +9,7 @@ class JobSpecificationTemplate {
         try {
             final PeriodicJobsHarvesterConfig.Content configFields = config.getContent();
             final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry()
-                .withHarvesterToken(config.getHarvesterToken());
+                    .withHarvesterToken(config.getHarvesterToken());
             return new JobSpecification()
                     .withPackaging("addi-xml")
                     .withFormat(configFields.getFormat())

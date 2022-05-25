@@ -8,7 +8,6 @@ import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.utils.JunitXmlStreamWriter;
 import dk.dbc.dataio.commons.utils.JunitXmlTestCase;
 import dk.dbc.dataio.commons.utils.JunitXmlTestSuite;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.PrettyPrint;
@@ -22,6 +21,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
+import dk.dbc.httpclient.HttpClient;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
@@ -47,7 +47,7 @@ public class JobManager {
 
     private static final String JUNIT_XML = "JUnit.xml";
     private static final long SLEEP_INTERVAL_IN_MS = 10000;     // 10 seconds
-    private static final long MAX_WAIT_IN_MS       = 28800000;  // 8 hours
+    private static final long MAX_WAIT_IN_MS = 28800000;  // 8 hours
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final FileStoreServiceConnector fileStoreServiceConnector;
 
@@ -103,7 +103,7 @@ public class JobManager {
                 .withFormat((String) jobProperties.get("format"))
                 .withCharset((String) jobProperties.get("charset"))
                 .withDestination((String) jobProperties.get("destination"))
-                .withSubmitterId(Long.parseLong((String)jobProperties.get("submitterId")))
+                .withSubmitterId(Long.parseLong((String) jobProperties.get("submitterId")))
                 .withMailForNotificationAboutVerification(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION)
                 .withMailForNotificationAboutProcessing(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING)
                 .withResultmailInitials(JobSpecification.EMPTY_RESULT_MAIL_INITIALS)
@@ -196,9 +196,9 @@ public class JobManager {
         final ChunkItem chunkItem = jobStoreServiceConnector.getChunkItem(
                 itemInfoSnapshot.getJobId(),
                 itemInfoSnapshot.getChunkId(),
-                itemInfoSnapshot.getItemId() ,
+                itemInfoSnapshot.getItemId(),
                 State.Phase.DELIVERING);
-        final String recordId = itemInfoSnapshot.getRecordInfo()!=null?itemInfoSnapshot.getRecordInfo().getId():"";
+        final String recordId = itemInfoSnapshot.getRecordInfo() != null ? itemInfoSnapshot.getRecordInfo().getId() : "";
 
         // The fixed length string is used to make the ascending listing of items correct in jenkins
         return JunitXmlTestCase.failed(

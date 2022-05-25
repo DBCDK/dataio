@@ -79,7 +79,7 @@ public class DependencyTrackingEntity {
 
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
         this.key = new Key(chunk.getKey());
-        this.sinkid= sinkId;
+        this.sinkid = sinkId;
         if (chunk.getSequenceAnalysisData() != null) {
             this.matchKeys = new HashSet<>(chunk.getSequenceAnalysisData().getData());
         } else {
@@ -91,7 +91,8 @@ public class DependencyTrackingEntity {
         this.hashes = computeHashes(this.matchKeys);
     }
 
-    public DependencyTrackingEntity() {}
+    public DependencyTrackingEntity() {
+    }
 
     /* Be advised that updating the internal state of a 'json' column
        will not mark the field as dirty and therefore not result in a
@@ -119,7 +120,7 @@ public class DependencyTrackingEntity {
 
     private int priority;
 
-    @Column(columnDefinition = "jsonb" )
+    @Column(columnDefinition = "jsonb")
     @Mutable
     @Convert(converter = KeySetJSONBConverter.class)
     private Set<Key> waitingOn;
@@ -270,16 +271,17 @@ public class DependencyTrackingEntity {
         private int chunkId;
 
         /* Private constructor in order to keep class static */
-        private Key(){}
+        private Key() {
+        }
 
-        public Key(int jobId, int chunkId ) {
+        public Key(int jobId, int chunkId) {
             this.jobId = jobId;
             this.chunkId = chunkId;
         }
 
         public Key(ChunkEntity.Key chunkKey) {
-            this.jobId=chunkKey.getJobId();
-            this.chunkId=chunkKey.getId();
+            this.jobId = chunkKey.getJobId();
+            this.chunkId = chunkKey.getId();
         }
 
         public Key(long jobId, long chunkId) {

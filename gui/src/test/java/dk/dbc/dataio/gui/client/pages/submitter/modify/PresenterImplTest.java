@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
 import com.google.gwt.user.client.ui.IsWidget;
@@ -23,17 +22,19 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
-* PresenterImpl unit tests
-*
-* The test methods of this class uses the following naming convention:
-*
-*  unitOfWork_stateUnderTest_expectedBehavior
-*/
+ * PresenterImpl unit tests
+ * <p>
+ * The test methods of this class uses the following naming convention:
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
+ */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
 
-    @Mock private Texts mockedTexts;
-    @Mock private ViewGinjector mockedViewGinjector;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private ViewGinjector mockedViewGinjector;
 
     private View view;
     private PresenterImplConcrete presenterImpl;
@@ -276,7 +277,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
 
-     /*
+    /*
      * Private methods
      */
     private void initializeAndStartPresenter() {

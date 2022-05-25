@@ -2,7 +2,7 @@ package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.jobstore.types.JobError;
 
-public class JobStoreServiceConnectorUnexpectedStatusCodeException extends JobStoreServiceConnectorException{
+public class JobStoreServiceConnectorUnexpectedStatusCodeException extends JobStoreServiceConnectorException {
     private static final long serialVersionUID = -6449911421903807835L;
 
     private JobError jobError;
@@ -15,9 +15,8 @@ public class JobStoreServiceConnectorUnexpectedStatusCodeException extends JobSt
      * The cause is not initialized, and may subsequently be initialized by
      * a call to {@link #initCause}.
      *
-     * @param message detail message saved for later retrieval by the
-     *                {@link #getMessage()} method. May be null.
-     *
+     * @param message    detail message saved for later retrieval by the
+     *                   {@link #getMessage()} method. May be null.
      * @param statusCode the http status code returned by the REST service
      */
     public JobStoreServiceConnectorUnexpectedStatusCodeException(String message, int statusCode) {
@@ -41,6 +40,7 @@ public class JobStoreServiceConnectorUnexpectedStatusCodeException extends JobSt
 
     /**
      * Sets the job error
+     *
      * @param jobError the job error to set
      */
     public void setJobError(JobError jobError) {

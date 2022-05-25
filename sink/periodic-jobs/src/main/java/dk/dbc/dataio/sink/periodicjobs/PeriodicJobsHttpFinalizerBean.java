@@ -31,7 +31,8 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     public static final String ORIGIN = "dataio/sink/periodic-jobs";
 
-    @EJB public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @EJB
+    public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
 
     @Timed
     @Override
@@ -149,7 +150,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
         try {
             LOGGER.info("Removing file with id {} from file-store", fileId);
             fileStoreServiceConnector.deleteFile(fileId);
-        } catch (RuntimeException | FileStoreServiceConnectorException  e) {
+        } catch (RuntimeException | FileStoreServiceConnectorException e) {
             LOGGER.error("Failed to remove uploaded file with id {}", fileId, e);
         }
     }

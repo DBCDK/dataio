@@ -32,7 +32,6 @@ public interface Texts extends Constants {
     String column_Stacktrace();
 
 
-
     // Error Texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_CouldNotFetchJob();

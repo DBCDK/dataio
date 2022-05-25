@@ -5,8 +5,8 @@ import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
-import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
+import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.ticklerepo.TickleRepo;
@@ -39,10 +39,14 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarv
             .withUnit("exception")
             .build();
 
-    @EJB BinaryFileStoreBean binaryFileStoreBean;
-    @EJB FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-    @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @EJB
+    BinaryFileStoreBean binaryFileStoreBean;
+    @EJB
+    FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @EJB
     TickleRepo tickleRepo;

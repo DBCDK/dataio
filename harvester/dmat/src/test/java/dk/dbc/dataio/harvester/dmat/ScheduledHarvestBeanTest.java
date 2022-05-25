@@ -37,7 +37,7 @@ public class ScheduledHarvestBeanTest {
     }
 
     @Test
-     void canRunWithValidSchedule() {
+    void canRunWithValidSchedule() {
         final DMatHarvesterConfig config = new DMatHarvesterConfig(1, 2,
                 new DMatHarvesterConfig.Content()
                         .withSchedule("* * * * *")

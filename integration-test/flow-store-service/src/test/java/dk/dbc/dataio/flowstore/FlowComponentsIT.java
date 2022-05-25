@@ -30,8 +30,8 @@ import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertNotNull;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 /**
@@ -43,7 +43,7 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
      * When : valid JSON is POSTed to the flow component path without an identifier
      * Then : a flow component is created and returned
      * And  : assert that the flow component created contains the same information
-     *        as the flowComponentContent given as input
+     * as the flowComponentContent given as input
      * And  : the flow component view is updated
      */
     @Test
@@ -102,7 +102,7 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
             flowStoreServiceConnector.createFlowComponent(flowComponentContent);
             fail("Primary key violation was not detected as input to createFlowComponent().");
             // Then...
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(406));
         }
@@ -138,7 +138,7 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
         final List<FlowComponentView> components = flowStoreServiceConnector.findAllFlowComponents();
 
         // Then...
-        assertThat(components.size() >= 3, is (true));
+        assertThat(components.size() >= 3, is(true));
 
         // And...
         assertThat(components.get(0).getName(), is(flowComponentSortsFirst.getContent().getName()));
@@ -184,7 +184,7 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
         for (int i = 0; i < flowComponentToGet.getContent().getJavascripts().size(); i++) {
             JavaScript javaScriptReturned = flowComponentToGet.getContent().getJavascripts().get(i);
             JavaScript javaScriptOriginal = flowComponent.getContent().getJavascripts().get(i);
-            assertThat(javaScriptReturned, is (javaScriptOriginal));
+            assertThat(javaScriptReturned, is(javaScriptOriginal));
         }
     }
 
@@ -195,14 +195,14 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void getFlowComponent_wrongIdNumber_NotFound() throws FlowStoreServiceConnectorException{
-        try{
+    public void getFlowComponent_wrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
+        try {
             // Given...
             flowStoreServiceConnector.getFlowComponent(new Date().getTime());
 
             fail("Invalid request to getFlowComponent() was not detected.");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
         }
@@ -287,7 +287,7 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
      */
     @Test
     public void updateFlowComponent_wrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
-        try{
+        try {
             // When...
             final FlowComponentContent content = new FlowComponentContentBuilder()
                     .setName("FlowComponentsIT.updateFlowComponent_wrongIdNumber_NotFound")
@@ -296,7 +296,7 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
 
             fail("Wrong flow component Id was not detected as input to updateFlowComponent().");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
         }
@@ -306,12 +306,12 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
      * Given: a deployed flow-store service
      * And  : Two valid flow components are already stored
      * When : valid JSON is POSTed to the flow components path with an identifier (update) but with a flow component name,
-     *        that is already in use by another existing flow component
+     * that is already in use by another existing flow component
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT_ACCEPTABLE http status code
      */
     @Test
-    public void updateFlowComponent_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException{
+    public void updateFlowComponent_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
         final String FIRST_FLOW_COMPONENT_NAME = "FlowComponentsIT.updateFlowComponent_duplicateName_NotAcceptable.1";
         final String SECOND_FLOW_COMPONENT_NAME = "FlowComponentsIT.updateFlowComponent_duplicateName_NotAcceptable.2";
@@ -333,7 +333,7 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
 
             fail("Primary key violation was not detected as input to updateFlowComponent().");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(406));
         }
@@ -343,10 +343,10 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
      * Given: a deployed flow-store service
      * And  : a valid flow component with given id is already stored and the flow component is opened for edit by two different users
      * And  : the first user updates the flow component, valid JSON is POSTed to the flow components path with an identifier (update)
-     *        and correct version number
+     * and correct version number
      * When : the second user attempts to update the original version of the flow component, valid JSON is POSTed to the flow components
-     *        path with an identifier (update) and wrong version number
-
+     * path with an identifier (update) and wrong version number
+     * <p>
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a CONFLICT http status code
      */
@@ -380,7 +380,7 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
             fail("Edit conflict, in the case of multiple updates, was not detected as input to updateFlowComponent().");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(409));
         }
@@ -458,7 +458,7 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
         try {
             flowStoreServiceConnector.getFlowComponent(flowComponent.getId());
             fail("Flow component was not deleted");
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
         }
     }
@@ -479,7 +479,7 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
             fail("None existing flow component was not detected");
 
             // Then ...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And...
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
         }

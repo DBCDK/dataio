@@ -5,25 +5,45 @@ public class ItemListCriteria extends ListCriteria<ItemListCriteria.Field, ItemL
      * Available criteria fields
      */
     public enum Field implements ListFilterField {
-        /** job id */
+        /**
+         * job id
+         */
         JOB_ID,
-        /** chunk id */
+        /**
+         * chunk id
+         */
         CHUNK_ID,
-        /** item id */
+        /**
+         * item id
+         */
         ITEM_ID,
-        /** record id */
+        /**
+         * record id
+         */
         RECORD_ID,
-        /** item creation time */
+        /**
+         * item creation time
+         */
         TIME_OF_CREATION,
-        /** failed items */
+        /**
+         * failed items
+         */
         STATE_FAILED,
-        /** items failed during partitioning */
+        /**
+         * items failed during partitioning
+         */
         PARTITIONING_FAILED,
-        /** items failed during processing */
+        /**
+         * items failed during processing
+         */
         PROCESSING_FAILED,
-        /** items failed during delivery */
+        /**
+         * items failed during delivery
+         */
         DELIVERY_FAILED,
-        /** ignored items */
+        /**
+         * ignored items
+         */
         STATE_IGNORED
     }
 }

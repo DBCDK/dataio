@@ -11,6 +11,6 @@ public class RawConverter implements ChunkItemConverter {
 
     @Override
     public byte[] convert(ChunkItem chunkItem, Charset encodedAs, List<Diagnostic> diagnostics) throws JobStoreException {
-       return chunkItem.getData();
+        return chunkItem.getData();
     }
 }

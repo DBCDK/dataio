@@ -36,7 +36,7 @@ public abstract class IntegrationTest extends JpaIntegrationTest {
 
     protected void persist(Object entity) {
         jpaTestEnvironment.getPersistenceContext().run(() ->
-            jpaTestEnvironment.getEntityManager().persist(entity));
+                jpaTestEnvironment.getEntityManager().persist(entity));
     }
 
     private PGSimpleDataSource getDataSource() {

@@ -49,6 +49,7 @@ public class EditPlace extends AbstractBasePlace {
         public String getToken(EditPlace place) {
             return place.getToken();
         }
+
         @Override
         public EditPlace getPlace(String token) {
             return new EditPlace(token);

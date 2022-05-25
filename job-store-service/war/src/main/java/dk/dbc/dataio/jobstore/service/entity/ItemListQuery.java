@@ -1,9 +1,9 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.querylanguage.DataIOQLParser;
 import dk.dbc.dataio.querylanguage.ParseException;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,6 +82,7 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
 
     /**
      * Executes item listing query based on given criteria
+     *
      * @param criteria query criteria
      * @return list of entities for selected items
      * @throws NullPointerException if given null-valued criteria argument
@@ -94,6 +95,7 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
 
     /**
      * Streams result of item listing query based on given criteria
+     *
      * @param criteria query criteria
      * @return ResultSet stream
      * @throws NullPointerException if given null-valued criteria argument
@@ -116,7 +118,7 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
         LOGGER.debug("query = {}", query);
         final Query listItemQuery = entityManager.createNativeQuery(query);
         setParameters(listItemQuery, criteria);
-        final Long items = (Long)listItemQuery.getSingleResult();
+        final Long items = (Long) listItemQuery.getSingleResult();
         return items;
     }
 

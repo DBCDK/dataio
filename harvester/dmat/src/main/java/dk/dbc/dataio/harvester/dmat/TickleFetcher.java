@@ -7,6 +7,7 @@ import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.Optional;
 
 public class TickleFetcher {
@@ -21,9 +22,9 @@ public class TickleFetcher {
         Optional<Record> record;
         if (dataSet.isPresent()) {
             record = tickleRepo.lookupRecord(
-                            new Record()
-                                    .withDataset(dataSet.get().getId())
-                                    .withLocalId(dMatRecord.getIsbn()));
+                    new Record()
+                            .withDataset(dataSet.get().getId())
+                            .withLocalId(dMatRecord.getIsbn()));
             if (record.isPresent()) {
                 return record.get().getContent();
             } else {

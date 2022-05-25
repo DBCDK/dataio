@@ -19,7 +19,6 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  *  </ul>
  * <p> All radio buttons have user definable labels</p>
  * <p> Confirmation button have user definable labels</p>
- *
  */
 public class PopupSelectBox extends PopupBox {
     public static final String POPUP_SELECT_BOX_GUID = "dio-PopupSelectBox";
@@ -97,7 +96,7 @@ public class PopupSelectBox extends PopupBox {
 
         // Setup value change event handlers for the radio buttons
         radioButtonLeft.addValueChangeHandler(this::leftRadioButtonChangeEventHandler);
-        radioButtonRight.addValueChangeHandler(this:: rightRadioButtonChangeEventHandler);
+        radioButtonRight.addValueChangeHandler(this::rightRadioButtonChangeEventHandler);
 
         // Build the widget tree
         radioButtonsPanel.add(radioButtonLeft);
@@ -128,8 +127,8 @@ public class PopupSelectBox extends PopupBox {
     }
 
     /*
-      * Class protected methods (due to test)
-      */
+     * Class protected methods (due to test)
+     */
     void leftRadioButtonChangeEventHandler(ValueChangeEvent<Boolean> event) {
         rightSelected = !event.getValue();
         radioButtonLeft.setValue(!rightSelected);

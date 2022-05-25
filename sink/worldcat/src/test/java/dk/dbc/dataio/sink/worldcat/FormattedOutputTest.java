@@ -68,19 +68,19 @@ public class FormattedOutputTest {
         return new WciruServiceBroker(wciruServiceConnector).new Result()
                 .withOcn("789")
                 .withEvents(new WciruServiceBroker.Event()
-                    .withAction(WciruServiceBroker.Event.Action.ADD_OR_UPDATE)
-                    .withHolding(new Holding()
-                        .withSymbol(WciruServiceBroker.PRIMARY_HOLDING_SYMBOL)
-                        .withAction(Holding.Action.INSERT))
-                    .withDiagnostics(warning, error))
+                        .withAction(WciruServiceBroker.Event.Action.ADD_OR_UPDATE)
+                        .withHolding(new Holding()
+                                .withSymbol(WciruServiceBroker.PRIMARY_HOLDING_SYMBOL)
+                                .withAction(Holding.Action.INSERT))
+                        .withDiagnostics(warning, error))
                 .withEvents(new WciruServiceBroker.Event()
-                    .withAction(WciruServiceBroker.Event.Action.REPLACE)
-                    .withHolding(new Holding()
-                        .withSymbol("ABC")
-                        .withAction(Holding.Action.DELETE)))
+                        .withAction(WciruServiceBroker.Event.Action.REPLACE)
+                        .withHolding(new Holding()
+                                .withSymbol("ABC")
+                                .withAction(Holding.Action.DELETE)))
                 .withEvents(new WciruServiceBroker.Event()
-                    .withAction(WciruServiceBroker.Event.Action.DELETE)
-                    .withDiagnostics(warning));
+                        .withAction(WciruServiceBroker.Event.Action.DELETE)
+                        .withDiagnostics(warning));
     }
 
     private Diagnostic getWarning() {

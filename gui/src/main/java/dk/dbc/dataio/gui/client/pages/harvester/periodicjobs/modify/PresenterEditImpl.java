@@ -9,11 +9,11 @@ import dk.dbc.dataio.gui.client.components.log.LogPanel;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.harvester.types.FtpPickup;
-import dk.dbc.dataio.harvester.types.SFtpPickup;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+import dk.dbc.dataio.harvester.types.SFtpPickup;
 
 import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
 

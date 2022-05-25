@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.gui.client.pages.flowcomponent.show;
 
 
@@ -31,18 +30,23 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
-    @Mock View mockedView;
-    @Mock Widget mockedViewWidget;
-    @Mock SingleSelectionModel<FlowComponentModel> mockedSelectionModel;
-    @Mock ListDataProvider<FlowComponentModel> mockedDataProvider;
-    @Mock ViewGinjector mockedViewInjector;
+    @Mock
+    View mockedView;
+    @Mock
+    Widget mockedViewWidget;
+    @Mock
+    SingleSelectionModel<FlowComponentModel> mockedSelectionModel;
+    @Mock
+    ListDataProvider<FlowComponentModel> mockedDataProvider;
+    @Mock
+    ViewGinjector mockedViewInjector;
 
     // Setup mocked data
     @Before
@@ -68,6 +72,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             this.viewGinjector = mockedViewInjector;
             this.commonGinjector = mockedCommonGinjector;
         }
+
         public FetchFlowComponentsCallback fetchFlowComponentsCallback = new FetchFlowComponentsCallback();
     }
 

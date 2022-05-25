@@ -48,6 +48,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
                     e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(InfomediaHarvesterConfig config) {
             if (config == null) {
@@ -66,6 +67,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
                     e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(HarvesterConfig config) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
@@ -75,16 +77,17 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     class DeleteInfomediaHarvesterConfigAsyncCallback implements AsyncCallback<Void> {
         @Override
-            public void onFailure(Throwable e) {
-                String msg = "InfomediaHarvesterConfig.id: " + config.getId();
-                getView().setErrorText(ProxyErrorTranslator.toClientErrorFromTickleHarvesterProxy(
-                        e, commonInjector.getProxyErrorTexts(), msg));
-            }
-            @Override
-            public void onSuccess(Void aVoid) {
-                getView().status.setText(getTexts().status_ConfigSuccessfullyDeleted());
-                setInfomediaHarvesterConfig(null);
-                History.back();
-            }
+        public void onFailure(Throwable e) {
+            String msg = "InfomediaHarvesterConfig.id: " + config.getId();
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromTickleHarvesterProxy(
+                    e, commonInjector.getProxyErrorTexts(), msg));
+        }
+
+        @Override
+        public void onSuccess(Void aVoid) {
+            getView().status.setText(getTexts().status_ConfigSuccessfullyDeleted());
+            setInfomediaHarvesterConfig(null);
+            History.back();
+        }
     }
 }

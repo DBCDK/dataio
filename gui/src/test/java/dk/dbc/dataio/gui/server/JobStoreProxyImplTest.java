@@ -36,10 +36,10 @@ import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.IsNull.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -371,7 +371,7 @@ public class JobStoreProxyImplTest {
         when(jobStoreServiceConnector.setWorkflowNote(any(WorkflowNote.class), anyInt(), anyInt(), anyShort())).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-        jobStoreProxy.setWorkflowNote(new WorkflowNoteModelBuilder().build(), 1, 0, (short)0);
+        jobStoreProxy.setWorkflowNote(new WorkflowNoteModelBuilder().build(), 1, 0, (short) 0);
     }
 
     @Test
@@ -446,7 +446,7 @@ public class JobStoreProxyImplTest {
     }
 
 
-   /*
+    /*
      * private methods
      */
 

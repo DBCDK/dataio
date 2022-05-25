@@ -11,15 +11,15 @@ import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class ChunkTest {
     private static final ChunkItem CHUNK_ITEM = ChunkItem.successfulChunkItem()
-                                                    .withId(0)
-                                                    .withData("data");
+            .withId(0)
+            .withData("data");
     private Chunk chunk;
     private final JSONBContext jsonbContext = new JSONBContext();
 
@@ -179,12 +179,12 @@ public class ChunkTest {
         final ChunkItem ITEM_NOT_FOUND = null;
         ChunkItem itemToMatch = ITEM_NOT_FOUND;
         for (ChunkItem item : chunk) {
-            if(item.getId() == itemIdToStatusMatch) {
+            if (item.getId() == itemIdToStatusMatch) {
                 itemToMatch = item;
             }
         }
 
-        if(itemToMatch == null) {
+        if (itemToMatch == null) {
             fail("Matching ChunkItem expected with itemId: " + itemIdToStatusMatch);
         } else {
             assertTrue(itemToMatch.getId() == itemIdToStatusMatch);

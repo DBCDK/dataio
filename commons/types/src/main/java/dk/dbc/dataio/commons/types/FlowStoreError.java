@@ -21,10 +21,11 @@ public class FlowStoreError {
 
     /**
      * Class constructor
-     * @param code error code
+     *
+     * @param code        error code
      * @param description error description
-     * @param stacktrace error stacktrace or empty string if given as null or empty string
-     * @throws NullPointerException if given null-valued code or description argument
+     * @param stacktrace  error stacktrace or empty string if given as null or empty string
+     * @throws NullPointerException     if given null-valued code or description argument
      * @throws IllegalArgumentException if given empty valued description argument
      */
     @JsonCreator
@@ -39,6 +40,7 @@ public class FlowStoreError {
 
     /**
      * Gets the error code
+     *
      * @return error code
      */
     public Code getCode() {
@@ -47,6 +49,7 @@ public class FlowStoreError {
 
     /**
      * Gets the description
+     *
      * @return description
      */
     public String getDescription() {
@@ -55,6 +58,7 @@ public class FlowStoreError {
 
     /**
      * Gets the stacktrace
+     *
      * @return stacktrace
      */
     public String getStacktrace() {

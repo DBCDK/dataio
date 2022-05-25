@@ -10,6 +10,8 @@ import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 @GinModules(ViewModule.class)
 public interface ViewGinjector extends Ginjector {
     View getView();
+
     Texts getTexts();
+
     JobStoreProxyAsync getJobStoreProxyAsync();
 }

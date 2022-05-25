@@ -22,5 +22,6 @@ public class I18n {
         return ResourceBundle.getBundle("locales/PeriodicJobsSink", new Locale(language, country));
     }
 
-    private I18n() {}
+    private I18n() {
+    }
 }

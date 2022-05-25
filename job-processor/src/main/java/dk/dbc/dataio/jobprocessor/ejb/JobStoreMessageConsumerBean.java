@@ -27,17 +27,21 @@ import javax.ejb.MessageDriven;
 public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreMessageConsumerBean.class);
 
-    @EJB JobStoreServiceConnectorBean jobStoreServiceConnector;
-    @EJB ChunkProcessorBean chunkProcessor;
-    @EJB CapacityBean capacityBean;
+    @EJB
+    JobStoreServiceConnectorBean jobStoreServiceConnector;
+    @EJB
+    ChunkProcessorBean chunkProcessor;
+    @EJB
+    CapacityBean capacityBean;
 
     private final JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Processes Chunk received in consumed message
+     *
      * @param consumedMessage message to be handled
      * @throws InvalidMessageException if message payload can not be unmarshalled to chunk instance
-     * @throws JobProcessorException on general handling error
+     * @throws JobProcessorException   on general handling error
      */
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, JobProcessorException {
@@ -92,7 +96,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         final StopWatch stopWatch = new StopWatch();
         try {
             jobStoreServiceConnector.getConnector().addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
-        } catch(RuntimeException | JobStoreServiceConnectorException e) {
+        } catch (RuntimeException | JobStoreServiceConnectorException e) {
             if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
                 final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
                 if (jobError != null) {

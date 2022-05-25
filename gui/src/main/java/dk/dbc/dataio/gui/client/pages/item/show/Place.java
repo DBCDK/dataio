@@ -33,7 +33,7 @@ public class Place extends AbstractBasePlace {
 
     public Place(String jobId, String recordId) {
         addParameter(JOB_ID, jobId);
-        if(recordId != null) {
+        if (recordId != null) {
             addParameter(RECORD_ID, recordId);
         }
     }

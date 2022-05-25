@@ -12,7 +12,7 @@ import com.google.gwt.user.client.ui.HTMLPanel;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 
 public class ItemsListView extends Composite {
-    protected static final String JAVASCRIPT_LOG_TAB_CONTENT = "JAVASCRIPT_LOG_TAB_CONTENT" ;
+    protected static final String JAVASCRIPT_LOG_TAB_CONTENT = "JAVASCRIPT_LOG_TAB_CONTENT";
     protected static final String INPUT_POST_TAB_CONTENT = "INPUT_POST_TAB_CONTENT";
     protected static final String OUTPUT_POST_TAB_CONTENT = "OUTPUT_POST_TAB_CONTENT";
     protected static final String NEXT_OUTPUT_POST_TAB_CONTENT = "NEXT_OUTPUT_POST_TAB_CONTENT";
@@ -24,9 +24,12 @@ public class ItemsListView extends Composite {
 
     private static ItemsListUiBinder ourUiBinder = GWT.create(ItemsListUiBinder.class);
 
-    @UiField CellTable itemsTable;
-    @UiField DecoratedTabPanel detailedTabs;
-    @UiField ItemDiagnosticTabContent itemDiagnosticTabContent;
+    @UiField
+    CellTable itemsTable;
+    @UiField
+    DecoratedTabPanel detailedTabs;
+    @UiField
+    ItemDiagnosticTabContent itemDiagnosticTabContent;
 
     public ItemsListView() {
         initWidget(ourUiBinder.createAndBindUi(this));

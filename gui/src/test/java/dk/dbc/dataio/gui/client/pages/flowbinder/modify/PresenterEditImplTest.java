@@ -25,10 +25,14 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
 
-    @Mock private Texts mockedTexts;
-    @Mock private EditPlace mockedPlace;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock ViewGinjector mockedViewInjector;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private EditPlace mockedPlace;
+    @Mock
+    dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock
+    ViewGinjector mockedViewInjector;
 
     private View editView;
 
@@ -37,7 +41,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     private final static String INPUT_FIELD_VALIDATION_ERROR = "InputFieldValidationError";
     private final static long DEFAULT_FLOWBINDER_ID = 776L;
 
-    class PresenterEditImplConcrete <Place extends EditPlace> extends PresenterEditImpl {
+    class PresenterEditImplConcrete<Place extends EditPlace> extends PresenterEditImpl {
         public PresenterEditImplConcrete(Place place, String header) {
             super(place, header);
         }
@@ -45,6 +49,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         public View getView() {
             return editView;
         }
+
         public GetFlowBinderModelFilteredAsyncCallback callback = new GetFlowBinderModelFilteredAsyncCallback();
     }
 

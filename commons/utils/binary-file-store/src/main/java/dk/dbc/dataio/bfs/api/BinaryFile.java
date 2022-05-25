@@ -10,12 +10,14 @@ import java.nio.file.Path;
 public interface BinaryFile {
     /**
      * Writes content of given input stream to this binary file representation
+     *
      * @param is input stream of bytes to be written
      */
     void write(final InputStream is);
 
     /**
      * Appends content to this binary file representation
+     *
      * @param bytes bytes to be appended
      */
     void append(final byte[] bytes);
@@ -38,6 +40,7 @@ public interface BinaryFile {
 
     /**
      * Reads content of this binary file representation into given output stream
+     *
      * @param os output stream to which bytes are written
      */
     void read(final OutputStream os);
@@ -46,7 +49,8 @@ public interface BinaryFile {
      * Reads content of this binary file representation into given output stream,
      * decompressing it if decompress flag is set to true. Currently only gzip
      * compression is supported.
-     * @param os output stream to which bytes are written
+     *
+     * @param os         output stream to which bytes are written
      * @param decompress on-the-fly decompression flag
      */
     void read(final OutputStream os, final boolean decompress);
@@ -63,6 +67,7 @@ public interface BinaryFile {
 
     /**
      * Tests whether a file exists
+     *
      * @return true if the file exists, false if the file does not exist or
      * its existence cannot be determined
      */

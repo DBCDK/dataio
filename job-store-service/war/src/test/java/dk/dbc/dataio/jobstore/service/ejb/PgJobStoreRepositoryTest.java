@@ -34,7 +34,8 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
         try {
             pgJobStoreRepository.setJobEntityWorkFlowNote(workflowNote, DEFAULT_JOB_ID);
             fail("No exception thrown");
-        } catch (JobStoreException e) {}
+        } catch (JobStoreException e) {
+        }
     }
 
     @Test
@@ -51,17 +52,17 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
 
     @Test
     public void setWorkflowNote_jobEntityFound_returnsUpdatedJobEntityWithNullAsWorkflowNote() throws JobStoreException {
-         final JobEntity jobEntity = new JobEntity();
+        final JobEntity jobEntity = new JobEntity();
 
-         jobEntity.setWorkflowNote(new WorkflowNoteBuilder().build());
-         when(entityManager.find(JobEntity.class, DEFAULT_JOB_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(jobEntity);
+        jobEntity.setWorkflowNote(new WorkflowNoteBuilder().build());
+        when(entityManager.find(JobEntity.class, DEFAULT_JOB_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(jobEntity);
 
 
-         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-         JobEntity updatedJobEntity = pgJobStoreRepository.setJobEntityWorkFlowNote(null, DEFAULT_JOB_ID);
-         assertThat(updatedJobEntity, is(notNullValue()));
-         assertThat(updatedJobEntity.getWorkflowNote(), is(nullValue()));
-     }
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        JobEntity updatedJobEntity = pgJobStoreRepository.setJobEntityWorkFlowNote(null, DEFAULT_JOB_ID);
+        assertThat(updatedJobEntity, is(notNullValue()));
+        assertThat(updatedJobEntity.getWorkflowNote(), is(nullValue()));
+    }
 
     @Test
     public void setWorkflowNote_itemEntityNotFound_throws() {
@@ -74,7 +75,8 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
         try {
             pgJobStoreRepository.setItemEntityWorkFlowNote(workflowNote, key.getJobId(), key.getChunkId(), key.getId());
             fail("No exception thrown");
-        } catch (JobStoreException e) {}
+        } catch (JobStoreException e) {
+        }
     }
 
     @Test

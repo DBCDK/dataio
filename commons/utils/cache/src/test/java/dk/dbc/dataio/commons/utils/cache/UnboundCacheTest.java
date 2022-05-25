@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.commons.utils.cache;
 
 import org.hamcrest.CoreMatchers;
@@ -80,7 +78,10 @@ public class UnboundCacheTest {
         reloadCacheCounter = 0;
         cache = CacheManager.createUnboundCache(
                 String::length,
-                () -> {reloadCacheCounter++; return Collections.emptyList();}
+                () -> {
+                    reloadCacheCounter++;
+                    return Collections.emptyList();
+                }
         );
         Assert.assertThat(cache.get(1), is((String) null));
         Assert.assertThat(reloadCacheCounter, CoreMatchers.is(1));
@@ -92,7 +93,10 @@ public class UnboundCacheTest {
         reloadCacheCounter = 0;
         cache = CacheManager.createUnboundCache(
                 String::length,
-                () -> {reloadCacheCounter++; return Arrays.asList("Ø", "Øl", "Basse", "Fire", "Tre");}
+                () -> {
+                    reloadCacheCounter++;
+                    return Arrays.asList("Ø", "Øl", "Basse", "Fire", "Tre");
+                }
         );
         assertThat(cache.containsKey(1), is(true));
         assertThat(cache.containsKey(2), is(true));
@@ -108,7 +112,10 @@ public class UnboundCacheTest {
         reloadCacheCounter = 0;
         cache = CacheManager.createUnboundCache(
                 String::length,
-                () -> {reloadCacheCounter++; return Arrays.asList("Ø", "Øl", "Basse", "Fire", "Tre");}
+                () -> {
+                    reloadCacheCounter++;
+                    return Arrays.asList("Ø", "Øl", "Basse", "Fire", "Tre");
+                }
         );
         assertThat(cache.get(1), is("Ø"));
         assertThat(cache.get(2), is("Øl"));
@@ -124,7 +131,10 @@ public class UnboundCacheTest {
         reloadCacheCounter = 0;
         cache = CacheManager.createUnboundCache(
                 String::length,
-                () -> {reloadCacheCounter++; return Arrays.asList("Ø", "Øl", "Basse", "Fire", "Tre");}
+                () -> {
+                    reloadCacheCounter++;
+                    return Arrays.asList("Ø", "Øl", "Basse", "Fire", "Tre");
+                }
         );
         assertThat(reloadCacheCounter, is(0));
         cache.get(1);

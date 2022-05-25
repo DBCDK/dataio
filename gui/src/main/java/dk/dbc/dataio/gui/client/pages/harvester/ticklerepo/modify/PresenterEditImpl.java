@@ -30,9 +30,10 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     /**
      * Constructor
+     *
      * @param placeController the placeController
-     * @param place the edit place
-     * @param header the header
+     * @param place           the edit place
+     * @param header          the header
      */
     public PresenterEditImpl(PlaceController placeController, Place place, String header) {
         super(header);
@@ -44,8 +45,9 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -85,6 +87,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 String msg = "TickleRepoHarvesterConfig.id: " + config.getId();
                 getView().setErrorText(ProxyErrorTranslator.toClientErrorFromTickleHarvesterProxy(e, commonInjector.getProxyErrorTexts(), msg));
             }
+
             @Override
             public void onSuccess(Void aVoid) {
                 getView().status.setText(getTexts().status_TickleRepoHarvesterSuccessfullyDeleted());
@@ -124,7 +127,8 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     /**
      * Sets task record count
      */
-    @Override public void setRecordHarvestCount() {
+    @Override
+    public void setRecordHarvestCount() {
         getView().status.setText(getTexts().status_Busy());
         commonInjector.getTickleHarvesterProxyAsync().getDataSetSizeEstimate(config.getContent().getDatasetName(), new GetDataSetSizeEstimateAsyncCallback());
     }
@@ -145,6 +149,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             String msg = "TickleRepoHarvesterConfig.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(TickleRepoHarvesterConfig tickleRepoHarvesterConfig) {
             if (tickleRepoHarvesterConfig == null) {
@@ -163,6 +168,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             String msg = "TickleRepoHarvesterConfig.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(HarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
@@ -222,11 +228,14 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     private void goToTypeOfJobPlace(JobSpecification.Type type) {
         switch (type) {
-            case ACCTEST: placeController.goTo(new ShowAcctestJobsPlace()); // ACCTEST
+            case ACCTEST:
+                placeController.goTo(new ShowAcctestJobsPlace()); // ACCTEST
                 break;
-            case TEST: placeController.goTo(new ShowTestJobsPlace());       // TEST
+            case TEST:
+                placeController.goTo(new ShowTestJobsPlace());       // TEST
                 break;
-            default: placeController.goTo(new ShowJobsPlace());             // PERSISTENT and TRANSIENT
+            default:
+                placeController.goTo(new ShowJobsPlace());             // PERSISTENT and TRANSIENT
         }
     }
 

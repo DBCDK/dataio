@@ -19,20 +19,20 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTestBase {
     private final byte[] marcRecord =
-               ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" +
-                "    <marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-                "        <marcx:leader>00000dmpe 22000001 4500</marcx:leader>" +
-                "        <marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
-                "            <marcx:subfield code=\"a\">x5104995</marcx:subfield>" +
-                "            <marcx:subfield code=\"f\">a</marcx:subfield>" +
-                "            <marcx:subfield code=\"o\">d</marcx:subfield>" +
-                "        </marcx:datafield>" +
-                "        <marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                "            <marcx:subfield code=\"a\">Dansk råstof</marcx:subfield>" +
-                "            <marcx:subfield code=\"c\">socialt projektmagasin</marcx:subfield>" +
-                "            <marcx:subfield code=\"m\">video</marcx:subfield>" +
-                "        </marcx:datafield>" +
-                "    </marcx:record>").getBytes(StandardCharsets.UTF_8);
+            ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" +
+                    "    <marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
+                    "        <marcx:leader>00000dmpe 22000001 4500</marcx:leader>" +
+                    "        <marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
+                    "            <marcx:subfield code=\"a\">x5104995</marcx:subfield>" +
+                    "            <marcx:subfield code=\"f\">a</marcx:subfield>" +
+                    "            <marcx:subfield code=\"o\">d</marcx:subfield>" +
+                    "        </marcx:datafield>" +
+                    "        <marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
+                    "            <marcx:subfield code=\"a\">Dansk råstof</marcx:subfield>" +
+                    "            <marcx:subfield code=\"c\">socialt projektmagasin</marcx:subfield>" +
+                    "            <marcx:subfield code=\"m\">video</marcx:subfield>" +
+                    "        </marcx:datafield>" +
+                    "    </marcx:record>").getBytes(StandardCharsets.UTF_8);
 
     private final AddiRecord addiRecord = new AddiRecord("meta".getBytes(StandardCharsets.UTF_8), marcRecord);
 

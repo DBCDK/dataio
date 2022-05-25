@@ -45,20 +45,31 @@ public class SortableListModelTest {
     private final String SELECTED = "sortable-widget-entry-selected";
     private final String NOT_SELECTED = "sortable-widget-entry-deselected";
 
-    @Mock FlowPanel mockedFlowPanel;
-    @Mock FlowPanel mockedParentPanel;
-    @Mock GQueryWrapper mockedGQueryWrapper;
-    @Mock GQuery mockedGQuery;
+    @Mock
+    FlowPanel mockedFlowPanel;
+    @Mock
+    FlowPanel mockedParentPanel;
+    @Mock
+    GQueryWrapper mockedGQueryWrapper;
+    @Mock
+    GQuery mockedGQuery;
     @SuppressWarnings("deprecation")
-    @Mock com.google.gwt.user.client.Element element1;
+    @Mock
+    com.google.gwt.user.client.Element element1;
     @SuppressWarnings("deprecation")
-    @Mock com.google.gwt.user.client.Element element2;
+    @Mock
+    com.google.gwt.user.client.Element element2;
     @SuppressWarnings("deprecation")
-    @Mock com.google.gwt.user.client.Element element3;
-    @Mock DraggableWidget draggableWidget1;
-    @Mock DraggableWidget draggableWidget2;
-    @Mock DraggableWidget draggableWidget3;
-    @Mock ValueChangeHandler<Map<String, String>> mockedEventHandler;
+    @Mock
+    com.google.gwt.user.client.Element element3;
+    @Mock
+    DraggableWidget draggableWidget1;
+    @Mock
+    DraggableWidget draggableWidget2;
+    @Mock
+    DraggableWidget draggableWidget3;
+    @Mock
+    ValueChangeHandler<Map<String, String>> mockedEventHandler;
 
 
     @Before
@@ -159,7 +170,7 @@ public class SortableListModelTest {
 
         ArgumentCaptor<ValueChangeEvent> argument = ArgumentCaptor.forClass(ValueChangeEvent.class);
         verify(mockedEventHandler).onValueChange(argument.capture());
-        ValueChangeEvent<Map<String, String>> event = (ValueChangeEvent<Map<String,String>>) argument.getValue();
+        ValueChangeEvent<Map<String, String>> event = (ValueChangeEvent<Map<String, String>>) argument.getValue();
         assertThat(event.getValue().size(), is(0));
         verifyNoMoreInteractions(mockedEventHandler);
     }
@@ -173,7 +184,7 @@ public class SortableListModelTest {
 
         ArgumentCaptor<ValueChangeEvent> argument = ArgumentCaptor.forClass(ValueChangeEvent.class);
         verify(mockedEventHandler).onValueChange(argument.capture());
-        ValueChangeEvent<Map<String, String>> event = (ValueChangeEvent<Map<String,String>>) argument.getValue();
+        ValueChangeEvent<Map<String, String>> event = (ValueChangeEvent<Map<String, String>>) argument.getValue();
         assertThat(event.getValue().size(), is(3));
         verifyNoMoreInteractions(mockedEventHandler);
     }

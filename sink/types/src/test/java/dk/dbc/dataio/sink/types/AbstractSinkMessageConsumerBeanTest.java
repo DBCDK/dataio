@@ -78,6 +78,7 @@ public class AbstractSinkMessageConsumerBeanTest {
         public void setMessageDrivenContext(MessageDrivenContext messageDrivenContext) {
             this.messageDrivenContext = messageDrivenContext;
         }
+
         @Override
         public void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException {
         }

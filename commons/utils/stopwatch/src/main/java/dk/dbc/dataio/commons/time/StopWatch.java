@@ -13,6 +13,7 @@ public class StopWatch {
 
     /**
      * Gets the elapsed time (in milliseconds) since the time the object of StopWatch was initialized.
+     *
      * @return Elapsed time in milliseconds.
      */
     public long getElapsedTime() {

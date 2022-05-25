@@ -37,6 +37,7 @@ public class MarcExchangeCollectionExpectation extends XmlExpectation {
      * Verifies given node as MARC exchange collection containing record
      * members specified by given list of record expectations throwing
      * assertion error unless all expectations can be met
+     *
      * @param node MARC exchange collection node
      */
     @Override

@@ -7,10 +7,6 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
-import dk.dbc.httpclient.HttpClient;
-import dk.dbc.httpclient.HttpGet;
-import dk.dbc.httpclient.HttpPost;
-import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
@@ -30,6 +26,10 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpGet;
+import dk.dbc.httpclient.HttpPost;
+import dk.dbc.httpclient.PathBuilder;
 import org.junit.Test;
 
 import javax.ws.rs.ProcessingException;
@@ -333,9 +333,9 @@ public class JobStoreServiceConnectorTest {
     }
 
     private JobInfoSnapshot callAddChunkIgnoreDuplicatesWithMockedHttpResponse(Chunk chunk, Response.Status statusCode, Object returnValue)
-           throws JobStoreServiceConnectorException {
+            throws JobStoreServiceConnectorException {
 
-       when(httpClient.execute(any(HttpPost.class)))
+        when(httpClient.execute(any(HttpPost.class)))
                 .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), Collections.singletonList(returnValue)));
 
@@ -383,7 +383,7 @@ public class JobStoreServiceConnectorTest {
         return jobStoreServiceConnector.listJobs(criteria);
     }
 
-   // ******************************************* listItems() tests *******************************************
+    // ******************************************* listItems() tests *******************************************
 
     @Test
     public void listItems_serviceReturnsUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
@@ -413,12 +413,12 @@ public class JobStoreServiceConnectorTest {
     private List<ItemInfoSnapshot> callListItemsWithMockedHttpResponse(ItemListCriteria criteria, Response.Status statusCode, List<ItemInfoSnapshot> responseEntity)
             throws JobStoreServiceConnectorException {
 
-       final HttpPost httpPost = new HttpPost(httpClient)
-               .withBaseUrl(JOB_STORE_URL)
-               .withPathElements(JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES)
-               .withJsonData(criteria);
+        final HttpPost httpPost = new HttpPost(httpClient)
+                .withBaseUrl(JOB_STORE_URL)
+                .withPathElements(JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES)
+                .withJsonData(criteria);
 
-       when(httpClient.execute(httpPost))
+        when(httpClient.execute(httpPost))
                 .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), responseEntity));
 
         return jobStoreServiceConnector.listItems(criteria);
@@ -532,13 +532,17 @@ public class JobStoreServiceConnectorTest {
             throws JobStoreServiceConnectorException {
         final String basePath;
         switch (phase) {
-            case PARTITIONING: basePath = JobStoreServiceConstants.CHUNK_ITEM_PARTITIONED;
+            case PARTITIONING:
+                basePath = JobStoreServiceConstants.CHUNK_ITEM_PARTITIONED;
                 break;
-            case PROCESSING: basePath = JobStoreServiceConstants.CHUNK_ITEM_PROCESSED;
+            case PROCESSING:
+                basePath = JobStoreServiceConstants.CHUNK_ITEM_PROCESSED;
                 break;
-            case DELIVERING: basePath = JobStoreServiceConstants.CHUNK_ITEM_DELIVERED;
+            case DELIVERING:
+                basePath = JobStoreServiceConstants.CHUNK_ITEM_DELIVERED;
                 break;
-            default: basePath = "";
+            default:
+                basePath = "";
         }
 
         final HttpGet httpGet = new HttpGet(httpClient)
@@ -780,7 +784,7 @@ public class JobStoreServiceConnectorTest {
     @Test
     public void setWorkflowNoteOnItem_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
         assertThat(() -> callSetWorkflowNoteWithMockedHttpResponse(
-                new WorkflowNoteBuilder().build(), JOB_ID, CHUNK_ID, ITEM_ID, Response.Status.OK, null),
+                        new WorkflowNoteBuilder().build(), JOB_ID, CHUNK_ID, ITEM_ID, Response.Status.OK, null),
                 isThrowing(JobStoreServiceConnectorException.class));
     }
 
@@ -849,11 +853,14 @@ public class JobStoreServiceConnectorTest {
     private String getAddChunkBasePath(Chunk chunk) {
         final String basePath;
         switch (chunk.getType()) {
-            case PROCESSED: basePath = JobStoreServiceConstants.JOB_CHUNK_PROCESSED;
+            case PROCESSED:
+                basePath = JobStoreServiceConstants.JOB_CHUNK_PROCESSED;
                 break;
-            case DELIVERED: basePath = JobStoreServiceConstants.JOB_CHUNK_DELIVERED;
+            case DELIVERED:
+                basePath = JobStoreServiceConstants.JOB_CHUNK_DELIVERED;
                 break;
-            default: basePath = "";
+            default:
+                basePath = "";
         }
         return basePath;
     }
@@ -864,7 +871,7 @@ public class JobStoreServiceConnectorTest {
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId).build();
     }
 
-   private String[] buildGetChunkItemPath(int jobId, int chunkId, short itemId, String pathString) {
+    private String[] buildGetChunkItemPath(int jobId, int chunkId, short itemId, String pathString) {
         return new PathBuilder(pathString)
                 .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)

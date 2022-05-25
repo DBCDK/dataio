@@ -28,7 +28,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = Flow.TABLE_NAME)
-@SqlResultSetMapping(name="Flow.implicit", entities = {
+@SqlResultSetMapping(name = "Flow.implicit", entities = {
         @EntityResult(entityClass = Flow.class)}
 )
 @NamedNativeQueries({

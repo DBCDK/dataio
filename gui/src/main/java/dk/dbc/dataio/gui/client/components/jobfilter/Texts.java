@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 import com.google.gwt.i18n.client.Constants;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
-public interface Texts extends Constants{
+public interface Texts extends Constants {
 
     // Header text
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

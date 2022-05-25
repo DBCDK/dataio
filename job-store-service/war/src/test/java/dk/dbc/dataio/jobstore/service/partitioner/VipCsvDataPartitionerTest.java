@@ -17,9 +17,9 @@ public class VipCsvDataPartitionerTest {
     public void partitioningCSV() {
         final String csvRecords =
                 "Feltnavn|Kodevaerdi|Kodetekst\n" +
-                "a|\"b| with whitespace and pipe\"|\n" +
-                "\"d has unbalanced\"\"|and|fails\n" +
-                "\"\"\"g\"\"\"|\"h contains<p><a href=\"\"url\"\">html</a>\"";
+                        "a|\"b| with whitespace and pipe\"|\n" +
+                        "\"d has unbalanced\"\"|and|fails\n" +
+                        "\"\"\"g\"\"\"|\"h contains<p><a href=\"\"url\"\">html</a>\"";
 
         final CsvDataPartitioner partitioner = VipCsvDataPartitioner.newInstance(
                 StringUtil.asInputStream(csvRecords), StandardCharsets.UTF_8.name());

@@ -37,6 +37,7 @@ public class FlowModel extends GenericBackendModel {
 
     /**
      * Set flow name
+     *
      * @param flowName The name of the flow
      */
     public void setFlowName(String flowName) {
@@ -52,6 +53,7 @@ public class FlowModel extends GenericBackendModel {
 
     /**
      * Set flow description
+     *
      * @param description The flow description
      */
     public void setDescription(String description) {
@@ -74,6 +76,7 @@ public class FlowModel extends GenericBackendModel {
 
     /**
      * Set the list of flowcomponents in the flow
+     *
      * @param flowComponents The list of flowcomponents
      */
     public void setFlowComponents(List<FlowComponentModel> flowComponents) {
@@ -82,6 +85,7 @@ public class FlowModel extends GenericBackendModel {
 
     /**
      * Checks for empty String values
+     *
      * @return true if no empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
@@ -96,6 +100,7 @@ public class FlowModel extends GenericBackendModel {
     /**
      * Checks if the flow name contains illegal characters.
      * A-Å, 0-9, - (minus), + (plus), _ (underscore) and space is valid
+     *
      * @return a list containing illegal characters found. Empty list if none found.
      */
     public List<String> getDataioPatternMatches() {

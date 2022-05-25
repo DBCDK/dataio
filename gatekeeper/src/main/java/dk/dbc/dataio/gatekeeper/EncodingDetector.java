@@ -26,6 +26,7 @@ public class EncodingDetector {
 
     /**
      * Detects the charset that best matches the supplied text file
+     *
      * @param file path to text file of unknown encoding
      * @return charset or empty
      */
@@ -44,6 +45,7 @@ public class EncodingDetector {
 
     /**
      * Detects the charset that best matches the supplied input data
+     *
      * @param bytes the input text of unknown encoding
      * @return charset or empty
      */

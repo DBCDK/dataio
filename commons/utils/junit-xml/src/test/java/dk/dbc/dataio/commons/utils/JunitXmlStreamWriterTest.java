@@ -13,33 +13,33 @@ public class JunitXmlStreamWriterTest {
     public void output() throws Exception {
         final String expectedOutput =
                 "<testsuites>" +
-                    "<testsuite name=\"MyClassTest\">" +
+                        "<testsuite name=\"MyClassTest\">" +
                         "<testcase classname=\"dk.dbc.dataio.MyClass\" name=\"test1\" time=\"10\"></testcase>" +
                         "<testcase classname=\"dk.dbc.dataio.MyClass\" name=\"test2\">" +
-                            "<failure message=\"test failed\">" +
-                                "output of failed test" +
-                            "</failure>" +
+                        "<failure message=\"test failed\">" +
+                        "output of failed test" +
+                        "</failure>" +
                         "</testcase>" +
                         "<testcase classname=\"dk.dbc.dataio.MyClass\" name=\"test3\">" +
-                            "<error message=\"test erred\">" +
-                                "output of erred test -&gt; fatal error" +
-                            "</error>" +
+                        "<error message=\"test erred\">" +
+                        "output of erred test -&gt; fatal error" +
+                        "</error>" +
                         "</testcase>" +
                         "<testcase classname=\"dk.dbc.dataio.MyClass\" name=\"test4\">" +
-                            "<skipped message=\"test skipped\">" +
-                                "output of skipped test" +
-                            "</skipped>" +
+                        "<skipped message=\"test skipped\">" +
+                        "output of skipped test" +
+                        "</skipped>" +
                         "</testcase>" +
                         "<testcase classname=\"dk.dbc.dataio.MyClass\" name=\"test5\">" +
-                            "<system-out>" +
-                                "system STDOUT" +
-                            "</system-out>" +
-                            "<system-err>" +
-                                "system STDERR" +
-                            "</system-err>" +
+                        "<system-out>" +
+                        "system STDOUT" +
+                        "</system-out>" +
+                        "<system-err>" +
+                        "system STDERR" +
+                        "</system-err>" +
                         "</testcase>" +
-                    "</testsuite>" +
-                "</testsuites>";
+                        "</testsuite>" +
+                        "</testsuites>";
 
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (JunitXmlStreamWriter junitXmlStreamWriter = new JunitXmlStreamWriter(baos)) {

@@ -16,8 +16,10 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class HarvestersTableTest {
-    @Mock Presenter presenter;
-    @Mock Texts texts;
+    @Mock
+    Presenter presenter;
+    @Mock
+    Texts texts;
 
     private HarvestersTable harvestersTable;
 

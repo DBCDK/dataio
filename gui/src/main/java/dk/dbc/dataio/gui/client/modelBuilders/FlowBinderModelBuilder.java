@@ -82,7 +82,7 @@ public class FlowBinderModelBuilder {
         return this;
     }
 
-    public FlowBinderModelBuilder setSubmitterModels (List<SubmitterModel> submitterModels) {
+    public FlowBinderModelBuilder setSubmitterModels(List<SubmitterModel> submitterModels) {
         this.submitterModels = submitterModels;
         return this;
     }

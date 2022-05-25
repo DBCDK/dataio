@@ -49,25 +49,25 @@ public abstract class JobItemReorderer {
 
     /**
      * Returns the next DataPartitionerResult to be output
-     *
+     * <p>
      * If given result is empty (indicating that the caller has run out of results to be examined)
-     *   then
-     *     if this Reorderer instance still contains results to be re-ordered
-     *       then
-     *         the next result is retrieved from internal list and returned
-     *       else
-     *         an empty Optional indicating no more records is returned.
-     *
+     * then
+     * if this Reorderer instance still contains results to be re-ordered
+     * then
+     * the next result is retrieved from internal list and returned
+     * else
+     * an empty Optional indicating no more records is returned.
+     * <p>
      * If given result is not empty
-     *   then
-     *     if the result is part of multi-level record structure
-     *       then
-     *         the result is stored in internal list and an empty placeholder result is returned
-     *       else
-     *         the result is returned as-is (passthrough)
-     6*
-     * @param partitionerResult current DataPartitionerResult to be examined
+     * then
+     * if the result is part of multi-level record structure
+     * then
+     * the result is stored in internal list and an empty placeholder result is returned
+     * else
+     * the result is returned as-is (passthrough)
+     * 6*
      *
+     * @param partitionerResult current DataPartitionerResult to be examined
      * @return the next DataPartitionerResult
      */
     public Optional<DataPartitionerResult> next(DataPartitionerResult partitionerResult) {

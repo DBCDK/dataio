@@ -56,7 +56,8 @@ public class JmsQueueServiceConnector {
                 .withPathElements(QUEUE_RESOURCE_PATH, queue.getUrlEncodedQueueName())
                 .execute()) {
             verifyResponseStatus(response, Response.Status.OK);
-            return response.readEntity(new GenericType<List<MockedJmsTextMessage>>() {});
+            return response.readEntity(new GenericType<List<MockedJmsTextMessage>>() {
+            });
         }
     }
 

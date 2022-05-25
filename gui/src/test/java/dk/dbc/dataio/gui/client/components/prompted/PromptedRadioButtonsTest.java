@@ -25,12 +25,16 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PromptedRadioButtonsTest {
-    @Mock RadioButton mockedRadioButton;
+    @Mock
+    RadioButton mockedRadioButton;
     @SuppressWarnings("deprecation")
-    @Mock com.google.gwt.user.client.Element mockedElement;
+    @Mock
+    com.google.gwt.user.client.Element mockedElement;
     @SuppressWarnings("deprecation")
-    @Mock com.google.gwt.user.client.Element mockedChildElement;
-    @Mock com.google.gwt.dom.client.Style mockedProperty;
+    @Mock
+    com.google.gwt.user.client.Element mockedChildElement;
+    @Mock
+    com.google.gwt.dom.client.Style mockedProperty;
 
     /**
      * Subject Under Test
@@ -72,7 +76,7 @@ public class PromptedRadioButtonsTest {
         PromptedRadioButtons radioButtonsUnderTest = new PromptedRadioButtons("guid", "prompt");
 
         // Activate Subject Under Test
-        radioButtonsUnderTest.addButton((RadioButton)null, "value");
+        radioButtonsUnderTest.addButton((RadioButton) null, "value");
         verifyNoMoreInteractions(radioButtonsUnderTest.containerPanel);
         testNoMoreUnwantedInteractions();
     }

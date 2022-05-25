@@ -8,7 +8,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class Md5Test {
-    @Test(expected=NullPointerException.class)
+    @Test(expected = NullPointerException.class)
     public void getMd5HexDigest_dataArgIsNull_throws() {
         Md5.asHex(null);
     }

@@ -25,8 +25,9 @@ public class UrlResolverServiceConnector {
 
     /**
      * Retrieves all urls used by the system.
+     *
      * @return map containing all known urls mapped by: (url name, url value (can be null))
-     * @throws UrlResolverServiceConnectorException on general communication failure
+     * @throws UrlResolverServiceConnectorException                     on general communication failure
      * @throws UrlResolverServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public Map<String, String> getUrls() throws UrlResolverServiceConnectorException {
@@ -35,7 +36,8 @@ public class UrlResolverServiceConnector {
             final Response response = HttpClient.doGet(httpClient, baseUrl, "urls");
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, new GenericType<Map<String, String>>() {});
+                return readResponseEntity(response, new GenericType<Map<String, String>>() {
+                });
             } finally {
                 response.close();
             }
@@ -70,7 +72,7 @@ public class UrlResolverServiceConnector {
         final Response.Status actualStatus = Response.Status.fromStatusCode(response.getStatus());
         if (actualStatus != expectedStatus) {
             throw new UrlResolverServiceConnectorUnexpectedStatusCodeException(String.format(
-                            "url-resolver service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
+                    "url-resolver service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
         }
     }
 }

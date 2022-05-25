@@ -15,7 +15,7 @@ public class ArgPairTest {
     }
 
     @Test(expected = ArgParseException.class)
-    public void fromString_tooManyValues() throws ArgParseException{
+    public void fromString_tooManyValues() throws ArgParseException {
         String input = "key=value=what";
         ArgPair.fromString(input);
     }

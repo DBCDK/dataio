@@ -35,6 +35,7 @@ public class NextTabContent extends HTML {
         public void onFailure(Throwable throwable) {
             setText(texts.error_CouldNotFetchData());
         }
+
         @Override
         public void onSuccess(String data) {
             setHTML(formatXml(data));

@@ -49,13 +49,20 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class FlowBindersTableTest {
 
-    @Mock ListDataProvider<FlowBinderModel> mockedDataProvider;
-    @Mock List<FlowBinderModel> mockedFlowBindersList;
-    @Mock Texts mockedTexts;
-    @Mock View mockedView;
-    @Mock Presenter mockedPresenter;
-    @Mock Column mockedColumn;
-    @Mock SingleSelectionModel mockedSelectionModel;
+    @Mock
+    ListDataProvider<FlowBinderModel> mockedDataProvider;
+    @Mock
+    List<FlowBinderModel> mockedFlowBindersList;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    View mockedView;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    Column mockedColumn;
+    @Mock
+    SingleSelectionModel mockedSelectionModel;
 
 
     // Test Data
@@ -82,7 +89,7 @@ public class FlowBindersTableTest {
             .setSubmitterModels(Arrays.asList(
                     new SubmitterModelBuilder().setName("Sub 2").setNumber("2345").build(),
                     new SubmitterModelBuilder().setName("Sub 1").setNumber("1234").build(),
-                    new SubmitterModelBuilder().setName("Sub 3").setNumber("3456").build() ))
+                    new SubmitterModelBuilder().setName("Sub 3").setNumber("3456").build()))
             .setSinkModel(sinkModel1).build();
 
     @Before

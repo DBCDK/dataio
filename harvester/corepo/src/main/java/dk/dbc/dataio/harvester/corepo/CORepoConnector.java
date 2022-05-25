@@ -30,7 +30,7 @@ public class CORepoConnector {
     private final CORepoProvider coRepoProvider;
 
     public CORepoConnector(String repositoryUrl, String harvesterId) throws SQLException, ClassNotFoundException {
-       this(new CORepoProvider(String.format("CORepoHarvester.%s", harvesterId), String.format("jdbc:%s", repositoryUrl)));
+        this(new CORepoProvider(String.format("CORepoHarvester.%s", harvesterId), String.format("jdbc:%s", repositoryUrl)));
     }
 
     CORepoConnector(CORepoProvider provider) {
@@ -39,8 +39,9 @@ public class CORepoConnector {
 
     /**
      * Identifies records modified in time interval [from, to[
-     * @param from time interval begin
-     * @param to time interval end
+     *
+     * @param from         time interval begin
+     * @param to           time interval end
      * @param acceptedPids predicate for returned PIDs
      * @return list of PIDs for modified records
      * @throws RepositoryException on failure to query modified records

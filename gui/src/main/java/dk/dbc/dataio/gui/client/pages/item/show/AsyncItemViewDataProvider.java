@@ -12,7 +12,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import java.util.List;
 
 
-public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
+public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel> {
 
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     private View view;
@@ -37,11 +37,11 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
     void updateCurrentCriteria() {
         ItemListCriteria newItemListCriteria = new ItemListCriteria();
 
-        if( baseCriteria != null) {
+        if (baseCriteria != null) {
             newItemListCriteria.and(baseCriteria);
         }
 
-        if( !currentCriteria.equals(newItemListCriteria)) {
+        if (!currentCriteria.equals(newItemListCriteria)) {
             criteriaIncarnation++;
             currentCriteria = newItemListCriteria;
             refresh();
@@ -55,9 +55,7 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
     /**
      * The Worker function of tha Async Data Provider.
      *
-     *
      * @param display Display to get the VisibleRange from
-     *
      */
     @Override
     protected void onRangeChanged(final HasData<ItemModel> display) {
@@ -67,7 +65,7 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
         currentCriteria.limit(range.getLength());
         currentCriteria.offset(range.getStart());
 
-        if(searchType != null) {
+        if (searchType != null) {
             commonInjector.getJobStoreProxyAsync().listItems(searchType, currentCriteria, new FilteredAsyncCallback<List<ItemModel>>() {
                         // protection against old calls updating the view with old data.
                         int criteriaIncarnationOnRequestCall = criteriaIncarnation;
@@ -98,10 +96,9 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
     }
 
     /**
-     *  Fetch a new count..
-     *
+     * Fetch a new count..
      */
-    public void updateCount()  {
+    public void updateCount() {
         commonInjector.getJobStoreProxyAsync().countItems(currentCriteria, new FilteredAsyncCallback<Long>() {
             // protection against old calls updating the view with old data.
             int criteriaIncarnationOnCall = criteriaIncarnation;

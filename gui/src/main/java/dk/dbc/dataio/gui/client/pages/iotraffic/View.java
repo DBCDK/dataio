@@ -33,13 +33,20 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
-    @UiField PromptedTextBox submitter;
-    @UiField PromptedTextBox packaging;
-    @UiField PromptedTextBox format;
-    @UiField PromptedTextBox destination;
-    @UiField EnterButton addButton;
-    @UiField(provided=true) GatekeepersTable gatekeepersTable;
-    @UiField PopupBox<Label> confirmation;
+    @UiField
+    PromptedTextBox submitter;
+    @UiField
+    PromptedTextBox packaging;
+    @UiField
+    PromptedTextBox format;
+    @UiField
+    PromptedTextBox destination;
+    @UiField
+    EnterButton addButton;
+    @UiField(provided = true)
+    GatekeepersTable gatekeepersTable;
+    @UiField
+    PopupBox<Label> confirmation;
     long gateKeeperDestinationToBeDeleted = 0;
 
 
@@ -54,7 +61,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         gatekeepersTable.setPresenter(presenter);
     }
 
-        @UiHandler("submitter")
+    @UiHandler("submitter")
     void submitterChanged(ValueChangeEvent<String> event) {
         presenter.submitterChanged(submitter.getText());
     }
@@ -89,6 +96,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Displays a warning to the user
+     *
      * @param warning The warning to display
      */
     public void displayWarning(String warning) {

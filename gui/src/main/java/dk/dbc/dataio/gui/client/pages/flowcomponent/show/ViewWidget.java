@@ -14,13 +14,18 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+
     // Instantiate UI Binder
-    interface MyUiBinder extends UiBinder<Widget, ViewWidget> {}
+    interface MyUiBinder extends UiBinder<Widget, ViewWidget> {
+    }
+
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
     // UI Fields
-    @UiField CellTable flowComponentsTable;
-    @UiField PopupDoubleList jsModulesPopup;
+    @UiField
+    CellTable flowComponentsTable;
+    @UiField
+    PopupDoubleList jsModulesPopup;
 
 
     public ViewWidget(String header) {
@@ -30,6 +35,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     /**
      * Ui Handler to catch click events on the create button
+     *
      * @param event Clicked event
      */
     @SuppressWarnings("unused")

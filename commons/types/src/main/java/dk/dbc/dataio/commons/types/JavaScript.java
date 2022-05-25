@@ -19,8 +19,7 @@ public class JavaScript implements Serializable {
      *
      * @param javascript JavaScript source code
      * @param moduleName JavaScript module name (can be empty)
-     *
-     * @throws NullPointerException if given null-valued javascript or moduleName argument
+     * @throws NullPointerException     if given null-valued javascript or moduleName argument
      * @throws IllegalArgumentException if given empty-valued javascript or moduleName argument
      */
     @JsonCreator

@@ -5,5 +5,6 @@ import dk.dbc.dataio.jobstore.types.Notification;
 
 public interface Presenter extends GenericPresenter {
     void showTransFileContent(Notification notification);
+
     void resendFtp(String transFileName, String transFileContent);
-    }
+}

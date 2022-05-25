@@ -18,9 +18,12 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
-    @Mock ViewGinjector viewInjector;
-    @Mock Texts texts;
-    @Mock View view;
+    @Mock
+    ViewGinjector viewInjector;
+    @Mock
+    Texts texts;
+    @Mock
+    View view;
 
     private PresenterImpl presenter;
 
@@ -40,11 +43,13 @@ public class PresenterImplTest {
                     new PeriodicJobsHarvesterConfig.Content());
         }
 
-        @Override void saveModel() {
+        @Override
+        void saveModel() {
             saved = true;
         }
 
-        @Override String getResourceValueFromView() {
+        @Override
+        String getResourceValueFromView() {
             return resourceValueFromView;
         }
 
@@ -53,10 +58,12 @@ public class PresenterImplTest {
         }
 
         @Override
-        public void runButtonPressed() { }
+        public void runButtonPressed() {
+        }
 
         @Override
-        public void validateSolrButtonPressed() { }
+        public void validateSolrButtonPressed() {
+        }
     }
 
     @Before

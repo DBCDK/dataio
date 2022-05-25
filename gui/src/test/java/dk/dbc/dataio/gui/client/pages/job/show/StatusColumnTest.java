@@ -15,8 +15,8 @@ import org.mockito.Mock;
 
 import java.util.Date;
 
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.when;
 
 
@@ -30,13 +30,20 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class StatusColumnTest {
     // Mocked data
-    @Mock Resources mockedResources;
-    @Mock Cell<ImageResource> mockedCell;
-    @Mock static Event mockedBrowserClickEvent;
-    @Mock ImageResource gray;
-    @Mock ImageResource green;
-    @Mock ImageResource red;
-    @Mock ImageResource yellow;
+    @Mock
+    Resources mockedResources;
+    @Mock
+    Cell<ImageResource> mockedCell;
+    @Mock
+    static Event mockedBrowserClickEvent;
+    @Mock
+    ImageResource gray;
+    @Mock
+    ImageResource green;
+    @Mock
+    ImageResource red;
+    @Mock
+    ImageResource yellow;
 
     @Before
     public void setupMockedEvents() {

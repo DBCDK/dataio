@@ -29,7 +29,7 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASS
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 
-public abstract class IntegrationTest  {
+public abstract class IntegrationTest {
     protected static TickleRepo tickleRepo;
     private static final Logger LOGGER = LoggerFactory.getLogger(IntegrationTest.class);
 
@@ -37,7 +37,7 @@ public abstract class IntegrationTest  {
     protected static EntityManager entityManager;
     protected static TransactionScopedPersistenceContext persistenceContext;
 
-    private static  boolean setupDone;
+    private static boolean setupDone;
 
     static {
         tickleRepoDBContainer = new DBCPostgreSQLContainer().withReuse(false);
@@ -72,7 +72,7 @@ public abstract class IntegrationTest  {
         }
     }
 
-    private static  PGSimpleDataSource getDataSource(DBCPostgreSQLContainer tickleRepoDBContainer) {
+    private static PGSimpleDataSource getDataSource(DBCPostgreSQLContainer tickleRepoDBContainer) {
         final PGSimpleDataSource datasource = new PGSimpleDataSource();
         datasource.setDatabaseName(tickleRepoDBContainer.getDatabaseName());
         datasource.setServerName(tickleRepoDBContainer.getContainerIpAddress());
@@ -81,6 +81,7 @@ public abstract class IntegrationTest  {
         datasource.setPassword(tickleRepoDBContainer.getPassword());
         return datasource;
     }
+
     private static EntityManager createEntityManager(
             PGSimpleDataSource dataSource, String persistenceUnitName) {
         Map<String, String> entityManagerProperties = new HashMap<>();

@@ -17,18 +17,18 @@ public class StartupDBMigrator {
     private static final Logger LOGGER = LoggerFactory.getLogger(StartupDBMigrator.class);
 
     @Resource(lookup = "jdbc/dataio/sinks/esInFlight")
-   	DataSource dataSource;
+    DataSource dataSource;
 
-   	@PostConstruct
-   	public void onStartup() {
-   		final Flyway flyway = Flyway.configure()
-				.table("schema_version")
-				.baselineOnMigrate(true)
-				.dataSource(dataSource)
-				.load();
-   		for (MigrationInfo i : flyway.info().all()) {
-   			LOGGER.info("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
-   		}
-   		flyway.migrate();
-   	}
+    @PostConstruct
+    public void onStartup() {
+        final Flyway flyway = Flyway.configure()
+                .table("schema_version")
+                .baselineOnMigrate(true)
+                .dataSource(dataSource)
+                .load();
+        for (MigrationInfo i : flyway.info().all()) {
+            LOGGER.info("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
+        }
+        flyway.migrate();
+    }
 }

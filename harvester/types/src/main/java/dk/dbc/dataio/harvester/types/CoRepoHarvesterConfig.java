@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -9,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Date;
 
-public class CoRepoHarvesterConfig extends HarvesterConfig<CoRepoHarvesterConfig.Content> implements  Serializable {
+public class CoRepoHarvesterConfig extends HarvesterConfig<CoRepoHarvesterConfig.Content> implements Serializable {
     private static final long serialVersionUID = 2511742266375579510L;
 
     @JsonCreator
@@ -21,7 +19,8 @@ public class CoRepoHarvesterConfig extends HarvesterConfig<CoRepoHarvesterConfig
         super(id, version, content);
     }
 
-    public CoRepoHarvesterConfig() { }
+    public CoRepoHarvesterConfig() {
+    }
 
     @Override
     public String getLogId() {
@@ -32,26 +31,39 @@ public class CoRepoHarvesterConfig extends HarvesterConfig<CoRepoHarvesterConfig
     public static class Content implements Serializable {
         private static final long serialVersionUID = -7275576820112144156L;
 
-        public Content() { }
+        public Content() {
+        }
 
-        /** Name of the CoRepo harvester */
+        /**
+         * Name of the CoRepo harvester
+         */
         private String name;
 
-        /** Description */
+        /**
+         * Description
+         */
         private String description;
 
-        /** Resource - which CoRepo to harvest */
+        /**
+         * Resource - which CoRepo to harvest
+         */
         private String resource;
 
-        /** Time of the last harvest */
+        /**
+         * Time of the last harvest
+         */
         @JsonProperty
         private Date timeOfLastHarvest;
 
-        /** Flag Indicating if the configuration is enabled */
+        /**
+         * Flag Indicating if the configuration is enabled
+         */
         @JsonProperty
         private boolean enabled = false;
 
-        /** Reference to the linked RR Harvester */
+        /**
+         * Reference to the linked RR Harvester
+         */
         @JsonProperty
         private long rrHarvester;
 

@@ -21,27 +21,50 @@ public class JobInfoTabContent extends Composite {
         initWidget(ourUiBinder.createAndBindUi(this));
     }
 
-    @UiField PromptedLabel packaging;
-    @UiField PromptedLabel format;
-    @UiField PromptedLabel charset;
-    @UiField PromptedLabel destination;
-    @UiField PromptedLabel mailForNotificationAboutVerification;
-    @UiField PromptedLabel mailForNotificationAboutProcessing;
-    @UiField PromptedLabel resultMailInitials;
-    @UiField PromptedLabel type;
-    @UiField PromptedLabel jobCreationTime;
-    @UiField PromptedLabel jobCompletionTime;
-    @UiField PromptedHyperlink previousJobId;
-    @UiField Label exportLinksHeader;
-    @UiField PromptedAnchor exportLinkItemsPartitioned;
-    @UiField PromptedAnchor exportLinkItemsProcessed;
-    @UiField PromptedAnchor exportLinkItemsFailedInPartitioning;
-    @UiField PromptedAnchor exportLinkItemsFailedInProcessing;
-    @UiField PromptedAnchor exportLinkItemsFailedInDelivering;
-    @UiField PromptedAnchor fileStore;
-    @UiField HTMLPanel ancestrySection;
-    @UiField PromptedLabel ancestryTransFile;
-    @UiField PromptedLabel ancestryDataFile;
-    @UiField PromptedLabel ancestryBatchId;
-    @UiField InlineHTML ancestryContent;
+    @UiField
+    PromptedLabel packaging;
+    @UiField
+    PromptedLabel format;
+    @UiField
+    PromptedLabel charset;
+    @UiField
+    PromptedLabel destination;
+    @UiField
+    PromptedLabel mailForNotificationAboutVerification;
+    @UiField
+    PromptedLabel mailForNotificationAboutProcessing;
+    @UiField
+    PromptedLabel resultMailInitials;
+    @UiField
+    PromptedLabel type;
+    @UiField
+    PromptedLabel jobCreationTime;
+    @UiField
+    PromptedLabel jobCompletionTime;
+    @UiField
+    PromptedHyperlink previousJobId;
+    @UiField
+    Label exportLinksHeader;
+    @UiField
+    PromptedAnchor exportLinkItemsPartitioned;
+    @UiField
+    PromptedAnchor exportLinkItemsProcessed;
+    @UiField
+    PromptedAnchor exportLinkItemsFailedInPartitioning;
+    @UiField
+    PromptedAnchor exportLinkItemsFailedInProcessing;
+    @UiField
+    PromptedAnchor exportLinkItemsFailedInDelivering;
+    @UiField
+    PromptedAnchor fileStore;
+    @UiField
+    HTMLPanel ancestrySection;
+    @UiField
+    PromptedLabel ancestryTransFile;
+    @UiField
+    PromptedLabel ancestryDataFile;
+    @UiField
+    PromptedLabel ancestryBatchId;
+    @UiField
+    InlineHTML ancestryContent;
 }

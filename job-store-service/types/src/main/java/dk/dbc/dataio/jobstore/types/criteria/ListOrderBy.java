@@ -5,6 +5,7 @@ import dk.dbc.invariant.InvariantUtil;
 
 /**
  * Class representing a list order-by clause
+ *
  * @param <T> ListFilterField subtype
  */
 public class ListOrderBy<T extends ListFilterField> {
@@ -18,8 +19,9 @@ public class ListOrderBy<T extends ListFilterField> {
 
     /**
      * constructor
+     *
      * @param field order by field (not null)
-     * @param sort sort order (not null)
+     * @param sort  sort order (not null)
      * @throws NullPointerException if given any null-valued argument
      */
     public ListOrderBy(@JsonProperty("field") T field,

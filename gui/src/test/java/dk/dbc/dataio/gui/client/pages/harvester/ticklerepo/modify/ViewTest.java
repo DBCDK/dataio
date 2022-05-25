@@ -23,9 +23,12 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
-    @Mock Presenter mockedPresenter;
-    @Mock ValueChangeEvent mockedValueChangeEvent;
-    @Mock ClickEvent mockedClickEvent;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    ValueChangeEvent mockedValueChangeEvent;
+    @Mock
+    ClickEvent mockedClickEvent;
 
     // Subject Under Test
     private View view;

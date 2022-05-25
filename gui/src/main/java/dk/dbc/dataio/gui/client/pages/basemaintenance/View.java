@@ -19,12 +19,16 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     // Instantiate UI Binder
-    interface MyUiBinder extends UiBinder<Widget, View> {}
+    interface MyUiBinder extends UiBinder<Widget, View> {
+    }
+
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
     // UI Fields
-    @UiField PromptedTextBox trackingIdSearch;
-    @UiField Button trackingIdSearchButton;
+    @UiField
+    PromptedTextBox trackingIdSearch;
+    @UiField
+    Button trackingIdSearchButton;
 
     /**
      * Default constructor
@@ -36,7 +40,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @UiHandler("trackingIdSearchButton")
-    void trackingIdSearchButtonClicked(ClickEvent event){
+    void trackingIdSearchButtonClicked(ClickEvent event) {
         String value = trackingIdSearch.getValue();
         if (value == null || value.isEmpty()) {
             setErrorText(viewInjector.getTexts().error_EmptyTrackingIdError());

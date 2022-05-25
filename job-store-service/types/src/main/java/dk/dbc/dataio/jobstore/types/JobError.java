@@ -12,6 +12,7 @@ import dk.dbc.invariant.InvariantUtil;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class JobError {
     public static final String NO_STACKTRACE = null;
+
     public enum Code {
         INVALID_DATA,
         INVALID_ITEM_IDENTIFIER,
@@ -31,9 +32,10 @@ public class JobError {
 
     /**
      * Class constructor
-     * @param code error code
+     *
+     * @param code        error code
      * @param description error description
-     * @param stacktrace error stacktrace
+     * @param stacktrace  error stacktrace
      * @throws NullPointerException if given null-valued code
      */
     @JsonCreator

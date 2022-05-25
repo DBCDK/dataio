@@ -7,9 +7,9 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "extraRequestDataType", propOrder = {
-    "authenticationToken",
-    "projectid",
-    "editReplace"
+        "authenticationToken",
+        "projectid",
+        "editReplace"
 })
 public class ExtraRequestDataType {
 

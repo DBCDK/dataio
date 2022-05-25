@@ -1,13 +1,13 @@
 package dk.dbc.dataio.sink.testutil;
 
-import java.security.Principal;
-import java.util.Map;
-import java.util.Properties;
 import javax.ejb.EJBHome;
 import javax.ejb.EJBLocalHome;
 import javax.ejb.MessageDrivenContext;
 import javax.ejb.TimerService;
 import javax.transaction.UserTransaction;
+import java.security.Principal;
+import java.util.Map;
+import java.util.Properties;
 
 @SuppressWarnings(value = "deprecation")
 public class MockedMessageDrivenContext implements MessageDrivenContext {

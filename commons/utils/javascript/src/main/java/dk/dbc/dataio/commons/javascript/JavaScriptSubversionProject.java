@@ -48,8 +48,7 @@ public class JavaScriptSubversionProject {
      * Class constructor
      *
      * @param subversionScmEndpoint base URL of subversion repository
-     *
-     * @throws NullPointerException if given null-valued subversionScmEndpoint argument
+     * @throws NullPointerException     if given null-valued subversionScmEndpoint argument
      * @throws IllegalArgumentException if given empty-valued subversionScmEndpoint argument
      */
     public JavaScriptSubversionProject(final String subversionScmEndpoint)
@@ -62,14 +61,15 @@ public class JavaScriptSubversionProject {
     /**
      * Fetches information from source control management system for
      * all committed revisions for given project path
+     *
      * @param projectPath project path
      * @return list of revision information in descending revision order
-     * @throws NullPointerException if given null-valued projectName
-     * @throws IllegalArgumentException if given empty-valued projectName
+     * @throws NullPointerException       if given null-valued projectName
+     * @throws IllegalArgumentException   if given empty-valued projectName
      * @throws JavaScriptProjectException with error code:
-     *          SCM_RESOURCE_NOT_FOUND - if given project path can not be found in the SCM system.
-     *          SCM_INVALID_URL - if requested project URL is invalid.
-     *          SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
+     *                                    SCM_RESOURCE_NOT_FOUND - if given project path can not be found in the SCM system.
+     *                                    SCM_INVALID_URL - if requested project URL is invalid.
+     *                                    SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
      */
     public List<RevisionInfo> fetchRevisions(String projectPath)
             throws NullPointerException, IllegalArgumentException, JavaScriptProjectException {
@@ -94,15 +94,16 @@ public class JavaScriptSubversionProject {
     /**
      * Fetches paths of all files with a .js extension contained in specified
      * revision of given project path
+     *
      * @param projectPath project path
-     * @param revision project revision
+     * @param revision    project revision
      * @return list of file names
-     * @throws NullPointerException if given null-valued projectPath
-     * @throws IllegalArgumentException if given empty-valued projectPath
+     * @throws NullPointerException       if given null-valued projectPath
+     * @throws IllegalArgumentException   if given empty-valued projectPath
      * @throws JavaScriptProjectException with error code:
-     *          SCM_RESOURCE_NOT_FOUND - if given project name can not be found in the SCM system.
-     *          SCM_INVALID_URL - if requested project URL is invalid.
-     *          SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
+     *                                    SCM_RESOURCE_NOT_FOUND - if given project name can not be found in the SCM system.
+     *                                    SCM_INVALID_URL - if requested project URL is invalid.
+     *                                    SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
      */
     public List<String> fetchJavaScriptFileNames(String projectPath, long revision)
             throws NullPointerException, IllegalArgumentException, JavaScriptProjectException {
@@ -130,18 +131,19 @@ public class JavaScriptSubversionProject {
     /**
      * Fetches names of all potential invocation methods contained in specified
      * javaScript file in given revision of given project path
-     * @param projectPath project path
-     * @param revision project revision
+     *
+     * @param projectPath        project path
+     * @param revision           project revision
      * @param javaScriptFileName name of script file
      * @return list of method names in alphabetical order
-     * @throws NullPointerException if given null-valued projectPath or javaScriptFileName
-     * @throws IllegalArgumentException if given empty-valued projectPath or javaScriptFileName
+     * @throws NullPointerException       if given null-valued projectPath or javaScriptFileName
+     * @throws IllegalArgumentException   if given empty-valued projectPath or javaScriptFileName
      * @throws JavaScriptProjectException with error code:
-     *          SCM_RESOURCE_NOT_FOUND - if project resource can not be found in the SCM system.
-     *          SCM_INVALID_URL - if requested project URL is invalid.
-     *          SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
-     *          JAVASCRIPT_REFERENCE_ERROR - on failure to evaluate JavaScript with fake use functionality.
-     *          JAVASCRIPT_EVAL_ERROR - on failure to evaluate JavaScript.
+     *                                    SCM_RESOURCE_NOT_FOUND - if project resource can not be found in the SCM system.
+     *                                    SCM_INVALID_URL - if requested project URL is invalid.
+     *                                    SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
+     *                                    JAVASCRIPT_REFERENCE_ERROR - on failure to evaluate JavaScript with fake use functionality.
+     *                                    JAVASCRIPT_EVAL_ERROR - on failure to evaluate JavaScript.
      */
     public List<String> fetchJavaScriptInvocationMethods(String projectPath, long revision, String javaScriptFileName)
             throws NullPointerException, IllegalArgumentException, JavaScriptProjectException {
@@ -167,7 +169,7 @@ public class JavaScriptSubversionProject {
         } catch (Exception e) {
             LOGGER.error(errorMessage, javaScriptFileName, revision, projectPath, e);
             throw new JavaScriptProjectException(JavaScriptProjectError.JAVASCRIPT_EVAL_ERROR, e);
-        }  finally {
+        } finally {
             deleteFolder(exportFolder);
             LOGGER.debug("fetchJavaScriptInvocationMethods() took {} milliseconds", stopWatch.getElapsedTime());
         }
@@ -176,18 +178,19 @@ public class JavaScriptSubversionProject {
     /**
      * Fetches script content of specified javaScript file (and any of its dependencies)
      * in given revision of given project path
-     * @param projectPath project path
-     * @param revision project revision
+     *
+     * @param projectPath        project path
+     * @param revision           project revision
      * @param javaScriptFileName name of script file
      * @param javaScriptFunction name of invocation function in script file
      * @return {@link JavaScriptProject} instance
-     * @throws NullPointerException if given null-valued projectPath, javaScriptFileName or javaScriptFunction
-     * @throws IllegalArgumentException if given empty-valued projectPath, javaScriptFileName or javaScriptFunction
+     * @throws NullPointerException       if given null-valued projectPath, javaScriptFileName or javaScriptFunction
+     * @throws IllegalArgumentException   if given empty-valued projectPath, javaScriptFileName or javaScriptFunction
      * @throws JavaScriptProjectException with error code:
-     *          SCM_RESOURCE_NOT_FOUND - if project resource can not be found in the SCM system.
-     *          SCM_INVALID_URL - if requested project URL is invalid.
-     *          SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
-     *          JAVASCRIPT_READ_ERROR - on failure to read JavaScript exported from the SCM system.
+     *                                    SCM_RESOURCE_NOT_FOUND - if project resource can not be found in the SCM system.
+     *                                    SCM_INVALID_URL - if requested project URL is invalid.
+     *                                    SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
+     *                                    JAVASCRIPT_READ_ERROR - on failure to read JavaScript exported from the SCM system.
      */
     public JavaScriptProject fetchRequiredJavaScript(String projectPath, long revision, String javaScriptFileName, String javaScriptFunction)
             throws NullPointerException, IllegalArgumentException, JavaScriptProjectException {
@@ -307,8 +310,8 @@ public class JavaScriptSubversionProject {
     }
 
     private static String leftTrimFileNameByRemovingDelimiterAndTrunkPath(String javaScriptFileName) {
-        String trimmedJavaScriptFileName = javaScriptFileName.replaceFirst(String.format("^%s", URL_DELIMITER),"");
-        trimmedJavaScriptFileName = trimmedJavaScriptFileName.replaceFirst(String.format("^%s%s", TRUNK_PATH, URL_DELIMITER),"");
+        String trimmedJavaScriptFileName = javaScriptFileName.replaceFirst(String.format("^%s", URL_DELIMITER), "");
+        trimmedJavaScriptFileName = trimmedJavaScriptFileName.replaceFirst(String.format("^%s%s", TRUNK_PATH, URL_DELIMITER), "");
         return trimmedJavaScriptFileName;
     }
 

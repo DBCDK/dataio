@@ -11,10 +11,12 @@ public class SinkStatusModelMapper {
     /**
      * Private Constructor prevents instantiation of this static class
      */
-    private SinkStatusModelMapper (){}
+    private SinkStatusModelMapper() {
+    }
 
     /**
      * Maps a list of SinkStatusSnapshot to a list of SinkStatusModel
+     *
      * @param sinkStatusSnapshots, the list of sinkStatusSnapshot
      * @return list of SinkStatusModels
      */
@@ -28,6 +30,7 @@ public class SinkStatusModelMapper {
 
     /**
      * Maps a SinkStatusSnapshot to a SinkStatusModel
+     *
      * @param sinkStatusSnapshot, the sinkStatusSnapshot
      * @return SinkStatusModel
      */

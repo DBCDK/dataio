@@ -28,9 +28,9 @@ import java.util.Set;
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
@@ -38,11 +38,11 @@ import static org.mockito.Mockito.verify;
 
 /**
  * Chunk states
- *    1.  READY_FOR_PROCESSING  ( marks chunk as partitioned and analyzed
- *    2.  QUEUED_FOR_PROCESSING ( marks chunk as sent to processing JMS queue )
- *    3a. READY_FOR_DELIVERY    ( marks chunk as ready for sink delivery )
- *    3b. BLOCKED               ( marks chunk as waiting for delivery of one or more other chunks )
- *    4.  QUEUED_FOR_DELIVERY   ( marks chunk as sent to sink JMS queue )
+ * 1.  READY_FOR_PROCESSING  ( marks chunk as partitioned and analyzed
+ * 2.  QUEUED_FOR_PROCESSING ( marks chunk as sent to processing JMS queue )
+ * 3a. READY_FOR_DELIVERY    ( marks chunk as ready for sink delivery )
+ * 3b. BLOCKED               ( marks chunk as waiting for delivery of one or more other chunks )
+ * 4.  QUEUED_FOR_DELIVERY   ( marks chunk as sent to sink JMS queue )
  */
 public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBeanIT.class);
@@ -51,11 +51,11 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     public void findChunksWaitingForMe() throws Exception {
         JPATestUtils.runSqlFromResource(entityManager, this, "JobSchedulerBeanIT_findWaitForChunks.sql");
 
-        JobSchedulerBean bean= new JobSchedulerBean();
-        bean.entityManager=entityManager;
+        JobSchedulerBean bean = new JobSchedulerBean();
+        bean.entityManager = entityManager;
 
-        List<Key> res=bean.findChunksWaitingForMe(new Key(3,0), 1);
-        assertThat(res, containsInAnyOrder( new Key(2,0), new Key(2,1), new Key(2,2), new Key(2,3), new Key(2,4)));
+        List<Key> res = bean.findChunksWaitingForMe(new Key(3, 0), 1);
+        assertThat(res, containsInAnyOrder(new Key(2, 0), new Key(2, 1), new Key(2, 2), new Key(2, 3), new Key(2, 4)));
     }
 
     @Test
@@ -122,7 +122,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
 
         JobSchedulerBean bean = new JobSchedulerBean();
         bean.entityManager = entityManager;
-        JobSchedulerTransactionsBean jtbean= new JobSchedulerTransactionsBean();
+        JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean();
         bean.pgJobStoreRepository = newPgJobStoreRepository();
         jtbean.entityManager = bean.entityManager;
         jtbean.sinkMessageProducerBean = mock(SinkMessageProducerBean.class);
@@ -147,7 +147,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                     .withChunkId(chunkId)
                     .withNumberOfItems((short) 1)
                     .withSequenceAnalysisData(makeSequenceAnalyceData(
-                            String.format("CK%d",chunkId),
+                            String.format("CK%d", chunkId),
                             String.format("CK%d", chunkId - 1)));
 
             bean.scheduleChunk(chunkEntity, jobEntity);
@@ -157,41 +157,41 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         entityManager.getTransaction().commit();
 
         assertThat("check match key for chunk0",
-                getDependencyTrackingEntity(3,0).getMatchKeys(),
+                getDependencyTrackingEntity(3, 0).getMatchKeys(),
                 containsInAnyOrder("CK-1", "CK0", "1"));
         assertThat("check barrier match key for chunk1",
-                getDependencyTrackingEntity(3,1).getMatchKeys(),
-                containsInAnyOrder("CK0", "CK1" ));
+                getDependencyTrackingEntity(3, 1).getMatchKeys(),
+                containsInAnyOrder("CK0", "CK1"));
         assertThat("check barrier match key for chunk2",
-                getDependencyTrackingEntity(3,2).getMatchKeys(),
-                containsInAnyOrder("CK1", "CK2" ));
+                getDependencyTrackingEntity(3, 2).getMatchKeys(),
+                containsInAnyOrder("CK1", "CK2"));
         assertThat("check barrier match key for chunk3",
-                getDependencyTrackingEntity(3,3).getMatchKeys(),
+                getDependencyTrackingEntity(3, 3).getMatchKeys(),
                 containsInAnyOrder("CK2", "CK3"));
         assertThat("check barrier match key for chunk5",
-                getDependencyTrackingEntity(3,5).getMatchKeys(),
+                getDependencyTrackingEntity(3, 5).getMatchKeys(),
                 containsInAnyOrder("1"));
 
         assertThat("check waitingOn for chunk1",
-                getDependencyTrackingEntity(3,0).getWaitingOn().size(), is(0));
+                getDependencyTrackingEntity(3, 0).getWaitingOn().size(), is(0));
         assertThat("check waitingOn for chunk2",
-                getDependencyTrackingEntity(3,1).getWaitingOn(), containsInAnyOrder(
-                        mk(3,0)));
+                getDependencyTrackingEntity(3, 1).getWaitingOn(), containsInAnyOrder(
+                        mk(3, 0)));
         assertThat("check waitingOn for chunk3",
-                getDependencyTrackingEntity(3,2).getWaitingOn(), containsInAnyOrder(
-                        mk(3,0),
-                        mk(3,1)));
+                getDependencyTrackingEntity(3, 2).getWaitingOn(), containsInAnyOrder(
+                        mk(3, 0),
+                        mk(3, 1)));
         assertThat("check waitingOn for chunk4",
-                getDependencyTrackingEntity(3,3).getWaitingOn(), containsInAnyOrder(
-                        mk(3,0),
-                        mk(3,2)));
+                getDependencyTrackingEntity(3, 3).getWaitingOn(), containsInAnyOrder(
+                        mk(3, 0),
+                        mk(3, 2)));
         assertThat("check waitingOn for chunk5",
-                getDependencyTrackingEntity(3,5).getWaitingOn(), containsInAnyOrder(
-                        mk(3,0),
-                        mk(3,1),
-                        mk(3,2),
-                        mk(3,3),
-                        mk(3,4)));
+                getDependencyTrackingEntity(3, 5).getWaitingOn(), containsInAnyOrder(
+                        mk(3, 0),
+                        mk(3, 1),
+                        mk(3, 2),
+                        mk(3, 3),
+                        mk(3, 4)));
     }
 
     @Test
@@ -273,7 +273,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         JPATestUtils.clearEntityManagerCache(entityManager);
         entityManager.getTransaction().begin();
 
-        LOGGER.info("Test Checker entityManager.find( job={}, chunk={} ) ", jobId, chunkId );
+        LOGGER.info("Test Checker entityManager.find( job={}, chunk={} ) ", jobId, chunkId);
         DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(jobId, chunkId), LockModeType.PESSIMISTIC_READ);
         assertThat(dependencyTrackingEntity, is(notNullValue()));
         entityManager.refresh(dependencyTrackingEntity);

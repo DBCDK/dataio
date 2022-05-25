@@ -83,7 +83,7 @@ public class LogStoreProxyImplTest {
         try {
             logStoreProxy.getItemLog(jobId, CHUNK_ID, ITEM_ID);
             fail("No " + expectedErrorName + " error was thrown by getItemLog()");
-        } catch(ProxyException e) {
+        } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
         }
     }

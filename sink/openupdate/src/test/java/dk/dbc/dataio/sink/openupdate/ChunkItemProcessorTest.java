@@ -69,15 +69,17 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
             .setStatus(SUCCESS).build();
 
     private static final String WIREMOCK_PORT = getWiremockPort();
+
     // needed for intellij:
     private static String getWiremockPort() {
         final String defaultPort = "8998";
         String wiremockPort = System.getProperty("wiremock.port", defaultPort);
-        if(wiremockPort == null || wiremockPort.equals("")) {
+        if (wiremockPort == null || wiremockPort.equals("")) {
             wiremockPort = defaultPort;
         }
         return wiremockPort;
     }
+
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(Integer.parseInt(WIREMOCK_PORT));
 
@@ -166,17 +168,17 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     @Test
     public void processForQueueProvider_emptyDiagnosticsReturnsChunkItemWithStatusSuccess() throws JAXBException {
         final byte[] updateRecordResponse = (
-          "<updateRecordResponse xmlns=\"http://oss.dbc.dk/ns/catalogingUpdate\">" +
-            "<updateRecordResult>" +
-              "<updateStatus>failed_update_internal_error</updateStatus>" +
-              "<validateInstance>" +
-                "<validateEntry>" +
-                  "<warningOrError>error</warningOrError>" +
-                  "<message>Posten kan ikke slettes, da den ikke findes</message>" +
-                "</validateEntry>" +
-              "</validateInstance>" +
-            "</updateRecordResult>" +
-          "</updateRecordResponse>").getBytes(StandardCharsets.UTF_8);
+                "<updateRecordResponse xmlns=\"http://oss.dbc.dk/ns/catalogingUpdate\">" +
+                        "<updateRecordResult>" +
+                        "<updateStatus>failed_update_internal_error</updateStatus>" +
+                        "<validateInstance>" +
+                        "<validateEntry>" +
+                        "<warningOrError>error</warningOrError>" +
+                        "<message>Posten kan ikke slettes, da den ikke findes</message>" +
+                        "</validateEntry>" +
+                        "</validateInstance>" +
+                        "</updateRecordResult>" +
+                        "</updateRecordResponse>").getBytes(StandardCharsets.UTF_8);
 
         // Expectations
         when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), anyString()))
@@ -228,7 +230,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
                 .willReturn(aResponse()
                         .withStatus(503))
                 .willSetStateTo(currentState));
-        for(int i = 0; i < retries; i++) {
+        for (int i = 0; i < retries; i++) {
             // it doesn't matter what the string is, it should just differ from the current one
             String nextState = currentState + i;
             stubFor(post(urlEqualTo(WIREDENDPOINTURL))

@@ -32,9 +32,9 @@ public class HarvesterTaskServiceConnector {
     private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
             .handle(ProcessingException.class)
             .handleResultIf(response ->
-                       response.getStatus() == 404
-                    || response.getStatus() == 500
-                    || response.getStatus() == 502)
+                    response.getStatus() == 404
+                            || response.getStatus() == 500
+                            || response.getStatus() == 502)
             .withDelay(Duration.ofSeconds(10))
             .withMaxRetries(6);
 
@@ -43,9 +43,10 @@ public class HarvesterTaskServiceConnector {
 
     /**
      * Class constructor
+     *
      * @param httpClient web resources client
-     * @param baseUrl base URL for rr-harvester service endpoint
-     * @throws NullPointerException if given null-valued argument
+     * @param baseUrl    base URL for rr-harvester service endpoint
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
     public HarvesterTaskServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {

@@ -64,7 +64,7 @@ public class TaskRepoIT extends JpaIntegrationTest {
                         .withSubmitterNumber(123456)
                         .withBibliographicRecordId("a")));
     }
-    
+
     @Test
     public void selectorConversion() {
         executeScriptResource("/populate.sql");
@@ -84,7 +84,8 @@ public class TaskRepoIT extends JpaIntegrationTest {
 
         try {
             // do not proceed until task thread has entered its waiting state
-            while (!taskThread.isWaiting()) {}
+            while (!taskThread.isWaiting()) {
+            }
 
             final HarvestTask taskFromThread = taskThread.getTask();
             assertThat("thread task record", taskFromThread.getRecords().get(0),
@@ -113,7 +114,7 @@ public class TaskRepoIT extends JpaIntegrationTest {
         TaskThread() {
             final PGSimpleDataSource dataSource = getDataSource();
             jpaTestEnvironment = new JpaTestEnvironment(dataSource, "taskrepoIT_PU",
-                getEntityManagerFactoryProperties(dataSource));
+                    getEntityManagerFactoryProperties(dataSource));
         }
 
         public void run() {

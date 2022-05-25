@@ -14,11 +14,13 @@ import dk.dbc.dataio.gui.client.model.FlowModel;
 public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     private long id;
+
     /**
      * Constructor
-     * @param place the place
+     *
+     * @param place           the place
      * @param placeController PlaceController for navigation
-     * @param header Breadcrumb header text
+     * @param header          Breadcrumb header text
      */
     public PresenterEditImpl(Place place, PlaceController placeController, String header) {
         super(placeController, header);
@@ -86,9 +88,10 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             String msg = "Flow.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(FlowModel model) {
-            if(!getView().showAvailableFlowComponents) {
+            if (!getView().showAvailableFlowComponents) {
                 setFlowModel(model);
             }
             updateAllFieldsAccordingToCurrentState();

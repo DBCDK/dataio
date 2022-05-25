@@ -88,13 +88,13 @@ public class HarvestTasksBeanIT extends JpaIntegrationTest {
     public void recordsTaskIsCreated() {
         final List<AddiMetaData> expectedRecords = new ArrayList<>();
         expectedRecords.add(new AddiMetaData()
-                        .withBibliographicRecordId("id1")
-                        .withSubmitterNumber(123456)
-                        .withLibraryRules(new AddiMetaData.LibraryRules()));
+                .withBibliographicRecordId("id1")
+                .withSubmitterNumber(123456)
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
         expectedRecords.add(new AddiMetaData()
-                        .withBibliographicRecordId("id2")
-                        .withSubmitterNumber(654321)
-                        .withLibraryRules(new AddiMetaData.LibraryRules()));
+                .withBibliographicRecordId("id2")
+                .withSubmitterNumber(654321)
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final HarvestRecordsRequest request = new HarvestRecordsRequest(expectedRecords);
 

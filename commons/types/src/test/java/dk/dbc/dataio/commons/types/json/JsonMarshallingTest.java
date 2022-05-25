@@ -81,8 +81,9 @@ public class JsonMarshallingTest {
         final String json = jsonbContext.marshall(FlowComponentTest.newFlowComponentInstance());
         jsonbContext.unmarshall(json, FlowComponent.class);
     }
+
     @Test
-        public void verify_jsonMarshallingForFlowComponentContent() throws Exception {
+    public void verify_jsonMarshallingForFlowComponentContent() throws Exception {
         final String json = jsonbContext.marshall(FlowComponentContentTest.newFlowComponentContentInstance());
         jsonbContext.unmarshall(json, FlowComponentContent.class);
     }
@@ -138,10 +139,10 @@ public class JsonMarshallingTest {
     @Test
     public void verify_jsonMarshallingForChunkItemWithTypeAndEncoding() throws Exception {
         final String json = jsonbContext.marshall(ChunkItem.successfulChunkItem()
-                                                    .withId(42)
-                                                    .withData("data")
-                                                    .withType(ChunkItem.Type.UNKNOWN)
-                                                    .withEncoding(StandardCharsets.UTF_8));
+                .withId(42)
+                .withData("data")
+                .withType(ChunkItem.Type.UNKNOWN)
+                .withEncoding(StandardCharsets.UTF_8));
         jsonbContext.unmarshall(json, ChunkItem.class);
     }
 

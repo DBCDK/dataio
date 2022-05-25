@@ -52,9 +52,9 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
         newPersistedChunkEntity(new ChunkEntity.Key(0, job1.getId()));
         newPersistedChunkEntity(new ChunkEntity.Key(0, job2.getId()));
         newPersistedChunkEntity(new ChunkEntity.Key(0, job3.getId()));
-        newPersistedItemEntity(new ItemEntity.Key(job1.getId(), 0, (short)0));
-        newPersistedItemEntity(new ItemEntity.Key(job2.getId(), 0, (short)0));
-        newPersistedItemEntity(new ItemEntity.Key(job3.getId(), 0, (short)0));
+        newPersistedItemEntity(new ItemEntity.Key(job1.getId(), 0, (short) 0));
+        newPersistedItemEntity(new ItemEntity.Key(job2.getId(), 0, (short) 0));
+        newPersistedItemEntity(new ItemEntity.Key(job3.getId(), 0, (short) 0));
 
         persistenceContext.run(() -> {
             job1.setCachedFlow(cachedFlow);

@@ -36,10 +36,12 @@ public class LogStoreMergingJdbcAppender extends DBAppenderBase<ILoggingEvent> {
     }
 
     @Override
-    protected void subAppend(ILoggingEvent event, Connection connection, PreparedStatement preparedStatement) throws Throwable {}
+    protected void subAppend(ILoggingEvent event, Connection connection, PreparedStatement preparedStatement) throws Throwable {
+    }
 
     @Override
-    protected void secondarySubAppend(ILoggingEvent iLoggingEvent, Connection connection, long l) throws Throwable {}
+    protected void secondarySubAppend(ILoggingEvent iLoggingEvent, Connection connection, long l) throws Throwable {
+    }
 
     @Override
     protected Method getGeneratedKeysMethod() {
@@ -58,7 +60,7 @@ public class LogStoreMergingJdbcAppender extends DBAppenderBase<ILoggingEvent> {
             final String trackingId = mdcPropertyMap.get(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY);
             if (trackingId != null) {
                 final String lockObject = getLockObject(trackingId);
-                synchronized(lockObject) {
+                synchronized (lockObject) {
                     if (!loggingEvents.containsKey(lockObject)) {
                         loggingEvents.put(lockObject, new ArrayList<ILoggingEvent>());
                     }

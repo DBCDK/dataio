@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 /**
  * Created by ja7 on 19-07-16.
- *
+ * <p>
  * Result Class for NamedQuery used by bootStrapcode
  */
 
@@ -11,7 +11,7 @@ public class SinkIdStatusCountResult {
     public DependencyTrackingEntity.ChunkSchedulingStatus status;
     public int count;
 
-    static final ChunkSchedulingStatusConverter converter=new ChunkSchedulingStatusConverter();
+    static final ChunkSchedulingStatusConverter converter = new ChunkSchedulingStatusConverter();
 
     public SinkIdStatusCountResult(Integer sinkId, Integer status, Long count) {
         this.sinkId = sinkId;

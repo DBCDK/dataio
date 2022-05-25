@@ -9,5 +9,6 @@ import com.google.gwt.inject.client.Ginjector;
 @GinModules(ViewModule.class)
 public interface ViewFlowBindersGinjector extends Ginjector {
     View getView();
+
     Texts getTexts();
 }

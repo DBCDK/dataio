@@ -10,7 +10,7 @@ import javax.persistence.NamedQuery;
 @Entity
 @IdClass(value = EsInFlightPK.class)
 @NamedQueries({
-    @NamedQuery(name = EsInFlight.FIND_ALL, query = EsInFlight.QUERY_FIND_ALL)
+        @NamedQuery(name = EsInFlight.FIND_ALL, query = EsInFlight.QUERY_FIND_ALL)
 })
 public class EsInFlight {
     public static final String FIND_ALL = "EsInFlight.findAll";

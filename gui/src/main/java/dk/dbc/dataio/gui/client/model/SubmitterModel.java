@@ -13,13 +13,14 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Constructor with all parameters
-     * @param id Id for the Submitter Model
-     * @param version Version number for the Submitter Model
-     * @param number Submitter number
-     * @param name Submitter name
+     *
+     * @param id          Id for the Submitter Model
+     * @param version     Version number for the Submitter Model
+     * @param number      Submitter number
+     * @param name        Submitter name
      * @param description Submitter description
-     * @param priority Submitter priority
-     * @param enabled Submitter status
+     * @param priority    Submitter priority
+     * @param enabled     Submitter status
      */
     public SubmitterModel(long id, long version, String number, String name, String description, Integer priority, Boolean enabled) {
         super(id, version);
@@ -54,6 +55,7 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set number
+     *
      * @param number Submitter number
      */
     public void setNumber(String number) {
@@ -69,6 +71,7 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set name
+     *
      * @param name Submitter name
      */
     public void setName(String name) {
@@ -84,6 +87,7 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set description
+     *
      * @param description Submitter description
      */
     public void setDescription(String description) {
@@ -99,6 +103,7 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set priority
+     *
      * @param priority Submitter priority
      */
     public void setPriority(Integer priority) {
@@ -114,6 +119,7 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set enabled
+     *
      * @param enabled Submitter status
      */
     public void setEnabled(Boolean enabled) {
@@ -121,8 +127,8 @@ public class SubmitterModel extends GenericBackendModel {
     }
 
     /*
-         * Validates if the String, set as number, can be cast to number format
-         */
+     * Validates if the String, set as number, can be cast to number format
+     */
     public boolean isNumberValid() {
         try {
             Long.valueOf(number);
@@ -134,15 +140,17 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Checks for empty String values
+     *
      * @return true if no empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
-        return number.isEmpty() || name.isEmpty() || description.isEmpty() ;
+        return number.isEmpty() || name.isEmpty() || description.isEmpty();
     }
 
     /**
      * Checks if the submitter name contains illegal characters.
      * A-Å, 0-9, - (minus), + (plus), _ (underscore) and space is valid
+     *
      * @return a list containing illegal characters found. Empty list if none found.
      */
     public List<String> getDataioPatternMatches() {

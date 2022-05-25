@@ -192,7 +192,8 @@ public class JobNotificationRepositoryTest {
     public void addNotification_withContext_persistsAndReturnsEntityInWaitingState() throws JobStoreException {
         final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
         final NotificationEntity notificationEntity = jobNotificationRepository.addNotification(
-                Notification.Type.INVALID_TRANSFILE, destination, new NotificationContext() {});
+                Notification.Type.INVALID_TRANSFILE, destination, new NotificationContext() {
+                });
 
         assertThat("getStatus()", notificationEntity.getStatus(), is(Notification.Status.WAITING));
         assertThat("getType()", notificationEntity.getType(), is(Notification.Type.INVALID_TRANSFILE));
@@ -218,7 +219,7 @@ public class JobNotificationRepositoryTest {
     }
 
     public static NotificationEntity getNotificationEntity(Notification.Type type) {
-       final NotificationEntity notification = new NotificationEntity();
+        final NotificationEntity notification = new NotificationEntity();
         notification.setStatus(Notification.Status.WAITING);
         notification.setType(type);
         return notification;
@@ -237,5 +238,6 @@ public class JobNotificationRepositoryTest {
         return notification;
     }
 
-    public static class NotificationContextImpl implements NotificationContext { }
+    public static class NotificationContextImpl implements NotificationContext {
+    }
 }

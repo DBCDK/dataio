@@ -35,8 +35,10 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     private final JSONBContext jsonbContext = new JSONBContext();
 
-    @EJB ConfigBean configBean;
-    @EJB ServiceBroker serviceBroker;
+    @EJB
+    ConfigBean configBean;
+    @EJB
+    ServiceBroker serviceBroker;
 
     @Timed
     @Override
@@ -107,7 +109,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         while (addiReader.hasNext()) {
             final AddiRecord addiRecord = addiReader.next();
             final ProcessingInstructions processingInstructions = jsonbContext.unmarshall(
-                    StringUtil.asString(addiRecord.getMetaData()), ProcessingInstructions.class)
+                            StringUtil.asString(addiRecord.getMetaData()), ProcessingInstructions.class)
                     .withId(id + "-" + idx);
             dpfRecords.add(new DpfRecord(processingInstructions,
                     MarcRecordFactory.fromMarcXchange(addiRecord.getContentData())));

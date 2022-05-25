@@ -39,6 +39,7 @@ public class JobStoreMessageConsumerBeanTest {
     private JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final Map<String, Object> headers = new HashMap<>();
+
     {
         headers.put(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         headers.put(JmsConstants.FLOW_ID_PROPERTY_NAME, 42L);
@@ -134,6 +135,7 @@ public class JobStoreMessageConsumerBeanTest {
         public MessageDrivenContext getMessageDrivenContext() {
             return messageDrivenContext;
         }
+
         public void setMessageDrivenContext(MessageDrivenContext messageDrivenContext) {
             this.messageDrivenContext = messageDrivenContext;
         }

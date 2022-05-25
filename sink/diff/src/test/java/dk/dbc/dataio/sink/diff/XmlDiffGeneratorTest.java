@@ -37,8 +37,8 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
         if (canXmlDiff()) {
             final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
             final String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
-                readTestRecord("bug_18956.xml"),
-                readTestRecord("bug_18956-differences.xml"));
+                    readTestRecord("bug_18956.xml"),
+                    readTestRecord("bug_18956-differences.xml"));
             assertThat(diff, not(""));
         }
     }
@@ -71,7 +71,8 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
                 final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
                 xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, "<INVALID>".getBytes(), "<INVALID>".getBytes());
                 fail("No DiffGeneratorException thrown");
-            } catch (DiffGeneratorException e) {}
+            } catch (DiffGeneratorException e) {
+            }
         }
     }
 

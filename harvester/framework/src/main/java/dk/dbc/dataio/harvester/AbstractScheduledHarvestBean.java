@@ -44,6 +44,7 @@ public abstract class AbstractScheduledHarvestBean<T extends AbstractHarvesterBe
 
     /**
      * (Re)starts harvester with given schedule.
+     *
      * @param scheduleExpression harvest schedule
      */
     @Lock(LockType.WRITE)
@@ -55,7 +56,7 @@ public abstract class AbstractScheduledHarvestBean<T extends AbstractHarvesterBe
         timerService.createCalendarTimer(scheduleExpression, timerConfig);
     }
 
-   /**
+    /**
      * Executes harvest operations not already running on each scheduled point in time
      */
     @Timeout
@@ -94,6 +95,7 @@ public abstract class AbstractScheduledHarvestBean<T extends AbstractHarvesterBe
      * Can be overridden if additional tests needs to
      * be executed in order to determine if a scheduled
      * harvest may run
+     *
      * @param config harvest config
      * @return always true in this default implementation
      */

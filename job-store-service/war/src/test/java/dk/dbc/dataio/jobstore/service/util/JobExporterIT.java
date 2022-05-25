@@ -31,9 +31,9 @@ public class JobExporterIT extends AbstractJobStoreIT {
 
     /**
      * Given: a job with an item failed during delivery with an ERROR
-     *        level diagnostic
+     * level diagnostic
      * When : exporting failed items content for items failed during
-     *        delivery
+     * delivery
      * Then : the exported content has the hasFatalItems flag set to false
      */
     @Test
@@ -42,8 +42,8 @@ public class JobExporterIT extends AbstractJobStoreIT {
         final JobEntity jobEntity = newJobEntity();
         jobEntity.getState()
                 .updateState(new StateChange()
-                    .setPhase(State.Phase.DELIVERING)
-                    .incFailed(1));
+                        .setPhase(State.Phase.DELIVERING)
+                        .incFailed(1));
         persist(jobEntity);
 
         newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
@@ -52,8 +52,8 @@ public class JobExporterIT extends AbstractJobStoreIT {
                 new ItemEntity.Key(jobEntity.getId(), 0, (short) 0));
         itemErrorDuringDelivery.getState()
                 .updateState(new StateChange()
-                    .setPhase(State.Phase.DELIVERING)
-                    .incFailed(1));
+                        .setPhase(State.Phase.DELIVERING)
+                        .incFailed(1));
         itemErrorDuringDelivery.setPartitioningOutcome(new ChunkItemBuilder()
                 .setType(ChunkItem.Type.STRING)
                 .setData("partitioning output")
@@ -83,10 +83,10 @@ public class JobExporterIT extends AbstractJobStoreIT {
 
     /**
      * Given: a job with an item failed during delivery with an ERROR
-     *        level diagnostic and another item failed during delivery
-     *        having multiple diagnostics, one of those with FATAL level
+     * level diagnostic and another item failed during delivery
+     * having multiple diagnostics, one of those with FATAL level
      * When : exporting failed items content for items failed during
-     *        delivery
+     * delivery
      * Then : the exported content has the hasFatalItems flag set to true
      */
     @Test
@@ -95,8 +95,8 @@ public class JobExporterIT extends AbstractJobStoreIT {
         final JobEntity jobEntity = newJobEntity();
         jobEntity.getState()
                 .updateState(new StateChange()
-                    .setPhase(State.Phase.DELIVERING)
-                    .incFailed(1));
+                        .setPhase(State.Phase.DELIVERING)
+                        .incFailed(1));
         persist(jobEntity);
 
         newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
@@ -105,8 +105,8 @@ public class JobExporterIT extends AbstractJobStoreIT {
                 new ItemEntity.Key(jobEntity.getId(), 0, (short) 0));
         itemErrorDuringDelivery.getState()
                 .updateState(new StateChange()
-                    .setPhase(State.Phase.DELIVERING)
-                    .incFailed(1));
+                        .setPhase(State.Phase.DELIVERING)
+                        .incFailed(1));
         itemErrorDuringDelivery.setProcessingOutcome(new ChunkItemBuilder()
                 .setData("processing output")
                 .build());
@@ -121,8 +121,8 @@ public class JobExporterIT extends AbstractJobStoreIT {
                 new ItemEntity.Key(jobEntity.getId(), 0, (short) 1));
         itemFatalDuringDelivery.getState()
                 .updateState(new StateChange()
-                    .setPhase(State.Phase.DELIVERING)
-                    .incFailed(1));
+                        .setPhase(State.Phase.DELIVERING)
+                        .incFailed(1));
         itemFatalDuringDelivery.setProcessingOutcome(new ChunkItemBuilder()
                 .setData("processing output")
                 .build());
@@ -151,8 +151,8 @@ public class JobExporterIT extends AbstractJobStoreIT {
      * Given: a job with 6 items, four of which were successful during the processing phase
      * When : exporting items for the processing phase to file-store
      * Then : an export file is uploaded to the file-store
-     *  And : the export file contains content for the successful items
-     *  And : the export file has metadata identifying is as a job-store export
+     * And : the export file contains content for the successful items
+     * And : the export file has metadata identifying is as a job-store export
      */
     @Test
     public void exportItemsDataToFileStore() throws JobStoreException, IOException {

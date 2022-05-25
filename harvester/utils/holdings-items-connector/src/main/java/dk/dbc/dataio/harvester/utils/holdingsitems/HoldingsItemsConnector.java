@@ -37,11 +37,12 @@ public class HoldingsItemsConnector {
 
     /**
      * Tests for holdings for a given bibliographic record ID
+     *
      * @param bibliographicRecordId ID of record for which to query
-     * @param agencyIds Set of agency IDs for which to limit the query, if empty all agencies are taken into account
+     * @param agencyIds             Set of agency IDs for which to limit the query, if empty all agencies are taken into account
      * @return Set of IDs for agencies with holdings
-     * @throws NullPointerException if given null valued bibliographicRecordId or agencyIds arguments
-     * @throws IllegalArgumentException if given empty valued bibliographicRecordId argument
+     * @throws NullPointerException            if given null valued bibliographicRecordId or agencyIds arguments
+     * @throws IllegalArgumentException        if given empty valued bibliographicRecordId argument
      * @throws HoldingsItemsConnectorException on failure to communicate with holdings items server
      */
     public Set<Integer> hasHoldings(String bibliographicRecordId, Set<Integer> agencyIds)

@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.show;
 
 import com.google.gwt.event.dom.client.DoubleClickEvent;
@@ -32,18 +30,25 @@ import static org.mockito.Mockito.when;
  * <p/>
  * The test methods of this class uses the following naming convention:
  * <p/>
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class HarvestersTableTest {
 
-    @Mock Presenter mockedPresenter;
-    @Mock ListDataProvider<CoRepoHarvesterConfig> mockedDataProvider;
-    @Mock List<CoRepoHarvesterConfig> mockedHarvesterList;
-    @Mock Texts mockedTexts;
-    @Mock DoubleClickEvent mockedDoubleClickEvent;
-    @Mock SingleSelectionModel<CoRepoHarvesterConfig> mockedSelectionModel;
-    @Mock View mockedView;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    ListDataProvider<CoRepoHarvesterConfig> mockedDataProvider;
+    @Mock
+    List<CoRepoHarvesterConfig> mockedHarvesterList;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    DoubleClickEvent mockedDoubleClickEvent;
+    @Mock
+    SingleSelectionModel<CoRepoHarvesterConfig> mockedSelectionModel;
+    @Mock
+    View mockedView;
 
     // Test Data
     private List<CoRepoHarvesterConfig> testHarvesterConfig = new ArrayList<>();
@@ -85,7 +90,6 @@ public class HarvestersTableTest {
 
     // Subject Under Test
     private HarvestersTable harvestersTable;
-
 
 
     @Test

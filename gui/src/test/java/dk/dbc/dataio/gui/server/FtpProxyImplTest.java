@@ -76,7 +76,7 @@ public class FtpProxyImplTest {
     @Test
     public void put() throws ProxyException {
         environmentVariables.set("FTP_URL", FTP_URL);
-        
+
         // Test preparation
         FtpProxyImpl ftpProxy = new FtpProxyImpl(mockedFtpClient);
 

@@ -19,9 +19,8 @@ import java.util.List;
 
 /**
  * Created by ja7 on 19-09-14.
- *
+ * <p>
  * Task scpeifick Update Package.. Loads All SuppliedRecords
- *
  */
 
 @Entity
@@ -33,15 +32,16 @@ import java.util.List;
 public class TaskSpecificUpdateEntity extends TaskPackageEntity {
 
 
-    public enum UpdateStatus{ UNKNOWN, SUCCESS, PARTIAL, FAILURE}
-    public enum UpdateAction { INSERT, REPLACE, DELETE, ELEMENT_UPDATE, SPECIAL_UPDATE }
+    public enum UpdateStatus {UNKNOWN, SUCCESS, PARTIAL, FAILURE}
+
+    public enum UpdateAction {INSERT, REPLACE, DELETE, ELEMENT_UPDATE, SPECIAL_UPDATE}
 
     private UpdateAction action;
     private String elementsetname;
     private byte[] actionqualifier;
     private String databasename;
     private String schema;
-    private UpdateStatus updatestatus=UpdateStatus.UNKNOWN;
+    private UpdateStatus updatestatus = UpdateStatus.UNKNOWN;
 
     private List<SuppliedRecordsEntity> suppliedRecords = new ArrayList<>();
     private List<TaskPackageRecordStructureEntity> taskpackageRecordStructures = new ArrayList<>();
@@ -120,13 +120,14 @@ public class TaskSpecificUpdateEntity extends TaskPackageEntity {
 
     /**
      * Hack Method to ensure the Diagnostics is Loaded.
+     *
      * @param entityManager used for loading the diags
      */
     public void loadDiagsIfExists(EntityManager entityManager) {
         // Uses getTaskpackageRecordStructures() instead of local Member
         // to Allow JPA to do Using Dynamic Weaving
-        for( TaskPackageRecordStructureEntity recordStructure : getTaskpackageRecordStructures()) {
-            recordStructure.loadDiagnosticsEntities( entityManager );
+        for (TaskPackageRecordStructureEntity recordStructure : getTaskpackageRecordStructures()) {
+            recordStructure.loadDiagnosticsEntities(entityManager);
         }
     }
 

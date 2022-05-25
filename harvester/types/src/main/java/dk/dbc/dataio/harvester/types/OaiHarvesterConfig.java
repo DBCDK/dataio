@@ -18,7 +18,8 @@ public class OaiHarvesterConfig extends HarvesterConfig<OaiHarvesterConfig.Conte
         super(id, version, content);
     }
 
-    public OaiHarvesterConfig() { }
+    public OaiHarvesterConfig() {
+    }
 
     @Override
     public String getLogId() {
@@ -27,29 +28,41 @@ public class OaiHarvesterConfig extends HarvesterConfig<OaiHarvesterConfig.Conte
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Content implements Serializable {
-        public Content() { }
+        public Content() {
+        }
 
-        /** ID of harvest operation */
+        /**
+         * ID of harvest operation
+         */
         private String id;
 
-        /** OAI service endpoint */
+        /**
+         * OAI service endpoint
+         */
         private String endpoint;
 
-        /** OAI set spec */
+        /**
+         * OAI set spec
+         */
         private String set;
 
         /**
          * Harvest schedule as standard UNIX crontab expression
          * with five fields minute, hour, day of month, month, and
          * day of week
+         *
          * @see <a href="https://www.unix.com/man-page/linux/5/crontab/">crontab</a>
          **/
         private String schedule;
 
-        /** Description */
+        /**
+         * Description
+         */
         private String description;
 
-        /** Destination for harvested items */
+        /**
+         * Destination for harvested items
+         */
         private String destination;
 
         /**
@@ -60,7 +73,9 @@ public class OaiHarvesterConfig extends HarvesterConfig<OaiHarvesterConfig.Conte
 
         private String submitterNumber;
 
-        /** Flag Indicating if the configuration is enabled */
+        /**
+         * Flag Indicating if the configuration is enabled
+         */
         @JsonProperty
         private boolean enabled = false;
 

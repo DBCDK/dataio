@@ -83,7 +83,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("block bytes", block.getBytes(), is(expectedBytes));
 
         final StoredConversionParam storedConversionParam = env().getPersistenceContext().run(() ->
-            env().getEntityManager().find(StoredConversionParam.class, Math.toIntExact(chunk.getJobId())));
+                env().getEntityManager().find(StoredConversionParam.class, Math.toIntExact(chunk.getJobId())));
 
         assertThat("StoredConversionParam", storedConversionParam, is(notNullValue()));
         assertThat("ConversionParam", storedConversionParam.getParam(), is(conversionParam));

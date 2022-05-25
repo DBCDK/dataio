@@ -5,10 +5,10 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.EsSinkConfig;
 import dk.dbc.dataio.commons.types.ObjectFactory;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.dataio.sink.util.AddiUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
 
 import java.io.IOException;

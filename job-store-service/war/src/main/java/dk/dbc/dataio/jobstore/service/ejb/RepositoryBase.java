@@ -8,7 +8,9 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
 public abstract class RepositoryBase {
-    @Inject @JobstoreDB protected EntityManager entityManager;
+    @Inject
+    @JobstoreDB
+    protected EntityManager entityManager;
 
     protected void syncedPersist(Object entity) {
         entityManager.persist(entity);
@@ -26,8 +28,9 @@ public abstract class RepositoryBase {
 
     /**
      * Merge the state of the given entity into the current persistence context
+     *
      * @param entity entity instance
-     * @param <T> entity type parameter
+     * @param <T>    entity type parameter
      * @return the managed instance that the state was merged to
      * @throws JobStoreException on failure to merge entity state
      */

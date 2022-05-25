@@ -11,16 +11,17 @@ import dk.dbc.dataio.gui.client.components.DateTimeBox;
 
 public class PromptedDateTimeBox extends PromptedData implements HasValue<String> {
 
-    @UiField final DateTimeBox dateTimeBox = new DateTimeBox();
+    @UiField
+    final DateTimeBox dateTimeBox = new DateTimeBox();
 
 
     /**
      * UiBinder Constructor
-     * @param guiId The GUI Id to be set in the DOM
+     *
+     * @param guiId  The GUI Id to be set in the DOM
      * @param prompt The prompt text
      */
-    public @UiConstructor
-    PromptedDateTimeBox(String guiId, String prompt) {
+    public @UiConstructor PromptedDateTimeBox(String guiId, String prompt) {
         super(guiId, prompt);
         dateTimeBox.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
         add(dateTimeBox);
@@ -28,6 +29,7 @@ public class PromptedDateTimeBox extends PromptedData implements HasValue<String
 
     /**
      * Gets the current boolean value for the CheckBox
+     *
      * @return The current value: True if selected, False if not
      */
     @Override
@@ -37,6 +39,7 @@ public class PromptedDateTimeBox extends PromptedData implements HasValue<String
 
     /**
      * Sets the value of the CheckBox
+     *
      * @param value The value to set for the CheckBox: True if selected, False if not
      */
     @Override
@@ -46,7 +49,8 @@ public class PromptedDateTimeBox extends PromptedData implements HasValue<String
 
     /**
      * Sets the value of the CheckBox, and fires an event, if the fireEvents parameter is set
-     * @param value The value to set for the CheckBox: True if selected, False if not
+     *
+     * @param value      The value to set for the CheckBox: True if selected, False if not
      * @param fireEvents Fires an event, if set
      */
     @Override
@@ -69,7 +73,8 @@ public class PromptedDateTimeBox extends PromptedData implements HasValue<String
      * Fires a change event
      */
     public void fireChangeEvent() {
-        class TextBoxChangedEvent extends ChangeEvent {}
+        class TextBoxChangedEvent extends ChangeEvent {
+        }
         dateTimeBox.fireEvent(new TextBoxChangedEvent());
     }
 

@@ -27,15 +27,14 @@ public class FlowComponentContent implements Serializable {
     /**
      * Class constructor
      *
-     * @param name name of flow component
+     * @param name                              name of flow component
      * @param svnProjectForInvocationJavascript name of the SVN Project
-     * @param svnRevision the SVN Revision number
-     * @param invocationJavascriptName name of the original javascript
-     * @param javascripts list of attached JavaScripts (can be empty)
-     * @param invocationMethod name of invocation method (can be empty)
-     * @param description description of flow component
-     *
-     * @throws NullPointerException if given null-valued name, javascripts or invocationMethod argument
+     * @param svnRevision                       the SVN Revision number
+     * @param invocationJavascriptName          name of the original javascript
+     * @param javascripts                       list of attached JavaScripts (can be empty)
+     * @param invocationMethod                  name of invocation method (can be empty)
+     * @param description                       description of flow component
+     * @throws NullPointerException     if given null-valued name, javascripts or invocationMethod argument
      * @throws IllegalArgumentException if given empty-valued name argument
      */
 
@@ -55,19 +54,19 @@ public class FlowComponentContent implements Serializable {
         this.invocationMethod = InvariantUtil.checkNotNullOrThrow(invocationMethod, "invocationMethod");
         this.description = description;
     }
+
     /**
      * Class constructor
      *
-     * @param name name of flow component
+     * @param name                              name of flow component
      * @param svnProjectForInvocationJavascript name of the SVN Project
-     * @param svnRevision the SVN Revision number
-     * @param invocationJavascriptName name of the original javascript
-     * @param javascripts list of attached JavaScripts (can be empty)
-     * @param invocationMethod name of invocation method (can be empty)
-     * @param description description of flow component
-     * @param requireCache the JSON string of the RequireCache ( can be empty )
-     *
-     * @throws NullPointerException if given null-valued name, javascripts or invocationMethod argument
+     * @param svnRevision                       the SVN Revision number
+     * @param invocationJavascriptName          name of the original javascript
+     * @param javascripts                       list of attached JavaScripts (can be empty)
+     * @param invocationMethod                  name of invocation method (can be empty)
+     * @param description                       description of flow component
+     * @param requireCache                      the JSON string of the RequireCache ( can be empty )
+     * @throws NullPointerException     if given null-valued name, javascripts or invocationMethod argument
      * @throws IllegalArgumentException if given empty-valued name argument
      */
 
@@ -79,8 +78,7 @@ public class FlowComponentContent implements Serializable {
                                 @JsonProperty("javascripts") List<JavaScript> javascripts,
                                 @JsonProperty("invocationMethod") String invocationMethod,
                                 @JsonProperty("description") String description,
-                                @JsonProperty("requireCache") String requireCache)
-    {
+                                @JsonProperty("requireCache") String requireCache) {
         this(name, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javascripts, invocationMethod, description);
         this.requireCache = requireCache;
     }

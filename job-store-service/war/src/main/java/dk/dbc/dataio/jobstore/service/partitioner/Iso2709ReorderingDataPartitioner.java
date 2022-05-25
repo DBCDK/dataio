@@ -1,10 +1,10 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,11 +21,12 @@ public class Iso2709ReorderingDataPartitioner extends Iso2709DataPartitioner {
 
     /**
      * Creates new instance of Iso2709 re-ordering DataPartitioner
-     * @param inputStream stream from which data to be partitioned can be read
+     *
+     * @param inputStream   stream from which data to be partitioned can be read
      * @param inputEncoding encoding from job specification (latin 1 will be interpreted as danmarc2).
-     * @param reorderer record ordering handler
+     * @param reorderer     record ordering handler
      * @return new instance of data partitioner
-     * @throws NullPointerException if given null-valued argument
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
      * @throws InvalidEncodingException if given invalid input encoding name
      */

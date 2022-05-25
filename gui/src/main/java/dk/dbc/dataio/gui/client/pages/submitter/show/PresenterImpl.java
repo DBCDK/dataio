@@ -40,9 +40,10 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * Default constructor
-     * @param placeController   PlaceController for navigation
-     * @param view              Global submitters View, necessary for keeping filter state, etc.
-     * @param header            Breadcrumb header text
+     *
+     * @param placeController PlaceController for navigation
+     * @param view            Global submitters View, necessary for keeping filter state, etc.
+     * @param header          Breadcrumb header text
      */
     public PresenterImpl(PlaceController placeController, View view, String header) {
         this.placeController = placeController;
@@ -70,6 +71,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method shows a popup window containing the list of attached Flowbinders
+     *
      * @param model The model for the submitter to edit
      */
     @Override
@@ -81,6 +83,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method opens a new view, for editing the submitter in question
+     *
      * @param model The model for the submitter to edit
      */
     @Override
@@ -101,13 +104,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * Copies the list of flowbinders to the Clipboard
+     *
      * @param flowBinders The list of flowbinders
      */
     @Override
     public void copyFlowBinderListToClipboard(Map<String, String> flowBinders) {
         String clipboardContent = "";
         if (flowBinders != null && !flowBinders.isEmpty()) {
-            for (String flowBinder: flowBinders.values()) {
+            for (String flowBinder : flowBinders.values()) {
                 clipboardContent += clipboardContent.isEmpty() ? flowBinder : "\n" + flowBinder;
             }
         }

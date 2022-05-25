@@ -19,6 +19,7 @@ public class SinkModelBuilder {
 
     /**
      * Sets the ID for the Sink
+     *
      * @param id Id
      * @return The SinkModelBuilder object itself (for chaining)
      */
@@ -29,6 +30,7 @@ public class SinkModelBuilder {
 
     /**
      * Sets the Version for the Sink
+     *
      * @param version Version
      * @return The SinkModelBuilder object itself (for chaining)
      */
@@ -39,6 +41,7 @@ public class SinkModelBuilder {
 
     /**
      * Sets the SinkType for the Sink
+     *
      * @param sinkType Sink Type
      * @return The SinkModelBuilder object itself (for chaining)
      */
@@ -49,6 +52,7 @@ public class SinkModelBuilder {
 
     /**
      * Sets the Name of the Sink
+     *
      * @param name Name of the Sink
      * @return The SinkModelBuilder object itself (for chaining)
      */
@@ -59,6 +63,7 @@ public class SinkModelBuilder {
 
     /**
      * Sets the Resource of the Sink
+     *
      * @param resource Resource
      * @return The SinkModelBuilder object itself (for chaining)
      */
@@ -69,6 +74,7 @@ public class SinkModelBuilder {
 
     /**
      * Sets the Description of the Sink
+     *
      * @param description Description
      * @return The SinkModelBuilder object itself (for chaining)
      */
@@ -79,6 +85,7 @@ public class SinkModelBuilder {
 
     /**
      * Sets the SequenceAnalysisOption for the Sink
+     *
      * @param sequenceAnalysisOption Sequence Analysis Option
      * @return The SinkModelBuilder object itself (for chaining)
      */
@@ -89,6 +96,7 @@ public class SinkModelBuilder {
 
     /**
      * Sets the SinkConfig for the Sink
+     *
      * @param sinkConfig Sink Config
      * @return The SinkModelBuilder object itself (for chaining)
      */
@@ -99,6 +107,7 @@ public class SinkModelBuilder {
 
     /**
      * Build the SinkModel object
+     *
      * @return The SinkModel object
      */
     public SinkModel build() {

@@ -29,7 +29,7 @@ public class DpfRecordTest {
                         .withErrors(Collections.singletonList("error")), new MarcRecord()).hasErrors(),
                 is(true));
         assertThat("without errors", new DpfRecord(
-                newProcessingInstructions(), new MarcRecord()).hasErrors(),
+                        newProcessingInstructions(), new MarcRecord()).hasErrors(),
                 is(false));
     }
 
@@ -85,12 +85,12 @@ public class DpfRecordTest {
 
     private ProcessingInstructions newProcessingInstructions() {
         return new ProcessingInstructions()
-            .withSubmitter(870970)
-            .withId("test")
-            .withRecordState(DpfRecord.State.NEW)
-            .withUpdateTemplate("dbcperiodica")
-            .withTitle("A title for test")
-            .withErrors(new ArrayList<>());
+                .withSubmitter(870970)
+                .withId("test")
+                .withRecordState(DpfRecord.State.NEW)
+                .withUpdateTemplate("dbcperiodica")
+                .withTitle("A title for test")
+                .withErrors(new ArrayList<>());
     }
 
     private MarcRecord newMarcRecord() {

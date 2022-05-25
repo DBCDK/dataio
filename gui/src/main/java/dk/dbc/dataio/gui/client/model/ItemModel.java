@@ -5,7 +5,7 @@ import java.util.List;
 
 public class ItemModel extends GenericBackendModel {
 
-    public enum LifeCycle { PARTITIONING, PROCESSING, DELIVERING, DONE, PARTITIONING_FAILED, PARTITIONING_IGNORED, PROCESSING_FAILED, DELIVERING_FAILED, PROCESSING_IGNORED, DELIVERING_IGNORED}
+    public enum LifeCycle {PARTITIONING, PROCESSING, DELIVERING, DONE, PARTITIONING_FAILED, PARTITIONING_IGNORED, PROCESSING_FAILED, DELIVERING_FAILED, PROCESSING_IGNORED, DELIVERING_IGNORED}
 
     private String itemNumber;
     private String itemId;
@@ -44,7 +44,7 @@ public class ItemModel extends GenericBackendModel {
     }
 
     public ItemModel() {
-        this("1", "0", "0", "0", "0", LifeCycle.PARTITIONING, new ArrayList<DiagnosticModel>(), false, (WorkflowNoteModel)null, "0");
+        this("1", "0", "0", "0", "0", LifeCycle.PARTITIONING, new ArrayList<DiagnosticModel>(), false, (WorkflowNoteModel) null, "0");
     }
 
     public String getItemNumber() {

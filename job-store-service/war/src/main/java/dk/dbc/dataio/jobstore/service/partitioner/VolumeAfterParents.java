@@ -8,10 +8,10 @@ import javax.persistence.EntityManager;
  * The responsibility of this class is to ensure that volume records are
  * returned after their parents and possibly grandparents and in the reverse
  * order for deletions.
- *
+ * <p>
  * This class assumes it is called in a transactional context with regards to
  * the given entity manager.
- *
+ * <p>
  * This class is not thread safe.
  */
 public class VolumeAfterParents extends JobItemReorderer {

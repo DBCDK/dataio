@@ -4,11 +4,11 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +24,10 @@ public final class FlowBinderModelMapper {
     /**
      * Maps a Flow Binder to a Model
      *
-     * @param flowBinder The Flow Binder
-     * @param flowModel The Flow Model (The Flow Binder only contains the flow id, therefore the corresponding Flow Model is given here)
+     * @param flowBinder      The Flow Binder
+     * @param flowModel       The Flow Model (The Flow Binder only contains the flow id, therefore the corresponding Flow Model is given here)
      * @param submitterModels A list of Submitter Models (The Flow Binder only contains submitter id's, therefore the list of corresponding Submitter Models is given here)
-     * @param sinkModel The Sink Model (The Flow Binder only contains the sink id, therefore the corresponding Sink Model is given here)
+     * @param sinkModel       The Sink Model (The Flow Binder only contains the sink id, therefore the corresponding Sink Model is given here)
      * @return The resulting Flow Binder Model
      */
     public static FlowBinderModel toModel(FlowBinder flowBinder, FlowModel flowModel, List<SubmitterModel> submitterModels, SinkModel sinkModel) {
@@ -50,7 +50,7 @@ public final class FlowBinderModelMapper {
                 checkedSubmitterModels,
                 checkedSinkModel,
                 checkedFlowBinder.getContent().getQueueProvider()
-                );
+        );
     }
 
     /**
@@ -66,7 +66,7 @@ public final class FlowBinderModelMapper {
         }
 
         List<String> matches = model.getDataioPatternMatches();
-        if(!matches.isEmpty()) {
+        if (!matches.isEmpty()) {
             throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
         }
 
@@ -88,7 +88,7 @@ public final class FlowBinderModelMapper {
 
     private static List<Long> getSubmitterIds(List<SubmitterModel> submitterModels) {
         List<Long> submitterIds = new ArrayList<>();
-        for (SubmitterModel model: submitterModels) {
+        for (SubmitterModel model : submitterModels) {
             submitterIds.add(model.getId());
         }
         return submitterIds;
@@ -100,9 +100,9 @@ public final class FlowBinderModelMapper {
 
     private static String buildPatternMatchesErrorMsg(List<String> matches) {
         StringBuilder stringBuilder = new StringBuilder("Illegal characters found in flowbinder name:");
-        for(String match : matches) {
+        for (String match : matches) {
             stringBuilder.append(" [").append(match).append("],");
         }
-        return stringBuilder.deleteCharAt(stringBuilder.length() -1).toString();
+        return stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
     }
 }

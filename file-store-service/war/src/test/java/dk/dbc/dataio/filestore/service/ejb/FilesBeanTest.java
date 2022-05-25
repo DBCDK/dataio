@@ -53,15 +53,15 @@ public class FilesBeanTest {
     @Test
     public void addMetadata_returnsCreatedResponse() {
         FileAttributes fileAttributes = new FileAttributes(new Date(),
-            Paths.get("path"));
+                Paths.get("path"));
         when(fileStoreBean.addMetaData(anyString(), anyString()))
-            .thenReturn(fileAttributes);
+                .thenReturn(fileAttributes);
 
         final FilesBean filesBean = newFilesBeanInstance();
         final Response response = filesBean.addMetadata("123456",
-            "{\"meta\": \"data\"}");
+                "{\"meta\": \"data\"}");
         assertThat("status", response.getStatus(), is(
-            Response.Status.OK.getStatusCode()));
+                Response.Status.OK.getStatusCode()));
     }
 
     @Test
@@ -84,7 +84,7 @@ public class FilesBeanTest {
     }
 
     @Test
-    public void getByteSize_fileAttributesNotFound_returnsStatusNotFoundResponse() throws IllegalArgumentException{
+    public void getByteSize_fileAttributesNotFound_returnsStatusNotFoundResponse() throws IllegalArgumentException {
         when(fileStoreBean.getByteSize(fileId, true)).thenThrow(new EJBException());
 
         final FilesBean filesBean = newFilesBeanInstance();
@@ -93,7 +93,7 @@ public class FilesBeanTest {
     }
 
     @Test
-    public void getByteSize_fileIdNotANumber_returnsBadRequestResponse() throws IllegalArgumentException{
+    public void getByteSize_fileIdNotANumber_returnsBadRequestResponse() throws IllegalArgumentException {
         when(fileStoreBean.getByteSize(anyString(), eq(true))).thenThrow(new IllegalArgumentException());
 
         final FilesBean filesBean = newFilesBeanInstance();

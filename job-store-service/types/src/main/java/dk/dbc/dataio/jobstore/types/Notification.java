@@ -20,19 +20,23 @@ public class Notification implements Serializable {
         INVALID_TRANSFILE((short) 4);
 
         private final short value;
+
         Type(short value) {
             this.value = value;
         }
+
         public short getValue() {
             return value;
         }
 
         private static Map<Short, Type> typeMap = new HashMap<>(3);
+
         static {
             for (Type type : values()) {
                 typeMap.put(type.getValue(), type);
             }
         }
+
         public static Type of(Short value) {
             return typeMap.get(value);
         }
@@ -46,19 +50,23 @@ public class Notification implements Serializable {
         FAILED((short) 3);
 
         private final short value;
+
         Status(short value) {
             this.value = value;
         }
+
         public short getValue() {
             return value;
         }
 
         private static Map<Short, Status> statusMap = new HashMap<>(3);
+
         static {
             for (Status status : values()) {
                 statusMap.put(status.getValue(), status);
             }
         }
+
         public static Status of(Short value) {
             return statusMap.get(value);
         }
@@ -75,7 +83,8 @@ public class Notification implements Serializable {
     private Integer jobId;
     private NotificationContext context;
 
-    public Notification() {}  // GWT demands this empty constructor - therefore: Do not delete it, though nobody uses it :)
+    public Notification() {
+    }  // GWT demands this empty constructor - therefore: Do not delete it, though nobody uses it :)
 
     public Integer getId() {
         return id;

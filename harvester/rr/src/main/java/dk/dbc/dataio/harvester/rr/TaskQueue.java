@@ -34,6 +34,7 @@ public class TaskQueue implements RecordHarvestTaskQueue {
 
     /**
      * Retrieves, but does not remove, the head of this task queue, or returns null if this task queue is empty.
+     *
      * @return the head of this task queue, or null if this task queue is empty
      * @throws HarvesterException on error while retrieving a task
      */
@@ -51,6 +52,7 @@ public class TaskQueue implements RecordHarvestTaskQueue {
 
     /**
      * Retrieves and removes the head of this task queue, or returns null if this task queue is empty.
+     *
      * @return the head of this task queue, or null if this task queue is empty
      * @throws HarvesterException on error while retrieving a task
      */
@@ -71,6 +73,7 @@ public class TaskQueue implements RecordHarvestTaskQueue {
      * Due to interpolation of DBC library records because of special delete record handling
      * in HarvestOperation the estimated size of a task queue can be up to double the actual
      * number and it may abruptly jump from a size greater than one to zero.
+     *
      * @return estimated size of this task queue
      */
     @Override

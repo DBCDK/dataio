@@ -34,9 +34,10 @@ public class AddiFileVerifier {
     /**
      * Verifies content of given addi file against given list of
      * expectations throwing assertion error unless all expectations can be met
-     * @param dataFile harvester data file containing addi records
+     *
+     * @param dataFile         harvester data file containing addi records
      * @param addiMetaDataList expectations for addi records meta data
-     * @param expectations expectations for addi records content
+     * @param expectations     expectations for addi records content
      */
     public void verify(File dataFile, List<AddiMetaData> addiMetaDataList, List<? extends Expectation> expectations) {
         try {

@@ -5,12 +5,6 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
-import dk.dbc.httpclient.HttpClient;
-import dk.dbc.httpclient.HttpDelete;
-import dk.dbc.httpclient.HttpGet;
-import dk.dbc.httpclient.HttpPost;
-import dk.dbc.httpclient.PathBuilder;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -24,6 +18,12 @@ import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpDelete;
+import dk.dbc.httpclient.HttpGet;
+import dk.dbc.httpclient.HttpPost;
+import dk.dbc.httpclient.PathBuilder;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,9 +52,10 @@ public class JobStoreServiceConnector {
 
     /**
      * Class constructor
-     * @param client web resources client
+     *
+     * @param client  web resources client
      * @param baseUrl base URL for job-store service endpoint
-     * @throws NullPointerException if given null-valued argument
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
     public JobStoreServiceConnector(Client client, String baseUrl) throws NullPointerException, IllegalArgumentException {
@@ -68,10 +69,11 @@ public class JobStoreServiceConnector {
 
     /**
      * Creates new job defined by given job specification in the job-store
+     *
      * @param jobInputStream containing the job specification
      * @return JobInfoSnapshot displaying job information from one exact moment in time.
-     * @throws NullPointerException if given null-valued argument
-     * @throws JobStoreServiceConnectorException on general communication failure
+     * @throws NullPointerException                                  if given null-valued argument
+     * @throws JobStoreServiceConnectorException                     on general communication failure
      * @throws JobStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public JobInfoSnapshot addJob(JobInputStream jobInputStream) throws NullPointerException, JobStoreServiceConnectorException {
@@ -102,10 +104,11 @@ public class JobStoreServiceConnector {
 
     /**
      * Creates new acceptance test job defined by given job specification in the job-store
+     *
      * @param jobInputStream containing the job specification
      * @return JobInfoSnapshot displaying job information from one exact moment in time.
-     * @throws NullPointerException if given null-valued argument
-     * @throws JobStoreServiceConnectorException on general communication failure
+     * @throws NullPointerException                                  if given null-valued argument
+     * @throws JobStoreServiceConnectorException                     on general communication failure
      * @throws JobStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public JobInfoSnapshot addAccTestJob(AccTestJobInputStream jobInputStream) throws NullPointerException, JobStoreServiceConnectorException {
@@ -135,9 +138,10 @@ public class JobStoreServiceConnector {
 
     /**
      * Creates new empty job defined by given job specification in the job-store
+     *
      * @param jobInputStream containing the job specification
      * @return JobInfoSnapshot job snapshot information
-     * @throws JobStoreServiceConnectorException on general communication failure
+     * @throws JobStoreServiceConnectorException                     on general communication failure
      * @throws JobStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public JobInfoSnapshot addEmptyJob(JobInputStream jobInputStream) throws JobStoreServiceConnectorException {
@@ -159,13 +163,14 @@ public class JobStoreServiceConnector {
     /**
      * Adds chunk and updates existing job by updating existing items, chunk and job entities in the underlying data store.
      * If attempting to re-add a previously added chunk, the method locates and returns the stored job information without updating.
-     * @param chunk chunk
-     * @param jobId job id
+     *
+     * @param chunk   chunk
+     * @param jobId   job id
      * @param chunkId chunk id
      * @return JobInfoSnapshot displaying job information from one exact moment in time.
-     * @throws NullPointerException if given null-valued chunk argument
+     * @throws NullPointerException              if given null-valued chunk argument
      * @throws JobStoreServiceConnectorException on general failure to update job
-     * @throws IllegalArgumentException on invalid chunk type
+     * @throws IllegalArgumentException          on invalid chunk type
      */
     public JobInfoSnapshot addChunkIgnoreDuplicates(Chunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
@@ -173,8 +178,8 @@ public class JobStoreServiceConnector {
         JobInfoSnapshot jobInfoSnapshot;
         try {
             jobInfoSnapshot = addChunk(chunk, jobId, chunkId);
-        } catch(JobStoreServiceConnectorUnexpectedStatusCodeException e) {
-            if(e.getStatusCode() == Response.Status.ACCEPTED.getStatusCode()) {
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            if (e.getStatusCode() == Response.Status.ACCEPTED.getStatusCode()) {
                 log.info("Ignoring duplicate chunk.id = {}. Retrieving existing jobInfoSnapShot for job.id = {}", chunkId, jobId);
                 final JobListCriteria jobListCriteria = new JobListCriteria()
                         .where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
@@ -190,13 +195,14 @@ public class JobStoreServiceConnector {
 
     /**
      * Adds chunk and updates existing job by updating existing items, chunk and job entities in the underlying data store.
-     * @param chunk chunk
-     * @param jobId job id
+     *
+     * @param chunk   chunk
+     * @param jobId   job id
      * @param chunkId chunk id
      * @return JobInfoSnapshot displaying job information from one exact moment in time.
-     * @throws NullPointerException if given null-valued chunk argument
+     * @throws NullPointerException              if given null-valued chunk argument
      * @throws JobStoreServiceConnectorException on general failure to update job
-     * @throws IllegalArgumentException on invalid chunk type
+     * @throws IllegalArgumentException          on invalid chunk type
      */
     public JobInfoSnapshot addChunk(Chunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
@@ -224,9 +230,10 @@ public class JobStoreServiceConnector {
 
     /**
      * Adds notification request to the underlying store
+     *
      * @param request notification request
      * @return job notification representation
-     * @throws NullPointerException if given null-valued notification request
+     * @throws NullPointerException              if given null-valued notification request
      * @throws JobStoreServiceConnectorException on general failure to add notification
      */
     public Notification addNotification(AddNotificationRequest request) throws NullPointerException, JobStoreServiceConnectorException {
@@ -256,9 +263,10 @@ public class JobStoreServiceConnector {
 
     /**
      * Retrieves job listing determined by given search criteria from the job-store
+     *
      * @param criteria list criteria
      * @return list of selected job info snapshots
-     * @throws NullPointerException when given null-valued criteria argument
+     * @throws NullPointerException              when given null-valued criteria argument
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
      */
     public List<JobInfoSnapshot> listJobs(JobListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
@@ -273,7 +281,8 @@ public class JobStoreServiceConnector {
                     .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, new GenericType<List<JobInfoSnapshot>>() {});
+                return readResponseEntity(response, new GenericType<List<JobInfoSnapshot>>() {
+                });
             } finally {
                 response.close();
             }
@@ -284,6 +293,7 @@ public class JobStoreServiceConnector {
 
     /**
      * Retrieves job listing determined by given search query from the job-store
+     *
      * @param query dataIOQL query string
      * @return list of selected job info snapshots
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
@@ -297,7 +307,8 @@ public class JobStoreServiceConnector {
                 .execute();
         try {
             verifyResponseStatus(response, Response.Status.OK);
-            return readResponseEntity(response, new GenericType<List<JobInfoSnapshot>>() {});
+            return readResponseEntity(response, new GenericType<List<JobInfoSnapshot>>() {
+            });
         } finally {
             response.close();
         }
@@ -305,9 +316,10 @@ public class JobStoreServiceConnector {
 
     /**
      * Retrieves item listing determined by given search criteria from the job-store
+     *
      * @param criteria list criteria
      * @return list of selected item info snapshots
-     * @throws NullPointerException when given null-valued criteria argument
+     * @throws NullPointerException              when given null-valued criteria argument
      * @throws JobStoreServiceConnectorException on general failure to produce items listing
      */
     public List<ItemInfoSnapshot> listItems(ItemListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
@@ -322,7 +334,8 @@ public class JobStoreServiceConnector {
                     .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, new GenericType<List<ItemInfoSnapshot>>() {});
+                return readResponseEntity(response, new GenericType<List<ItemInfoSnapshot>>() {
+                });
             } finally {
                 response.close();
             }
@@ -333,9 +346,10 @@ public class JobStoreServiceConnector {
 
     /**
      * Retrieves job listing determined by given search criteria from the job-store
+     *
      * @param criteria list criteria
      * @return list of selected job info snapshots                             s
-     * @throws NullPointerException when given null-valued criteria argument
+     * @throws NullPointerException              when given null-valued criteria argument
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
      */
     public long countJobs(JobListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
@@ -350,7 +364,8 @@ public class JobStoreServiceConnector {
                     .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, new GenericType<Long>() {});
+                return readResponseEntity(response, new GenericType<Long>() {
+                });
             } finally {
                 response.close();
             }
@@ -361,9 +376,10 @@ public class JobStoreServiceConnector {
 
     /**
      * Retrieves item count determined by given search criteria from the job-store
+     *
      * @param criteria list criteria
      * @return number of items located through criteria
-     * @throws NullPointerException when given null-valued criteria argument
+     * @throws NullPointerException              when given null-valued criteria argument
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
      */
     public long countItems(ItemListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
@@ -378,7 +394,8 @@ public class JobStoreServiceConnector {
                     .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, new GenericType<Long>() {});
+                return readResponseEntity(response, new GenericType<Long>() {
+                });
             } finally {
                 response.close();
             }
@@ -389,12 +406,13 @@ public class JobStoreServiceConnector {
 
     /**
      * Retrieves the cached flow of a specific job
+     *
      * @param jobId job id
      * @return the cached flow
      * @throws JobStoreServiceConnectorException on general failure to retrieve flow
-     * @throws IllegalArgumentException on job id less than bound value
+     * @throws IllegalArgumentException          on job id less than bound value
      */
-    public Flow getCachedFlow(int jobId) throws JobStoreServiceConnectorException , IllegalArgumentException {
+    public Flow getCachedFlow(int jobId) throws JobStoreServiceConnectorException, IllegalArgumentException {
         log.trace("JobStoreServiceConnector: getCachedFlow({});", jobId);
         final StopWatch stopWatch = new StopWatch();
         try {
@@ -417,7 +435,7 @@ public class JobStoreServiceConnector {
     }
 
 
-    public ChunkItem getChunkItem(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreServiceConnectorException, IllegalArgumentException{
+    public ChunkItem getChunkItem(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreServiceConnectorException, IllegalArgumentException {
         final StopWatch stopWatch = new StopWatch();
         log.trace("JobStoreServiceConnector: getChunkItem({}, {}, {}, {});", jobId, chunkId, itemId);
         try {
@@ -443,15 +461,15 @@ public class JobStoreServiceConnector {
 
     /**
      * Retrieves processed next result: Representing the the data stored within the next chunk item as String
-     * @param jobId job id
-     * @param chunkId chunk id
-     * @param itemId item id
      *
+     * @param jobId   job id
+     * @param chunkId chunk id
+     * @param itemId  item id
      * @return processed next result
      * @throws JobStoreServiceConnectorException on general failure to retrieve processed next result
-     * @throws IllegalArgumentException on job id less than bound value
+     * @throws IllegalArgumentException          on job id less than bound value
      */
-    public ChunkItem getProcessedNextResult(int jobId, int chunkId, short itemId) throws JobStoreServiceConnectorException, IllegalArgumentException{
+    public ChunkItem getProcessedNextResult(int jobId, int chunkId, short itemId) throws JobStoreServiceConnectorException, IllegalArgumentException {
         final StopWatch stopWatch = new StopWatch();
         log.trace("JobStoreServiceConnector: getProcessedNextResult({}, {}, {}, {});", jobId, chunkId, itemId);
         try {
@@ -477,6 +495,7 @@ public class JobStoreServiceConnector {
 
     /**
      * Retrieves job notifications identified by jobId from the job-store
+     *
      * @param jobId The jobId
      * @return list of selected job notifications
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
@@ -494,7 +513,8 @@ public class JobStoreServiceConnector {
                     .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, new GenericType<List<Notification>>() {});
+                return readResponseEntity(response, new GenericType<List<Notification>>() {
+                });
             } finally {
                 response.close();
             }
@@ -512,7 +532,8 @@ public class JobStoreServiceConnector {
                     .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, new GenericType<List<Notification>>() {});
+                return readResponseEntity(response, new GenericType<List<Notification>>() {
+                });
             } finally {
                 response.close();
             }
@@ -583,7 +604,7 @@ public class JobStoreServiceConnector {
      * Retrieves statuses for all sinks
      *
      * @return a list containing status of sink
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException               on general communication error
      * @throws JobStoreServiceConnectorException on general failure to produce sink status listing
      */
     public List<SinkStatusSnapshot> getSinkStatusList() throws JobStoreServiceConnectorException {
@@ -596,7 +617,8 @@ public class JobStoreServiceConnector {
                     .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, new GenericType<List<SinkStatusSnapshot>>() {});
+                return readResponseEntity(response, new GenericType<List<SinkStatusSnapshot>>() {
+                });
             } finally {
                 response.close();
             }
@@ -610,7 +632,7 @@ public class JobStoreServiceConnector {
      *
      * @param sinkId the id of the sink
      * @return sinkStatusSnapshot
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException               on general communication error
      * @throws JobStoreServiceConnectorException on general failure to produce sink status
      */
     public SinkStatusSnapshot getSinkStatus(int sinkId) throws JobStoreServiceConnectorException {
@@ -636,7 +658,8 @@ public class JobStoreServiceConnector {
 
     /**
      * Creates rerun task for given job ID
-     * @param jobId ID of job to be rerun
+     *
+     * @param jobId           ID of job to be rerun
      * @param failedItemsOnly determining whether all items or only failed should be rerun
      * @throws JobStoreServiceConnectorException on failure to create rerun task
      */
@@ -669,6 +692,7 @@ public class JobStoreServiceConnector {
     /**
      * Initiates a purge operation.
      * That is: All transient jobs will be deleted, and persisten jobs older than appx 5 years will be "compacted".
+     *
      * @throws JobStoreServiceConnectorException on failure to activate purge jobs.
      */
     public void purge() throws JobStoreServiceConnectorException {
@@ -746,19 +770,27 @@ public class JobStoreServiceConnector {
 
     private String chunkTypeToJobStorePath(Chunk.Type chunkType) throws IllegalArgumentException {
         switch (chunkType) {
-            case PROCESSED:   return JobStoreServiceConstants.JOB_CHUNK_PROCESSED;
-            case DELIVERED:   return JobStoreServiceConstants.JOB_CHUNK_DELIVERED;
-            case PARTITIONED: throw new IllegalArgumentException("PARTITIONED is not a valid type");
-            default:          throw new IllegalArgumentException("Chunk.Type could not be identified");
+            case PROCESSED:
+                return JobStoreServiceConstants.JOB_CHUNK_PROCESSED;
+            case DELIVERED:
+                return JobStoreServiceConstants.JOB_CHUNK_DELIVERED;
+            case PARTITIONED:
+                throw new IllegalArgumentException("PARTITIONED is not a valid type");
+            default:
+                throw new IllegalArgumentException("Chunk.Type could not be identified");
         }
     }
 
     private String phaseToJobStorePath(State.Phase phase) throws IllegalArgumentException {
         switch (phase) {
-            case PARTITIONING:return JobStoreServiceConstants.CHUNK_ITEM_PARTITIONED;
-            case PROCESSING:  return JobStoreServiceConstants.CHUNK_ITEM_PROCESSED;
-            case DELIVERING:  return JobStoreServiceConstants.CHUNK_ITEM_DELIVERED;
-            default:          throw new IllegalArgumentException("State.Phase could not be identified");
+            case PARTITIONING:
+                return JobStoreServiceConstants.CHUNK_ITEM_PARTITIONED;
+            case PROCESSING:
+                return JobStoreServiceConstants.CHUNK_ITEM_PROCESSED;
+            case DELIVERING:
+                return JobStoreServiceConstants.CHUNK_ITEM_DELIVERED;
+            default:
+                throw new IllegalArgumentException("State.Phase could not be identified");
         }
     }
 }

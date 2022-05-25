@@ -35,11 +35,15 @@ import java.nio.charset.StandardCharsets;
 public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateMessageProcessorBean.class);
 
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-    @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-    @EJB OpenUpdateConfigBean openUpdateConfigBean;
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @EJB
+    OpenUpdateConfigBean openUpdateConfigBean;
 
-    @Inject MetricsHandlerBean metricsHandler;
+    @Inject
+    MetricsHandlerBean metricsHandler;
 
     AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
@@ -60,7 +64,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         try {
 
             final OpenUpdateSinkConfig latestConfig = openUpdateConfigBean.getConfig(consumedMessage);
-            if(!latestConfig.equals(config)) {
+            if (!latestConfig.equals(config)) {
                 LOGGER.debug("Updating connector");
                 connector = getOpenUpdateServiceConnector(latestConfig);
                 config = latestConfig;
@@ -68,14 +72,14 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
 
             final Chunk outcome = buildOutcomeFromProcessedChunk(chunk);
             try {
-                for(ChunkItem chunkItem : chunk) {
+                for (ChunkItem chunkItem : chunk) {
                     DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                     LOGGER.info("Handling item {}/{}/{}", chunk.getJobId(), chunk.getChunkId(), chunkItem.getId());
                     final ChunkItemProcessor chunkItemProcessor = new ChunkItemProcessor(chunkItem,
                             addiRecordPreprocessor, connector, updateRecordResultMarshaller,
                             new UpdateRecordErrorInterpreter(config.getIgnoredValidationErrors()), metricsHandler);
 
-                    switch(chunkItem.getStatus()) {
+                    switch (chunkItem.getStatus()) {
                         case SUCCESS:
                             outcome.insertItem(chunkItemProcessor.processForQueueProvider(queueProvider));
                             break;
@@ -109,7 +113,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
             metricsHandler.increment(CounterMetrics.CHUNK_ITEMS, chunk.size(),
                     new Tag("queueProvider", queueProvider));
 
-        } catch( Exception any ) {
+        } catch (Exception any) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
             metricsHandler.increment(CounterMetrics.UNHANDLED_EXCEPTIONS,
                     new Tag("queueProvider", queueProvider));

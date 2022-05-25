@@ -139,18 +139,19 @@ public class View extends ViewWidget {
             }
         };
         column.setFieldUpdater((index, model, buttonText) -> presenter.editSink((SinkModel) model));
-    return column;
+        return column;
     }
 
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
-    private DoubleClickHandler getDoubleClickHandler(){
+    private DoubleClickHandler getDoubleClickHandler() {
         return doubleClickEvent -> {
             SinkModel selected = selectionModel.getSelectedObject();
-            if(selected != null) {
+            if (selected != null) {
                 presenter.editSink(selected);
             }
         };
@@ -158,20 +159,34 @@ public class View extends ViewWidget {
 
     private String formatSinkType(SinkContent.SinkType sinkType) {
         switch (sinkType) {
-            case DPF: return getTexts().selection_DpfSink();
-            case DUMMY: return getTexts().selection_DummySink();
-            case ES: return getTexts().selection_ESSink();
-            case OPENUPDATE: return getTexts().selection_UpdateSink();
-            case IMS: return getTexts().selection_ImsSink();
-            case HIVE: return getTexts().selection_HiveSink();
-            case HOLDINGS_ITEMS: return getTexts().selection_HoldingsItemsSink();
-            case TICKLE: return getTexts().selection_TickleSink();
-            case WORLDCAT: return getTexts().selection_WorldCatSink();
-            case MARCCONV: return getTexts().selection_MarcConvSink();
-            case PERIODIC_JOBS: return getTexts().selection_PeriodicJobsSink();
-            case VIP: return getTexts().selection_VipSink();
-            case DMAT: return getTexts().selection_DMatSink();
-            default: return "";
+            case DPF:
+                return getTexts().selection_DpfSink();
+            case DUMMY:
+                return getTexts().selection_DummySink();
+            case ES:
+                return getTexts().selection_ESSink();
+            case OPENUPDATE:
+                return getTexts().selection_UpdateSink();
+            case IMS:
+                return getTexts().selection_ImsSink();
+            case HIVE:
+                return getTexts().selection_HiveSink();
+            case HOLDINGS_ITEMS:
+                return getTexts().selection_HoldingsItemsSink();
+            case TICKLE:
+                return getTexts().selection_TickleSink();
+            case WORLDCAT:
+                return getTexts().selection_WorldCatSink();
+            case MARCCONV:
+                return getTexts().selection_MarcConvSink();
+            case PERIODIC_JOBS:
+                return getTexts().selection_PeriodicJobsSink();
+            case VIP:
+                return getTexts().selection_VipSink();
+            case DMAT:
+                return getTexts().selection_DMatSink();
+            default:
+                return "";
         }
     }
 

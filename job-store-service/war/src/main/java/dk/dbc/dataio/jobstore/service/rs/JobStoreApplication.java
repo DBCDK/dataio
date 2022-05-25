@@ -18,6 +18,7 @@ import java.util.Set;
 @ApplicationPath("/")
 public class JobStoreApplication extends Application {
     private static final Set<Class<?>> classes = new HashSet<>();
+
     static {
         classes.add(JobsBean.class);
         classes.add(JobsExportsBean.class);

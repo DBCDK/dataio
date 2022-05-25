@@ -2,8 +2,8 @@ package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -29,6 +29,7 @@ public class ChunkItemExporter {
 
     /* Associates wrapping formats with their corresponding unwrap handler */
     private Map<ChunkItem.Type, ChunkItemUnwrapper> wrapperFormats = new HashMap<>();
+
     {
         wrapperFormats.put(ChunkItem.Type.UNKNOWN, addiUnwrapper);  // ToDo: remove when all chunk items are created with type information
         wrapperFormats.put(ChunkItem.Type.ADDI, addiUnwrapper);
@@ -36,6 +37,7 @@ public class ChunkItemExporter {
 
     /* Associates legal conversions with their corresponding converter type */
     private Map<Conversion, ConverterType> conversions = new HashMap<>();
+
     {
         conversions.put(new Conversion(ChunkItem.Type.MARCXCHANGE, ChunkItem.Type.DANMARC2_LINEFORMAT),
                 ConverterType.MARCXCHANGE_TO_DANMARC2_LINEFORMAT);
@@ -49,14 +51,15 @@ public class ChunkItemExporter {
 
     /**
      * Exports given chunk item as given type in given encoding
-     * @param chunkItem chunk item to be exported
-     * @param toType type of export
-     * @param encodedAs export encoding
+     *
+     * @param chunkItem   chunk item to be exported
+     * @param toType      type of export
+     * @param encodedAs   export encoding
      * @param diagnostics diagnostics to include in exported item if supported by conversion
      * @return export as bytes
      * @throws NullPointerException if given null-valued argument
-     * @throws JobStoreException on unwrap error, on illegal type conversion, on failure to read input data
-     * or on failure to write output data
+     * @throws JobStoreException    on unwrap error, on illegal type conversion, on failure to read input data
+     *                              or on failure to write output data
      */
     public byte[] export(ChunkItem chunkItem, ChunkItem.Type toType, Charset encodedAs, List<Diagnostic> diagnostics)
             throws NullPointerException, JobStoreException {
@@ -140,7 +143,7 @@ public class ChunkItemExporter {
     }
 
     private boolean isLineFormatType(ChunkItem.Type type) {
-        return     type == ChunkItem.Type.LINEFORMAT
+        return type == ChunkItem.Type.LINEFORMAT
                 || type == ChunkItem.Type.DANMARC2_LINEFORMAT
                 || type == ChunkItem.Type.MARC21_LINEFORMAT;
     }

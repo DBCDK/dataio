@@ -9,9 +9,9 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.ims.connector.ImsServiceConnector;
+import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import org.slf4j.Logger;
@@ -28,8 +28,10 @@ import java.util.List;
 public class ImsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImsMessageProcessorBean.class);
 
-    @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-    @EJB ImsConfigBean imsConfigBean;
+    @EJB
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @EJB
+    ImsConfigBean imsConfigBean;
 
     final MarcXchangeRecordUnmarshaller marcXchangeRecordUnmarshaller = new MarcXchangeRecordUnmarshaller();
 
@@ -47,14 +49,13 @@ public class ImsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         try {
             chunk = unmarshallPayload(consumedMessage);
             LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             LOGGER.info("Caught exception when trying to unmarshall message payload {}", e);
             throw e;
         }
 
         final ImsSinkConfig latestConfig = imsConfigBean.getConfig(consumedMessage);
-        if(!latestConfig.equals(config)) {
+        if (!latestConfig.equals(config)) {
             LOGGER.debug("Updating connector");
             connector = getImsServiceConnector(latestConfig);
             config = latestConfig;
@@ -63,19 +64,18 @@ public class ImsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         try {
             long imsRequestStartTime = System.currentTimeMillis();
             final SinkResult sinkResult = new SinkResult(chunk, marcXchangeRecordUnmarshaller);
-            if(!sinkResult.getMarcXchangeRecords().isEmpty()) {
+            if (!sinkResult.getMarcXchangeRecords().isEmpty()) {
                 final List<UpdateMarcXchangeResult> marcXchangeResults = connector.updateMarcXchange(
                         String.format("%d-%d", chunk.getJobId(), chunk.getChunkId()), sinkResult.getMarcXchangeRecords());
                 sinkResult.update(marcXchangeResults);
             }
             metricsHandler.update(ImsTimerMetrics.REQUEST_DURATION, Duration.ofMillis(System.currentTimeMillis() - imsRequestStartTime));
             addChunkToJobStore(sinkResult.toChunk());
-        } catch(WebServiceException e) {
+        } catch (WebServiceException e) {
             LOGGER.error("WebServiceException caught when handling chunk {}/{}", chunk.getJobId(), chunk.getChunkId(), e);
             metricsHandler.increment(ImsCounterMetrics.IMS_FAILURES);
             throw e;
-        }
-        catch( Exception e ) {
+        } catch (Exception e) {
             LOGGER.error("Caught unhandled exception {}", e);
             metricsHandler.increment(ImsCounterMetrics.UNHANDLED_EXCEPTIONS);
             throw e;

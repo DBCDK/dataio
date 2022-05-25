@@ -12,8 +12,9 @@ public class PresenterCreateImpl extends PresenterImpl {
 
     /**
      * Constructor
+     *
      * @param placeController PlaceController for navigation
-     * @param header Breadcrumb header text
+     * @param header          Breadcrumb header text
      */
     public PresenterCreateImpl(PlaceController placeController, String header) {
         super(placeController, header);
@@ -54,5 +55,6 @@ public class PresenterCreateImpl extends PresenterImpl {
     /**
      * This has no implementation because "Create" does not have a delete button!
      */
-    public void deleteButtonPressed() {}
+    public void deleteButtonPressed() {
+    }
 }

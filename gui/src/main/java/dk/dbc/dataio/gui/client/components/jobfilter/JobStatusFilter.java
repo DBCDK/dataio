@@ -48,14 +48,19 @@ public class JobStatusFilter extends BaseJobFilter {
     }
 
 
-    @UiField RadioButton activeRadioButton;
-    @UiField RadioButton previewRadioButton;
-    @UiField RadioButton doneRadioButton;
-    @UiField RadioButton failedRadioButton;
+    @UiField
+    RadioButton activeRadioButton;
+    @UiField
+    RadioButton previewRadioButton;
+    @UiField
+    RadioButton doneRadioButton;
+    @UiField
+    RadioButton failedRadioButton;
 
 
     /**
      * Event handler for handling changes in the selection of error filtering
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler(value = {"activeRadioButton", "previewRadioButton", "doneRadioButton", "failedRadioButton"})
@@ -69,6 +74,7 @@ public class JobStatusFilter extends BaseJobFilter {
 
     /**
      * Gets the  name of the filter
+     *
      * @return The name of the filter
      */
     @Override
@@ -78,6 +84,7 @@ public class JobStatusFilter extends BaseJobFilter {
 
     /**
      * Gets the JobListCriteria constructed by this job filter
+     *
      * @return The JobListCriteria constructed by this job filter
      */
     @Override
@@ -87,7 +94,7 @@ public class JobStatusFilter extends BaseJobFilter {
             jobListCriteria.where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL));
         } else if (previewRadioButton.getValue()) {
             jobListCriteria.where(new ListFilter<>(JobListCriteria.Field.PREVIEW_ONLY));
-        } else if(doneRadioButton.getValue()) {
+        } else if (doneRadioButton.getValue()) {
             jobListCriteria.where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NOT_NULL));
         } else {
             jobListCriteria.where(new ListFilter<>(JobListCriteria.Field.JOB_CREATION_FAILED))
@@ -102,6 +109,7 @@ public class JobStatusFilter extends BaseJobFilter {
      * The value is one of the texts: Active, Waiting, Done and Failed<br>
      * Example:  'Done'  <br>
      * The case of the texts is not important
+     *
      * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
@@ -130,6 +138,7 @@ public class JobStatusFilter extends BaseJobFilter {
 
     /**
      * Gets the parameter value for the filter
+     *
      * @return The stored filter parameter for the specific job filter
      */
     @Override

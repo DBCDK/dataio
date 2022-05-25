@@ -58,21 +58,19 @@ public class SubmittersBean extends AbstractResourceBean {
      * Creates new submitter with data POST'ed as JSON and persists it in the
      * underlying data store
      *
-     * @param uriInfo application and request URI information
+     * @param uriInfo          application and request URI information
      * @param submitterContent submitter data as JSON string
-     *
      * @return a HTTP 201 CREATED response response with submitter content as JSON,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content.
-     *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
-     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
-     *
+     * a HTTP 400 BAD_REQUEST response on invalid json content.
+     * a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
+     * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      * @throws JSONBException when given invalid (null-valued, empty-valued or non-json)
-     *                       JSON string, or if JSON object does not contain required
-     *                       members
+     *                        JSON string, or if JSON object does not contain required
+     *                        members
      */
     @POST
     @Path(FlowStoreServiceConstants.SUBMITTERS)
-    @Consumes({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response createSubmitter(@Context UriInfo uriInfo, String submitterContent) throws JSONBException {
         log.trace("Called with: '{}'", submitterContent);
@@ -92,11 +90,9 @@ public class SubmittersBean extends AbstractResourceBean {
      * Retrieves submitter from underlying data store
      *
      * @param id submitter identifier
-     *
      * @return a HTTP 200 response with submitter content as JSON,
-     *         a HTTP 404 response with error content as JSON if not found,
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 404 response with error content as JSON if not found,
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException on failure to create json submitter
      */
     @GET
@@ -118,11 +114,9 @@ public class SubmittersBean extends AbstractResourceBean {
      * Retrieves submitter from underlying data store
      *
      * @param number submitter identifier
-     *
      * @return a HTTP 200 response with submitter content as JSON,
-     *         a HTTP 404 response with error content as JSON if not found,
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 404 response with error content as JSON if not found,
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException on failure to create json submitter
      */
     @GET
@@ -133,7 +127,7 @@ public class SubmittersBean extends AbstractResourceBean {
         query.setParameter(1, String.format("{\"number\": %d}", number));
 
         List results = query.getResultList();
-        if(results.isEmpty()) {
+        if (results.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         Submitter submitter = query.getSingleResult();
@@ -148,15 +142,13 @@ public class SubmittersBean extends AbstractResourceBean {
      * Updates an existing submitter
      *
      * @param submitterContent The content of the submitter
-     * @param id The Submitter ID
-     * @param version The version of the submitter
-     *
+     * @param id               The Submitter ID
+     * @param version          The version of the submitter
      * @return a HTTP 200 response with submitter content as JSON,
-     *         a HTTP 404 response in case of Submitter ID not found,
-     *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation,
-     *         a HTTP 409 response in case of Concurrent Update error,
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 404 response in case of Submitter ID not found,
+     * a HTTP 406 response in case of Unique Restraint of Primary Key Violation,
+     * a HTTP 409 response in case of Concurrent Update error,
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException on failure to create json submitter
      */
     @POST
@@ -164,7 +156,7 @@ public class SubmittersBean extends AbstractResourceBean {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateSubmitter(String submitterContent, @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
-        @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
+                                    @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(submitterContent, SUBMITTER_CONTENT_DISPLAY_TEXT);
         final Submitter submitterEntity = entityManager.find(Submitter.class, id);
@@ -190,13 +182,12 @@ public class SubmittersBean extends AbstractResourceBean {
      * Deletes an existing submitter
      *
      * @param submitterId The Submitter ID
-     * @param version The version of the submitter
-     *
+     * @param version     The version of the submitter
      * @return a HTTP 200 response with submitter content as JSON,
-     *         a HTTP 404 response in case of Submitter ID not found,
-     *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation,
-     *         a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
-     *         a HTTP 500 response in case of general error.
+     * a HTTP 404 response in case of Submitter ID not found,
+     * a HTTP 406 response in case of Unique Restraint of Primary Key Violation,
+     * a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
+     * a HTTP 500 response in case of general error.
      */
     @DELETE
     @Path(FlowStoreServiceConstants.SUBMITTER)
@@ -206,7 +197,7 @@ public class SubmittersBean extends AbstractResourceBean {
 
         final Submitter submitterEntity = entityManager.find(Submitter.class, submitterId);
 
-        if(submitterEntity == null) {
+        if (submitterEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
 
@@ -226,13 +217,12 @@ public class SubmittersBean extends AbstractResourceBean {
      * Returns list of all stored submitters sorted by name in ascending order
      *
      * @return a HTTP 200 OK response with result list as JSON.
-     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
-     *
+     * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      * @throws JSONBException on failure to create result list as JSON
      */
     @GET
     @Path(FlowStoreServiceConstants.SUBMITTERS)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response findAllSubmitters() throws JSONBException {
         final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_ALL, Submitter.class);
 
@@ -242,6 +232,7 @@ public class SubmittersBean extends AbstractResourceBean {
     /**
      * Returns list of (flow-binder name, flow-binder ID) tuples
      * for all flow-binders where given submitter ID is attached
+     *
      * @param submitterId submitter ID to resolve into attached flow-binders
      * @return a HTTP 200 OK response with result list as JSON
      * @throws JSONBException on failure to marshall result list as JSON
@@ -254,36 +245,38 @@ public class SubmittersBean extends AbstractResourceBean {
         final FlowBinderContentMatch flowBinderContentMatch = new FlowBinderContentMatch()
                 .withSubmitterIds(Collections.singletonList(submitterId));
         final TypedQuery<FlowBinderIdent> query = entityManager.createNamedQuery(
-                FlowBinder.MATCH_FLOWBINDERIDENT_QUERY_NAME, FlowBinderIdent.class)
+                        FlowBinder.MATCH_FLOWBINDERIDENT_QUERY_NAME, FlowBinderIdent.class)
                 .setParameter(1, flowBinderContentMatch.toString());
         return Response.ok(jsonbContext.marshall(query.getResultList())).build();
     }
 
     /**
      * Returns list of submitters found by executing POST'ed IOQL query
+     *
      * @param query IOQL query
      * @return a HTTP OK response with result list as JSON,
-     *         a HTTP 400 BAD_REQUEST response on invalid query expression.
+     * a HTTP 400 BAD_REQUEST response on invalid query expression.
      * @throws JSONBException on failure to create result list as JSON
      */
     @POST
     @Path(FlowStoreServiceConstants.SUBMITTERS_QUERIES)
-    @Consumes({ MediaType.TEXT_PLAIN })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.TEXT_PLAIN})
+    @Produces({MediaType.APPLICATION_JSON})
     public Response querySubmittersByPost(String query) throws JSONBException {
         return listSubmittersByIOQL(query);
     }
 
     /**
      * Returns list of submitters found by executing IOQL query given by the 'q' query parameter
+     *
      * @param query IOQL query
      * @return a HTTP OK response with result list as JSON,
-     *         a HTTP 400 BAD_REQUEST response on invalid query expression.
+     * a HTTP 400 BAD_REQUEST response on invalid query expression.
      * @throws JSONBException on failure to create result list as JSON
      */
     @GET
     @Path(FlowStoreServiceConstants.SUBMITTERS_QUERIES)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response querySubmittersByGet(@QueryParam("q") String query) throws JSONBException {
         return listSubmittersByIOQL(query);
     }

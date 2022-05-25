@@ -1,11 +1,11 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.querylanguage.DataIOQLParser;
 import dk.dbc.dataio.querylanguage.ParseException;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +63,7 @@ public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Fie
 
     /**
      * Constructor
+     *
      * @param entityManager EntityManager used for native query creation and execution
      * @throws NullPointerException if given null-valued entityManager argument
      */
@@ -84,6 +85,7 @@ public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Fie
 
     /**
      * Creates and executes job listing query with given criteria
+     *
      * @param criteria query criteria
      * @return list of information snapshots for selected jobs
      * @throws NullPointerException if given null-valued criteria argument

@@ -34,7 +34,7 @@ import java.util.Objects;
  * }
  * </code>
  * </pre>
- *
+ * <p>
  * Upcoming features:
  * <pre>
  *   andWhere(ListFilter&lt;T&gt; filter)
@@ -42,7 +42,7 @@ import java.util.Objects;
  *   whereIn(T, List&lt;Object&gt;)
  * </pre>
  */
-public abstract class ListCriteria<T extends ListFilterField, U extends ListCriteria<T,U>> implements Serializable {
+public abstract class ListCriteria<T extends ListFilterField, U extends ListCriteria<T, U>> implements Serializable {
     private LinkedList<ListFilterGroup<T>> filtering;
     private ArrayList<ListOrderBy<T>> ordering;
     private int limit;
@@ -56,49 +56,49 @@ public abstract class ListCriteria<T extends ListFilterField, U extends ListCrit
     @SuppressWarnings("unchecked")
     public U where(ListFilter<T> filter) throws NullPointerException {
         filtering.add(new ListFilterGroup<T>().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND)));
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
     public U and(ListFilter<T> filter) throws NullPointerException {
         filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND));
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
-    public U where( ListCriteria<T,U> other) {
+    public U where(ListCriteria<T, U> other) {
         filtering.addAll(other.filtering);
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
-    public U and(ListCriteria<T,U> other) {
+    public U and(ListCriteria<T, U> other) {
         filtering.addAll(other.filtering);
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
     public U or(ListFilter<T> filter) throws NullPointerException {
         filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.OR));
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
     public U not() {
         filtering.getLast().not();
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
     public U limit(int limit) {
         this.limit = limit;
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
     public U offset(int offset) {
         this.offset = offset;
-        return (U)this;
+        return (U) this;
     }
 
     public List<ListFilterGroup<T>> getFiltering() {
@@ -112,7 +112,7 @@ public abstract class ListCriteria<T extends ListFilterField, U extends ListCrit
     @SuppressWarnings("unchecked")
     public U orderBy(ListOrderBy<T> orderBy) throws NullPointerException {
         ordering.add(InvariantUtil.checkNotNullOrThrow(orderBy, "orderBy"));
-        return (U)this;
+        return (U) this;
     }
 
     public void removeOrderBy() {

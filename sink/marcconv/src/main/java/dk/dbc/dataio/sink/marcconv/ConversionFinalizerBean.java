@@ -50,8 +50,10 @@ public class ConversionFinalizerBean {
     @PersistenceContext(unitName = "marcconv_PU")
     EntityManager entityManager;
 
-    @EJB public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-    @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @EJB
+    public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @EJB
+    public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @Timed
     public Chunk handleTerminationChunk(Chunk chunk) throws SinkException {
@@ -63,7 +65,7 @@ public class ConversionFinalizerBean {
         JobInfoSnapshot jobInfoSnapshot;
 
         try {
-             jobInfoSnapshot = jobStoreServiceConnectorBean.getConnector().listJobs(findJobCriteria).get(0);
+            jobInfoSnapshot = jobStoreServiceConnectorBean.getConnector().listJobs(findJobCriteria).get(0);
         } catch (JobStoreServiceConnectorException e) {
             throw new SinkException(
                     format("Failed to find job %d", jobId), e);
@@ -108,7 +110,7 @@ public class ConversionFinalizerBean {
             }
             return Optional.of(files.get(0));
         } catch (FileStoreServiceConnectorException
-                | RuntimeException e) {
+                 | RuntimeException e) {
             throw new SinkException(
                     format("Failed check for existing file for job %d", jobId), e);
         }
@@ -136,7 +138,7 @@ public class ConversionFinalizerBean {
             }
             LOGGER.info("Uploaded conversion file {} for job {}", fileId, jobId);
         } catch (FileStoreServiceConnectorException
-                | RuntimeException e) {
+                 | RuntimeException e) {
             deleteFile(fileStoreServiceConnector, fileId);
             throw new SinkException(e);
         }
@@ -150,7 +152,7 @@ public class ConversionFinalizerBean {
             LOGGER.info("Uploaded conversion metadata {} for job {}",
                     conversionMetadata, chunk.getJobId());
         } catch (FileStoreServiceConnectorException
-                | RuntimeException e) {
+                 | RuntimeException e) {
             deleteFile(fileStoreServiceConnector, fileId);
             throw new SinkException(e);
         }
@@ -209,7 +211,7 @@ public class ConversionFinalizerBean {
         } else {
             chunkItem = ChunkItem.successfulChunkItem()
                     .withData(String.join("/", fileStoreServiceConnector.getBaseUrl(),
-                        "files", fileId));
+                            "files", fileId));
         }
         result.insertItem(chunkItem
                 .withId(0)

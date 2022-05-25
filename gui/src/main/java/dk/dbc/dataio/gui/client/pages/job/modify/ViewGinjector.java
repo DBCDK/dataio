@@ -10,6 +10,8 @@ import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 @GinModules(ViewModule.class)
 public interface ViewGinjector extends Ginjector {
     View getView();
+
     Texts getTexts();
+
     LogMessageTexts getLogMessageTexts();
 }

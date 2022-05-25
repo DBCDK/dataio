@@ -137,7 +137,7 @@ public class HarvestOperation {
             final Header header = record.getHeader();
             final AddiMetaData addiMetaData = new AddiMetaData()
                     .withTrackingId("oai." + config.getLogId() + "."
-                        + header.getIdentifier())
+                            + header.getIdentifier())
                     .withBibliographicRecordId(header.getIdentifier())
                     .withFormat(config.getContent().getFormat())
                     .withSubmitterNumber(Integer.parseInt(config.getContent().getSubmitterNumber()));

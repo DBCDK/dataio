@@ -14,11 +14,13 @@ import java.util.Map;
 
 public class PromptedMultiList extends PromptedData implements HasValue<Map<String, String>>, HasClickHandlers {
 
-    @UiField final MultiList multiList = new MultiList();
+    @UiField
+    final MultiList multiList = new MultiList();
 
     /**
      * Constructor for the PromptedMultiList component
-     * @param guiId The Gui Id
+     *
+     * @param guiId  The Gui Id
      * @param prompt A prompt text, to be displayed for the Multi List component
      */
     @UiConstructor
@@ -31,6 +33,7 @@ public class PromptedMultiList extends PromptedData implements HasValue<Map<Stri
 
     /**
      * Enables og disables the PromptedMultiList component
+     *
      * @param enabled True: Enables the PromptedMultiList Component, False: Disables the PromptedMultiList Component
      */
     public void setEnabled(boolean enabled) {
@@ -39,6 +42,7 @@ public class PromptedMultiList extends PromptedData implements HasValue<Map<Stri
 
     /**
      * Tests whether the supplied parameter is an event, caused by a click on the Add button
+     *
      * @param event The event to test
      * @return True: This was a click on the Add button, False: It was not a click on the Add button
      */
@@ -48,6 +52,7 @@ public class PromptedMultiList extends PromptedData implements HasValue<Map<Stri
 
     /**
      * Tests whether the supplied parameter is an event, caused by a click on the Remove button
+     *
      * @param event The event to test
      * @return True: This was a click on the Remove button, False: It was not a click on the Remove button
      */
@@ -57,6 +62,7 @@ public class PromptedMultiList extends PromptedData implements HasValue<Map<Stri
 
     /**
      * Gets the key value of the selected item in the multi list
+     *
      * @return The key value of the selected item
      */
     public String getSelectedItem() {
@@ -74,6 +80,7 @@ public class PromptedMultiList extends PromptedData implements HasValue<Map<Stri
 
     /**
      * getValue fetches the all items in the list as a map of Key/Value pairs
+     *
      * @return All items in the list
      */
     @Override
@@ -83,8 +90,9 @@ public class PromptedMultiList extends PromptedData implements HasValue<Map<Stri
 
     /**
      * addValue adds another item to the bottom of the list
+     *
      * @param text The text for the item
-     * @param key The key for the item
+     * @param key  The key for the item
      */
     public void addValue(String text, String key) {
         multiList.addValue(text, key);
@@ -92,6 +100,7 @@ public class PromptedMultiList extends PromptedData implements HasValue<Map<Stri
 
     /**
      * setValue replaces all items in the list with the supplied map
+     *
      * @param items The new map of list items
      */
     @Override
@@ -101,7 +110,8 @@ public class PromptedMultiList extends PromptedData implements HasValue<Map<Stri
 
     /**
      * setValue replaces all items in the list with the supplied map
-     * @param items The new map of list items
+     *
+     * @param items     The new map of list items
      * @param fireEvent A boolean to determine, if an event is being fired upon change
      */
     @Override
@@ -111,6 +121,7 @@ public class PromptedMultiList extends PromptedData implements HasValue<Map<Stri
 
     /**
      * This method adds a Value Change Handler to the list
+     *
      * @param valueChangeHandler The Change Handler
      * @return A HandlerRegistration
      */
@@ -121,6 +132,7 @@ public class PromptedMultiList extends PromptedData implements HasValue<Map<Stri
 
     /**
      * This method implements a Click Handler, to signal clicks on one of the buttons
+     *
      * @param clickHandler The Click Handler
      * @return A HandlerRegistration
      */
@@ -131,6 +143,7 @@ public class PromptedMultiList extends PromptedData implements HasValue<Map<Stri
 
     /**
      * Sets the sorting in the list to be Manual or Automatic
+     *
      * @param manualSorting Manual sorting if true, Automatic if false
      */
     public void setManualSorting(Boolean manualSorting) {

@@ -13,7 +13,8 @@ import java.util.Map;
 public class ObjectFactory {
     private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
 
-    private ObjectFactory() {}
+    private ObjectFactory() {
+    }
 
     public static ConsumedMessage createConsumedMessage(Chunk chunk) {
         try {

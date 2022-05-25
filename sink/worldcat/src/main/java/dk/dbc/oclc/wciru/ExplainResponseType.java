@@ -7,13 +7,12 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "explainResponseType", propOrder = {
-    "record",
-    "diagnostics",
-    "extraResponseData"
+        "record",
+        "diagnostics",
+        "extraResponseData"
 })
 public class ExplainResponseType
-    extends ResponseType
-{
+        extends ResponseType {
 
     @XmlElement(required = true)
     protected RecordType record;

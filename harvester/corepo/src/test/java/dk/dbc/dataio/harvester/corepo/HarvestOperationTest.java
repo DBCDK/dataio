@@ -112,7 +112,7 @@ public class HarvestOperationTest {
 
     private HarvestOperation newHarvestOperation() throws HarvesterException {
         return new HarvestOperation(config, coRepoConnector,
-            flowStoreServiceConnector, vipCoreLibraryRulesConnector,
-            rrHarvesterServiceConnector);
+                flowStoreServiceConnector, vipCoreLibraryRulesConnector,
+                rrHarvesterServiceConnector);
     }
 }

@@ -44,19 +44,21 @@ import java.util.Date;
 public class FileAttributes {
     public static final String TABLE_NAME = "file_attributes";
     public static final String GET_FILES_FROM_METADATA =
-        "FileAttributes.getFilesFromMetadata";
+            "FileAttributes.getFilesFromMetadata";
     public static final String GET_FILES_FROM_METADATA_WITH_ORIGIN_OLDER_THAN =
             "FileAttributes.getFilesFromMetadataWithOriginOlderThan";
     public static final String GET_FILES_NEVER_READ_OLDER_THAN =
             "FileAttributes.getFilesNeverReadOlderThan";
 
-    FileAttributes() { }
+    FileAttributes() {
+    }
 
     /**
      * Class constructor
+     *
      * @param creationTime file creation time
-     * @param path file location in store
-     * @throws NullPointerException if given null-valued creationTime or path argument
+     * @param path         file location in store
+     * @throws NullPointerException     if given null-valued creationTime or path argument
      * @throws IllegalArgumentException if given empty path
      */
     public FileAttributes(Date creationTime, Path path)
@@ -68,12 +70,12 @@ public class FileAttributes {
 
     @Id
     @SequenceGenerator(
-        name = "fileattributes_id_seq",
-        sequenceName = "fileattributes_id_seq",
-        allocationSize = 1)
+            name = "fileattributes_id_seq",
+            sequenceName = "fileattributes_id_seq",
+            allocationSize = 1)
     @GeneratedValue(
-        strategy = GenerationType.SEQUENCE,
-        generator = "fileattributes_id_seq")
+            strategy = GenerationType.SEQUENCE,
+            generator = "fileattributes_id_seq")
     private Long id;
 
     @Temporal(TemporalType.TIMESTAMP)

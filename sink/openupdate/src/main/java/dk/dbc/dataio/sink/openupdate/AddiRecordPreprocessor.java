@@ -1,10 +1,10 @@
 package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.sink.openupdate.bindings.BibliographicRecordExtraData;
 import dk.dbc.dataio.sink.openupdate.bindings.BibliographicRecordExtraDataMarshaller;
 import dk.dbc.dataio.sink.util.DocumentTransformer;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.ExtraRecordData;
 import dk.dbc.oss.ns.catalogingupdate.RecordData;
@@ -15,7 +15,7 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 
 public class AddiRecordPreprocessor extends DocumentTransformer {
-    static final String RECORD_SCHEMA    = "info:lc/xmlns/marcxchange-v1";
+    static final String RECORD_SCHEMA = "info:lc/xmlns/marcxchange-v1";
     static final String RECORD_PACKAGING = "xml";
 
     private final BibliographicRecordExtraDataMarshaller bibliographicRecordExtraDataMarshaller =

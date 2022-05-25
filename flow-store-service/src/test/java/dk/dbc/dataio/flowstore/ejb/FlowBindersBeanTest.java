@@ -128,6 +128,7 @@ public class FlowBindersBeanTest {
     }
 
     final long FLOW_BINDER_VERSION = 1245L;
+
     private FlowBinder testFlowBinder() throws JSONBException {
         FlowBinder flowBinder = new FlowBinder();
         flowBinder.setVersion(FLOW_BINDER_VERSION);

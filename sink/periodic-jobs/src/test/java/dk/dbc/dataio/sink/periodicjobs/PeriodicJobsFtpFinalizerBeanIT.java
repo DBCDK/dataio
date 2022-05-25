@@ -7,7 +7,6 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.FtpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.ftp.FtpClient;
-import java.util.Date;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
+import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -81,9 +81,9 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                 .withUsername(USERNAME)
                 .withPassword(PASSWORD);
         ftpClient.cd(PUT_DIR);
-        String listing = String.join("\n",ftpClient.list());
+        String listing = String.join("\n", ftpClient.list());
         String fileName = String.format("periodisk-job-%d.data", jobId);
-        assertThat("File is NOT present", listing.contains(fileName),is(false));
+        assertThat("File is NOT present", listing.contains(fileName), is(false));
     }
 
     @Test

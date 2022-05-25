@@ -25,7 +25,8 @@ import java.util.Optional;
  */
 @Path("/")
 public class RerunsBean {
-    @EJB JobRerunnerBean jobRerunnerBean;
+    @EJB
+    JobRerunnerBean jobRerunnerBean;
 
     final JSONBContext jsonbContext = new JSONBContext();
 

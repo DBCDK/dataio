@@ -27,21 +27,27 @@ import static org.mockito.Mockito.when;
  * <p/>
  * The test methods of this class uses the following naming convention:
  * <p/>
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class HarvestersTableTest {
 
-    @Mock Presenter mockedPresenter;
-    @Mock ListDataProvider<TickleRepoHarvesterConfig> mockedDataProvider;
-    @Mock List<TickleRepoHarvesterConfig> mockedHarvesterList;
-    @Mock Texts mockedTexts;
-    @Mock DoubleClickEvent mockedDoubleClickEvent;
-    @Mock SingleSelectionModel<TickleRepoHarvesterConfig> mockedSelectionModel;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    ListDataProvider<TickleRepoHarvesterConfig> mockedDataProvider;
+    @Mock
+    List<TickleRepoHarvesterConfig> mockedHarvesterList;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    DoubleClickEvent mockedDoubleClickEvent;
+    @Mock
+    SingleSelectionModel<TickleRepoHarvesterConfig> mockedSelectionModel;
 
     // Test Data
     private List<TickleRepoHarvesterConfig> testHarvesterConfig = new ArrayList<>();
-    private TickleRepoHarvesterConfig testHarvesterConfigEntry1 = new TickleRepoHarvesterConfig(1,2, new TickleRepoHarvesterConfig.Content()
+    private TickleRepoHarvesterConfig testHarvesterConfigEntry1 = new TickleRepoHarvesterConfig(1, 2, new TickleRepoHarvesterConfig.Content()
             .withId("ID1")
             .withDatasetName("DatasetName1")
             .withDescription("Description1")
@@ -50,7 +56,7 @@ public class HarvestersTableTest {
             .withType(JobSpecification.Type.TRANSIENT)
             .withEnabled(false)
     );
-    private TickleRepoHarvesterConfig testHarvesterConfigEntry2 = new TickleRepoHarvesterConfig(2,3, new TickleRepoHarvesterConfig.Content().withId("ID2"));
+    private TickleRepoHarvesterConfig testHarvesterConfigEntry2 = new TickleRepoHarvesterConfig(2, 3, new TickleRepoHarvesterConfig.Content().withId("ID2"));
 
     @Before
     public void setupTestHarvesterConfig() {
@@ -68,7 +74,6 @@ public class HarvestersTableTest {
 
     // Subject Under Test
     private HarvestersTable harvestersTable;
-
 
 
     @Test

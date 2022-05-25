@@ -20,7 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 
 public class FileStoreFetcher {
-    private static final long  MEGABYTE = 1024L * 1024L;
+    private static final long MEGABYTE = 1024L * 1024L;
 
     private final FileStoreServiceConnector fileStoreServiceConnector;
 

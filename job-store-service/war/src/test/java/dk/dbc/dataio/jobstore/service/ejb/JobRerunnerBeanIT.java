@@ -142,7 +142,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("request submitter", (long) request.getRecords().get(0).submitterNumber(),
                 is(job.getSpecification().getSubmitterId()));
         assertThat("request bibliographic record IDs", request.getRecords()
-                .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                        .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
                 is(Arrays.asList("id0", "id1", "id2")));
     }
 
@@ -164,7 +164,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("request submitter", (long) request.getRecords().get(0).submitterNumber(),
                 is(job.getSpecification().getSubmitterId()));
         assertThat("request bibliographic record IDs", request.getRecords()
-                .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                        .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
                 is(Arrays.asList("id1", "id2")));
     }
 
@@ -181,7 +181,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         final HarvestRecordsRequest request = argumentCaptor.getValue();
         assertThat("request.getBasedOnJob()", request.getBasedOnJob(), is(job.getId()));
         assertThat("request bibliographic record IDs", request.getRecords()
-                .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                        .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
                 is(Arrays.asList("id0", "id1", "id2")));
     }
 
@@ -200,7 +200,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         final HarvestRecordsRequest request = argumentCaptor.getValue();
         assertThat("request.getBasedOnJob()", request.getBasedOnJob(), is(job.getId()));
         assertThat("request bibliographic record IDs", request.getRecords()
-                .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                        .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
                 is(Arrays.asList("id1", "id2")));
     }
 
@@ -265,7 +265,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         persistenceContext.run(() -> jobRerunnerBean.rerunNextIfAvailable());
 
         boolean emptyRerunQueue = entityManager.createNamedQuery(
-            RerunEntity.FIND_HEAD_QUERY_NAME).getResultList().isEmpty();
+                RerunEntity.FIND_HEAD_QUERY_NAME).getResultList().isEmpty();
         assertThat("Rerun removed from queue", emptyRerunQueue, is(true));
 
         final ArgumentCaptor<AddJobParam> addJobParamArgumentCaptor = ArgumentCaptor.forClass(AddJobParam.class);
@@ -303,7 +303,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         persistenceContext.run(() -> jobRerunnerBean.rerunNextIfAvailable());
 
         boolean emptyRerunQueue = entityManager.createNamedQuery(
-            RerunEntity.FIND_HEAD_QUERY_NAME).getResultList().isEmpty();
+                RerunEntity.FIND_HEAD_QUERY_NAME).getResultList().isEmpty();
         assertThat("Rerun removed from queue", emptyRerunQueue, is(true));
 
         final ArgumentCaptor<AddJobParam> addJobParamArgumentCaptor = ArgumentCaptor.forClass(AddJobParam.class);
@@ -372,22 +372,22 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
 
         final ItemEntity item0 = newItemEntity(new ItemEntity.Key(job.getId(), chunk.getKey().getId(), (short) 0));
         item0.withRecordInfo(new RecordInfo("id0"))
-             .withPositionInDatafile(0);
+                .withPositionInDatafile(0);
         persist(item0);
 
         final ItemEntity item1 = newItemEntity(new ItemEntity.Key(job.getId(), chunk.getKey().getId(), (short) 1));
         item1.withRecordInfo(new RecordInfo("id1"))
-             .withPositionInDatafile(1);
+                .withPositionInDatafile(1);
         State state = new State(item1.getState());
         state.updateState(new StateChange()
-                        .setPhase(State.Phase.PROCESSING)
-                        .incFailed(1));
+                .setPhase(State.Phase.PROCESSING)
+                .incFailed(1));
         item1.setState(state);
         persist(item1);
 
         final ItemEntity item2 = newItemEntity(new ItemEntity.Key(job.getId(), chunk.getKey().getId(), (short) 2));
         item2.withRecordInfo(new RecordInfo("id2"))
-             .withPositionInDatafile(2);
+                .withPositionInDatafile(2);
         state = new State(item2.getState());
         state.updateState(new StateChange()
                 .setPhase(State.Phase.DELIVERING)

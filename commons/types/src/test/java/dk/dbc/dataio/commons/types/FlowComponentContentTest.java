@@ -9,15 +9,15 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsNull.nullValue;
 
 /**
  * FlowComponentContent unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class FlowComponentContentTest {
     private static final String NAME = "name";
@@ -26,7 +26,7 @@ public class FlowComponentContentTest {
     private static final String JAVA_SCRIPT_NAME = "invocationJavascriptName";
     private static final String INVOCATION_METHOD = "method";
     private static final List<JavaScript> JAVASCRIPTS = Collections.singletonList(JavaScriptTest.newJavaScriptInstance());
-    private static final String REQUIRE_CACHE="";
+    private static final String REQUIRE_CACHE = "";
     private static final String DESCRIPTION = "description";
     private final JSONBContext jsonbContext = new JSONBContext();
 
@@ -127,7 +127,7 @@ public class FlowComponentContentTest {
 
     @Test
     public void testJsonUnmarchallOld() throws Exception {
-        String data="{ \"invocationJavascriptName\": \"trunk/tracerBulletXmlDom.js\",\n" +
+        String data = "{ \"invocationJavascriptName\": \"trunk/tracerBulletXmlDom.js\",\n" +
                 "        \"invocationMethod\": \"tracerbullet_xmldom\",\n" +
                 "        \"javascripts\": [\n" +
                 "            {\n" +
@@ -141,19 +141,18 @@ public class FlowComponentContentTest {
                 "        \"name\": \"test\",\n" +
                 "        \"svnProjectForInvocationJavascript\": \"dataio-js-test-projects\",\n" +
                 "        \"svnRevision\": 83597" +
-                "}"
-                ;
+                "}";
 
         final FlowComponentContent flowComponentContent = jsonbContext.unmarshall(data, FlowComponentContent.class);
         assertThat("fisk", flowComponentContent.getName(), is("test"));
-        assertThat( flowComponentContent.getRequireCache(), is(nullValue()));
-        assertThat( flowComponentContent.getDescription(), is(nullValue()));
+        assertThat(flowComponentContent.getRequireCache(), is(nullValue()));
+        assertThat(flowComponentContent.getDescription(), is(nullValue()));
     }
 
     @Test
     public void testJsonUnmarchall() throws Exception {
 
-        String data="{ \"invocationJavascriptName\": \"trunk/tracerBulletXmlDom.js\",\n" +
+        String data = "{ \"invocationJavascriptName\": \"trunk/tracerBulletXmlDom.js\",\n" +
                 "        \"invocationMethod\": \"tracerbullet_xmldom\",\n" +
                 "        \"javascripts\": [\n" +
                 "            {\n" +
@@ -169,8 +168,7 @@ public class FlowComponentContentTest {
                 "        \"svnProjectForInvocationJavascript\": \"dataio-js-test-projects\",\n" +
                 "        \"svnRevision\": 83597,\n" +
                 "        \"requireCache\": \"RequireCacheString\"" +
-                "}"
-                ;
+                "}";
 
         final FlowComponentContent flowComponentContent = jsonbContext.unmarshall(data, FlowComponentContent.class);
         assertThat(flowComponentContent.getName(), is("test"));

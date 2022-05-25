@@ -42,7 +42,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
         // When...
         final JobListCriteria jobListCriteria = new JobListCriteria()
                 .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, getJsonValue(jobEntities.get(0))))
-                .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.GREATER_THAN, jobEntities.get(0).getId() -1))
+                .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.GREATER_THAN, jobEntities.get(0).getId() - 1))
                 .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.LESS_THAN, jobEntities.get(jobEntities.size() - 1).getId()))
                 .orderBy(new ListOrderBy<>(JobListCriteria.Field.JOB_ID, ListOrderBy.Sort.ASC))
                 .limit(1).offset(12);
@@ -111,7 +111,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
 
     /**
      * Given    : a job store containing three jobs where:
-     *            one has not yet completed, one has failed during processing, one has completed without failure.
+     * one has not yet completed, one has failed during processing, one has completed without failure.
      * When     : requesting a job listing with a criteria selecting only jobs that has not yet completed
      * Then     : only jobs that has not yet completed are returned.
      */
@@ -162,7 +162,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
 
     /**
      * Given    : a job store containing three jobs, where two has failed during partitioning
-     *            (only one with fatalError), and one has completed successfully
+     * (only one with fatalError), and one has completed successfully
      * When     : requesting a job listing with a criteria selecting only jobs with fatal errors
      * Then     : only the job with fatal error is returned.
      */
@@ -199,7 +199,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
         newPersistedJobEntityWithSinkReference(2L);
 
         final JobListCriteria jobListCriteria = new JobListCriteria().where(new ListFilter<>(
-                JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, 1L))
+                        JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, 1L))
                 .orderBy(new ListOrderBy<>(JobListCriteria.Field.JOB_ID, ListOrderBy.Sort.ASC));
 
         // When...
@@ -306,7 +306,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
         assertThat("Number of returned snapshots", returnedItemInfoSnapshots.size(), is(3));
 
         assertAscendingChunkAndItemSorting(returnedItemInfoSnapshots);
-        for(ItemInfoSnapshot itemInfoSnapshot : returnedItemInfoSnapshots) {
+        for (ItemInfoSnapshot itemInfoSnapshot : returnedItemInfoSnapshots) {
             assertThat("itemInfoSnapshot.jobId", itemInfoSnapshot.getJobId(), is(selectedJobId));
             assertThat("itemInfoSnapshot.State.Phase.failed", itemInfoSnapshot.getState().getPhase(State.Phase.PROCESSING).getFailed(), is(1));
         }
@@ -361,7 +361,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
         // Then
         assertThat("Number of returned items", returnedItemInfoSnapshots.size(), is(expectedItemEntities.size()));
         assertAscendingChunkAndItemSorting(returnedItemInfoSnapshots);
-        for(ItemInfoSnapshot itemInfoSnapshot : returnedItemInfoSnapshots) {
+        for (ItemInfoSnapshot itemInfoSnapshot : returnedItemInfoSnapshots) {
             assertThat("itemInfoSnapshot.jobId", itemInfoSnapshot.getJobId(), is(selectedJobId));
         }
     }
@@ -528,13 +528,13 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
         ChunkEntity chunkEntity2 = newPersistedChunkEntity(new ChunkEntity.Key(1, jobId));
 
         // item entities for first chunk
-        itemEntities.add(newPersistedFailedItemEntity(new ItemEntity.Key(jobId, chunkEntity1.getKey().getId(), (short)0)));
-        itemEntities.add(newPersistedIgnoredItemEntity(new ItemEntity.Key(jobId, chunkEntity1.getKey().getId(), (short)1)));
-        itemEntities.add(newPersistedItemEntity(new ItemEntity.Key(jobId, chunkEntity1.getKey().getId(), (short)2)));
-        itemEntities.add(newPersistedFailedItemEntity(new ItemEntity.Key(jobId, chunkEntity1.getKey().getId(), (short)3)));
+        itemEntities.add(newPersistedFailedItemEntity(new ItemEntity.Key(jobId, chunkEntity1.getKey().getId(), (short) 0)));
+        itemEntities.add(newPersistedIgnoredItemEntity(new ItemEntity.Key(jobId, chunkEntity1.getKey().getId(), (short) 1)));
+        itemEntities.add(newPersistedItemEntity(new ItemEntity.Key(jobId, chunkEntity1.getKey().getId(), (short) 2)));
+        itemEntities.add(newPersistedFailedItemEntity(new ItemEntity.Key(jobId, chunkEntity1.getKey().getId(), (short) 3)));
 
         // item entities for second chunk
-        itemEntities.add(newPersistedFailedItemEntity(new ItemEntity.Key(jobId, chunkEntity2.getKey().getId(), (short)0)));
+        itemEntities.add(newPersistedFailedItemEntity(new ItemEntity.Key(jobId, chunkEntity2.getKey().getId(), (short) 0)));
 
         return itemEntities;
     }
@@ -542,7 +542,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
     private void assertAscendingChunkAndItemSorting(List<ItemInfoSnapshot> itemInfoSnapshots) {
         int previousChunkId = 0;
         int previousItemId = -1;
-        for(ItemInfoSnapshot itemInfoSnapshot : itemInfoSnapshots) {
+        for (ItemInfoSnapshot itemInfoSnapshot : itemInfoSnapshots) {
             // Assert sorted by chunk id ASC > item id ASC
             assertThat(previousChunkId <= itemInfoSnapshot.getChunkId(), is(true));
             if (previousChunkId < itemInfoSnapshot.getChunkId()) {

@@ -12,6 +12,7 @@ import java.util.Set;
 @ApplicationPath("/")
 public class DpfSinkApplication extends Application {
     private static final Set<Class<?>> classes = new HashSet<>();
+
     static {
         classes.add(StatusBean.class);
     }

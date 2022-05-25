@@ -77,6 +77,7 @@ final class JobFilterList {
 
     /**
      * Getter for the Job Filter List
+     *
      * @param place The Place Class for the jobs list in question
      * @return The list of Job Filters
      */

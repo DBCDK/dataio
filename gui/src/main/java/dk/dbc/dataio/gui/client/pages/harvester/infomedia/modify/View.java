@@ -20,7 +20,9 @@ import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    interface HarvesterBinder extends UiBinder<HTMLPanel, View> {}
+    interface HarvesterBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static HarvesterBinder uiBinder = GWT.create(HarvesterBinder.class);
     private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
@@ -36,18 +38,29 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
-    @UiField PromptedTextBox id;
-    @UiField PromptedTextBox schedule;
-    @UiField PromptedTextArea description;
-    @UiField PromptedTextBox destination;
-    @UiField PromptedTextBox format;
-    @UiField PromptedDateTimeBox nextPublicationDate;
-    @UiField PromptedCheckBox enabled;
+    @UiField
+    PromptedTextBox id;
+    @UiField
+    PromptedTextBox schedule;
+    @UiField
+    PromptedTextArea description;
+    @UiField
+    PromptedTextBox destination;
+    @UiField
+    PromptedTextBox format;
+    @UiField
+    PromptedDateTimeBox nextPublicationDate;
+    @UiField
+    PromptedCheckBox enabled;
 
-    @UiField Button saveButton;
-    @UiField Button deleteButton;
-    @UiField Label status;
-    @UiField PopupBox<Label> confirmation;
+    @UiField
+    Button saveButton;
+    @UiField
+    Button deleteButton;
+    @UiField
+    Label status;
+    @UiField
+    PopupBox<Label> confirmation;
 
     @SuppressWarnings("unused")
     @UiHandler("id")

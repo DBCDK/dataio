@@ -41,6 +41,7 @@ public class WriteAheadLogH2 implements WriteAheadLog {
 
     /**
      * Package scoped constructor used for unit testing purposes
+     *
      * @param entityManager entity manager to be injected
      */
     WriteAheadLogH2(EntityManager entityManager) {
@@ -104,8 +105,7 @@ public class WriteAheadLogH2 implements WriteAheadLog {
 
 
     private Modification getNextModificationOrNull() {
-        @SuppressWarnings("unchecked")
-        final List<Modification> result = entityManager
+        @SuppressWarnings("unchecked") final List<Modification> result = entityManager
                 .createQuery("SELECT modification FROM Modification modification ORDER BY modification.id ASC")
                 .setMaxResults(1)
                 .getResultList();

@@ -16,8 +16,8 @@ import java.util.stream.Stream;
 
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 
 public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
     @Test
@@ -37,42 +37,42 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
                         .setSubmitterNumber(123456)
                         .setSinkid(0)
                         .setMatchKeys(asSet("K1")), null),
-                containsInAnyOrder(new Key(1,1)));
+                containsInAnyOrder(new Key(1, 1)));
 
         assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
                         .setSubmitterNumber(123456)
                         .setSinkid(0)
                         .setMatchKeys(asSet("C1")), null),
-                containsInAnyOrder(new Key(1,1)));
+                containsInAnyOrder(new Key(1, 1)));
 
         assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
                         .setSubmitterNumber(123456)
                         .setSinkid(0)
                         .setMatchKeys(asSet("KK2")), null),
                 containsInAnyOrder(
-                        new Key(1,0),
-                        new Key(1,1),
-                        new Key(1,2),
-                        new Key(1,3)));
+                        new Key(1, 0),
+                        new Key(1, 1),
+                        new Key(1, 2),
+                        new Key(1, 3)));
 
         assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
                         .setSubmitterNumber(123456)
                         .setSinkid(1)
                         .setMatchKeys(asSet("K4", "K6", "C4")), null),
                 containsInAnyOrder(
-                        new Key(2,0),
-                        new Key(2,2),
-                        new Key(2,4)));
+                        new Key(2, 0),
+                        new Key(2, 2),
+                        new Key(2, 4)));
 
         assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
                         .setSubmitterNumber(123456)
                         .setSinkid(1)
                         .setMatchKeys(asSet("K4", "K6", "C4", "K5")), null),
                 containsInAnyOrder(
-                        new Key(2,1),
-                        new Key(2,0),
-                        new Key(2,2),
-                        new Key(2,4)));
+                        new Key(2, 1),
+                        new Key(2, 0),
+                        new Key(2, 2),
+                        new Key(2, 4)));
     }
 
     @Test

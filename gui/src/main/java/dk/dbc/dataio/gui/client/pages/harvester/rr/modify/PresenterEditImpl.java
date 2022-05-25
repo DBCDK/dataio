@@ -17,7 +17,8 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     /**
      * Constructor
-     * @param place the edit place
+     *
+     * @param place  the edit place
      * @param header The header
      */
     public PresenterEditImpl(Place place, String header) {
@@ -29,8 +30,9 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -68,6 +70,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 String msg = "RRHarvesterConfig.id: " + model.getId();
                 getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
             }
+
             @Override
             public void onSuccess(Void aVoid) {
                 getView().status.setText(getTexts().status_RRHarvesterSuccessfullyDeleted());
@@ -88,6 +91,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             String msg = "RRHarvesterConfig.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(RRHarvesterConfig rrHarvesterConfig) {
             if (rrHarvesterConfig == null) {
@@ -105,6 +109,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             String msg = "HarvesterConfig.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(HarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());

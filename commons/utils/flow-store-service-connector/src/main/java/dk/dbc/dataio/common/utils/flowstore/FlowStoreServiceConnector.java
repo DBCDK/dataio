@@ -46,7 +46,6 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
 
 /**
- *
  * FlowStoreServiceConnector - dataIO flow-store REST service client.
  * <p>
  * To use this class, you construct an instance, specifying a web resources client as well as
@@ -62,9 +61,9 @@ public class FlowStoreServiceConnector {
     private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
             .handle(ProcessingException.class)
             .handleResultIf(response ->
-                       response.getStatus() == 404
-                    || response.getStatus() == 500
-                    || response.getStatus() == 502)
+                    response.getStatus() == 404
+                            || response.getStatus() == 500
+                            || response.getStatus() == 502)
             .withDelay(Duration.ofSeconds(10))
             .withMaxRetries(6);
 
@@ -123,7 +122,7 @@ public class FlowStoreServiceConnector {
      *
      * @param sinkId Id of the sink
      * @return the sink found
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the sink
      */
     public Sink getSink(long sinkId) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -148,10 +147,10 @@ public class FlowStoreServiceConnector {
      * Retrieves all sinks from the flow-store
      *
      * @return a list containing the sinks found
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the sinks
      */
-    public List<Sink> findAllSinks()throws ProcessingException, FlowStoreServiceConnectorException{
+    public List<Sink> findAllSinks() throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
             log.trace("FlowStoreServiceConnector: findAllSinks();");
@@ -172,10 +171,10 @@ public class FlowStoreServiceConnector {
      * Updates an existing sink from the flow-store
      *
      * @param sinkContent the new sink content
-     * @param sinkId the id of the sink to update
-     * @param version the current version of the sink
+     * @param sinkId      the id of the sink to update
+     * @param version     the current version of the sink
      * @return the updated sink
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to update the sink
      */
     public Sink updateSink(SinkContent sinkContent, long sinkId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -203,10 +202,9 @@ public class FlowStoreServiceConnector {
     /**
      * Deletes an existing sink from the flow-store
      *
-     * @param sinkId, the database related ID
+     * @param sinkId,  the database related ID
      * @param version, the current JPA version of the sink - Optimistic Locking
-     *
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                                    on general communication error
      * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if an unexpected HTTP code is returned
      */
     public void deleteSink(long sinkId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
@@ -233,10 +231,10 @@ public class FlowStoreServiceConnector {
     /**
      * Deletes an existing submitter from the flow-store
      *
-     * @param submitterId                                               the database related ID
-     * @param version                                                   the current JPA version of the submitter - Optimistic Locking
-     * @throws ProcessingException                                      on general communication error
-     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException   if an unexpected HTTP code is returned
+     * @param submitterId the database related ID
+     * @param version     the current JPA version of the submitter - Optimistic Locking
+     * @throws ProcessingException                                    on general communication error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if an unexpected HTTP code is returned
      */
     public void deleteSubmitter(long submitterId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
         final StopWatch stopWatch = new StopWatch();
@@ -290,7 +288,7 @@ public class FlowStoreServiceConnector {
      *
      * @param submitterId Id of the submitter
      * @return the submitter found
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the submitter
      */
     public Submitter getSubmitter(long submitterId) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -317,7 +315,7 @@ public class FlowStoreServiceConnector {
      *
      * @param submitterNumber submitter number uniquely identifying the submitter
      * @return the submitter found
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the submitter
      */
     public Submitter getSubmitterBySubmitterNumber(long submitterNumber) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -343,10 +341,10 @@ public class FlowStoreServiceConnector {
      * Updates an existing submitter in the flow-store
      *
      * @param submitterContent the new submitter content
-     * @param submitterId the id of the submitter to update
-     * @param version the current version of the submitter
+     * @param submitterId      the id of the submitter to update
+     * @param version          the current version of the submitter
      * @return the updated submitter
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to update the submitter
      */
     public Submitter updateSubmitter(SubmitterContent submitterContent, long submitterId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -375,10 +373,10 @@ public class FlowStoreServiceConnector {
      * Retrieves all submitters from the flow-store
      *
      * @return a list containing the submitters found
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the submitters
      */
-    public List<Submitter> findAllSubmitters() throws ProcessingException, FlowStoreServiceConnectorException{
+    public List<Submitter> findAllSubmitters() throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
             log.trace("FlowStoreServiceConnector: findAllSubmitters();");
@@ -397,6 +395,7 @@ public class FlowStoreServiceConnector {
 
     /**
      * Retrieves list of submitters by executing IOQL query
+     *
      * @param query IOQL query
      * @return list of submitters
      * @throws FlowStoreServiceConnectorException on failure to execute query expression
@@ -409,7 +408,8 @@ public class FlowStoreServiceConnector {
                 .withData(query, MediaType.TEXT_PLAIN)
                 .execute()) {
             verifyResponseStatus(response, Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<Submitter>>() {});
+            return readResponseGenericTypeEntity(response, new GenericType<List<Submitter>>() {
+            });
         } finally {
             log.debug("FlowStoreServiceConnector: querySubmitters took {} milliseconds", stopWatch.getElapsedTime());
         }
@@ -417,9 +417,10 @@ public class FlowStoreServiceConnector {
 
     /**
      * Resolves given submitter ID into attached flow-binders
+     *
      * @param submitterId submitter ID to resolve into attached flow-binders
      * @return list of {@link FlowBinderIdent}
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the submitters
      */
     public List<FlowBinderIdent> getFlowBindersForSubmitter(long submitterId)
@@ -475,8 +476,9 @@ public class FlowStoreServiceConnector {
 
     /**
      * Retrieves brief views of all flow components from the flow-store
+     *
      * @return a list containing the flow components found
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flows components
      */
     public List<FlowComponentView> findAllFlowComponents()
@@ -487,7 +489,8 @@ public class FlowStoreServiceConnector {
                 .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS)
                 .execute()) {
             verifyResponseStatus(response, Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<FlowComponentView>>() {});
+            return readResponseGenericTypeEntity(response, new GenericType<List<FlowComponentView>>() {
+            });
         } finally {
             log.debug("FlowStoreServiceConnector: findAllFlowComponents took {} milliseconds",
                     stopWatch.getElapsedTime());
@@ -499,7 +502,7 @@ public class FlowStoreServiceConnector {
      *
      * @param flowComponentId Id of the flow component
      * @return the flow component found
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flow component
      */
     public FlowComponent getFlowComponent(long flowComponentId) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -525,10 +528,10 @@ public class FlowStoreServiceConnector {
      * Updates an existing flow component from the flow-store
      *
      * @param flowComponentContent the new flow component content
-     * @param flowComponentId the id of the flow component to update
-     * @param version the current version of the flow component
+     * @param flowComponentId      the id of the flow component to update
+     * @param version              the current version of the flow component
      * @return the updated flow component
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to update the flow component
      */
     public FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, long flowComponentId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -556,11 +559,11 @@ public class FlowStoreServiceConnector {
     /**
      * Updates an existing flow component from the flow-store by adding next flow component content
      *
-     * @param next flow component content
+     * @param next            flow component content
      * @param flowComponentId the id of the flow component to update with next
-     * @param version the current version of the flow component
+     * @param version         the current version of the flow component
      * @return the updated with next flow component
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to update the flow component
      */
     public FlowComponent updateNext(FlowComponentContent next, long flowComponentId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -588,9 +591,8 @@ public class FlowStoreServiceConnector {
      * Deletes an existing flow component from the flow-store
      *
      * @param flowComponentId, the database related ID
-     * @param version, the current JPA version of the sink - Optimistic Locking
-     *
-     * @throws ProcessingException on general communication error
+     * @param version,         the current JPA version of the sink - Optimistic Locking
+     * @throws ProcessingException                                    on general communication error
      * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if an unexpected HTTP code is returned
      */
     public void deleteFlowComponent(long flowComponentId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
@@ -648,7 +650,7 @@ public class FlowStoreServiceConnector {
      *
      * @param flowId Id of the flow
      * @return the flow found
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flow
      */
     public Flow getFlow(long flowId) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -675,7 +677,7 @@ public class FlowStoreServiceConnector {
      *
      * @param queryParameters containing none or many flow criterias
      * @return the list of flows found
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve flow
      */
     public List<Flow> findFlows(Map<String, Object> queryParameters) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -699,8 +701,9 @@ public class FlowStoreServiceConnector {
 
     /**
      * Retrieves brief views of all flows from the flow-store
+     *
      * @return a list containing the flows found
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flows
      */
     public List<FlowView> findAllFlows() throws ProcessingException, FlowStoreServiceConnectorException {
@@ -725,7 +728,7 @@ public class FlowStoreServiceConnector {
      *
      * @param name name of Flow to look lookup
      * @return the flow found
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flows
      */
     public Flow findFlowByName(String name) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -739,10 +742,10 @@ public class FlowStoreServiceConnector {
     /**
      * Updates the versioned flow components contained within the flow, to latest version
      *
-     * @param flowId the id of the flow  to update
+     * @param flowId  the id of the flow  to update
      * @param version the current version of the flow
      * @return the updated flow
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to update the flow
      */
     public Flow refreshFlowComponents(long flowId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -773,10 +776,10 @@ public class FlowStoreServiceConnector {
      * Updates an existing flow in the flow-store
      *
      * @param flowContent the new flow content
-     * @param flowId the id of the flow to update
-     * @param version the current version of the flow
+     * @param flowId      the id of the flow to update
+     * @param version     the current version of the flow
      * @return the updated flow
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to update the flow
      */
     public Flow updateFlow(FlowContent flowContent, long flowId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -805,10 +808,9 @@ public class FlowStoreServiceConnector {
     /**
      * Deletes an existing flow from the flow-store
      *
-     * @param flowId, the database related ID
+     * @param flowId,  the database related ID
      * @param version, the current JPA version of the sink - Optimistic Locking
-     *
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                                    on general communication error
      * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if an unexpected HTTP code is returned
      */
     public void deleteFlow(long flowId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
@@ -832,6 +834,7 @@ public class FlowStoreServiceConnector {
 
 
     // ************************************************** FlowBinder **************************************************
+
     /**
      * Creates new flow binder defined by the flow binder content
      *
@@ -864,10 +867,10 @@ public class FlowStoreServiceConnector {
      * Retrieves all flow binders from the flow-store
      *
      * @return a list containing the flow binders found
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flow binders
      */
-    public List<FlowBinder> findAllFlowBinders() throws ProcessingException, FlowStoreServiceConnectorException{
+    public List<FlowBinder> findAllFlowBinders() throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
             log.trace("FlowStoreServiceConnector: findAllFlowBinders();");
@@ -888,10 +891,10 @@ public class FlowStoreServiceConnector {
      * Updates an existing flow binder from the flow-store
      *
      * @param flowBinderContent the new flow binder content
-     * @param flowBinderId the id of the flow binder to update
-     * @param version the current version of the flow binder
+     * @param flowBinderId      the id of the flow binder to update
+     * @param version           the current version of the flow binder
      * @return the updated flow binder
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to update the flow binder
      */
     public FlowBinder updateFlowBinder(FlowBinderContent flowBinderContent, long flowBinderId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -920,9 +923,8 @@ public class FlowStoreServiceConnector {
      * Deletes an existing flow binder from the flow-store
      *
      * @param flowBinderId, the database related ID
-     * @param version, the current JPA version of the flow binder - Optimistic Locking
-     *
-     * @throws ProcessingException on general communication error
+     * @param version,      the current JPA version of the flow binder - Optimistic Locking
+     * @throws ProcessingException                                    on general communication error
      * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if an unexpected HTTP code is returned
      */
     public void deleteFlowBinder(long flowBinderId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
@@ -949,7 +951,7 @@ public class FlowStoreServiceConnector {
      *
      * @param flowBinderId Id of the flow binder
      * @return the flow binder
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flow binder
      */
     public FlowBinder getFlowBinder(long flowBinderId) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -974,17 +976,15 @@ public class FlowStoreServiceConnector {
     /**
      * Retrieves a flow binder through search indexes
      *
-     * @param packaging of the flow binder
-     * @param format of the flow binder
-     * @param charset of the flow binder
+     * @param packaging       of the flow binder
+     * @param format          of the flow binder
+     * @param charset         of the flow binder
      * @param submitterNumber identifying the referenced submitter
-     * @param destination of the flow binder
-     *
+     * @param destination     of the flow binder
      * @return the flow binder
-     *
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flow binder
      */
-    public FlowBinder getFlowBinder(String packaging, String format, String charset, long submitterNumber, String destination) throws FlowStoreServiceConnectorException{
+    public FlowBinder getFlowBinder(String packaging, String format, String charset, long submitterNumber, String destination) throws FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
             log.trace("FlowStoreServiceConnector: getFlowBinder(\"{}\", \"{}\", \"{}\", {}, \"{}\");",
@@ -1008,6 +1008,7 @@ public class FlowStoreServiceConnector {
 
     /**
      * Retrieves list of flow binders by executing IOQL query
+     *
      * @param query IOQL query
      * @return list of flow binders
      * @throws FlowStoreServiceConnectorException on failure to execute query expression
@@ -1020,7 +1021,8 @@ public class FlowStoreServiceConnector {
                 .withData(query, MediaType.TEXT_PLAIN)
                 .execute()) {
             verifyResponseStatus(response, Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<FlowBinder>>() {});
+            return readResponseGenericTypeEntity(response, new GenericType<List<FlowBinder>>() {
+            });
         } finally {
             log.debug("FlowStoreServiceConnector: queryFlowBinders took {} milliseconds", stopWatch.getElapsedTime());
         }
@@ -1064,10 +1066,10 @@ public class FlowStoreServiceConnector {
      * Retrieves all gatekeeperDestinations from the flow-store
      *
      * @return a list containing the gatekeeperDestinations found sorted by submitterNumber in ascending order
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve gatekeeperDestinations
      */
-    public List<GatekeeperDestination> findAllGatekeeperDestinations() throws ProcessingException, FlowStoreServiceConnectorException{
+    public List<GatekeeperDestination> findAllGatekeeperDestinations() throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
             log.trace("FlowStoreServiceConnector: findAllGatekeeperDestinations();");
@@ -1088,8 +1090,7 @@ public class FlowStoreServiceConnector {
      * Deletes an existing gatekeeperDestination from the flow-store
      *
      * @param id, the database related ID
-     *
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                                    on general communication error
      * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if an unexpected HTTP code is returned
      */
     public void deleteGatekeeperDestination(long id) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
@@ -1115,7 +1116,7 @@ public class FlowStoreServiceConnector {
      *
      * @param gatekeeperDestination containing the updated values
      * @return the updated gatekeeperDestination
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to update the gatekeeper destination
      */
     public GatekeeperDestination updateGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -1147,8 +1148,8 @@ public class FlowStoreServiceConnector {
      * Creates new harvester config defined by the harvester config content and type
      *
      * @param configContent harvester config content
-     * @param type of harvester config
-     * @param <T> type parameter
+     * @param type          of harvester config
+     * @param <T>           type parameter
      * @return the created harvester config
      * @throws NullPointerException                                   if given null-valued argument
      * @throws ProcessingException                                    on general communication error
@@ -1181,9 +1182,9 @@ public class FlowStoreServiceConnector {
      * Updates an existing harvester config from the flow-store
      *
      * @param harvesterConfig holding the updated information
-     * @param <T> type parameter
+     * @param <T>             type parameter
      * @return the updated harvester config
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to update the harvester config
      */
     public <T extends HarvesterConfig> T updateHarvesterConfig(T harvesterConfig) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -1212,14 +1213,15 @@ public class FlowStoreServiceConnector {
 
     /**
      * Retrieves harvester config identified by given id as given type
-     * @param id harvester config ID
+     *
+     * @param id   harvester config ID
      * @param type of harvester config
-     * @param <T> type parameter
+     * @param <T>  type parameter
      * @return the retrieved harvester config
-     * @throws NullPointerException if given null-valued tyoe argument
-     * @throws ProcessingException on general transport protocol error
+     * @throws NullPointerException                                   if given null-valued tyoe argument
+     * @throws ProcessingException                                    on general transport protocol error
      * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if harvester config retrieval failed
-     * @throws FlowStoreServiceConnectorException on connector internal error
+     * @throws FlowStoreServiceConnectorException                     on connector internal error
      */
     public <T> T getHarvesterConfig(long id, Class<T> type) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
@@ -1244,11 +1246,12 @@ public class FlowStoreServiceConnector {
 
     /**
      * Deletes an existing harvester config
-     * @param id ID of config to be deleted
+     *
+     * @param id      ID of config to be deleted
      * @param version current version of config at the time of deletion
-     * @throws ProcessingException on general transport protocol error
+     * @throws ProcessingException                                    on general transport protocol error
      * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if harvester config deletion failed
-     * @throws FlowStoreServiceConnectorException on connector internal error
+     * @throws FlowStoreServiceConnectorException                     on connector internal error
      */
     public void deleteHarvesterConfig(long id, long version) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
@@ -1272,10 +1275,11 @@ public class FlowStoreServiceConnector {
 
     /**
      * Returns list of all enabled harvester configs of given type
+     *
      * @param type type of harvester configs to list
-     * @param <T> type parameter
+     * @param <T>  type parameter
      * @return list of harvester configs
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve harvester configs
      */
     public <T> List<T> findEnabledHarvesterConfigsByType(Class<T> type) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -1299,10 +1303,11 @@ public class FlowStoreServiceConnector {
 
     /**
      * Returns list of all harvester configs of given type
+     *
      * @param type type of harvester configs to list
-     * @param <T> type parameter
+     * @param <T>  type parameter
      * @return list of harvester configs
-     * @throws ProcessingException on general communication error
+     * @throws ProcessingException                on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve harvester configs
      */
     public <T> List<T> findHarvesterConfigsByType(Class<T> type) throws ProcessingException, FlowStoreServiceConnectorException {
@@ -1362,7 +1367,7 @@ public class FlowStoreServiceConnector {
 
     private <T> T readResponseGenericTypeEntity(Response response, GenericType<T> tGenericType) throws FlowStoreServiceConnectorException {
         response.bufferEntity(); // must be done in order to possible avoid a timeout-exception from readEntity.
-        final T entity =response.readEntity(tGenericType);
+        final T entity = response.readEntity(tGenericType);
         if (entity == null) {
             throw new FlowStoreServiceConnectorException(
                     String.format("flow-store service returned with null-valued %s entity", tGenericType));
@@ -1382,11 +1387,20 @@ public class FlowStoreServiceConnector {
      * Generate a specific ParameterizedType for use with GenericType(Type) for use with Generics
      */
     private <T> ParameterizedType createListGenericType(final Class<T> clazz) {
-           return new ParameterizedType() {
-               private final Type[] actualType={ clazz };
-               public Type[] getActualTypeArguments() { return actualType; }
-               public Type getRawType() { return List.class; }
-               public Type getOwnerType() { return null; }
-           };
-       }
+        return new ParameterizedType() {
+            private final Type[] actualType = {clazz};
+
+            public Type[] getActualTypeArguments() {
+                return actualType;
+            }
+
+            public Type getRawType() {
+                return List.class;
+            }
+
+            public Type getOwnerType() {
+                return null;
+            }
+        };
+    }
 }

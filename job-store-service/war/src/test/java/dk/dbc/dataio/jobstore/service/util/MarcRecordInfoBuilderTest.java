@@ -143,39 +143,39 @@ public class MarcRecordInfoBuilderTest {
         return new DataField()
                 .setTag("001")
                 .addSubfield(
-                    new SubField()
-                        .setCode('f')
-                        .setData("danmarc2"))
+                        new SubField()
+                                .setCode('f')
+                                .setData("danmarc2"))
                 .addSubfield(
-                    new SubField()
-                        .setCode('a')
-                        .setData(a));
+                        new SubField()
+                                .setCode('a')
+                                .setData(a));
     }
 
     public static DataField get004(String a, String r) {
         return new DataField()
                 .setTag("004")
                 .addSubfield(
-                    new SubField()
-                        .setCode('a')
-                        .setData(a))
+                        new SubField()
+                                .setCode('a')
+                                .setData(a))
                 .addSubfield(
-                    new SubField()
-                        .setCode('r')
-                        .setData(r));
+                        new SubField()
+                                .setCode('r')
+                                .setData(r));
     }
 
     public static DataField get014(String a) {
         return new DataField()
                 .setTag("014")
                 .addSubfield(
-                    new SubField()
-                        .setCode('x')
-                        .setData("SMS"))
+                        new SubField()
+                                .setCode('x')
+                                .setData("SMS"))
                 .addSubfield(
-                    new SubField()
-                        .setCode('a')
-                        .setData(a));
+                        new SubField()
+                                .setCode('a')
+                                .setData(a));
     }
 
     public static Set<String> newSet(String... strings) {

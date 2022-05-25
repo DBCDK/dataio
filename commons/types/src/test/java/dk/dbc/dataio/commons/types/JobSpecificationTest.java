@@ -12,10 +12,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * JobSpecification unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class JobSpecificationTest {
     private static final String PACKAGING = "packaging";
@@ -148,16 +148,16 @@ public class JobSpecificationTest {
     public void testJsonUnmarshallingWithoutAncestry() throws Exception {
         final String json =
                 "{ \"packaging\" : \"packaging\", \n" +
-                    "    \"format\" : \"format\", \n" +
-                    "    \"charset\" : \"charset\", \n" +
-                    "    \"destination\" : \"destination\", \n" +
-                    "    \"submitterId\" : 42, \n" +
-                    "    \"mailForNotificationAboutVerification\" : \"ab@cd.ef\", \n" +
-                    "    \"mailForNotificationAboutProcessing\" : \"ab@cd.ef\", \n" +
-                    "    \"resultmailInitials\" : \"abc\", \n" +
-                    "    \"dataFile\" : \"dataFile\", \n" +
-                    "    \"type\" : \"TEST\"" +
-                "}";
+                        "    \"format\" : \"format\", \n" +
+                        "    \"charset\" : \"charset\", \n" +
+                        "    \"destination\" : \"destination\", \n" +
+                        "    \"submitterId\" : 42, \n" +
+                        "    \"mailForNotificationAboutVerification\" : \"ab@cd.ef\", \n" +
+                        "    \"mailForNotificationAboutProcessing\" : \"ab@cd.ef\", \n" +
+                        "    \"resultmailInitials\" : \"abc\", \n" +
+                        "    \"dataFile\" : \"dataFile\", \n" +
+                        "    \"type\" : \"TEST\"" +
+                        "}";
 
         final JobSpecification jobSpecification = jsonbContext.unmarshall(json, JobSpecification.class);
         assertThat(jobSpecification.getPackaging(), is("packaging"));
@@ -169,22 +169,22 @@ public class JobSpecificationTest {
     public void testJsonUnmarshallingWithAncestry() throws Exception {
         final String json =
                 "{\n" +
-                    "    \"packaging\" : \"packaging\",\n" +
-                    "    \"format\" : \"format\",\n" +
-                    "    \"charset\" : \"charset\",\n" +
-                    "    \"destination\" : \"destination\",\n" +
-                    "    \"submitterId\" : 42,\n" +
-                    "    \"mailForNotificationAboutVerification\" : \"ab@cd.ef\",\n" +
-                    "    \"mailForNotificationAboutProcessing\" : \"ab@cd.ef\",\n" +
-                    "    \"resultmailInitials\" : \"abc\",\n" +
-                    "    \"dataFile\" : \"dataFile\",\n" +
-                    "    \"type\" : \"TEST\",\n" +
-                    "    \"ancestry\" : {\n" +
-                    "        \"transfile\" : \"file.trans\",\n" +
-                    "        \"datafile\" : \"file.dat\",\n" +
-                    "        \"batchId\" : \"01\"\n" +
-                    "    }\n" +
-                "}";
+                        "    \"packaging\" : \"packaging\",\n" +
+                        "    \"format\" : \"format\",\n" +
+                        "    \"charset\" : \"charset\",\n" +
+                        "    \"destination\" : \"destination\",\n" +
+                        "    \"submitterId\" : 42,\n" +
+                        "    \"mailForNotificationAboutVerification\" : \"ab@cd.ef\",\n" +
+                        "    \"mailForNotificationAboutProcessing\" : \"ab@cd.ef\",\n" +
+                        "    \"resultmailInitials\" : \"abc\",\n" +
+                        "    \"dataFile\" : \"dataFile\",\n" +
+                        "    \"type\" : \"TEST\",\n" +
+                        "    \"ancestry\" : {\n" +
+                        "        \"transfile\" : \"file.trans\",\n" +
+                        "        \"datafile\" : \"file.dat\",\n" +
+                        "        \"batchId\" : \"01\"\n" +
+                        "    }\n" +
+                        "}";
 
         final JobSpecification jobSpecification = jsonbContext.unmarshall(json, JobSpecification.class);
         assertThat(jobSpecification.getPackaging(), is("packaging"));

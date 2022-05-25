@@ -16,12 +16,12 @@ public class FlowStoreReferences {
         this.references = new HashMap<>(Elements.values().length);
     }
 
-    public enum Elements { FLOW_BINDER, FLOW, SUBMITTER, SINK }
+    public enum Elements {FLOW_BINDER, FLOW, SUBMITTER, SINK}
 
     /**
      * Sets the specified reference to a flow store element
      *
-     * @param element the flow store element
+     * @param element            the flow store element
      * @param flowStoreReference the flow store reference
      */
     public void setReference(FlowStoreReferences.Elements element, FlowStoreReference flowStoreReference) {
@@ -29,7 +29,7 @@ public class FlowStoreReferences {
     }
 
     public FlowStoreReferences withReference(FlowStoreReferences.Elements element, FlowStoreReference flowStoreReference) {
-        this.setReference(element, flowStoreReference );
+        this.setReference(element, flowStoreReference);
         return this;
     }
 

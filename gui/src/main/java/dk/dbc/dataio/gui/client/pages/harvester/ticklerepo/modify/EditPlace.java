@@ -24,7 +24,7 @@ public class EditPlace extends AbstractBasePlace {
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterEditImpl(clientFactory.getPlaceController(),this, commonInjector.getMenuTexts().menu_HarvesterEdit());
+        return new PresenterEditImpl(clientFactory.getPlaceController(), this, commonInjector.getMenuTexts().menu_HarvesterEdit());
     }
 
     @Prefix("EditTickleHarvester")
@@ -33,6 +33,7 @@ public class EditPlace extends AbstractBasePlace {
         public String getToken(EditPlace place) {
             return String.valueOf(place.getHarvesterId());
         }
+
         @Override
         public EditPlace getPlace(String token) {
             return new EditPlace(token);

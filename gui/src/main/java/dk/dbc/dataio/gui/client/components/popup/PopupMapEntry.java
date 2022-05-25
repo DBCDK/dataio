@@ -13,9 +13,9 @@ public class PopupMapEntry extends PopupValueBox<MapEntry, Map.Entry<String, Str
     /**
      * Constructor
      *
-     * @param keyPrompt The prompt for the text box for the key entry
-     * @param valuePrompt The prompt for the text box for the value entry
-     * @param dialogTitle The title text to display on the Dialog Box
+     * @param keyPrompt    The prompt for the text box for the key entry
+     * @param valuePrompt  The prompt for the text box for the value entry
+     * @param dialogTitle  The title text to display on the Dialog Box
      * @param okButtonText The text to be displayed in the OK Button
      */
     @UiConstructor

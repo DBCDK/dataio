@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.user.cellview.client.CellTable;
@@ -6,7 +5,7 @@ import com.google.gwt.user.cellview.client.CellTable;
 /**
  * Specialization of the CellTable class.
  * Maintains an "updated done" style name upon call of the updateStarted() and updateDone() methods.
- Selenium can then easily determine, when an update has been done.
+ * Selenium can then easily determine, when an update has been done.
  *
  * @param <T> the type of the object
  */

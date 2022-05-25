@@ -17,8 +17,8 @@ import java.util.Properties;
 /**
  * TestSuite abstraction
  * <p>
- *     A test suite consists of a NAME together with a data file called NAME (extension is optional) and a
- *     properties file called NAME.acctest located somewhere in the local filesystem.
+ * A test suite consists of a NAME together with a data file called NAME (extension is optional) and a
+ * properties file called NAME.acctest located somewhere in the local filesystem.
  * </p>
  * <pre>
  *    // find all test suites in current working directory

@@ -9,7 +9,8 @@ import org.slf4j.LoggerFactory;
 public class ConfigProxyImpl implements ConfigProxy {
     private static final Logger log = LoggerFactory.getLogger(ConfigProxyImpl.class);
 
-    public ConfigProxyImpl() {}
+    public ConfigProxyImpl() {
+    }
 
 
     @Override

@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -19,17 +18,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
-* PresenterImpl unit tests
-*
-* The test methods of this class uses the following naming convention:
-*
-*  unitOfWork_stateUnderTest_expectedBehavior
-*/
+ * PresenterImpl unit tests
+ * <p>
+ * The test methods of this class uses the following naming convention:
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
+ */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterCreateImplTest extends PresenterImplTestBase {
-    @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
-    @Mock private Texts mockedTexts;
-    @Mock ViewGinjector mockedViewKGinjector;
+    @Mock
+    private FlowStoreProxyAsync mockedFlowStoreProxy;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    ViewGinjector mockedViewKGinjector;
     private View createView;
 
     private PresenterCreateImpl presenterCreateImpl;

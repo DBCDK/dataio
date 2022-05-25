@@ -146,7 +146,7 @@ public class JobsBeanTest {
         assertThat(returnedJobInfoSnapshot.getFlowStoreReferences(), is(jobInfoSnapshot.getFlowStoreReferences()));
     }
 
-   // ********************************** ADD ACCTEST JOB TESTS ********************************************************
+    // ********************************** ADD ACCTEST JOB TESTS ********************************************************
 
     @Test
     public void addAccTestJob_addAndScheduleJobFailure_throwsJobStoreException() throws Exception {
@@ -156,7 +156,7 @@ public class JobsBeanTest {
                 RecordSplitterConstants.RecordSplitter.XML);
 
         when(jobsBean.jobStore.addAndScheduleAccTestJob(any(AccTestJobInputStream.class))).thenThrow(new JobStoreException("Error"));
-        assertThat(() ->  jobsBean.addAccTestJob(mockedUriInfo, asJson(jobInputStream)), isThrowing(JobStoreException.class));
+        assertThat(() -> jobsBean.addAccTestJob(mockedUriInfo, asJson(jobInputStream)), isThrowing(JobStoreException.class));
     }
 
     @Test
@@ -281,18 +281,18 @@ public class JobsBeanTest {
     public void addChunkProcessed_messageIsSentToSink() throws Exception {
 
         when(jmsContext.createTextMessage(any(String.class)))
-        .thenAnswer(invocation -> {
-            final Object[] args = invocation.getArguments();
-            final MockedJmsTextMessage message = new MockedJmsTextMessage();
-            message.setText((String) args[0]);
-            return message;
-        })
-        .thenAnswer(invocation -> {
-            final Object[] args = invocation.getArguments();
-            final MockedJmsTextMessage message = new MockedJmsTextMessage();
-            message.setText((String) args[0]);
-            return message;
-        });
+                .thenAnswer(invocation -> {
+                    final Object[] args = invocation.getArguments();
+                    final MockedJmsTextMessage message = new MockedJmsTextMessage();
+                    message.setText((String) args[0]);
+                    return message;
+                })
+                .thenAnswer(invocation -> {
+                    final Object[] args = invocation.getArguments();
+                    final MockedJmsTextMessage message = new MockedJmsTextMessage();
+                    message.setText((String) args[0]);
+                    return message;
+                });
         jobsBean.jobSchedulerBean = jobSchedulerBean;
 
         final ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("This is some data")).setStatus(ChunkItem.Status.SUCCESS).build();
@@ -319,7 +319,7 @@ public class JobsBeanTest {
         assertThat(response.getLocation().toString(), is(LOCATION));
         assertThat(response.hasEntity(), is(true));
 
-        verify( jobSchedulerBean, atLeastOnce()).chunkProcessingDone( any( Chunk.class ));
+        verify(jobSchedulerBean, atLeastOnce()).chunkProcessingDone(any(Chunk.class));
     }
 
     @Test
@@ -473,7 +473,7 @@ public class JobsBeanTest {
 
         final Response response = jobsBean.countItems(asJson(new ItemListCriteria()));
         assertOkResponse(response);
-        long count = jsonbContext.unmarshall((String)response.getEntity(), Long.class);
+        long count = jsonbContext.unmarshall((String) response.getEntity(), Long.class);
         assertThat("Count", count, is(110L));
     }
 

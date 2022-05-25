@@ -26,14 +26,17 @@ import javax.persistence.PersistenceUnit;
 public class PeriodicJobsConfigurationBean {
     final Cache<Integer, PeriodicJobsDelivery> deliveryCache = CacheManager.createLRUCache(10);
 
-    @PersistenceUnit(unitName="periodic-jobs_PU")
+    @PersistenceUnit(unitName = "periodic-jobs_PU")
     EntityManagerFactory entityManagerFactory;
 
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-    @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     /**
      * Returns delivery configuration for given chunk
+     *
      * @param chunk {@link Chunk} for which get delivery configuration
      * @return delivery configuration as {@link PeriodicJobsDelivery}
      * @throws SinkException if unable to resolve delivery configuration for chunk
@@ -41,7 +44,7 @@ public class PeriodicJobsConfigurationBean {
     @Lock(LockType.READ)
     public PeriodicJobsDelivery getDelivery(Chunk chunk) throws SinkException {
         final Integer jobId = Math.toIntExact(chunk.getJobId());
-        PeriodicJobsDelivery  periodicJobsDelivery = deliveryCache.get(jobId);
+        PeriodicJobsDelivery periodicJobsDelivery = deliveryCache.get(jobId);
         if (periodicJobsDelivery != null) {
             // Return delivery entity from local bean cache.
             return periodicJobsDelivery;

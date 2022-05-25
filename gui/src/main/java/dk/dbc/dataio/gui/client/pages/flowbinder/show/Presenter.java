@@ -6,6 +6,8 @@ import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 public interface Presenter extends GenericPresenter {
     void editFlowBinder(FlowBinderModel model);
+
     void createFlowBinder();
+
     void setPlace(AbstractBasePlace place);
 }

@@ -47,10 +47,10 @@ import static org.mockito.Mockito.when;
 
 /**
  * EsMessageProcessorBean unit tests.
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class EsMessageProcessorBeanTest {
     private static final String PAYLOAD_TYPE = JmsConstants.CHUNK_PAYLOAD_TYPE;
@@ -227,6 +227,7 @@ public class EsMessageProcessorBeanTest {
         public void setMessageDrivenContext(MessageDrivenContext messageDrivenContext) {
             this.messageDrivenContext = messageDrivenContext;
         }
+
         public MessageDrivenContext getMessageDrivenContext() {
             return this.messageDrivenContext;
         }

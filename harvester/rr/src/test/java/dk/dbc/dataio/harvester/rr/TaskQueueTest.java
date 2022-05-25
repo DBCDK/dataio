@@ -25,7 +25,7 @@ public class TaskQueueTest {
     private final TaskRepo taskRepo = new TaskRepo(entityManager);
     private final TypedQuery<HarvestTask> query = mock(TypedQuery.class);
     private final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()
-                        .withConsumerId("consumerId"));
+            .withConsumerId("consumerId"));
 
     @Before
     public void setupMocks() {
@@ -85,8 +85,8 @@ public class TaskQueueTest {
         final RawRepoRecordHarvestTask expectedRecordHarvestTask = new RawRepoRecordHarvestTask()
                 .withRecordId(new RecordIdDTO("id", submitterNumber))
                 .withAddiMetaData(new AddiMetaData()
-                    .withBibliographicRecordId("id")
-                    .withSubmitterNumber(submitterNumber));
+                        .withBibliographicRecordId("id")
+                        .withSubmitterNumber(submitterNumber));
         final HarvestTask harvestTask = new HarvestTask();
         harvestTask.setRecords(Collections.singletonList(expectedRecordHarvestTask.getAddiMetaData()));
         when(query.getResultList()).thenReturn(Collections.singletonList(harvestTask));

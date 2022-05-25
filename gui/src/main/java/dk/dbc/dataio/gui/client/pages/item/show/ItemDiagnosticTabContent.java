@@ -21,6 +21,8 @@ public class ItemDiagnosticTabContent extends Composite {
     }
 
     // UI Fields
-    @UiField CellTable itemDiagnosticTable;
-    @UiField CellTable stacktraceTable;
+    @UiField
+    CellTable itemDiagnosticTable;
+    @UiField
+    CellTable stacktraceTable;
 }

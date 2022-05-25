@@ -1,7 +1,6 @@
 package dk.dbc.dataio.sink.ims;
 
 import dk.dbc.commons.metricshandler.SimpleTimerMetric;
-
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.MetricUnits;

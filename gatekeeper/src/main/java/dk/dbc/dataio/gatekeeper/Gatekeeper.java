@@ -96,8 +96,7 @@ public class Gatekeeper {
         final Options options = new Options();
         options.addOption(new Option("h", "help", false, "Produce help message"));
 
-        @SuppressWarnings("static-access")
-        final Option dir = OptionBuilder.withArgName("dir")
+        @SuppressWarnings("static-access") final Option dir = OptionBuilder.withArgName("dir")
                 .hasArg()
                 .isRequired()
                 .withDescription("Path of directory guarded by this gatekeeper instance")
@@ -105,8 +104,7 @@ public class Gatekeeper {
                 .create("d");
         options.addOption(dir);
 
-        @SuppressWarnings("static-access")
-        final Option jobStoreServiceUrl = OptionBuilder.withArgName("url")
+        @SuppressWarnings("static-access") final Option jobStoreServiceUrl = OptionBuilder.withArgName("url")
                 .hasArg()
                 .isRequired()
                 .withDescription("Base URL of job-store service")
@@ -114,8 +112,7 @@ public class Gatekeeper {
                 .create("j");
         options.addOption(jobStoreServiceUrl);
 
-        @SuppressWarnings("static-access")
-        final Option fileStoreServiceUrl = OptionBuilder.withArgName("url")
+        @SuppressWarnings("static-access") final Option fileStoreServiceUrl = OptionBuilder.withArgName("url")
                 .hasArg()
                 .isRequired()
                 .withDescription("Base URL of file-store service")
@@ -123,8 +120,7 @@ public class Gatekeeper {
                 .create("f");
         options.addOption(fileStoreServiceUrl);
 
-        @SuppressWarnings("static-access")
-        final Option flowStoreServiceUrl = OptionBuilder.withArgName("url")
+        @SuppressWarnings("static-access") final Option flowStoreServiceUrl = OptionBuilder.withArgName("url")
                 .hasArg()
                 .isRequired()
                 .withDescription("Base URL of flow-store service")

@@ -36,9 +36,9 @@ public class EsConnectorBean {
 
     public Map<Integer, ESTaskPackageUtil.TaskStatus> getCompletionStatusForESTaskpackages(List<Integer> targetReferences) throws SinkException {
         Map<Integer, ESTaskPackageUtil.TaskStatus> res = new HashMap<>();
-        for(Integer targetReference : targetReferences ) {
+        for (Integer targetReference : targetReferences) {
             TaskPackageEntity taskPackageEntity = entityManager.find(TaskPackageEntity.class, targetReference);
-            if(taskPackageEntity == null) {
+            if (taskPackageEntity == null) {
                 LOGGER.info("TaskPackageEntity with id: {} not found", targetReference);
             } else {
                 entityManager.refresh(taskPackageEntity);
@@ -60,8 +60,8 @@ public class EsConnectorBean {
     public Chunk getChunkForTaskPackage(int targetReference, Chunk placeholderChunk) throws SinkException {
 
         TaskSpecificUpdateEntity tpu = entityManager.find(TaskSpecificUpdateEntity.class, targetReference);
-        entityManager.refresh( tpu ); // Force Reload of Task package from DB after changes from TPWorkers
-        tpu.loadDiagsIfExists( entityManager);
+        entityManager.refresh(tpu); // Force Reload of Task package from DB after changes from TPWorkers
+        tpu.loadDiagsIfExists(entityManager);
         try {
             return ESTaskPackageUtil.getChunkForTaskPackage(tpu, placeholderChunk);
         } catch (Exception e) {

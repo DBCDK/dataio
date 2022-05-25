@@ -20,7 +20,7 @@ import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
 /**
  * Concrete Presenter Implementation Class for Job Edit
  */
-public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
+public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     private Long jobId;
     private Boolean failedItemsOnly;
     LogPanel logPanel;
@@ -29,15 +29,16 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
     /**
      * Constructor
-     * @param place     the place
-     * @param header    Breadcrumb header text
+     *
+     * @param place  the place
+     * @param header Breadcrumb header text
      */
     public PresenterEditImpl(Place place, String header) {
         super(header);
         jobId = Long.valueOf(place.getParameter(EditPlace.JOB_ID));
         failedItemsOnly = Boolean.valueOf(place.getParameter(EditPlace.FAILED_ITEMS_ONLY));
 
-        if(Document.get().getElementById(GUIID_CONTENT_PANEL) != null && Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL) != null) {
+        if (Document.get().getElementById(GUIID_CONTENT_PANEL) != null && Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL) != null) {
             logPanel = ((ContentPanel) Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL)).getLogPanel();
         }
     }
@@ -84,8 +85,8 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void doReSubmitJobInJobStore() {
-        if(jobRerunScheme.getActions().contains(JobRerunScheme.Action.COPY)) {
-            commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback() );
+        if (jobRerunScheme.getActions().contains(JobRerunScheme.Action.COPY)) {
+            commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback());
         } else {
             commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback());
         }
@@ -113,7 +114,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
         @Override
         public void onSuccess(List<JobModel> jobModels) {
-            if (jobModels != null  && jobModels.size() > 0) {
+            if (jobModels != null && jobModels.size() > 0) {
                 setJobModel(jobModels.get(0));
                 getJobRerunScheme(jobModel);
             }

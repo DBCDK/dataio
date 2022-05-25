@@ -21,9 +21,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 
 /**
- *
  * Main Entry Point for the GWT GUI
- *
  */
 public class MainEntryPoint implements EntryPoint {
     final private ClientFactory clientFactory = ClientFactoryImpl.getInstance();
@@ -46,12 +44,10 @@ public class MainEntryPoint implements EntryPoint {
      * The body part of the onModuleLoad
      * This code is executed after the UncaughtExceptionHandler has been set, so
      * any uncaught exceptions will be catched.
-     *
+     * <p>
      * This is the main entry point for the GWT application.
-     *
      */
-    private void deferredOnModuleLoad()
-    {
+    private void deferredOnModuleLoad() {
         EventBus eventBus = clientFactory.getEventBus();
         PlaceController placeController = clientFactory.getPlaceController();
         Resources.INSTANCE.css().ensureInjected();

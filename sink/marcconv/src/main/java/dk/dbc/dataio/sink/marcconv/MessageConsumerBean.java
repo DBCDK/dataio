@@ -38,7 +38,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     @PersistenceContext(unitName = "marcconv_PU")
     EntityManager entityManager;
 
-    @EJB ConversionFinalizerBean conversionFinalizerBean;
+    @EJB
+    ConversionFinalizerBean conversionFinalizerBean;
 
     private final JSONBContext jsonbContext = new JSONBContext();
     private final ConversionFactory conversionFactory = new ConversionFactory();

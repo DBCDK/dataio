@@ -59,6 +59,7 @@ public class JobNotificationRepository extends RepositoryBase {
 
     /**
      * Gets all notifications associated with job
+     *
      * @param jobId id of job for which to get notifications
      * @return list of notifications
      */
@@ -80,8 +81,7 @@ public class JobNotificationRepository extends RepositoryBase {
         final Query waitingNotificationsQuery = getWaitingNotificationsQuery();
         int numberOfNotificationsFound;
         do {
-            @SuppressWarnings("unchecked")
-            final List<NotificationEntity> waitingNotifications = (List<NotificationEntity>) waitingNotificationsQuery.getResultList();
+            @SuppressWarnings("unchecked") final List<NotificationEntity> waitingNotifications = (List<NotificationEntity>) waitingNotificationsQuery.getResultList();
 
             numberOfNotificationsFound = waitingNotifications.size();
             if (numberOfNotificationsFound > 0) {
@@ -99,6 +99,7 @@ public class JobNotificationRepository extends RepositoryBase {
 
     /**
      * Processes given notification in a separate transactional scope
+     *
      * @param notification notification to be processed
      * @return true if notification was processed without failure, otherwise false
      */
@@ -136,8 +137,9 @@ public class JobNotificationRepository extends RepositoryBase {
 
     /**
      * Adds waiting notification entity of given type linked to given job
+     *
      * @param type type of notification
-     * @param job associated job
+     * @param job  associated job
      * @return managed instance of notification entity
      */
     public NotificationEntity addNotification(Notification.Type type, JobEntity job) {
@@ -151,14 +153,15 @@ public class JobNotificationRepository extends RepositoryBase {
 
     /**
      * Adds waiting notification entity of given type with given context
+     *
      * @param notificationType type of notification
-     * @param mailDestination destination of mail
-     * @param context notification Context
+     * @param mailDestination  destination of mail
+     * @param context          notification Context
      * @return created notification entity
      * @throws JobStoreException on internal failure to marshall notification context
      */
     public NotificationEntity addNotification(Notification.Type notificationType,
-                String mailDestination, NotificationContext context) throws JobStoreException {
+                                              String mailDestination, NotificationContext context) throws JobStoreException {
         final NotificationEntity notificationEntity = new NotificationEntity();
         notificationEntity.setStatus(Notification.Status.WAITING);
         notificationEntity.setType(notificationType);
@@ -174,6 +177,7 @@ public class JobNotificationRepository extends RepositoryBase {
 
     /**
      * Lists notifications of given type ordered by descending timeOfCreation
+     *
      * @param type {@link Notification.Type}
      * @return list of {@link NotificationEntity}
      */
@@ -199,7 +203,7 @@ public class JobNotificationRepository extends RepositoryBase {
         final JobEntity job = notification.getJob();
         if (notification.getType() == Notification.Type.JOB_COMPLETED && job.hasFailedItems() && !job.hasFatalDiagnostics()) {
             final JobExporter jobExporter = new JobExporter(entityManager);
-            if(job.getState().getPhase(State.Phase.PARTITIONING).getFailed() > 0) {
+            if (job.getState().getPhase(State.Phase.PARTITIONING).getFailed() > 0) {
                 final JobExporter.FailedItemsContent failedItemsContent =
                         jobExporter.exportFailedItemsContent(job.getId(),
                                 Collections.singletonList(State.Phase.PARTITIONING),

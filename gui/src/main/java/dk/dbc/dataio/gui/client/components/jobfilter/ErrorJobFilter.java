@@ -52,13 +52,17 @@ public class ErrorJobFilter extends BaseJobFilter {
         setParameter(parameter);
     }
 
-    @UiField CheckBox processingCheckBox;
-    @UiField CheckBox deliveringCheckBox;
-    @UiField CheckBox jobCreationCheckBox;
+    @UiField
+    CheckBox processingCheckBox;
+    @UiField
+    CheckBox deliveringCheckBox;
+    @UiField
+    CheckBox jobCreationCheckBox;
 
 
     /**
      * Event handler for handling changes in the selection of error filtering
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler(value = {"processingCheckBox", "deliveringCheckBox", "jobCreationCheckBox"})
@@ -72,6 +76,7 @@ public class ErrorJobFilter extends BaseJobFilter {
 
     /**
      * Fetches the name of this filter
+     *
      * @return The name of the filter
      */
     @Override
@@ -81,6 +86,7 @@ public class ErrorJobFilter extends BaseJobFilter {
 
     /**
      * Gets the value of the job filter, which is the constructed JobListCriteria for this job filter
+     *
      * @return The constructed JobListCriteria for this job filter
      */
     @Override
@@ -98,6 +104,7 @@ public class ErrorJobFilter extends BaseJobFilter {
      * If more that one of the texts are given, they are separated by commas.<br>
      * Example:  'Processing,jobcreation'  <br>
      * The case of the texts is not important
+     *
      * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
@@ -107,7 +114,7 @@ public class ErrorJobFilter extends BaseJobFilter {
             processingCheckBox.setValue(false);
             deliveringCheckBox.setValue(false);
             jobCreationCheckBox.setValue(false);
-            for (String item: data) {
+            for (String item : data) {
                 switch (item.toLowerCase()) {
                     case PROCESSING_TEXT:
                         processingCheckBox.setValue(true);
@@ -125,6 +132,7 @@ public class ErrorJobFilter extends BaseJobFilter {
 
     /**
      * Gets the parameter value for the filter
+     *
      * @return The stored filter parameter for the specific job filter
      */
     @Override

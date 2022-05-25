@@ -15,8 +15,9 @@ public class WorkflowNote implements Serializable {
 
     /**
      * Class constructor
-     * @param processed determines if the workflow has finished manual processing
-     * @param assignee defining who is assigned to process the workflow. Assignee cannot be null or empty
+     *
+     * @param processed   determines if the workflow has finished manual processing
+     * @param assignee    defining who is assigned to process the workflow. Assignee cannot be null or empty
      * @param description containing any relevant information regarding the workflow
      */
     @JsonCreator

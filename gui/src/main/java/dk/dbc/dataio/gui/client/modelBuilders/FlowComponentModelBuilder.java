@@ -30,48 +30,48 @@ public class FlowComponentModelBuilder {
         return this;
     }
 
-    public FlowComponentModelBuilder setName (String name) {
+    public FlowComponentModelBuilder setName(String name) {
         this.name = name;
         return this;
     }
 
-    public FlowComponentModelBuilder setSvnProject (String svnProject) {
+    public FlowComponentModelBuilder setSvnProject(String svnProject) {
         this.svnProject = svnProject;
         return this;
     }
 
-    public FlowComponentModelBuilder setSvnRevision (String svnRevision) {
+    public FlowComponentModelBuilder setSvnRevision(String svnRevision) {
         this.svnRevision = svnRevision;
         return this;
     }
 
-    public FlowComponentModelBuilder setSvnNext (String svnNext) {
+    public FlowComponentModelBuilder setSvnNext(String svnNext) {
         this.svnNext = svnNext;
         return this;
     }
 
-    public FlowComponentModelBuilder setInvocationJavascript (String invocationJavascript) {
+    public FlowComponentModelBuilder setInvocationJavascript(String invocationJavascript) {
         this.invocationJavascript = invocationJavascript;
         return this;
     }
 
 
-    public FlowComponentModelBuilder setInvocationMethod (String invocationMethod) {
+    public FlowComponentModelBuilder setInvocationMethod(String invocationMethod) {
         this.invocationMethod = invocationMethod;
         return this;
     }
 
-    public FlowComponentModelBuilder setJavascriptModules (List<String> javascriptModules) {
+    public FlowComponentModelBuilder setJavascriptModules(List<String> javascriptModules) {
         this.javascriptModules = javascriptModules;
         return this;
     }
 
-    public FlowComponentModelBuilder setNextJavascriptModules (List<String> nextJavascriptModules) {
+    public FlowComponentModelBuilder setNextJavascriptModules(List<String> nextJavascriptModules) {
         this.nextJavascriptModules = nextJavascriptModules;
         return this;
     }
 
-    public FlowComponentModelBuilder setDescription (String description) {
+    public FlowComponentModelBuilder setDescription(String description) {
         this.description = description;
         return this;
     }

@@ -35,26 +35,46 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
-    @Mock private EditPlace mockedPlace;
-    @Mock private PlaceController mockedPlaceController;
-    @Mock private Texts mockedTexts;
-    @Mock private View mockedView;
-    @Mock private PromptedTextBox mockedId;
-    @Mock private PromptedTextBox mockedName;
-    @Mock private PromptedTextArea mockedDescription;
-    @Mock private PromptedTextBox mockedDestination;
-    @Mock private PromptedTextBox mockedFormat;
-    @Mock private PromptedList mockedType;
-    @Mock private PromptedCheckBox mockedEnabled;
-    @Mock private PromptedCheckBox mockedNotificationsEnabled;
-    @Mock private Label mockedStatus;
-    @Mock private Button mockedDeleteButton;
-    @Mock private Button mockedTaskRecordHarvestButton;
-    @Mock private Button mockedDeleteOutdatedRecordsButton;
-    @Mock private ContentPanel mockedContentPanel;
-    @Mock private LogPanel mockedLogPanel;
-    @Mock private Element mockedElement;
-    @Mock private Widget mockedWidget;
+    @Mock
+    private EditPlace mockedPlace;
+    @Mock
+    private PlaceController mockedPlaceController;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private View mockedView;
+    @Mock
+    private PromptedTextBox mockedId;
+    @Mock
+    private PromptedTextBox mockedName;
+    @Mock
+    private PromptedTextArea mockedDescription;
+    @Mock
+    private PromptedTextBox mockedDestination;
+    @Mock
+    private PromptedTextBox mockedFormat;
+    @Mock
+    private PromptedList mockedType;
+    @Mock
+    private PromptedCheckBox mockedEnabled;
+    @Mock
+    private PromptedCheckBox mockedNotificationsEnabled;
+    @Mock
+    private Label mockedStatus;
+    @Mock
+    private Button mockedDeleteButton;
+    @Mock
+    private Button mockedTaskRecordHarvestButton;
+    @Mock
+    private Button mockedDeleteOutdatedRecordsButton;
+    @Mock
+    private ContentPanel mockedContentPanel;
+    @Mock
+    private LogPanel mockedLogPanel;
+    @Mock
+    private Element mockedElement;
+    @Mock
+    private Widget mockedWidget;
 
     private PresenterEditImpl presenter;
 

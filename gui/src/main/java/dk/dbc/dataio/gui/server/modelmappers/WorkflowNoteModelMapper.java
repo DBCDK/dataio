@@ -8,10 +8,11 @@ public class WorkflowNoteModelMapper {
     /**
      * Private Constructor prevents instantiation of this static class
      */
-    private WorkflowNoteModelMapper(){}
+    private WorkflowNoteModelMapper() {
+    }
 
     public static WorkflowNote toWorkflowNote(WorkflowNoteModel workflowNoteModel) {
-        if(workflowNoteModel != null) {
+        if (workflowNoteModel != null) {
             return new WorkflowNote(workflowNoteModel.isProcessed(), workflowNoteModel.getAssignee(), workflowNoteModel.getDescription());
         } else {
             return null;
@@ -19,7 +20,7 @@ public class WorkflowNoteModelMapper {
     }
 
     public static WorkflowNoteModel toWorkflowNoteModel(WorkflowNote workflowNote) {
-        if(workflowNote != null) {
+        if (workflowNote != null) {
             return new WorkflowNoteModel(workflowNote.isProcessed(), workflowNote.getAssignee(), workflowNote.getDescription());
         } else {
             return new WorkflowNoteModel();

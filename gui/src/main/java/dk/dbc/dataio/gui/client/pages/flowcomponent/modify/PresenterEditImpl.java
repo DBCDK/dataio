@@ -15,8 +15,9 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     /**
      * Constructor
-     * @param place     the place
-     * @param header    Breadcrumb header text
+     *
+     * @param place  the place
+     * @param header Breadcrumb header text
      */
     public PresenterEditImpl(Place place, String header) {
         super(header);
@@ -86,6 +87,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             String msg = "Flowcomponent.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(FlowComponentModel model) {
             setFlowComponentModel(model);

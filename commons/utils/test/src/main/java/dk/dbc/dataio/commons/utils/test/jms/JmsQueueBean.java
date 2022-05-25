@@ -44,7 +44,7 @@ public class JmsQueueBean {
 
     @GET
     @Path("{queueName}")
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response listQueue(@PathParam("queueName") String queueName) {
         LOGGER.info("Listing messages on queue {}", queueName);
 
@@ -68,7 +68,7 @@ public class JmsQueueBean {
 
     @POST
     @Path("{queueName}")
-    @Consumes({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
     public Response putOnQueue(@PathParam("queueName") String queueName, String message) {
         LOGGER.info("Putting message on queue {} <{}>", queueName, message);
 
@@ -116,7 +116,7 @@ public class JmsQueueBean {
 
     @GET
     @Path("{queueName}/size")
-    @Produces({ MediaType.TEXT_PLAIN })
+    @Produces({MediaType.TEXT_PLAIN})
     public Response getQueueSize(@PathParam("queueName") String queueName) {
         LOGGER.info("Getting size of queue {}", queueName);
 

@@ -30,7 +30,8 @@ public class JavaScriptProject {
 
     /**
      * Creates self-contained javascript project for given script
-     * @param script path to javascript
+     *
+     * @param script     path to javascript
      * @param searchPath path used to find script dependencies
      * @return {@link JavaScriptProject}
      * @throws Exception on failure to create self-contained javascript project

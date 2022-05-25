@@ -23,7 +23,7 @@ public class PopupValueBox<W extends HasValue<T> & IsWidget & Focusable, T> exte
     /**
      * Default constructor
      *
-     * @param widget The widget to be embedded in a Popup Box
+     * @param widget       The widget to be embedded in a Popup Box
      * @param dialogTitle  The title text to display on the Dialog Box (mandatory)
      * @param okButtonText The text to be displayed in the OK Button (mandatory)
      */
@@ -44,27 +44,27 @@ public class PopupValueBox<W extends HasValue<T> & IsWidget & Focusable, T> exte
      * Constructor (with component injections - to be used for testing)
      * The Constructor is package scoped - not public
      *
-     * @param widget The widget to be embedded in a Popup Box
-     * @param dialogTitle  The title text to display on the Dialog Box (mandatory)
-     * @param okButtonText The text to be displayed in the OK Button (mandatory)
-     * @param basePanel Basepanel to be used to embed the Dialog
-     * @param dialogBox The Dialog Box component
+     * @param widget         The widget to be embedded in a Popup Box
+     * @param dialogTitle    The title text to display on the Dialog Box (mandatory)
+     * @param okButtonText   The text to be displayed in the OK Button (mandatory)
+     * @param basePanel      Basepanel to be used to embed the Dialog
+     * @param dialogBox      The Dialog Box component
      * @param containerPanel The Container panel to embed the widgets
-     * @param buttonPanel The button container panel to embed the buttons
-     * @param okButton The Ok Button
-     * @param cancelButton The Cancel Button
-     * @param extraButton The Extra Button
+     * @param buttonPanel    The button container panel to embed the buttons
+     * @param okButton       The Ok Button
+     * @param cancelButton   The Cancel Button
+     * @param extraButton    The Extra Button
      */
     PopupValueBox(W widget,
-             String dialogTitle,
-             String okButtonText,
-             FlowPanel basePanel,
-             DialogBox dialogBox,
-             VerticalPanel containerPanel,
-             FlowPanel buttonPanel,
-             Button okButton,
-             Button cancelButton,
-             Button extraButton) {
+                  String dialogTitle,
+                  String okButtonText,
+                  FlowPanel basePanel,
+                  DialogBox dialogBox,
+                  VerticalPanel containerPanel,
+                  FlowPanel buttonPanel,
+                  Button okButton,
+                  Button cancelButton,
+                  Button extraButton) {
         super(widget, dialogTitle, okButtonText, basePanel, dialogBox, containerPanel, buttonPanel, okButton, cancelButton, extraButton);
     }
 

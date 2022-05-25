@@ -36,11 +36,16 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHa
             .withUnit("exception")
             .build();
 
-    @EJB BinaryFileStoreBean binaryFileStoreBean;
-    @EJB FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-    @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-    @Inject PromatServiceConnector promatServiceConnector;
+    @EJB
+    BinaryFileStoreBean binaryFileStoreBean;
+    @EJB
+    FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @Inject
+    PromatServiceConnector promatServiceConnector;
 
     @Inject
     @RegistryType(type = MetricRegistry.Type.APPLICATION)

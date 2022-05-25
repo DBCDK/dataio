@@ -100,6 +100,7 @@ public class DmqMessageConsumerBeanTest {
         public MessageDrivenContext getMessageDrivenContext() {
             return messageDrivenContext;
         }
+
         public void setMessageDrivenContext(MessageDrivenContext messageDrivenContext) {
             this.messageDrivenContext = messageDrivenContext;
         }

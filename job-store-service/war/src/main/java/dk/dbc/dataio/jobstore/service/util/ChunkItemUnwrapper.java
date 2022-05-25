@@ -12,6 +12,7 @@ import java.util.List;
 public interface ChunkItemUnwrapper {
     /**
      * Unwraps content from given chunk item
+     *
      * @param chunkItem chunk item to unwrap
      * @return list (since some wrapping formats may wrap multiple items) of unwrapped chunk items
      * @throws JobStoreException on failure to unwrap

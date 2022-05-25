@@ -26,8 +26,8 @@ public class PgQueryBuilder {
             assertResource(identifier);
         }
         buffer.append(getFieldPath(identifier.getField()))
-              .append(' ').append(operator.image).append(' ')
-              .append(value.image);
+                .append(' ').append(operator.image).append(' ')
+                .append(value.image);
         return this;
     }
 
@@ -141,7 +141,7 @@ public class PgQueryBuilder {
                 buffer.append("->").append("'").append(keys[i]).append("'");
             }
         }
-        buffer.append("->>").append("'").append(keys[keys.length-1]).append("'");
+        buffer.append("->>").append("'").append(keys[keys.length - 1]).append("'");
         return buffer.toString();
     }
 }

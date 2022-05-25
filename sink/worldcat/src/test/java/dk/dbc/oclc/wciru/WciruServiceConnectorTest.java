@@ -28,13 +28,13 @@ import static org.mockito.Mockito.when;
 /**
  * WciruServiceConnector unit tests
  * The test methods of this class uses the following naming convention:
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class WciruServiceConnectorTest {
     private final String baseUrl = "http://test.dbc.dk/oclc-wciru";
     private final String userId = "userId";
     private final String password = "password";
-    private final String authenticationToken = userId+ "/" +password;
+    private final String authenticationToken = userId + "/" + password;
     private final String holdingSymbol = "symbol";
     private final String holdingsAction = "I";
     private final String projectId = "projectId";
@@ -65,7 +65,7 @@ public class WciruServiceConnectorTest {
         assertThat(connector, is(notNullValue()));
     }
 
-    @Test(expected=WciruServiceConnectorException.class)
+    @Test(expected = WciruServiceConnectorException.class)
     public void addOrUpdateRecordTakingStringParameter_recordArgIsInvalidXml_throws() throws Exception {
         connector.addOrUpdateRecord("not XML", holdingSymbol, oclcId);
     }
@@ -127,7 +127,7 @@ public class WciruServiceConnectorTest {
         assertThat(proxy.lastRequest.getRecordIdentifier(), is(oclcId));
     }
 
-    @Test(expected=WciruServiceConnectorException.class)
+    @Test(expected = WciruServiceConnectorException.class)
     public void addOrUpdateRecordTakingStringParameter_serviceReturnsWithStatusFail_throws() throws Exception {
         proxy.responses.add(getUpdateResponseWithStatusFail(diagnostic));
         connector.addOrUpdateRecord(xmlRecord, holdingSymbol, oclcId);
@@ -190,13 +190,13 @@ public class WciruServiceConnectorTest {
         assertThat(proxy.lastRequest.getRecordIdentifier(), is(oclcId));
     }
 
-    @Test(expected=WciruServiceConnectorException.class)
+    @Test(expected = WciruServiceConnectorException.class)
     public void addOrUpdateRecordTakingElementParameter_serviceReturnsWithStatusFail_throws() throws Exception {
         proxy.responses.add(getUpdateResponseWithStatusFail(diagnostic));
         connector.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void replaceRecord_holdingActionArgIsInvalid_throws() throws Exception {
         connector.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, "INVALID");
     }
@@ -251,7 +251,7 @@ public class WciruServiceConnectorTest {
         assertThat(proxy.lastRequest.getRecordIdentifier(), is(oclcId));
     }
 
-    @Test(expected=WciruServiceConnectorException.class)
+    @Test(expected = WciruServiceConnectorException.class)
     public void replaceRecord_serviceReturnsWithStatusFail_throws() throws Exception {
         proxy.responses.add(getUpdateResponseWithStatusFail(diagnostic));
         connector.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
@@ -297,7 +297,7 @@ public class WciruServiceConnectorTest {
         assertThat(proxy.lastRequest.getRecordIdentifier(), is(oclcId));
     }
 
-    @Test(expected=WciruServiceConnectorException.class)
+    @Test(expected = WciruServiceConnectorException.class)
     public void deleteRecord_serviceReturnsWithStatusFail_throws() throws Exception {
         proxy.responses.add(getUpdateResponseWithStatusFail(diagnostic));
         connector.deleteRecord(getXmlRecordElement(), oclcId);

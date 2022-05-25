@@ -29,12 +29,18 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
 
-    @Mock private EditPlace mockedEditPlace;
-    @Mock private ViewGinjector mockedViewGinjector;
-    @Mock private ContentPanel mockedContentPanel;
-    @Mock private Element mockedElement;
-    @Mock private LogMessageTexts mockedLogMessageTexts;
-    @Mock private LogPanel mockedLogPanel;
+    @Mock
+    private EditPlace mockedEditPlace;
+    @Mock
+    private ViewGinjector mockedViewGinjector;
+    @Mock
+    private ContentPanel mockedContentPanel;
+    @Mock
+    private Element mockedElement;
+    @Mock
+    private LogMessageTexts mockedLogMessageTexts;
+    @Mock
+    private LogPanel mockedLogPanel;
 
     private PresenterEditImpl presenterEditImpl;
     private final static String MOCKED_LOG_ALL_ITEMS = "mocked log_allItems()";

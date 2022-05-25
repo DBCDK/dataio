@@ -59,8 +59,9 @@ public abstract class TaskPackageEntity {
 
     // for JPA
     public void setUserid(Integer userid) {
-            this.userid = userid;
+        this.userid = userid;
     }
+
     // For user code
     public void setUserid(int userid) {
         this.userid = userid;

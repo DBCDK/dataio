@@ -22,39 +22,68 @@ import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 public class NavigationPanel extends DockLayoutPanel {
-    interface NavigationBinder extends UiBinder<DockLayoutPanel, NavigationPanel> {}
+    interface NavigationBinder extends UiBinder<DockLayoutPanel, NavigationPanel> {
+    }
+
     private static NavigationBinder uiBinder = GWT.create(NavigationBinder.class);
 
     private final PlaceController placeController;
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
-    @UiField Tree menu;
-    @UiField TreeItem jobs;
-    @UiField TreeItem periodicJobs;
-    @UiField TreeItem testJobs;
-    @UiField TreeItem acctestJobs;
-    @UiField TreeItem submitters;
-    @UiField TreeItem flows;
-    @UiField TreeItem flowComponents;
-    @UiField TreeItem flowBinders;
-    @UiField TreeItem sinks;
-    @UiField TreeItem sinkStatus;
-    @UiField TreeItem harvesters;
-    @UiField TreeItem tickleHarvesters;
-    @UiField TreeItem rrHarvesters;
-    @UiField TreeItem coRepoHarvesters;
-    @UiField TreeItem httpFtpFetchHarvesters;
-    @UiField TreeItem infomediaHarvesters;
-    @UiField TreeItem periodicJobsHarvesters;
-    @UiField TreeItem promatHarvester;
-    @UiField TreeItem dmatHarvester;
-    @UiField TreeItem gatekeeper;
-    @UiField TreeItem ioTraffic;
-    @UiField TreeItem ftp;
-    @UiField TreeItem failedFtps;
-    @UiField TreeItem baseMaintenance;
-    @UiField TreeItem jobPurge;
-    @UiField Label debugInfo;
+    @UiField
+    Tree menu;
+    @UiField
+    TreeItem jobs;
+    @UiField
+    TreeItem periodicJobs;
+    @UiField
+    TreeItem testJobs;
+    @UiField
+    TreeItem acctestJobs;
+    @UiField
+    TreeItem submitters;
+    @UiField
+    TreeItem flows;
+    @UiField
+    TreeItem flowComponents;
+    @UiField
+    TreeItem flowBinders;
+    @UiField
+    TreeItem sinks;
+    @UiField
+    TreeItem sinkStatus;
+    @UiField
+    TreeItem harvesters;
+    @UiField
+    TreeItem tickleHarvesters;
+    @UiField
+    TreeItem rrHarvesters;
+    @UiField
+    TreeItem coRepoHarvesters;
+    @UiField
+    TreeItem httpFtpFetchHarvesters;
+    @UiField
+    TreeItem infomediaHarvesters;
+    @UiField
+    TreeItem periodicJobsHarvesters;
+    @UiField
+    TreeItem promatHarvester;
+    @UiField
+    TreeItem dmatHarvester;
+    @UiField
+    TreeItem gatekeeper;
+    @UiField
+    TreeItem ioTraffic;
+    @UiField
+    TreeItem ftp;
+    @UiField
+    TreeItem failedFtps;
+    @UiField
+    TreeItem baseMaintenance;
+    @UiField
+    TreeItem jobPurge;
+    @UiField
+    Label debugInfo;
 
 
     /**
@@ -97,6 +126,7 @@ public class NavigationPanel extends DockLayoutPanel {
 
     /**
      * Sets the debug info text to be displayed in a small font at the lower left corner of the view
+     *
      * @param text The text to display as debug info
      */
     public void setDebugInfo(String text) {
@@ -121,6 +151,7 @@ public class NavigationPanel extends DockLayoutPanel {
      * If the user object is a TreeItem, the tree item does not have a direct action
      * Instead, select the first item in the sub list (if any), and do the selection on this item instead - meaning
      * call this method recursively with the new object as parameter
+     *
      * @param item The item to do the selection upon
      */
     private void doSelect(TreeItem item) {
@@ -208,23 +239,25 @@ public class NavigationPanel extends DockLayoutPanel {
 
     /**
      * Traverses through all tree items in the tree, and clears the selection on each of them
+     *
      * @param tree The tree, containing the tree items
      */
     private void clearAllSelected(Tree tree) {
         int count = tree.getItemCount();
-        for (int i=0; i<count; i++) {
+        for (int i = 0; i < count; i++) {
             clearTreeItemSelection(tree.getItem(i));
         }
     }
 
     /**
      * Clears the selection. If the item contains children, each one of them are cleared also (using recursion)
+     *
      * @param item The tree item to clear the selection
      */
     private void clearTreeItemSelection(TreeItem item) {
         item.setSelected(false);
         int count = item.getChildCount();
-        for (int i=0; i<count; i++) {
+        for (int i = 0; i < count; i++) {
             clearTreeItemSelection(item.getChild(i));
         }
     }
@@ -232,6 +265,7 @@ public class NavigationPanel extends DockLayoutPanel {
     /**
      * Sets the selection on the item, passed as a parameter
      * If the item has parents, it is checked, whether the item is displayed
+     *
      * @param item The item to set as selected
      */
     private void setSelection(TreeItem item) {
@@ -241,6 +275,7 @@ public class NavigationPanel extends DockLayoutPanel {
 
     /**
      * Assure that the item is visible - ie. its parent is not folded
+     *
      * @param item The item to check for visibility
      */
     private void setParentUncovered(TreeItem item) {

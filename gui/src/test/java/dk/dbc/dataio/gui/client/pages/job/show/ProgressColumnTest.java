@@ -13,8 +13,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -33,10 +33,14 @@ import static org.mockito.Mockito.when;
 public class ProgressColumnTest {
 
     // Mocked data
-    @Mock Cell.Context mockedContext;
-    @Mock static Event mockedBrowserClickEvent;
-    @Mock MultiProgressBar mockedMultiProgressBar;
-    @Mock SafeHtmlBuilder mockedHtmlBuilder;
+    @Mock
+    Cell.Context mockedContext;
+    @Mock
+    static Event mockedBrowserClickEvent;
+    @Mock
+    MultiProgressBar mockedMultiProgressBar;
+    @Mock
+    SafeHtmlBuilder mockedHtmlBuilder;
 
     @Before
     public void setupMockedEvents() {
@@ -50,24 +54,21 @@ public class ProgressColumnTest {
             .withStateModel(new StateModel()
                     .withPartitioning(new StateElement().withSucceeded(41))
                     .withProcessing(new StateElement().withSucceeded(23))
-                    .withDelivering(new StateElement().withSucceeded(12)))
-            ;
+                    .withDelivering(new StateElement().withSucceeded(12)));
 
     private JobModel illegalTestModel1 = new JobModel()
             .withNumberOfItems(100)
             .withStateModel(new StateModel()
                     .withPartitioning(new StateElement().withSucceeded(41))
                     .withProcessing(new StateElement().withSucceeded(23))
-                    .withDelivering(new StateElement().withSucceeded(43)))
-            ;
+                    .withDelivering(new StateElement().withSucceeded(43)));
 
     private JobModel illegalTestModel2 = new JobModel()
             .withNumberOfItems(20)
             .withStateModel(new StateModel()
                     .withPartitioning(new StateElement().withSucceeded(41))
                     .withProcessing(new StateElement().withSucceeded(23))
-                    .withDelivering(new StateElement().withSucceeded(12)))
-            ;
+                    .withDelivering(new StateElement().withSucceeded(12)));
 
     // Subject Under Test
     ProgressColumn progressColumn;

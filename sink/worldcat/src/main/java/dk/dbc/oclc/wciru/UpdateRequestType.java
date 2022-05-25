@@ -7,15 +7,14 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "updateRequestType", propOrder = {
-    "action",
-    "recordIdentifier",
-    "recordVersions",
-    "record",
-    "extraRequestData"
+        "action",
+        "recordIdentifier",
+        "recordVersions",
+        "record",
+        "extraRequestData"
 })
 public class UpdateRequestType
-    extends RequestType
-{
+        extends RequestType {
 
     @XmlElement(required = true)
     protected String action;

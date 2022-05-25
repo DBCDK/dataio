@@ -24,10 +24,10 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
@@ -35,20 +35,34 @@ public class PresenterImplTest extends PresenterImplTestBase {
     /*
      * Mocks
      */
-    @Mock private Texts mockedTexts;
-    @Mock private View mockedView;
-    @Mock private PromptedTextBox mockedId;
-    @Mock private PromptedTextBox mockedName;
-    @Mock private PromptedTextArea mockedDescription;
-    @Mock private PromptedTextBox mockedDestination;
-    @Mock private PromptedTextBox mockedFormat;
-    @Mock private PromptedList mockedType;
-    @Mock private PromptedCheckBox mockedEnabled;
-    @Mock private PromptedCheckBox mockedNotificationsEnabled;
-    @Mock private Label mockedStatus;
-    @Mock private Widget mockedWidget;
-    @Mock private TickleRepoHarvesterConfig mockedConfig;
-    @Mock private TickleRepoHarvesterConfig.Content mockedContent;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private View mockedView;
+    @Mock
+    private PromptedTextBox mockedId;
+    @Mock
+    private PromptedTextBox mockedName;
+    @Mock
+    private PromptedTextArea mockedDescription;
+    @Mock
+    private PromptedTextBox mockedDestination;
+    @Mock
+    private PromptedTextBox mockedFormat;
+    @Mock
+    private PromptedList mockedType;
+    @Mock
+    private PromptedCheckBox mockedEnabled;
+    @Mock
+    private PromptedCheckBox mockedNotificationsEnabled;
+    @Mock
+    private Label mockedStatus;
+    @Mock
+    private Widget mockedWidget;
+    @Mock
+    private TickleRepoHarvesterConfig mockedConfig;
+    @Mock
+    private TickleRepoHarvesterConfig.Content mockedContent;
 
     /*
      * Subject Under Test
@@ -71,20 +85,40 @@ public class PresenterImplTest extends PresenterImplTestBase {
         public PresenterImplConcrete(String header) {
             super(header);
         }
-        @Override void initializeModel() {
+
+        @Override
+        void initializeModel() {
             initializeModelCalled = true;
         }
-        @Override void saveModel() {
+
+        @Override
+        void saveModel() {
             saveModelCalled = true;
         }
-        @Override public void taskRecordHarvestButtonPressed() {}
 
-        @Override public void deleteOutdatedRecordsButtonPressed() {}
+        @Override
+        public void taskRecordHarvestButtonPressed() {
+        }
 
-        @Override public void deleteOutdatedRecords() {}
-        @Override public void deleteButtonPressed() {}
-        @Override public void setRecordHarvestCount() {}
-        String getHeader() { return header; }
+        @Override
+        public void deleteOutdatedRecordsButtonPressed() {
+        }
+
+        @Override
+        public void deleteOutdatedRecords() {
+        }
+
+        @Override
+        public void deleteButtonPressed() {
+        }
+
+        @Override
+        public void setRecordHarvestCount() {
+        }
+
+        String getHeader() {
+            return header;
+        }
     }
 
 

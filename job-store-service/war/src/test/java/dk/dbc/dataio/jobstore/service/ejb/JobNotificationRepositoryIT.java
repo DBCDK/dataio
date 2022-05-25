@@ -116,11 +116,11 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
 
         final NotificationEntity notification = persistenceContext.run(() ->
-            jobNotificationRepository.addNotification(Notification.Type.JOB_CREATED, jobEntity));
+                jobNotificationRepository.addNotification(Notification.Type.JOB_CREATED, jobEntity));
 
         // When...
         persistenceContext.run(() ->
-            jobNotificationRepository.processNotification(notification));
+                jobNotificationRepository.processNotification(notification));
 
         // Then...
         final List<NotificationEntity> notifications = findAllNotifications();
@@ -130,13 +130,13 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 
     /**
      * Given: a repository containing a job with two chunks, where
-     *        the first chunk has a single item failed during processing,
-     *        the second chunk has a single item failed during delivering
-     *        with a fatal diagnostic
+     * the first chunk has a single item failed during processing,
+     * the second chunk has a single item failed during delivering
+     * with a fatal diagnostic
      * When : a notification for the job of type JOB_COMPLETED is processed
      * Then : notification is updated with completed status
      * And  : a mail notification is sent to the fallback mail containing
-     *        item exports in the order first chunk item before second chunk item
+     * item exports in the order first chunk item before second chunk item
      */
     @Test
     public void processNotificationWithAppendedFailures() throws MessagingException, IOException {
@@ -149,12 +149,12 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 
         jobEntity.getState()
                 .updateState(new StateChange()
-                    .setPhase(State.Phase.PROCESSING)
-                    .incFailed(1));
+                        .setPhase(State.Phase.PROCESSING)
+                        .incFailed(1));
         jobEntity.getState()
                 .updateState(new StateChange()
-                    .setPhase(State.Phase.DELIVERING)
-                    .incFailed(1));
+                        .setPhase(State.Phase.DELIVERING)
+                        .incFailed(1));
         persist(jobEntity);
 
         newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
@@ -163,16 +163,16 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final ItemEntity itemFailedDuringProcessing = newItemEntity(new ItemEntity.Key(jobEntity.getId(), 0, (short) 1));
         itemFailedDuringProcessing.getState()
                 .updateState(new StateChange()
-                    .setPhase(State.Phase.PROCESSING)
-                    .incFailed(1));
+                        .setPhase(State.Phase.PROCESSING)
+                        .incFailed(1));
         itemFailedDuringProcessing.setPartitioningOutcome(new ChunkItemBuilder()
                 .setData(asAddi(getMarcXchange("recordFromPartitioning")))
                 .build());
         final ItemEntity itemFailedDuringDelivering = newItemEntity(new ItemEntity.Key(jobEntity.getId(), 1, (short) 0));
         itemFailedDuringDelivering.getState()
                 .updateState(new StateChange()
-                    .setPhase(State.Phase.DELIVERING)
-                    .incFailed(1));
+                        .setPhase(State.Phase.DELIVERING)
+                        .incFailed(1));
         itemFailedDuringDelivering.setProcessingOutcome(new ChunkItemBuilder()
                 .setData(asAddi(getMarcXchange("recordFromProcessing")))
                 .build());
@@ -189,10 +189,10 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 
         // When...
         final NotificationEntity notification = persistenceContext.run(() ->
-            jobNotificationRepository.addNotification(Notification.Type.JOB_COMPLETED, jobEntity));
+                jobNotificationRepository.addNotification(Notification.Type.JOB_COMPLETED, jobEntity));
 
         persistenceContext.run(() ->
-            jobNotificationRepository.processNotification(notification));
+                jobNotificationRepository.processNotification(notification));
 
         // Then...
         final List<NotificationEntity> notifications = findAllNotifications();
@@ -211,11 +211,11 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 
     /**
      * Given: a repository containing a job with one chunk, where
-     *        the first item has failed in partitioning and the second item has failed in delivering,
+     * the first item has failed in partitioning and the second item has failed in delivering,
      * When : a notification for the job of type JOB_COMPLETED is processed
      * Then : notification is updated with completed status
      * And  : a mail notification is sent containing item export of the item failed in delivering and with
-     *        the data from the item failed in partitioning as attachment
+     * the data from the item failed in partitioning as attachment
      */
     @Test
     public void processNotificationWithAppendedAndAttachedFailures() throws MessagingException, IOException {
@@ -283,7 +283,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         assertThat("Number of notifications published", inbox.size(), is(1));
 
         // Mail consists of 2 parts
-        Multipart multipart = (Multipart)inbox.get(0).getContent();
+        Multipart multipart = (Multipart) inbox.get(0).getContent();
         assertThat("Number of parts which the mail consist of", multipart.getCount(), is(2));
 
         // First part contains the expected resource content
@@ -401,7 +401,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     }
 
     private String getMarcXchange(String id) {
-        return  "<?xml version='1.0' encoding='UTF-8'?>\n" +
+        return "<?xml version='1.0' encoding='UTF-8'?>\n" +
                 "<record xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
                 "<datafield ind1='0' ind2='0' tag='001'>" +
                 "<subfield code='a'>" + id + "</subfield>" +
@@ -411,6 +411,6 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 
     private String asAddi(String content) {
         return String.format("19\n<es:referencedata/>\n%d\n%s\n",
-                    content.getBytes(StandardCharsets.UTF_8).length, content);
+                content.getBytes(StandardCharsets.UTF_8).length, content);
     }
 }

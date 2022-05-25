@@ -26,7 +26,8 @@ public class DanMarc2LineFormatDataPartitionerTest {
         try {
             DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, StandardCharsets.UTF_8.name());
             fail("No exception thrown");
-        } catch (InvalidEncodingException ignored) { }
+        } catch (InvalidEncodingException ignored) {
+        }
     }
 
     @Test
@@ -116,7 +117,8 @@ public class DanMarc2LineFormatDataPartitionerTest {
         try {
             iterator.next();
             fail("No exception thrown");
-        } catch (PrematureEndOfDataException ignored) { }
+        } catch (PrematureEndOfDataException ignored) {
+        }
     }
 
     @Test

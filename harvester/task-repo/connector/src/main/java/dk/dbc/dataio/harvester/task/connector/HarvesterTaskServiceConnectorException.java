@@ -4,7 +4,7 @@ public class HarvesterTaskServiceConnectorException extends Exception {
 
     /**
      * Constructs a new exception with the specified detail message
-     *
+     * <p>
      * The cause is not initialized, and may subsequently be initialized by
      * a call to {@link #initCause}.
      *

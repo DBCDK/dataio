@@ -11,12 +11,13 @@ import java.util.Optional;
 
 /**
  * This class parses MarcRecord objects into MarcRecordInfo instances.
- *
+ * <p>
  * This class is thread safe.
  */
 public class MarcRecordInfoBuilder {
     /**
      * Parses given MarcRecord object into its corresponding MarcRecordInfo instance
+     *
      * @param marcRecord MarcRecord object to be parsed
      * @return Optional containing MarcRecordInfo object or empty is given MarcRecord was null
      * @throws IllegalStateException on failure to create MarcRecordInfo object
@@ -33,13 +34,17 @@ public class MarcRecordInfoBuilder {
             }
 
             switch (field.getTag()) {
-                case "001": parse001(parseResult, field);
+                case "001":
+                    parse001(parseResult, field);
                     break;
-                case "004": parse004(parseResult, (DataField) field);
+                case "004":
+                    parse004(parseResult, (DataField) field);
                     break;
-                case "014": parse014(parseResult, (DataField) field);
+                case "014":
+                    parse014(parseResult, (DataField) field);
                     break;
-                default: break; // Shuts up findbugs
+                default:
+                    break; // Shuts up findbugs
             }
         }
         return Optional.of(parseResult.toMarcRecordInfo());
@@ -84,11 +89,14 @@ public class MarcRecordInfoBuilder {
 
     private void parse004Subfield(ParseResult parseResult, SubField subfield) {
         switch (subfield.getCode()) {
-            case 'a': parseResult.type = getRecordType(subfield.getData());
+            case 'a':
+                parseResult.type = getRecordType(subfield.getData());
                 break;
-            case 'r': parseResult.isDelete = "d".equals(subfield.getData());
+            case 'r':
+                parseResult.isDelete = "d".equals(subfield.getData());
                 break;
-            default: break;  // shuts up findbugs
+            default:
+                break;  // shuts up findbugs
         }
     }
 
@@ -101,10 +109,14 @@ public class MarcRecordInfoBuilder {
            i Enkeltstående analysepost (I-analyse)
          */
         switch (data) {
-            case "h": return MarcRecordInfo.RecordType.HEAD;
-            case "s": return MarcRecordInfo.RecordType.SECTION;
-            case "b": return MarcRecordInfo.RecordType.VOLUME;
-            default: return MarcRecordInfo.RecordType.STANDALONE;
+            case "h":
+                return MarcRecordInfo.RecordType.HEAD;
+            case "s":
+                return MarcRecordInfo.RecordType.SECTION;
+            case "b":
+                return MarcRecordInfo.RecordType.VOLUME;
+            default:
+                return MarcRecordInfo.RecordType.STANDALONE;
         }
     }
 

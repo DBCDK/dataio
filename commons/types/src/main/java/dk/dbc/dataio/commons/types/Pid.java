@@ -7,7 +7,7 @@ public class Pid {
         return new Pid(value);
     }
 
-    public enum Type { BIBLIOGRAPHIC_OBJECT, UNIT, WORK }
+    public enum Type {BIBLIOGRAPHIC_OBJECT, UNIT, WORK}
 
     private final String value;
     private Type type;

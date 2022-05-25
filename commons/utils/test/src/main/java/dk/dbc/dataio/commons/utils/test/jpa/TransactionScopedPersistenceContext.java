@@ -40,6 +40,7 @@ public class TransactionScopedPersistenceContext {
 
     /**
      * Represents a code block execution with return value
+     *
      * @param <T> return type of the code block execution
      */
     @FunctionalInterface

@@ -54,7 +54,7 @@ public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
         assertThat(response.size(), is(1));
         assertThat(response.get(0).getId(), is(1L));
         final List<RRHarvesterConfig> expectedList = buildRRList();
-        assertThat(response.get(0),is(expectedList.get(0)));
+        assertThat(response.get(0), is(expectedList.get(0)));
     }
 
     private List<RRHarvesterConfig> buildRRList() {
@@ -81,7 +81,7 @@ public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
         final Client client = HttpClient.newClient(new ClientConfig()
                 .register(new JacksonFeature()));
         return new FlowStoreServiceConnector(client,
-                String.format("http://localhost:%d/", wireMockRule.port() ));
+                String.format("http://localhost:%d/", wireMockRule.port()));
     }
 
     private <T extends HarvesterConfig> String marshall(List<T> list) throws JSONBException {

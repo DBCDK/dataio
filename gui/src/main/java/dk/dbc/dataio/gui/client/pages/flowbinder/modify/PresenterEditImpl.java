@@ -13,10 +13,12 @@ import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     private long id;
+
     /**
      * Constructor
-     * @param place     the edit place
-     * @param header    Breadcrumb header text
+     *
+     * @param place  the edit place
+     * @param header Breadcrumb header text
      */
     public PresenterEditImpl(Place place, String header) {
         super(header);
@@ -85,6 +87,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             String msg = "Flowbinder.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(FlowBinderModel model) {
             setFlowBinderModel(model);

@@ -29,6 +29,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * Is called by PlaceManager, whenever the Place is being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
      * @param eventBus        the eventBus to use
      */
@@ -68,6 +69,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
                     caught, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
+
         @Override
         public void onSuccess(List<PeriodicJobsHarvesterConfig> configs) {
             getView().setHarvesters(configs);

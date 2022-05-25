@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.show;
 
 import com.google.gwt.activity.shared.Activity;
@@ -24,6 +22,7 @@ public class Place extends AbstractBasePlace {
         public String getToken(Place place) {
             return "";
         }
+
         @Override
         public Place getPlace(String token) {
             return new Place();

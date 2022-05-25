@@ -9,7 +9,8 @@ public class ServiceError implements Serializable {
     private /* final */ String details;
     private /* final */ String stacktrace;
 
-    public ServiceError() { }
+    public ServiceError() {
+    }
 
     public ServiceError withMessage(String message) {
         this.message = message;

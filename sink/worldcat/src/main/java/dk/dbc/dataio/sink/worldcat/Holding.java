@@ -10,6 +10,7 @@ public class Holding implements Comparable<Holding> {
         Action(String wciruValue) {
             this.wciruValue = wciruValue;
         }
+
         public String getWciruValue() {
             return wciruValue;
         }

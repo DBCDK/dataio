@@ -1,12 +1,12 @@
 package dk.dbc.dataio.filestore.service.connector;
 
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpDelete;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import org.junit.Test;
 
 import javax.ws.rs.ProcessingException;

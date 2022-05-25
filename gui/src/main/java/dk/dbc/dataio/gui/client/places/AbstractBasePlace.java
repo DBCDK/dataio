@@ -24,7 +24,9 @@ import java.util.Set;
  */
 public abstract class AbstractBasePlace extends Place {
     protected CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+
     public abstract Activity createPresenter(ClientFactory clientFactory);
+
     public Activity presenter = null;
     public static final String INVERT = "!";
 
@@ -35,29 +37,35 @@ public abstract class AbstractBasePlace extends Place {
         public PlaceParameterValue(String value) {
             this(false, value);
         }
+
         public PlaceParameterValue(boolean invert, String value) {
             this.invert = invert;
             this.value = value;
         }
+
         public boolean isInvert() {
             return invert;
         }
+
         public void setInvert(boolean invert) {
             this.invert = invert;
         }
+
         public String getValue() {
             return value;
         }
+
         public void setValue(String value) {
             this.value = value;
         }
+
         private boolean invert;
         private String value;
     }
 
     /**
      * Constructor for taking multiple tokens as key/value pairs<br>
-     *     For backwards compatibility reasons, only non-inverted values are given
+     * For backwards compatibility reasons, only non-inverted values are given
      *
      * @param tokens will be parsed to extract the parameters passed as part of token
      */
@@ -86,7 +94,7 @@ public abstract class AbstractBasePlace extends Place {
     @SuppressWarnings("unused")
     public boolean validate(String... keys) {
         boolean validationOk = true;
-        for (String key: keys) {
+        for (String key : keys) {
             if (!parameters.containsKey(key)) {
                 validationOk = false;
             }
@@ -190,7 +198,7 @@ public abstract class AbstractBasePlace extends Place {
     /**
      * Adds a named parameter to the place.
      *
-     * @param key The name of the parameter
+     * @param key   The name of the parameter
      * @param value The value of the parameter
      */
     public void addParameter(String key, String value) {
@@ -200,12 +208,12 @@ public abstract class AbstractBasePlace extends Place {
 
     /**
      * Adds a named parameter to the place with the invert option <br>
-     *     Invert means, that the notation in the URL is:<br>
-     *         key!=value
+     * Invert means, that the notation in the URL is:<br>
+     * key!=value
      *
-     * @param key The name of the parameter
+     * @param key    The name of the parameter
      * @param invert True: Invert value, False: Do not invert value
-     * @param value The value of the parameter
+     * @param value  The value of the parameter
      */
     public void addParameter(String key, boolean invert, String value) {
         parameters.put(key, new PlaceParameterValue(invert, value));
@@ -235,21 +243,21 @@ public abstract class AbstractBasePlace extends Place {
         Map<String, PlaceParameterValue> map = new LinkedHashMap<>();
         for (int i = 0; i < tokens.length; i++) {
             if (tokens[i] == null || tokens[i].isEmpty()) break;
-            map.put(tokens[i++], new PlaceParameterValue(i>=tokens.length || tokens[i]==null ? "" : tokens[i]));
+            map.put(tokens[i++], new PlaceParameterValue(i >= tokens.length || tokens[i] == null ? "" : tokens[i]));
         }
         return map;
     }
 
     /**
      * Maps a Map&lt;String, PlaceParameterValue&gt; to a Token (String) in the form: <br>
-     *     key1=value1&amp;key2=value2 etc...
+     * key1=value1&amp;key2=value2 etc...
      *
      * @param parameters The Map of key/value pairs
      * @return The resulting Token
      */
     public static String parameters2Token(Map<String, PlaceParameterValue> parameters) {
         StringBuilder result = new StringBuilder();
-        for (String key: parameters.keySet()) {
+        for (String key : parameters.keySet()) {
             if (result.length() > 0) {
                 result.append("&");
             }
@@ -294,6 +302,7 @@ public abstract class AbstractBasePlace extends Place {
 
     /**
      * Gets the presenter, stored in the place
+     *
      * @return The presenter
      */
     protected Activity getPresenter() {

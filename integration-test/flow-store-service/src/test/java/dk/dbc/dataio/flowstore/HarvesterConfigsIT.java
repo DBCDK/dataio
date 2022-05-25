@@ -19,8 +19,8 @@ import java.util.List;
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.fail;
 
 public class HarvesterConfigsIT extends AbstractFlowStoreServiceContainerTest {
@@ -72,7 +72,7 @@ public class HarvesterConfigsIT extends AbstractFlowStoreServiceContainerTest {
     /**
      * Given: a deployed flow-store service where a valid harvester config is stored
      * When : valid JSON is POSTed to the harvester config path with an identifier (update) with a change to the harvester
-     *        config type
+     * config type
      * Then : assert the harvester config has been updated correctly
      */
     @Test
@@ -132,7 +132,7 @@ public class HarvesterConfigsIT extends AbstractFlowStoreServiceContainerTest {
             fail("Edit conflict, in the case of multiple updates, was not detected as input to updateHarvesterConfig().");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(409));
         }

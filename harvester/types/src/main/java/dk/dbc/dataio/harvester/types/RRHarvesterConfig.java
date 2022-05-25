@@ -11,8 +11,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content> implements  Serializable {
+public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content> implements Serializable {
     private static final long serialVersionUID = 3701420845816493033L;
+
     public enum HarvesterType {STANDARD, IMS, WORLDCAT}
 
     @JsonCreator
@@ -24,7 +25,8 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         super(id, version, content);
     }
 
-    public RRHarvesterConfig() { }
+    public RRHarvesterConfig() {
+    }
 
     @Override
     public String getLogId() {

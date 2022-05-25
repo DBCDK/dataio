@@ -285,7 +285,8 @@ public class HarvestOperationIT extends IntegrationTest {
         final HarvestOperation harvestOperation = createHarvestOperation(config);
         try {
             taskrepo.getPersistenceContext().run(harvestOperation::execute);
-        } catch (RuntimeException e) {}
+        } catch (RuntimeException e) {
+        }
 
         assertThat("Task remains after failed harvest",
                 taskrepo.getEntityManager().find(HarvestTask.class, task.getId()), is(notNullValue()));

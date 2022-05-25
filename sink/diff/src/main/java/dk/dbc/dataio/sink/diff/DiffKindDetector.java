@@ -1,7 +1,8 @@
 package dk.dbc.dataio.sink.diff;
 
 public class DiffKindDetector {
-    private DiffKindDetector() {}
+    private DiffKindDetector() {
+    }
 
     public static ExternalToolDiffGenerator.Kind getKind(byte[] data) {
         if (data != null && data.length > 0) {

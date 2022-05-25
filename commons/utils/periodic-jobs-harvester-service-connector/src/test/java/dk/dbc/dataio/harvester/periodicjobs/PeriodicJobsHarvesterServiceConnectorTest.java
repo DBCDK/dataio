@@ -3,10 +3,9 @@ package dk.dbc.dataio.harvester.periodicjobs;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpPost;
+import org.junit.Test;
 
 import javax.ws.rs.core.Response;
-
-import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

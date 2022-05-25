@@ -27,7 +27,8 @@ public class SinkContent implements Serializable {
         WORLDCAT,
         DMAT
     }
-    public enum SequenceAnalysisOption { ALL, ID_ONLY }
+
+    public enum SequenceAnalysisOption {ALL, ID_ONLY}
 
     private static final SinkType NULL_TYPE = null;
     private static final SinkConfig NULL_CONFIG = null;
@@ -42,14 +43,13 @@ public class SinkContent implements Serializable {
     /**
      * Class constructor
      *
-     * @param name sink name
-     * @param resource sink resource
-     * @param description sink description
-     * @param sinkType sink type
-     * @param sinkConfig sink config
+     * @param name                   sink name
+     * @param resource               sink resource
+     * @param description            sink description
+     * @param sinkType               sink type
+     * @param sinkConfig             sink config
      * @param sequenceAnalysisOption options for sequence analysis
-     *
-     * @throws NullPointerException if given null-valued name or resource argument
+     * @throws NullPointerException     if given null-valued name or resource argument
      * @throws IllegalArgumentException if given empty-valued name or resource argument
      */
     @JsonCreator

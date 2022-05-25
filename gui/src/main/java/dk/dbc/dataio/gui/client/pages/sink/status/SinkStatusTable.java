@@ -27,7 +27,7 @@ public class SinkStatusTable extends CellTable {
         Date latestMovement;
 
         public SinkStatusModel(long sinkId, String sinkType, String name, int outstandingJobs, int outstandingChunks, Date latestMovement) {
-          this.sinkId = sinkId;
+            this.sinkId = sinkId;
             this.sinkType = sinkType;
             this.name = name;
             this.outstandingJobs = outstandingJobs;
@@ -35,34 +35,58 @@ public class SinkStatusTable extends CellTable {
             this.latestMovement = latestMovement == null ? null : new Date(latestMovement.getTime());
         }
 
-        public SinkStatusModel() {}
+        public SinkStatusModel() {
+        }
 
-        public long getSinkId() {return sinkId;}
+        public long getSinkId() {
+            return sinkId;
+        }
+
         public SinkStatusModel withSinkId(long sinkId) {
             this.sinkId = sinkId;
             return this;
         }
-        public String getSinkType() {return sinkType;}
+
+        public String getSinkType() {
+            return sinkType;
+        }
+
         public SinkStatusModel withSinkType(String type) {
             this.sinkType = type;
             return this;
         }
-        public String getName() {return name;}
+
+        public String getName() {
+            return name;
+        }
+
         public SinkStatusModel withName(String name) {
             this.name = name;
             return this;
         }
-        public int getOutstandingJobs() {return outstandingJobs;}
+
+        public int getOutstandingJobs() {
+            return outstandingJobs;
+        }
+
         public SinkStatusModel withOutstandingJobs(int outstandingJobs) {
             this.outstandingJobs = outstandingJobs;
             return this;
         }
-        public int getOutstandingChunks() {return outstandingChunks;}
+
+        public int getOutstandingChunks() {
+            return outstandingChunks;
+        }
+
         public SinkStatusModel withOutstandingChunks(int outstandingChunks) {
             this.outstandingChunks = outstandingChunks;
             return this;
         }
-        public Date getLatestMovement() {return latestMovement;}
+
+        public Date getLatestMovement() {
+            return latestMovement;
+        }
+
         public SinkStatusModel withLatestMovement(Date latestMovement) {
             this.latestMovement = latestMovement == null ? null : new Date(latestMovement.getTime());
             return this;
@@ -121,7 +145,8 @@ public class SinkStatusTable extends CellTable {
 
     /**
      * This method sets the sink status data for the table
-     * @param presenter The presenter
+     *
+     * @param presenter        The presenter
      * @param sinkStatusModels The sink status data
      */
     public void setSinkStatusData(Presenter presenter, List<SinkStatusModel> sinkStatusModels) {
@@ -129,7 +154,7 @@ public class SinkStatusTable extends CellTable {
         this.presenter = presenter;
         sinkStatus.clear();
         if (sinkStatusModels != null && !sinkStatusModels.isEmpty()) {
-            for (SinkStatusModel model: sinkStatusModels ) {
+            for (SinkStatusModel model : sinkStatusModels) {
                 sinkStatus.add(model);
             }
         }

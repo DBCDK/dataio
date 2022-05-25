@@ -62,7 +62,7 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String prompt_RecordLimit();
-    
+
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String prompt_FtpAddress();
 

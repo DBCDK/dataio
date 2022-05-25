@@ -6,8 +6,8 @@ import org.junit.Test;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.fail;
 
 public class PrettyPrintTest {
@@ -16,8 +16,8 @@ public class PrettyPrintTest {
     private final String text = "text";
     private final String marcXml =
             "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-                "<marcx:record format=\"danMARC2\"></marcx:record>" +
-            "</marcx:collection>";
+                    "<marcx:record format=\"danMARC2\"></marcx:record>" +
+                    "</marcx:collection>";
 
     private final Charset encoding = StandardCharsets.UTF_8;
 
@@ -31,8 +31,8 @@ public class PrettyPrintTest {
     public void asXml_xmlInput_returnsPrettyPrintedDataAsString() {
         final String expectedPrettyPrint =
                 "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">\n" +
-                    "\t<marcx:record format=\"danMARC2\"></marcx:record>\n" +
-                "</marcx:collection>\n";
+                        "\t<marcx:record format=\"danMARC2\"></marcx:record>\n" +
+                        "</marcx:collection>\n";
 
         final String prettyPrint = PrettyPrint.asXml(marcXml.getBytes(), encoding);
         assertThat(prettyPrint, is(expectedPrettyPrint));
@@ -51,7 +51,8 @@ public class PrettyPrintTest {
         try {
             PrettyPrint.asJson(text.getBytes(), encoding);
             fail("expected exception not thrown");
-        } catch (JSONBException e) { }
+        } catch (JSONBException e) {
+        }
     }
 
     @Test
@@ -60,11 +61,11 @@ public class PrettyPrintTest {
         final String prettyPrintXml = PrettyPrint.asXml(marcXml.getBytes(), encoding);
         final String expectedPrint =
                 "{\n" +
-                    "\t\"value\" : 42\n" +
-                "}\n\n" +
-                "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">\n" +
-                    "\t<marcx:record format=\"danMARC2\"></marcx:record>\n" +
-                "</marcx:collection>\n";
+                        "\t\"value\" : 42\n" +
+                        "}\n\n" +
+                        "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">\n" +
+                        "\t<marcx:record format=\"danMARC2\"></marcx:record>\n" +
+                        "</marcx:collection>\n";
 
         final String combinedPrintElements = PrettyPrint.combinePrintElements(prettyPrintJson, prettyPrintXml);
         assertThat(combinedPrintElements, is(expectedPrint));

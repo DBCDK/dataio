@@ -7,10 +7,10 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "editReplaceType", propOrder = {
-    "dataIdentifier",
-    "oldValue",
-    "newValue",
-    "editReplaceType"
+        "dataIdentifier",
+        "oldValue",
+        "newValue",
+        "editReplaceType"
 })
 public class EditReplaceType {
 

@@ -6,10 +6,12 @@ import dk.dbc.marc.Marc8Charset;
 import java.nio.charset.Charset;
 
 public class CharacterEncodingScheme {
-    private CharacterEncodingScheme() {}
+    private CharacterEncodingScheme() {
+    }
 
     /**
      * Resolves {@link Charset} from given character set name (or alias)
+     *
      * @param name character set name (is automatically lowercased and trimmed)
      * @return {@link Charset} instance
      * @throws InvalidEncodingException if unable to resolve into {@link Charset}

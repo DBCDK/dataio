@@ -31,17 +31,19 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
-* PresenterImpl unit tests
-*
-* The test methods of this class uses the following naming convention:
-*
-*  unitOfWork_stateUnderTest_expectedBehavior
-*/
+ * PresenterImpl unit tests
+ * <p>
+ * The test methods of this class uses the following naming convention:
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
+ */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
 
-    @Mock Texts mockedTexts;
-    @Mock ViewGinjector mockedViwGinjector;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    ViewGinjector mockedViwGinjector;
     private ViewWidget viewWidget;
 
     private PresenterImplConcrete presenterImpl;
@@ -143,6 +145,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedContainerWidget).setWidget(any(IsWidget.class));
         verify(mockedCommonGinjector.getFlowStoreProxyAsync()).findAllFlowComponents(any(PresenterImpl.FindAllFlowComponentsAsyncCallback.class));
     }
+
     @Test
     public void nameChanged_callNameChanged_nameIsChangedAccordingly() {
         final String CHANGED_NAME = "UpdatedName";

@@ -29,10 +29,14 @@ public class HarvesterToken {
 
         public static HarvesterVariant of(String variantName) {
             switch (variantName) {
-                case "periodic-jobs": return PERIODIC_JOBS;
-                case "raw-repo": return RAW_REPO;
-                case "tickle-repo": return TICKLE_REPO;
-                default: throw new IllegalArgumentException("Unknown variant " + variantName);
+                case "periodic-jobs":
+                    return PERIODIC_JOBS;
+                case "raw-repo":
+                    return RAW_REPO;
+                case "tickle-repo":
+                    return TICKLE_REPO;
+                default:
+                    throw new IllegalArgumentException("Unknown variant " + variantName);
             }
         }
     }
@@ -54,7 +58,8 @@ public class HarvesterToken {
         }
     }
 
-    public HarvesterToken() {}
+    public HarvesterToken() {
+    }
 
     public HarvesterVariant getHarvesterVariant() {
         return harvesterVariant;

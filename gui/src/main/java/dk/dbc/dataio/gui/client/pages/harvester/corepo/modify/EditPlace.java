@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.modify;
 
 import com.google.gwt.activity.shared.Activity;
@@ -35,6 +33,7 @@ public class EditPlace extends AbstractBasePlace {
         public String getToken(EditPlace place) {
             return String.valueOf(place.getHarvesterId());
         }
+
         @Override
         public EditPlace getPlace(String token) {
             return new EditPlace(token);

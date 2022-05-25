@@ -96,9 +96,9 @@ public class JobSpecificationFactoryTest {
                 .withDataFile(Constants.MISSING_FIELD_VALUE)
                 .withType(JobSpecification.Type.TRANSIENT)
                 .withAncestry(new JobSpecification.Ancestry()
-                                .withTransfile(transfileName)
-                                .withDatafile(Constants.MISSING_FIELD_VALUE)
-                                .withDetails(rawTransfile)
+                        .withTransfile(transfileName)
+                        .withDatafile(Constants.MISSING_FIELD_VALUE)
+                        .withDetails(rawTransfile)
                 );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("foo,j=TRANSIENT"), transfileName, "42", rawTransfile);
@@ -120,9 +120,9 @@ public class JobSpecificationFactoryTest {
                 .withDataFile(Constants.MISSING_FIELD_VALUE)
                 .withType(JobSpecification.Type.PERSISTENT)
                 .withAncestry(new JobSpecification.Ancestry()
-                                .withTransfile(transfileName)
-                                .withDatafile(Constants.MISSING_FIELD_VALUE)
-                                .withDetails(rawTransfile)
+                        .withTransfile(transfileName)
+                        .withDatafile(Constants.MISSING_FIELD_VALUE)
+                        .withDetails(rawTransfile)
                 );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("b= ,f=,t= ,c=,o= ,m=,M= ,i="), transfileName, "42", rawTransfile);
@@ -144,9 +144,9 @@ public class JobSpecificationFactoryTest {
                 .withDataFile(Constants.MISSING_FIELD_VALUE)
                 .withType(JobSpecification.Type.PERSISTENT)
                 .withAncestry(new JobSpecification.Ancestry()
-                                .withTransfile(transfileName)
-                                .withDatafile(Constants.MISSING_FIELD_VALUE)
-                                .withDetails(rawTransfile)
+                        .withTransfile(transfileName)
+                        .withDatafile(Constants.MISSING_FIELD_VALUE)
+                        .withDetails(rawTransfile)
                 );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("b=danbib,f=,t=,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
@@ -168,9 +168,9 @@ public class JobSpecificationFactoryTest {
                 .withDataFile(Constants.MISSING_FIELD_VALUE)
                 .withType(JobSpecification.Type.PERSISTENT)
                 .withAncestry(new JobSpecification.Ancestry()
-                                .withTransfile(transfileName)
-                                .withDatafile(Constants.MISSING_FIELD_VALUE)
-                                .withDetails(rawTransfile)
+                        .withTransfile(transfileName)
+                        .withDatafile(Constants.MISSING_FIELD_VALUE)
+                        .withDetails(rawTransfile)
                 );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("b=danbib,f=,t=,c=utf8,o=,m=,M=,i="), transfileName, "42", rawTransfile);
@@ -192,9 +192,9 @@ public class JobSpecificationFactoryTest {
                 .withDataFile(Constants.MISSING_FIELD_VALUE)
                 .withType(JobSpecification.Type.PERSISTENT)
                 .withAncestry(new JobSpecification.Ancestry()
-                                .withTransfile(transfileName)
-                                .withDatafile(Constants.MISSING_FIELD_VALUE)
-                                .withDetails(rawTransfile)
+                        .withTransfile(transfileName)
+                        .withDatafile(Constants.MISSING_FIELD_VALUE)
+                        .withDetails(rawTransfile)
                 );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("b=danbib,f=,t=lin,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
@@ -216,9 +216,9 @@ public class JobSpecificationFactoryTest {
                 .withDataFile(Constants.MISSING_FIELD_VALUE)
                 .withType(JobSpecification.Type.TRANSIENT)
                 .withAncestry(new JobSpecification.Ancestry()
-                                .withTransfile(transfileName)
-                                .withDatafile(Constants.MISSING_FIELD_VALUE)
-                                .withDetails(rawTransfile)
+                        .withTransfile(transfileName)
+                        .withDatafile(Constants.MISSING_FIELD_VALUE)
+                        .withDetails(rawTransfile)
                 );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("b=marckonv,f=,t=lin,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
@@ -289,9 +289,9 @@ public class JobSpecificationFactoryTest {
                 .withDataFile(Constants.MISSING_FIELD_VALUE)
                 .withType(JobSpecification.Type.PERSISTENT)
                 .withAncestry(new JobSpecification.Ancestry()
-                                .withTransfile(transfileName)
-                                .withDatafile(Constants.MISSING_FIELD_VALUE)
-                                .withDetails(rawTransfile)
+                        .withTransfile(transfileName)
+                        .withDatafile(Constants.MISSING_FIELD_VALUE)
+                        .withDetails(rawTransfile)
                 );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("b=not_danbib,f=,t=,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);

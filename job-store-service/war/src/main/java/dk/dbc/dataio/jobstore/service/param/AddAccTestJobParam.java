@@ -25,7 +25,7 @@ public class AddAccTestJobParam extends AddJobParam {
     }
 
     @Override
-    protected RecordSplitterConstants.RecordSplitter lookupTypeOfDataPartitioner () {
+    protected RecordSplitterConstants.RecordSplitter lookupTypeOfDataPartitioner() {
         return ((AccTestJobInputStream) jobInputStream).getTypeOfDataPartitioner();
     }
 }

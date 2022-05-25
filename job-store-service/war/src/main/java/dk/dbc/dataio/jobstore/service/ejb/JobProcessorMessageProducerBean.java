@@ -40,11 +40,12 @@ public class JobProcessorMessageProducerBean {
 
     /**
      * Sends given Chunk instance as JMS message with JSON payload to processor queue destination
-     * @param chunk chunk instance to be inserted as message payload
+     *
+     * @param chunk     chunk instance to be inserted as message payload
      * @param jobEntity instance to deduct which processor shard should be inserted as message payload
-     * @param priority message priority
+     * @param priority  message priority
      * @throws NullPointerException when given null-valued argument
-     * @throws JobStoreException when unable to send given chunk to destination
+     * @throws JobStoreException    when unable to send given chunk to destination
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void send(Chunk chunk, JobEntity jobEntity, int priority) throws NullPointerException, JobStoreException {
@@ -65,12 +66,13 @@ public class JobProcessorMessageProducerBean {
      * with '{@value JmsConstants#PAYLOAD_PROPERTY_NAME}'
      * set to '{@value JmsConstants#JOB_STORE_SOURCE_VALUE}'
      * and '{@value JmsConstants#CHUNK_PAYLOAD_TYPE}' respectively.
-     * @param context active JMS context
-     * @param chunk chunk instance to be added as payload
+     *
+     * @param context   active JMS context
+     * @param chunk     chunk instance to be added as payload
      * @param jobEntity to where the chunk instance belongs
      * @return TextMessage instance
      * @throws JSONBException when unable to marshall chunk instance to JSON
-     * @throws JMSException when unable to create JMS message
+     * @throws JMSException   when unable to create JMS message
      */
     public TextMessage createMessage(JMSContext context, Chunk chunk, JobEntity jobEntity) throws JMSException, JSONBException {
         final TextMessage message = context.createTextMessage(jsonbContext.marshall(chunk));
@@ -88,11 +90,12 @@ public class JobProcessorMessageProducerBean {
 
     /**
      * Deciphers whether the given jobEntity is of type acceptance test or business
+     *
      * @param jobEntity current jobEntity
      * @return ProcessorShard for the given jobEntity
      */
     private ProcessorShard resolveProcessorShard(JobEntity jobEntity) {
-        if(jobEntity.getSpecification().getType() == JobSpecification.Type.ACCTEST) {
+        if (jobEntity.getSpecification().getType() == JobSpecification.Type.ACCTEST) {
             return new ProcessorShard(ProcessorShard.Type.ACCTEST);
         } else {
             return new ProcessorShard(ProcessorShard.Type.BUSINESS);
@@ -101,6 +104,7 @@ public class JobProcessorMessageProducerBean {
 
     /**
      * Builds a json String containing the format and the submitter number
+     *
      * @param jobEntity containing the jobSpecification
      * @return jsonString
      */

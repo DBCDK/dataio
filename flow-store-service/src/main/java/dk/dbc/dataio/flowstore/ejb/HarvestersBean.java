@@ -43,14 +43,15 @@ public class HarvestersBean {
 
     /**
      * Creates a new harvester config
-     * @param uriInfo URI information
-     * @param type type of config as class name with full path
+     *
+     * @param uriInfo       URI information
+     * @param type          type of config as class name with full path
      * @param configContent content of the created harvester config
      * @return a HTTP 201 CREATED response with created harvester config as JSON,
-     *         a HTTP 400 BAD REQUEST response if type is unknown, f content is invalid JSON or if content is not compatible with type.
-     *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
+     * a HTTP 400 BAD REQUEST response if type is unknown, f content is invalid JSON or if content is not compatible with type.
+     * a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      * @throws ClassNotFoundException if type is unknown
-     * @throws JSONBException if content is invalid JSON or if content is not compatible with type
+     * @throws JSONBException         if content is invalid JSON or if content is not compatible with type
      */
     @POST
     @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
@@ -77,18 +78,19 @@ public class HarvestersBean {
 
     /**
      * Updates an existing harvester config
-     * @param id ID of the harvester config to be updated
-     * @param version current version of the harvester config to be updated (from "{@value dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants#IF_MATCH_HEADER}"-header)
-     * @param type type of the harvester config to be updated (from "{@value dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants#RESOURCE_TYPE_HEADER}"-header),
-     *             if not set the current type of the harvester config is retained.
+     *
+     * @param id            ID of the harvester config to be updated
+     * @param version       current version of the harvester config to be updated (from "{@value dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants#IF_MATCH_HEADER}"-header)
+     * @param type          type of the harvester config to be updated (from "{@value dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants#RESOURCE_TYPE_HEADER}"-header),
+     *                      if not set the current type of the harvester config is retained.
      * @param configContent content of the updated harvester config
      * @return a HTTP 200 OK response with updated harvester config as JSON,
-     *         a HTTP 400 BAD REQUEST response if type is unknown, f content is invalid JSON or if content is not compatible with type,
-     *         a HTTP 404 NOT FOUND response if given ID does not exist,
-     *         a HTTP 409 CONFLICT response in case of concurrent-modification error,
-     *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
+     * a HTTP 400 BAD REQUEST response if type is unknown, f content is invalid JSON or if content is not compatible with type,
+     * a HTTP 404 NOT FOUND response if given ID does not exist,
+     * a HTTP 409 CONFLICT response in case of concurrent-modification error,
+     * a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      * @throws ClassNotFoundException if type is unknown
-     * @throws JSONBException if content is invalid JSON or if content is not compatible with type
+     * @throws JSONBException         if content is invalid JSON or if content is not compatible with type
      */
     @POST
     @Path(FlowStoreServiceConstants.HARVESTER_CONFIG)
@@ -127,10 +129,11 @@ public class HarvestersBean {
 
     /**
      * Retrieves harvester config from underlying data store
+     *
      * @param id harvester config identifier
      * @return a HTTP 200 OK response with harvester config content as JSON,
-     *         a HTTP 404 NOT FOUND response if not found,
-     *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
+     * a HTTP 404 NOT FOUND response if not found,
+     * a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      * @throws JSONBException on failure to marshall found harvester config
      */
     @GET
@@ -150,12 +153,13 @@ public class HarvestersBean {
 
     /**
      * Deletes an existing harvester config
-     * @param id ID of config to be deleted
+     *
+     * @param id      ID of config to be deleted
      * @param version current version of config at the time of deletion
      * @return a HTTP 204 NO CONTENT response with no content if config is deleted,
-     *         a HTTP 404 NOT FOUND response in case of ID not found,
-     *         a HTTP 409 CONFLICT response in case of version conflict,
-     *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
+     * a HTTP 404 NOT FOUND response in case of ID not found,
+     * a HTTP 409 CONFLICT response in case of version conflict,
+     * a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      */
     @DELETE
     @Path(FlowStoreServiceConstants.HARVESTER_CONFIG)
@@ -179,9 +183,10 @@ public class HarvestersBean {
 
     /**
      * Returns list of all harvester configs of given type
+     *
      * @param type type of config as class name with full path
      * @return a HTTP 200 OK response with result list as JSON.
-     *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
+     * a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      */
     @GET
     @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
@@ -200,9 +205,10 @@ public class HarvestersBean {
 
     /**
      * Returns list of all enabled harvester configs of given type
+     *
      * @param type type of config as class name with full path
      * @return a HTTP 200 OK response with result list as JSON.
-     *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
+     * a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      */
     @GET
     @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE_ENABLED)

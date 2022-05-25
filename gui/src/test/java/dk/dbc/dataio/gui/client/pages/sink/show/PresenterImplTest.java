@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.gui.client.pages.sink.show;
 
 
@@ -31,20 +30,26 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
 
-    @Mock View mockedView;
-    @Mock Widget mockedViewWidget;
-    @Mock ProxyException mockedProxyException;
-    @Mock SingleSelectionModel<SinkModel> mockedSelectionModel;
-    @Mock ListDataProvider<SinkModel> mockedDataProvider;
-    @Mock private ViewGinjector mockedViewGinjector;
+    @Mock
+    View mockedView;
+    @Mock
+    Widget mockedViewWidget;
+    @Mock
+    ProxyException mockedProxyException;
+    @Mock
+    SingleSelectionModel<SinkModel> mockedSelectionModel;
+    @Mock
+    ListDataProvider<SinkModel> mockedDataProvider;
+    @Mock
+    private ViewGinjector mockedViewGinjector;
 
     // Setup mocked data
     @Before
@@ -67,6 +72,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         public PresenterImplConcrete() {
             super(mockedPlaceController, header);
         }
+
         public FetchSinksCallback fetchSinksCallback = new FetchSinksCallback();
     }
 
@@ -166,6 +172,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedSelectionModel).clear();
         verify(mockedView).setSinks(testModels);
     }
+
     @Test
     public void fetchSinks_callbackWithSuccess_sinksAreFetchedNoChanges() {
 

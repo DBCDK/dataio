@@ -17,7 +17,8 @@ public class TaskRepoDatabaseMigrator {
     @Resource(lookup = "jdbc/dataio/harvester/tasks")
     DataSource dataSource;
 
-    public TaskRepoDatabaseMigrator() {}
+    public TaskRepoDatabaseMigrator() {
+    }
 
     public TaskRepoDatabaseMigrator(DataSource dataSource) {
         this.dataSource = dataSource;

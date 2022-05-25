@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 public class RawRepoQueueTest {
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
     private final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()
-                        .withConsumerId("consumerId"));
+            .withConsumerId("consumerId"));
 
     private RawRepoQueue queue;
 
@@ -79,7 +79,7 @@ public class RawRepoQueueTest {
     @Test
     public void poll_pileUpDuration() throws SQLException, HarvesterException, InterruptedException, QueueException {
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
-                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
+                .thenReturn(new MockedQueueItem("id", 123456, "worker",
                         new Timestamp(new Date().getTime()), 1));
 
         // Keep polling high priority items
@@ -96,7 +96,7 @@ public class RawRepoQueueTest {
     @Test
     public void poll_lowPriorityOnly() throws SQLException, HarvesterException, InterruptedException, QueueException {
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
-                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
+                .thenReturn(new MockedQueueItem("id", 123456, "worker",
                         new Timestamp(new Date().getTime()), 1000));
 
         // Keep polling low priority items
@@ -114,12 +114,12 @@ public class RawRepoQueueTest {
     @Test
     public void poll_highPriorityFollowedByLowPriority() throws SQLException, HarvesterException, QueueException {
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
-                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
+                .thenReturn(new MockedQueueItem("id", 123456, "worker",
                         new Timestamp(new Date().getTime()), 1))
-                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
+                .thenReturn(new MockedQueueItem("id", 123456, "worker",
                         new Timestamp(new Date().getTime()), 1000))
-                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
-                    new Timestamp(new Date().getTime()), 1));
+                .thenReturn(new MockedQueueItem("id", 123456, "worker",
+                        new Timestamp(new Date().getTime()), 1));
 
         assertThat("poll high", queue.poll(), is(notNullValue()));
         assertThat("poll low", queue.poll(), is(notNullValue()));
@@ -131,8 +131,8 @@ public class RawRepoQueueTest {
         final RawRepoRecordHarvestTask expectedRecordHarvestTask = new RawRepoRecordHarvestTask()
                 .withRecordId(new RecordIdDTO("id", 123456))
                 .withAddiMetaData(new AddiMetaData()
-                    .withBibliographicRecordId("id")
-                    .withSubmitterNumber(123456));
+                        .withBibliographicRecordId("id")
+                        .withSubmitterNumber(123456));
 
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
                 .thenReturn(new MockedQueueItem(

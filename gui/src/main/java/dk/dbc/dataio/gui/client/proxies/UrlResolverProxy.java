@@ -12,6 +12,7 @@ public interface UrlResolverProxy extends RemoteService {
 
     class Factory {
         private static UrlResolverProxyAsync asyncInstance = null;
+
         public static UrlResolverProxyAsync getAsyncInstance() {
             if (asyncInstance == null) {
                 asyncInstance = GWT.create(UrlResolverProxy.class);

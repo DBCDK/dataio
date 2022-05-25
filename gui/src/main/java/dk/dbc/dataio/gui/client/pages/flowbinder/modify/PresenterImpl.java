@@ -46,6 +46,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         super();
         this.header = header;
     }
+
     /**
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
@@ -169,13 +170,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Adds a map of submitters
+     *
      * @param submitterIds Map of submitters to add
      */
     @Override
     public void addSubmitters(Map<String, String> submitterIds) {
         Set<SubmitterModel> submitterModels = new LinkedHashSet<>();  // Preserve order in the set
         submitterModels.addAll(model.getSubmitterModels());  // Put in a set to avoid duplicates
-        for (String id: submitterIds.keySet()) {
+        for (String id : submitterIds.keySet()) {
             submitterModels.add(getSubmitterModel(Long.parseLong(id)));
         }
         final List<SubmitterModel> result = new ArrayList<>();
@@ -186,6 +188,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Removes a submitter from the list of submitters
+     *
      * @param value The id for the submitter to remove from the submitters list
      */
     @Override
@@ -268,10 +271,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private String formatPriority(Priority priority) {
         switch (priority) {
-            case LOW: return getTexts().selection_Low();
-            case NORMAL: return getTexts().selection_Normal();
-            case HIGH: return getTexts().selection_High();
-            default: return "<unknown priority>";
+            case LOW:
+                return getTexts().selection_Low();
+            case NORMAL:
+                return getTexts().selection_Normal();
+            case HIGH:
+                return getTexts().selection_High();
+            default:
+                return "<unknown priority>";
         }
     }
 
@@ -306,7 +313,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private void configureUpdateSinkSection() {
         View view = getView();
-        if(model.requiresQueueProvider()) {
+        if (model.requiresQueueProvider()) {
             setAvailableQueueProvidersToView();
             setQueryProviderIfNoneSelected();
             view.updateSinkSection.setVisible(true);
@@ -335,7 +342,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private Map<String, String> getAvailableSubmitters(FlowBinderModel model) {
         Map<String, String> availableSubmitterMap = new LinkedHashMap<>();
-        for (SubmitterModel submitterModel: this.availableSubmitters) {
+        for (SubmitterModel submitterModel : this.availableSubmitters) {
             if (!isSubmitterSelected(submitterModel.getId(), model.getSubmitterModels())) {
                 availableSubmitterMap.put(String.valueOf(submitterModel.getId()), formatSubmitterName(submitterModel));
             }
@@ -345,13 +352,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private void setAvailableSubmittersToView(Map<String, String> submitters) {
         getView().popupListBox.clear();
-        for (Map.Entry<String, String> entry: submitters.entrySet()) {
+        for (Map.Entry<String, String> entry : submitters.entrySet()) {
             getView().popupListBox.addItem(entry.getValue(), entry.getKey());
         }
     }
 
     private boolean isSubmitterSelected(long id, List<SubmitterModel> submitterModels) {
-        for (SubmitterModel model: submitterModels) {
+        for (SubmitterModel model : submitterModels) {
             if (model.getId() == id) {
                 return true;
             }
@@ -361,7 +368,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private Map<String, String> getSelectedSubmitters(FlowBinderModel model) {
         Map<String, String> selectedSubmitterMap = new LinkedHashMap<>();
-        for (SubmitterModel submitterModel: model.getSubmitterModels()) {
+        for (SubmitterModel submitterModel : model.getSubmitterModels()) {
             selectedSubmitterMap.put(String.valueOf(submitterModel.getId()), formatSubmitterName(submitterModel));
         }
         return selectedSubmitterMap;
@@ -430,6 +437,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     View getView() {
         return viewInjector.getView();
     }
+
     Texts getTexts() {
         return viewInjector.getTexts();
     }
@@ -518,6 +526,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onFilteredFailure(Throwable e) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
+
         @Override
         public void onSuccess(List<SubmitterModel> submitters) {
             setAvailableSubmitters(submitters);
@@ -533,6 +542,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onFilteredFailure(Throwable e) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
+
         @Override
         public void onSuccess(List<FlowModel> flows) {
             setAvailableFlows(flows);
@@ -547,6 +557,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onFilteredFailure(Throwable e) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
+
         @Override
         public void onSuccess(List<SinkModel> sinks) {
             setAvailableSinks(sinks);
@@ -561,6 +572,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onFilteredFailure(Throwable e) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
         }
+
         @Override
         public void onSuccess(FlowBinderModel model) {
             getView().status.setText(getTexts().status_SaveSuccess());

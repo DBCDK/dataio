@@ -11,10 +11,10 @@ import java.util.Map;
 /**
  * Enables mocking af the JNDI system through an in-memory InitialContext implementation.
  * <code>
- *     // sets up the InMemoryInitialContextFactory as default factory.
- *     System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
- *     // binds the object
- *     InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_FBS_WS, ENDPOINT);
+ * // sets up the InMemoryInitialContextFactory as default factory.
+ * System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
+ * // binds the object
+ * InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_FBS_WS, ENDPOINT);
  * </code>
  */
 public class InMemoryInitialContextFactory implements InitialContextFactory {

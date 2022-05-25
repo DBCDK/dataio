@@ -34,29 +34,46 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     protected static final int PAGE_SIZE = 20;
     protected static final int FAST_FORWARD_PAGES = 5;
 
-    interface ViewUiBinder extends UiBinder<Widget, ViewWidget> {}
+    interface ViewUiBinder extends UiBinder<Widget, ViewWidget> {
+    }
 
     private static ViewUiBinder uiBinder = GWT.create(ViewUiBinder.class);
 
-    @UiField Label jobHeader;
-    @UiField DecoratedTabPanel tabPanel;
-    @UiField HTMLPanel allItemsListTab;
-    @UiField HTMLPanel failedItemsListTab;
-    @UiField HTMLPanel ignoredItemsListTab;
-    @UiField HTMLPanel jobInfoTab;
-    @UiField ItemsListView itemsListView;
-    @UiField JobInfoTabContent jobInfoTabContent;
-    @UiField JobDiagnosticTabContent jobDiagnosticTabContent;
-    @UiField JobNotificationsTabContent jobNotificationsTabContent;
-    @UiField WorkflowNoteTabContent workflowNoteTabContent;
-    @UiField SimplePager itemsPager;
-    @UiField TextBox recordIdInputField;
-    @UiField HorizontalPanel recordIdPanel;
-    @UiField PushButton showRecordsButton;
+    @UiField
+    Label jobHeader;
+    @UiField
+    DecoratedTabPanel tabPanel;
+    @UiField
+    HTMLPanel allItemsListTab;
+    @UiField
+    HTMLPanel failedItemsListTab;
+    @UiField
+    HTMLPanel ignoredItemsListTab;
+    @UiField
+    HTMLPanel jobInfoTab;
+    @UiField
+    ItemsListView itemsListView;
+    @UiField
+    JobInfoTabContent jobInfoTabContent;
+    @UiField
+    JobDiagnosticTabContent jobDiagnosticTabContent;
+    @UiField
+    JobNotificationsTabContent jobNotificationsTabContent;
+    @UiField
+    WorkflowNoteTabContent workflowNoteTabContent;
+    @UiField
+    SimplePager itemsPager;
+    @UiField
+    TextBox recordIdInputField;
+    @UiField
+    HorizontalPanel recordIdPanel;
+    @UiField
+    PushButton showRecordsButton;
 
     /**
      * Constructor with header and text
-     * @param header    Breadcrumb header text
+     *
+     * @param header Breadcrumb header text
      */
     public ViewWidget(String header) {
         super(header);
@@ -74,6 +91,7 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Ui Handler to catch click events on the Back button
+     *
      * @param event Clicked event
      */
     @UiHandler("backButton")
@@ -83,12 +101,13 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Ui Handler to catch selection events on the tabs in the tab panel
+     *
      * @param event Selected event
      */
     @UiHandler("tabPanel")
     void tabPanelSelection(SelectionEvent<Integer> event) {
         itemsListView.setVisible(true);
-        switch(event.getSelectedItem()) {
+        switch (event.getSelectedItem()) {
             case ALL_ITEMS_TAB_INDEX:
                 presenter.allItemsTabSelected();
                 recordIdPanel.setVisible(true);
@@ -129,7 +148,7 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     @UiHandler("recordIdInputField")
     void onKeyDown(KeyDownEvent event) {
-        if(event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
+        if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
             presenter.recordSearch();
         }
     }

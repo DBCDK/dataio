@@ -195,67 +195,67 @@ public interface Resources extends ClientBundle {
      * Image Resources
      */
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/dbclogo.gif")
     ImageResource dbcLogo();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/blue_twirl_background.png")
     ImageResource blue_twirl();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/blue-ocean-background.png")
     ImageResource blue_ocean();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/rose-petals-background.png")
     ImageResource rose_petals();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/lamp_gray.png")
     ImageResource gray();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/lamp_green.png")
     ImageResource green();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/lamp_red.png")
     ImageResource red();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/lamp_yellow.png")
     ImageResource yellow();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/add-button.gif")
     ImageResource addButton();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/remove-button.gif")
     ImageResource removeButton();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/delete-up-button.gif")
     ImageResource deleteUpButton();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/delete-down-button.gif")
     ImageResource deleteDownButton();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/plus-up-button.gif")
     ImageResource plusUpButton();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/plus-down-button.gif")
     ImageResource plusDownButton();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/minus-up-button.gif")
     ImageResource minusUpButton();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/minus-down-button.gif")
     ImageResource minusDownButton();
 
@@ -263,15 +263,15 @@ public interface Resources extends ClientBundle {
     @Source("img/navigationbg.gif")
     ImageResource navigationBackground();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/calendar-icon.png")
     ImageResource calendarIcon();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/recycle.png")
     ImageResource recycleIcon();
 
-    @ImageResource.ImageOptions(preventInlining=true)
+    @ImageResource.ImageOptions(preventInlining = true)
     @Source("img/empty.png")
     ImageResource emptyIcon();
 

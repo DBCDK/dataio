@@ -25,7 +25,9 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 import java.util.Map;
 
 public class ViewWidget extends ContentPanel<Presenter> {
-    interface FlowUiBinder extends UiBinder<HTMLPanel, ViewWidget> {}
+    interface FlowUiBinder extends UiBinder<HTMLPanel, ViewWidget> {
+    }
+
     private static FlowUiBinder uiBinder = GWT.create(FlowUiBinder.class);
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     protected FlowModel model;
@@ -43,13 +45,20 @@ public class ViewWidget extends ContentPanel<Presenter> {
         return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
-    @UiField PromptedTextBox name;
-    @UiField PromptedTextArea description;
-    @UiField PromptedMultiList flowComponents;
-    @UiField Button deleteButton;
-    @UiField Label status;
-    @UiField PopupListBox popupListBox;
-    @UiField PopupBox<Label> confirmation;
+    @UiField
+    PromptedTextBox name;
+    @UiField
+    PromptedTextArea description;
+    @UiField
+    PromptedMultiList flowComponents;
+    @UiField
+    Button deleteButton;
+    @UiField
+    Label status;
+    @UiField
+    PopupListBox popupListBox;
+    @UiField
+    PopupBox<Label> confirmation;
 
 
     @UiHandler("name")
@@ -70,7 +79,7 @@ public class ViewWidget extends ContentPanel<Presenter> {
         }
     }
 
-    @UiHandler(value={"name", "description"})
+    @UiHandler(value = {"name", "description"})
     void keyPressed(KeyDownEvent event) {
         presenter.keyPressed();
     }

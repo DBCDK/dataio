@@ -33,7 +33,7 @@ public abstract class IntegrationTest extends MultiJpaIntegrationTest {
                 .add("ticklerepo", new JpaTestEnvironment(tickleRepoDataSource, "tickleRepoIT",
                         getTickleRepoEntityManagerFactoryProperties(tickleRepoDataSource)));
         try (Connection conn = tickleRepoDataSource.getConnection();
-                Statement statement = conn.createStatement()) {
+             Statement statement = conn.createStatement()) {
             statement.executeUpdate("DELETE FROM record");
             statement.executeUpdate("DELETE FROM batch");
             statement.executeUpdate("DELETE FROM dataset");
@@ -45,7 +45,7 @@ public abstract class IntegrationTest extends MultiJpaIntegrationTest {
         executeScriptResource("ticklerepo", "/tickle-repo.sql");
         return environment;
     }
-    
+
     @Before
     public void clearTaskRepo() {
         final JpaTestEnvironment taskEnvironment = environment.get("taskrepo");

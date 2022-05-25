@@ -29,9 +29,12 @@ public class RerunStateConverter implements AttributeConverter<RerunEntity.State
             throw new IllegalArgumentException("database object can not be null");
         }
         switch ((String) o) {
-            case "IN_PROGRESS": return RerunEntity.State.IN_PROGRESS;
-            case "WAITING": return RerunEntity.State.WAITING;
-            default: return null;
+            case "IN_PROGRESS":
+                return RerunEntity.State.IN_PROGRESS;
+            case "WAITING":
+                return RerunEntity.State.WAITING;
+            default:
+                return null;
         }
     }
 }

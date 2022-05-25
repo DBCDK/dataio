@@ -9,7 +9,7 @@ public class EsReferenceData {
     public static final String DATAIO_DIRECTIVES_NAMESPACE = "dk.dbc.dataio.processing";
     private static final String ES_REFERENCE_DATA_XML_TEMPLATE =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-            "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">%s</es:referencedata>";
+                    "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">%s</es:referencedata>";
 
     @JacksonXmlProperty(localName = "info", namespace = ES_NAMESPACE)
     public EsDirectives esDirectives;

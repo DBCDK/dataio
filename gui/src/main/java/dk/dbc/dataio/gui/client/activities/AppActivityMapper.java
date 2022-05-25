@@ -16,6 +16,6 @@ public class AppActivityMapper implements ActivityMapper {
 
     @Override
     public Activity getActivity(Place place) {
-        return clientFactory.getPresenter((AbstractBasePlace)place);
+        return clientFactory.getPresenter((AbstractBasePlace) place);
     }
 }

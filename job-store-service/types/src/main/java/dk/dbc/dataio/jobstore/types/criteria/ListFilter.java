@@ -9,6 +9,7 @@ import java.util.Date;
 
 /**
  * Class representing a listings filter clause
+ *
  * @param <T> ListFilterField subtype
  */
 public class ListFilter<T extends ListFilterField> implements Serializable {
@@ -39,9 +40,10 @@ public class ListFilter<T extends ListFilterField> implements Serializable {
 
     /**
      * Constructor
-     * @param field filter field (not null)
+     *
+     * @param field    filter field (not null)
      * @param operator filter operator (not null)
-     * @param value filter value
+     * @param value    filter value
      * @throws NullPointerException if given null-valued field or operator argument
      */
     public ListFilter(@JsonProperty("field") T field,
@@ -54,13 +56,14 @@ public class ListFilter<T extends ListFilterField> implements Serializable {
     }
 
     @JsonIgnore
-    public ListFilter( T field,
-                       Op operator,
-                       long integerValue) {
+    public ListFilter(T field,
+                      Op operator,
+                      long integerValue) {
         this(field, operator, String.valueOf(integerValue));
     }
+
     @JsonIgnore
-    public ListFilter( T field, Op operator, Date date) {
+    public ListFilter(T field, Op operator, Date date) {
         this(field, operator, String.valueOf(date.getTime()));
     }
 
@@ -73,7 +76,7 @@ public class ListFilter<T extends ListFilterField> implements Serializable {
     @JsonIgnore
     public ListFilter(@JsonProperty("field") T field, @JsonProperty("operator") Op operator) {
         this.field = field;
-        this.operator  = operator;
+        this.operator = operator;
         value = null;
     }
 

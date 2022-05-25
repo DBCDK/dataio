@@ -3,8 +3,8 @@ package dk.dbc.dataio.gui.client.components;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 
 /**
  * WaitContainer unit tests
@@ -57,19 +57,25 @@ public class WaitContainerTest {
     @Test
     public void constructor_validLambdaNoKeys_noExceptionAndNoCallback() {
         // Test Object
-        new WaitContainer(keys -> {assert(false);});
+        new WaitContainer(keys -> {
+            assert (false);
+        });
     }
 
     @Test
     public void constructor_validLambdaNullKey_noExceptionAndNoCallback() {
         // Test Object
-        new WaitContainer(keys -> {assert(false);}, (String) null);
+        new WaitContainer(keys -> {
+            assert (false);
+        }, (String) null);
     }
 
     @Test
     public void constructor_validLambdaTwoKeys_noExceptionAndNoCallback() {
         // Test Object
-        new WaitContainer(keys -> {assert(false);},"uniqueKeyA", "uniqueKeyB");
+        new WaitContainer(keys -> {
+            assert (false);
+        }, "uniqueKeyA", "uniqueKeyB");
     }
 
 
@@ -101,7 +107,9 @@ public class WaitContainerTest {
     @Test
     public void put_validCallbackTwoElementsOnlyOnePut_noCallback() {
         // Test Preparation
-        WaitContainer waitContainer = new WaitContainer(list -> {assert(false);}, "uniqueKeyA", "B");
+        WaitContainer waitContainer = new WaitContainer(list -> {
+            assert (false);
+        }, "uniqueKeyA", "B");
 
         // Test Object
         waitContainer.put("uniqueKeyA", "sample");
@@ -128,7 +136,9 @@ public class WaitContainerTest {
     @Test
     public void put_validCallbackTwoElementsOneValidOneUnknownPuts_noCallback() {
         // Test Preparation
-        WaitContainer waitContainer = new WaitContainer(list -> {assert(false);}, "uniqueKeyA", "B");
+        WaitContainer waitContainer = new WaitContainer(list -> {
+            assert (false);
+        }, "uniqueKeyA", "B");
 
         // Test Object
         waitContainer.put("uniqueKeyA", "sample");

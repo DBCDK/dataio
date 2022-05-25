@@ -23,10 +23,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * FlowModelMapper unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class FlowBinderModelMapperTest {
 
@@ -117,8 +117,8 @@ public class FlowBinderModelMapperTest {
                 .build();
         try {
             FlowBinderModelMapper.toFlowBinderContent(flowBinderModel);
-        } catch(IllegalArgumentException e) {
-            assertThat(e.getMessage().contains(expectedIllegalCharacters), is (true));
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage().contains(expectedIllegalCharacters), is(true));
         }
     }
 

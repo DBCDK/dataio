@@ -43,8 +43,8 @@ public class AbstractOpenUpdateSinkTestBase {
     }
 
     protected String getInvalidMetaXml(String referenceDataChildren) {
-        return  "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-                    referenceDataChildren +
+        return "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
+                referenceDataChildren +
                 "</es:referencedata>";
     }
 

@@ -13,10 +13,10 @@ import javax.xml.bind.JAXBException;
 import javax.xml.transform.TransformerException;
 import java.nio.charset.StandardCharsets;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
@@ -88,7 +88,7 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
     public void preprocess_esInfoSubmitterAttributeNotFound_setsSubmitterToEmptyString() {
         final String invalidMetaXml = getInvalidMetaXml(
                 "<es:info/>" +
-                "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"/>"
+                        "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"/>"
         );
         final AddiRecord addiRecord = newAddiRecord(invalidMetaXml, getContentXml());
 
@@ -103,7 +103,7 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
     public void preprocess_updateTemplateAttributeNotFound_setsTemplateToEmptyString() {
         final String invalidMetaXml = getInvalidMetaXml(
                 "<es:info submitter=\"870970\"/>" +
-                "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"/>"
+                        "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"/>"
         );
         final AddiRecord addiRecord = newAddiRecord(invalidMetaXml, getContentXml());
 

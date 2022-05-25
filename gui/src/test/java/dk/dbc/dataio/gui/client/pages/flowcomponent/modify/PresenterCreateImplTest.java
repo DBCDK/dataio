@@ -18,17 +18,20 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterCreateImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterCreateImplTest extends PresenterImplTestBase {
 
-    @Mock private Texts mockedTexts;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock ViewGinjector mockedViewInjector;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock
+    ViewGinjector mockedViewInjector;
 
     private View createView;
 

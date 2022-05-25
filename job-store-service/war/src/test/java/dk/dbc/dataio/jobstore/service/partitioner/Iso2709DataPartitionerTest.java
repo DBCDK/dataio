@@ -16,7 +16,7 @@ import static org.junit.Assert.fail;
 import static org.xmlunit.builder.Input.fromByteArray;
 import static org.xmlunit.builder.Input.fromStream;
 
-public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
+public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase {
     private final static String INPUT_RECORD_1_ISO = "test-record-1-danmarc2.iso";
     private final static String INPUT_BROKEN_ISO = "broken-iso2709-2.iso";
     private final static String INPUT_RECORDS_3_ISO = "test-records-3-danmarc2.iso";
@@ -87,7 +87,7 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
         assertThat("chunkItem1.data matches expected output String", fromByteArray(dataPartitionerResult1.getChunkItem().getData()), isEquivalentTo(fromStream(getResourceAsStream(OUTPUT_RECORD_1_MARCXCHANGE))));
         assertThat("recordInfo1.id", dataPartitionerResult1.getRecordInfo().getId(), is(DEFAULT_RECORD_ID));
 
-        assertThat("dataPartitionerResult.chunkItem matches Failed Record ",iterator.hasNext(), is(true) );
+        assertThat("dataPartitionerResult.chunkItem matches Failed Record ", iterator.hasNext(), is(true));
         try {
             iterator.next();
             fail("Expected error not thrown");
@@ -162,17 +162,17 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
         final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORDS_323_MARC21_UTF8_ISO), "UTF-8");
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
         int count = 0;
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             iterator.next();
             count++;
         }
         assertThat(count, is(323));
     }
 
-    private static CompareMatcher isEquivalentTo( Object control) {
-         return CompareMatcher.isSimilarTo(control)
-                 .throwComparisonFailure()
-                 .normalizeWhitespace()
-                 .ignoreComments();
+    private static CompareMatcher isEquivalentTo(Object control) {
+        return CompareMatcher.isSimilarTo(control)
+                .throwComparisonFailure()
+                .normalizeWhitespace()
+                .ignoreComments();
     }
 }

@@ -148,7 +148,7 @@ public class QueryBuilderTest {
     }
 
     private static class Spec {
-        private  String dataFile;
+        private String dataFile;
 
         public String getDataFile() {
             return dataFile;

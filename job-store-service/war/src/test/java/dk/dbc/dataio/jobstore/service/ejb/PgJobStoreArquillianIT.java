@@ -1,63 +1,9 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.utils.test.jms.JmsQueueBean;
-import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
-import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
-import dk.dbc.dataio.filestore.service.connector.ejb.TestFileStoreServiceConnector;
-import dk.dbc.dataio.flowstore.service.connector.ejb.TestFlowStoreServiceConnector;
-import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
-import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
-import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
-import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
-import dk.dbc.dataio.jobstore.types.FlowStoreReference;
-import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
-import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jobstore.types.State;
-import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.shrinkwrap.api.Filters;
-import org.jboss.shrinkwrap.api.GenericArchive;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.importer.ExplodedImporter;
-import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.jboss.shrinkwrap.descriptor.api.Descriptors;
-import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceDescriptor;
-import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Resource;
-import javax.ejb.EJB;
-import javax.inject.Inject;
-import javax.jms.Queue;
-import javax.persistence.EntityManager;
-import javax.sql.DataSource;
-import javax.transaction.UserTransaction;
-import java.io.File;
-import java.util.Date;
-
-import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter.XML;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Created by ja7 on 11-04-16.
@@ -66,7 +12,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * To Run from Intellij use arquillian Plugin JBoss Arquillian Support
  * - Manual Container Configuration -
  * dk.dbc.arquillian.container : arquillian-glassfish-remote-3.1
- *
+ * <p>
  * BUG: https://dbcjira.atlassian.net/browse/MS-3658
  */
 @SuppressWarnings("JavaDoc")

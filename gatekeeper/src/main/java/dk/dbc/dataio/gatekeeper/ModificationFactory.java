@@ -1,9 +1,9 @@
 package dk.dbc.dataio.gatekeeper;
 
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.gatekeeper.operation.Opcode;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.dataio.gatekeeper.wal.Modification;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.util.ArrayList;
 import java.util.List;

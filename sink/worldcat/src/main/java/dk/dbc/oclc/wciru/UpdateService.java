@@ -10,8 +10,7 @@ import java.net.URL;
 
 @WebServiceClient(name = "UpdateService", targetNamespace = "http://Update.os.oclc.ORG", wsdlLocation = "/wsdl/oclc-wciru.wsdl")
 public class UpdateService
-    extends Service
-{
+        extends Service {
 
     private final static URL UPDATESERVICE_WSDL_LOCATION;
     private final static WebServiceException UPDATESERVICE_EXCEPTION;
@@ -61,7 +60,7 @@ public class UpdateService
     }
 
     private static URL __getWsdlLocation() {
-        if (UPDATESERVICE_EXCEPTION!= null) {
+        if (UPDATESERVICE_EXCEPTION != null) {
             throw UPDATESERVICE_EXCEPTION;
         }
         return UPDATESERVICE_WSDL_LOCATION;

@@ -28,8 +28,8 @@ import java.util.List;
 public class OpenUpdateServiceConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateServiceConnector.class);
 
-    private static final String CONNECT_TIMEOUT_PROPERTY   = "com.sun.xml.ws.connect.timeout";
-    private static final String REQUEST_TIMEOUT_PROPERTY   = "com.sun.xml.ws.request.timeout";
+    private static final String CONNECT_TIMEOUT_PROPERTY = "com.sun.xml.ws.connect.timeout";
+    private static final String REQUEST_TIMEOUT_PROPERTY = "com.sun.xml.ws.request.timeout";
     private static final int CONNECT_TIMEOUT_DEFAULT_IN_MS = 60 * 1000;       // 1 minute
     private static final int REQUEST_TIMEOUT_DEFAULT_IN_MS = 60 * 60 * 1000;  // 60 minutes -- we wait and wait on open update.
 
@@ -44,8 +44,9 @@ public class OpenUpdateServiceConnector {
 
     /**
      * Class constructor
+     *
      * @param endpoint web service endpoint base URL on the form "http(s)://host:port/path"
-     * @throws NullPointerException if passed null valued {@code endpoint}
+     * @throws NullPointerException     if passed null valued {@code endpoint}
      * @throws IllegalArgumentException if passed empty valued {@code endpoint}
      */
     public OpenUpdateServiceConnector(String endpoint)
@@ -55,10 +56,11 @@ public class OpenUpdateServiceConnector {
 
     /**
      * Class constructor
+     *
      * @param endpoint web service endpoint base URL on the form "http(s)://host:port/path"
      * @param userName for authenticating any user requiring access to the webservice
      * @param password for authenticating any user requiring access to the webservice
-     * @throws NullPointerException if passed any null valued argument
+     * @throws NullPointerException     if passed any null valued argument
      * @throws IllegalArgumentException if passed empty valued {@code endpoint}
      */
     public OpenUpdateServiceConnector(String endpoint, String userName, String password)
@@ -68,11 +70,12 @@ public class OpenUpdateServiceConnector {
 
     /**
      * Class constructor
-     * @param service web service client view of the CatalogingUpdate Web service
+     *
+     * @param service  web service client view of the CatalogingUpdate Web service
      * @param endpoint web service endpoint base URL on the form "http(s)://host:port/path"
      * @param userName for authenticating any user requiring access to the webservice
      * @param password for authenticating any user requiring access to the webservice
-     * @throws NullPointerException if passed any null valued argument
+     * @throws NullPointerException     if passed any null valued argument
      * @throws IllegalArgumentException if passed empty valued {@code endpoint}, {@code userName}, {@code password}
      */
     OpenUpdateServiceConnector(UpdateService service, String endpoint, String userName, String password)
@@ -84,21 +87,22 @@ public class OpenUpdateServiceConnector {
         proxy = this.getProxy(service);
         final String validateOnlyEnv = System.getenv(Constants.UPDATE_VALIDATE_ONLY_FLAG);
         validateOnly = validateOnlyEnv != null &&
-            validateOnlyEnv.toLowerCase().equals("true");
-        if(validateOnlyEnv != null && !validateOnly) {
+                validateOnlyEnv.toLowerCase().equals("true");
+        if (validateOnlyEnv != null && !validateOnly) {
             LOGGER.warn("{} had unexpected value {}",
-                Constants.UPDATE_VALIDATE_ONLY_FLAG, validateOnlyEnv);
+                    Constants.UPDATE_VALIDATE_ONLY_FLAG, validateOnlyEnv);
         }
     }
 
     /**
      * Calls updateRecord operation of the Open Update Web service
-     * @param groupId group id used for authorization
-     * @param schemaName the template towards which the validation should be performed
+     *
+     * @param groupId             group id used for authorization
+     * @param schemaName          the template towards which the validation should be performed
      * @param bibliographicRecord containing the MarcXChange to validate
-     * @param trackingId unique ID for each OpenUpdate request
+     * @param trackingId          unique ID for each OpenUpdate request
      * @return UpdateRecordResult instance
-     * @throws NullPointerException if passed any null valued {@code template} or {@code bibliographicRecord} argument
+     * @throws NullPointerException     if passed any null valued {@code template} or {@code bibliographicRecord} argument
      * @throws IllegalArgumentException if passed empty valued {@code template}
      */
     public UpdateRecordResult updateRecord(String groupId, String schemaName, BibliographicRecord bibliographicRecord, String trackingId)
@@ -113,10 +117,11 @@ public class OpenUpdateServiceConnector {
 
     /**
      * Converts all message entries in given result into MARC datafields
+     *
      * @param errorFieldTag tag of created MARC datafields
-     * @param result result of update service request
-     * @param marcRecord MARC record used to resolve ordinal positions given in result (typically
-     *                   the MARC record for which the updateRecord() call produced the result),
+     * @param result        result of update service request
+     * @param marcRecord    MARC record used to resolve ordinal positions given in result (typically
+     *                      the MARC record for which the updateRecord() call produced the result),
      * @return List of {@link DataField}, one for each message entry in result
      */
     public List<DataField> toErrorFields(String errorFieldTag, UpdateRecordResult result, MarcRecord marcRecord) {
@@ -124,7 +129,7 @@ public class OpenUpdateServiceConnector {
         if (result != null && result.getMessages() != null) {
             final List<MessageEntry> messages = result.getMessages().getMessageEntry();
             if (messages != null && !messages.isEmpty()) {
-                for (MessageEntry message: messages) {
+                for (MessageEntry message : messages) {
                     fields.add(toErrorField(errorFieldTag, message, marcRecord));
                 }
             }
@@ -189,10 +194,11 @@ public class OpenUpdateServiceConnector {
 
     /**
      * Builds an UpdateRecordRequest
-     * @param groupId group id used for authorization
-     * @param schemaName the template towards which the validation should be performed
+     *
+     * @param groupId             group id used for authorization
+     * @param schemaName          the template towards which the validation should be performed
      * @param bibliographicRecord containing the MarcXChange to validate
-     * @param trackingId unique ID for each OpenUpdate request
+     * @param trackingId          unique ID for each OpenUpdate request
      * @return a new updateRecordRequest containing schemeName and bibliographicRecord
      */
     private UpdateRecordRequest buildUpdateRecordRequest(String groupId, String schemaName, BibliographicRecord bibliographicRecord, String trackingId) {
@@ -205,14 +211,14 @@ public class OpenUpdateServiceConnector {
         updateRecordRequest.setSchemaName(schemaName);
         updateRecordRequest.setBibliographicRecord(bibliographicRecord);
         updateRecordRequest.setTrackingId(trackingId);
-        if(validateOnly) {
-            if(updateRecordRequest.getOptions() == null) {
+        if (validateOnly) {
+            if (updateRecordRequest.getOptions() == null) {
                 Options options = new Options();
                 options.getOption().add(UpdateOptionEnum.VALIDATE_ONLY);
                 updateRecordRequest.setOptions(options);
             } else {
                 updateRecordRequest.getOptions().getOption().add(
-                    UpdateOptionEnum.VALIDATE_ONLY);
+                        UpdateOptionEnum.VALIDATE_ONLY);
             }
         }
         return updateRecordRequest;
@@ -222,7 +228,7 @@ public class OpenUpdateServiceConnector {
         final CatalogingUpdatePortType proxy = service.getCatalogingUpdatePort();
 
         // We don't want to rely on the endpoint from the WSDL
-        BindingProvider bindingProvider = (BindingProvider)proxy;
+        BindingProvider bindingProvider = (BindingProvider) proxy;
         bindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
         // FixMe: timeouts should be made configurable
         bindingProvider.getRequestContext().put(CONNECT_TIMEOUT_PROPERTY, CONNECT_TIMEOUT_DEFAULT_IN_MS);

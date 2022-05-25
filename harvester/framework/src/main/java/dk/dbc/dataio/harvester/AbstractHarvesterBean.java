@@ -30,6 +30,7 @@ public abstract class AbstractHarvesterBean<T extends AbstractHarvesterBean<T, U
     /**
      * Executes harvest operation in batches (each batch in its own transactional
      * scope to avoid tearing down any controlling timers in case of an exception)
+     *
      * @param config harvest configuration
      * @return number of items harvested
      * @throws HarvesterException on failure to complete harvest operation
@@ -50,6 +51,7 @@ public abstract class AbstractHarvesterBean<T extends AbstractHarvesterBean<T, U
 
     /**
      * Executes harvest operation
+     *
      * @param config harvest configuration
      * @return number of items harvested in batch
      * @throws HarvesterException on failure to complete harvest operation

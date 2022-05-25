@@ -25,8 +25,9 @@ class ConfigUpdater {
     /**
      * Sets lastBatchHarvested field of given config to that of given batch
      * and pushes the updated config to the flow-store
+     *
      * @param config config to updated
-     * @param batch batch to update config with
+     * @param batch  batch to update config with
      * @throws HarvesterException on failure to update flow-store
      */
     void updateHarvesterConfig(TickleRepoHarvesterConfig config, Batch batch) throws HarvesterException {

@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client.querylanguage;
 
 import java.io.Serializable;
 
-public class GwtQueryClause implements Serializable  {
+public class GwtQueryClause implements Serializable {
     public enum BiOperator {
         EQUALS,
         GREATER_THAN,

@@ -9,8 +9,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.when;
 
 /**
@@ -19,8 +19,10 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class JobStatusFilterTest {
-    @Mock private Texts mockedTexts;
-    @Mock private Resources mockedResources;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private Resources mockedResources;
 
     class TestClickEvent extends ClickEvent {
         protected TestClickEvent() {

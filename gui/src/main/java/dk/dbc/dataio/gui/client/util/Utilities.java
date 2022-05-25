@@ -7,9 +7,7 @@
 package dk.dbc.dataio.gui.client.util;
 
 /**
- *
  * Format class
- *
  */
 public final class Utilities {
 

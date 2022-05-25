@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.gui.client.pages.sink.status;
 
 
@@ -20,18 +19,23 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
-    @Mock PlaceController mockedPlaceController;
-    @Mock Texts mockedTexts;
-    @Mock View mockedView;
-    @Mock Widget mockedViewWidget;
-    @Mock ViewGinjector mockedViewGinjector;
+    @Mock
+    PlaceController mockedPlaceController;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    View mockedView;
+    @Mock
+    Widget mockedViewWidget;
+    @Mock
+    ViewGinjector mockedViewGinjector;
 
     // Setup mocked data
     @Before
@@ -53,7 +57,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     private PresenterImpl presenterImpl;
 
 
-
     @Test
     @SuppressWarnings("unchecked")
     public void start_callStart_ok() {
@@ -71,7 +74,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedJobStore).getSinkStatusModels(any(AsyncCallback.class));
         verifyNoMoreInteractionsOnMocks();
     }
-
 
 
     // Private methods

@@ -3,8 +3,8 @@ package dk.dbc.dataio.gui.client.helpers;
 import dk.dbc.dataio.gui.client.util.Format;
 
 /**
-* Helper methods for the Jobs Show View Class
-*/
+ * Helper methods for the Jobs Show View Class
+ */
 public class SortHelper {
     /**
      * Validates two objects. If any of the two objects are null pointers, the method returns false

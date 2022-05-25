@@ -8,10 +8,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Submitter unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class SubmitterTest {
     private static final long ID = 42L;

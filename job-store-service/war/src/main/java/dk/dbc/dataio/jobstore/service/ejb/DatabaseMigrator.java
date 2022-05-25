@@ -17,30 +17,31 @@ public class DatabaseMigrator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseMigrator.class);
 
     @Resource(lookup = "jdbc/dataio/jobstore")
-   	DataSource dataSource;
+    DataSource dataSource;
 
-   	@PostConstruct
-   	public void onStartup() {
-   		final Flyway flyway = Flyway.configure()
-				.table("schema_version_2")
-				.baselineOnMigrate(true)
-				.baselineVersion("1")
-				.dataSource(dataSource)
-				.load();
-   		for (MigrationInfo i : flyway.info().all()) {
-   			LOGGER.info("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
-   		}
-   		flyway.migrate();
-   	}
+    @PostConstruct
+    public void onStartup() {
+        final Flyway flyway = Flyway.configure()
+                .table("schema_version_2")
+                .baselineOnMigrate(true)
+                .baselineVersion("1")
+                .dataSource(dataSource)
+                .load();
+        for (MigrationInfo i : flyway.info().all()) {
+            LOGGER.info("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
+        }
+        flyway.migrate();
+    }
 
 
-	/**
-	 * For Integration test only
-	 * @param dataSource .
-	 * @return this
-	 */
-	public DatabaseMigrator withDataSource(DataSource dataSource) {
-		this.dataSource = dataSource;
-		return this;
-	}
+    /**
+     * For Integration test only
+     *
+     * @param dataSource .
+     * @return this
+     */
+    public DatabaseMigrator withDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
+        return this;
+    }
 }

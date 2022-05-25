@@ -55,7 +55,7 @@ public class EsCleanupBeanIT extends SinkIT {
         assertThat("Number of ES task packages in-flight", esInFlight.size(), is(1));
 
         final EsCleanupBean esCleanupBean = getEsCleanupBean();
-        EntityTransaction esTransaction=esCleanupBean.esConnector.entityManager.getTransaction() ;
+        EntityTransaction esTransaction = esCleanupBean.esConnector.entityManager.getTransaction();
         EntityTransaction inFlightTransaction = esInFlightEntityManager.getTransaction();
         inFlightTransaction.begin();
         esTransaction.begin();

@@ -17,7 +17,8 @@ public class DatabaseMigrator {
     @Resource(lookup = "jdbc/dataio/sink/periodic-jobs")
     DataSource dataSource;
 
-    public DatabaseMigrator() {}
+    public DatabaseMigrator() {
+    }
 
     public DatabaseMigrator(DataSource dataSource) {
         this.dataSource = dataSource;

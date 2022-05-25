@@ -46,11 +46,9 @@ public class FlowComponentsBean extends AbstractResourceBean {
      * Retrieves flow component from underlying data store
      *
      * @param id flow component identifier
-     *
      * @return a HTTP 200 response with flowComponent content as JSON,
-     *         a HTTP 404 response with error content as JSON if not found,
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 404 response with error content as JSON if not found,
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException on failure to create json flowComponent
      */
     @GET
@@ -68,19 +66,17 @@ public class FlowComponentsBean extends AbstractResourceBean {
      * Creates new flow component with data POSTed as JSON and persists it in the
      * underlying data store
      *
-     * @param uriInfo the uri info
+     * @param uriInfo          the uri info
      * @param componentContent component data as JSON string
-     *
      * @return a HTTP 201 response with a Location header containing the URL value of the newly created resource
-     *         a HTTP 400 BAD_REQUEST response on invalid json content.
-     *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 400 BAD_REQUEST response on invalid json content.
+     * a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException if unable to marshall value type into its JSON representation
      */
     @POST
     @Path(FlowStoreServiceConstants.FLOW_COMPONENTS)
-    @Consumes({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response createComponent(@Context UriInfo uriInfo, String componentContent) throws JSONBException {
         log.trace("Called with: '{}'", componentContent);
@@ -95,11 +91,12 @@ public class FlowComponentsBean extends AbstractResourceBean {
 
     /**
      * Returns list of brief views of all stored flow components sorted by name in ascending order
+     *
      * @return a HTTP OK response with result list as JSON
      */
     @GET
     @Path(FlowStoreServiceConstants.FLOW_COMPONENTS)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response findAllComponents() {
         final TypedQuery<String> query = entityManager.createNamedQuery(FlowComponent.QUERY_FIND_ALL, String.class);
         return Response.ok().entity(query.getResultList().toString()).build();
@@ -108,16 +105,14 @@ public class FlowComponentsBean extends AbstractResourceBean {
     /**
      * Updates an existing flow component
      *
-     * @param uriInfo URI information
+     * @param uriInfo              URI information
      * @param flowComponentContent The content of the flow component
-     * @param id The flow component ID
-     * @param version The version of the flow component
-     *
+     * @param id                   The flow component ID
+     * @param version              The version of the flow component
      * @return a HTTP 200 response with flow component content as JSON
-     *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
-     *         a HTTP 409 response in case of Concurrent Update error
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
+     * a HTTP 409 response in case of Concurrent Update error
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException on failure to create json component
      */
     @POST
@@ -125,7 +120,7 @@ public class FlowComponentsBean extends AbstractResourceBean {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateFlowComponent(@Context UriInfo uriInfo, String flowComponentContent, @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
-                               @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
+                                        @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowComponentContent, FLOW_COMPONENT_CONTENT_DISPLAY_TEXT);
         jsonbContext.unmarshall(flowComponentContent, FlowComponentContent.class);
@@ -149,12 +144,11 @@ public class FlowComponentsBean extends AbstractResourceBean {
      * Deletes an existing flowComponent
      *
      * @param flowComponentId The flow ID
-     * @param version The version of the flow
-     *
+     * @param version         The version of the flow
      * @return a HTTP 204 response with no content,
-     *         a HTTP 404 response in case of flow ID not found,
-     *         a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
-     *         a HTTP 500 response in case of general error.
+     * a HTTP 404 response in case of flow ID not found,
+     * a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
+     * a HTTP 500 response in case of general error.
      */
     @DELETE
     @Path(FlowStoreServiceConstants.FLOW_COMPONENT)
@@ -164,7 +158,7 @@ public class FlowComponentsBean extends AbstractResourceBean {
 
         final FlowComponent flowComponent = entityManager.find(FlowComponent.class, flowComponentId);
 
-        if(flowComponent== null) {
+        if (flowComponent == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
 
@@ -184,16 +178,14 @@ public class FlowComponentsBean extends AbstractResourceBean {
     /**
      * Updates an existing flow component with next
      *
-     * @param uriInfo URI information
+     * @param uriInfo              URI information
      * @param flowComponentContent The content of the next flow component
-     * @param id The flow component ID
-     * @param version The version of the flow component
-     *
+     * @param id                   The flow component ID
+     * @param version              The version of the flow component
      * @return a HTTP 200 response with flow component content as JSON
-     *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
-     *         a HTTP 409 response in case of Concurrent Update error
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
+     * a HTTP 409 response in case of Concurrent Update error
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException on failure to create json component
      */
     @POST
@@ -201,7 +193,7 @@ public class FlowComponentsBean extends AbstractResourceBean {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateNext(@Context UriInfo uriInfo, String flowComponentContent, @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
-                                        @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
+                               @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         final FlowComponent flowComponentEntity = entityManager.find(FlowComponent.class, id);
         if (flowComponentEntity == null) {

@@ -34,9 +34,12 @@ import java.util.List;
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
-    @Inject SolrDocStoreConnector solrDocStoreConnector;
-    @Inject MetricsHandlerBean metricsHandler;
-    @Inject HoldingsItemsUnmarshaller holdingsItemsUnmarshaller;
+    @Inject
+    SolrDocStoreConnector solrDocStoreConnector;
+    @Inject
+    MetricsHandlerBean metricsHandler;
+    @Inject
+    HoldingsItemsUnmarshaller holdingsItemsUnmarshaller;
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, SinkException {

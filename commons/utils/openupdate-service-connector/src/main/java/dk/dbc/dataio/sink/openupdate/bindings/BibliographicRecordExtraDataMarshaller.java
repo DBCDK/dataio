@@ -26,10 +26,11 @@ public class BibliographicRecordExtraDataMarshaller {
 
     /**
      * Converts a BibliographicRecordExtraData instance to W3C Document object
+     *
      * @param data BibliographicRecordExtraData to convert
      * @return Document representation
      * @throws IllegalArgumentException if given null-valued argument
-     * @throws JAXBException If any unexpected problem occurs during the marshalling.
+     * @throws JAXBException            If any unexpected problem occurs during the marshalling.
      */
     public Document toXmlDocument(BibliographicRecordExtraData data) throws IllegalArgumentException, JAXBException {
         final DOMResult domResult = new DOMResult();

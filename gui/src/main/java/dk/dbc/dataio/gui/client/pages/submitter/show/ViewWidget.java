@@ -23,17 +23,24 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
     // Instantiate UI Binder
-    interface MyUiBinder extends UiBinder<Widget, ViewWidget> {}
+    interface MyUiBinder extends UiBinder<Widget, ViewWidget> {
+    }
+
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
     // UI Fields
-    @UiField Button createButton;
-    @UiField CellTable submittersTable;
-    @UiField PopupListBox popupList;
-    @UiField SubmitterFilter submitterFilter;
+    @UiField
+    Button createButton;
+    @UiField
+    CellTable submittersTable;
+    @UiField
+    PopupListBox popupList;
+    @UiField
+    SubmitterFilter submitterFilter;
 
     /**
      * Default constructor
+     *
      * @param header Header text
      */
     public ViewWidget(String header) {
@@ -44,6 +51,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     /**
      * Ui Handler to catch click events on the create button
+     *
      * @param event Clicked event
      */
     @UiHandler("createButton")
@@ -58,7 +66,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
             ListBox listBox = popupList.getContentWidget();
             listBox.setMultipleSelect(true);
             int listBoxItems = listBox.getItemCount();
-            for (int index=0; index<listBoxItems; index++) {
+            for (int index = 0; index < listBoxItems; index++) {
                 listBox.setItemSelected(index, true);
             }
             presenter.copyFlowBinderListToClipboard(popupList.getValue());

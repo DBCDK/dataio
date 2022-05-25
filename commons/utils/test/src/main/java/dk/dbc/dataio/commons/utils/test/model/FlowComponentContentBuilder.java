@@ -53,7 +53,7 @@ public class FlowComponentContentBuilder {
         return this;
     }
 
-    public FlowComponentContentBuilder setRequireCache( String requireCache) {
+    public FlowComponentContentBuilder setRequireCache(String requireCache) {
         this.requireCache = requireCache;
         return this;
     }

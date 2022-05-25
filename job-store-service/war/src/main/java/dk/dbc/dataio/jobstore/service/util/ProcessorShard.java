@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.service.util;
 
 public class ProcessorShard {
 
-    public enum Type { ACCTEST, BUSINESS }
+    public enum Type {ACCTEST, BUSINESS}
 
     private static String shard;
 

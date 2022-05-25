@@ -16,12 +16,13 @@ public class AddiDiffGenerator {
 
     /**
      * Compares two ADDI byte streams containing current and next output respectively.
-     *
+     * <p>
      * When a difference is detected, then for each corresponding ADDI record in
      * the streams the metadata and content blocks are compared separately using
      * the diff tool deemed most suitable.
+     *
      * @param current current ADDI stream
-     * @param next next ADDI stream
+     * @param next    next ADDI stream
      * @return the diff string
      * @throws DiffGeneratorException on failure to create diff
      */

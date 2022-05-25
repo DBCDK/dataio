@@ -9,7 +9,7 @@ import dk.dbc.invariant.InvariantUtil;
 
 import java.io.Serializable;
 
-@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
 public abstract class HarvesterConfig<T> implements Serializable {
     private static final long serialVersionUID = 4610025048980946641L;
 

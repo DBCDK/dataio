@@ -25,7 +25,8 @@ import javax.ejb.Singleton;
 public class ConfigBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigBean.class);
 
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
     Cache<Long, FlowBinder> cachedFlowBinders = CacheManager.createLRUCache(10);
 

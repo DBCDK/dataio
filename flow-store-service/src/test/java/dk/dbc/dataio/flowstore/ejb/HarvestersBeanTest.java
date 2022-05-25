@@ -71,7 +71,7 @@ public class HarvestersBeanTest {
     @Test
     public void createHarvesterConfig_typeArgCanNotBeResolvedAsClass_throws() {
         final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
-        assertThat( () -> harvestersBean.createHarvesterConfig(null, "dk.dbc.NoSuchClass", "{}"), isThrowing(ClassNotFoundException.class));
+        assertThat(() -> harvestersBean.createHarvesterConfig(null, "dk.dbc.NoSuchClass", "{}"), isThrowing(ClassNotFoundException.class));
     }
 
     @Test

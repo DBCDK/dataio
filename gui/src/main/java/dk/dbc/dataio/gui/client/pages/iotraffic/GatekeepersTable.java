@@ -45,6 +45,7 @@ public class GatekeepersTable extends CellTable {
 
     /**
      * Sets the presenter to allow communication back to the presenter
+     *
      * @param presenter The presenter to set
      */
     public void setPresenter(Presenter presenter) {

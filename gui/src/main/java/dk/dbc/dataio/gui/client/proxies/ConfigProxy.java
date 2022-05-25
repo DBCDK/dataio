@@ -12,6 +12,7 @@ public interface ConfigProxy extends RemoteService {
 
     class Factory {
         private static ConfigProxyAsync asyncInstance = null;
+
         public static ConfigProxyAsync getAsyncInstance() {
             if (asyncInstance == null) {
                 asyncInstance = GWT.create(ConfigProxy.class);

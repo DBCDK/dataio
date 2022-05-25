@@ -63,7 +63,7 @@ public class HarvestOperation_datawell_Test {
     private final static VipCoreConnection VIP_CORE_CONNECTION = mock(VipCoreConnection.class);
     private final static RecordServiceConnector RAW_REPO_RECORD_SERVICE_CONNECTOR = mock(RecordServiceConnector.class);
 
-    private final static HashMap<String, String> QUEUE_DAO_CONFIGURATION = new HashMap<String, String> ();
+    private final static HashMap<String, String> QUEUE_DAO_CONFIGURATION = new HashMap<String, String>();
     private final static RawRepoQueueDAO QUEUE_DAO = mock(RawRepoQueueDAO.class);
 
     /* 1st record is a DBC record */
@@ -125,7 +125,7 @@ public class HarvestOperation_datawell_Test {
         THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL.setRecordId(THIRD_RECORD_ID);
         THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL.setCreated(THIRD_RECORD.getCreated());
 
-        QUEUE_DAO_CONFIGURATION.put ("RAWREPO_RECORD_URL", "http://localhost:4221");
+        QUEUE_DAO_CONFIGURATION.put("RAWREPO_RECORD_URL", "http://localhost:4221");
     }
 
     private final EntityManager entityManager = mock(EntityManager.class);
@@ -180,8 +180,8 @@ public class HarvestOperation_datawell_Test {
         // mock vipcore calls for non-DBC libraries
         when(VIP_CORE_CONNECTION.getLibraryRules(LOCAL_LIBRARY, null)).thenReturn(localLibraryRules);
 
-        when(QUEUE_DAO.getConfiguration ())
-                .thenReturn (QUEUE_DAO_CONFIGURATION);
+        when(QUEUE_DAO.getConfiguration())
+                .thenReturn(QUEUE_DAO_CONFIGURATION);
 
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
         when(metricRegistry.simpleTimer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
@@ -199,10 +199,10 @@ public class HarvestOperation_datawell_Test {
                     put(FIRST_RECORD_SECTION_ID.getBibliographicRecordId(), FIRST_RECORD_SECTION);
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordDTO>(){{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(SECOND_RECORD_ID.getBibliographicRecordId(), SECOND_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordDTO>(){{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
@@ -271,10 +271,10 @@ public class HarvestOperation_datawell_Test {
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                     put("INVALID_RECORD_ID", invalidRecord);
                 }})
-                .thenReturn(new HashMap<String, RecordDTO>(){{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(SECOND_RECORD_ID.getBibliographicRecordId(), SECOND_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordDTO>(){{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
         when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordIdDTO.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
@@ -335,11 +335,11 @@ public class HarvestOperation_datawell_Test {
         }
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent()
-            .withConsumerId(CONSUMER_ID)
-            .withFormat("katalog")
-            .withFormatOverridesEntry(HarvestOperation.DBC_LIBRARY, "basis")
-            .withIncludeRelations(true)
-            .withIncludeLibraryRules(true);
+                .withConsumerId(CONSUMER_ID)
+                .withFormat("katalog")
+                .withFormatOverridesEntry(HarvestOperation.DBC_LIBRARY, "basis")
+                .withIncludeRelations(true)
+                .withIncludeLibraryRules(true);
         try {
             return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, VIP_CORE_CONNECTION, RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {

@@ -38,26 +38,26 @@ import java.util.concurrent.Future;
 
 /**
  * Handles chunk scheduling as they pass through partitioning, processing and delivery phases.
- *
+ * <p>
  * Three modes of operations exist for sink and queue type combinations:
- *    <p>
- *    DIRECT : When no rate limiting is needed, chunks are enqueued directly
- *             (this is the default mode).
- *    </p>
- *    <p>
- *    BULK   : If MAX_NUMBER_OF_.. chunks are enqueued, the scheduler transitions
- *             to BULK mode and it is up to the {@link JobSchedulerBulkSubmitterBean}
- *             to handle enqueueing.
- *    </p>
- *    <p>
- *    TRANSITION_TO_DIRECT : The transition back from BULK to DIRECT mode must take
- *                           at least 2 seconds to allow time for all chunks to be picked
- *                           up by the DIRECT mode, meaning chunks are enqueued directly,
- *                           but at the same time the {@link JobSchedulerBulkSubmitterBean}
- *                           is also scanning for records to pickup chunks added during mode
- *                           switch.
- *    </p>
- *
+ * <p>
+ * DIRECT : When no rate limiting is needed, chunks are enqueued directly
+ * (this is the default mode).
+ * </p>
+ * <p>
+ * BULK   : If MAX_NUMBER_OF_.. chunks are enqueued, the scheduler transitions
+ * to BULK mode and it is up to the {@link JobSchedulerBulkSubmitterBean}
+ * to handle enqueueing.
+ * </p>
+ * <p>
+ * TRANSITION_TO_DIRECT : The transition back from BULK to DIRECT mode must take
+ * at least 2 seconds to allow time for all chunks to be picked
+ * up by the DIRECT mode, meaning chunks are enqueued directly,
+ * but at the same time the {@link JobSchedulerBulkSubmitterBean}
+ * is also scanning for records to pickup chunks added during mode
+ * switch.
+ * </p>
+ * <p>
  * Note: Queue limits are handled per JVM process posing a hindrance for distributed scheduling.
  */
 
@@ -66,6 +66,7 @@ public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
 
     private static final HashSet<SinkContent.SinkType> REQUIRES_TERMINATION_CHUNK = new HashSet<>();
+
     static {
         REQUIRES_TERMINATION_CHUNK.add(SinkContent.SinkType.MARCCONV);
         REQUIRES_TERMINATION_CHUNK.add(SinkContent.SinkType.PERIODIC_JOBS);
@@ -111,8 +112,9 @@ public class JobSchedulerBean {
 
     /**
      * Registers given chunk for sequence analysis and schedules it for processing
+     *
      * @param chunk next chunk element to enter into sequence analysis
-     * @param job job associated with given chunk
+     * @param job   job associated with given chunk
      * @throws NullPointerException if given any null-valued argument
      */
     @Stopwatch
@@ -142,6 +144,7 @@ public class JobSchedulerBean {
     /**
      * Ensures that the last committed chunk for the given job ID is scheduled
      * for processing if it hasn't been already.
+     *
      * @param jobId ID of job to ensure
      */
     @Stopwatch
@@ -161,16 +164,18 @@ public class JobSchedulerBean {
 
     /**
      * Ascertains if a chunk is currently scheduled
+     *
      * @param chunkEntity chunk entity representing the chunk
      * @return true if scheduled, false if not
      */
     public boolean isScheduled(ChunkEntity chunkEntity) {
-          return null != entityManager.find(DependencyTrackingEntity.class,
-                  new DependencyTrackingEntity.Key(chunkEntity.getKey().getJobId(), chunkEntity.getKey().getId()));
+        return null != entityManager.find(DependencyTrackingEntity.class,
+                new DependencyTrackingEntity.Key(chunkEntity.getKey().getJobId(), chunkEntity.getKey().getId()));
     }
 
     /**
      * Adds special job termination barrier chunk to given job if it requires barrier chunks
+     *
      * @param jobEntity job being marked as partitioned
      * @throws JobStoreException on failure to create special job termination chunk
      */
@@ -218,11 +223,12 @@ public class JobSchedulerBean {
 
     /**
      * Adds special job termination barrier chunk to given job
-     * @param jobEntity job being marked as partitioned
-     * @param sink ID of sink for the job
-     * @param chunkId ID of termination chunk
+     *
+     * @param jobEntity       job being marked as partitioned
+     * @param sink            ID of sink for the job
+     * @param chunkId         ID of termination chunk
      * @param barrierMatchKey Additional barrier key to wait for
-     * @param ItemStatus status for termination chunk item
+     * @param ItemStatus      status for termination chunk item
      * @throws JobStoreException on failure to create special job termination chunk
      */
     void createAndScheduleTerminationChunk(JobEntity jobEntity, Sink sink, int chunkId, String barrierMatchKey,
@@ -293,13 +299,13 @@ public class JobSchedulerBean {
     }
 
 
-
     /**
      * Registers a chunk as delivered and removes it from dependency tracking
      * <p>
      * If called Multiple times with the same chunk,
      * or a chunk not in QUEUED_FOR_DELIVERY the chunk is ignored.
      * </p>
+     *
      * @param chunk chunk having been delivered
      * @throws JobStoreException on failure to queue other chunks
      */
@@ -355,7 +361,7 @@ public class JobSchedulerBean {
 
     @Asynchronous
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public Future<Integer> bulkScheduleToProcessingForSink(long sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus ) {
+    public Future<Integer> bulkScheduleToProcessingForSink(long sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus) {
         int chunksPushedToQueue = 0;
         try {
             final int ready = queueStatus.ready.intValue();
@@ -382,7 +388,7 @@ public class JobSchedulerBean {
                     chunksPushedToQueue++;
                 }
             }
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             LOGGER.error("Error in bulk scheduling for processing for sink {}", sinkId, ex);
         }
         return new AsyncResult<>(chunksPushedToQueue);
@@ -390,7 +396,7 @@ public class JobSchedulerBean {
 
     @Asynchronous
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public Future<Integer> bulkScheduleToDeliveringForSink(long sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus ) {
+    public Future<Integer> bulkScheduleToDeliveringForSink(long sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus) {
         int chunksPushedToQueue = 0;
         try {
             final int ready = queueStatus.ready.intValue();
@@ -417,24 +423,24 @@ public class JobSchedulerBean {
                     chunksPushedToQueue++;
                 }
             }
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             LOGGER.error("Error in bulk scheduling for delivery for sink {}", sinkId, ex);
         }
         return new AsyncResult<>(chunksPushedToQueue);
     }
 
     /**
-     *  Reload and reset counters for sinks
-     *  Set all sinks to BULK mode to ensure progress on redeploy of service
+     * Reload and reset counters for sinks
+     * Set all sinks to BULK mode to ensure progress on redeploy of service
      */
     @Stopwatch
-    @TransactionAttribute( TransactionAttributeType.REQUIRED )
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void loadSinkStatusOnBootstrap() {
         final List<SinkIdStatusCountResult> initialCounts = entityManager
                 .createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY, SinkIdStatusCountResult.class)
                 .getResultList();
 
-        for (SinkIdStatusCountResult entry: initialCounts) {
+        for (SinkIdStatusCountResult entry : initialCounts) {
             final JobSchedulerSinkStatus sinkStatus = getSinkStatus(entry.sinkId);
             switch (entry.status) {
                 case QUEUED_FOR_PROCESSING:

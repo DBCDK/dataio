@@ -65,6 +65,7 @@ public class MailNotification {
 
     /**
      * Formats and sends this email notification
+     *
      * @throws JobStoreException in case of error during formatting or sending
      */
     public void send() throws JobStoreException {

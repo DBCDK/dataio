@@ -14,13 +14,14 @@ import dk.dbc.dataio.harvester.utils.harvesterjobbuilder.AbstractHarvesterJobBui
 public class JobBuilder extends AbstractHarvesterJobBuilder {
     /**
      * Class constructor
-     * @param binaryFileStore binaryFileStore implementation for tmp file writing
+     *
+     * @param binaryFileStore           binaryFileStore implementation for tmp file writing
      * @param fileStoreServiceConnector file-store service connector for datafile uploads
-     * @param jobStoreServiceConnector job-store service connector for job creation
-     * @param jobSpecificationTemplate job specification template
+     * @param jobStoreServiceConnector  job-store service connector for job creation
+     * @param jobSpecificationTemplate  job specification template
      * @throws NullPointerException if given null-valued argument
-     * @throws HarvesterException on failure to create harvester data file
-     * backed by temporary binary file
+     * @throws HarvesterException   on failure to create harvester data file
+     *                              backed by temporary binary file
      */
     public JobBuilder(BinaryFileStore binaryFileStore, FileStoreServiceConnector fileStoreServiceConnector,
                       JobStoreServiceConnector jobStoreServiceConnector, JobSpecification jobSpecificationTemplate)

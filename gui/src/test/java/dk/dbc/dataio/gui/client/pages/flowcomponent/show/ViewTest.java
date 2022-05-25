@@ -15,8 +15,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
@@ -33,11 +33,16 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
-    @Mock Presenter mockedPresenter;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock static ClickEvent mockedClickEvent;
-    @Mock private ViewGinjector mockedViewInjector;
-    @Mock private CommonGinjector mockedCommonInjector;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock
+    static ClickEvent mockedClickEvent;
+    @Mock
+    private ViewGinjector mockedViewInjector;
+    @Mock
+    private CommonGinjector mockedCommonInjector;
 
 
     // Test Data
@@ -55,7 +60,8 @@ public class ViewTest {
     private View view;
 
     // Mocked Texts
-    @Mock static Texts mockedTexts;
+    @Mock
+    static Texts mockedTexts;
     final static String MOCKED_LABEL_FLOWCOMPONENTS = "Mocked Text: label_FlowComponents";
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: button_Edit";
     final static String MOCKED_BUTTON_CREATE = "Mocked Text: button_Create";
@@ -108,11 +114,13 @@ public class ViewTest {
         public View getView() {
             return view;
         }
+
         @Override
         public Texts getTexts() {
             return mockedTexts;
         }
     }
+
     /*
      * Testing starts here...
      */

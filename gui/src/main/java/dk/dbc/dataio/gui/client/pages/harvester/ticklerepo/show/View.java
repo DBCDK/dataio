@@ -16,11 +16,14 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
     // Instantiate UI Binder
-    interface MyUiBinder extends UiBinder<Widget, View> {}
+    interface MyUiBinder extends UiBinder<Widget, View> {
+    }
+
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
     // UI Fields
-    @UiField(provided=true) HarvestersTable harvestersTable;
+    @UiField(provided = true)
+    HarvestersTable harvestersTable;
 
 
     /**
@@ -32,6 +35,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Default constructor
+     *
      * @param header Header text
      */
     public View(String header) {
@@ -57,6 +61,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Set the list of actual Harvesters in the view
+     *
      * @param harvesters The list of Harvesters to show
      */
     public void setHarvesters(List<TickleRepoHarvesterConfig> harvesters) {

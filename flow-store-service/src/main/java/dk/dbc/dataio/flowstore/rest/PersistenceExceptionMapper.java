@@ -31,9 +31,9 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
         }
 
         switch (getErrorCode(e).orElse("empty")) {
-            case "23503": 	// foreign_key_violation
+            case "23503":    // foreign_key_violation
                 return interpretForeignKeyViolation(e);
-            case "23505":	// unique_violation
+            case "23505":    // unique_violation
                 return Response.status(Response.Status.NOT_ACCEPTABLE)
                         .entity(ServiceUtil.asJsonError(e))
                         .build();

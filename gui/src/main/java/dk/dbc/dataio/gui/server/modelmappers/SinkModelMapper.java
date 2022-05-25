@@ -12,10 +12,12 @@ public class SinkModelMapper {
     /**
      * Private Constructor prevents instantiation of this static class
      */
-    private SinkModelMapper (){}
+    private SinkModelMapper() {
+    }
 
     /**
      * Maps a Sink to a SinkModel
+     *
      * @param sink, the sink
      * @return model
      */
@@ -33,6 +35,7 @@ public class SinkModelMapper {
 
     /**
      * Maps a model to submitter content
+     *
      * @param model, the model to map from
      * @return submitterContent
      * @throws IllegalArgumentException if any model values were illegal
@@ -44,7 +47,7 @@ public class SinkModelMapper {
         }
 
         List<String> matches = model.getDataioPatternMatches();
-        if(!matches.isEmpty()) {
+        if (!matches.isEmpty()) {
             throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
         }
 
@@ -73,9 +76,9 @@ public class SinkModelMapper {
 
     private static String buildPatternMatchesErrorMsg(List<String> matches) {
         StringBuilder stringBuilder = new StringBuilder("Illegal characters found in sink name:");
-        for(String match : matches) {
+        for (String match : matches) {
             stringBuilder.append(" [").append(match).append("],");
         }
-        return stringBuilder.deleteCharAt(stringBuilder.length() -1).toString();
+        return stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
     }
 }

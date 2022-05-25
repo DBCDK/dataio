@@ -11,7 +11,8 @@ import javax.ws.rs.core.Response;
 @Stateless
 @Path("/")
 public class StatusBean implements ServiceStatus {
-    @EJB TaskRepo taskRepo;
+    @EJB
+    TaskRepo taskRepo;
 
     @Override
     public Response getStatus() {

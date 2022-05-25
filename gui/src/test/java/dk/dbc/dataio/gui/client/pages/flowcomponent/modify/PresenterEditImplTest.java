@@ -24,19 +24,24 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterEditImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
 
-    @Mock private Texts mockedTexts;
-    @Mock private EditPlace mockedPlace;
-    @Mock private JavaScriptProjectFetcherAsync mockedJavaScriptProjectFetcher;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock private ViewGinjector mockedViewInjector;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private EditPlace mockedPlace;
+    @Mock
+    private JavaScriptProjectFetcherAsync mockedJavaScriptProjectFetcher;
+    @Mock
+    dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock
+    private ViewGinjector mockedViewInjector;
     private View editView;
 
     private PresenterEditImplConcrete presenterEditImpl;

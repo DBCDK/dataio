@@ -81,7 +81,7 @@ public class ZippedXmlDataPartitioner implements DataPartitioner {
                     positionInDatafile++;
 
                     // If no more chunks available, try to advance the iterator
-                    if( !currentZipIterator.hasNext() ) {
+                    if (!currentZipIterator.hasNext()) {
                         getNextEntryWithData();
                     }
 
@@ -107,7 +107,7 @@ public class ZippedXmlDataPartitioner implements DataPartitioner {
         byte[] buffer = new byte[(int) 2048];
         ByteArrayOutputStream compressedItems = new ByteArrayOutputStream();
         int len;
-        while( (len = zipStream.read(buffer)) > 0) {
+        while ((len = zipStream.read(buffer)) > 0) {
             compressedItems.write(buffer, 0, len);
         }
 
@@ -122,7 +122,7 @@ public class ZippedXmlDataPartitioner implements DataPartitioner {
             do {
                 // Fetch next entry, check if we have reached eof
                 ZipEntry entry = zipStream.getNextEntry();
-                if(entry == null) {
+                if (entry == null) {
                     currentZipIterator = null;
                     return;
                 }
@@ -130,8 +130,8 @@ public class ZippedXmlDataPartitioner implements DataPartitioner {
                 // Partition chunks contained in the new entry, get the iterator
                 DefaultXmlDataPartitioner partitioner = getXmlDataPartitioner(zipStream);
                 currentZipIterator = partitioner.iterator();
-            } while(!currentZipIterator.hasNext());
-        } catch(IOException ioe) {
+            } while (!currentZipIterator.hasNext());
+        } catch (IOException ioe) {
             LOGGER.info("getNextEntryWithData() failed due to exception: " + ioe.getMessage());
             throw new UnrecoverableDataException(ioe);
         }

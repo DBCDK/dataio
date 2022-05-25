@@ -186,6 +186,7 @@ public class View extends ViewWidget {
             public FlowComponentModel getValue(FlowComponentModel model) {
                 return model;
             }
+
             @Override
             public String getCellStyleNames(Cell.Context context, FlowComponentModel object) {
                 return "button-cell";  // To allow css to place button horisontally
@@ -199,7 +200,7 @@ public class View extends ViewWidget {
                 model.getJavascriptModules(),
                 Format.macro(getTexts().header_SVNNextRevision(), SVN_REVISION_MACRO, model.getSvnNext()),
                 model.getNextJavascriptModules()
-                ));
+        ));
         jsModulesPopup.setDialogTitle(Format.macro(getTexts().header_JSModulesListPopup(), FLOWCOMPONENT_MACRO_NAME, model.getName()));
         jsModulesPopup.show();
     }
@@ -207,12 +208,13 @@ public class View extends ViewWidget {
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
-    private DoubleClickHandler getDoubleClickHandler(){
+    private DoubleClickHandler getDoubleClickHandler() {
         return doubleClickEvent -> {
             FlowComponentModel selected = selectionModel.getSelectedObject();
-            if(selected != null) {
+            if (selected != null) {
                 presenter.editFlowComponent(selected);
             }
         };

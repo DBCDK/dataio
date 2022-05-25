@@ -70,7 +70,8 @@ public class Cli {
         }
 
         @Override
-        public void onAttach(Argument arg) {}
+        public void onAttach(Argument arg) {
+        }
 
         @Override
         public boolean consumeArgument() {

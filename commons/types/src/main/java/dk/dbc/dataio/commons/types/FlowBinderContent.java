@@ -34,20 +34,19 @@ public class FlowBinderContent implements Serializable {
     /**
      * Class constructor
      *
-     * @param name flowbinder name
-     * @param description flowbinder description
-     * @param packaging flowbinder packaging (rammeformat)
-     * @param format flowbinder format (indholdsformat)
-     * @param charset flowbinder character set
-     * @param destination flow binder destination
-     * @param priority priority
+     * @param name           flowbinder name
+     * @param description    flowbinder description
+     * @param packaging      flowbinder packaging (rammeformat)
+     * @param format         flowbinder format (indholdsformat)
+     * @param charset        flowbinder character set
+     * @param destination    flow binder destination
+     * @param priority       priority
      * @param recordSplitter flow binder record splitter
-     * @param flowId id of flow attached to this flowbinder
-     * @param submitterIds ids of submitters attached to this flowbinder
-     * @param sinkId id of sink attached to this flowbinder
-     * @param queueProvider the queue provider to use for this flow binder
-     *
-     * @throws NullPointerException if given null-valued argument
+     * @param flowId         id of flow attached to this flowbinder
+     * @param submitterIds   ids of submitters attached to this flowbinder
+     * @param sinkId         id of sink attached to this flowbinder
+     * @param queueProvider  the queue provider to use for this flow binder
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty valued String or List argument
      */
 

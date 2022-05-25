@@ -28,7 +28,8 @@ public class JPATestUtils {
     static final String POSTGRESQL_PORT = "postgresql.port";
 
     // Static Utility class
-    private JPATestUtils() {}
+    private JPATestUtils() {
+    }
 
     /**
      * @param entityManagers list of {@link EntityManager} for which to clear cache
@@ -50,6 +51,7 @@ public class JPATestUtils {
 
     /**
      * Creates integration test {@link EntityManager} instance for named persistence unit
+     *
      * @param persistenceUnitName name of persistence unit
      * @return Returns a Configured for tests Persistence manager
      */
@@ -107,19 +109,21 @@ public class JPATestUtils {
     /**
      * Removes all tables, functions and indexes from the database for the persistence unit managed by the
      * given {@link EntityManager}
+     *
      * @param entityManager controlling {@link EntityManager}
      */
     public static void clearDatabase(EntityManager entityManager) {
-        JPATestUtils.runSqlFromResource(entityManager,new JPATestUtils(),"drop_all_pg.sql");
+        JPATestUtils.runSqlFromResource(entityManager, new JPATestUtils(), "drop_all_pg.sql");
     }
 
     /**
      * Executes SQL commands found in named resource using given {@link EntityManager}
      * Example:
-     *  JPATestUtils.runSqlFromResource(em, this, "load_test_data.sql");
+     * JPATestUtils.runSqlFromResource(em, this, "load_test_data.sql");
+     *
      * @param entityManager {@link EntityManager} instance
-     * @param object object which runtime class is used to resolve resource location
-     * @param resourceName name of resource containing SQL commands
+     * @param object        object which runtime class is used to resolve resource location
+     * @param resourceName  name of resource containing SQL commands
      */
     public static void runSqlFromResource(EntityManager entityManager, Object object, String resourceName) {
         final String sql = ResourceReader.getResourceAsString(object.getClass(), resourceName);
@@ -138,16 +142,16 @@ public class JPATestUtils {
             String dataBaseName = "testdb";
             String dataBaseHost = "localhost";
             String port = System.getProperty(POSTGRESQL_PORT);
-            if (port == null || port.length() < 1)  {
+            if (port == null || port.length() < 1) {
                 port = "5432";
                 password = System.getenv("USER");
                 dataBaseName = System.getenv("USER");
 
-                if (System.getProperty(POSTGRESQL_HOST) != null ) {
+                if (System.getProperty(POSTGRESQL_HOST) != null) {
                     dataBaseHost = System.getProperty(POSTGRESQL_HOST);
                 }
 
-                if (System.getProperty(POSTGRESQL_DBNAME) != null ) {
+                if (System.getProperty(POSTGRESQL_DBNAME) != null) {
                     dataBaseName = System.getProperty(POSTGRESQL_DBNAME);
                 }
             }

@@ -30,7 +30,8 @@ public class Modification {
     @Column(nullable = false)
     private Boolean locked;
 
-    public Modification() {}
+    public Modification() {
+    }
 
     public String getTransfileName() {
         return transfileName;
@@ -108,6 +109,7 @@ public class Modification {
 
     /**
      * Constructor used for unit testing
+     *
      * @param id injected id
      */
     public Modification(Long id) {

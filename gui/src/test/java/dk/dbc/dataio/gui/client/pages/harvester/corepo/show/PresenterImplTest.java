@@ -1,5 +1,3 @@
-
-
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.show;
 
 import com.google.gwt.place.shared.PlaceController;
@@ -25,17 +23,21 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
-    @Mock PlaceController mockedPlaceController;
-    @Mock View mockedView;
-    @Mock Widget mockedViewWidget;
-    @Mock ViewGinjector mockedViewGinjector;
+    @Mock
+    PlaceController mockedPlaceController;
+    @Mock
+    View mockedView;
+    @Mock
+    Widget mockedViewWidget;
+    @Mock
+    ViewGinjector mockedViewGinjector;
 
     // Setup mocked data
     @Before
@@ -61,6 +63,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             viewInjector = mockedViewGinjector;
             commonInjector = mockedCommonGinjector;
         }
+
         GetCoRepoHarvestersCallback getHarvestersCallback = new GetCoRepoHarvestersCallback();
     }
 

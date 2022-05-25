@@ -20,7 +20,8 @@ import javax.ejb.Singleton;
 public class ImsConfigBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImsConfigBean.class);
 
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
     private long highestVersionSeen = 0;
     private ImsSinkConfig config;
@@ -32,6 +33,7 @@ public class ImsConfigBean {
 
     /**
      * Refreshes the sink config contained in this bean by flow-store lookup if it is outdated
+     *
      * @param consumedMessage consumed message containing the version and the id of the sink
      * @throws SinkException on error to retrieve property for id or version or on error on fetching sink
      */

@@ -51,7 +51,7 @@ public class LogStoreProxyImpl implements LogStoreProxy {
             throw new ProxyException(ProxyError.BAD_REQUEST, e);
         } catch (LogStoreServiceConnectorUnexpectedStatusCodeException e) {
             log.error("LogStoreProxy: getItemLog - Unexpected Status Code Exception", e);
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (LogStoreServiceConnectorException e) {
             log.error("LogStoreProxy: getItemLog - Service Connector Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);

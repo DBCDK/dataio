@@ -45,14 +45,15 @@ public class HarvestOperation {
 
     /**
      * Class constructor
-     * @param config configuration used for this harvest
+     *
+     * @param config                    configuration used for this harvest
      * @param flowStoreServiceConnector connector used to update configuration
-     * @param binaryFileStore used to create HarvesterJobBuilder in order to create dataIO job
+     * @param binaryFileStore           used to create HarvesterJobBuilder in order to create dataIO job
      * @param fileStoreServiceConnector used to create HarvesterJobBuilder in order to create dataIO job
-     * @param jobStoreServiceConnector used to create HarvesterJobBuilder in order to create dataIO job
-     * @param tickleRepo tickle repository API
-     * @param taskRepo harvest task repository API
-     * @throws NullPointerException if given any null-valued argument
+     * @param jobStoreServiceConnector  used to create HarvesterJobBuilder in order to create dataIO job
+     * @param tickleRepo                tickle repository API
+     * @param taskRepo                  harvest task repository API
+     * @throws NullPointerException  if given any null-valued argument
      * @throws IllegalStateException if unable to resolve tickle dataset
      */
     HarvestOperation(TickleRepoHarvesterConfig config,
@@ -76,9 +77,10 @@ public class HarvestOperation {
 
     /**
      * Runs this harvest operation
+     *
      * @return number of records harvested
      * @throws HarvesterException if unable to complete harvest operation
-    */
+     */
     int execute() throws HarvesterException {
         final StopWatch stopWatch = new StopWatch();
 

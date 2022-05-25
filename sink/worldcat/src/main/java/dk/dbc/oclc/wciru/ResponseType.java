@@ -8,11 +8,11 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "responseType", namespace = "http://www.loc.gov/zing/srw/", propOrder = {
-    "version"
+        "version"
 })
 @XmlSeeAlso({
-    ExplainResponseType.class,
-    UpdateResponseType.class
+        ExplainResponseType.class,
+        UpdateResponseType.class
 })
 public class ResponseType {
 

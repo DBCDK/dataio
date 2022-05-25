@@ -36,7 +36,9 @@ public class Versioned {
         return id;
     }
 
-    public void setId(Long id) { this.id = id; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Long getVersion() {
         return version;
@@ -53,6 +55,7 @@ public class Versioned {
 
     /**
      * Sets entity data content as JSON string
+     *
      * @param content entity data as JSON string
      * @throws JSONBException may be thrown by sub class if content is preprocessed as JSON
      */

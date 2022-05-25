@@ -32,7 +32,8 @@ public class FlowCache {
             @Override
             public boolean removeEldestEntry(Map.Entry eldest) {
                 return size() > CACHE_MAX_ENTRIES;
-            }};
+            }
+        };
     }
 
     /**
@@ -54,11 +55,12 @@ public class FlowCache {
     /**
      * Creates script environment for the given flow and associates it with the specified key in this cache.
      * If this cache previously contained a mapping for the key, the old value is replaced by the new entry.
-     * @param key key with which the create script environment is to be associated in this cache
+     *
+     * @param key  key with which the create script environment is to be associated in this cache
      * @param flow flow from which a scripting environment is created
      * @return script environment as FlowCacheEntry
      * @throws IllegalStateException if given flow contains no script
-     * @throws Throwable on general script environment creation failure
+     * @throws Throwable             on general script environment creation failure
      */
     public FlowCacheEntry put(String key, Flow flow) throws Throwable {
         LOGGER.info("Setting up javascript environment for flow '{}'", flow.getContent().getName());

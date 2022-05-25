@@ -32,6 +32,7 @@ public class JobExporterTest {
     private final ChunkItemExporter chunkItemExporter = mock(ChunkItemExporter.class);
     private final ItemEntity.Key itemEntityKey = new ItemEntity.Key(1, 2, (short) 3);
     private final JobExporter jobExporter = new JobExporter(entityManager);
+
     {
         jobExporter.chunkItemExporter = chunkItemExporter;
     }
@@ -186,10 +187,17 @@ public class JobExporterTest {
 
     private void setItemEntityDataForPhase(ItemEntity itemEntity, State.Phase phase, String data) {
         switch (phase) {
-            case PARTITIONING: itemEntity.setPartitioningOutcome(new ChunkItemBuilder().setData(data).build()); break;
-            case PROCESSING:   itemEntity.setProcessingOutcome(new ChunkItemBuilder().setData(data).build()); break;
-            case DELIVERING:   itemEntity.setDeliveringOutcome(new ChunkItemBuilder().setData(data).build()); break;
-            default: throw new IllegalStateException("Unknown phase " + phase);
+            case PARTITIONING:
+                itemEntity.setPartitioningOutcome(new ChunkItemBuilder().setData(data).build());
+                break;
+            case PROCESSING:
+                itemEntity.setProcessingOutcome(new ChunkItemBuilder().setData(data).build());
+                break;
+            case DELIVERING:
+                itemEntity.setDeliveringOutcome(new ChunkItemBuilder().setData(data).build());
+                break;
+            default:
+                throw new IllegalStateException("Unknown phase " + phase);
         }
     }
 

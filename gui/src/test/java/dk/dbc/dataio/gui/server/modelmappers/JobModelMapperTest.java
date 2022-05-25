@@ -18,15 +18,15 @@ import java.util.Date;
 import java.util.List;
 
 import static dk.dbc.dataio.gui.server.modelmappers.JobModelMapper.toJobInputStream;
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 
 /**
  * JobModelMapper unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class JobModelMapperTest {
 

@@ -36,7 +36,7 @@ public class XmlDiffGeneratorParameterizedTest extends AbstractDiffGeneratorTest
                 if (fn.getFileName().toString().endsWith(CURRENT_XML)) {
                     String[] fileEntry = new String[2];
                     fileEntry[0] = fn.getFileName().toString();
-                    fileEntry[1] = fn.getFileName().toString().replace(CURRENT_XML,NEXT_XML);
+                    fileEntry[1] = fn.getFileName().toString().replace(CURRENT_XML, NEXT_XML);
                     result.add(fileEntry);
                 }
             }
@@ -45,9 +45,9 @@ public class XmlDiffGeneratorParameterizedTest extends AbstractDiffGeneratorTest
         return result;
     }
 
-    @Parameterized.Parameter( value=0)
+    @Parameterized.Parameter(value = 0)
     public String currentFileName;
-    @Parameterized.Parameter( value=1)
+    @Parameterized.Parameter(value = 1)
     public String nextFileName;
 
 

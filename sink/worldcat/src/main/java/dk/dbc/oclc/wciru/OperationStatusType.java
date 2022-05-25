@@ -27,7 +27,7 @@ public enum OperationStatusType {
     }
 
     public static OperationStatusType fromValue(String v) {
-        for (OperationStatusType c: OperationStatusType.values()) {
+        for (OperationStatusType c : OperationStatusType.values()) {
             if (c.value.equals(v)) {
                 return c;
             }

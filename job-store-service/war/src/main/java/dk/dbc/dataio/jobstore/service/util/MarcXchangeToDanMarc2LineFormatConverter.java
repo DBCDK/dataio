@@ -22,7 +22,7 @@ public class MarcXchangeToDanMarc2LineFormatConverter extends AbstractToLineForm
 
     @Override
     public byte[] convert(ChunkItem chunkItem, Charset encodedAs, List<Diagnostic> diagnostics) throws JobStoreException {
-       final MarcRecord record;
+        final MarcRecord record;
         try {
             record = new MarcXchangeV1Reader(getChunkItemInputStream(chunkItem), chunkItem.getEncoding())
                     .setProperty(XmlParser.Property.ALLOW_EMPTY_SUBFIELD_CODE, true)

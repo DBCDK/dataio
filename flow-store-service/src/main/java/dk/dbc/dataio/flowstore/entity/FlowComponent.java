@@ -68,7 +68,7 @@ public class FlowComponent extends Versioned {
     }
 
     public void setNext(String next) {
-        if(next!= null) {
+        if (next != null) {
             this.next = next.isEmpty() ? null : next;
         }
     }
@@ -78,13 +78,13 @@ public class FlowComponent extends Versioned {
         return this;
     }
 
-    FlowComponent withVersion( long version ) {
-        setVersion( version );
+    FlowComponent withVersion(long version) {
+        setVersion(version);
         return this;
     }
 
-    public FlowComponent withContent( String content ) throws JSONBException {
-        this.setContent( content );
+    public FlowComponent withContent(String content) throws JSONBException {
+        this.setContent(content);
         return this;
     }
 
@@ -119,7 +119,7 @@ public class FlowComponent extends Versioned {
                     .withModules(getModuleNames(content.getJavascripts()));
             if (nextContent != null) {
                 view.withNextRevision(String.valueOf(nextContent.getSvnRevision()))
-                    .withNextModules(getModuleNames(nextContent.getJavascripts()));
+                        .withNextModules(getModuleNames(nextContent.getJavascripts()));
             }
             return JSONB_CONTEXT.marshall(view);
         } catch (JSONBException e) {

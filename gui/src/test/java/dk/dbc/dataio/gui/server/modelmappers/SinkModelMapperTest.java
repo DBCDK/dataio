@@ -21,10 +21,10 @@ import static org.junit.Assert.fail;
 
 /**
  * SinkModelMapper unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class SinkModelMapperTest {
     // Default Sinks
@@ -180,8 +180,8 @@ public class SinkModelMapperTest {
         try {
             SinkModelMapper.toSinkContent(model);
             fail("Illegal sink name not detected");
-        } catch(IllegalArgumentException e) {
-            assertThat(e.getMessage().contains(expectedIllegalCharacters), is (true));
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage().contains(expectedIllegalCharacters), is(true));
         }
     }
 }

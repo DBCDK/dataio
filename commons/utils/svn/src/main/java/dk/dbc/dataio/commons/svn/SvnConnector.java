@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * This utility class provides convenience methods for communication with a
  * Subversion source control management system.
- *
+ * <p>
  * Currently only file:// and http(s):// URL schemes are supported.
  */
 public class SvnConnector {
@@ -45,20 +45,19 @@ public class SvnConnector {
         //SVNRepositoryFactoryImpl.setup();   // svn, svn+xxx
     }
 
-    private SvnConnector() { }
+    private SvnConnector() {
+    }
 
     /**
      * Retrieves information from Subversion source control management system for
      * all available commited revisions for project pointed to by given URL
      *
      * @param projectUrl unencoded project URL on the form http(s)://... or file://...
-     *
      * @return list of available revisions ordered from latest to earliest
-     *
-     * @throws NullPointerException if given null-valued project URL
+     * @throws NullPointerException     if given null-valued project URL
      * @throws IllegalArgumentException if given empty-valued project URL
-     * @throws SVNException on failure to retrieve revisions from SVN server
-     * @throws URISyntaxException if given project URL could not be parsed as a URI reference
+     * @throws SVNException             on failure to retrieve revisions from SVN server
+     * @throws URISyntaxException       if given project URL could not be parsed as a URI reference
      */
     public static List<RevisionInfo> listAvailableRevisions(final String projectUrl)
             throws NullPointerException, IllegalArgumentException, SVNException, URISyntaxException {
@@ -95,10 +94,11 @@ public class SvnConnector {
 
     /**
      * Creates a SVNRepository driver according to the protocol that is to be used to access a repository
+     *
      * @param projectUrl unencoded project URL on the form http(s)://... or file://...
      * @return protocol specific {@link SVNRepository} driver
      * @throws URISyntaxException if given project URL could not be parsed as a URI reference
-     * @throws SVNException if there's no implementation for the specified protocol
+     * @throws SVNException       if there's no implementation for the specified protocol
      */
     public static SVNRepository getRepository(final String projectUrl) throws URISyntaxException, SVNException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectUrl, "projectUrl");
@@ -107,8 +107,9 @@ public class SvnConnector {
 
     /**
      * Tests if given directory exists in given repository
+     *
      * @param svnRepository subversion repository
-     * @param dir directory name
+     * @param dir           directory name
      * @return true if directory exists, otherwise false
      * @throws SVNException if a failure occurs while connecting to a repository
      */
@@ -122,14 +123,12 @@ public class SvnConnector {
      * given URL from Subversion source control management system
      *
      * @param projectUrl unencoded project URL on the form http(s)://... or file://...
-     * @param revision project revision
-     *
+     * @param revision   project revision
      * @return list of available paths
-     *
-     * @throws NullPointerException if given null-valued project URL
+     * @throws NullPointerException     if given null-valued project URL
      * @throws IllegalArgumentException if given empty-valued project URL
-     * @throws SVNException on failure to retrieve paths from given revision
-     * @throws URISyntaxException if given project URL could not be parsed as a URI reference
+     * @throws SVNException             on failure to retrieve paths from given revision
+     * @throws URISyntaxException       if given project URL could not be parsed as a URI reference
      */
     public static List<String> listAvailablePaths(final String projectUrl, final long revision)
             throws NullPointerException, IllegalArgumentException, SVNException, URISyntaxException {
@@ -149,19 +148,18 @@ public class SvnConnector {
     /**
      * Executes export operation for project pointed to by given URL from Subversion
      * source control management system
-     *
+     * <p>
      * Note that the specified revision is set as the Peg revision (as opposed to the
      * operative revision) meaning export the contents of whatever file or directory
      * occupied the URL at that point in history.
      *
      * @param projectUrl unencoded project URL on the form http(s)://... or file://...
-     * @param revision project revision
-     * @param exportTo file system path of exported copy
-     *
-     * @throws NullPointerException if given null-valued project URL or export path
+     * @param revision   project revision
+     * @param exportTo   file system path of exported copy
+     * @throws NullPointerException     if given null-valued project URL or export path
      * @throws IllegalArgumentException if given empty-valued project URL or export path
-     * @throws SVNException on failure to export given revision
-     * @throws URISyntaxException if given project URL could not be parsed as a URI reference
+     * @throws SVNException             on failure to export given revision
+     * @throws URISyntaxException       if given project URL could not be parsed as a URI reference
      */
     public static void export(final String projectUrl, final long revision, final Path exportTo)
             throws NullPointerException, IllegalArgumentException, SVNException, URISyntaxException {
@@ -198,7 +196,7 @@ public class SvnConnector {
     }
 
     @SuppressWarnings("PMD.UnusedPrivateMethod")
-    private static List<RevisionInfo>  processSvnLogEntries(final LinkedList<SVNLogEntry> logEntries) {
+    private static List<RevisionInfo> processSvnLogEntries(final LinkedList<SVNLogEntry> logEntries) {
         log.debug("{} log entries to process", logEntries.size());
         final List<RevisionInfo> revisions = new ArrayList<>();
         for (final Iterator<SVNLogEntry> iterator = logEntries.descendingIterator(); iterator.hasNext(); ) {

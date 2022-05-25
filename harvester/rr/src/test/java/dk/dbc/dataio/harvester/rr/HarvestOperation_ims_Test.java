@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
@@ -179,7 +178,7 @@ public class HarvestOperation_ims_Test {
                     put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }})
-                .thenReturn(new HashMap<String, RecordDTO>(){{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
 
@@ -276,11 +275,11 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(null);
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(eq(imsRecordId), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>(){{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(eq(dbcRecordId), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>(){{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});
 
@@ -722,7 +721,7 @@ public class HarvestOperation_ims_Test {
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
         verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
                 newImsHarvestOperation().getJobSpecificationTemplate(710100));
-}
+    }
 
     /**
      * Test if the ims library has a deleted head and section record and in that case, the 870970 records is added to the collection

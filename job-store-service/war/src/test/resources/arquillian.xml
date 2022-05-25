@@ -1,7 +1,4 @@
-<!--
-  ~ Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
-  ~ See license text in LICENSE.txt
-  -->
+
 
 <arquillian xmlns="http://jboss.org/schema/arquillian"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

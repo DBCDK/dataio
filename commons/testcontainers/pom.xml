@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
-  ~ See license text in LICENSE.txt
-  -->
+
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

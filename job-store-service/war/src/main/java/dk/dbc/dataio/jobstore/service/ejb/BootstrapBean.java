@@ -21,48 +21,35 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
-import dk.dbc.dataio.jobstore.types.JobStoreException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.DependsOn;
 import javax.ejb.EJB;
-import javax.ejb.ScheduleExpression;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.ejb.Timeout;
-import javax.ejb.Timer;
-import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
-import java.util.HashMap;
-import java.util.Map;
 
 @Singleton
 @Startup
 @DependsOn("DatabaseMigrator")
 public class BootstrapBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapBean.class);
-
-    @EJB JobQueueRepository jobQueueRepository;
-    @EJB JobSchedulerBean jobSchedulerBean;
-    @EJB PgJobStore jobStore;
-    @EJB RerunsRepository rerunsRepository;
-    @EJB JobRerunnerBean jobRerunnerBean;
-    @Resource TimerService timerService;
-
-    private Timer jumpStartTimer;
+    @EJB
+    JobQueueRepository jobQueueRepository;
+    @EJB
+    JobSchedulerBean jobSchedulerBean;
+    @EJB
+    RerunsRepository rerunsRepository;
+    @Resource
+    TimerService timerService;
 
     @PostConstruct
     public void initialize() {
         resetJobsInterruptedDuringPartitioning();
         resetInterruptedRerunTasks();
         jobSchedulerBean.loadSinkStatusOnBootstrap();
-        jumpStartTimer = createJumpStartTimer();
     }
 
     /*
@@ -80,44 +67,5 @@ public class BootstrapBean {
         for (RerunEntity interrupted : rerunsRepository.getInProgress()) {
             interrupted.withState(RerunEntity.State.WAITING);
         }
-    }
-
-    /**
-     * Jump-starts partitioning for each sink found in the job queue
-     * @param timer timer
-     */
-    @Timeout
-    public void jumpStart(Timer timer) {
-        final Map<Long, Sink> sinks = new HashMap<>();
-        for (JobQueueEntity jobQueueEntity : jobQueueRepository.getWaiting()) {
-            final Sink sink = jobQueueEntity.getJob().getCachedSink().getSink();
-            if (!sinks.containsKey(sink.getId()) || sinks.get(sink.getId()).getVersion() < sink.getVersion()) {
-                sinks.put(sink.getId(), sink);
-            }
-        }
-        LOGGER.info("jumpStart(): found {} sinks to jump-start", sinks.size());
-        sinks.forEach((id, sink) -> {
-            LOGGER.info("jumpStart(): jump-starting partitioning for sink {}({})",
-                    id, sink.getContent().getName());
-            jobStore.partitionNextJobForSinkIfAvailable(sink);
-        });
-
-        try {
-            jobRerunnerBean.rerunNextIfAvailable();
-        } catch (JobStoreException e) {
-            LOGGER.error("Error jump-starting rerun tasks handling", e);
-        }
-
-        timer.cancel();  // single event timer
-    }
-
-    private Timer createJumpStartTimer() {
-        final ScheduleExpression scheduleExpression = new ScheduleExpression();
-        scheduleExpression.second("*/1");
-        scheduleExpression.minute("*");
-        scheduleExpression.hour("*");
-        final TimerConfig timerConfig = new TimerConfig();
-        timerConfig.setPersistent(false);
-        return timerService.createCalendarTimer(scheduleExpression, timerConfig);
     }
 }

@@ -64,7 +64,6 @@ import java.util.concurrent.Future;
 @Stateless
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
-    private static final int FIRST_LEVEL_CACHE_CLEAR_THRESHOLD = 500;
 
     private static final HashSet<SinkContent.SinkType> REQUIRES_TERMINATION_CHUNK = new HashSet<>();
     static {

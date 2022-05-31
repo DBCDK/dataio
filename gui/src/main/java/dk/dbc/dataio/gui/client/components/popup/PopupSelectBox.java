@@ -30,9 +30,6 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
-import javax.swing.event.ChangeEvent;
-import java.util.Date;
-
 /**
  * <p>Popup select box for displaying a widget in a popup window </p>
  * <p>The popup box consist of a header, the widget itself, 2 radio buttons and 1 confirmation button:</p>

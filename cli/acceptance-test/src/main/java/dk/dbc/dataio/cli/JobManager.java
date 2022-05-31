@@ -112,7 +112,7 @@ public class JobManager {
     }
 
     private String addDataFile(Path dataFile) throws FileStoreServiceConnectorException, IOException {
-        try (final InputStream is = new FileInputStream(dataFile.toFile())) {
+        try (InputStream is = new FileInputStream(dataFile.toFile())) {
             return fileStoreServiceConnector.addFile(is);
         }
     }
@@ -166,8 +166,8 @@ public class JobManager {
     }
 
     private void createJunitXmlTestSuite(FileOutputStream fileOutputStream, JobInfoSnapshot jobInfoSnapshot, String testSuiteName) throws Exception {
-        try (final JunitXmlStreamWriter junitXmlStreamWriter = new JunitXmlStreamWriter(fileOutputStream)) {
-            try (final JunitXmlTestSuite junitXmlTestSuite = new JunitXmlTestSuite("dataio.acctest." + testSuiteName, junitXmlStreamWriter)) {
+        try (JunitXmlStreamWriter junitXmlStreamWriter = new JunitXmlStreamWriter(fileOutputStream)) {
+            try (JunitXmlTestSuite junitXmlTestSuite = new JunitXmlTestSuite("dataio.acctest." + testSuiteName, junitXmlStreamWriter)) {
                 createJunitXmlTestCases(junitXmlTestSuite, jobInfoSnapshot, testSuiteName);
             }
         }

@@ -195,7 +195,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
     }
 
     private static String readInputStream(InputStream is) throws IOException {
-        try (final BufferedReader in = new BufferedReader(
+        try (BufferedReader in = new BufferedReader(
                 new InputStreamReader(is))) {
             StringBuilder sb = new StringBuilder();
             String line;

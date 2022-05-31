@@ -127,7 +127,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
                 .setParameter(1, delivery.getJobId());
 
         String fileId = null;
-        try (final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
+        try (ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
                 new PeriodicJobsDataBlockResultSetMapping())) {
             fileId = fileStoreServiceConnector.addFile(new ByteArrayInputStream(contentHeader.getBytes()));
             for (PeriodicJobsDataBlock datablock : datablocks) {

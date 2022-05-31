@@ -63,7 +63,7 @@ public class MockedFileStoreServiceConnector extends FileStoreServiceConnector {
     @Override
     public String addFile(InputStream inputStream) {
         currentDestination = destinations.remove();
-        try (final FileOutputStream fos = new FileOutputStream(currentDestination.toFile())) {
+        try (FileOutputStream fos = new FileOutputStream(currentDestination.toFile())) {
             final byte[] buf = new byte[8192];
             int bytesRead;
             while ((bytesRead = inputStream.read(buf)) > 0) {
@@ -86,7 +86,7 @@ public class MockedFileStoreServiceConnector extends FileStoreServiceConnector {
     @Override
     public void appendToFile(String fileId, byte[] bytes) {
         assertFileId(fileId);
-        try (final FileOutputStream fos = new FileOutputStream(currentDestination.toFile(), true)) {
+        try (FileOutputStream fos = new FileOutputStream(currentDestination.toFile(), true)) {
             fos.write(bytes);
             fos.flush();
         } catch (IOException e) {

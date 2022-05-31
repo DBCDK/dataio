@@ -80,7 +80,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>${postgresql.driver.version}</version>
+      <version>${postgresql-driver.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

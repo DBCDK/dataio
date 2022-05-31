@@ -77,7 +77,7 @@ public class WorkflowNote implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = (processed ? 1 : 0);
+        int result = processed ? 1 : 0;
         result = 31 * result + assignee.hashCode();
         result = 31 * result + (description != null ? description.hashCode() : 0);
         return result;

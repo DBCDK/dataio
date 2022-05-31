@@ -71,7 +71,7 @@ public class JmsQueueBean {
 
         String listOfMessagesAsJson;
         try (JMSContext context = messageQueueConnectionFactory.createContext()) {
-            try (final QueueBrowser browser = context.createBrowser(getQueueResource(queueName))) {
+            try (QueueBrowser browser = context.createBrowser(getQueueResource(queueName))) {
                 final List<MockedJmsTextMessage> messages = new ArrayList<>();
                 final Enumeration queue = browser.getEnumeration();
                 while (queue.hasMoreElements()) {
@@ -119,7 +119,7 @@ public class JmsQueueBean {
     public int emptyQueue(Queue queue) {
         int numDeleted = 0;
         try (JMSContext context = messageQueueConnectionFactory.createContext()) {
-            try (final JMSConsumer consumer = context.createConsumer(queue)) {
+            try (JMSConsumer consumer = context.createConsumer(queue)) {
                 Message message;
                 do {
                     message = consumer.receive(1000);
@@ -143,7 +143,7 @@ public class JmsQueueBean {
 
         int queueSize = 0;
         try (JMSContext context = messageQueueConnectionFactory.createContext()) {
-            try (final QueueBrowser browser = context.createBrowser(getQueueResource(queueName))) {
+            try (QueueBrowser browser = context.createBrowser(getQueueResource(queueName))) {
                 final Enumeration messages = browser.getEnumeration();
                 while (messages.hasMoreElements()) {
                     queueSize++;

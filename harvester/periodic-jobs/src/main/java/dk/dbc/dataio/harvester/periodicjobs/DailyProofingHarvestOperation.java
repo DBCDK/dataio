@@ -60,6 +60,7 @@ public class DailyProofingHarvestOperation extends HarvestOperation {
         return new RecordFetcher(recordId, recordServiceConnector, config);
     }
 
+    @SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
     static class RecordFetcher extends dk.dbc.dataio.harvester.periodicjobs.RecordFetcher {
         private static final Logger LOGGER = LoggerFactory.getLogger(RecordFetcher.class);
 

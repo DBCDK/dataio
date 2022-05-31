@@ -158,7 +158,7 @@ public class FilesIT {
         }
         createSparseFile(sourceFile, veryLargeFileSizeInBytes);
 
-        try (final InputStream is = getInputStreamForFile(sourceFile.toPath())) {
+        try (InputStream is = getInputStreamForFile(sourceFile.toPath())) {
             final String fileId = fileStoreServiceConnector.addFile(is);
 
             // Then...
@@ -257,7 +257,7 @@ public class FilesIT {
         // Given...
         final File sourceFile = rootFolder.newFile();
 
-        try (final InputStream is = getInputStreamForFile(sourceFile.toPath())) {
+        try (InputStream is = getInputStreamForFile(sourceFile.toPath())) {
             final String fileId = fileStoreServiceConnector.addFile(is);
 
             // When...
@@ -314,7 +314,7 @@ public class FilesIT {
         final File sourceFile = createFile(getRandomBytes(512));
         final File gzFile = createGzFile(sourceFile);
 
-        try (final InputStream is = getInputStreamForFile(gzFile.toPath())) {
+        try (InputStream is = getInputStreamForFile(gzFile.toPath())) {
             final String fileId = fileStoreServiceConnector.addFile(is);
 
             // Then...
@@ -398,7 +398,7 @@ public class FilesIT {
     }
 
     private static void writeFile(File path, InputStream is) throws IOException {
-        try (final OutputStream os = getOutputStreamForFile(path.toPath())) {
+        try (OutputStream os = getOutputStreamForFile(path.toPath())) {
             final byte[] buf = new byte[BUFFER_SIZE];
             int bytesRead;
             while ((bytesRead = is.read(buf)) > 0) {
@@ -459,7 +459,7 @@ public class FilesIT {
     }
 
     private static void pushBackCreationTime(String fileId) {
-        try (final Connection conn = connectToFileStoreDB()) {
+        try (Connection conn = connectToFileStoreDB()) {
             final PreparedStatement statement = conn.prepareStatement(
                     "UPDATE file_attributes SET creationtime=now()-INTERVAL'7 months' WHERE id=?");
             statement.setInt(1, Integer.parseInt(fileId));
@@ -470,7 +470,7 @@ public class FilesIT {
     }
 
     private static Date getAtime(String fileId) {
-        try (final Connection conn = connectToFileStoreDB()) {
+        try (Connection conn = connectToFileStoreDB()) {
             final PreparedStatement statement = conn.prepareStatement("SELECT atime FROM file_attributes WHERE id=?");
             statement.setInt(1, Integer.parseInt(fileId));
             final ResultSet resultSet = statement.executeQuery();

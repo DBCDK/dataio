@@ -67,7 +67,7 @@ public class CORepoConnector {
      * @throws RepositoryException on failure to query modified records
      */
     public List<Pid> getChangesInRepository(Instant from, Instant to, Predicate<Pid> acceptedPids) throws RepositoryException {
-        try (final CORepoDAO repository = (CORepoDAO) coRepoProvider.getRepository()) {
+        try (CORepoDAO repository = (CORepoDAO) coRepoProvider.getRepository()) {
             final String query = getIntervalQuery(from, to);
             LOGGER.info("finding changes in repository where {}", query);
             return Arrays.stream(repository.searchRepository(query))

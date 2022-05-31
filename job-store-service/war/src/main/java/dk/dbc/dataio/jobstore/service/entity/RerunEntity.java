@@ -109,7 +109,7 @@ public class RerunEntity {
     }
 
     public Boolean isIncludeFailedOnly() {
-        return includeFailedOnly == null ? false : includeFailedOnly;
+        return includeFailedOnly != null && includeFailedOnly;
     }
 
     public RerunEntity withIncludeFailedOnly(Boolean includeFailedOnly) {

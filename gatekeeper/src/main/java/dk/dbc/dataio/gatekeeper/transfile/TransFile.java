@@ -65,7 +65,7 @@ public class TransFile {
         path = InvariantUtil.checkNotNullOrThrow(transfile, "transfile");
         if (Files.exists(transfile)) {
             final EncodingDetector encodingDetector = new EncodingDetector();
-            try (final Scanner fileScanner = new Scanner(transfile, encodingDetector.detect(transfile)
+            try (Scanner fileScanner = new Scanner(transfile, encodingDetector.detect(transfile)
                     .orElse(StandardCharsets.UTF_8).name())) {
                 fileScanner.findWithinHorizon(EncodingDetector.BOM, 1);
                 parse(fileScanner);

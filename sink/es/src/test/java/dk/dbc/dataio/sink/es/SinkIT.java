@@ -218,7 +218,7 @@ public abstract class SinkIT {
     }
 
     protected List<Integer> findTaskPackages() {
-        try (final Connection connection = ES_DATASOURCE.getConnection()) {
+        try (Connection connection = ES_DATASOURCE.getConnection()) {
             return ESTaskPackageIntegrationTestUtil.findTaskpackagesForDBName(connection, ES_DATABASE_NAME);
         } catch (SQLException e) {
             throw new IllegalStateException(e);

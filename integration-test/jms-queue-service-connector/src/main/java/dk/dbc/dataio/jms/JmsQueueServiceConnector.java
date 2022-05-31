@@ -56,7 +56,7 @@ public class JmsQueueServiceConnector {
     }
 
     public List<MockedJmsTextMessage> listQueue(Queue queue) {
-        try (final Response response = new HttpGet(httpClient)
+        try (Response response = new HttpGet(httpClient)
                 .withBaseUrl(baseUrl)
                 .withPathElements(QUEUE_RESOURCE_PATH, queue.getUrlEncodedQueueName())
                 .execute()) {
@@ -66,7 +66,7 @@ public class JmsQueueServiceConnector {
     }
 
     public void putOnQueue(Queue queue, MockedJmsTextMessage message) {
-        try (final Response response = new HttpPost(httpClient)
+        try (Response response = new HttpPost(httpClient)
                 .withBaseUrl(baseUrl)
                 .withPathElements(QUEUE_RESOURCE_PATH, queue.getUrlEncodedQueueName())
                 .withJsonData(message)
@@ -76,7 +76,7 @@ public class JmsQueueServiceConnector {
     }
 
     public int emptyQueue(Queue queue) {
-        try (final Response response = new HttpDelete(httpClient)
+        try (Response response = new HttpDelete(httpClient)
                 .withBaseUrl(baseUrl)
                 .withPathElements(QUEUE_RESOURCE_PATH, queue.getUrlEncodedQueueName())
                 .execute()) {
@@ -86,7 +86,7 @@ public class JmsQueueServiceConnector {
     }
 
     public int getQueueSize(Queue queue) {
-        try (final Response response = new HttpGet(httpClient)
+        try (Response response = new HttpGet(httpClient)
                 .withBaseUrl(baseUrl)
                 .withPathElements(QUEUE_RESOURCE_PATH, queue.getUrlEncodedQueueName(), "size")
                 .execute()) {

@@ -60,7 +60,7 @@ public class RawRepoConnector {
     public QueueItem dequeue(String consumerId)
             throws NullPointerException, SQLException, QueueException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(consumerId, "consumerId");
-        try (final Connection connection = dataSource.getConnection()) {
+        try (Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
                 return getRawRepoQueueDAO(connection).dequeue(consumerId);
@@ -105,7 +105,7 @@ public class RawRepoConnector {
     }
 
     public String getRecordServiceUrl() throws SQLException, QueueException, ConfigurationException {
-        try (final Connection connection = dataSource.getConnection()) {
+        try (Connection connection = dataSource.getConnection()) {
             final RawRepoQueueDAO queueDAO = getRawRepoQueueDAO(connection);
             final HashMap<String, String> configuration = queueDAO.getConfiguration();
             if (!configuration.containsKey(RECORD_SERVICE_URL_KEY)) {
@@ -119,7 +119,7 @@ public class RawRepoConnector {
     }
 
     public String getSolrZkHost() throws SQLException, QueueException, ConfigurationException {
-        try (final Connection connection = dataSource.getConnection()) {
+        try (Connection connection = dataSource.getConnection()) {
             final RawRepoQueueDAO queueDAO = getRawRepoQueueDAO(connection);
             final HashMap<String, String> configuration = queueDAO.getConfiguration();
             if (!configuration.containsKey(SOLR_ZK_HOST_KEY)) {

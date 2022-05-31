@@ -57,17 +57,17 @@ public class SinkResult {
                         final ChunkItem failedChunkItem = ChunkItem.failedChunkItem().withId(chunkItem.getId())
                                 .withData(message).withTrackingId(chunkItem.getTrackingId()).withType(ChunkItem.Type.STRING)
                                 .withDiagnostics(ObjectFactory.buildFatalDiagnostic(message, e));
-                        chunkItems[((int) chunkItem.getId())] = failedChunkItem;
+                        chunkItems[(int) chunkItem.getId()] = failedChunkItem;
                     }
                     break;
 
                 case FAILURE:
-                    chunkItems[((int) chunkItem.getId())] = ChunkItem.ignoredChunkItem().withId(chunkItem.getId())
+                    chunkItems[(int) chunkItem.getId()] = ChunkItem.ignoredChunkItem().withId(chunkItem.getId())
                             .withData("Failed by processor").withType(ChunkItem.Type.STRING).withTrackingId(chunkItem.getTrackingId());
                     break;
 
                 case IGNORE:
-                    chunkItems[((int) chunkItem.getId())] = ChunkItem.ignoredChunkItem().withId(chunkItem.getId())
+                    chunkItems[(int) chunkItem.getId()] = ChunkItem.ignoredChunkItem().withId(chunkItem.getId())
                             .withData("Ignored by processor").withType(ChunkItem.Type.STRING).withTrackingId(chunkItem.getTrackingId());
                     break;
             }
@@ -76,6 +76,7 @@ public class SinkResult {
 
     /**
      * Updates the internal list of chunk items depending on the status of the UpdateMarcXchangeResults
+     *
      * @param updateMarcXchangeResults list containing the results for each updated record
      */
     public void update(List<UpdateMarcXchangeResult> updateMarcXchangeResults) {
@@ -117,14 +118,14 @@ public class SinkResult {
     }
 
     /*
-    * replaces null values in the list of chunk items with failed chunk items
-    */
+     * replaces null values in the list of chunk items with failed chunk items
+     */
     private void insertFailedChunkItems(UpdateMarcXchangeResult updateMarcXchangeResult, String message) {
         final String itemData = buildItemData(updateMarcXchangeResult, message);
         for (int i = 0; i < chunkItems.length; i++) {
-            if(chunkItems[i] == null) {
+            if (chunkItems[i] == null) {
                 chunkItems[i] = ChunkItem.failedChunkItem().withId(i).withData(itemData).withType(ChunkItem.Type.STRING)
-                .withDiagnostics(ObjectFactory.buildFatalDiagnostic(itemData));
+                        .withDiagnostics(ObjectFactory.buildFatalDiagnostic(itemData));
             }
         }
     }
@@ -138,12 +139,12 @@ public class SinkResult {
             final String itemData = buildItemData(updateMarcXchangeResult, null);
             if (updateMarcXchangeResult.getUpdateMarcXchangeStatus() == UpdateMarcXchangeStatusEnum.OK) {
                 chunkItems[Integer.parseInt(updateMarcXchangeResult.getMarcXchangeRecordId())] =
-                        ChunkItem.successfulChunkItem().withId(Long.valueOf(updateMarcXchangeResult.getMarcXchangeRecordId()))
+                        ChunkItem.successfulChunkItem().withId(Long.parseLong(updateMarcXchangeResult.getMarcXchangeRecordId()))
                                 .withData(itemData).withType(ChunkItem.Type.STRING);
             } else {
                 chunkItems[Integer.parseInt(updateMarcXchangeResult.getMarcXchangeRecordId())] =
-                        ChunkItem.failedChunkItem().withId(Long.valueOf(updateMarcXchangeResult.getMarcXchangeRecordId()))
-                        .withData(itemData).withType(ChunkItem.Type.STRING).withDiagnostics(ObjectFactory.buildFatalDiagnostic(itemData));
+                        ChunkItem.failedChunkItem().withId(Long.parseLong(updateMarcXchangeResult.getMarcXchangeRecordId()))
+                                .withData(itemData).withType(ChunkItem.Type.STRING).withDiagnostics(ObjectFactory.buildFatalDiagnostic(itemData));
             }
         }
     }

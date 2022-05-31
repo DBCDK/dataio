@@ -177,7 +177,7 @@ public abstract class AbstractHarvesterJobBuilder implements AutoCloseable {
     /* Uploads harvester data file to the file-store */
     private Optional<String> uploadToFileStore() throws HarvesterException {
         String fileId = null;
-        try (final InputStream is = tmpFile.openInputStream()) {
+        try (InputStream is = tmpFile.openInputStream()) {
             fileId = fileStoreServiceConnector.addFile(is);
             LOGGER.info("Added file with ID {} to file-store", fileId);
         } catch (FileStoreServiceConnectorException | RuntimeException e) {

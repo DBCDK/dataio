@@ -113,7 +113,7 @@ public class CreateJobOperation implements Operation {
             return Constants.MISSING_FIELD_VALUE;
         }
 
-        try (final InputStream is = new FileInputStream(dataFile.toFile())) {
+        try (InputStream is = new FileInputStream(dataFile.toFile())) {
             final String fileStoreId = fileStoreServiceConnector.addFile(is);
             LOGGER.info("Added file with ID {} to file-store", fileStoreId);
             return fileStoreId;

@@ -165,12 +165,12 @@ public class View extends ViewWidget {
                 }
             }
         };
-        column.setFieldUpdater(((index, model, value) -> {
+        column.setFieldUpdater((index, model, value) -> {
             final String stacktrace = ((DiagnosticModel)model).getStacktrace();
             if(stacktrace != null && !stacktrace.isEmpty()) {
                 Window.alert(((DiagnosticModel) model).getStacktrace());
             }
-        }));
+        });
         return column;
 
     }

@@ -4,7 +4,7 @@ import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
-import net.sourceforge.argparse4j.internal.HelpScreenException;
+import net.sourceforge.argparse4j.helper.HelpScreenException;
 
 public class Arguments {
     public String configPath;

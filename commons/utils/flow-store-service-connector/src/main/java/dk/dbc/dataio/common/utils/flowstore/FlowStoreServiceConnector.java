@@ -403,7 +403,7 @@ public class FlowStoreServiceConnector {
      */
     public List<Submitter> querySubmitters(String query) throws FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
-        try (final Response response = new HttpPost(failSafeHttpClient)
+        try (Response response = new HttpPost(failSafeHttpClient)
                 .withBaseUrl(baseUrl)
                 .withPathElements(FlowStoreServiceConstants.SUBMITTERS_QUERIES)
                 .withData(query, MediaType.TEXT_PLAIN)
@@ -482,7 +482,7 @@ public class FlowStoreServiceConnector {
     public List<FlowComponentView> findAllFlowComponents()
             throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
-        try (final Response response = new HttpGet(failSafeHttpClient)
+        try (Response response = new HttpGet(failSafeHttpClient)
                 .withBaseUrl(baseUrl)
                 .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS)
                 .execute()) {
@@ -1014,7 +1014,7 @@ public class FlowStoreServiceConnector {
      */
     public List<FlowBinder> queryFlowBinders(String query) throws FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
-        try (final Response response = new HttpPost(failSafeHttpClient)
+        try (Response response = new HttpPost(failSafeHttpClient)
                 .withBaseUrl(baseUrl)
                 .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS_QUERIES)
                 .withData(query, MediaType.TEXT_PLAIN)

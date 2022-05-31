@@ -134,7 +134,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>${postgresql.driver.version}</version>
+      <version>${postgresql-driver.version}</version>
     </dependency>
   </dependencies>
 
@@ -177,7 +177,7 @@
                 <artifactItem>
                   <groupId>org.postgresql</groupId>
                   <artifactId>postgresql</artifactId>
-                  <version>${postgresql.driver.version}</version>
+                  <version>${postgresql-driver.version}</version>
                   <type>jar</type>
                   <outputDirectory>${project.build.directory}/docker</outputDirectory>
                 </artifactItem>
@@ -204,7 +204,9 @@
         </configuration>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
+        <version>${maven-resources-plugin.version}</version>
         <executions>
           <execution>
             <id>process config</id>
@@ -214,6 +216,7 @@
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
+        <version>${exec-maven-plugin.version}</version>
         <executions>
           <execution>
             <id>prepare-build-docker-image</id>

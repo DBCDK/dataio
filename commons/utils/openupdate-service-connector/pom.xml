@@ -28,6 +28,16 @@
             <artifactId>dataio-commons-types</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>jaxws-rt</artifactId>
+            <version>2.3.3</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.ws</groupId>
+            <artifactId>jakarta.xml.ws-api</artifactId>
+            <version>2.3.3</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -69,6 +79,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>copy-catalog-file</id>
@@ -95,9 +106,9 @@
             </plugin>
 
             <plugin>
-                <groupId>org.jvnet.jax-ws-commons</groupId>
+                <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jaxws-maven-plugin</artifactId>
-                <version>2.3</version>
+                <version>2.6</version>
                 <executions>
                     <execution>
                         <phase>generate-resources</phase>

@@ -271,7 +271,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
         while (!isNextEventStartElement()) {
             e = xmlReader.nextEvent();
             if (e.getEventType() == XMLEvent.START_DOCUMENT) {
-                final StartDocument sd = ((StartDocument) e);
+                final StartDocument sd = (StartDocument) e;
                 if (sd.encodingSet()) {
                     encodingNameFromDocument = sd.getCharacterEncodingScheme();
                     LOGGER.info("Input document specifies encoding {}", encodingNameFromDocument);

@@ -170,8 +170,8 @@ public class MailNotification {
     private String getNotificationTemplateResource(String resource) {
         final StringBuilder buffer = new StringBuilder();
         try (
-                final InputStreamReader isr = new InputStreamReader(getClass().getResourceAsStream(resource), StandardCharsets.UTF_8);
-                final BufferedReader br = new BufferedReader(isr)) {
+                InputStreamReader isr = new InputStreamReader(getClass().getResourceAsStream(resource), StandardCharsets.UTF_8);
+                BufferedReader br = new BufferedReader(isr)) {
             for (int c = br.read(); c != -1; c = br.read())
                 buffer.append((char) c);
         } catch (IOException e) {

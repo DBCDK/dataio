@@ -144,7 +144,7 @@ public class BinaryFileFsImplTest {
         final Path destinationFile = mountPoint.newFile().toPath();
         Files.delete(destinationFile);
         final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(destinationFile);
-        try (final OutputStream os = binaryFileFs.openOutputStream()) {
+        try (OutputStream os = binaryFileFs.openOutputStream()) {
             FileUtils.copyFile(sourceFile.toFile(), os);
         }
         assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
@@ -157,7 +157,7 @@ public class BinaryFileFsImplTest {
         final Path destinationFile = mountPoint.newFile().toPath();
         writeFile(destinationFile);
         final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(destinationFile);
-        try (final OutputStream os = binaryFileFs.openOutputStream(true)) {
+        try (OutputStream os = binaryFileFs.openOutputStream(true)) {
             FileUtils.copyFile(sourceFile.toFile(), os);
         }
         assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
@@ -346,7 +346,7 @@ public class BinaryFileFsImplTest {
     }
 
     private void writeFile(Path path) throws IOException {
-        try (final FileOutputStream fos = new FileOutputStream(path.toFile())) {
+        try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
             int iterations = (2 * BinaryFileFsImpl.BUFFER_SIZE) / DATA.length;
             while (iterations > 0) {
                 fos.write(DATA, 0, DATA.length);
@@ -357,7 +357,7 @@ public class BinaryFileFsImplTest {
     }
 
     private void writeFile(Path path, byte[] bytes) throws IOException {
-        try (final FileOutputStream fos = new FileOutputStream(path.toFile())) {
+        try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
             fos.write(bytes, 0, bytes.length);
             fos.flush();
         }

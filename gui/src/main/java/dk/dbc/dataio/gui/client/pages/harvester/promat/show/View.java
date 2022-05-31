@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.promat.show;
 
 import com.google.gwt.core.client.GWT;
@@ -19,11 +14,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
     // Instantiate UI Binder
-    interface MyUiBinder extends UiBinder<Widget, View> {}
+    interface MyUiBinder extends UiBinder<Widget, View> {
+    }
+
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
     // UI Fields
-    @UiField(provided=true)
+    @UiField(provided = true)
     HarvestersTable harvestersTable;
 
     public View() {
@@ -38,6 +35,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Sets the list of harvesters in the view
+     *
      * @param harvesters list of Harvesters to show
      */
     public void setHarvesters(List<PromatHarvesterConfig> harvesters) {

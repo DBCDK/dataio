@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
@@ -69,14 +48,19 @@ public class JobStatusFilter extends BaseJobFilter {
     }
 
 
-    @UiField RadioButton activeRadioButton;
-    @UiField RadioButton previewRadioButton;
-    @UiField RadioButton doneRadioButton;
-    @UiField RadioButton failedRadioButton;
+    @UiField
+    RadioButton activeRadioButton;
+    @UiField
+    RadioButton previewRadioButton;
+    @UiField
+    RadioButton doneRadioButton;
+    @UiField
+    RadioButton failedRadioButton;
 
 
     /**
      * Event handler for handling changes in the selection of error filtering
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler(value = {"activeRadioButton", "previewRadioButton", "doneRadioButton", "failedRadioButton"})
@@ -90,6 +74,7 @@ public class JobStatusFilter extends BaseJobFilter {
 
     /**
      * Gets the  name of the filter
+     *
      * @return The name of the filter
      */
     @Override
@@ -99,6 +84,7 @@ public class JobStatusFilter extends BaseJobFilter {
 
     /**
      * Gets the JobListCriteria constructed by this job filter
+     *
      * @return The JobListCriteria constructed by this job filter
      */
     @Override
@@ -108,7 +94,7 @@ public class JobStatusFilter extends BaseJobFilter {
             jobListCriteria.where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL));
         } else if (previewRadioButton.getValue()) {
             jobListCriteria.where(new ListFilter<>(JobListCriteria.Field.PREVIEW_ONLY));
-        } else if(doneRadioButton.getValue()) {
+        } else if (doneRadioButton.getValue()) {
             jobListCriteria.where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NOT_NULL));
         } else {
             jobListCriteria.where(new ListFilter<>(JobListCriteria.Field.JOB_CREATION_FAILED))
@@ -123,6 +109,7 @@ public class JobStatusFilter extends BaseJobFilter {
      * The value is one of the texts: Active, Waiting, Done and Failed<br>
      * Example:  'Done'  <br>
      * The case of the texts is not important
+     *
      * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
@@ -151,6 +138,7 @@ public class JobStatusFilter extends BaseJobFilter {
 
     /**
      * Gets the parameter value for the filter
+     *
      * @return The stored filter parameter for the specific job filter
      */
     @Override

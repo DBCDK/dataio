@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.dpf;
 
 import dk.dbc.marc.binding.MarcRecord;
@@ -14,7 +9,8 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 public class MarcRecordFactory {
-    private MarcRecordFactory() {}
+    private MarcRecordFactory() {
+    }
 
     public static MarcRecord fromMarcXchange(byte[] bytes) throws MarcReaderException {
         final MarcXchangeV1Reader reader = new MarcXchangeV1Reader(

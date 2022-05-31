@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -24,7 +19,7 @@ import java.util.stream.Collectors;
 /**
  * This class chooses between DanMARC2 and MARC21 conversion output
  * based on the first chunk item converted.
- *
+ * <p>
  * This class is NOT thread safe.
  */
 public class MarcXchangeToLineFormatConverter extends AbstractToLineFormatConverter {

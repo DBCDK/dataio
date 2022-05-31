@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -69,8 +48,8 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -87,19 +66,19 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     private static final int MAX_CHUNK_SIZE = 10;
 
     private byte[] defaultXml = (
-              "<records>"
-            + "<record>first</record>"
-            + "<record>second</record>"
-            + "<record>third</record>"
-            + "<record>fourth</record>"
-            + "<record>fifth</record>"
-            + "<record>sixth</record>"
-            + "<record>seventh</record>"
-            + "<record>eighth</record>"
-            + "<record>ninth</record>"
-            + "<record>tenth</record>"
-            + "<record>eleventh</record>"
-            + "</records>").getBytes();
+            "<records>"
+                    + "<record>first</record>"
+                    + "<record>second</record>"
+                    + "<record>third</record>"
+                    + "<record>fourth</record>"
+                    + "<record>fifth</record>"
+                    + "<record>sixth</record>"
+                    + "<record>seventh</record>"
+                    + "<record>eighth</record>"
+                    + "<record>ninth</record>"
+                    + "<record>tenth</record>"
+                    + "<record>eleventh</record>"
+                    + "</records>").getBytes();
 
     private final long defaultByteSize = defaultXml.length;
 
@@ -154,7 +133,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      */
     @Test
     public void addAndScheduleEmptyJob() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException,
-                                                JobStoreException, SQLException {
+            JobStoreException, SQLException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
 
@@ -437,7 +416,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         final PgJobStore pgJobStore = newPgJobStore();
 
-        when(mockedFileStoreServiceConnector.getFile(anyString())).thenThrow(new IOError(new Exception("Forced Test exception" ) ));
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenThrow(new IOError(new Exception("Forced Test exception")));
 
         // When...
         final JobInfoSnapshot jobInfoSnapshot = persistenceContext.run(() -> pgJobStore.addJob(addJobParam));
@@ -645,7 +624,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
             pgJobStore.addChunk(chunk);
             chunkTransaction.commit();
 
-        // Then...
+            // Then...
         } catch (DuplicateChunkException e) {
 
             // And...
@@ -658,29 +637,29 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
             final ChunkEntity chunkEntitySecondAddChunk = entityManager.find(ChunkEntity.class, chunkKey);
             assertThat("ChunkEntity not updated", chunkEntitySecondAddChunk, is(chunkEntityFirstAddChunk));
 
-            for(int i = 0; i < numberOfItems; i++) {
-                    final ItemEntity itemEntitySecondAddChunk = entityManager.find(ItemEntity.class, new ItemEntity.Key(jobEntityFirstAddChunk.getId(), chunkId, (short) i));
-                    assertThat("ItemEntity not updated", itemEntitySecondAddChunk, is(itemEntities.get(i)));
+            for (int i = 0; i < numberOfItems; i++) {
+                final ItemEntity itemEntitySecondAddChunk = entityManager.find(ItemEntity.class, new ItemEntity.Key(jobEntityFirstAddChunk.getId(), chunkId, (short) i));
+                assertThat("ItemEntity not updated", itemEntitySecondAddChunk, is(itemEntities.get(i)));
             }
         }
     }
 
     /**
      * Given: a job store containing one job with one chunk and three items that each has completed partitioning
-     *
+     * <p>
      * When : adding chunk where:
-     *          1 item has failed in processing.
-     *          1 item has been ignored in processing.
-     *          1 item has been successfully processed.
-     *
+     * 1 item has failed in processing.
+     * 1 item has been ignored in processing.
+     * 1 item has been successfully processed.
+     * <p>
      * then : the item entities are updated correctly: Each having processing outcome set with the expected data
      * And  : The chunk and job entity are updated correctly
-     *
+     * <p>
      * And When : adding chunk where:
-     *          1 item has failed in delivering.
-     *          1 item has been ignored in delivering.
-     *          1 item has been successfully delivered.
-     *
+     * 1 item has failed in delivering.
+     * 1 item has been ignored in delivering.
+     * 1 item has been successfully delivered.
+     * <p>
      * then : the item entities are updated correctly: Each having delivering outcome set with the expected data
      * And  : The chunk and job entity are updated correctly
      */
@@ -771,9 +750,9 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     /**
      * Given: a job store containing one job with one chunk with one item
-     *        which has completed partitioning and processing phases
-     *  When: adding result chunk for delivery phase
-     *  Then: the job is completed
+     * which has completed partitioning and processing phases
+     * When: adding result chunk for delivery phase
+     * Then: the job is completed
      */
     @Test
     public void addChunk_completesJob() throws FileStoreServiceConnectorException {
@@ -839,12 +818,12 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     /**
      * Given: a job store containing one job with two chunks each with one item
-     *        which has completed partitioning and processing phases, and the last
-     *        chunk is a termination chunk
-     *  When: adding result chunk for delivery phase for the first chunk
-     *  Then: the job is not completed
-     *  When: adding result chunk for delivery phase for the termination chunk
-     *  Then: the job is completed
+     * which has completed partitioning and processing phases, and the last
+     * chunk is a termination chunk
+     * When: adding result chunk for delivery phase for the first chunk
+     * Then: the job is not completed
+     * When: adding result chunk for delivery phase for the termination chunk
+     * Then: the job is completed
      */
     @Test
     public void addChunk_completesJobOnTerminationChunkDelivery() throws FileStoreServiceConnectorException {
@@ -954,11 +933,11 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     /**
      * Given: a job store containing one job with two chunks each with one item
-     *        and the last chunk is a termination chunk which has only completed its
-     *        partitioning and processing phases
-     *  When: adding failed result chunk for delivery phase for the termination chunk
-     *  Then: the job is completed
-     *   And: the job is in error
+     * and the last chunk is a termination chunk which has only completed its
+     * partitioning and processing phases
+     * When: adding failed result chunk for delivery phase for the termination chunk
+     * Then: the job is completed
+     * And: the job is in error
      */
     @Test
     public void addChunk_failsJobOnFailedTerminationChunk() throws FileStoreServiceConnectorException {
@@ -1047,7 +1026,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     /**
      * Given: a job store containing a job
-     *
+     * <p>
      * When : requesting next processing outcome
      * Then : the next processing outcome returned contains the the correct data.
      */
@@ -1069,7 +1048,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         chunkTransaction.commit();
 
         // When...
-        final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, (short)0);
+        final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, (short) 0);
         final ItemEntity successfulItemEntity = entityManager.find(ItemEntity.class, successfulItemKey);
         ChunkItem chunkItem = pgJobStore.jobStoreRepository.getNextProcessingOutcome(successfulItemKey.getJobId(), successfulItemKey.getChunkId(), successfulItemKey.getId());
 
@@ -1117,7 +1096,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - sleeping in milliseconds: " + SLEEP_INTERVAL_IN_MS);
 
 
-        while ( remainingWaitInMs > 0 ) {
+        while (remainingWaitInMs > 0) {
             LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - remaining wait in milliseconds: " + remainingWaitInMs);
 
             jobInfoSnapshot = pgJobStore.jobStoreRepository.listJobs(criteria).get(0);
@@ -1243,7 +1222,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat(String.format("%s number of items created", jobLabel), jobEntity.getNumberOfItems(), is(numberOfItems));
         assertThat(String.format("%s time of creation", jobLabel), jobEntity.getTimeOfCreation(), is(notNullValue()));
         assertThat(String.format("%s time of last modification", jobLabel), jobEntity.getTimeOfLastModification(), is(notNullValue()));
-        if(phasesDone.isEmpty()) {
+        if (phasesDone.isEmpty()) {
             assertThat(String.format("%s time of completion", jobLabel), jobEntity.getTimeOfCompletion(), is(notNullValue()));
         }
         for (State.Phase phase : phasesDone) {
@@ -1286,7 +1265,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     private Chunk buildChunk(long jobId, long chunkId, int numberOfItems, Chunk.Type type, ChunkItem.Status status) {
         List<ChunkItem> items = new ArrayList<>();
-        for(long i = 0; i < numberOfItems; i++) {
+        for (long i = 0; i < numberOfItems; i++) {
             items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(status).build());
         }
         return new ChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
@@ -1297,7 +1276,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         List<ChunkItem> items = new ArrayList<>();
         List<ChunkItem> nextItems = new ArrayList<>();
 
-        for(long i = 0; i < numberOfItems; i++) {
+        for (long i = 0; i < numberOfItems; i++) {
             items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(status).build());
             nextItems.add(new ChunkItemBuilder().setId(i).setData("next:" + getData(type)).setStatus(status).build());
         }
@@ -1324,10 +1303,14 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     ChunkItem getChunkItemOutcome(ItemEntity itemEntity, Chunk.Type type) {
         switch (type) {
-            case PARTITIONED: return itemEntity.getPartitioningOutcome();
-            case PROCESSED: return itemEntity.getProcessingOutcome();
-            case DELIVERED: return itemEntity.getDeliveringOutcome();
-            default: throw new IllegalStateException("uknown chunk type");
+            case PARTITIONED:
+                return itemEntity.getPartitioningOutcome();
+            case PROCESSED:
+                return itemEntity.getProcessingOutcome();
+            case DELIVERED:
+                return itemEntity.getDeliveringOutcome();
+            default:
+                throw new IllegalStateException("uknown chunk type");
         }
     }
 
@@ -1357,8 +1340,8 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         State itemState = itemEntity.getState();
         assertThat(itemState.getPhase(phase).getSucceeded(), is(succeeded));
         assertThat(itemState.phaseIsDone(phase), is(isPhaseDone));
-        if(isPhaseDone) {
-            assertThat(StringUtil.asString(itemEntity.getProcessingOutcome().getData()), is (getData(Chunk.Type.PROCESSED)));
+        if (isPhaseDone) {
+            assertThat(StringUtil.asString(itemEntity.getProcessingOutcome().getData()), is(getData(Chunk.Type.PROCESSED)));
         }
         return itemState;
     }

@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.dpf.api;
 
 import javax.ws.rs.ApplicationPath;
@@ -17,6 +12,7 @@ import java.util.Set;
 @ApplicationPath("/")
 public class DpfSinkApplication extends Application {
     private static final Set<Class<?>> classes = new HashSet<>();
+
     static {
         classes.add(StatusBean.class);
     }

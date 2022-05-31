@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.diff;
 
 import org.junit.Test;
@@ -16,14 +11,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class PlainTextDiffGeneratorTest extends AbstractDiffGeneratorTest {
     private static final byte[] DOC1 = (
             "first\n" +
-            "second\n" +
-            "third\n").getBytes(StandardCharsets.UTF_8);
+                    "second\n" +
+                    "third\n").getBytes(StandardCharsets.UTF_8);
 
     private static final byte[] DOC2 = (
             "first\n" +
-            "second\n" +
-            "second and ½\n" +
-            "third\n").getBytes(StandardCharsets.UTF_8);
+                    "second\n" +
+                    "second and ½\n" +
+                    "third\n").getBytes(StandardCharsets.UTF_8);
 
     private final ExternalToolDiffGenerator diffGenerator = newExternalToolDiffGenerator();
 

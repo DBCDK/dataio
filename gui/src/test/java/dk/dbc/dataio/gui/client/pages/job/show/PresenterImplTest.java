@@ -1,25 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 
@@ -69,40 +47,60 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
 
-    @Mock private JobStoreProxyAsync mockedJobStore;
-    @Mock private View mockedView;
-    @Mock private JobFilter mockedJobFilter;
-    @Mock private AbstractBasePlace mockedPlace;
-    @Mock private ViewJobsGinjector mockedViewInjector;
-    @Mock private Throwable mockedException;
-    @Mock private SingleSelectionModel<JobModel> mockedSingleSelectionModel;
-    @Mock private AsyncJobViewDataProvider mockedAsyncJobViewDataProvider;
-    @Mock private CellTable mockedJobsTable;
-    @Mock private TextBox mockedJobIdInputField;
-    @Mock private PopupListBox changeColorSchemeListBox;
-    @Mock private ContentPanel mockedContentPanel;
-    @Mock private LogPanel mockedLogPanel;
-    @Mock private Element mockedElement;
-    @Mock private FlowStoreProxyAsync mockedFlowStore;
-    @Mock private JobRerunProxyAsync mockedJobRerunProxyAsync;
-    @Mock private PopupSelectBox mockedPopupSelectedBox;
-    @Mock private Throwable mockedThrowable;
-    @Mock private PushButton mockedLogButton;
+    @Mock
+    private JobStoreProxyAsync mockedJobStore;
+    @Mock
+    private View mockedView;
+    @Mock
+    private JobFilter mockedJobFilter;
+    @Mock
+    private AbstractBasePlace mockedPlace;
+    @Mock
+    private ViewJobsGinjector mockedViewInjector;
+    @Mock
+    private Throwable mockedException;
+    @Mock
+    private SingleSelectionModel<JobModel> mockedSingleSelectionModel;
+    @Mock
+    private AsyncJobViewDataProvider mockedAsyncJobViewDataProvider;
+    @Mock
+    private CellTable mockedJobsTable;
+    @Mock
+    private TextBox mockedJobIdInputField;
+    @Mock
+    private PopupListBox changeColorSchemeListBox;
+    @Mock
+    private ContentPanel mockedContentPanel;
+    @Mock
+    private LogPanel mockedLogPanel;
+    @Mock
+    private Element mockedElement;
+    @Mock
+    private FlowStoreProxyAsync mockedFlowStore;
+    @Mock
+    private JobRerunProxyAsync mockedJobRerunProxyAsync;
+    @Mock
+    private PopupSelectBox mockedPopupSelectedBox;
+    @Mock
+    private Throwable mockedThrowable;
+    @Mock
+    private PushButton mockedLogButton;
     // Mocked Texts
-    @Mock private Texts mockedText;
+    @Mock
+    private Texts mockedText;
     private final static String MOCKED_INPUT_FIELD_VALIDATION_ERROR = "mocked error_InputFieldValidationError";
     private final static String MOCKED_NUMERIC_INPUT_FIELD_VALIDATION_ERROR = "mocked error_InputFieldValidationError";
     private final static String MOCKED_JOB_NOT_FOUND_ERROR = "mocked error_JobNotFound()";
@@ -168,11 +166,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         protected void updateBaseQuery() {
 
             JobListCriteria criteria = new JobListCriteria()
-                     .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TRANSIENT\"}"))
-                     .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"PERSISTENT\"}"))
-                     .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"INFOMEDIA\"}"));
+                    .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TRANSIENT\"}"))
+                    .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"PERSISTENT\"}"))
+                    .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"INFOMEDIA\"}"));
 
-            view.dataProvider.setBaseCriteria( criteria );
+            view.dataProvider.setBaseCriteria(criteria);
         }
     }
 
@@ -273,7 +271,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.getJobCountCallback.onFailure(mockedException);
 
         // Verify Test
-        verifyZeroInteractions(mockedView.jobIdInputField);
+        verifyNoInteractions(mockedView.jobIdInputField);
         verify(mockedView).setErrorText(anyString());
     }
 
@@ -288,7 +286,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.getJobCountCallback.onSuccess(0L);
 
         // Verify Test
-        verifyZeroInteractions(mockedView.jobIdInputField);
+        verifyNoInteractions(mockedView.jobIdInputField);
         verify(mockedView).setErrorText(MOCKED_JOB_NOT_FOUND_ERROR);
     }
 
@@ -420,7 +418,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.rerunMultiple(jobModelList);
 
         // Verification
-        verify(mockedJobRerunProxyAsync, times(2)).parse(any(JobModel.class),any(PresenterImpl.GetJobRerunSchemeFilteredAsyncCallback.class));
+        verify(mockedJobRerunProxyAsync, times(2)).parse(any(JobModel.class), any(PresenterImpl.GetJobRerunSchemeFilteredAsyncCallback.class));
         verify(mockedLogPanel, times(1)).clear();
     }
 
@@ -435,8 +433,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.rerunMultiple(Collections.singletonList(existingJobModel));
 
         // Verification
-        verifyZeroInteractions(mockedFlowStore);
-        verifyZeroInteractions(mockedJobStore);
+        verifyNoInteractions(mockedFlowStore);
+        verifyNoInteractions(mockedJobStore);
         verify(mockedLogPanel).clear();
     }
 
@@ -448,8 +446,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.rerunMultiple(Collections.emptyList());
 
         // Verification
-        verifyZeroInteractions(mockedJobStore);
-        verifyZeroInteractions(mockedFlowStore);
+        verifyNoInteractions(mockedJobStore);
+        verifyNoInteractions(mockedFlowStore);
     }
 
     @Test(expected = NullPointerException.class)

@@ -1,27 +1,3 @@
-/*
- *
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- *
- *
- */
-
 package dk.dbc.dataio.commons.utils.cache;
 
 
@@ -49,6 +25,7 @@ import java.util.function.Supplier;
  *     <li>Function: getKey - for getting the key of an entry</li>
  *     <li>Supplier: fetchData - for loading a list of entries in the cache</li>
  * </ul>
+ *
  * @param <K> Type for the Key og the Hashmap
  * @param <V> Type for the Value of each entry in the Hashmap
  */
@@ -60,7 +37,8 @@ public class UnboundCache<K, V> implements Cache<K, V> {
 
     /**
      * Constructor accepting a key-fetcher and a data-loader for automatically loading the cache when needed
-     * @param getKey A Function for getting the key of an entry
+     *
+     * @param getKey    A Function for getting the key of an entry
      * @param fetchData A Supplier for loading a list of entries in the cache
      */
     public UnboundCache(Function<V, K> getKey, Supplier<List<V>> fetchData) {
@@ -78,6 +56,7 @@ public class UnboundCache<K, V> implements Cache<K, V> {
 
     /**
      * Get a value from the cache
+     *
      * @param key the key whose associated value is to be returned
      * @return The entry from the cache
      */
@@ -92,6 +71,7 @@ public class UnboundCache<K, V> implements Cache<K, V> {
 
     /**
      * Test whether a key exist in the cache
+     *
      * @param key key whose presence in this cache is to be tested.
      * @return True if present, false if not
      */
@@ -106,6 +86,7 @@ public class UnboundCache<K, V> implements Cache<K, V> {
 
     /**
      * Puts an entry into the cache
+     *
      * @param key   key with which the specified value is to be associated
      * @param value value to be associated with the specified key
      */

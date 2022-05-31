@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -36,7 +15,6 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
@@ -54,6 +32,7 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import dk.dbc.httpclient.HttpClient;
 import org.apache.commons.codec.binary.Base64;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -114,7 +93,7 @@ public class TracerBullet {
 
         fileStoreServiceConnector = new FileStoreServiceConnector(httpClient, filestoreBaseurl);
         flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, flowstoreBaseurl);
-        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, jobstoreBaseurl );
+        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, jobstoreBaseurl);
     }
 
     @Test
@@ -139,9 +118,9 @@ public class TracerBullet {
         // invocationfunction for use as entrance to the javascripts.
         return new ArrayList<>(Arrays.asList(
                 new JavaScript(Base64.encodeBase64String((
-                          "function invocationFunction(record, supplementaryData) {\n"
-                        + "    return \"Hello from javascript!\\n\";"
-                        + "}").getBytes("UTF-8")), "NoModule"),
+                        "function invocationFunction(record, supplementaryData) {\n"
+                                + "    return \"Hello from javascript!\\n\";"
+                                + "}").getBytes("UTF-8")), "NoModule"),
                 new JavaScript(ResourceReader.getResourceAsBase64(TracerBullet.class, "javascript/jscommon/system/Use.use.js"), "Use"),
                 new JavaScript(ResourceReader.getResourceAsBase64(TracerBullet.class, "javascript/jscommon/system/ModulesInfo.use.js"), "ModulesInfo"),
                 new JavaScript(ResourceReader.getResourceAsBase64(TracerBullet.class, "javascript/jscommon/system/Use.RequiredModules.use.js"), "Use.RequiredModules"),
@@ -230,17 +209,17 @@ public class TracerBullet {
     private void createFlowBinder(Flow flow, Submitter submitter, Sink sink) throws FlowStoreServiceConnectorException {
         if (flow != null && submitter != null && sink != null) {
             final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
-                .setName("tracer-bullet-binder")
-                .setDescription("flowbinder for tracer-bullet")
-                .setPackaging(PACKAGING)
-                .setFormat(FORMAT)
-                .setCharset(CHARSET)
-                .setDestination(DESTINATION)
-                .setFlowId(flow.getId())
-                .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
-                .setPriority(null)
-                .build();
+                    .setName("tracer-bullet-binder")
+                    .setDescription("flowbinder for tracer-bullet")
+                    .setPackaging(PACKAGING)
+                    .setFormat(FORMAT)
+                    .setCharset(CHARSET)
+                    .setDestination(DESTINATION)
+                    .setFlowId(flow.getId())
+                    .setSinkId(sink.getId())
+                    .setSubmitterIds(Arrays.asList(submitter.getId()))
+                    .setPriority(null)
+                    .build();
             try {
                 flowStoreServiceConnector.createFlowBinder(flowBinderContent);
             } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -294,7 +273,7 @@ public class TracerBullet {
         // Wait for Job-completion
         long remainingWaitInMs = MAX_WAIT_IN_MS;
 
-        while ( remainingWaitInMs > 0 ) {
+        while (remainingWaitInMs > 0) {
             jobInfoSnapshot = jobStoreServiceConnector.listJobs(criteria).get(0);
             if (allPhasesAreDoneSuccessfully(jobInfoSnapshot)) {
                 break;

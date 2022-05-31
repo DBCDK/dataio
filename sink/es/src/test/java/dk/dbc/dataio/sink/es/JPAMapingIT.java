@@ -12,23 +12,22 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Created by ja7 on 12-10-15.
- *
+ * <p>
  * Test The JPA mappings
- *
  */
 public class JPAMapingIT {
 
     @Test
     public void LoadTaskPackage() throws Exception {
-        EntityManager em=JPATestUtils.getIntegrationTestEntityManager("esIT");
-        JPATestUtils.runSqlFromResource(em,this, "JPAMappingIT_load_testdata.sql");
+        EntityManager em = JPATestUtils.getIntegrationTestEntityManager("esIT");
+        JPATestUtils.runSqlFromResource(em, this, "JPAMappingIT_load_testdata.sql");
         JPATestUtils.clearEntityManagerCache(em);
 
-        TaskSpecificUpdateEntity tp=em.find(TaskSpecificUpdateEntity.class, 1);
+        TaskSpecificUpdateEntity tp = em.find(TaskSpecificUpdateEntity.class, 1);
         tp.loadDiagsIfExists(em);
 
         //
@@ -37,17 +36,17 @@ public class JPAMapingIT {
         assertThat("ChunkItem0.getStatus()", tp.getSuppliedRecords().size(), is(2));
 
         // load of Tasksp
-        List<TaskPackageRecordStructureEntity> taskpackageRecordStructureEntityMap=tp.getTaskpackageRecordStructures();
+        List<TaskPackageRecordStructureEntity> taskpackageRecordStructureEntityMap = tp.getTaskpackageRecordStructures();
 
 
-        TaskPackageRecordStructureEntity recordStructure=taskpackageRecordStructureEntityMap.get(0);
+        TaskPackageRecordStructureEntity recordStructure = taskpackageRecordStructureEntityMap.get(0);
         assertThat("recordStructure(1).diagnosticId", recordStructure.diagnosticId, is(nullValue()));
         assertThat("ChunkItem0.getStatus()", tp.getSuppliedRecords().size(), is(2));
 
-        recordStructure=taskpackageRecordStructureEntityMap.get(1);
+        recordStructure = taskpackageRecordStructureEntityMap.get(1);
         assertThat("recordStructure(1).diagnosticId", recordStructure.diagnosticId, is(notNullValue()));
 
-        List<DiagnosticsEntity> diags=recordStructure.getDiagnosticsEntities( );
+        List<DiagnosticsEntity> diags = recordStructure.getDiagnosticsEntities();
         assertThat("ChunkItem[1].diags.size()", diags.size(), is(2));
         assertThat("ChunkItem[1].diag[0]", diags.get(0).additionalInformation, is("diag1"));
         assertThat("ChunkItem[1].diag[1]", diags.get(1).additionalInformation, is("diag2"));

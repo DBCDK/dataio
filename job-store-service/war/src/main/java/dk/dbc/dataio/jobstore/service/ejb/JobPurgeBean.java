@@ -39,11 +39,11 @@ import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN
 
 /**
  * This enterprise Java bean handles and schedules job purge.
- *
+ * <p>
  * A job purge includes deletion of job in job store and deletion of all log entries.
  * If the original data file is used only by the job to be deleted, the data file is deleted from
  * file store as well.
- *
+ * <p>
  * Jobs of type ACCTEST are deleted 5 days after time of creation
  * Jobs of type TRANSIENT and TEST are deleted 90 days after time of creation
  * Jobs of type PERSISTENT are not deleted
@@ -93,9 +93,10 @@ public class JobPurgeBean {
      * Deletes the job in job store as well as any log entries belonging to the job.
      * If the original data file is used only by the job to be deleted, the data file is deleted from
      * file store as well.
+     *
      * @param jobInfoSnapshot representing the job to delete
      * @throws LogStoreServiceConnectorUnexpectedStatusCodeException on failure while deleting job logs
-     * @throws FileStoreServiceConnectorException on failure while deleting the datafile
+     * @throws FileStoreServiceConnectorException                    on failure while deleting the datafile
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -129,7 +130,6 @@ public class JobPurgeBean {
     }
 
     /**
-     *
      * @param jobInfoSnapshot description of the job to delete
      */
     @Stopwatch
@@ -155,21 +155,22 @@ public class JobPurgeBean {
         LOGGER.info("Removing chunks for job {}", jobInfoSnapshot.getJobId());
         query.executeUpdate();
 
-       final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
-       jobEntity.setNumberOfItems(0);
-       jobEntity.setNumberOfChunks(0);
-       JobSpecification jobSpecification = JobSpecification.from(jobEntity.getSpecification());
-       jobSpecification.withType(JobSpecification.Type.COMPACTED);
-       jobEntity.setSpecification(jobSpecification);
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
+        jobEntity.setNumberOfItems(0);
+        jobEntity.setNumberOfChunks(0);
+        JobSpecification jobSpecification = JobSpecification.from(jobEntity.getSpecification());
+        jobSpecification.withType(JobSpecification.Type.COMPACTED);
+        jobEntity.setSpecification(jobSpecification);
     }
 
     /**
      * creates a list of job deletion candidates
+     *
      * @return the list of jobs candidates for deletion
      */
     private List<JobInfoSnapshot> getJobsForDeletion() {
         final List<JobInfoSnapshot> toDelete = new ArrayList<>();
-        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.ACCTEST,5));
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.ACCTEST, 5));
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TEST, 90));
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TRANSIENT, 90));
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.INFOMEDIA, 14));
@@ -180,6 +181,7 @@ public class JobPurgeBean {
     /**
      * Retrieves jobs that matches given type and has a creation date
      * earlier than current date minus the number of days given as input
+     *
      * @param type of job
      * @param days defining how far back the search goes
      * @return list of jobs that matched the criteria
@@ -189,7 +191,7 @@ public class JobPurgeBean {
     }
 
     /* Class scoped due to test */
-    List<JobInfoSnapshot> getJobsForDeletion(JobSpecification.Type type, int delta, TemporalUnit chronoUnit ) {
+    List<JobInfoSnapshot> getJobsForDeletion(JobSpecification.Type type, int delta, TemporalUnit chronoUnit) {
         final Date marker = Date.from(Instant.now().minus(delta, chronoUnit));
         final JobListCriteria criteria = new JobListCriteria()
                 .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"" + type.name() + "\"}"))
@@ -200,12 +202,13 @@ public class JobPurgeBean {
 
     /**
      * Retrieves a list of jobs to be "compacted".
-     * @param type of job
-     * @param delta how long back to look
+     *
+     * @param type       of job
+     * @param delta      how long back to look
      * @param chronoUnit days, seconds, etc
      * @return list of jobs scheduled for compact
      */
-    List<JobInfoSnapshot> getJobsToCompact(JobSpecification.Type type, int delta, TemporalUnit chronoUnit ) {
+    List<JobInfoSnapshot> getJobsToCompact(JobSpecification.Type type, int delta, TemporalUnit chronoUnit) {
         final Date marker = Date.from(Instant.now().minus(delta, chronoUnit));
         final JobListCriteria criteria = new JobListCriteria()
                 .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"" + type.name() + "\"}"))
@@ -213,19 +216,20 @@ public class JobPurgeBean {
                 .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.LESS_THAN, marker));
 
         List<JobInfoSnapshot> result = pgJobStoreRepository.listJobs(criteria).stream().filter(jobInfoSnapshot ->
-                jobInfoSnapshot.getNumberOfItems() > 0 && jobInfoSnapshot.getNumberOfChunks() > 0)
+                        jobInfoSnapshot.getNumberOfItems() > 0 && jobInfoSnapshot.getNumberOfChunks() > 0)
                 .collect(Collectors.toList());
 
         // Narrow list to only feature jobs that actually has existing items (we do not want those already compacted).
         return result.stream().filter(jobInfoSnapshot -> pgJobStoreRepository
-                .countItems(new ItemListCriteria()
-                        .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID,
-                                ListFilter.Op.EQUAL, jobInfoSnapshot.getJobId()))) > 0)
+                        .countItems(new ItemListCriteria()
+                                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID,
+                                        ListFilter.Op.EQUAL, jobInfoSnapshot.getJobId()))) > 0)
                 .collect(Collectors.toList());
     }
 
     /**
      * Retrieves the number of jobs referencing the provided data file
+     *
      * @param datafile to search for
      * @return the number of jobs referencing the provided data file
      */

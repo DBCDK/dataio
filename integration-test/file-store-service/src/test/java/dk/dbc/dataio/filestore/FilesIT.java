@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.filestore;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -94,8 +73,9 @@ public class FilesIT {
         Testcontainers.exposeHostPorts(Integer.parseInt(
                 System.getProperty("filestore.it.postgresql.port")));
     }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(FilesIT.class);
-    private static final int MiB = 1024*1024;
+    private static final int MiB = 1024 * 1024;
     private static final int BUFFER_SIZE = 8192;
 
     @ClassRule
@@ -208,11 +188,11 @@ public class FilesIT {
 
         // Then the file of type marcconv which is more than three months old is no longer present.
         //   The rest is left untouched.
-        final InputStream bazContent  = fileStoreServiceConnector
+        final InputStream bazContent = fileStoreServiceConnector
                 .getFile(bazFileId);
         final InputStream recentMarcconvContent = fileStoreServiceConnector
                 .getFile(recentMarcconvFileId);
-        assertThat("recent marcconv file is still there",StringUtil.asString(recentMarcconvContent), is("marcconv sink output data. More recent."));
+        assertThat("recent marcconv file is still there", StringUtil.asString(recentMarcconvContent), is("marcconv sink output data. More recent."));
         assertThat("baz file still there", StringUtil.asString(bazContent), is("baz"));
         assertThat(() -> fileStoreServiceConnector.getFile(marcconvFileId), isThrowing(FileStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
@@ -242,9 +222,9 @@ public class FilesIT {
         final InputStream inputStream = new ByteArrayInputStream(data);
         final String fileId = fileStoreServiceConnector.addFile(inputStream);
 
-            // Then...
+        // Then...
         final long byteSize = fileStoreServiceConnector.getByteSize(fileId);
-        assertThat(byteSize, is((long)data.length));
+        assertThat(byteSize, is((long) data.length));
     }
 
     /**
@@ -304,9 +284,9 @@ public class FilesIT {
 
     /**
      * Given: a deployed file-store service
-     *  When: adding a gzip'ed fil
-     *  Then: the file content can be retrieved in its decompressed form
-     *   And: the file byte size is reported for its decompressed form
+     * When: adding a gzip'ed fil
+     * Then: the file content can be retrieved in its decompressed form
+     * And: the file byte size is reported for its decompressed form
      */
     @Test
     public void gzipDefaultHandling() throws IOException, FileStoreServiceConnectorException {

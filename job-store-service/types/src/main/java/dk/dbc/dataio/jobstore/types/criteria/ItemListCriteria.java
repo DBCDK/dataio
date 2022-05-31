@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.types.criteria;
 
 public class ItemListCriteria extends ListCriteria<ItemListCriteria.Field, ItemListCriteria> {
@@ -26,25 +5,45 @@ public class ItemListCriteria extends ListCriteria<ItemListCriteria.Field, ItemL
      * Available criteria fields
      */
     public enum Field implements ListFilterField {
-        /** job id */
+        /**
+         * job id
+         */
         JOB_ID,
-        /** chunk id */
+        /**
+         * chunk id
+         */
         CHUNK_ID,
-        /** item id */
+        /**
+         * item id
+         */
         ITEM_ID,
-        /** record id */
+        /**
+         * record id
+         */
         RECORD_ID,
-        /** item creation time */
+        /**
+         * item creation time
+         */
         TIME_OF_CREATION,
-        /** failed items */
+        /**
+         * failed items
+         */
         STATE_FAILED,
-        /** items failed during partitioning */
+        /**
+         * items failed during partitioning
+         */
         PARTITIONING_FAILED,
-        /** items failed during processing */
+        /**
+         * items failed during processing
+         */
         PROCESSING_FAILED,
-        /** items failed during delivery */
+        /**
+         * items failed during delivery
+         */
         DELIVERY_FAILED,
-        /** ignored items */
+        /**
+         * ignored items
+         */
         STATE_IGNORED
     }
 }

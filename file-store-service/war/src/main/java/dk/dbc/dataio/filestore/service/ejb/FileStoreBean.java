@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.filestore.service.ejb;
 
 import dk.dbc.dataio.bfs.api.BinaryFile;
@@ -42,9 +21,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Optional;
 
 /**
@@ -63,9 +42,10 @@ public class FileStoreBean {
 
     /**
      * Adds content of given input stream as file in store
+     *
      * @param dataSource input stream of bytes to be written
      * @return ID of generated file
-     * @throws NullPointerException if given null-valued dataSource argument
+     * @throws NullPointerException  if given null-valued dataSource argument
      * @throws IllegalStateException on general failure to write data
      */
     @Stopwatch
@@ -96,7 +76,8 @@ public class FileStoreBean {
 
     /**
      * Appends content to existing file in store
-     * @param id id of existing file
+     *
+     * @param id    id of existing file
      * @param bytes bytes to be appended
      * @throws IllegalStateException on general failure to append data
      */
@@ -111,11 +92,11 @@ public class FileStoreBean {
     /**
      * Adds metadata to an existing file
      *
-     * @param id id of file
+     * @param id       id of file
      * @param metadata json structure containing metadata
      * @return updated file attributes
      * @throws NullPointerException if given null-valued id argument
-     * @throws EJBException if no file attributes can be found for given file ID
+     * @throws EJBException         if no file attributes can be found for given file ID
      */
     @Stopwatch
     public FileAttributes addMetaData(String id, String metadata)
@@ -128,13 +109,14 @@ public class FileStoreBean {
 
     /**
      * Retrieves file content from store into given output stream
-     * @param fileId ID of file
+     *
+     * @param fileId          ID of file
      * @param dataDestination output stream to which bytes are written
-     * @param decompress on-the-fly decompression flag
-     * @throws NullPointerException if given null-valued fileId or dataDestination argument
+     * @param decompress      on-the-fly decompression flag
+     * @throws NullPointerException     if given null-valued fileId or dataDestination argument
      * @throws IllegalArgumentException if given invalid formatted fileId argument
-     * @throws IllegalStateException on general failure to read data
-     * @throws EJBException if no file attributes can be found for given file ID
+     * @throws IllegalStateException    on general failure to read data
+     * @throws EJBException             if no file attributes can be found for given file ID
      */
     @Stopwatch
     public void getFile(String fileId, OutputStream dataDestination, boolean decompress)
@@ -148,25 +130,27 @@ public class FileStoreBean {
 
     /**
      * Retrieves a list of file attributes based on a postgresql json operator select
+     *
      * @param metadata metadata to select with
      * @return list of file attributes
      */
     @Stopwatch
     public List<FileAttributes> getFilesFromMetadata(final String metadata) {
         final TypedQuery<FileAttributes> query = entityManager
-            .createNamedQuery(FileAttributes.GET_FILES_FROM_METADATA,
-            FileAttributes.class)
-            .setParameter(1, metadata);
+                .createNamedQuery(FileAttributes.GET_FILES_FROM_METADATA,
+                        FileAttributes.class)
+                .setParameter(1, metadata);
         return query.getResultList();
     }
 
     /**
      * Deletes file content and attributes from store
+     *
      * @param fileId ID of file
-     * @throws NullPointerException if given null-valued fileId argument
+     * @throws NullPointerException     if given null-valued fileId argument
      * @throws IllegalArgumentException if given invalid formatted fileId argument
-     * @throws IllegalStateException on general failure to delete binary file
-     * @throws EJBException if no file attributes can be found for given file ID
+     * @throws IllegalStateException    on general failure to delete binary file
+     * @throws EJBException             if no file attributes can be found for given file ID
      */
     @Stopwatch
     public void deleteFile(String fileId) {
@@ -177,7 +161,7 @@ public class FileStoreBean {
         entityManager.remove(fileAttributes);
     }
 
-    private void purgeFilesByOrigin(String origin, String age){
+    private void purgeFilesByOrigin(String origin, String age) {
         LOGGER.info("Deleting files with {} older than {}", origin, age);
         final TypedQuery<FileAttributes> query = entityManager
                 .createNamedQuery(FileAttributes.GET_FILES_FROM_METADATA_WITH_ORIGIN_OLDER_THAN, FileAttributes.class)
@@ -218,6 +202,7 @@ public class FileStoreBean {
 
     /**
      * Returns file attributes for specific file
+     *
      * @param fileId ID of file
      * @return file attributes, empty if file does not exist
      */
@@ -230,13 +215,13 @@ public class FileStoreBean {
 
     /**
      * Retrieves the byte size of a file specified through the file id given as input
-     * @param fileId ID of file
+     *
+     * @param fileId       ID of file
      * @param decompressed report decompressed size for compressed file if true
      * @return the byte size of the file
-     *
-     * @throws NullPointerException if given null-valued fileId argument
+     * @throws NullPointerException     if given null-valued fileId argument
      * @throws IllegalArgumentException if given invalid formatted fileId argument
-     * @throws EJBException if no file attributes can be found for given file ID
+     * @throws EJBException             if no file attributes can be found for given file ID
      */
     @Stopwatch
     public long getByteSize(String fileId, boolean decompressed)
@@ -251,6 +236,7 @@ public class FileStoreBean {
 
     /**
      * Tests existence in store of file identified by given ID
+     *
      * @param fileId ID of file
      * @return true if file exists, false if not
      * @throws NullPointerException if given null-valued fileId argument

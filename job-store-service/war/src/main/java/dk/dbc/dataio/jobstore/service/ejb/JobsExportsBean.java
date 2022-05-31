@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -35,17 +30,20 @@ import java.nio.charset.StandardCharsets;
 @Stateless
 @Path("/")
 public class JobsExportsBean {
-    @EJB PgJobStoreRepository jobStoreRepository;
-    @Inject FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @EJB
+    PgJobStoreRepository jobStoreRepository;
+    @Inject
+    FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
 
     /**
      * Exports all successfully partitioned chunk items for given job to file in file-store
+     *
      * @param jobId ID of the job from which to export items
      * @return a HTTP 303 See Other response redirecting to the generated export file in file-store,
-     *         a HTTP 204 No Content response if the specified job does not exist,
-     *         a HTTP 500 Internal Server Error on failure to generate an export
+     * a HTTP 204 No Content response if the specified job does not exist,
+     * a HTTP 500 Internal Server Error on failure to generate an export
      * @throws URISyntaxException on invalid redirect URL
-     * @throws JobStoreException on failure to to generate an export
+     * @throws JobStoreException  on failure to to generate an export
      */
     @GET
     @Path(JobStoreServiceConstants.EXPORT_ITEMS_PARTITIONED)
@@ -57,12 +55,13 @@ public class JobsExportsBean {
 
     /**
      * Exports all chunk items failed during partitioning for given job
-     * @param jobId ID of the job from which to export items
+     *
+     * @param jobId  ID of the job from which to export items
      * @param format type of exported data, eg. ChunkItem.Type.BYTES,
      *               (for certain types on-the-fly conversion is possible)
      * @return a HTTP 200 OK response with item data as stream,
-     *         a HTTP 204 No Content response if the specified job does not exist,
-     *         a HTTP 500 Internal Server Error on failure to generate an export
+     * a HTTP 204 No Content response if the specified job does not exist,
+     * a HTTP 500 Internal Server Error on failure to generate an export
      * @throws JobStoreException on failure to to generate an export
      */
     @GET
@@ -77,12 +76,13 @@ public class JobsExportsBean {
 
     /**
      * Exports all successfully processed chunk items for given job to file in file-store
+     *
      * @param jobId ID of the job from which to export items
      * @return a HTTP 303 See Other response redirecting to the generated export file in file-store,
-     *         a HTTP 204 No Content response if the specified job does not exist,
-     *         a HTTP 500 Internal Server Error on failure to generate an export
+     * a HTTP 204 No Content response if the specified job does not exist,
+     * a HTTP 500 Internal Server Error on failure to generate an export
      * @throws URISyntaxException on invalid redirect URL
-     * @throws JobStoreException on failure to to generate an export
+     * @throws JobStoreException  on failure to to generate an export
      */
     @GET
     @Path(JobStoreServiceConstants.EXPORT_ITEMS_PROCESSED)
@@ -94,12 +94,13 @@ public class JobsExportsBean {
 
     /**
      * Exports all chunk items failed during processing for given job
-     * @param jobId ID of the job from which to export items
+     *
+     * @param jobId  ID of the job from which to export items
      * @param format type of exported data, eg. ChunkItem.Type.BYTES,
      *               (for certain types on-the-fly conversion is possible)
      * @return a HTTP 200 OK response with item data as stream,
-     *         a HTTP 204 No Content response if the specified job does not exist,
-     *         a HTTP 500 Internal Server Error on failure to generate an export
+     * a HTTP 204 No Content response if the specified job does not exist,
+     * a HTTP 500 Internal Server Error on failure to generate an export
      * @throws JobStoreException on failure to to generate an export
      */
     @GET
@@ -114,12 +115,13 @@ public class JobsExportsBean {
 
     /**
      * Exports all successfully delivered chunk items for given job to file in file-store
+     *
      * @param jobId ID of the job from which to export items
      * @return a HTTP 303 See Other response redirecting to the generated export file in file-store,
-     *         a HTTP 204 No Content response if the specified job does not exist,
-     *         a HTTP 500 Internal Server Error on failure to generate an export
+     * a HTTP 204 No Content response if the specified job does not exist,
+     * a HTTP 500 Internal Server Error on failure to generate an export
      * @throws URISyntaxException on invalid redirect URL
-     * @throws JobStoreException on failure to to generate an export
+     * @throws JobStoreException  on failure to to generate an export
      */
     @GET
     @Path(JobStoreServiceConstants.EXPORT_ITEMS_DELIVERED)
@@ -131,12 +133,13 @@ public class JobsExportsBean {
 
     /**
      * Exports all chunk items failed during delivery for given job
-     * @param jobId ID of the job from which to export items
+     *
+     * @param jobId  ID of the job from which to export items
      * @param format type of exported data, eg. ChunkItem.Type.BYTES,
      *               (for certain types on-the-fly conversion is possible)
      * @return a HTTP 200 OK response with item data as stream,
-     *         a HTTP 204 No Content response if the specified job does not exist,
-     *         a HTTP 500 Internal Server Error on failure to generate an export
+     * a HTTP 204 No Content response if the specified job does not exist,
+     * a HTTP 500 Internal Server Error on failure to generate an export
      * @throws JobStoreException on failure to to generate an export
      */
     @GET

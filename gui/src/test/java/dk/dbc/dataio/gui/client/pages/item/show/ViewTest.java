@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.cell.client.Cell;
@@ -50,27 +29,33 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 
 /**
-* PresenterImpl unit tests
-* <p/>
-* The test methods of this class uses the following naming convention:
-* <p/>
-* unitOfWork_stateUnderTest_expectedBehavior
-*/
+ * PresenterImpl unit tests
+ * <p/>
+ * The test methods of this class uses the following naming convention:
+ * <p/>
+ * unitOfWork_stateUnderTest_expectedBehavior
+ */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
 
-    @Mock ViewGinjector mockedViewInjector;
-    @Mock Presenter mockedPresenter;
-    @Mock SelectionChangeEvent mockedSelectionChangeEvent;
-    @Mock SingleSelectionModel mockedSelectionModel;
-    @Mock ItemModel mockedItemModel;
-    @Mock HandlerRegistration mockedHandlerRegistration;
+    @Mock
+    ViewGinjector mockedViewInjector;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    SelectionChangeEvent mockedSelectionChangeEvent;
+    @Mock
+    SingleSelectionModel mockedSelectionModel;
+    @Mock
+    ItemModel mockedItemModel;
+    @Mock
+    HandlerRegistration mockedHandlerRegistration;
 
     // Test Data
     private DiagnosticModel diagnosticModel = new DiagnosticModelBuilder().build();
@@ -88,12 +73,19 @@ public class ViewTest {
      * This is done in the following:
      */
 
-    @GwtMock ItemsListView mockedItemsList;
-    @Mock CellTable mockedItemsTable;
-    @GwtMock JobDiagnosticTabContent mockedJobDiagnosticTabContent;
-    @Mock CellTable mockedJobDiagnosticTable;
-    @Mock SimplePager mockedItemsPager;
-    @Mock DecoratedTabPanel mockedDetailedTabs;
+    @GwtMock
+    ItemsListView mockedItemsList;
+    @Mock
+    CellTable mockedItemsTable;
+    @GwtMock
+    JobDiagnosticTabContent mockedJobDiagnosticTabContent;
+    @Mock
+    CellTable mockedJobDiagnosticTable;
+    @Mock
+    SimplePager mockedItemsPager;
+    @Mock
+    DecoratedTabPanel mockedDetailedTabs;
+
     @Before
     public void setupMockedUiFields() {
         mockedItemsList.itemsTable = mockedItemsTable;
@@ -106,8 +98,10 @@ public class ViewTest {
     private ConcreteView view;
 
     // Mocked Texts
-    @Mock Texts mockedTexts;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuItems;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuItems;
     final static String MOCKED_MENU_ITEMS = "Mocked Poster";
     final static String MOCKED_COLUMN_ITEM = "Mocked Post";
     final static String MOCKED_COLUMN_FIXED = "Mocked Fixed";
@@ -128,6 +122,7 @@ public class ViewTest {
     final static String MOCKED_LIFECYCLE_DONE = "Mocked Done";
     final static String MOCKED_LIFECYCLE_UNKNOWN = "Mocked Ukendt Lifecycle";
     final static String MOCKED_TRACE = "Mocked Trace";
+
     @Before
     public void setupMockedTextsBehaviour() {
         when(mockedMenuItems.menu_Items()).thenReturn(MOCKED_MENU_ITEMS);
@@ -290,7 +285,7 @@ public class ViewTest {
         concreteView.selectionChangeHandler.onSelectionChange(mockedSelectionChangeEvent);
 
         // Verification
-        verifyZeroInteractions(mockedPresenter);
+        verifyNoInteractions(mockedPresenter);
     }
 
     @Test

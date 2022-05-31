@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.flowstore.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -48,7 +27,7 @@ import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -118,7 +97,7 @@ public class FlowsBeanTest {
         Response response = flowsBean.getFlow(1L);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
-        JsonNode entityNode = jsonbContext.getJsonTree((String)response.getEntity());
+        JsonNode entityNode = jsonbContext.getJsonTree((String) response.getEntity());
         assertThat(entityNode.get("content").get("name").textValue(), is("testFlow"));
     }
 
@@ -232,7 +211,7 @@ public class FlowsBeanTest {
         when(flowsBean.jsonbContext.unmarshall(anyString(), eq(FlowContent.class))).thenReturn(flowContent);
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
 
-        String flowContentJSON = new JSONBContext().marshall( flowContent);
+        String flowContentJSON = new JSONBContext().marshall(flowContent);
         flowsBean.updateFlow(flowContentJSON, null, 123L, 4321L, true);
     }
 
@@ -265,7 +244,7 @@ public class FlowsBeanTest {
 
         final FlowComponent persistedFlowComponent = mock(FlowComponent.class);
         when(ENTITY_MANAGER.find(eq(dk.dbc.dataio.flowstore.entity.FlowComponent.class), any())).thenReturn(persistedFlowComponent);
-        when(persistedFlowComponent.getVersion()).thenReturn(flowComponent.getVersion() +1);
+        when(persistedFlowComponent.getVersion()).thenReturn(flowComponent.getVersion() + 1);
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
         when(flow.getContent()).thenReturn("{}");
 
@@ -327,7 +306,7 @@ public class FlowsBeanTest {
     }
 
 
-    private String createEmptyFlowContentJSON( ) {
+    private String createEmptyFlowContentJSON() {
         try {
             final dk.dbc.dataio.commons.types.FlowComponent flowComponent = new FlowComponentBuilder().build();
             final FlowContent flowContent = new FlowContentBuilder()

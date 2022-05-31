@@ -15,7 +15,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class IncludeFilterDataPartitionerTest {
     private SimpleDataPartitioner wrappedPartitioner;
@@ -61,7 +61,8 @@ public class IncludeFilterDataPartitionerTest {
         includeFilter.set(6);
 
         final IncludeFilterDataPartitioner partitioner = new IncludeFilterDataPartitioner(wrappedPartitioner, includeFilter);
-        for (DataPartitionerResult result : partitioner) {}
+        for (DataPartitionerResult result : partitioner) {
+        }
         assertThat("skipped count before reset", partitioner.getAndResetSkippedCount(), is(7));
         assertThat("skipped count after reset", partitioner.getAndResetSkippedCount(), is(0));
     }

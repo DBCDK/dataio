@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
@@ -27,7 +6,6 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ObjectFactory;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.es.entity.es.DiagnosticsEntity;
 import dk.dbc.dataio.sink.es.entity.es.SuppliedRecordsEntity;
@@ -35,6 +13,7 @@ import dk.dbc.dataio.sink.es.entity.es.TaskPackageEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskPackageRecordStructureEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskStatusConverter;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -62,15 +41,16 @@ public class ESTaskPackageUtil {
     private static final String RECORD_RESULT = "\t%s\n";
 
     private static final Pattern referenceUnknownPattern = Pattern.compile(
-        "reference in 014 00 a to \\d{8} unknown");
+            "reference in 014 00 a to \\d{8} unknown");
 
     /**
      * Chops a list up into sublists of length sublistSize
-     * @param list list to be chopped up
+     *
+     * @param list        list to be chopped up
      * @param sublistSize maximum size of sublists
-     * @param <T> the type of the object
+     * @param <T>         the type of the object
      * @return list of sublists
-     * @throws NullPointerException if given null-valued list
+     * @throws NullPointerException     if given null-valued list
      * @throws IllegalArgumentException if given sublistSize less than or equal to zero
      */
     static <T> List<List<T>> chopUp(List<T> list, int sublistSize) throws NullPointerException, IllegalArgumentException {
@@ -107,7 +87,7 @@ public class ESTaskPackageUtil {
                     rs = ps.getResultSet();
                     while (rs.next()) {
                         final int targetreference = rs.getInt(1);
-                        final TaskPackageEntity.TaskStatus taskStatus = new TaskStatusConverter().convertToEntityAttribute( rs.getInt(2));
+                        final TaskPackageEntity.TaskStatus taskStatus = new TaskStatusConverter().convertToEntityAttribute(rs.getInt(2));
                         taskStatuses.put(targetreference, new TaskStatus(taskStatus, targetreference));
                     }
                 } catch (SQLException ex) {
@@ -156,16 +136,14 @@ public class ESTaskPackageUtil {
      * with the given dbname.
      *
      * @param entityManager Database connection to the ES-base.
-     * @param dbname ES internal database name in which the task package shall
-     * be associated.
-     * @param esWorkload Object containing both the addi-records to insert into
-     * the ES-base and the originating chunk result.
-     *
-     * @throws SQLException if a database error occurs.
-     * @throws IllegalStateException if the number of records in the chunk and
-     * the task package differ.
-     *
+     * @param dbname        ES internal database name in which the task package shall
+     *                      be associated.
+     * @param esWorkload    Object containing both the addi-records to insert into
+     *                      the ES-base and the originating chunk result.
      * @return target reference
+     * @throws SQLException          if a database error occurs.
+     * @throws IllegalStateException if the number of records in the chunk and
+     *                               the task package differ.
      */
     public static int insertTaskPackage(EntityManager entityManager, String dbname, EsWorkload esWorkload) throws IllegalStateException, SQLException {
         InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
@@ -173,25 +151,25 @@ public class ESTaskPackageUtil {
         InvariantUtil.checkNotNullOrThrow(esWorkload, "esInFlight");
         final String creator = createCreatorString(esWorkload.getDeliveredChunk().getJobId(), esWorkload.getDeliveredChunk().getChunkId());
 
-        final TaskSpecificUpdateEntity taskPackage=new TaskSpecificUpdateEntity();
+        final TaskSpecificUpdateEntity taskPackage = new TaskSpecificUpdateEntity();
 
-        taskPackage.setCreator( creator );
-        taskPackage.setPackagename( creator + String.valueOf(System.nanoTime()));
-        taskPackage.setDatabasename( dbname );
-        taskPackage.setUserid( esWorkload.userId );
-        taskPackage.setAction( esWorkload.getAction());
-        entityManager.persist( taskPackage );
+        taskPackage.setCreator(creator);
+        taskPackage.setPackagename(creator + String.valueOf(System.nanoTime()));
+        taskPackage.setDatabasename(dbname);
+        taskPackage.setUserid(esWorkload.userId);
+        taskPackage.setAction(esWorkload.getAction());
+        entityManager.persist(taskPackage);
 
 
-        List<SuppliedRecordsEntity> records=new ArrayList<>();
+        List<SuppliedRecordsEntity> records = new ArrayList<>();
         int i = 0;
-        for( AddiRecord addi : esWorkload.getAddiRecords()) {
+        for (AddiRecord addi : esWorkload.getAddiRecords()) {
             SuppliedRecordsEntity suppliedRecord = new SuppliedRecordsEntity();
             suppliedRecord.metaData = new String(addi.getMetaData(), esWorkload.getDeliveredChunk().getEncoding());
             suppliedRecord.record = addi.getContentData();
             suppliedRecord.targetreference = taskPackage.getTargetreference();
             suppliedRecord.lbnr = i;
-            records.add( suppliedRecord );
+            records.add(suppliedRecord);
             i++;
         }
         taskPackage.setSuppliedRecords(records);
@@ -221,14 +199,14 @@ public class ESTaskPackageUtil {
     }
 
     private static ChunkItem getChunkItemFromTaskPackageRecordStructureData(TaskSpecificUpdateEntity taskSpecificUpdateEntity, ChunkItem placeholderChunkItem,
-            LinkedList<TaskPackageRecordStructureEntity> taskPackageRecordStructureEntityList) throws NumberFormatException, SQLException {
+                                                                            LinkedList<TaskPackageRecordStructureEntity> taskPackageRecordStructureEntityList) throws NumberFormatException, SQLException {
 
         final int numberOfRecords = Integer.parseInt(StringUtil.asString(placeholderChunkItem.getData()));
         final int targetReference = taskSpecificUpdateEntity.getTargetreference();
         final StringBuilder sb = new StringBuilder(String.format("Task package: %d\n", targetReference));
         final List<TaskPackageRecordStructureEntity> recordStructureMap = taskSpecificUpdateEntity.getTaskpackageRecordStructures();
         final List<Diagnostic> chunkItemDiagnostics = new ArrayList<>();
-        
+
         for (int i = 1; i <= numberOfRecords; i++) {
             TaskPackageRecordStructureEntity recordData;
             try {
@@ -249,7 +227,7 @@ public class ESTaskPackageUtil {
             final Diagnostic esDiagnostic = buildEsDiagnostic(recordStructureMap.get(recordData.lbnr), recordData);
 
             // Add any es diagnostic created to the list of chunk item diagnostics and append to string builder
-            if(esDiagnostic != null) {
+            if (esDiagnostic != null) {
                 chunkItemDiagnostics.add(esDiagnostic);
                 sb.append(String.format(RECORD_RESULT, esDiagnostic.getMessage()));
             } else {
@@ -264,8 +242,9 @@ public class ESTaskPackageUtil {
 
     /**
      * Creates diagnostic for ES record status errors.
+     *
      * @param recordStructure containing the record status
-     * @param recordData containing record information
+     * @param recordData      containing record information
      * @return null, if record status was success, otherwise a diagnostic.
      */
     private static Diagnostic buildEsDiagnostic(TaskPackageRecordStructureEntity recordStructure, TaskPackageRecordStructureEntity recordData) {
@@ -291,11 +270,11 @@ public class ESTaskPackageUtil {
         List<DiagnosticsEntity> diagnosticsEntities = recordStructure.getDiagnosticsEntities();
         Diagnostic diagnostic = null;
         boolean first = true;
-        for(DiagnosticsEntity entity: diagnosticsEntities) {
-            if( first) {
+        for (DiagnosticsEntity entity : diagnosticsEntities) {
+            if (first) {
                 final String additionalInformation = entity.additionalInformation;
                 Matcher matcher = referenceUnknownPattern.matcher(
-                    additionalInformation);
+                        additionalInformation);
                 if ("delete nonexisting record".equals(additionalInformation) || matcher.find()) {
                     diagnostic = new Diagnostic(Diagnostic.Level.WARNING, additionalInformation);
                 } else {

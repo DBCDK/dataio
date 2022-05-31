@@ -34,7 +34,8 @@ public class GatekeeperDestination implements Serializable {
     }
 
     //This constructor only exists due to gwt serialization issues.
-    private GatekeeperDestination() { }
+    private GatekeeperDestination() {
+    }
 
     public long getId() {
         return id;

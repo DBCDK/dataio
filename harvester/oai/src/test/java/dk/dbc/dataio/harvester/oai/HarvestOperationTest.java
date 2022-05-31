@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.oai;
 
 import dk.dbc.commons.addi.AddiReader;
@@ -58,7 +53,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -155,7 +150,7 @@ public class HarvestOperationTest {
     @Test
     public void breakOnMaxBatchSizeExceeded()
             throws HarvesterException, OaiConnectorException,
-                   FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+            FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         final Header header = new Header();
         header.setIdentifier("recordId");
         final Record record = new Record();

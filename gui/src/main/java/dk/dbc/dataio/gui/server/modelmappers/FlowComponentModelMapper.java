@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.commons.types.FlowComponent;
@@ -81,7 +60,7 @@ public final class FlowComponentModelMapper {
 
     private static List<String> getJavaScriptNames(List<JavaScript> javascripts) {
         List<String> javascriptNames = new ArrayList<>();
-        for (JavaScript javaScript: javascripts) {
+        for (JavaScript javaScript : javascripts) {
             javascriptNames.add(javaScript.getModuleName());
         }
         return javascriptNames;
@@ -113,15 +92,16 @@ public final class FlowComponentModelMapper {
 
     /**
      * Maps a model to a flow component content, containing the java scripts given as input
-     * @param model FlowComponentModel
+     *
+     * @param model               FlowComponentModel
      * @param requiredJavaScripts List javaScript and requireCache
      * @return flowComponentContent
      */
-    public static FlowComponentContent toFlowComponentContent(FlowComponentModel model, fetchRequiredJavaScriptResult requiredJavaScripts) throws IllegalArgumentException{
+    public static FlowComponentContent toFlowComponentContent(FlowComponentModel model, fetchRequiredJavaScriptResult requiredJavaScripts) throws IllegalArgumentException {
         if (model.isInputFieldsEmptyModulesExcluded()) {
             throw new IllegalArgumentException("The fields in the Flow Component Model cannot be empty");
         }
-        if (requiredJavaScripts == null ) {
+        if (requiredJavaScripts == null) {
             throw new IllegalArgumentException("The list of java scripts cannot be null or empty");
         }
         if (requiredJavaScripts.javaScripts == null || requiredJavaScripts.javaScripts.isEmpty()) {
@@ -129,7 +109,7 @@ public final class FlowComponentModelMapper {
         }
 
         List<String> matches = model.getDataioPatternMatches();
-        if(!matches.isEmpty()) {
+        if (!matches.isEmpty()) {
             throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
         }
 
@@ -145,7 +125,7 @@ public final class FlowComponentModelMapper {
         //TODO handle require
     }
 
-    public static FlowComponentContent toNext(FlowComponentModel model, fetchRequiredJavaScriptResult requiredJavaScripts) throws IllegalArgumentException{
+    public static FlowComponentContent toNext(FlowComponentModel model, fetchRequiredJavaScriptResult requiredJavaScripts) throws IllegalArgumentException {
         return new FlowComponentContent(
                 model.getName(),
                 model.getSvnProject(),
@@ -164,10 +144,10 @@ public final class FlowComponentModelMapper {
 
     private static String buildPatternMatchesErrorMsg(List<String> matches) {
         StringBuilder stringBuilder = new StringBuilder("Illegal characters found in flowComponent name:");
-        for(String match : matches) {
+        for (String match : matches) {
             stringBuilder.append(" [").append(match).append("],");
         }
-        return stringBuilder.deleteCharAt(stringBuilder.length() -1).toString();
+        return stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
     }
 
 }

@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.infomedia.show;
 
 import com.google.gwt.place.shared.PlaceController;
@@ -28,10 +23,14 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
-    @Mock PlaceController mockedPlaceController;
-    @Mock View mockedView;
-    @Mock Widget mockedViewWidget;
-    @Mock ViewGinjector mockedViewGinjector;
+    @Mock
+    PlaceController mockedPlaceController;
+    @Mock
+    View mockedView;
+    @Mock
+    Widget mockedViewWidget;
+    @Mock
+    ViewGinjector mockedViewGinjector;
 
     @Before
     public void setupExpectations() {

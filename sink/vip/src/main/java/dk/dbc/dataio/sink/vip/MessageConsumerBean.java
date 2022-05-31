@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.vip;
 
 import dk.dbc.commons.addi.AddiReader;
@@ -41,7 +36,8 @@ import java.util.Optional;
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
-    @EJB ConfigBean configBean;
+    @EJB
+    ConfigBean configBean;
 
     private VipSinkConfig config;
     private VipCoreConnector vipCoreConnector;

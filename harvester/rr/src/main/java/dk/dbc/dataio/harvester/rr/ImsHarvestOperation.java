@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.commons.time.StopWatch;

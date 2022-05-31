@@ -1,25 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-
 package dk.dbc.dataio.gui.client.pages.sink.show;
 
 
@@ -47,25 +25,31 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
 
-    @Mock View mockedView;
-    @Mock Widget mockedViewWidget;
-    @Mock ProxyException mockedProxyException;
-    @Mock SingleSelectionModel<SinkModel> mockedSelectionModel;
-    @Mock ListDataProvider<SinkModel> mockedDataProvider;
-    @Mock private ViewGinjector mockedViewGinjector;
+    @Mock
+    View mockedView;
+    @Mock
+    Widget mockedViewWidget;
+    @Mock
+    ProxyException mockedProxyException;
+    @Mock
+    SingleSelectionModel<SinkModel> mockedSelectionModel;
+    @Mock
+    ListDataProvider<SinkModel> mockedDataProvider;
+    @Mock
+    private ViewGinjector mockedViewGinjector;
 
     // Setup mocked data
     @Before
@@ -88,6 +72,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         public PresenterImplConcrete() {
             super(mockedPlaceController, header);
         }
+
         public FetchSinksCallback fetchSinksCallback = new FetchSinksCallback();
     }
 
@@ -187,6 +172,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedSelectionModel).clear();
         verify(mockedView).setSinks(testModels);
     }
+
     @Test
     public void fetchSinks_callbackWithSuccess_sinksAreFetchedNoChanges() {
 
@@ -201,7 +187,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.fetchSinksCallback.onSuccess(testModels);
 
         // Verify Test
-        verifyZeroInteractions(mockedSelectionModel);
+        verifyNoInteractions(mockedSelectionModel);
         verify(mockedView, times(0)).setSinks(testModels);
     }
 

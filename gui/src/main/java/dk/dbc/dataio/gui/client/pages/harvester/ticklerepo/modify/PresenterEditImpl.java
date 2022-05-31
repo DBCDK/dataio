@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify;
 
 import com.google.gwt.dom.client.Document;
@@ -48,12 +27,13 @@ import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
 public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     private long id;
     private PlaceController placeController;
-    
+
     /**
      * Constructor
+     *
      * @param placeController the placeController
-     * @param place the edit place
-     * @param header the header
+     * @param place           the edit place
+     * @param header          the header
      */
     public PresenterEditImpl(PlaceController placeController, Place place, String header) {
         super(header);
@@ -65,8 +45,9 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -106,6 +87,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 String msg = "TickleRepoHarvesterConfig.id: " + config.getId();
                 getView().setErrorText(ProxyErrorTranslator.toClientErrorFromTickleHarvesterProxy(e, commonInjector.getProxyErrorTexts(), msg));
             }
+
             @Override
             public void onSuccess(Void aVoid) {
                 getView().status.setText(getTexts().status_TickleRepoHarvesterSuccessfullyDeleted());
@@ -145,7 +127,8 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     /**
      * Sets task record count
      */
-    @Override public void setRecordHarvestCount() {
+    @Override
+    public void setRecordHarvestCount() {
         getView().status.setText(getTexts().status_Busy());
         commonInjector.getTickleHarvesterProxyAsync().getDataSetSizeEstimate(config.getContent().getDatasetName(), new GetDataSetSizeEstimateAsyncCallback());
     }
@@ -166,6 +149,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             String msg = "TickleRepoHarvesterConfig.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(TickleRepoHarvesterConfig tickleRepoHarvesterConfig) {
             if (tickleRepoHarvesterConfig == null) {
@@ -184,6 +168,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             String msg = "TickleRepoHarvesterConfig.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(HarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
@@ -243,11 +228,14 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     private void goToTypeOfJobPlace(JobSpecification.Type type) {
         switch (type) {
-            case ACCTEST: placeController.goTo(new ShowAcctestJobsPlace()); // ACCTEST
+            case ACCTEST:
+                placeController.goTo(new ShowAcctestJobsPlace()); // ACCTEST
                 break;
-            case TEST: placeController.goTo(new ShowTestJobsPlace());       // TEST
+            case TEST:
+                placeController.goTo(new ShowTestJobsPlace());       // TEST
                 break;
-            default: placeController.goTo(new ShowJobsPlace());             // PERSISTENT and TRANSIENT
+            default:
+                placeController.goTo(new ShowJobsPlace());             // PERSISTENT and TRANSIENT
         }
     }
 

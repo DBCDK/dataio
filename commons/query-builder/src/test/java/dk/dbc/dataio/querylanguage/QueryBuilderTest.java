@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.querylanguage;
 
 import org.junit.Test;
@@ -153,7 +148,7 @@ public class QueryBuilderTest {
     }
 
     private static class Spec {
-        private  String dataFile;
+        private String dataFile;
 
         public String getDataFile() {
             return dataFile;

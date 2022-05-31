@@ -137,7 +137,7 @@ public class JobPurgeBeanIT extends AbstractJobStoreIT {
         final List<JobInfoSnapshot> jobCandidates2 = persistenceContext.run(() ->
                 jobPurgeBean.getJobsToCompact(JobSpecification.Type.PERSISTENT, JOB_EXPIRATION_AGE_IN_DAYS, ChronoUnit.DAYS));
 
-        assertThat("Number of jobs scheduled for deletion", jobCandidates2.size(), is(0  ));
+        assertThat("Number of jobs scheduled for deletion", jobCandidates2.size(), is(0));
 
         // Check that no Items and no Chunks are left for old job. AND that jobtype now is COMPACTED.
         final ChunkEntity oldJobChunkEntity = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(0, oldJob.getId()));
@@ -185,6 +185,6 @@ public class JobPurgeBeanIT extends AbstractJobStoreIT {
         // Verification
         verify(mockedFileStoreServiceConnector, times(1)).deleteFile(fileStoreUrn);
         verify(mockedLogStoreServiceConnector).deleteJobLogs(String.valueOf(jobCandidates.get(1).getJobId()));
-        assertThat("jobEntityWithSharedDataFileB has been deleted",entityManager.find(JobEntity.class, jobCandidates.get(1).getJobId()), is(nullValue()));
+        assertThat("jobEntityWithSharedDataFileB has been deleted", entityManager.find(JobEntity.class, jobCandidates.get(1).getJobId()), is(nullValue()));
     }
 }

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.cell.client.Cell;
@@ -34,8 +13,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -54,10 +33,14 @@ import static org.mockito.Mockito.when;
 public class ProgressColumnTest {
 
     // Mocked data
-    @Mock Cell.Context mockedContext;
-    @Mock static Event mockedBrowserClickEvent;
-    @Mock MultiProgressBar mockedMultiProgressBar;
-    @Mock SafeHtmlBuilder mockedHtmlBuilder;
+    @Mock
+    Cell.Context mockedContext;
+    @Mock
+    static Event mockedBrowserClickEvent;
+    @Mock
+    MultiProgressBar mockedMultiProgressBar;
+    @Mock
+    SafeHtmlBuilder mockedHtmlBuilder;
 
     @Before
     public void setupMockedEvents() {
@@ -71,24 +54,21 @@ public class ProgressColumnTest {
             .withStateModel(new StateModel()
                     .withPartitioning(new StateElement().withSucceeded(41))
                     .withProcessing(new StateElement().withSucceeded(23))
-                    .withDelivering(new StateElement().withSucceeded(12)))
-            ;
+                    .withDelivering(new StateElement().withSucceeded(12)));
 
     private JobModel illegalTestModel1 = new JobModel()
             .withNumberOfItems(100)
             .withStateModel(new StateModel()
                     .withPartitioning(new StateElement().withSucceeded(41))
                     .withProcessing(new StateElement().withSucceeded(23))
-                    .withDelivering(new StateElement().withSucceeded(43)))
-            ;
+                    .withDelivering(new StateElement().withSucceeded(43)));
 
     private JobModel illegalTestModel2 = new JobModel()
             .withNumberOfItems(20)
             .withStateModel(new StateModel()
                     .withPartitioning(new StateElement().withSucceeded(41))
                     .withProcessing(new StateElement().withSucceeded(23))
-                    .withDelivering(new StateElement().withSucceeded(12)))
-            ;
+                    .withDelivering(new StateElement().withSucceeded(12)));
 
     // Subject Under Test
     ProgressColumn progressColumn;

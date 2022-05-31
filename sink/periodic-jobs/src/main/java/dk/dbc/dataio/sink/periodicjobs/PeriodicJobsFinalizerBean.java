@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.dataio.commons.types.Chunk;
@@ -32,11 +27,16 @@ public class PeriodicJobsFinalizerBean {
     @PersistenceContext(unitName = "periodic-jobs_PU")
     EntityManager entityManager;
 
-    @EJB PeriodicJobsConfigurationBean periodicJobsConfigurationBean;
-    @EJB PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean;
-    @EJB PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean;
-    @EJB PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean;
-    @EJB PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean;
+    @EJB
+    PeriodicJobsConfigurationBean periodicJobsConfigurationBean;
+    @EJB
+    PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean;
+    @EJB
+    PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean;
+    @EJB
+    PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean;
+    @EJB
+    PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean;
 
     @Timed
     public Chunk handleTerminationChunk(Chunk chunk) throws SinkException {
@@ -48,17 +48,13 @@ public class PeriodicJobsFinalizerBean {
 
         if (pickup instanceof HttpPickup) {
             result = periodicJobsHttpFinalizerBean.deliver(chunk, delivery);
-        }
-        else if (pickup instanceof MailPickup) {
+        } else if (pickup instanceof MailPickup) {
             result = periodicJobsMailFinalizerBean.deliver(chunk, delivery);
-        }
-        else if (pickup instanceof FtpPickup) {
+        } else if (pickup instanceof FtpPickup) {
             result = periodicJobsFtpFinalizerBean.deliver(chunk, delivery);
-        }
-        else if (pickup instanceof SFtpPickup) {
+        } else if (pickup instanceof SFtpPickup) {
             result = periodicJobsSFtpFinalizerBean.deliver(chunk, delivery);
-        }
-        else {
+        } else {
             result = getUnhandledPickupTypeResult(chunk, pickup);
         }
 

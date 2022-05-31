@@ -38,8 +38,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -134,6 +135,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onFailure(Throwable throwable) {
             getView().displayWarning(getTexts().error_CannotFetchGatekeeperDestinations());
         }
+
         @Override
         public void onSuccess(List<GatekeeperDestination> gatekeeperDestinations) {
             getView().setGatekeepers(doSort(gatekeeperDestinations));
@@ -146,6 +148,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onFailure(Throwable caught) {
             getView().displayWarning(getTexts().error_CannotDeleteGatekeeperDestination());
         }
+
         @Override
         public void onSuccess(Void result) {
             initializeData();

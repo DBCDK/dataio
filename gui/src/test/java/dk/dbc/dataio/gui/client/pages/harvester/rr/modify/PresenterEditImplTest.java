@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.rr.modify;
 
 import com.google.gwt.user.client.ui.Button;
@@ -53,37 +32,68 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
-    @Mock private EditPlace mockedPlace;
-    @Mock private Texts mockedTexts;
-    @Mock private View mockedView;
-    @Mock private PromptedTextBox mockedName;
-    @Mock private PromptedTextBox mockedDescription;
-    @Mock private PromptedTextBox mockedResource;
-    @Mock private PromptedTextBox mockedTargetUrl;
-    @Mock private PromptedTextBox mockedTargetGroup;
-    @Mock private PromptedTextBox mockedTargetUser;
-    @Mock private PromptedPasswordTextBox mockedTargetPassword;
-    @Mock private PromptedTextBox mockedConsumerId;
-    @Mock private PromptedTextBox mockedSize;
-    @Mock private PromptedMultiList mockedFormatOverrides;
-    @Mock private PromptedCheckBox mockedRelations;
-    @Mock private PromptedCheckBox mockedExpand;
-    @Mock private PromptedCheckBox mockedLibraryRules;
-    @Mock private PromptedList mockedHarvesterType;
-    @Mock private PromptedTextBox mockedHoldingsTarget;
-    @Mock private PromptedTextBox mockedDestination;
-    @Mock private PromptedTextBox mockedFormat;
-    @Mock private PromptedList mockedType;
-    @Mock private PromptedTextArea mockedNote;
-    @Mock private PromptedCheckBox mockedEnabled;
-    @Mock private Button mockedUpdateButton;
-    @Mock private Label mockedStatus;
-    @Mock private PopupMapEntry mockedPopupFormatOverrideEntry;
-    @Mock private Widget mockedWidget;
-    @Mock private Map mockedMap;
-    @Mock private RRHarvesterConfig mockedConfig;
-    @Mock private RRHarvesterConfig.Content mockedContent;
-    @Mock private Button mockedDeleteButton;
+    @Mock
+    private EditPlace mockedPlace;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private View mockedView;
+    @Mock
+    private PromptedTextBox mockedName;
+    @Mock
+    private PromptedTextBox mockedDescription;
+    @Mock
+    private PromptedTextBox mockedResource;
+    @Mock
+    private PromptedTextBox mockedTargetUrl;
+    @Mock
+    private PromptedTextBox mockedTargetGroup;
+    @Mock
+    private PromptedTextBox mockedTargetUser;
+    @Mock
+    private PromptedPasswordTextBox mockedTargetPassword;
+    @Mock
+    private PromptedTextBox mockedConsumerId;
+    @Mock
+    private PromptedTextBox mockedSize;
+    @Mock
+    private PromptedMultiList mockedFormatOverrides;
+    @Mock
+    private PromptedCheckBox mockedRelations;
+    @Mock
+    private PromptedCheckBox mockedExpand;
+    @Mock
+    private PromptedCheckBox mockedLibraryRules;
+    @Mock
+    private PromptedList mockedHarvesterType;
+    @Mock
+    private PromptedTextBox mockedHoldingsTarget;
+    @Mock
+    private PromptedTextBox mockedDestination;
+    @Mock
+    private PromptedTextBox mockedFormat;
+    @Mock
+    private PromptedList mockedType;
+    @Mock
+    private PromptedTextArea mockedNote;
+    @Mock
+    private PromptedCheckBox mockedEnabled;
+    @Mock
+    private Button mockedUpdateButton;
+    @Mock
+    private Label mockedStatus;
+    @Mock
+    private PopupMapEntry mockedPopupFormatOverrideEntry;
+    @Mock
+    private Widget mockedWidget;
+    @Mock
+    private Map mockedMap;
+    @Mock
+    private RRHarvesterConfig mockedConfig;
+    @Mock
+    private RRHarvesterConfig.Content mockedContent;
+    @Mock
+    private Button mockedDeleteButton;
 
 
     private PresenterEditImpl presenter;
@@ -110,6 +120,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
                     .withNote("Note123")
                     .withEnabled(true);
     private final RRHarvesterConfig rrHarvesterConfig = new RRHarvesterConfig(123L, 234L, content);
+
     @Before
     public void prepareTestData() {
         formatOverrides.put(123, "value123");

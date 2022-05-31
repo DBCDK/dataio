@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.promat.modify;
 
 import com.google.gwt.core.client.GWT;
@@ -21,7 +16,9 @@ import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    interface HarvesterBinder extends UiBinder<HTMLPanel, View> {}
+    interface HarvesterBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static HarvesterBinder uiBinder = GWT.create(HarvesterBinder.class);
 
     private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
@@ -33,15 +30,23 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         schedule.setTitle(texts.help_Schedule());
     }
 
-    @UiField PromptedTextBox name;
-    @UiField PromptedTextBox schedule;
-    @UiField PromptedTextArea description;
-    @UiField PromptedTextBox destination;
-    @UiField PromptedTextBox format;
-    @UiField PromptedCheckBox enabled;
+    @UiField
+    PromptedTextBox name;
+    @UiField
+    PromptedTextBox schedule;
+    @UiField
+    PromptedTextArea description;
+    @UiField
+    PromptedTextBox destination;
+    @UiField
+    PromptedTextBox format;
+    @UiField
+    PromptedCheckBox enabled;
 
-    @UiField Button saveButton;
-    @UiField Label status;
+    @UiField
+    Button saveButton;
+    @UiField
+    Label status;
 
     @SuppressWarnings("unused")
     @UiHandler("name")

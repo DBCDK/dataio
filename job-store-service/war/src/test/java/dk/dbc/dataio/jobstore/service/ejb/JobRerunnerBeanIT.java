@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -64,7 +43,7 @@ import java.util.stream.Collectors;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -163,7 +142,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("request submitter", (long) request.getRecords().get(0).submitterNumber(),
                 is(job.getSpecification().getSubmitterId()));
         assertThat("request bibliographic record IDs", request.getRecords()
-                .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                        .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
                 is(Arrays.asList("id0", "id1", "id2")));
     }
 
@@ -185,7 +164,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("request submitter", (long) request.getRecords().get(0).submitterNumber(),
                 is(job.getSpecification().getSubmitterId()));
         assertThat("request bibliographic record IDs", request.getRecords()
-                .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                        .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
                 is(Arrays.asList("id1", "id2")));
     }
 
@@ -202,7 +181,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         final HarvestRecordsRequest request = argumentCaptor.getValue();
         assertThat("request.getBasedOnJob()", request.getBasedOnJob(), is(job.getId()));
         assertThat("request bibliographic record IDs", request.getRecords()
-                .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                        .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
                 is(Arrays.asList("id0", "id1", "id2")));
     }
 
@@ -221,7 +200,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         final HarvestRecordsRequest request = argumentCaptor.getValue();
         assertThat("request.getBasedOnJob()", request.getBasedOnJob(), is(job.getId()));
         assertThat("request bibliographic record IDs", request.getRecords()
-                .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                        .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
                 is(Arrays.asList("id1", "id2")));
     }
 
@@ -286,7 +265,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         persistenceContext.run(() -> jobRerunnerBean.rerunNextIfAvailable());
 
         boolean emptyRerunQueue = entityManager.createNamedQuery(
-            RerunEntity.FIND_HEAD_QUERY_NAME).getResultList().isEmpty();
+                RerunEntity.FIND_HEAD_QUERY_NAME).getResultList().isEmpty();
         assertThat("Rerun removed from queue", emptyRerunQueue, is(true));
 
         final ArgumentCaptor<AddJobParam> addJobParamArgumentCaptor = ArgumentCaptor.forClass(AddJobParam.class);
@@ -324,7 +303,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         persistenceContext.run(() -> jobRerunnerBean.rerunNextIfAvailable());
 
         boolean emptyRerunQueue = entityManager.createNamedQuery(
-            RerunEntity.FIND_HEAD_QUERY_NAME).getResultList().isEmpty();
+                RerunEntity.FIND_HEAD_QUERY_NAME).getResultList().isEmpty();
         assertThat("Rerun removed from queue", emptyRerunQueue, is(true));
 
         final ArgumentCaptor<AddJobParam> addJobParamArgumentCaptor = ArgumentCaptor.forClass(AddJobParam.class);
@@ -393,22 +372,22 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
 
         final ItemEntity item0 = newItemEntity(new ItemEntity.Key(job.getId(), chunk.getKey().getId(), (short) 0));
         item0.withRecordInfo(new RecordInfo("id0"))
-             .withPositionInDatafile(0);
+                .withPositionInDatafile(0);
         persist(item0);
 
         final ItemEntity item1 = newItemEntity(new ItemEntity.Key(job.getId(), chunk.getKey().getId(), (short) 1));
         item1.withRecordInfo(new RecordInfo("id1"))
-             .withPositionInDatafile(1);
+                .withPositionInDatafile(1);
         State state = new State(item1.getState());
         state.updateState(new StateChange()
-                        .setPhase(State.Phase.PROCESSING)
-                        .incFailed(1));
+                .setPhase(State.Phase.PROCESSING)
+                .incFailed(1));
         item1.setState(state);
         persist(item1);
 
         final ItemEntity item2 = newItemEntity(new ItemEntity.Key(job.getId(), chunk.getKey().getId(), (short) 2));
         item2.withRecordInfo(new RecordInfo("id2"))
-             .withPositionInDatafile(2);
+                .withPositionInDatafile(2);
         state = new State(item2.getState());
         state.updateState(new StateChange()
                 .setPhase(State.Phase.DELIVERING)

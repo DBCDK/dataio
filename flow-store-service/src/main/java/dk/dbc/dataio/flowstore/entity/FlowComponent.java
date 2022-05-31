@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.flowstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
@@ -89,7 +68,7 @@ public class FlowComponent extends Versioned {
     }
 
     public void setNext(String next) {
-        if(next!= null) {
+        if (next != null) {
             this.next = next.isEmpty() ? null : next;
         }
     }
@@ -99,13 +78,13 @@ public class FlowComponent extends Versioned {
         return this;
     }
 
-    FlowComponent withVersion( long version ) {
-        setVersion( version );
+    FlowComponent withVersion(long version) {
+        setVersion(version);
         return this;
     }
 
-    public FlowComponent withContent( String content ) throws JSONBException {
-        this.setContent( content );
+    public FlowComponent withContent(String content) throws JSONBException {
+        this.setContent(content);
         return this;
     }
 
@@ -140,7 +119,7 @@ public class FlowComponent extends Versioned {
                     .withModules(getModuleNames(content.getJavascripts()));
             if (nextContent != null) {
                 view.withNextRevision(String.valueOf(nextContent.getSvnRevision()))
-                    .withNextModules(getModuleNames(nextContent.getJavascripts()));
+                        .withNextModules(getModuleNames(nextContent.getJavascripts()));
             }
             return JSONB_CONTEXT.marshall(view);
         } catch (JSONBException e) {

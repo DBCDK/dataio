@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.components.submitterfilter;
 
 import com.google.gwt.core.client.GWT;
@@ -24,7 +19,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class NumberFilter extends BaseSubmitterFilter {
-    interface NumberFilterUiBinder extends UiBinder<HTMLPanel, NumberFilter> {}
+    interface NumberFilterUiBinder extends UiBinder<HTMLPanel, NumberFilter> {
+    }
 
     private static NumberFilterUiBinder ourUiBinder = GWT.create(NumberFilterUiBinder.class);
 
@@ -44,10 +40,12 @@ public class NumberFilter extends BaseSubmitterFilter {
         setParameter(parameter);
     }
 
-    @UiField PromptedTextBox number;
+    @UiField
+    PromptedTextBox number;
 
     /**
      * Event handler for handling changes in the number value
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler("number")
@@ -84,6 +82,7 @@ public class NumberFilter extends BaseSubmitterFilter {
     /**
      * Sets the selection according to the key value, setup in the parameter attribute<br>
      * The value is given in url as a plain string
+     *
      * @param filterParameter filter parameters to be used by this filter
      */
     @Override
@@ -101,6 +100,7 @@ public class NumberFilter extends BaseSubmitterFilter {
     /**
      * Explicitly focus/unfocus this widget. Only one widget can have focus
      * at a time, and the widget that does will receive all keyboard events.
+     *
      * @param focused whether this widget should take focus or release it
      */
     @Override

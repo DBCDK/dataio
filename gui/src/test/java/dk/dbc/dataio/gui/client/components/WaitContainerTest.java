@@ -1,31 +1,10 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components;
 
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * WaitContainer unit tests
@@ -78,19 +57,25 @@ public class WaitContainerTest {
     @Test
     public void constructor_validLambdaNoKeys_noExceptionAndNoCallback() {
         // Test Object
-        new WaitContainer(keys -> {assert(false);});
+        new WaitContainer(keys -> {
+            assert (false);
+        });
     }
 
     @Test
     public void constructor_validLambdaNullKey_noExceptionAndNoCallback() {
         // Test Object
-        new WaitContainer(keys -> {assert(false);}, (String) null);
+        new WaitContainer(keys -> {
+            assert (false);
+        }, (String) null);
     }
 
     @Test
     public void constructor_validLambdaTwoKeys_noExceptionAndNoCallback() {
         // Test Object
-        new WaitContainer(keys -> {assert(false);},"uniqueKeyA", "uniqueKeyB");
+        new WaitContainer(keys -> {
+            assert (false);
+        }, "uniqueKeyA", "uniqueKeyB");
     }
 
 
@@ -122,7 +107,9 @@ public class WaitContainerTest {
     @Test
     public void put_validCallbackTwoElementsOnlyOnePut_noCallback() {
         // Test Preparation
-        WaitContainer waitContainer = new WaitContainer(list -> {assert(false);}, "uniqueKeyA", "B");
+        WaitContainer waitContainer = new WaitContainer(list -> {
+            assert (false);
+        }, "uniqueKeyA", "B");
 
         // Test Object
         waitContainer.put("uniqueKeyA", "sample");
@@ -149,7 +136,9 @@ public class WaitContainerTest {
     @Test
     public void put_validCallbackTwoElementsOneValidOneUnknownPuts_noCallback() {
         // Test Preparation
-        WaitContainer waitContainer = new WaitContainer(list -> {assert(false);}, "uniqueKeyA", "B");
+        WaitContainer waitContainer = new WaitContainer(list -> {
+            assert (false);
+        }, "uniqueKeyA", "B");
 
         // Test Object
         waitContainer.put("uniqueKeyA", "sample");

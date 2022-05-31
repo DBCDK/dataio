@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.periodicjobs;
 
 import dk.dbc.dataio.bfs.api.BinaryFile;
@@ -47,7 +42,7 @@ import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -83,7 +78,7 @@ public class HarvestOperationTest {
             environmentVariables.set("TZ", "Europe/Copenhagen");
             binaryFileStore = new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath());
             fileStoreServiceConnector = new MockedFileStoreServiceConnector();
-                ((MockedFileStoreServiceConnector) fileStoreServiceConnector)
+            ((MockedFileStoreServiceConnector) fileStoreServiceConnector)
                     .destinations.add(tmpFolder.newFile().toPath());
             when(jobStoreServiceConnector.addJob(any(JobInputStream.class)))
                     .thenReturn(new JobInfoSnapshot());
@@ -106,7 +101,7 @@ public class HarvestOperationTest {
 
         final HarvestOperation harvestOperation = newHarvestOperation(config);
         doReturn(42).when(harvestOperation).execute(any(BinaryFile.class));
-        
+
         assertThat("number of records harvested", harvestOperation.execute(), is(42));
 
         verify(recordSearcher).search(
@@ -141,7 +136,7 @@ public class HarvestOperationTest {
 
     @Test
     public void executeWithRecordIdsFile() throws HarvesterException, IOException, JobStoreServiceConnectorException,
-                                                  FlowStoreServiceConnectorException {
+            FlowStoreServiceConnectorException {
         final Path originalFile = Paths.get("src/test/resources/record-ids.txt");
         final Path copy = Paths.get("target/record-ids.txt");
         Files.copy(originalFile, copy, StandardCopyOption.REPLACE_EXISTING);
@@ -171,7 +166,7 @@ public class HarvestOperationTest {
     @Test
     public void executeWithRecordIdsFileWhenTimeOfSearchIsNotDefined()
             throws HarvesterException, IOException, JobStoreServiceConnectorException,
-                   FlowStoreServiceConnectorException {
+            FlowStoreServiceConnectorException {
         final Path originalFile = Paths.get("src/test/resources/record-ids.txt");
         final Path copy = Paths.get("target/record-ids.txt");
         Files.copy(originalFile, copy, StandardCopyOption.REPLACE_EXISTING);

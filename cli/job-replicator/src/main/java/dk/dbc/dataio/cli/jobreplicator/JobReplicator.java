@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.cli.jobreplicator;
 
 import dk.dbc.dataio.cli.jobreplicator.arguments.ArgParseException;
@@ -74,41 +53,41 @@ public class JobReplicator {
         Arguments arguments = new Arguments();
         try {
             arguments.parseArgs(args);
-        } catch(ArgParseException e) {
+        } catch (ArgParseException e) {
             System.err.println(String.format("error parsing arguments: %s",
-                e.toString()));
+                    e.toString()));
             System.exit(1);
         }
 
         Client client = HttpClient.newClient();
         try {
             Map<String, String> sourceEndpoints = getEndpoints(client,
-                arguments.source, arguments.overriddenSourceEndpoints);
+                    arguments.source, arguments.overriddenSourceEndpoints);
             Map<String, String> targetEndpoints = getEndpoints(client,
-                arguments.target, arguments.overriddenTargetEndpoints);
+                    arguments.target, arguments.overriddenTargetEndpoints);
 
             String jobStoreEndpoint = sourceEndpoints.get("JOBSTORE_URL");
             JobSpecification specification = getJobSpecificationFromJobId(
-                arguments.jobId, client, jobStoreEndpoint);
+                    arguments.jobId, client, jobStoreEndpoint);
             specification.withAncestry(null);
             specification.withMailForNotificationAboutProcessing(
-                arguments.mailAddressProcessing)
-                .withMailForNotificationAboutVerification(
-                arguments.mailAddressVerification);
+                            arguments.mailAddressProcessing)
+                    .withMailForNotificationAboutVerification(
+                            arguments.mailAddressVerification);
 
             String sourceFlowStoreEndpoint = sourceEndpoints.get("FLOWSTORE_URL");
             String targetFlowStoreEndpoint = targetEndpoints.get("FLOWSTORE_URL");
             FlowStoreServiceConnector sourceFlowStoreServiceConnector =
-                new FlowStoreServiceConnector(client, sourceFlowStoreEndpoint);
+                    new FlowStoreServiceConnector(client, sourceFlowStoreEndpoint);
             FlowStoreServiceConnector targetFlowStoreConnector =
-                new FlowStoreServiceConnector(client, targetFlowStoreEndpoint);
+                    new FlowStoreServiceConnector(client, targetFlowStoreEndpoint);
             long submitterNumber = specification.getSubmitterId();
             JobReplicatorInfo jobReplicatorInfo = new JobReplicatorInfo()
-                .withJobSpecification(specification)
-                .withSubmitterNumber(submitterNumber)
-                .withTargetSinkName(arguments.targetSinkName)
-                .withSourceFlowStoreConnector(sourceFlowStoreServiceConnector)
-                .withTargetFlowStoreConnector(targetFlowStoreConnector);
+                    .withJobSpecification(specification)
+                    .withSubmitterNumber(submitterNumber)
+                    .withTargetSinkName(arguments.targetSinkName)
+                    .withSourceFlowStoreConnector(sourceFlowStoreServiceConnector)
+                    .withTargetFlowStoreConnector(targetFlowStoreConnector);
 
             long submitterId = createSubmitterIfNeeded(jobReplicatorInfo);
             jobReplicatorInfo.withSubmitterId(submitterId);
@@ -116,74 +95,74 @@ public class JobReplicator {
             createFlowBinderIfNeeded(jobReplicatorInfo);
 
             String newDataFileId = recreateDataFile(
-                specification.getDataFile(), client, sourceEndpoints,
-                targetEndpoints);
+                    specification.getDataFile(), client, sourceEndpoints,
+                    targetEndpoints);
             specification.withDataFile(newDataFileId);
 
             JobInputStream jobInputStream = new JobInputStream(specification);
             String targetJobStoreEndpoint = targetEndpoints.get("JOBSTORE_URL");
             JobStoreServiceConnector targetJobStore =
-                new JobStoreServiceConnector(client, targetJobStoreEndpoint);
+                    new JobStoreServiceConnector(client, targetJobStoreEndpoint);
             JobInfoSnapshot jobInfoSnapshot = targetJobStore.addJob(
-                jobInputStream);
+                    jobInputStream);
             System.out.println(String.format("added job %d", jobInfoSnapshot
-                .getJobId()));
-        } catch(JobReplicatorException | UrlResolverServiceConnectorException |
-                JobStoreServiceConnectorException e) {
+                    .getJobId()));
+        } catch (JobReplicatorException | UrlResolverServiceConnectorException |
+                 JobStoreServiceConnectorException e) {
             System.err.println(String.format("caught exception: %s",
-                e.toString()));
+                    e.toString()));
             System.exit(1);
         }
     }
 
     private Map<String, String> getEndpoints(Client client, String hostUrl,
-            Map<String, String> overriddenEndpoints)
+                                             Map<String, String> overriddenEndpoints)
             throws UrlResolverServiceConnectorException {
         UrlResolverServiceConnector urlResolverServiceConnector =
-            new UrlResolverServiceConnector(client, hostUrl);
+                new UrlResolverServiceConnector(client, hostUrl);
         Map<String, String> endpoints = urlResolverServiceConnector.getUrls();
-        for(Map.Entry<String, String> entry : overriddenEndpoints.entrySet())
+        for (Map.Entry<String, String> entry : overriddenEndpoints.entrySet())
             endpoints.put(entry.getKey(), entry.getValue());
         return endpoints;
     }
 
     private JobSpecification getJobSpecificationFromJobId(long jobId,
-            Client client, String jobStoreEndpoint) throws JobReplicatorException {
+                                                          Client client, String jobStoreEndpoint) throws JobReplicatorException {
         JobStoreServiceConnector jobStoreServiceConnector =
-            new JobStoreServiceConnector(client, jobStoreEndpoint);
+                new JobStoreServiceConnector(client, jobStoreEndpoint);
         JobListCriteria criteria = new JobListCriteria();
         criteria.where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
         try {
             List<JobInfoSnapshot> jobInfoSnapshots = jobStoreServiceConnector.listJobs(criteria);
-            if(jobInfoSnapshots.size() > 1) {
+            if (jobInfoSnapshots.size() > 1) {
                 throw new JobReplicatorException("error: more than one job found");
             }
             return jobInfoSnapshots.get(0).getSpecification();
-        } catch(JobStoreServiceConnectorException e) {
+        } catch (JobStoreServiceConnectorException e) {
             throw new JobReplicatorException("error getting job specification", e);
         }
     }
 
     private String recreateDataFile(String dataFile, Client client,
-            Map<String, String> sourceEndpoints,
-            Map<String, String> targetEndpoints)
+                                    Map<String, String> sourceEndpoints,
+                                    Map<String, String> targetEndpoints)
             throws JobReplicatorException {
         try {
             String sourceFileStoreEndpoint = sourceEndpoints.get("FILESTORE_URL");
             String targetFileStoreEndpoint = targetEndpoints.get("FILESTORE_URL");
             FileStoreServiceConnector sourceFileStoreServiceConnector =
-                new FileStoreServiceConnector(client, sourceFileStoreEndpoint);
+                    new FileStoreServiceConnector(client, sourceFileStoreEndpoint);
             String fileId = new FileStoreUrn(dataFile).getFileId();
             InputStream is = sourceFileStoreServiceConnector.getFile(fileId);
 
             FileStoreServiceConnector targetFileStoreServiceConnector =
-                new FileStoreServiceConnector(client, targetFileStoreEndpoint);
+                    new FileStoreServiceConnector(client, targetFileStoreEndpoint);
             String newFileId = targetFileStoreServiceConnector.addFile(is);
 
             return FileStoreUrn.create(newFileId).toString();
-        } catch(URISyntaxException | FileStoreServiceConnectorException e) {
+        } catch (URISyntaxException | FileStoreServiceConnectorException e) {
             throw new JobReplicatorException(String.format(
-                "error adding file to file store: %s", e.toString()), e);
+                    "error adding file to file store: %s", e.toString()), e);
         }
     }
 
@@ -191,22 +170,22 @@ public class JobReplicator {
             throws JobReplicatorException {
         try {
             Submitter submitter = jobReplicatorInfo.getTargetFlowStoreConnector()
-                .getSubmitterBySubmitterNumber(
-                jobReplicatorInfo.getSubmitterNumber());
+                    .getSubmitterBySubmitterNumber(
+                            jobReplicatorInfo.getSubmitterNumber());
             return submitter.getId();
-        } catch(FlowStoreServiceConnectorException e) {
+        } catch (FlowStoreServiceConnectorException e) {
             try {
                 Submitter sourceSubmitter = jobReplicatorInfo
-                    .getSourceFlowStoreConnector()
-                    .getSubmitterBySubmitterNumber(
-                    jobReplicatorInfo.getSubmitterNumber());
+                        .getSourceFlowStoreConnector()
+                        .getSubmitterBySubmitterNumber(
+                                jobReplicatorInfo.getSubmitterNumber());
                 Submitter targetSubmitter = jobReplicatorInfo
-                    .getTargetFlowStoreConnector()
-                    .createSubmitter(sourceSubmitter.getContent());
+                        .getTargetFlowStoreConnector()
+                        .createSubmitter(sourceSubmitter.getContent());
                 return targetSubmitter.getId();
-            } catch(FlowStoreServiceConnectorException e2) {
+            } catch (FlowStoreServiceConnectorException e2) {
                 throw new JobReplicatorException(String.format(
-                    "error adding submitter: %s", e.toString()), e2);
+                        "error adding submitter: %s", e.toString()), e2);
             }
         }
     }
@@ -217,7 +196,7 @@ public class JobReplicator {
             throws FlowStoreServiceConnectorException {
         final List<FlowComponent> targetComponents = new ArrayList<>();
         final List<FlowComponentView> existingTargetComponents =
-            targetFlowStoreConnector.findAllFlowComponents();
+                targetFlowStoreConnector.findAllFlowComponents();
         final Set<String> componentNames = existingTargetComponents.stream()
                 .map(FlowComponentView::getName)
                 .collect(Collectors.toSet());
@@ -232,17 +211,17 @@ public class JobReplicator {
     }
 
     private Flow createFlow(Flow sourceFlow,
-            List<FlowComponent> targetComponents,
-            FlowStoreServiceConnector targetFlowStoreConnector)
+                            List<FlowComponent> targetComponents,
+                            FlowStoreServiceConnector targetFlowStoreConnector)
             throws FlowStoreServiceConnectorException, JobReplicatorException {
         final List<FlowView> existingFlows = targetFlowStoreConnector.findAllFlows();
         final Set<String> flowNames = existingFlows.stream()
                 .map(FlowView::getName)
                 .collect(Collectors.toSet());
-        if(!flowNames.contains(sourceFlow.getContent().getName())) {
+        if (!flowNames.contains(sourceFlow.getContent().getName())) {
             FlowContent targetFlowContent = new FlowContent(
-                sourceFlow.getContent().getName(), sourceFlow.getContent()
-                .getDescription(), targetComponents, null);
+                    sourceFlow.getContent().getName(), sourceFlow.getContent()
+                    .getDescription(), targetComponents, null);
             return targetFlowStoreConnector.createFlow(targetFlowContent);
         } else {
             List<FlowView> targetFlow = existingFlows.stream()
@@ -257,20 +236,20 @@ public class JobReplicator {
     }
 
     private Sink getTargetSink(String name,
-            FlowStoreServiceConnector targetFlowStoreConnector)
-            throws JobReplicatorException, FlowStoreServiceConnectorException{
+                               FlowStoreServiceConnector targetFlowStoreConnector)
+            throws JobReplicatorException, FlowStoreServiceConnectorException {
         final List<Sink> existingSinks = targetFlowStoreConnector.findAllSinks();
         final Set<String> sinkNames = existingSinks.stream().map(
-            sink -> sink.getContent().getName()).collect(Collectors.toSet());
-        if(sinkNames.contains(name)) {
+                sink -> sink.getContent().getName()).collect(Collectors.toSet());
+        if (sinkNames.contains(name)) {
             List<Sink> targetSink = existingSinks.stream().filter(
-                flow -> flow.getContent().getName().equals(
-                name)).limit(2)
-                .collect(Collectors.toList());
-            if(targetSink.size() == 1) return targetSink.get(0);
+                            flow -> flow.getContent().getName().equals(
+                                    name)).limit(2)
+                    .collect(Collectors.toList());
+            if (targetSink.size() == 1) return targetSink.get(0);
         }
         throw new JobReplicatorException(String.format(
-            "cannot find sink %s in target flow store", name));
+                "cannot find sink %s in target flow store", name));
     }
 
     private void createFlowBinderIfNeeded(JobReplicatorInfo jobReplicatorInfo)
@@ -278,19 +257,19 @@ public class JobReplicator {
         try {
             FlowBinder flowBinder = checkFlowBinder(jobReplicatorInfo);
             System.out.println(String.format("using flowbinder %s",
-                flowBinder.getContent().getName()));
-            if(jobReplicatorInfo.getTargetSinkName() != null) {
+                    flowBinder.getContent().getName()));
+            if (jobReplicatorInfo.getTargetSinkName() != null) {
                 System.err.println("warning: flow binder exists so " +
-                    "target-sink-name argument will be ignored");
+                        "target-sink-name argument will be ignored");
             }
-        } catch(FlowStoreServiceConnectorException e) {
-            if(jobReplicatorInfo.getTargetSinkName() == null) {
+        } catch (FlowStoreServiceConnectorException e) {
+            if (jobReplicatorInfo.getTargetSinkName() == null) {
                 throw new JobReplicatorException("cannot create flow binder " +
-                    "without argument target-sink-name");
+                        "without argument target-sink-name");
             }
             FlowBinder flowBinder = createFlowBinder(jobReplicatorInfo);
             System.out.println(String.format("creating flowbinder %s",
-                flowBinder.getContent().getName()));
+                    flowBinder.getContent().getName()));
         }
     }
 
@@ -299,14 +278,14 @@ public class JobReplicator {
         try {
             JobSpecification specification = jobReplicatorInfo.getJobSpecification();
             FlowBinder flowBinder = jobReplicatorInfo.getSourceFlowStoreConnector()
-                .getFlowBinder(specification.getPackaging(),
-                specification.getFormat(),
-                specification.getCharset(),
-                specification.getSubmitterId(),
-                specification.getDestination());
+                    .getFlowBinder(specification.getPackaging(),
+                            specification.getFormat(),
+                            specification.getCharset(),
+                            specification.getSubmitterId(),
+                            specification.getDestination());
             long flowId = flowBinder.getContent().getFlowId();
             Flow sourceFlow = jobReplicatorInfo.getSourceFlowStoreConnector()
-                .getFlow(flowId);
+                    .getFlow(flowId);
 
             List<FlowComponent> sourceComponents = sourceFlow.getContent()
                     .getComponents();
@@ -314,42 +293,42 @@ public class JobReplicator {
                     sourceComponents, jobReplicatorInfo.getTargetFlowStoreConnector());
 
             Flow targetFlow = createFlow(sourceFlow, targetComponents,
-                jobReplicatorInfo.getTargetFlowStoreConnector());
+                    jobReplicatorInfo.getTargetFlowStoreConnector());
             Sink targetSink = getTargetSink(jobReplicatorInfo.getTargetSinkName(),
-                jobReplicatorInfo.getTargetFlowStoreConnector());
+                    jobReplicatorInfo.getTargetFlowStoreConnector());
 
             FlowBinderContent targetFlowBinder = new FlowBinderContent(
-                flowBinder.getContent().getName(),
-                flowBinder.getContent().getDescription(),
-                specification.getPackaging(),
-                specification.getFormat(),
-                specification.getCharset(),
-                specification.getDestination(),
-                flowBinder.getContent().getPriority(),
-                flowBinder.getContent().getRecordSplitter(),
-                targetFlow.getId(),
-                Collections.singletonList(jobReplicatorInfo.getSubmitterId()),
-                targetSink.getId(),
-                flowBinder.getContent().getQueueProvider()
+                    flowBinder.getContent().getName(),
+                    flowBinder.getContent().getDescription(),
+                    specification.getPackaging(),
+                    specification.getFormat(),
+                    specification.getCharset(),
+                    specification.getDestination(),
+                    flowBinder.getContent().getPriority(),
+                    flowBinder.getContent().getRecordSplitter(),
+                    targetFlow.getId(),
+                    Collections.singletonList(jobReplicatorInfo.getSubmitterId()),
+                    targetSink.getId(),
+                    flowBinder.getContent().getQueueProvider()
             );
             return jobReplicatorInfo.getTargetFlowStoreConnector().createFlowBinder(
-                targetFlowBinder);
-        } catch(FlowStoreServiceConnectorException e) {
+                    targetFlowBinder);
+        } catch (FlowStoreServiceConnectorException e) {
             throw new JobReplicatorException(String.format(
-                "error creating flow binder: %s", e.toString()), e);
+                    "error creating flow binder: %s", e.toString()), e);
         }
     }
 
     private FlowBinder checkFlowBinder(JobReplicatorInfo jobReplicatorInfo)
             throws FlowStoreServiceConnectorException {
         JobSpecification specification = jobReplicatorInfo
-            .getJobSpecification();
+                .getJobSpecification();
         return jobReplicatorInfo.getTargetFlowStoreConnector()
-            .getFlowBinder(
-            specification.getPackaging(),
-            specification.getFormat(),
-            specification.getCharset(),
-            specification.getSubmitterId(),
-            specification.getDestination());
+                .getFlowBinder(
+                        specification.getPackaging(),
+                        specification.getFormat(),
+                        specification.getCharset(),
+                        specification.getSubmitterId(),
+                        specification.getDestination());
     }
 }

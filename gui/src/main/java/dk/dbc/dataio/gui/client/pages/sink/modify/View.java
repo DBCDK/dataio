@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.core.client.GWT;
@@ -50,7 +29,9 @@ import java.util.HashSet;
 import java.util.Map;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    interface SinkBinder extends UiBinder<HTMLPanel, View> {}
+    interface SinkBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static SinkBinder uiBinder = GWT.create(SinkBinder.class);
     private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
@@ -69,41 +50,76 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         return new PopupValueBox<>(new TextBox(), "", "");
     }
 
-    @UiField PromptedList sinkTypeSelection;
-    @UiField PromptedTextBox name;
-    @UiField PromptedTextBox resource;
-    @UiField PromptedTextArea description;
-    @UiField HTMLPanel sequenceAnalysisSection;
-    @UiField HTMLPanel updateSinkSection;
-    @UiField HTMLPanel dpfSinkSection;
-    @UiField HTMLPanel esSinkSection;
-    @UiField HTMLPanel imsSinkSection;
-    @UiField HTMLPanel worldCatSinkSection;
-    @UiField HTMLPanel vipSinkSection;
-    @UiField PromptedTextBox url;
-    @UiField PromptedTextBox openupdateuserid;
-    @UiField PromptedPasswordTextBox openupdatepassword;
-    @UiField PromptedMultiList queueProviders;
-    @UiField PromptedMultiList updateServiceIgnoredValidationErrors;
-    @UiField PromptedTextBox dpfUpdateServiceUserId;
-    @UiField PromptedPasswordTextBox dpfUpdateServicePassword;
-    @UiField PromptedMultiList dpfUpdateServiceQueueProviders;
-    @UiField PromptedTextBox esUserId;
-    @UiField PromptedTextBox esDatabase;
-    @UiField PromptedTextBox imsEndpoint;
-    @UiField PromptedTextBox worldCatUserId;
-    @UiField PromptedPasswordTextBox worldCatPassword;
-    @UiField PromptedTextBox worldCatProjectId;
-    @UiField PromptedTextBox worldCatEndpoint;
-    @UiField PromptedTextBox vipEndpoint;
-    @UiField PromptedMultiList worldCatRetryDiagnostics;
-    @UiField Button deleteButton;
-    @UiField Label status;
-    @UiField PopupValueBox queueProvidersPopupTextBox;
-    @UiField PopupValueBox updateServiceIgnoredValidationErrorsPopupTextBox;
-    @UiField PopupValueBox worldCatPopupTextBox;
-    @UiField PromptedRadioButtons sequenceAnalysisSelection;
-    @UiField PopupBox<Label> confirmation;
+    @UiField
+    PromptedList sinkTypeSelection;
+    @UiField
+    PromptedTextBox name;
+    @UiField
+    PromptedTextBox resource;
+    @UiField
+    PromptedTextArea description;
+    @UiField
+    HTMLPanel sequenceAnalysisSection;
+    @UiField
+    HTMLPanel updateSinkSection;
+    @UiField
+    HTMLPanel dpfSinkSection;
+    @UiField
+    HTMLPanel esSinkSection;
+    @UiField
+    HTMLPanel imsSinkSection;
+    @UiField
+    HTMLPanel worldCatSinkSection;
+    @UiField
+    HTMLPanel vipSinkSection;
+    @UiField
+    PromptedTextBox url;
+    @UiField
+    PromptedTextBox openupdateuserid;
+    @UiField
+    PromptedPasswordTextBox openupdatepassword;
+    @UiField
+    PromptedMultiList queueProviders;
+    @UiField
+    PromptedMultiList updateServiceIgnoredValidationErrors;
+    @UiField
+    PromptedTextBox dpfUpdateServiceUserId;
+    @UiField
+    PromptedPasswordTextBox dpfUpdateServicePassword;
+    @UiField
+    PromptedMultiList dpfUpdateServiceQueueProviders;
+    @UiField
+    PromptedTextBox esUserId;
+    @UiField
+    PromptedTextBox esDatabase;
+    @UiField
+    PromptedTextBox imsEndpoint;
+    @UiField
+    PromptedTextBox worldCatUserId;
+    @UiField
+    PromptedPasswordTextBox worldCatPassword;
+    @UiField
+    PromptedTextBox worldCatProjectId;
+    @UiField
+    PromptedTextBox worldCatEndpoint;
+    @UiField
+    PromptedTextBox vipEndpoint;
+    @UiField
+    PromptedMultiList worldCatRetryDiagnostics;
+    @UiField
+    Button deleteButton;
+    @UiField
+    Label status;
+    @UiField
+    PopupValueBox queueProvidersPopupTextBox;
+    @UiField
+    PopupValueBox updateServiceIgnoredValidationErrorsPopupTextBox;
+    @UiField
+    PopupValueBox worldCatPopupTextBox;
+    @UiField
+    PromptedRadioButtons sequenceAnalysisSelection;
+    @UiField
+    PopupBox<Label> confirmation;
 
     @SuppressWarnings("unused")
     @UiHandler("sinkTypeSelection")
@@ -323,8 +339,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     void updateServiceIgnoredValidationErrorsPopupTextBoxChanged(DialogEvent event) {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
             Map<String, String> list = updateServiceIgnoredValidationErrors.getValue();
-            list.put((String)updateServiceIgnoredValidationErrorsPopupTextBox.getValue(),
-                     (String)updateServiceIgnoredValidationErrorsPopupTextBox.getValue());
+            list.put((String) updateServiceIgnoredValidationErrorsPopupTextBox.getValue(),
+                    (String) updateServiceIgnoredValidationErrorsPopupTextBox.getValue());
             updateServiceIgnoredValidationErrors.setValue(list, true);
         }
     }
@@ -333,7 +349,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     void worldCatPopupTextBoxChanged(DialogEvent event) {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
             Map<String, String> list = worldCatRetryDiagnostics.getValue();
-            list.put((String)worldCatPopupTextBox.getValue(), (String)worldCatPopupTextBox.getValue());
+            list.put((String) worldCatPopupTextBox.getValue(), (String) worldCatPopupTextBox.getValue());
             worldCatRetryDiagnostics.setValue(list, true);
         }
     }
@@ -352,7 +368,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         } else if (dpfUpdateServiceQueueProviders.isRemoveEvent(event)) {
             final Map<String, String> list = dpfUpdateServiceQueueProviders.getValue();
             list.remove(dpfUpdateServiceQueueProviders.getSelectedItem(),
-                        dpfUpdateServiceQueueProviders.getSelectedItem());
+                    dpfUpdateServiceQueueProviders.getSelectedItem());
             dpfUpdateServiceQueueProviders.setValue(list, true);
         }
     }

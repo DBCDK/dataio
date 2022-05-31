@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.sink.ticklerepo;
 
 import dk.dbc.commons.addi.AddiReader;
@@ -62,7 +41,7 @@ import java.util.Iterator;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -116,7 +95,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         persistenceContext.run(() -> messageConsumerBean.handleConsumedMessage(message));
 
         assertThat(messageConsumerBean.tickleRepo.lookupDataSet(new DataSet()
-                .withName(tickleAttributes1.getDatasetName()))
+                        .withName(tickleAttributes1.getDatasetName()))
                 .isPresent(), is(true));
     }
 
@@ -299,7 +278,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                 is(StringUtil.asString(toAddiRecord(chunk.getItems().get(4).getData()).getContentData(), StandardCharsets.ISO_8859_1)));
     }
 
-     /*  When: handling chunk containing successful end-of-job chunk item
+    /*  When: handling chunk containing successful end-of-job chunk item
      *   Then: the tickle repo batch is closed
      */
     @Test
@@ -449,10 +428,10 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         return new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(new ArrayList<>())
                 .appendItem(ChunkItem.ignoredChunkItem()
-                            .withId(0)
-                            .withType(ChunkItem.Type.STRING)
-                            .withData("IGNORED")
-                            .withTrackingId("ignored item"))
+                        .withId(0)
+                        .withType(ChunkItem.Type.STRING)
+                        .withData("IGNORED")
+                        .withTrackingId("ignored item"))
                 .build();
     }
 
@@ -460,9 +439,9 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         return new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(new ArrayList<>())
                 .appendItem(ChunkItem.successfulChunkItem()
-                            .withId(0)
-                            .withType(ChunkItem.Type.JOB_END)
-                            .withData("END"))
+                        .withId(0)
+                        .withType(ChunkItem.Type.JOB_END)
+                        .withData("END"))
                 .build();
     }
 
@@ -470,9 +449,9 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         return new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(new ArrayList<>())
                 .appendItem(ChunkItem.failedChunkItem()
-                            .withId(0)
-                            .withType(ChunkItem.Type.JOB_END)
-                            .withData("END"))
+                        .withId(0)
+                        .withType(ChunkItem.Type.JOB_END)
+                        .withData("END"))
                 .build();
     }
 

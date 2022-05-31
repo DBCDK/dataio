@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.ejb;
 
 
@@ -78,7 +57,7 @@ import static javax.persistence.LockModeType.PESSIMISTIC_WRITE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -98,22 +77,22 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
 
         PgJobStoreRepository.ChunkItemEntities chunkItemEntities =
-            pgJobStore.jobStoreRepository.createChunkItemEntities(101010, 1, 0,
-            params.maxChunkSize, params.dataPartitioner);
+                pgJobStore.jobStoreRepository.createChunkItemEntities(101010, 1, 0,
+                        params.maxChunkSize, params.dataPartitioner);
         assertThat("First chunk: items", chunkItemEntities, is(notNullValue()));
         assertThat("First chunk: number of items", chunkItemEntities.size(), is((short) 10));
         assertThat("First chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(0));
         assertChunkItemEntities(chunkItemEntities, PARTITIONING, EXPECTED_DATA_ENTRIES.subList(0, 10), StandardCharsets.UTF_8);
 
         chunkItemEntities = pgJobStore.jobStoreRepository.createChunkItemEntities(
-            101010, 1, 1, params.maxChunkSize, params.dataPartitioner);
+                101010, 1, 1, params.maxChunkSize, params.dataPartitioner);
         assertThat("Second chunk: items", chunkItemEntities, is(notNullValue()));
         assertThat("Second chunk: number of items", chunkItemEntities.size(), is((short) 1));
         assertThat("Second chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(0));
         assertChunkItemEntities(chunkItemEntities, PARTITIONING, EXPECTED_DATA_ENTRIES.subList(10, 11), StandardCharsets.UTF_8);
 
         chunkItemEntities = pgJobStore.jobStoreRepository.createChunkItemEntities(
-            101010, 1, 2, params.maxChunkSize, params.dataPartitioner);
+                101010, 1, 2, params.maxChunkSize, params.dataPartitioner);
         assertThat("Third chunk: items", chunkItemEntities, is(notNullValue()));
         assertThat("Third chunk: number of items", chunkItemEntities.size(), is((short) 0));
         assertThat("Third chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(0));
@@ -137,8 +116,8 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
 
         final PgJobStoreRepository.ChunkItemEntities chunkItemEntities =
-            pgJobStore.jobStoreRepository.createChunkItemEntities(101010, 1, 0,
-            params.maxChunkSize, params.dataPartitioner);
+                pgJobStore.jobStoreRepository.createChunkItemEntities(101010, 1, 0,
+                        params.maxChunkSize, params.dataPartitioner);
         assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
         assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) 2));
         assertThat("Chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(1));
@@ -173,8 +152,8 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
         ChunkEntity chunkEntity = pgJobStore.jobStoreRepository.createChunkEntity(
-            101010, 1, 0, params.maxChunkSize, params.dataPartitioner,
-            params.keyGenerator, params.dataFileId);
+                101010, 1, 0, params.maxChunkSize, params.dataPartitioner,
+                params.keyGenerator, params.dataFileId);
         assertThat("First chunk", chunkEntity, is(notNullValue()));
         assertThat("First chunk: number of items", chunkEntity.getNumberOfItems(), is(params.maxChunkSize));
         assertThat("First chunk: Partitioning phase endDate set", chunkEntity.getState().getPhase(PARTITIONING).getEndDate(), is(notNullValue()));
@@ -184,8 +163,8 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("Job: partitioning phase endDate not set after first chunk", jobEntity.getState().getPhase(PARTITIONING).getEndDate(), is(nullValue()));
 
         chunkEntity = pgJobStore.jobStoreRepository.createChunkEntity(101010,
-            1, 1, params.maxChunkSize, params.dataPartitioner, params.keyGenerator,
-            params.dataFileId);
+                1, 1, params.maxChunkSize, params.dataPartitioner, params.keyGenerator,
+                params.dataFileId);
         assertThat("Second chunk", chunkEntity, is(notNullValue()));
         assertThat("Second chunk: number of items", chunkEntity.getNumberOfItems(), is((short) (EXPECTED_NUMBER_OF_ITEMS - params.maxChunkSize)));
         assertThat("Second chunk: Partitioning phase endDate set", chunkEntity.getState().getPhase(PARTITIONING).getEndDate(), is(notNullValue()));
@@ -195,8 +174,8 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("Job: partitioning phase endDate not set after second chunk", jobEntity.getState().getPhase(PARTITIONING).getEndDate(), is(nullValue()));
 
         chunkEntity = pgJobStore.jobStoreRepository.createChunkEntity(101010, 1,
-            2, params.maxChunkSize, params.dataPartitioner, params.keyGenerator,
-            params.dataFileId);
+                2, params.maxChunkSize, params.dataPartitioner, params.keyGenerator,
+                params.dataFileId);
         assertThat("Third chunk", chunkEntity, is(nullValue()));
         assertThat("Job: number of chunks after third chunk", jobEntity.getNumberOfChunks(), is(2));
         assertThat("Job: number of items after third chunk", jobEntity.getNumberOfItems(), is(EXPECTED_NUMBER_OF_ITEMS));
@@ -463,11 +442,11 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
         StateElement entityStateElement = entities.get(0).getState().getPhase(PROCESSING);
         assertThat(String.format("%s failed counter", entities.get(0).getKey()), entityStateElement.getFailed(), is(0));
-        assertThat(String.format("%s ignored counter", entities.get(0).getKey()),entityStateElement.getIgnored(), is(0));
+        assertThat(String.format("%s ignored counter", entities.get(0).getKey()), entityStateElement.getIgnored(), is(0));
         assertThat(String.format("%s succeeded counter", entities.get(0).getKey()), entityStateElement.getSucceeded(), is(1));
 
         entityStateElement = entities.get(1).getState().getPhase(State.Phase.PROCESSING);
-        assertThat(String.format("%s failed counter", entities.get(1).getKey()),entityStateElement.getFailed(), is(1));
+        assertThat(String.format("%s failed counter", entities.get(1).getKey()), entityStateElement.getFailed(), is(1));
         assertThat(String.format("%s ignored counter", entities.get(1).getKey()), entityStateElement.getIgnored(), is(0));
         assertThat(String.format("%s succeeded counter", entities.get(1).getKey()), entityStateElement.getSucceeded(), is(0));
 
@@ -577,9 +556,15 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
             ChunkItem chunkItem = null;
             switch (phase) {
-                case PARTITIONING:  chunkItem = itemEntity.getPartitioningOutcome(); break;
-                case PROCESSING:    chunkItem = itemEntity.getProcessingOutcome();   break;
-                case DELIVERING:    chunkItem = itemEntity.getDeliveringOutcome();   break;
+                case PARTITIONING:
+                    chunkItem = itemEntity.getPartitioningOutcome();
+                    break;
+                case PROCESSING:
+                    chunkItem = itemEntity.getProcessingOutcome();
+                    break;
+                case DELIVERING:
+                    chunkItem = itemEntity.getDeliveringOutcome();
+                    break;
             }
             assertThat(String.format("%s %s phase data encoding", itemEntityKey, phase), chunkItem.getEncoding(), is(dataEncoding));
             assertThat(String.format("%s %s phase data", itemEntityKey, phase), StringUtil.asString(chunkItem.getData(), dataEncoding), is(expectedData.pop()));
@@ -667,6 +652,6 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         final Sink sink = new SinkBuilder().build();
         when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
         return pgJobStore.jobStoreRepository.createChunkItemEntities(101010, 1,
-            0, params.maxChunkSize, params.dataPartitioner);
+                0, params.maxChunkSize, params.dataPartitioner);
     }
 }

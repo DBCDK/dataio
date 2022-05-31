@@ -27,16 +27,21 @@ import static org.mockito.Mockito.when;
  * <p/>
  * The test methods of this class uses the following naming convention:
  * <p/>
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class GatekeepersTableTest {
 
-    @Mock ListDataProvider<GatekeeperDestination> mockedDataProvider;
-    @Mock List<GatekeeperDestination> mockedGatekeeperList;
-    @Mock Texts mockedTexts;
-    @Mock View mockedView;
-    @Mock Column mockedColumn;
+    @Mock
+    ListDataProvider<GatekeeperDestination> mockedDataProvider;
+    @Mock
+    List<GatekeeperDestination> mockedGatekeeperList;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    View mockedView;
+    @Mock
+    Column mockedColumn;
 
     @Before
     public void setupTexts() {

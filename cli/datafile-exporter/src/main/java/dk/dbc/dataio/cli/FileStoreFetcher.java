@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.cli;
 
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
@@ -25,7 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 
 public class FileStoreFetcher {
-    private static final long  MEGABYTE = 1024L * 1024L;
+    private static final long MEGABYTE = 1024L * 1024L;
 
     private final FileStoreServiceConnector fileStoreServiceConnector;
 

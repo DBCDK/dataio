@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.flowcomponent.show;
 
 import com.google.gwt.cell.client.ActionCell;
@@ -207,6 +186,7 @@ public class View extends ViewWidget {
             public FlowComponentModel getValue(FlowComponentModel model) {
                 return model;
             }
+
             @Override
             public String getCellStyleNames(Cell.Context context, FlowComponentModel object) {
                 return "button-cell";  // To allow css to place button horisontally
@@ -220,7 +200,7 @@ public class View extends ViewWidget {
                 model.getJavascriptModules(),
                 Format.macro(getTexts().header_SVNNextRevision(), SVN_REVISION_MACRO, model.getSvnNext()),
                 model.getNextJavascriptModules()
-                ));
+        ));
         jsModulesPopup.setDialogTitle(Format.macro(getTexts().header_JSModulesListPopup(), FLOWCOMPONENT_MACRO_NAME, model.getName()));
         jsModulesPopup.show();
     }
@@ -228,12 +208,13 @@ public class View extends ViewWidget {
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
-    private DoubleClickHandler getDoubleClickHandler(){
+    private DoubleClickHandler getDoubleClickHandler() {
         return doubleClickEvent -> {
             FlowComponentModel selected = selectionModel.getSelectedObject();
-            if(selected != null) {
+            if (selected != null) {
                 presenter.editFlowComponent(selected);
             }
         };

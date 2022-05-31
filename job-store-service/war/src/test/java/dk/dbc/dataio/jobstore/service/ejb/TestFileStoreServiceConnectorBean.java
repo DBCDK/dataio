@@ -19,8 +19,9 @@ import javax.enterprise.inject.Specializes;
 public class TestFileStoreServiceConnectorBean extends FileStoreServiceConnectorBean {
     @Override
     @PostConstruct
-    public void initializeConnector() {}
-    
+    public void initializeConnector() {
+    }
+
     @Override
     public FileStoreServiceConnector getConnector() {
         return new TestFileStoreServiceConnector();

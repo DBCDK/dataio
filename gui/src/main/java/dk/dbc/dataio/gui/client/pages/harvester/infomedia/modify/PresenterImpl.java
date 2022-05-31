@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.infomedia.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
@@ -17,7 +12,7 @@ import java.util.Date;
 
 
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
-    private static final long HOUR_IN_MS = 3600*1000;
+    private static final long HOUR_IN_MS = 3600 * 1000;
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
@@ -30,13 +25,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     abstract void initializeModel();
+
     abstract void saveModel();
 
     /**
      * Called by PlaceManager whenever the PlaceCreate or PlaceEdit is invoked.
      * This method is the start signal for the presenter.
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -132,6 +129,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Sets the model after a successful save
+     *
      * @param config the config to set
      */
     void setInfomediaHarvesterConfig(InfomediaHarvesterConfig config) {
@@ -139,7 +137,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private boolean ifInputFieldMissing(InfomediaHarvesterConfig config) {
-        return  config == null ||
+        return config == null ||
                 config.getContent() == null ||
                 config.getContent().getId() == null ||
                 config.getContent().getId().trim().isEmpty() ||
@@ -185,7 +183,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", "", "", "", "",false);
+        initializeViewFields(false, "", "", "", "", "", "", false);
     }
 
     /**

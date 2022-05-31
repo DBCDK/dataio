@@ -1,35 +1,14 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.CharacterEncodingScheme;
 import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.DanMarc2LineFormatReader;
@@ -63,11 +42,12 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
 
     /**
      * Creates new instance of DanMarc2 LineFormat DataPartitioner
-     * @param inputStream stream from which data to be partitioned can be read
+     *
+     * @param inputStream       stream from which data to be partitioned can be read
      * @param specifiedEncoding encoding from job specification (currently only latin 1 is supported).
      * @return new instance of DanMarc2 LineFormat DataPartitioner
-     * @throws NullPointerException if given null-valued argument
-     * @throws IllegalArgumentException if given empty valued encoding argument
+     * @throws NullPointerException        if given null-valued argument
+     * @throws IllegalArgumentException    if given empty valued encoding argument
      * @throws PrematureEndOfDataException if unable to read sufficient data from inputStream
      */
     public static DanMarc2LineFormatDataPartitioner newInstance(InputStream inputStream, String specifiedEncoding)
@@ -155,6 +135,7 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
      * If the marcRecord contains no fields (special case), a result with a chunk item with status IGNORE is returned
      * If the marcRecord can be written, a result containing chunk item with status SUCCESS and record info is returned
      * If an error occurs while writing the record, a result with a chunk item with status FAILURE is returned
+     *
      * @param marcRecord the MarcRecord result from the marcReader.read() method
      * @param marcWriter the MarcWriter implementation used to write the marc record
      * @return data partitioner result
@@ -186,8 +167,8 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
     /**
      * This method verifies if the specified encoding is latin1
      */
-    private void validateSpecifiedEncoding()  {
-        if(!StandardCharsets.ISO_8859_1.name().equals(CharacterEncodingScheme.charsetOf(specifiedEncoding).name())) {
+    private void validateSpecifiedEncoding() {
+        if (!StandardCharsets.ISO_8859_1.name().equals(CharacterEncodingScheme.charsetOf(specifiedEncoding).name())) {
             throw new InvalidEncodingException(String.format(
                     "Specified encoding not supported: '%s' ", specifiedEncoding));
         }

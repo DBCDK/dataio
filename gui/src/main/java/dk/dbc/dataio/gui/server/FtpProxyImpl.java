@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -45,6 +24,7 @@ public class FtpProxyImpl implements FtpProxy {
 
     /**
      * Default Constructor
+     *
      * @throws ProxyException The Proxy Exception
      */
     public FtpProxyImpl() throws ProxyException {
@@ -53,6 +33,7 @@ public class FtpProxyImpl implements FtpProxy {
 
     /**
      * This version of the constructor is intended to be used for testing. The purpose being, that the FtpClient can be injected in the proxy.
+     *
      * @param ftpClient The FTP Client to use
      * @throws ProxyException The Proxy Exception
      */
@@ -98,7 +79,8 @@ public class FtpProxyImpl implements FtpProxy {
 
     /**
      * Handle exceptions thrown by the FtpClient and the Jndi Service and wrap them in ProxyExceptions
-     * @param exception generic exception which in turn can be both Checked and Unchecked
+     *
+     * @param exception        generic exception which in turn can be both Checked and Unchecked
      * @param callerMethodName calling method name for logging
      * @throws ProxyException GUI exception
      */
@@ -113,11 +95,10 @@ public class FtpProxyImpl implements FtpProxy {
     }
 
     /**
-     *
-     * @param caller The name of the caller method
+     * @param caller        The name of the caller method
      * @param exceptionText The text for the exception
-     * @param proxyError The Proxy Error
-     * @param exception The caught exception
+     * @param proxyError    The Proxy Error
+     * @param exception     The caught exception
      * @throws ProxyException The new common exception
      */
     private void logAndThrowError(String caller, String exceptionText, ProxyError proxyError, Exception exception) throws ProxyException {

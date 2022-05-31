@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -17,15 +12,18 @@ import org.mockito.Mock;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
-    @Mock ViewGinjector viewInjector;
-    @Mock Texts texts;
-    @Mock View view;
+    @Mock
+    ViewGinjector viewInjector;
+    @Mock
+    Texts texts;
+    @Mock
+    View view;
 
     private PresenterImpl presenter;
 
@@ -45,11 +43,13 @@ public class PresenterImplTest {
                     new PeriodicJobsHarvesterConfig.Content());
         }
 
-        @Override void saveModel() {
+        @Override
+        void saveModel() {
             saved = true;
         }
 
-        @Override String getResourceValueFromView() {
+        @Override
+        String getResourceValueFromView() {
             return resourceValueFromView;
         }
 
@@ -58,10 +58,12 @@ public class PresenterImplTest {
         }
 
         @Override
-        public void runButtonPressed() { }
+        public void runButtonPressed() {
+        }
 
         @Override
-        public void validateSolrButtonPressed() { }
+        public void validateSolrButtonPressed() {
+        }
     }
 
     @Before

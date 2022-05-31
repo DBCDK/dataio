@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.commons.types;
 
 
@@ -35,7 +14,7 @@ import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ChunkItemTest {
     private static final long ID = 1L;
@@ -62,12 +41,12 @@ public class ChunkItemTest {
 
         chunkItem.withDiagnostics(ObjectFactory.buildFatalDiagnostic("Test Fatal"));
         assertThat("diagnostics after first append", chunkItem.getDiagnostics(), notNullValue());
-        assertThat("number of diagnostics after first append", chunkItem.getDiagnostics().size(),is(1));
+        assertThat("number of diagnostics after first append", chunkItem.getDiagnostics().size(), is(1));
         assertThat("chunk item status", chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
 
         chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Test Fatal2"));
         assertThat("diagnostics after second append", chunkItem.getDiagnostics(), notNullValue());
-        assertThat("number of diagnostics after second append", chunkItem.getDiagnostics().size(),is(2));
+        assertThat("number of diagnostics after second append", chunkItem.getDiagnostics().size(), is(2));
     }
 
     @Test
@@ -106,7 +85,7 @@ public class ChunkItemTest {
     @Test
     public void withType_typeArgCanBeNull() {
         final ChunkItem chunkItem = new ChunkItem()
-            .withType((Type[]) null);
+                .withType((Type[]) null);
         assertThat(chunkItem.getType(), is(nullValue()));
     }
 
@@ -117,7 +96,7 @@ public class ChunkItemTest {
         assertThat(instance.getId(), is(ID));
         assertThat(instance.getData(), is(DATA));
         assertThat(instance.getStatus(), is(STATUS));
-        assertThat(instance.getType(), is( Arrays.asList(Type.UNKNOWN, Type.GENERICXML)));
+        assertThat(instance.getType(), is(Arrays.asList(Type.UNKNOWN, Type.GENERICXML)));
         assertThat(instance.getEncoding(), is(StandardCharsets.UTF_8));
     }
 

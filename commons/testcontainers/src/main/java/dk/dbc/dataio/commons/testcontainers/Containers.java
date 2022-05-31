@@ -1,14 +1,10 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.commons.testcontainers;
 
 import org.testcontainers.containers.GenericContainer;
 
 public class Containers {
-    private Containers() {}
+    private Containers() {
+    }
 
     public static GenericContainer filestoreServiceContainer() {
         return new GenericContainer(
@@ -33,7 +29,7 @@ public class Containers {
     }
 
     public static GenericContainer logstoreContainer() {
-        return new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/dbc-payara-logstore:"+getTag());
+        return new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/dbc-payara-logstore:" + getTag());
     }
 
     public static String getTag() {

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components.databinder;
 
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
@@ -35,11 +14,11 @@ import java.util.function.Consumer;
 
 /**
  * Data Binder base class for synchronizing the data for the derived class with a model<br>
- *<br>
+ * <br>
  * The class is on an experimental basis at the moment. It has not been finalized and is NOT ready for use.<br>
- *<br>
+ * <br>
  * How to use:<br>
- *<br>
+ * <br>
  * In a UI Binder file, add a component, as eg. the PromptedTextBox as follows:<br>
  * <pre>
  * {@code
@@ -62,11 +41,10 @@ import java.util.function.Consumer;
  * The other direction needs still to be implemented.<br>
  * <br>
  * Furthermore, the PromptedTextBox needs to implement the two additional interfaces: HasEnabled and Focusable<br>
- *
  */
 public class DataBinder<T, W extends IsWidget & HasValue<T> & HasEnabled & Focusable> extends FlowPanel implements IsWidget, HasValue<T>, HasEnabled, Focusable {
     W widget;
-//    Supplier supplier;
+    //    Supplier supplier;
     Consumer consumer;
 
     public DataBinder(W widget/*, Supplier<T> supplier*/, Consumer<T> consumer) {
@@ -85,6 +63,7 @@ public class DataBinder<T, W extends IsWidget & HasValue<T> & HasEnabled & Focus
 
     /**
      * Sets the Gui Id to be used to identify this component in the DOM
+     *
      * @param guiId The Gui Id to identify this component in the DOM
      */
     public void setGuiId(String guiId) {

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.commons.utils.lang;
 
 
@@ -42,10 +21,11 @@ public abstract class PrettyPrint {
 
 
     /**
-     *  Determines if data given as input is xml alike and should be pretty printed as xml:
-     *  if TRUE : returns pretty printed xml String
-     *  if FALSE: Returns data as String
-     * @param bytes containing data
+     * Determines if data given as input is xml alike and should be pretty printed as xml:
+     * if TRUE : returns pretty printed xml String
+     * if FALSE: Returns data as String
+     *
+     * @param bytes    containing data
      * @param encoding of data
      * @return data as String
      */
@@ -62,7 +42,8 @@ public abstract class PrettyPrint {
 
     /**
      * Adds tabs and new lines to a json string
-     * @param bytes containing data
+     *
+     * @param bytes    containing data
      * @param encoding of data
      * @return he string pretty printed as json
      * @throws JSONBException on failure to to unmarshall
@@ -74,13 +55,14 @@ public abstract class PrettyPrint {
 
     /**
      * Combines string elements to print
+     *
      * @param elements to print
      * @return the elements combined as one String
      */
     public static String combinePrintElements(String... elements) {
         StringBuilder stringBuilder = new StringBuilder();
-        for(String element : elements) {
-            if(stringBuilder.length() == 0) {
+        for (String element : elements) {
+            if (stringBuilder.length() == 0) {
                 stringBuilder.append(element);
             } else {
                 stringBuilder.append(LINEBREAK).append(LINEBREAK).append(element);
@@ -95,6 +77,7 @@ public abstract class PrettyPrint {
 
     /**
      * Adds tabs and new lines to a xml string
+     *
      * @param xml the string to pretty print as xml
      * @return the string pretty printed as xml
      */
@@ -128,7 +111,7 @@ public abstract class PrettyPrint {
                     printTabs(tabCount, prettyPrintXml);
                     prettyPrintXml.append(str4);
                 }
-                if (!str2.equals(LINEBREAK)){
+                if (!str2.equals(LINEBREAK)) {
                     prettyPrintXml.append(LINEBREAK);
                 }
             }

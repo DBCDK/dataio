@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -25,7 +20,8 @@ public class PromatHarvesterConfig
         super(id, version, content);
     }
 
-    public PromatHarvesterConfig() { }
+    public PromatHarvesterConfig() {
+    }
 
     @Override
     public String getLogId() {
@@ -34,7 +30,8 @@ public class PromatHarvesterConfig
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Content implements Serializable {
-        public Content() {}
+        public Content() {
+        }
 
         private String name;
 
@@ -44,6 +41,7 @@ public class PromatHarvesterConfig
          * Harvest schedule as standard UNIX crontab expression
          * with five fields minute, hour, day of month, month, and
          * day of week
+         *
          * @see <a href="https://github.com/DBCDK/run-schedule">run-schedule</a>
          **/
         private String schedule;
@@ -94,7 +92,7 @@ public class PromatHarvesterConfig
             return this;
         }
 
-       public String getDestination() {
+        public String getDestination() {
             return destination;
         }
 

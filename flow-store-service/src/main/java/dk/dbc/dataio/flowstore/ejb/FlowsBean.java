@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.flowstore.ejb;
 
 
@@ -74,11 +53,9 @@ public class FlowsBean extends AbstractResourceBean {
      * Retrieves flow from underlying data store
      *
      * @param id flow identifier
-     *
      * @return a HTTP 200 response with flow content as JSON,
-     *         a HTTP 404 response with error content as JSON if not found,
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 404 response with error content as JSON if not found,
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException if unable to marshall value type into its JSON representation
      */
     @GET
@@ -97,11 +74,9 @@ public class FlowsBean extends AbstractResourceBean {
      * Retrieves flow from underlying data store
      *
      * @param name flow identifier
-     *
      * @return a HTTP 200 response with flow content as JSON,
-     *         a HTTP 404 response with error content as JSON if not found,
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 404 response with error content as JSON if not found,
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException if unable to marshall value type into its JSON representation
      */
 
@@ -109,7 +84,7 @@ public class FlowsBean extends AbstractResourceBean {
     @Path(FlowStoreServiceConstants.FLOWS)
     @Produces({MediaType.APPLICATION_JSON})
     public Response findFlows(@QueryParam("name") String name) throws JSONBException {
-        if(name != null) {
+        if (name != null) {
             return findFlowByName(name);
         } else {
             return findAll();
@@ -120,21 +95,19 @@ public class FlowsBean extends AbstractResourceBean {
      * Creates new flow with data POSTed as JSON and persists it in the
      * underlying data store
      *
-     * @param uriInfo application and request URI information
+     * @param uriInfo     application and request URI information
      * @param flowContent flow data as JSON string
-     *
      * @return a HTTP 201 response with flow content as JSON
-     *         a HTTP 400 BAD_REQUEST response on invalid json content.
-     *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 400 BAD_REQUEST response on invalid json content.
+     * a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException when given invalid (null-valued, empty-valued or non-json)
-     *                       JSON string, or if JSON object does not contain required
-     *                       members
+     *                        JSON string, or if JSON object does not contain required
+     *                        members
      */
     @POST
     @Path(FlowStoreServiceConstants.FLOWS)
-    @Consumes({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response createFlow(@Context UriInfo uriInfo, String flowContent) throws JSONBException {
         log.trace("Called with: '{}'", flowContent);
@@ -153,18 +126,16 @@ public class FlowsBean extends AbstractResourceBean {
      * Updates an existing flow
      *
      * @param flowContent the flow content containing the changes
-     * @param uriInfo URI information
-     * @param id The flow ID
-     * @param version The version of the flow
-     * @param isRefresh boolean value defining whether or not:
-     *                  a) The update is to be performed on the flow
-     *                  b) The versioned flow components, contained within the flow, are to be replaced with latest version
-     *
+     * @param uriInfo     URI information
+     * @param id          The flow ID
+     * @param version     The version of the flow
+     * @param isRefresh   boolean value defining whether or not:
+     *                    a) The update is to be performed on the flow
+     *                    b) The versioned flow components, contained within the flow, are to be replaced with latest version
      * @return a HTTP 200 response with flow content as JSON,
-     *         a HTTP 409 response in case of Concurrent Update error,
-     *         a HTTP 500 response in case of general error.
-     *
-     * @throws JSONBException on failure to create json flow
+     * a HTTP 409 response in case of Concurrent Update error,
+     * a HTTP 500 response in case of general error.
+     * @throws JSONBException                    on failure to create json flow
      * @throws ReferencedEntityNotFoundException on failure to locate the flow component in the underlying database
      */
     @POST
@@ -179,9 +150,9 @@ public class FlowsBean extends AbstractResourceBean {
             @QueryParam(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH) Boolean isRefresh) throws JSONBException, ReferencedEntityNotFoundException {
 
         Response response;
-        if(isRefresh != null && isRefresh) {
+        if (isRefresh != null && isRefresh) {
             response = refreshFlowComponents(uriInfo, id, version);
-        }else {
+        } else {
             InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
             jsonbContext.unmarshall(flowContent, FlowContent.class);
             response = updateFlowContent(flowContent, id, version);
@@ -196,7 +167,6 @@ public class FlowsBean extends AbstractResourceBean {
      * Returns list containing one flow uniquely identified by the flow name given as input
      *
      * @return a HTTP OK response with result list as JSON
-     *
      * @throws JSONBException on failure to create result list as JSON
      */
     private Response findFlowByName(String name) throws JSONBException {
@@ -211,6 +181,7 @@ public class FlowsBean extends AbstractResourceBean {
 
     /**
      * Returns list of brief views of all stored flows sorted by name in ascending order
+     *
      * @return a HTTP OK response with result list as JSON
      */
     private Response findAll() {
@@ -222,14 +193,12 @@ public class FlowsBean extends AbstractResourceBean {
      * Updates the versioned flow components contained within the flow. Each is replaced with latest version
      *
      * @param uriInfo URI information
-     * @param id The flow ID
+     * @param id      The flow ID
      * @param version The version of the flow
-     *
      * @return a HTTP 200 response with flow content as JSON,
-     *         a HTTP 409 response in case of Concurrent Update error,
-     *         a HTTP 500 response in case of general error.
-     *
-     * @throws JSONBException on failure to create json flow
+     * a HTTP 409 response in case of Concurrent Update error,
+     * a HTTP 500 response in case of general error.
+     * @throws JSONBException                    on failure to create json flow
      * @throws ReferencedEntityNotFoundException on failure to locate the flow component in the underlying database
      */
     @SuppressWarnings("PMD.UnusedPrivateMethod")
@@ -244,12 +213,12 @@ public class FlowsBean extends AbstractResourceBean {
         entityManager.detach(flowEntity);
         FlowContent flowContent = jsonbContext.unmarshall(flowEntity.getContent(), FlowContent.class);
 
-        for(dk.dbc.dataio.commons.types.FlowComponent flowComponent : flowContent.getComponents()){
+        for (dk.dbc.dataio.commons.types.FlowComponent flowComponent : flowContent.getComponents()) {
             FlowComponent flowComponentWithLatestVersion = entityManager.find(FlowComponent.class, flowComponent.getId());
             if (flowComponentWithLatestVersion == null) {
                 throw new ReferencedEntityNotFoundException("Flow component with id: " + flowComponent.getId() + "could not be found in the underlying database");
             }
-            if(!hasFlowComponentsChanged && flowComponentWithLatestVersion.getVersion() != flowComponent.getVersion()) {
+            if (!hasFlowComponentsChanged && flowComponentWithLatestVersion.getVersion() != flowComponent.getVersion()) {
                 hasFlowComponentsChanged = true;
             }
             String flowComponentWithLatestVersionJson = jsonbContext.marshall(flowComponentWithLatestVersion);
@@ -258,7 +227,7 @@ public class FlowsBean extends AbstractResourceBean {
         }
 
         FlowContent updatedFlowContent = new FlowContent(flowContent.getName(), flowContent.getDescription(), flowComponentsWithLatestVersion, flowContent.getTimeOfFlowComponentUpdate());
-        if(hasFlowComponentsChanged) {
+        if (hasFlowComponentsChanged) {
             updatedFlowContent.withTimeOfFlowComponentUpdate(new Date());
         }
 
@@ -275,13 +244,11 @@ public class FlowsBean extends AbstractResourceBean {
      * Updates an existing flow
      *
      * @param flowContent the flow content containing the changes
-     * @param id The flow ID
-     * @param version The version of the flow
-     *
+     * @param id          The flow ID
+     * @param version     The version of the flow
      * @return a HTTP 200 response with flow content as JSON,
-     *         a HTTP 409 response in case of Concurrent Update error,
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 409 response in case of Concurrent Update error,
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException JsonException on failure to create json flow
      */
     @SuppressWarnings("PMD.UnusedPrivateMethod")
@@ -310,13 +277,12 @@ public class FlowsBean extends AbstractResourceBean {
     /**
      * Deletes an existing flow
      *
-     * @param flowId The flow ID
+     * @param flowId  The flow ID
      * @param version The version of the flow
-     *
      * @return a HTTP 204 response with no content,
-     *         a HTTP 404 response in case of flow ID not found,
-     *         a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
-     *         a HTTP 500 response in case of general error.
+     * a HTTP 404 response in case of flow ID not found,
+     * a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
+     * a HTTP 500 response in case of general error.
      */
     @DELETE
     @Path(FlowStoreServiceConstants.FLOW)
@@ -326,7 +292,7 @@ public class FlowsBean extends AbstractResourceBean {
 
         final Flow flowEntity = entityManager.find(Flow.class, flowId);
 
-        if(flowEntity == null) {
+        if (flowEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
 
@@ -345,7 +311,7 @@ public class FlowsBean extends AbstractResourceBean {
     private String setTimeOfFlowComponentUpdate(String newFlowContentJson, String existingFlowContentJson) throws JSONBException {
         final FlowContent existingFlowContent = jsonbContext.unmarshall(existingFlowContentJson, FlowContent.class);
         final FlowContent newFlowContent = jsonbContext.unmarshall(newFlowContentJson, FlowContent.class);
-        if(!existingFlowContent.getComponents().equals(newFlowContent.getComponents())){
+        if (!existingFlowContent.getComponents().equals(newFlowContent.getComponents())) {
             newFlowContent.withTimeOfFlowComponentUpdate(new Date());
             return jsonbContext.marshall(newFlowContent);
         }

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -45,7 +24,8 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
         super(id, version, content);
     }
 
-    public TickleRepoHarvesterConfig() { }
+    public TickleRepoHarvesterConfig() {
+    }
 
     @Override
     public String getLogId() {
@@ -58,9 +38,9 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
                 .withHarvesterVariant(HarvesterToken.HarvesterVariant.TICKLE_REPO)
                 .withId(getId())
                 .withVersion(getVersion());
-                if (batchId > 0) {
-                    token.withRemainder("" + batchId);
-                }
+        if (batchId > 0) {
+            token.withRemainder("" + batchId);
+        }
         return token.toString();
     }
 
@@ -68,31 +48,48 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
     public static class Content implements Serializable {
         private static final long serialVersionUID = -5437124801330551281L;
 
-        public Content() { }
+        public Content() {
+        }
 
-        /** ID of harvest operation */
+        /**
+         * ID of harvest operation
+         */
         private String id;
 
-        /** JNDI name of tickle repo JDBC resource */
+        /**
+         * JNDI name of tickle repo JDBC resource
+         */
         private String datasetName;
 
-        /** Description */
+        /**
+         * Description
+         */
         private String description;
 
-        /** Destination for harvested items */
+        /**
+         * Destination for harvested items
+         */
         private String destination;
 
-        /** Format of harvested items */
+        /**
+         * Format of harvested items
+         */
         private String format;
 
-        /** Job type of harvested items (default is TRANSIENT */
+        /**
+         * Job type of harvested items (default is TRANSIENT
+         */
         private JobSpecification.Type type = JobSpecification.Type.TRANSIENT;
 
-        /** Flag Indicating if the configuration is enabled */
+        /**
+         * Flag Indicating if the configuration is enabled
+         */
         @JsonProperty
         private boolean enabled = false;
 
-        /** Flag Indicating if job notifications are enabled */
+        /**
+         * Flag Indicating if job notifications are enabled
+         */
         @JsonProperty
         private boolean notificationsEnabled = false;
 
@@ -183,6 +180,7 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
             this.lastBatchHarvested = batchId;
             return this;
         }
+
         public Date getTimeOfLastBatchHarvested() {
             if (timeOfLastBatchHarvested != null) {
                 return new Date(timeOfLastBatchHarvested.getTime());
@@ -205,7 +203,7 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
             this.harvesterType = harvesterType;
             return this;
         }
-        
+
         @Override
         public boolean equals(Object o) {
             if (this == o) {

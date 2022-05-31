@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
@@ -88,18 +67,25 @@ public class PgJobStore {
     private static final long FOUR_GIBIBYTE = 4 * 1024 * 1024 * 1024L;
 
     /* These instances are not private otherwise they were not accessible from automatic test */
-    @EJB JobSchedulerBean jobSchedulerBean;
-    @Inject FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-    @Inject FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-    @EJB PgJobStoreRepository jobStoreRepository;
-    @EJB JobQueueRepository jobQueueRepository;
-    @EJB JobNotificationRepository jobNotificationRepository;
+    @EJB
+    JobSchedulerBean jobSchedulerBean;
+    @Inject
+    FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @Inject
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB
+    PgJobStoreRepository jobStoreRepository;
+    @EJB
+    JobQueueRepository jobQueueRepository;
+    @EJB
+    JobNotificationRepository jobNotificationRepository;
 
     @Inject
     @JobstoreDB
     EntityManager entityManager;
 
-    @Resource SessionContext sessionContext;
+    @Resource
+    SessionContext sessionContext;
 
     /**
      * Adds new job in the underlying data store from given job input stream, after attempting to retrieve
@@ -138,6 +124,7 @@ public class PgJobStore {
 
     /**
      * Adds new job job, chunk and item entities in the underlying data store from given job input stream
+     *
      * @param addJobParam containing the elements required to create a new job as well as a list of Diagnostics.
      *                    If the list contains any diagnostic with level FATAL, the job will be marked as finished
      *                    before partitioning is attempted.
@@ -151,9 +138,10 @@ public class PgJobStore {
 
     /**
      * Adds new job job, chunk and item entities in the underlying data store from given job input stream
-     * @param addJobParam containing the elements required to create a new job as well as a list of Diagnostics.
-     *                    If the list contains any diagnostic with level FATAL, the job will be marked as finished
-     *                    before partitioning is attempted.
+     *
+     * @param addJobParam   containing the elements required to create a new job as well as a list of Diagnostics.
+     *                      If the list contains any diagnostic with level FATAL, the job will be marked as finished
+     *                      before partitioning is attempted.
      * @param includeFilter bitset to filter out records, used for rerunning jobs with only failed items
      * @return information snapshot of added job
      * @throws JobStoreException on failure to add job
@@ -184,13 +172,13 @@ public class PgJobStore {
     }
 
 
-
     private PgJobStore self() {
         return sessionContext.getBusinessObject(PgJobStore.class);
     }
 
     /**
      * Attempts to partition next job in line for a given {@link Sink}
+     *
      * @param sink {@link Sink} for which a job is to be partitioned
      */
     @Stopwatch
@@ -256,11 +244,12 @@ public class PgJobStore {
 
     /**
      * Deciphers if the job to be created is for preview only
+     *
      * @param param containing preview only information
      * @return partitioning
      */
     protected Partitioning handlePartitioning(PartitioningParam param) {
-        if(param.isPreviewOnly()) {
+        if (param.isPreviewOnly()) {
             return self().preview(param);
         } else {
             return self().partition(param);
@@ -269,6 +258,7 @@ public class PgJobStore {
 
     /**
      * Partitions a job into chunks as specified by given partitioning parameter
+     *
      * @param partitioningParam containing the state required to partition a new job
      * @return partitioning result
      */
@@ -297,6 +287,7 @@ public class PgJobStore {
 
     /**
      * Adds information regarding number of failed and succeeded items on a job entity and sets time of completion
+     *
      * @param partitioningParam containing the required data partitioner
      * @return partitioning result
      */
@@ -322,6 +313,7 @@ public class PgJobStore {
 
     /**
      * finalizePartitioning and test for 0 chunks.
+     *
      * @param job used to parse info from  partitionJobIntoChunksAndItems and verifyJobPartitioning to this
      * @return updated jobEntity
      */
@@ -332,7 +324,7 @@ public class PgJobStore {
         final State jobState = endPartitioningPhase(jobEntity);
 
         // If db entity does not have fatal error, load them
-        if (job.hasFatalError() && !jobEntity.hasFatalError())  {
+        if (job.hasFatalError() && !jobEntity.hasFatalError()) {
             abortJob(jobEntity, job.getState().getDiagnostics());
         }
 
@@ -381,10 +373,10 @@ public class PgJobStore {
             int chunkId = 0;
             ChunkEntity chunkEntity;
 
-            if( job.getNumberOfChunks() > 0 ) {
-                LOGGER.info("Resuming Partition of Job {} after {} chunks",job.getId(), job.getNumberOfChunks());
-                chunkId=job.getNumberOfChunks();
-                partitioningParam.getDataPartitioner().drainItems( job.getNumberOfItems() + job.getSkipped());
+            if (job.getNumberOfChunks() > 0) {
+                LOGGER.info("Resuming Partition of Job {} after {} chunks", job.getId(), job.getNumberOfChunks());
+                chunkId = job.getNumberOfChunks();
+                partitioningParam.getDataPartitioner().drainItems(job.getNumberOfItems() + job.getSkipped());
             }
 
             long submitterId = partitioningParam.getJobEntity().getSpecification().getSubmitterId();
@@ -415,7 +407,7 @@ public class PgJobStore {
             }
 
             // update numberOfChunks added for use bye partition
-            job.setNumberOfChunks( chunkId );
+            job.setNumberOfChunks(chunkId);
 
         }
         return job;
@@ -430,7 +422,7 @@ public class PgJobStore {
                 compareByteSize(partitioningParam.getDataFileId(), partitioningParam.getDataPartitioner());
             } catch (Exception exception) {
                 final Diagnostic diagnostic = ObjectFactory.buildFatalDiagnostic(String.format(
-                        "Partitioning succeeded but validation 'compareByteSize' failed: %s", exception.getMessage()),
+                                "Partitioning succeeded but validation 'compareByteSize' failed: %s", exception.getMessage()),
                         exception);
 
                 abortDiagnostics.add(diagnostic);
@@ -444,20 +436,21 @@ public class PgJobStore {
 
     /**
      * Adds chunk by updating existing items, chunk and job entities in the underlying data store.
+     *
      * @param chunk chunk
      * @return information snapshot of updated job
-     * @throws NullPointerException if given null-valued chunk argument
+     * @throws NullPointerException    if given null-valued chunk argument
      * @throws DuplicateChunkException if attempting to update already existing chunk
-     * @throws InvalidInputException if unable to find referenced items, if chunk belongs to PARTITIONING phase
-     * or if chunk contains a number of items not matching that of the internal chunk entity
-     * @throws JobStoreException if unable to find referenced chunk or job entities
+     * @throws InvalidInputException   if unable to find referenced items, if chunk belongs to PARTITIONING phase
+     *                                 or if chunk contains a number of items not matching that of the internal chunk entity
+     * @throws JobStoreException       if unable to find referenced chunk or job entities
      */
     @Stopwatch
     public JobInfoSnapshot addChunk(Chunk chunk) throws NullPointerException, JobStoreException {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         LOGGER.info("addChunk: adding {} chunk {}/{}", chunk.getType(), chunk.getJobId(), chunk.getChunkId());
 
-        final ChunkEntity.Key chunkKey =  new ChunkEntity.Key((int) chunk.getChunkId(), (int) chunk.getJobId());
+        final ChunkEntity.Key chunkKey = new ChunkEntity.Key((int) chunk.getChunkId(), (int) chunk.getJobId());
         final ChunkEntity chunkEntity = jobStoreRepository.getExclusiveAccessFor(ChunkEntity.class, chunkKey);
         if (chunkEntity == null) {
             throw new JobStoreException(String.format("ChunkEntity.%s could not be found", chunkKey));
@@ -521,8 +514,9 @@ public class PgJobStore {
 
     /**
      * Sets a workflow note on a job
+     *
      * @param workflowNote the note to attach
-     * @param jobId identifying the job
+     * @param jobId        identifying the job
      * @return information snapshot of updated job
      * @throws JobStoreException if referenced job entity was not found
      */
@@ -534,10 +528,11 @@ public class PgJobStore {
 
     /**
      * Sets a workflow note on an item
+     *
      * @param workflowNote the note to attach
-     * @param jobId identifying the job
-     * @param chunkId identifying the chunk
-     * @param itemId identifying the item
+     * @param jobId        identifying the job
+     * @param chunkId      identifying the chunk
+     * @param itemId       identifying the item
      * @return information snapshot of updated item
      * @throws JobStoreException if referenced item entity was not found
      */
@@ -551,7 +546,7 @@ public class PgJobStore {
     long getByteSizeOrThrow(String fileId) throws JobStoreException {
         try {
             return fileStoreServiceConnectorBean.getConnector().getByteSize(fileId);
-        } catch(FileStoreServiceConnectorException ex) {
+        } catch (FileStoreServiceConnectorException ex) {
             LOGGER.warn("Could not retrieve byte size for file with id: {}", fileId);
             throw new JobStoreException("Could not retrieve byte size", ex);
         }
@@ -562,11 +557,11 @@ public class PgJobStore {
      * Method compares bytes size of a file with the byte size of
      * the data partitioner used when adding a job to the job store
      *
-     * @param fileId file id
+     * @param fileId          file id
      * @param dataPartitioner containing the input steam
-     * @throws IOException if the byte size differs
+     * @throws IOException       if the byte size differs
      * @throws JobStoreException if the byte size could not be retrieved,
-     * InvalidInputException if the file store service URI was invalid
+     *                           InvalidInputException if the file store service URI was invalid
      */
     void compareByteSize(String fileId, DataPartitioner dataPartitioner)
             throws IOException, JobStoreException {
@@ -574,7 +569,7 @@ public class PgJobStore {
         if (jobByteSize == DataPartitioner.NO_BYTE_COUNT_AVAILABLE) {
             return;
         }
-        
+
         long fileByteSize = getByteSizeOrThrow(fileId);
         if (fileByteSize == -4_348_520L) {
             // magic number returned by the file-store service indicating

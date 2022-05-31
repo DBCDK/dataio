@@ -15,7 +15,7 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static dk.dbc.dataio.commons.types.ChunkItem.successfulChunkItem;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ChunkItemWithWorldCatAttributesTest {
     private final JSONBContext jsonbContext = new JSONBContext();
@@ -63,7 +63,7 @@ public class ChunkItemWithWorldCatAttributesTest {
                 new Holding().withSymbol("JKL").withAction(Holding.Action.INSERT)
         ));
         final ChunkItem chunkItem = successfulChunkItem()
-                .withData( new AddiRecord(marshallToBytes(attributes), "data".getBytes()).getBytes())
+                .withData(new AddiRecord(marshallToBytes(attributes), "data".getBytes()).getBytes())
                 .withType(ChunkItem.Type.ADDI);
         final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
                 ChunkItemWithWorldCatAttributes.of(chunkItem);
@@ -73,7 +73,7 @@ public class ChunkItemWithWorldCatAttributesTest {
     @Test
     public void getActiveHoldingSymbols_whenWorldCatAttributesHoldingsListIsNull() {
         final ChunkItem chunkItem = successfulChunkItem()
-                .withData( new AddiRecord(marshallToBytes(new WorldCatAttributes()), "data".getBytes()).getBytes())
+                .withData(new AddiRecord(marshallToBytes(new WorldCatAttributes()), "data".getBytes()).getBytes())
                 .withType(ChunkItem.Type.ADDI);
         final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
                 ChunkItemWithWorldCatAttributes.of(chunkItem);
@@ -86,7 +86,7 @@ public class ChunkItemWithWorldCatAttributesTest {
         final WorldCatAttributes attributes = new WorldCatAttributes()
                 .withHoldings(Collections.singletonList(originalHolding));
         final ChunkItem chunkItem = successfulChunkItem()
-                .withData( new AddiRecord(marshallToBytes(attributes), "data".getBytes()).getBytes())
+                .withData(new AddiRecord(marshallToBytes(attributes), "data".getBytes()).getBytes())
                 .withType(ChunkItem.Type.ADDI);
         final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
                 ChunkItemWithWorldCatAttributes.of(chunkItem);
@@ -102,7 +102,7 @@ public class ChunkItemWithWorldCatAttributesTest {
         final WorldCatAttributes attributes = new WorldCatAttributes()
                 .withHoldings(Collections.singletonList(originalHolding));
         final ChunkItem chunkItem = successfulChunkItem()
-                .withData( new AddiRecord(marshallToBytes(attributes), "data".getBytes()).getBytes())
+                .withData(new AddiRecord(marshallToBytes(attributes), "data".getBytes()).getBytes())
                 .withType(ChunkItem.Type.ADDI);
         final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
                 ChunkItemWithWorldCatAttributes.of(chunkItem);
@@ -115,7 +115,7 @@ public class ChunkItemWithWorldCatAttributesTest {
     @Test
     public void addDiscontinuedHoldings_whenAttributesContainsNoHoldings() {
         final ChunkItem chunkItem = successfulChunkItem()
-                .withData( new AddiRecord(marshallToBytes(new WorldCatAttributes()), "data".getBytes()).getBytes())
+                .withData(new AddiRecord(marshallToBytes(new WorldCatAttributes()), "data".getBytes()).getBytes())
                 .withType(ChunkItem.Type.ADDI);
         final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
                 ChunkItemWithWorldCatAttributes.of(chunkItem);
@@ -134,7 +134,7 @@ public class ChunkItemWithWorldCatAttributesTest {
         final WorldCatAttributes attributes = new WorldCatAttributes()
                 .withHoldings(Collections.singletonList(originalHolding));
         final ChunkItem chunkItem = successfulChunkItem()
-                .withData( new AddiRecord(marshallToBytes(attributes), "data".getBytes()).getBytes())
+                .withData(new AddiRecord(marshallToBytes(attributes), "data".getBytes()).getBytes())
                 .withType(ChunkItem.Type.ADDI);
         final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
                 ChunkItemWithWorldCatAttributes.of(chunkItem);

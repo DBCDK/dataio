@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.param;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -67,7 +46,7 @@ public class AddJobParam {
         this.jobInputStream = InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
         this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
         this.diagnostics = new ArrayList<>();
-        if(isDatafileValid()) {
+        if (isDatafileValid()) {
             this.flowBinder = lookupFlowBinder();
             this.submitter = lookupSubmitter();
             this.flow = lookupFlow();
@@ -80,21 +59,27 @@ public class AddJobParam {
     public JobInputStream getJobInputStream() {
         return jobInputStream;
     }
+
     public List<Diagnostic> getDiagnostics() {
         return diagnostics;
     }
+
     public Submitter getSubmitter() {
         return submitter;
     }
+
     public Flow getFlow() {
         return flow;
     }
+
     public Sink getSink() {
         return sink;
     }
+
     public RecordSplitterConstants.RecordSplitter getTypeOfDataPartitioner() {
         return typeOfDataPartitioner;
     }
+
     public FlowStoreReferences getFlowStoreReferences() {
         return flowStoreReferences;
     }
@@ -126,8 +111,8 @@ public class AddJobParam {
             }
 
         } else if (jobSpecification.getDataFile().equals(Constants.MISSING_FIELD_VALUE)) {
-                message = "Kan ikke finde datafilen";
-                isJobSpecificationValid = false;
+            message = "Kan ikke finde datafilen";
+            isJobSpecificationValid = false;
         }
 
         if (!isJobSpecificationValid) {
@@ -169,8 +154,8 @@ public class AddJobParam {
         final long submitterNumber = jobInputStream.getJobSpecification().getSubmitterId();
         try {
             return flowStoreServiceConnector.getSubmitterBySubmitterNumber(submitterNumber);
-        } catch(FlowStoreServiceConnectorException | ProcessingException e) {
-            if(flowBinder != null) { // No diagnostic created when retrieving flow binder
+        } catch (FlowStoreServiceConnectorException | ProcessingException e) {
+            if (flowBinder != null) { // No diagnostic created when retrieving flow binder
                 final String message = String.format("Could not retrieve Submitter with submitter number: %d", submitterNumber);
                 diagnostics.add(ObjectFactory.buildFatalDiagnostic(message, e));
             }
@@ -183,7 +168,7 @@ public class AddJobParam {
             final long flowId = flowBinder.getContent().getFlowId();
             try {
                 return flowStoreServiceConnector.getFlow(flowId);
-            } catch(FlowStoreServiceConnectorException | ProcessingException e) {
+            } catch (FlowStoreServiceConnectorException | ProcessingException e) {
                 final String message = String.format("Could not retrieve Flow with ID: %d", flowId);
                 diagnostics.add(ObjectFactory.buildFatalDiagnostic(message, e));
             }
@@ -192,14 +177,13 @@ public class AddJobParam {
     }
 
     private Sink lookupSink() {
-        if(jobInputStream.getJobSpecification().getType() == JobSpecification.Type.ACCTEST) {
+        if (jobInputStream.getJobSpecification().getType() == JobSpecification.Type.ACCTEST) {
             return createDiffSink();
-        }
-        else if (flowBinder != null) {
+        } else if (flowBinder != null) {
             final long sinkId = flowBinder.getContent().getSinkId();
             try {
                 return flowStoreServiceConnector.getSink(sinkId);
-            } catch(FlowStoreServiceConnectorException | ProcessingException e) {
+            } catch (FlowStoreServiceConnectorException | ProcessingException e) {
                 final String message = String.format("Could not retrieve Sink with ID: %d", sinkId);
                 diagnostics.add(ObjectFactory.buildFatalDiagnostic(message, e));
             }
@@ -211,19 +195,19 @@ public class AddJobParam {
         final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
         if (flowBinder != null) {
             flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER,
-                    new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(),flowBinder.getContent().getName()));
+                    new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(), flowBinder.getContent().getName()));
         }
         if (flow != null) {
             flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW,
-                    new FlowStoreReference(flow.getId(), flow.getVersion(),flow.getContent().getName()));
+                    new FlowStoreReference(flow.getId(), flow.getVersion(), flow.getContent().getName()));
         }
         if (sink != null) {
             flowStoreReferences.setReference(FlowStoreReferences.Elements.SINK,
-                    new FlowStoreReference(sink.getId(), sink.getVersion(),sink.getContent().getName()));
+                    new FlowStoreReference(sink.getId(), sink.getVersion(), sink.getContent().getName()));
         }
         if (submitter != null) {
             flowStoreReferences.setReference(FlowStoreReferences.Elements.SUBMITTER,
-                    new FlowStoreReference(submitter.getId(), submitter.getVersion(),submitter.getContent().getName()));
+                    new FlowStoreReference(submitter.getId(), submitter.getVersion(), submitter.getContent().getName()));
         }
         return flowStoreReferences;
     }

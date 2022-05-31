@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -15,16 +10,16 @@ import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class VipCsvDataPartitionerTest {
     @Test
     public void partitioningCSV() {
         final String csvRecords =
                 "Feltnavn|Kodevaerdi|Kodetekst\n" +
-                "a|\"b| with whitespace and pipe\"|\n" +
-                "\"d has unbalanced\"\"|and|fails\n" +
-                "\"\"\"g\"\"\"|\"h contains<p><a href=\"\"url\"\">html</a>\"";
+                        "a|\"b| with whitespace and pipe\"|\n" +
+                        "\"d has unbalanced\"\"|and|fails\n" +
+                        "\"\"\"g\"\"\"|\"h contains<p><a href=\"\"url\"\">html</a>\"";
 
         final CsvDataPartitioner partitioner = VipCsvDataPartitioner.newInstance(
                 StringUtil.asInputStream(csvRecords), StandardCharsets.UTF_8.name());

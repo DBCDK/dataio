@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.rr.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
@@ -53,8 +32,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -66,6 +46,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the name field has been changed
+     *
      * @param name, the new name value
      */
     @Override
@@ -77,6 +58,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the description field has been changed
+     *
      * @param description, the new description value
      */
     @Override
@@ -88,6 +70,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the resource field has been changed
+     *
      * @param resource, the new resource value
      */
     @Override
@@ -99,6 +82,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the consumerId field has been changed
+     *
      * @param consumerId, the new consumerId value
      */
     @Override
@@ -110,6 +94,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the size field has been changed
+     *
      * @param size, the new size value
      */
     @Override
@@ -121,7 +106,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that an entry has been added to formatOverrides
-     * @param overrideKey The key value of the FormatOverride
+     *
+     * @param overrideKey   The key value of the FormatOverride
      * @param overrideValue The text value of the FormatOverride
      * @return True if successful, false if number entry error
      */
@@ -143,6 +129,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the relations field has been changed
+     *
      * @param relations, the new relations value
      */
     @Override
@@ -161,6 +148,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the library rules field has been changed
+     *
      * @param libraryRules, the new library rules value
      */
     @Override
@@ -172,6 +160,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the Harvester Type field has been changed
+     *
      * @param harvesterType, the new Harvester Type value
      */
     @Override
@@ -183,6 +172,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the Holdings Target field has been changed
+     *
      * @param holdingsTarget, the new Holdings Target value
      */
     @Override
@@ -194,6 +184,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the destination field has been changed
+     *
      * @param destination, the new destination value
      */
     @Override
@@ -205,6 +196,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the format field has been changed
+     *
      * @param format, the new format value
      */
     @Override
@@ -216,6 +208,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the type field has been changed
+     *
      * @param type, the new type value
      */
     @Override
@@ -227,6 +220,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the note field has been changed
+     *
      * @param note, the new note value
      */
     @Override
@@ -238,6 +232,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the enabled field has been changed
+     *
      * @param enabled, the new enabled value
      */
     @Override
@@ -294,6 +289,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Removes a FormatOverride from the list of FormatOverride's
+     *
      * @param item The item, that has been removed
      */
     @Override
@@ -309,6 +305,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method used to set the model after a successful update or a save
+     *
      * @param config The model to save
      */
     protected void setRRHarvesterConfig(RRHarvesterConfig config) {
@@ -320,7 +317,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
 
     private boolean isInputFieldsEmpty(RRHarvesterConfig config) {
-        return  config == null ||
+        return config == null ||
                 config.getContent() == null ||
                 config.getContent().getId() == null ||
                 config.getContent().getId().isEmpty() ||
@@ -331,8 +328,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent().getConsumerId() == null ||
                 config.getContent().getConsumerId().isEmpty() ||
                 config.getContent().getHarvesterType() == null &&
-                    (config.getContent().getImsHoldingsTarget() == null ||
-                     config.getContent().getImsHoldingsTarget().isEmpty()) ||
+                        (config.getContent().getImsHoldingsTarget() == null ||
+                                config.getContent().getImsHoldingsTarget().isEmpty()) ||
                 config.getContent().getDestination() == null ||
                 config.getContent().getDestination().isEmpty() ||
                 config.getContent().getFormat() == null ||
@@ -341,7 +338,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private Map<String, String> integerStringMap2StringStringMap(Map<Integer, String> integerStringMap) {
         Map<String, String> stringStringMap = new HashMap<>();
-        for (Integer key: integerStringMap.keySet()) {
+        for (Integer key : integerStringMap.keySet()) {
             stringStringMap.put(key == null ? "" : String.valueOf(key), integerStringMap.get(key) == null ? "" : integerStringMap.get(key));
         }
         return stringStringMap;
@@ -395,7 +392,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.libraryRules.setValue(libraryRules);
         view.libraryRules.setEnabled(viewEnabled);
         view.harvesterType.clear();
-        for (RRHarvesterConfig.HarvesterType t: RRHarvesterConfig.HarvesterType.values()) {
+        for (RRHarvesterConfig.HarvesterType t : RRHarvesterConfig.HarvesterType.values()) {
             view.harvesterType.addAvailableItem(t.toString());
         }
         view.harvesterType.setSelectedValue(harvesterType.toString());
@@ -407,7 +404,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.format.setText(format);
         view.format.setEnabled(viewEnabled);
         view.type.clear();
-        for (JobSpecification.Type t: JobSpecification.Type.values()) {
+        for (JobSpecification.Type t : JobSpecification.Type.values()) {
             if (t != JobSpecification.Type.COMPACTED) {
                 view.type.addAvailableItem(t.toString());
             }
@@ -425,8 +422,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private void initializeViewFields() {
         initializeViewFields(false, "", "", "", "", "", new HashMap<>(),
-            false, false, false, RRHarvesterConfig.HarvesterType.STANDARD, "",
-            "", "", "", "", false, false);
+                false, false, false, RRHarvesterConfig.HarvesterType.STANDARD, "",
+                "", "", "", "", false, false);
     }
 
     /**
@@ -463,7 +460,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         return viewInjector.getTexts();
     }
 
-     /*
+    /*
      * Abstract methods
      */
 

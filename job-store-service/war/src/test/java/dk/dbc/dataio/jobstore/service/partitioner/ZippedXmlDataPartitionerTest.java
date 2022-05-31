@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
@@ -72,18 +72,14 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
             expression = "/epdata/record/item/subitem[@name=\"NAICCode\"]";
             nodeList = (NodeList) xPath.compile(expression).evaluate(document, XPathConstants.NODESET);
             assertThat("Has subitem with name=NAICCode", nodeList.getLength(), is(1));
-            assertThat("Subitem has text value '611310'", nodeList.item(0).getTextContent(),is("611310"));
-        }
-        catch(ParserConfigurationException pce) {
+            assertThat("Subitem has text value '611310'", nodeList.item(0).getTextContent(), is("611310"));
+        } catch (ParserConfigurationException pce) {
             fail("Caught ParserConfigurationException: " + pce.getMessage());
-        }
-        catch(SAXException se) {
+        } catch (SAXException se) {
             fail("Caught SAXException: " + se.getMessage());
-        }
-        catch(IOException ioe) {
+        } catch (IOException ioe) {
             fail("Caught IOException: " + ioe.getMessage());
-        }
-        catch(XPathExpressionException xpe) {
+        } catch (XPathExpressionException xpe) {
             fail("Caught XPathExpressionException: " + xpe.getMessage());
         }
     }
@@ -115,7 +111,7 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 
-            for(int itemNo = 0; itemNo < 5; itemNo++) {
+            for (int itemNo = 0; itemNo < 5; itemNo++) {
                 ByteArrayInputStream itemsStream = getRecordStream(results.get(itemNo).getChunkItem());
                 Document document = documentBuilder.parse(itemsStream);
 
@@ -125,14 +121,13 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 assertThat("Has one <item> element with name='AN'", nodeList.getLength(), is(1));
                 assertThat("Is correct id", nodeList.item(0).getTextContent(), is(anValues[itemNo]));
             }
-        }
-        catch(ParserConfigurationException pce){
+        } catch (ParserConfigurationException pce) {
             fail("Caught ParserConfigurationException: " + pce.getMessage());
-        } catch(SAXException se){
+        } catch (SAXException se) {
             fail("Caught SAXException: " + se.getMessage());
-        } catch(IOException ioe){
+        } catch (IOException ioe) {
             fail("Caught IOException: " + ioe.getMessage());
-        } catch(XPathExpressionException xpe){
+        } catch (XPathExpressionException xpe) {
             fail("Caught XPathExpressionException: " + xpe.getMessage());
         }
     }
@@ -154,7 +149,7 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 getResourceAsStream("test-records-ebsco-zipped.zip"), "UTF-8");
         final List<DataPartitionerResult> results = getResults(partitioner);
 
-        for(int itemNo = 0; itemNo < results.size(); itemNo++) {
+        for (int itemNo = 0; itemNo < results.size(); itemNo++) {
             DataPartitionerResult item = results.get(itemNo);
             assertThat("Item has expected id", item.getPositionInDatafile(), is(itemNo));
         }
@@ -167,7 +162,7 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 getResourceAsStream("test-empty-records-ebsco-zipped.zip"), "UTF-8");
         final List<DataPartitionerResult> results = getResults(partitioner);
 
-        for(int itemNo = 0; itemNo < results.size(); itemNo++) {
+        for (int itemNo = 0; itemNo < results.size(); itemNo++) {
             DataPartitionerResult item = results.get(itemNo);
             assertThat("Item has expected id", item.getPositionInDatafile(), is(itemNo));
         }

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.harvester.types;
 
 import org.junit.Test;
@@ -35,72 +14,72 @@ import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 public class MarcExchangeCollectionTest {
     private final String marcxCollectionSingleRecord =
             "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-              "<marcx:record format=\"danMARC2\">" +
+                    "<marcx:record format=\"danMARC2\">" +
                     "<marcx:leader>00000n 2200000 4500</marcx:leader>" +
                     "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                        "<marcx:subfield code=\"a\">title1</marcx:subfield>" +
+                    "<marcx:subfield code=\"a\">title1</marcx:subfield>" +
                     "</marcx:datafield>" +
-              "</marcx:record>" +
-            "</marcx:collection>";
+                    "</marcx:record>" +
+                    "</marcx:collection>";
 
     private final String marcxCollectionMultipleRecords =
             "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-              "<marcx:record format=\"danMARC2\">" +
+                    "<marcx:record format=\"danMARC2\">" +
                     "<marcx:leader>00000n 2200000 4500</marcx:leader>" +
                     "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                        "<marcx:subfield code=\"a\">title1</marcx:subfield>" +
+                    "<marcx:subfield code=\"a\">title1</marcx:subfield>" +
                     "</marcx:datafield>" +
-              "</marcx:record>" +
-              "<marcx:record format=\"danMARC2\">" +
+                    "</marcx:record>" +
+                    "<marcx:record format=\"danMARC2\">" +
                     "<marcx:leader>00000n 2200000 4500</marcx:leader>" +
                     "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                        "<marcx:subfield code=\"a\">title2</marcx:subfield>" +
+                    "<marcx:subfield code=\"a\">title2</marcx:subfield>" +
                     "</marcx:datafield>" +
-              "</marcx:record>" +
-            "</marcx:collection>";
+                    "</marcx:record>" +
+                    "</marcx:collection>";
 
     private final String marcxRecord =
             "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" format=\"danMARC2\">" +
-                "<marcx:leader>00000n 2200000 4500</marcx:leader>" +
-                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\"><marcx:subfield code=\"a\">title1</marcx:subfield></marcx:datafield>" +
-            "</marcx:record>";
+                    "<marcx:leader>00000n 2200000 4500</marcx:leader>" +
+                    "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\"><marcx:subfield code=\"a\">title1</marcx:subfield></marcx:datafield>" +
+                    "</marcx:record>";
 
     private final String marcxRecordNonUtf8Encoding =
             "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" +
-            "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" format=\"danMARC2\">" +
-                "<marcx:leader>00000n 2200000 4500</marcx:leader>" +
-                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\"><marcx:subfield code=\"a\">title1</marcx:subfield></marcx:datafield>" +
-            "</marcx:record>";
+                    "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" format=\"danMARC2\">" +
+                    "<marcx:leader>00000n 2200000 4500</marcx:leader>" +
+                    "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\"><marcx:subfield code=\"a\">title1</marcx:subfield></marcx:datafield>" +
+                    "</marcx:record>";
 
     private final String marcxCollectionInvalidMemberNamespace =
             "<marcx:collection xmlns:marcx=\"info:lc/xmlns/not-marcxchange-v1\">" +
-                "<invalid:record xmlns:invalid=\"info:wrong\" format=\"danMARC2\">" +
+                    "<invalid:record xmlns:invalid=\"info:wrong\" format=\"danMARC2\">" +
                     "<invalid:leader>00000n 2200000 4500</invalid:leader>" +
                     "<invalid:datafield ind1=\"0\" ind2=\"0\" tag=\"245\"><invalid:subfield code=\"a\">title1</invalid:subfield></invalid:datafield>" +
-                "</invalid:record>" +
-            "</marcx:collection>";
+                    "</invalid:record>" +
+                    "</marcx:collection>";
 
-   private final String marcxCollectionSingleRecordDefaultNamespace =
+    private final String marcxCollectionSingleRecordDefaultNamespace =
             "<collection xmlns=\"info:lc/xmlns/marcxchange-v1\">" +
-                "<record format=\"danMARC2\">" +
+                    "<record format=\"danMARC2\">" +
                     "<leader>00000n 2200000 4500</leader>" +
                     "<datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                        "<subfield code=\"a\">title1</subfield>" +
+                    "<subfield code=\"a\">title1</subfield>" +
                     "</datafield>" +
-              "</record>" +
-            "</collection>";
+                    "</record>" +
+                    "</collection>";
 
     @Test
     public void addMember_memberDataArgIsNull_throws() throws HarvesterException {
         final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         try {
-            harvesterRecord.addMember( null);
+            harvesterRecord.addMember(null);
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
         }
@@ -195,7 +174,7 @@ public class MarcExchangeCollectionTest {
             throw new IllegalStateException(e);
         }
     }
-    
+
     private MarcExchangeCollection getMarcExchangeCollection() throws HarvesterException {
         return new MarcExchangeCollection();
     }

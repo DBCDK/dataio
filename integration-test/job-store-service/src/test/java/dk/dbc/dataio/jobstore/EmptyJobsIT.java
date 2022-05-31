@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.jobstore;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -80,7 +75,7 @@ public class EmptyJobsIT extends AbstractJobStoreServiceContainerTest {
      * Given: a valid "empty job" request
      * When : submitted to job-store
      * Then : a job is created
-     *  And : a job-termination chunk with ID 0 is sent to the sink queue
+     * And : a job-termination chunk with ID 0 is sent to the sink queue
      * When : a delivery result for the chunk is submitted to job-store
      * Then : the job is completed
      */

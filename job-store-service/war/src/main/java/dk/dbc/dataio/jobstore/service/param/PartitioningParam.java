@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.param;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -100,7 +79,7 @@ public class PartitioningParam {
             EntityManager entityManager,
             RecordSplitter recordSplitterType) throws NullPointerException {
         this(jobEntity, fileStoreServiceConnector, flowStoreServiceConnector,
-            entityManager, recordSplitterType, null);
+                entityManager, recordSplitterType, null);
     }
 
     public PartitioningParam(
@@ -209,14 +188,14 @@ public class PartitioningParam {
                     return getIso2709Partitioner();
                 case ISO2709_COLLECTION:
                     return Iso2709ReorderingDataPartitioner.newInstance(
-                        dataFileInputStream, jobEntity.getSpecification().getCharset(),
-                        new VolumeIncludeParents(jobEntity.getId(), entityManager));
+                            dataFileInputStream, jobEntity.getSpecification().getCharset(),
+                            new VolumeIncludeParents(jobEntity.getId(), entityManager));
                 case DANMARC2_LINE_FORMAT:
                     return getDanMarc2LineFormatPartitioner();
                 case DANMARC2_LINE_FORMAT_COLLECTION:
                     return DanMarc2LineFormatReorderingDataPartitioner.newInstance(
-                        dataFileInputStream, jobEntity.getSpecification().getCharset(),
-                        new VolumeIncludeParents(jobEntity.getId(), entityManager));
+                            dataFileInputStream, jobEntity.getSpecification().getCharset(),
+                            new VolumeIncludeParents(jobEntity.getId(), entityManager));
                 case ADDI_MARC_XML:
                     return MarcXchangeAddiDataPartitioner.newInstance(
                             dataFileInputStream, jobEntity.getSpecification().getCharset());
@@ -254,7 +233,7 @@ public class PartitioningParam {
 
     private String extractDataFileIdFromURN() {
         final String dataFileURN = jobEntity.getSpecification().getDataFile();
-        if(!Files.exists(Paths.get(dataFileURN))) {
+        if (!Files.exists(Paths.get(dataFileURN))) {
             try {
                 return new FileStoreUrn(dataFileURN).getFileId();
             } catch (URISyntaxException e) {
@@ -298,7 +277,7 @@ public class PartitioningParam {
                         dataFileInputStream, encoding);
         }
     }
-    
+
     private enum TYPE_OF_REORDERING {
         VOLUME_AFTER_PARENTS,
         VOLUME_INCLUDE_PARENTS,

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2018 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.failedftps.show;
 
 import com.google.gwt.core.client.GWT;
@@ -42,9 +21,11 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     private static UiTrafficBinder uiBinder = GWT.create(UiTrafficBinder.class);
 
-    @UiField(provided=true) FailedFtpsTable failedFtpsTable;
+    @UiField(provided = true)
+    FailedFtpsTable failedFtpsTable;
 
-    @UiField(provided=true) PopupValueBox<EditTransFileView, EditTransFileView.EditTransFileData> editTransFilePopup;
+    @UiField(provided = true)
+    PopupValueBox<EditTransFileView, EditTransFileView.EditTransFileData> editTransFilePopup;
 
 
     public View() {
@@ -81,6 +62,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Displays a warning to the user
+     *
      * @param warning The warning to display
      */
     void displayWarning(String warning) {
@@ -98,9 +80,10 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * This method show the Failed Ftp's Popup box with the values given in the parameter list
-     * @param transfileName The name of the Transfile
+     *
+     * @param transfileName    The name of the Transfile
      * @param transfileContent The content of the Transfile
-     * @param mailContent The content of the Mail, sent to the user
+     * @param mailContent      The content of the Mail, sent to the user
      */
     void showFailedFtp(String transfileName, String transfileContent, String mailContent) {
         editTransFilePopup.show();

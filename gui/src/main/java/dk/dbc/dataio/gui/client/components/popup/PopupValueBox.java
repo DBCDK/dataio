@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components.popup;
 
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
@@ -44,7 +23,7 @@ public class PopupValueBox<W extends HasValue<T> & IsWidget & Focusable, T> exte
     /**
      * Default constructor
      *
-     * @param widget The widget to be embedded in a Popup Box
+     * @param widget       The widget to be embedded in a Popup Box
      * @param dialogTitle  The title text to display on the Dialog Box (mandatory)
      * @param okButtonText The text to be displayed in the OK Button (mandatory)
      */
@@ -65,27 +44,27 @@ public class PopupValueBox<W extends HasValue<T> & IsWidget & Focusable, T> exte
      * Constructor (with component injections - to be used for testing)
      * The Constructor is package scoped - not public
      *
-     * @param widget The widget to be embedded in a Popup Box
-     * @param dialogTitle  The title text to display on the Dialog Box (mandatory)
-     * @param okButtonText The text to be displayed in the OK Button (mandatory)
-     * @param basePanel Basepanel to be used to embed the Dialog
-     * @param dialogBox The Dialog Box component
+     * @param widget         The widget to be embedded in a Popup Box
+     * @param dialogTitle    The title text to display on the Dialog Box (mandatory)
+     * @param okButtonText   The text to be displayed in the OK Button (mandatory)
+     * @param basePanel      Basepanel to be used to embed the Dialog
+     * @param dialogBox      The Dialog Box component
      * @param containerPanel The Container panel to embed the widgets
-     * @param buttonPanel The button container panel to embed the buttons
-     * @param okButton The Ok Button
-     * @param cancelButton The Cancel Button
-     * @param extraButton The Extra Button
+     * @param buttonPanel    The button container panel to embed the buttons
+     * @param okButton       The Ok Button
+     * @param cancelButton   The Cancel Button
+     * @param extraButton    The Extra Button
      */
     PopupValueBox(W widget,
-             String dialogTitle,
-             String okButtonText,
-             FlowPanel basePanel,
-             DialogBox dialogBox,
-             VerticalPanel containerPanel,
-             FlowPanel buttonPanel,
-             Button okButton,
-             Button cancelButton,
-             Button extraButton) {
+                  String dialogTitle,
+                  String okButtonText,
+                  FlowPanel basePanel,
+                  DialogBox dialogBox,
+                  VerticalPanel containerPanel,
+                  FlowPanel buttonPanel,
+                  Button okButton,
+                  Button cancelButton,
+                  Button extraButton) {
         super(widget, dialogTitle, okButtonText, basePanel, dialogBox, containerPanel, buttonPanel, okButton, cancelButton, extraButton);
     }
 

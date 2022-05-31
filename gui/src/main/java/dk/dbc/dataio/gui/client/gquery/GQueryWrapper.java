@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.gquery;
 
 import com.google.gwt.core.client.JavaScriptObject;
@@ -46,16 +25,15 @@ import java.util.List;
  * GwtQuery is a static class, which makes it very difficult to unit test,
  * By wrapping it into a non-static class (this class), we can inject it into the
  * places, where it is being used. Thereby we can supply a mocked version in unit test.
- *
+ * <p>
  * All static methods in the GwtQuery implementation are wrapped in this class
- *
+ * <p>
  * Note:
  * The static methods returns the original GQuery object, and NOT the
  * GQuery wrapper object.
  * In other words: Only the static methods, that are implemented in this wrapper class
  * can be injected, and thereby mocked in unit tests. When chaining calls, the GQuery
  * object is called, and we have lost the ability to mock these calls.
- *
  */
 public class GQueryWrapper {
 
@@ -210,5 +188,5 @@ public class GQueryWrapper {
     public SelectorEngine getSelectorEngine() {
         return GQuery.getSelectorEngine();
     }
-    
+
 }

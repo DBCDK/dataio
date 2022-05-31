@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
@@ -88,7 +67,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         this.view = globalItemsView;
         this.jobId = place.getParameter(Place.JOB_ID);
         this.recordId = place.getParameter(Place.RECORD_ID);
-        if(recordId == null) {
+        if (recordId == null) {
             view.recordIdInputField.setText("");
         } else {
             view.recordIdInputField.setText(recordId);
@@ -100,6 +79,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                     public void onFailure(Throwable throwable) {
                         globalItemsView.setErrorText(viewInjector.getTexts().error_JndiFtpFetchError());
                     }
+
                     @Override
                     public void onSuccess(String jndiUrl) {
                         if (jndiUrl == null) {
@@ -114,6 +94,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                     public void onFailure(Throwable throwable) {
                         globalItemsView.setErrorText(viewInjector.getTexts().error_JndiFileStoreFetchError());
                     }
+
                     @Override
                     public void onSuccess(String jndiUrl) {
                         if (jndiUrl == null) {
@@ -128,6 +109,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                     public void onFailure(Throwable throwable) {
                         globalItemsView.setErrorText(viewInjector.getTexts().error_JndiElkUrlFetchError());
                     }
+
                     @Override
                     public void onSuccess(String jndiUrl) {
                         if (jndiUrl == null) {
@@ -138,7 +120,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                 });
     }
 
-     /*
+    /*
      * Overridden methods
      */
 
@@ -168,7 +150,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     public void allItemsTabSelected() {
         itemSearchType = ItemListCriteria.Field.JOB_ID;
         final ItemListCriteria itemListCriteria = new ItemListCriteria().where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue()));
-        if(recordId != null) {
+        if (recordId != null) {
             itemListCriteria.and(new ListFilter<>(ItemListCriteria.Field.RECORD_ID, ListFilter.Op.EQUAL, recordId));
         }
         search(itemListCriteria, view.allItemsListTab);
@@ -260,13 +242,14 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     @Override
     public void setItemModels(ItemsListView listView, List<ItemModel> itemModels) {
-        if(itemModels.size() > 0) {
+        if (itemModels.size() > 0) {
             listView.itemsTable.getSelectionModel().setSelected(itemModels.get(0), true);
         }
     }
 
     /**
      * Opens a new tab in the browser, containing a search in ELK for the item with trackingId as supplied
+     *
      * @param trackingId The tracking ID to search for
      */
     @Override
@@ -282,7 +265,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      */
     @Override
     public void recordSearch() {
-        if(view.recordIdInputField.getText().isEmpty()) {
+        if (view.recordIdInputField.getText().isEmpty()) {
             recordId = null;
             selectJobTabVisibility();
             selectJobTab();
@@ -310,6 +293,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * This method fetches the Job Model with the given jobId, and instantiates a callback class to take further action
+     *
      * @param jobId The id for the job model to fetch
      */
     private void listJobs(String jobId) {
@@ -327,6 +311,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * This methods attaches the item table and item pager to the html panel given as input
+     *
      * @param panel the html panel
      */
     private void populateHtmlTabPanel(HTMLPanel panel) {
@@ -337,6 +322,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     /**
      * This method fetches all Job Notifications associated with the job id given as a parameter in the call to the
      * method. The callback takes care of further processing.
+     *
      * @param jobId Job Id
      */
     private void listNotifications(String jobId) {
@@ -345,7 +331,8 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * This method fetches items from the job store, and instantiates a callback class to take further action
-     * @param searchType The search type to use
+     *
+     * @param searchType       The search type to use
      * @param itemListCriteria The search criteria
      */
     private void listItems(ItemListCriteria.Field searchType, ItemListCriteria itemListCriteria) {
@@ -356,6 +343,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * Sets the view according to the supplied job model
+     *
      * @param jobModel containing the data to display in the view
      */
     private void setJobModel(JobModel jobModel) {
@@ -373,7 +361,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      * Sets the jobHeader according to the supplied job model
      */
     private void setJobHeader() {
-        if(recordId != null) {
+        if (recordId != null) {
             view.jobHeader.getElement().getStyle().setBackgroundColor("rgb(208, 228, 246)");
         } else {
             view.jobHeader.getElement().getStyle().clearBackgroundColor();
@@ -383,11 +371,12 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * Sets the view according to the supplied job notifications
+     *
      * @param jobNotifications The list of Job Notifications to view
      */
     private void setJobNotifications(List<Notification> jobNotifications) {
         view.jobNotificationsTabContent.clear();
-        for (Notification notification: jobNotifications) {
+        for (Notification notification : jobNotifications) {
             JobNotificationPanel panel = new JobNotificationPanel();
             panel.setJobId(String.valueOf(notification.getJobId()));
             panel.setDestination(notification.getDestination());
@@ -404,18 +393,25 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     private String formatType(Notification.Type type) {
         switch (type) {
-            case JOB_COMPLETED: return getTexts().typeJobCompleted();
-            case JOB_CREATED:   return getTexts().typeJobCreated();
-            default: return EMPTY;
+            case JOB_COMPLETED:
+                return getTexts().typeJobCompleted();
+            case JOB_CREATED:
+                return getTexts().typeJobCreated();
+            default:
+                return EMPTY;
         }
     }
 
     private String formatStatus(Notification.Status status) {
         switch (status) {
-            case COMPLETED: return getTexts().statusCompleted();
-            case FAILED:    return getTexts().statusFailed();
-            case WAITING:   return getTexts().statusWaiting();
-            default: return EMPTY;
+            case COMPLETED:
+                return getTexts().statusCompleted();
+            case FAILED:
+                return getTexts().statusFailed();
+            case WAITING:
+                return getTexts().statusWaiting();
+            default:
+                return EMPTY;
         }
     }
 
@@ -424,8 +420,8 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      */
 
 
-    Texts getTexts(){
-        return  viewInjector.getTexts();
+    Texts getTexts() {
+        return viewInjector.getTexts();
     }
 
     /**
@@ -443,6 +439,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * This method constructs a Job Header Text from a job model
+     *
      * @param jobModel containing the job data
      * @param recordId the record id
      * @return The resulting Job Header Text
@@ -453,18 +450,19 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * This method constructs a Job Header Text from a Job Id, a Submitter Number and a Sink Name
-     * @param jobId the job id
+     *
+     * @param jobId           the job id
      * @param submitterNumber the submitter number
-     * @param sinkName the sink name
+     * @param sinkName        the sink name
      * @return The resulting Job Header Text
      */
     private String constructJobHeaderText(String jobId, String submitterNumber, String sinkName, String recordId) {
-        final Texts texts= getTexts();
+        final Texts texts = getTexts();
         StringBuilder jobHeaderBuilder = new StringBuilder().append(texts.text_JobId()).append(" ").append(jobId).append(", ")
                 .append(texts.text_Submitter()).append(" ").append(submitterNumber).append(", ")
                 .append(texts.text_Sink()).append(" ").append(sinkName);
 
-        if(recordId != null) {
+        if (recordId != null) {
             jobHeaderBuilder.append(", ").append(texts.text_recordId()).append(" ").append(recordId);
         }
         return jobHeaderBuilder.toString();
@@ -488,7 +486,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
             setJobTabVisibility(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT, true);
         }
 
-        if(recordId == null) {
+        if (recordId == null) {
             // Show item information if one or more items exist
             if (jobModel.getNumberOfItems() != 0) {
                 setJobTabVisibility(ViewWidget.ALL_ITEMS_TAB_INDEX, true);
@@ -508,7 +506,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      * Deciphers which tab should have focus, when the view initially is presented to the user
      */
     private void selectJobTab() {
-        if(jobModel.isDiagnosticFatal()) {
+        if (jobModel.isDiagnosticFatal()) {
             view.tabPanel.selectTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         } else if (recordId != null) {
             view.tabPanel.selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
@@ -553,7 +551,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      * call setVisible on it.
      *
      * @param tabIndex the index as defined in the ViewWidget constants
-     * @param showTab whether to show or hide the tab.
+     * @param showTab  whether to show or hide the tab.
      */
     private void setJobTabVisibility(int tabIndex, boolean showTab) {
         TabBar.Tab tabObject = view.tabPanel.getTabBar().getTab(tabIndex);
@@ -594,7 +592,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                 setDebugInfoText(anchor, "Filestore er usynlig fordi urlDataioFilestoreRs er null");
             } else if (model.getDataFile() == null) {
                 setDebugInfoText(anchor, "Filestore er usynlig fordi model.getDataFile() er null");
-            } else if(model.getDataFile().isEmpty()) {
+            } else if (model.getDataFile().isEmpty()) {
                 setDebugInfoText(anchor, "Filestore er usynlig fordi model.getDataFile().isEmpty()");
             } else {
                 setDebugInfoText(anchor, "Filestore er usynlig fordi - øhhh....???");
@@ -612,7 +610,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     }
 
     /* Class scoped due to unit test */
-    void setExportLinks(View view, JobModel jobModel)  {
+    void setExportLinks(View view, JobModel jobModel) {
         view.jobInfoTabContent.exportLinksHeader.setVisible(true);
         view.jobInfoTabContent.exportLinkItemsPartitioned.setHrefAndText(
                 buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_PARTITIONED));
@@ -636,6 +634,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
             view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setVisible(true);
         }
     }
+
     private void setDebugInfoText(PromptedAnchor anchor, String text) {
         anchor.setVisible(true);
         anchor.setText("Debug Info (se bug #20623 - lav venligst et Screen Dump og send til metascrum): " + text);
@@ -662,6 +661,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * Hides the jobInfoTabContent fields used for displaying export links
+     *
      * @param view The view in question
      */
     private void hideExportLinks(View view) {
@@ -672,7 +672,8 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * Builds the url string used for exporting items
-     * @param path to the REST service
+     *
+     * @param path       to the REST service
      * @param queryParam for the REST service
      * @return url as string
      */
@@ -691,7 +692,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      * Sets the note tab according to the supplied Job Model
      */
     private void setWorkflowNoteTab() {
-        if(workflowNoteModel != null) {
+        if (workflowNoteModel != null) {
             view.workflowNoteTabContent.note.setText(workflowNoteModel.getDescription());
             view.fixedColumnVisible = !workflowNoteModel.getAssignee().isEmpty();
         }
@@ -734,27 +735,28 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * This method adds item tabs to the list view.
-     * @param listView The list view in question
+     *
+     * @param listView  The list view in question
      * @param itemModel The model containing the item data
      */
     private void addItemTabs(ItemsListView listView, ItemModel itemModel) {
         Texts texts = getTexts();
-        if(tabIndexes.containsKey(ItemsListView.JAVASCRIPT_LOG_TAB_CONTENT)) {
+        if (tabIndexes.containsKey(ItemsListView.JAVASCRIPT_LOG_TAB_CONTENT)) {
             listView.detailedTabs.add(new JavascriptLogTabContent(texts, commonInjector.getLogStoreProxyAsync(), itemModel), texts.tab_JavascriptLog());
         }
-        if(tabIndexes.containsKey(ItemsListView.INPUT_POST_TAB_CONTENT)) {
+        if (tabIndexes.containsKey(ItemsListView.INPUT_POST_TAB_CONTENT)) {
             listView.detailedTabs.add(new ItemTabContent(texts, commonInjector.getJobStoreProxyAsync(), itemModel, ItemModel.LifeCycle.PARTITIONING), texts.tab_PartitioningPost());
         }
-        if(tabIndexes.containsKey(ItemsListView.OUTPUT_POST_TAB_CONTENT)) {
+        if (tabIndexes.containsKey(ItemsListView.OUTPUT_POST_TAB_CONTENT)) {
             listView.detailedTabs.add(new ItemTabContent(texts, commonInjector.getJobStoreProxyAsync(), itemModel, ItemModel.LifeCycle.PROCESSING), texts.tab_ProcessingPost());
         }
-        if(tabIndexes.containsKey(ItemsListView.NEXT_OUTPUT_POST_TAB_CONTENT)) {
+        if (tabIndexes.containsKey(ItemsListView.NEXT_OUTPUT_POST_TAB_CONTENT)) {
             listView.detailedTabs.add(new NextTabContent(texts, commonInjector.getJobStoreProxyAsync(), itemModel), texts.tab_NextOutputPost());
         }
-        if(tabIndexes.containsKey(ItemsListView.SINK_RESULT_TAB_CONTENT)) {
+        if (tabIndexes.containsKey(ItemsListView.SINK_RESULT_TAB_CONTENT)) {
             listView.detailedTabs.add(new ItemTabContent(texts, commonInjector.getJobStoreProxyAsync(), itemModel, ItemModel.LifeCycle.DELIVERING), texts.tab_DeliveringPost());
         }
-        if(tabIndexes.containsKey(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT)) {
+        if (tabIndexes.containsKey(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT)) {
             setDiagnosticModels(listView, itemModel);
             listView.detailedTabs.add(listView.itemDiagnosticTabContent.itemDiagnosticTable, texts.tab_ItemDiagnostic());
             listView.detailedTabs.add(listView.itemDiagnosticTabContent.stacktraceTable, texts.tab_Stacktrace());
@@ -763,16 +765,17 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * This method decides which detailed tab should be default selected
-     * @param listView The list view in question
+     *
+     * @param listView  The list view in question
      * @param itemModel The model containing the item data
      */
     private void selectItemTab(ItemsListView listView, ItemModel itemModel) {
         ItemModel.LifeCycle status = itemModel.getStatus();
-        if(itemModel.isDiagnosticFatal()) {
+        if (itemModel.isDiagnosticFatal()) {
             listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT));
         } else {
             // Acceptance test job: Show sink result
-            if(type == JobSpecification.Type.ACCTEST) {
+            if (type == JobSpecification.Type.ACCTEST) {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.SINK_RESULT_TAB_CONTENT));
             }
             // Item failed or ignored in delivering: Show sink result
@@ -787,8 +790,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
             // Item ignored in processing: Show output post
             else if (itemSearchType == ItemListCriteria.Field.STATE_IGNORED && status == ItemModel.LifeCycle.PROCESSING_IGNORED) {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.OUTPUT_POST_TAB_CONTENT));
-            }
-            else {
+            } else {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.JAVASCRIPT_LOG_TAB_CONTENT));
             }
         }
@@ -797,6 +799,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * Sets the Item Diagnostic tab according to the supplied Job Model
+     *
      * @param itemModel The Item Model, where the list of Diagnostic data is taken
      */
     private void setDiagnosticModels(ItemsListView listView, ItemModel itemModel) {
@@ -829,6 +832,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         public void onFailure(Throwable throwable) {
             view.setErrorText(getTexts().error_CouldNotFetchJob());
         }
+
         @Override
         public void onSuccess(List<JobModel> jobModels) {
             if (jobModels != null && jobModels.size() > 0) {
@@ -844,6 +848,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         public void onFailure(Throwable throwable) {
             view.setErrorText(getTexts().error_CouldNotFetchJobNotifications());
         }
+
         @Override
         public void onSuccess(List<Notification> jobNotifications) {
             if (jobNotifications != null) {
@@ -871,6 +876,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         }
 
         @Override
-        public void onSuccess(ItemModel itemModel) {}
+        public void onSuccess(ItemModel itemModel) {
+        }
     }
 }

@@ -47,7 +47,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.doNothing;
@@ -91,9 +91,9 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     }
 
     /**
-     *  When: a never before seen PID is handled
-     *  Then: a WCIRU push is executed
-     *   And: a new WorldCatEntity is created
+     * When: a never before seen PID is handled
+     * Then: a WCIRU push is executed
+     * And: a new WorldCatEntity is created
      */
     @Test
     public void isCreatedForUnknownPid() {
@@ -123,10 +123,10 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     }
 
     /**
-     *  When: a known PID is handled
-     *   And: the checksum indicates no change
-     *  Then: no WCIRU push is executed
-     *   And: the result has status set to IGNORE
+     * When: a known PID is handled
+     * And: the checksum indicates no change
+     * Then: no WCIRU push is executed
+     * And: the result has status set to IGNORE
      */
     @Test
     public void isIgnoredWhenChecksumMatches() {
@@ -146,10 +146,10 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     }
 
     /**
-     *  When: a known PID is handled
-     *   And: the checksum indicates change
-     *  Then: a WCIRU push is executed
-     *   And: the existing WorldCatEntity is updated
+     * When: a known PID is handled
+     * And: the checksum indicates change
+     * Then: a WCIRU push is executed
+     * And: the existing WorldCatEntity is updated
      */
     @Test
     public void isUpdatedForExistingPid() {
@@ -183,12 +183,12 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         assertThat("WorldCat entity hasLhr flag", entity.hasLHR(), is(true));
     }
 
-     /**
-     *  When: a known PID is handled
-     *   And: the checksum indicates change
-     *   And: the holdings indicates deletion
-     *  Then: a WCIRU push is executed
-     *   And: the existing WorldCatEntity is removed
+    /**
+     * When: a known PID is handled
+     * And: the checksum indicates change
+     * And: the holdings indicates deletion
+     * Then: a WCIRU push is executed
+     * And: the existing WorldCatEntity is removed
      */
     @Test
     public void isDeletedForExistingPid() {
@@ -214,11 +214,11 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     }
 
     /**
-     *  When: a known PID is handled
-     *   And: the checksum indicates change
-     *   And: the holdings indicates deletion
-     *  Then: a WCIRU push is executed but fails
-     *   And: the existing WorldCatEntity is not removed
+     * When: a known PID is handled
+     * And: the checksum indicates change
+     * And: the holdings indicates deletion
+     * Then: a WCIRU push is executed but fails
+     * And: the existing WorldCatEntity is not removed
      */
     @Test
     public void isKeptWhenWciruFails() {
@@ -244,8 +244,8 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     }
 
     /**
-     *  When: WCIRU request fails
-     *  Then: the result is failed
+     * When: WCIRU request fails
+     * Then: the result is failed
      */
     @Test
     public void isFailed() {
@@ -269,15 +269,15 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     }
 
     /**
-     *  When: cached holding symbols differ from current
-     *  Then: the difference is added as holdings with action DELETE
-     *  When: the WCIRU requests succeeds
-     *  Then: the cached active holding symbols are updated
+     * When: cached holding symbols differ from current
+     * Then: the difference is added as holdings with action DELETE
+     * When: the WCIRU requests succeeds
+     * Then: the cached active holding symbols are updated
      */
     @Test
     public void maintainsActiveHoldingSymbols() {
         executeScriptResource("/worldcat_existing_entries.sql");
-        
+
         whenPush().thenReturn(new WciruServiceBroker(wciruServiceConnector).new Result()
                 .withOcn("ocnQWERTY")
                 .withEvents(new WciruServiceBroker.Event()
@@ -306,10 +306,10 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     }
 
     /**
-     *  When: cached holding symbols differ from current
-     *  Then: the difference is added as holdings with action DELETE
-     *  When: the WCIRU requests fails
-     *  Then: the cached active holding symbols are not updated
+     * When: cached holding symbols differ from current
+     * Then: the difference is added as holdings with action DELETE
+     * When: the WCIRU requests fails
+     * Then: the cached active holding symbols are not updated
      */
     @Test
     public void activeHoldingSymbolsKeptWhenWciruFails() {
@@ -338,8 +338,8 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     }
 
     /**
-     *  When: a chunk result becomes available
-     *  Then: it is uploaded to the job-store
+     * When: a chunk result becomes available
+     * Then: it is uploaded to the job-store
      */
     @Test
     public void uploadsResult() throws JobStoreServiceConnectorException {
@@ -362,8 +362,8 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     }
 
     /**
-     *  When: an input chunk item is already failed
-     *  Then: it is ignored
+     * When: an input chunk item is already failed
+     * Then: it is ignored
      */
     @Test
     public void failedByJobProcessor() throws JobStoreServiceConnectorException {
@@ -385,8 +385,8 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     }
 
     /**
-     *  When: an input chunk item is already ignored
-     *  Then: it is ignored
+     * When: an input chunk item is already ignored
+     * Then: it is ignored
      */
     @Test
     public void ignoredByJobProcessor() throws JobStoreServiceConnectorException {

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.commons.jpa.converter.IntegerArrayToPgIntArrayConverter;
@@ -100,7 +79,7 @@ public class DependencyTrackingEntity {
 
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
         this.key = new Key(chunk.getKey());
-        this.sinkid= sinkId;
+        this.sinkid = sinkId;
         if (chunk.getSequenceAnalysisData() != null) {
             this.matchKeys = new HashSet<>(chunk.getSequenceAnalysisData().getData());
         } else {
@@ -112,7 +91,8 @@ public class DependencyTrackingEntity {
         this.hashes = computeHashes(this.matchKeys);
     }
 
-    public DependencyTrackingEntity() {}
+    public DependencyTrackingEntity() {
+    }
 
     /* Be advised that updating the internal state of a 'json' column
        will not mark the field as dirty and therefore not result in a
@@ -140,7 +120,7 @@ public class DependencyTrackingEntity {
 
     private int priority;
 
-    @Column(columnDefinition = "jsonb" )
+    @Column(columnDefinition = "jsonb")
     @Mutable
     @Convert(converter = KeySetJSONBConverter.class)
     private Set<Key> waitingOn;
@@ -291,16 +271,17 @@ public class DependencyTrackingEntity {
         private int chunkId;
 
         /* Private constructor in order to keep class static */
-        private Key(){}
+        private Key() {
+        }
 
-        public Key(int jobId, int chunkId ) {
+        public Key(int jobId, int chunkId) {
             this.jobId = jobId;
             this.chunkId = chunkId;
         }
 
         public Key(ChunkEntity.Key chunkKey) {
-            this.jobId=chunkKey.getJobId();
-            this.chunkId=chunkKey.getId();
+            this.jobId = chunkKey.getJobId();
+            this.chunkId = chunkKey.getId();
         }
 
         public Key(long jobId, long chunkId) {

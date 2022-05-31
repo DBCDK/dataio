@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -47,11 +26,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-// TODO: 05/08/2020 replace criteria queries with ioql 
+// TODO: 05/08/2020 replace criteria queries with ioql
 
 /**
  * This class is responsible for job exports.
- *
+ * <p>
  * This class is not thread safe.
  */
 public class JobExporter {
@@ -68,10 +47,11 @@ public class JobExporter {
 
     /**
      * Exports from a job all chunk items which have failed in specific phases
-     * @param jobId id of job from which failed chunk items are to be exported
+     *
+     * @param jobId      id of job from which failed chunk items are to be exported
      * @param fromPhases list of phases from which failed chunk items are to be exported
-     * @param asType type of export
-     * @param encodedAs export encoding
+     * @param asType     type of export
+     * @param encodedAs  export encoding
      * @return export as {@link FailedItemsContent} in which chunk items are ordered by ascending
      * chunk ids and item ids respectively
      * @throws JobStoreException on general failure to write content
@@ -113,8 +93,9 @@ public class JobExporter {
 
     /**
      * Exports all successful chunk items for given phase for given job to file in file-store
-     * @param jobId id of job to be exported
-     * @param fromPhase phase from which chunk items are to be exported
+     *
+     * @param jobId                     id of job to be exported
+     * @param fromPhase                 phase from which chunk items are to be exported
      * @param fileStoreServiceConnector file-store service connector
      * @return file-store URL of export
      * @throws JobStoreException on failure to export content
@@ -166,6 +147,7 @@ public class JobExporter {
 
     /**
      * Exports bibliographic record IDs from all items in a job
+     *
      * @param jobId id of job to be exported
      * @return export of bibliographic record IDs (may contain null values)
      */
@@ -175,6 +157,7 @@ public class JobExporter {
 
     /**
      * Exports bibliographic record IDs from failed items in a job
+     *
      * @param jobId id of job to be exported
      * @return export of bibliographic record IDs (may contain null values)
      */
@@ -186,7 +169,7 @@ public class JobExporter {
     }
 
     private JobExport<RecordInfo> extractRecordInfo(JobExportQuery exportQuery) {
-        return exportQuery.execute(item ->  {
+        return exportQuery.execute(item -> {
             try {
                 return item.getRecordInfo();
             } catch (RuntimeException e) {
@@ -199,6 +182,7 @@ public class JobExporter {
 
     /**
      * Exports keys from all items in a job
+     *
      * @param jobId id of job to be exported
      * @return export of {@link ItemEntity.Key}
      */
@@ -208,6 +192,7 @@ public class JobExporter {
 
     /**
      * Exports keys from failed items in a job
+     *
      * @param jobId id of job to be exported
      * @return export of {@link ItemEntity.Key}
      */
@@ -221,6 +206,7 @@ public class JobExporter {
 
     /**
      * Exports datafile position from all items in a job
+     *
      * @param jobId id of job to be exported
      * @return export of {@link Integer} positions (may contain null values)
      */
@@ -230,6 +216,7 @@ public class JobExporter {
 
     /**
      * Exports datafile position from failed items in a job
+     *
      * @param jobId id of job to be exported
      * @return export of {@link Integer} positions (may contain null values)
      */
@@ -254,10 +241,14 @@ public class JobExporter {
 
     ItemListCriteria.Field phaseToPhaseFailedCriteriaField(State.Phase phase) {
         switch (phase) {
-            case PARTITIONING: return ItemListCriteria.Field.PARTITIONING_FAILED;
-            case PROCESSING:   return ItemListCriteria.Field.PROCESSING_FAILED;
-            case DELIVERING:   return ItemListCriteria.Field.DELIVERY_FAILED;
-            default: throw new IllegalStateException("Unknown phase " + phase);
+            case PARTITIONING:
+                return ItemListCriteria.Field.PARTITIONING_FAILED;
+            case PROCESSING:
+                return ItemListCriteria.Field.PROCESSING_FAILED;
+            case DELIVERING:
+                return ItemListCriteria.Field.DELIVERY_FAILED;
+            default:
+                throw new IllegalStateException("Unknown phase " + phase);
         }
     }
 
@@ -298,9 +289,9 @@ public class JobExporter {
         JobExportQuery(EntityManager entityManager, int jobId) {
             this.entityManager = entityManager;
             itemListCriteria = new ItemListCriteria()
-                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC))
-                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC))
-                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
+                    .orderBy(new ListOrderBy<>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC))
+                    .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC))
+                    .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
         }
 
         public JobExportQuery where(ListFilter<ItemListCriteria.Field> filter) {
@@ -391,10 +382,14 @@ public class JobExporter {
 
         private static ChunkItem getExportableChunkItemForFailedPhase(ItemEntity itemEntity, State.Phase failedPhase) {
             switch (failedPhase) {
-                case PARTITIONING: return itemEntity.getPartitioningOutcome();
-                case PROCESSING:   return itemEntity.getPartitioningOutcome();
-                case DELIVERING:   return itemEntity.getProcessingOutcome();
-                default: throw new IllegalStateException("Unknown phase " + failedPhase);
+                case PARTITIONING:
+                    return itemEntity.getPartitioningOutcome();
+                case PROCESSING:
+                    return itemEntity.getPartitioningOutcome();
+                case DELIVERING:
+                    return itemEntity.getProcessingOutcome();
+                default:
+                    throw new IllegalStateException("Unknown phase " + failedPhase);
             }
         }
 

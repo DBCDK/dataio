@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.infomedia.modify;
 
 
@@ -49,7 +44,8 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
     /**
      * This has no implementation because "Create" does not have a delete button!
      */
-    public void deleteButtonPressed() {}
+    public void deleteButtonPressed() {
+    }
 
     class CreateHarvesterConfigAsyncCallback implements AsyncCallback<InfomediaHarvesterConfig> {
         @Override
@@ -58,6 +54,7 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
             getView().setErrorText(ProxyErrorTranslator
                     .toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(InfomediaHarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());

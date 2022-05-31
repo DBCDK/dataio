@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.commons.svn;
 
 import dk.dbc.dataio.commons.types.RevisionInfo;
@@ -49,15 +28,15 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.junit.Assert.assertThat;
 
 /**
  * SvnConnector unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class SvnConnectorTest {
     @Rule
@@ -73,7 +52,7 @@ public class SvnConnectorTest {
 
     @Test(expected = NullPointerException.class)
     public void listAvailableRevisions_projectUrlArgIsNull_throws() throws Exception {
-         SvnConnector.listAvailableRevisions(null);
+        SvnConnector.listAvailableRevisions(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -101,10 +80,10 @@ public class SvnConnectorTest {
     @Test
     public void listAvailableRevisions_projectUrlExists_returnsListOfRevisions() throws Exception {
         final SVNURL reposUrl = createTemporaryTestRepository();
-        final SVNURL projectUrl = reposUrl.appendPath( projectName, false);
+        final SVNURL projectUrl = reposUrl.appendPath(projectName, false);
 
         List<RevisionInfo> revisions = SvnConnector.listAvailableRevisions(projectUrl.toDecodedString());
-        Collections.reverse( revisions );
+        Collections.reverse(revisions);
 
         assertThat(revisions.size(), greaterThanOrEqualTo(3));
         // Latest revision first
@@ -119,7 +98,7 @@ public class SvnConnectorTest {
 
     @Test(expected = NullPointerException.class)
     public void listAvailablePaths_projectUrlArgIsNull_throws() throws Exception {
-         SvnConnector.listAvailablePaths(null, revision);
+        SvnConnector.listAvailablePaths(null, revision);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -147,7 +126,7 @@ public class SvnConnectorTest {
     @Test
     public void listAvailablePaths_projectUrlExists_returnsListOfProjectPaths() throws Exception {
         final List<String> expectedPaths = new ArrayList<>(Arrays.asList("sub", worldFile, helloFile));
-        final SVNURL reposUrl= createTemporaryTestRepository();
+        final SVNURL reposUrl = createTemporaryTestRepository();
         final SVNURL projectUrl = reposUrl.appendPath(projectName, false);
         final List<String> paths = SvnConnector.listAvailablePaths(projectUrl.toDecodedString(), revision);
         assertThat(paths, is(expectedPaths));
@@ -155,7 +134,7 @@ public class SvnConnectorTest {
 
     @Test(expected = NullPointerException.class)
     public void export_projectUrlArgIsNull_throws() throws Exception {
-         SvnConnector.export(null, revision, tempFolder.newFolder().toPath());
+        SvnConnector.export(null, revision, tempFolder.newFolder().toPath());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -191,7 +170,7 @@ public class SvnConnectorTest {
         final File exportFolder = tempFolder.newFolder("export");
 
         final SVNURL reposUrl = createTemporaryTestRepository();
-        final SVNURL projectUrl = reposUrl.appendPath( projectName, false);
+        final SVNURL projectUrl = reposUrl.appendPath(projectName, false);
 
 
         // export revision 4 which contains an external to
@@ -208,11 +187,11 @@ public class SvnConnectorTest {
         final List<String> exportedWorldFileContent = Files.readAllLines(
                 FileSystems.getDefault().getPath(exportFolder.getPath(), worldFile), StandardCharsets.UTF_8);
 
-        final List<String> files=fileList( exportFolder.toPath());
+        final List<String> files = fileList(exportFolder.toPath());
 
         final String[] expectedFiles = {"hello.txt", "sub"};
 
-        assertThat(files , Matchers.containsInAnyOrder(expectedFiles));
+        assertThat(files, Matchers.containsInAnyOrder(expectedFiles));
 
         // Compare original file content with exported file content
         assertThat(exportedHelloFileContent.size(), is(expectedHelloFileContent.size()));
@@ -268,7 +247,8 @@ public class SvnConnectorTest {
             for (Path path : directoryStream) {
                 fileNames.add(path.getFileName().toString());
             }
-        } catch (IOException ex) {}
+        } catch (IOException ex) {
+        }
         return fileNames;
     }
 
@@ -276,7 +256,7 @@ public class SvnConnectorTest {
     public void export_projectUrlPointsToSingleFile_exportsFile() throws Exception {
         final File exportFolder = tempFolder.newFolder("export");
         final SVNURL reposUrl = createTemporaryTestRepository();
-        final SVNURL projectUrl = reposUrl.appendPath( projectName, false);
+        final SVNURL projectUrl = reposUrl.appendPath(projectName, false);
         final SVNURL fileUrl = projectUrl.appendPath(helloFile, false);
 
         // export first revision of file
@@ -297,7 +277,7 @@ public class SvnConnectorTest {
 
     private SVNURL createTemporaryTestRepository() throws Exception {
         final File repoFileName = tempFolder.newFolder(repositoryName);
-        final SVNAdminClient svnAdminClient= SVNClientManager.newInstance().getAdminClient();
+        final SVNAdminClient svnAdminClient = SVNClientManager.newInstance().getAdminClient();
         final SVNURL SVNRepo = svnAdminClient.doCreateRepository(repoFileName, null, true, false, false, false);
 
         final InputStream project = this.getClass().getResourceAsStream(String.format("/%s", "test-repository.dump"));

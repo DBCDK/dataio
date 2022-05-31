@@ -1,25 +1,3 @@
-/*
- * DataIO - Data IO
- *
- * Copyright (C) 2018 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.harvester.ticklerepo;
 
 import dk.dbc.commons.persistence.JpaTestEnvironment;
@@ -57,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -85,7 +63,7 @@ public class ViafHarvestOperationIT extends IntegrationTest {
 
     @Before
     public void setupMocks() throws IOException, JobStoreServiceConnectorException,
-                                    RecordServiceConnectorException {
+            RecordServiceConnectorException {
         // Enable JNDI lookup of base path for BinaryFileStoreBean
         final File testFolder = tmpFolder.newFolder();
         InMemoryInitialContextFactory.bind("bfs/home", testFolder.toString());
@@ -206,32 +184,32 @@ public class ViafHarvestOperationIT extends IntegrationTest {
     private String getViafMarcXchangeRecord(String viafId, String dbcId) {
         return
                 "<record>" +
-                    "<leader>321</leader>" +
-                    "<datafield ind1='0' ind2='0' tag='001'>" +
+                        "<leader>321</leader>" +
+                        "<datafield ind1='0' ind2='0' tag='001'>" +
                         "<subfield code='a'>" + viafId + "</subfield>" +
-                    "</datafield>" +
-                    (dbcId != null ?
-                    "<datafield ind1='0' ind2='0' tag='700'>" +
-                        "<subfield code='0'>(DBC)870979" + dbcId + "</subfield>" +
-                    "</datafield>" : "") +
-                "</record>";
+                        "</datafield>" +
+                        (dbcId != null ?
+                                "<datafield ind1='0' ind2='0' tag='700'>" +
+                                        "<subfield code='0'>(DBC)870979" + dbcId + "</subfield>" +
+                                        "</datafield>" : "") +
+                        "</record>";
     }
 
     private String getDbcMarcXchangeRecord(String dbcId) {
         return
                 "<record>" +
-                    "<leader>654</leader>" +
-                    "<datafield ind1='0' ind2='0' tag='001'>" +
+                        "<leader>654</leader>" +
+                        "<datafield ind1='0' ind2='0' tag='001'>" +
                         "<subfield code='a'>" + DBC_RECORD_ID + "</subfield>" +
-                    "</datafield>" +
-                "</record>";
+                        "</datafield>" +
+                        "</record>";
     }
 
     private String getMarcXchangeCollectionFor(String... records) {
         return
                 "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                "<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
+                        "<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
                         String.join("", records) +
-                "</collection>";
+                        "</collection>";
     }
 }

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.commons.types.Diagnostic;
@@ -45,6 +24,7 @@ public class JobModelMapper {
 
     /**
      * Maps a single JobInfoSnapshot object to a JobModel object
+     *
      * @param jobInfoSnapshot The input JobInfoSnapshot object
      * @return The mapped JobModel object
      */
@@ -81,12 +61,13 @@ public class JobModelMapper {
 
     /**
      * Maps a JobModel object to a JobInputStream
+     *
      * @param jobModel The Job Model
      * @return a JobInputStream
      */
     public static JobInputStream toJobInputStream(JobModel jobModel) {
 
-        final JobSpecification  jobSpecification = new JobSpecification()
+        final JobSpecification jobSpecification = new JobSpecification()
                 .withPackaging(jobModel.getPackaging())
                 .withFormat(jobModel.getFormat())
                 .withCharset(jobModel.getCharset())
@@ -109,6 +90,7 @@ public class JobModelMapper {
     /**
      * Maps a JobModel object to a JobInfoSnapshot with the information required
      * create a jobRerunScheme
+     *
      * @param jobModel The Job Model
      * @return a jobInfoSnapshot populated with the required information
      */
@@ -120,10 +102,10 @@ public class JobModelMapper {
                 .withState(toStateWithPhaseFailedInformation(jobModel.getStateModel()))
                 .withSpecification(new JobSpecification().withType(jobModel.getType()))
                 .withFlowStoreReferences(new FlowStoreReferences());
-        if(!jobModel.getSinkName().isEmpty()) {
+        if (!jobModel.getSinkName().isEmpty()) {
             jobInfoSnapshot.getFlowStoreReferences().withReference(FlowStoreReferences.Elements.SINK, new FlowStoreReference(jobModel.getSinkId(), 1, jobModel.getSinkName()));
         }
-        if(jobModel.getHarvesterTokenAncestry() != null) {
+        if (jobModel.getHarvesterTokenAncestry() != null) {
             jobInfoSnapshot.getSpecification()
                     .withAncestry(new JobSpecification.Ancestry()
                             .withHarvesterToken(jobModel.getHarvesterTokenAncestry()));
@@ -133,13 +115,14 @@ public class JobModelMapper {
 
     /**
      * Maps a list of JobInfoSnapshot objects to a list of JobModel objects
+     *
      * @param jobInfoSnapshots A list of input JobInfoSnapshot objects
      * @return The list of resulting JobModel objects
      */
     public static List<JobModel> toModel(List<JobInfoSnapshot> jobInfoSnapshots) {
         List<JobModel> jobInfoSnapshotModels = new ArrayList<>(jobInfoSnapshots.size());
 
-        for(JobInfoSnapshot jobInfoSnapshot : jobInfoSnapshots) {
+        for (JobInfoSnapshot jobInfoSnapshot : jobInfoSnapshots) {
             jobInfoSnapshotModels.add(toModel(jobInfoSnapshot));
         }
         return jobInfoSnapshotModels;
@@ -199,12 +182,13 @@ public class JobModelMapper {
 
     /**
      * This method retrieves all diagnostics.
+     *
      * @param diagnostics containing Warning or Error information
      * @return list of diagnostic models. Empty list if no diagnostics were found.
      */
     private static List<DiagnosticModel> getDiagnostics(List<Diagnostic> diagnostics) {
         List<DiagnosticModel> diagnosticModels = new ArrayList<>(diagnostics.size());
-        for(Diagnostic diagnostic : diagnostics) {
+        for (Diagnostic diagnostic : diagnostics) {
             diagnosticModels.add(new DiagnosticModel(diagnostic.getLevel().name(), diagnostic.getMessage(), diagnostic.getStacktrace()));
         }
         return diagnosticModels;

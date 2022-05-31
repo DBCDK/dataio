@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -49,12 +44,13 @@ public class JsonDataPartitioner implements DataPartitioner {
 
     /**
      * Creates new instance of DataPartitioner for JSON records
-     * @param inputStream stream from which JSON records can be read
+     *
+     * @param inputStream  stream from which JSON records can be read
      * @param encodingName encoding specified in job specification
-     * @throws NullPointerException if given null-valued argument
+     * @return new instance of JsonDataPartitioner
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
      * @throws InvalidEncodingException if encoding can not be deduced from given encoding name
-     * @return new instance of JsonDataPartitioner
      */
     public static JsonDataPartitioner newInstance(InputStream inputStream, String encodingName)
             throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
@@ -63,9 +59,10 @@ public class JsonDataPartitioner implements DataPartitioner {
 
     /**
      * Super class constructor
-     * @param inputStream stream from which JSON records can be read
+     *
+     * @param inputStream  stream from which JSON records can be read
      * @param encodingName encoding specified in job specification
-     * @throws NullPointerException if given null-valued argument
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
      * @throws InvalidEncodingException if encoding can not be deduced from given encoding name
      */
@@ -151,7 +148,7 @@ public class JsonDataPartitioner implements DataPartitioner {
         if (drainItemsIterator == null) {
             drainItemsIterator = this.iterator();
         }
-        while (--itemsToRemove >=0) {
+        while (--itemsToRemove >= 0) {
             try {
                 drainItemsIterator.next();
             } catch (PrematureEndOfDataException e) {

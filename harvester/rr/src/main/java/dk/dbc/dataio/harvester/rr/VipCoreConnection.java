@@ -20,8 +20,9 @@ public class VipCoreConnection {
 
     /**
      * Class constructor
+     *
      * @param connector instance of VipCoreLibraryRulesConnector
-     * @throws NullPointerException if given null-valued endpoint
+     * @throws NullPointerException     if given null-valued endpoint
      * @throws IllegalArgumentException if given empty-valued endpoint
      */
     public VipCoreConnection(VipCoreLibraryRulesConnector connector) throws NullPointerException, IllegalArgumentException {

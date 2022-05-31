@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.sink.ims.connector;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -48,7 +27,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class ImsServiceConnectorTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(
-        new WireMockConfiguration().dynamicPort(), false);
+            new WireMockConfiguration().dynamicPort(), false);
 
     @Test(expected = NullPointerException.class)
     public void constructor_endpointArgIsNull_throws() {
@@ -86,7 +65,7 @@ public class ImsServiceConnectorTest {
         final ImsServiceConnector imsServiceConnector = new ImsServiceConnector(getWireMockEndpoint())
                 .withRetryPolicy(new RetryPolicy().withMaxRetries(0));
         imsServiceConnector.updateMarcXchange(requestResponse.getTrackingId(),
-            requestResponse.getMarcXchangeRecordsForRequest());
+                requestResponse.getMarcXchangeRecordsForRequest());
     }
 
     public static abstract class ImsServiceRequestResponse {
@@ -113,10 +92,10 @@ public class ImsServiceConnectorTest {
 
         public void stub() {
             stubFor(post(urlPathMatching("/"))
-                .withRequestBody(equalToXml(requestBody))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody(responseBody)));
+                    .withRequestBody(equalToXml(requestBody))
+                    .willReturn(aResponse()
+                            .withStatus(200)
+                            .withBody(responseBody)));
         }
 
         private MarcXchangeRecord toMarcXchangeRecord(ChunkItem chunkItem) {

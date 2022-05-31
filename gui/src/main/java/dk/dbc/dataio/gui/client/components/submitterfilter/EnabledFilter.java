@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.components.submitterfilter;
 
 import com.google.gwt.core.client.GWT;
@@ -25,7 +20,8 @@ import java.util.List;
 public class EnabledFilter extends BaseSubmitterFilter {
     private enum State {ENABLED, DISABLED}
 
-    interface EnabledFilterUiBinder extends UiBinder<HTMLPanel, EnabledFilter> {}
+    interface EnabledFilterUiBinder extends UiBinder<HTMLPanel, EnabledFilter> {
+    }
 
     private static EnabledFilterUiBinder ourUiBinder = GWT.create(EnabledFilterUiBinder.class);
 
@@ -47,11 +43,14 @@ public class EnabledFilter extends BaseSubmitterFilter {
         setParameter(parameter);
     }
 
-    @UiField RadioButton enabledRadioButton;
-    @UiField RadioButton disabledRadioButton;
+    @UiField
+    RadioButton enabledRadioButton;
+    @UiField
+    RadioButton disabledRadioButton;
 
     /**
      * Event handler for handling changes in the selection of enabled status
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler(value = {"enabledRadioButton", "disabledRadioButton"})
@@ -90,6 +89,7 @@ public class EnabledFilter extends BaseSubmitterFilter {
 
     /**
      * Sets the selection according to the value, setup in the parameter attribute<br>
+     *
      * @param filterParameter filter value
      */
     @Override
@@ -110,6 +110,7 @@ public class EnabledFilter extends BaseSubmitterFilter {
 
     /**
      * Gets the parameter value for the filter
+     *
      * @return The stored filter parameter for the specific job filter
      */
     @Override

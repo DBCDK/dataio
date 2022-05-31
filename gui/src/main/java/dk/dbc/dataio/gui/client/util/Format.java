@@ -1,25 +1,4 @@
 /*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-/*
  *
  * Utility functions for formatting texts to be displayed
  *
@@ -38,9 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- *
  * Format class
- *
  */
 public final class Format {
     public final static String LONG_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
@@ -55,11 +32,10 @@ public final class Format {
      *
      * @param parameters The list of strings
      * @return The comma separated list
-     *
      */
     public static String commaSeparate(List<String> parameters) {
         StringBuilder result = new StringBuilder();
-        for (String parameter: parameters) {
+        for (String parameter : parameters) {
             if (result.length() == 0) {
                 result.append(parameter);
             } else {
@@ -72,7 +48,7 @@ public final class Format {
     /**
      * Pair two Strings in the form: 'mainString (inBracketsString)'
      *
-     * @param mainString The Main string
+     * @param mainString       The Main string
      * @param inBracketsString The InBracket string
      * @return A String Pair in the form: 'mainString (inBracketsString)'
      */
@@ -82,6 +58,7 @@ public final class Format {
 
     /**
      * Formats a long date value to a text String
+     *
      * @param date long value, the date that should be converted into longDateString format
      * @return A string representation of date
      */
@@ -91,6 +68,7 @@ public final class Format {
 
     /**
      * Formats a Date value to a text String
+     *
      * @param date Date value, the date that should be converted into longDateString format
      * @return A string representation of date
      */
@@ -99,7 +77,6 @@ public final class Format {
     }
 
     /**
-     *
      * @param date A textual representation of the date
      * @return A long representation of date
      */
@@ -108,7 +85,6 @@ public final class Format {
     }
 
     /**
-     *
      * @param date A textual representation of the date
      * @return A long representation of date
      */
@@ -119,6 +95,7 @@ public final class Format {
     /**
      * Matches an input string towards a predefined dataio pattern:
      * A-Å, 0-9, - (minus), + (plus), _(underscore)
+     *
      * @param input the string to match
      * @return a list containing the matches found, empty list if no matches found
      */
@@ -128,7 +105,8 @@ public final class Format {
 
     /**
      * Matches an input string with the string pattern given as input
-     * @param input the string to match
+     *
+     * @param input   the string to match
      * @param pattern the pattern to which the string is matched
      * @return a list containing the matches found, empty list if no matches found
      */
@@ -148,8 +126,9 @@ public final class Format {
      * parameterName: "SIZE"<br>
      * parameterValue: "little"<br>
      * ... gives: "Mary had a little lamb"
-     * @param targetString The string, where the parameter should be put into
-     * @param parameterName The name of the parameter
+     *
+     * @param targetString   The string, where the parameter should be put into
+     * @param parameterName  The name of the parameter
      * @param parameterValue The value of the parameter
      * @return The composed string
      */
@@ -160,6 +139,7 @@ public final class Format {
     /**
      * Capitalizes a text consisting of space delimited words - ie. make first letter of each word uppercase, remaining letters lowercase<br>
      * All whitespace character are converted to a single space character
+     *
      * @param text The text to capitalize
      * @return The capitalized word
      */

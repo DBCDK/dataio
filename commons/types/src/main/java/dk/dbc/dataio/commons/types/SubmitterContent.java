@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -44,15 +23,14 @@ public class SubmitterContent implements Serializable {
     /**
      * Class constructor
      *
-     * @param number submitter number (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
-     * @param name submitter name
+     * @param number      submitter number (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
+     * @param name        submitter name
      * @param description submitter description
-     * @param priority priority of this submitter
-     * @param enabled flag setting the status of the submitter (enabled or disabled for job creation)
-     *
-     * @throws NullPointerException if given null-valued name or description argument
+     * @param priority    priority of this submitter
+     * @param enabled     flag setting the status of the submitter (enabled or disabled for job creation)
+     * @throws NullPointerException     if given null-valued name or description argument
      * @throws IllegalArgumentException if given empty-valued name or description argument, or if
-     * value of number is not larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND}
+     *                                  value of number is not larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND}
      */
     @JsonCreator
     public SubmitterContent(@JsonProperty("number") long number,

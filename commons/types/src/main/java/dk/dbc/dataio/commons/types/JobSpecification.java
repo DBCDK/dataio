@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -40,7 +19,7 @@ public class JobSpecification implements Serializable {
     public static final String EMPTY_RESULT_MAIL_INITIALS = "";
     public static int JOB_EXPIRATION_AGE_IN_DAYS = 365;
 
-    public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST, INFOMEDIA, PERIODIC, COMPACTED }
+    public enum Type {TRANSIENT, PERSISTENT, TEST, ACCTEST, INFOMEDIA, PERIODIC, COMPACTED}
 
     private String packaging;
     private String format;
@@ -56,21 +35,22 @@ public class JobSpecification implements Serializable {
     private Ancestry ancestry;
 
     @JsonCreator
-    public JobSpecification() {}
+    public JobSpecification() {
+    }
 
     public static JobSpecification from(JobSpecification jobSpecification) {
         JobSpecification newJobSpecification = new JobSpecification();
-        newJobSpecification.packaging                              = jobSpecification.packaging;
-        newJobSpecification.format                                 = jobSpecification.format;
-        newJobSpecification.charset                                = jobSpecification.charset;
-        newJobSpecification.destination                            = jobSpecification.destination;
-        newJobSpecification.submitterId                            = jobSpecification.submitterId;
-        newJobSpecification.mailForNotificationAboutVerification   = jobSpecification.mailForNotificationAboutVerification;
-        newJobSpecification.mailForNotificationAboutProcessing     = jobSpecification.mailForNotificationAboutProcessing;
-        newJobSpecification.resultmailInitials                     = jobSpecification.resultmailInitials;
-        newJobSpecification.dataFile                               = jobSpecification.dataFile;
-        newJobSpecification.type                                   = jobSpecification.type;
-        newJobSpecification.ancestry                               = jobSpecification.ancestry;
+        newJobSpecification.packaging = jobSpecification.packaging;
+        newJobSpecification.format = jobSpecification.format;
+        newJobSpecification.charset = jobSpecification.charset;
+        newJobSpecification.destination = jobSpecification.destination;
+        newJobSpecification.submitterId = jobSpecification.submitterId;
+        newJobSpecification.mailForNotificationAboutVerification = jobSpecification.mailForNotificationAboutVerification;
+        newJobSpecification.mailForNotificationAboutProcessing = jobSpecification.mailForNotificationAboutProcessing;
+        newJobSpecification.resultmailInitials = jobSpecification.resultmailInitials;
+        newJobSpecification.dataFile = jobSpecification.dataFile;
+        newJobSpecification.type = jobSpecification.type;
+        newJobSpecification.ancestry = jobSpecification.ancestry;
         return newJobSpecification;
     }
 
@@ -125,7 +105,7 @@ public class JobSpecification implements Serializable {
     }
 
     public JobSpecification withSubmitterId(long submitterId) {
-        if(submitterId < Constants.PERSISTENCE_ID_LOWER_BOUND) {
+        if (submitterId < Constants.PERSISTENCE_ID_LOWER_BOUND) {
             final String message = "Value of parameter submitterId must be larger than or equal to " + Constants.PERSISTENCE_ID_LOWER_BOUND;
             throw new IllegalArgumentException(message);
         } else {
@@ -251,7 +231,8 @@ public class JobSpecification implements Serializable {
         private byte[] details;
         private int previousJobId;
 
-        public Ancestry() {}
+        public Ancestry() {
+        }
 
         public String getHarvesterToken() {
             return harvesterToken;

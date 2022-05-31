@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -48,15 +27,14 @@ public class FlowComponentContent implements Serializable {
     /**
      * Class constructor
      *
-     * @param name name of flow component
+     * @param name                              name of flow component
      * @param svnProjectForInvocationJavascript name of the SVN Project
-     * @param svnRevision the SVN Revision number
-     * @param invocationJavascriptName name of the original javascript
-     * @param javascripts list of attached JavaScripts (can be empty)
-     * @param invocationMethod name of invocation method (can be empty)
-     * @param description description of flow component
-     *
-     * @throws NullPointerException if given null-valued name, javascripts or invocationMethod argument
+     * @param svnRevision                       the SVN Revision number
+     * @param invocationJavascriptName          name of the original javascript
+     * @param javascripts                       list of attached JavaScripts (can be empty)
+     * @param invocationMethod                  name of invocation method (can be empty)
+     * @param description                       description of flow component
+     * @throws NullPointerException     if given null-valued name, javascripts or invocationMethod argument
      * @throws IllegalArgumentException if given empty-valued name argument
      */
 
@@ -76,19 +54,19 @@ public class FlowComponentContent implements Serializable {
         this.invocationMethod = InvariantUtil.checkNotNullOrThrow(invocationMethod, "invocationMethod");
         this.description = description;
     }
+
     /**
      * Class constructor
      *
-     * @param name name of flow component
+     * @param name                              name of flow component
      * @param svnProjectForInvocationJavascript name of the SVN Project
-     * @param svnRevision the SVN Revision number
-     * @param invocationJavascriptName name of the original javascript
-     * @param javascripts list of attached JavaScripts (can be empty)
-     * @param invocationMethod name of invocation method (can be empty)
-     * @param description description of flow component
-     * @param requireCache the JSON string of the RequireCache ( can be empty )
-     *
-     * @throws NullPointerException if given null-valued name, javascripts or invocationMethod argument
+     * @param svnRevision                       the SVN Revision number
+     * @param invocationJavascriptName          name of the original javascript
+     * @param javascripts                       list of attached JavaScripts (can be empty)
+     * @param invocationMethod                  name of invocation method (can be empty)
+     * @param description                       description of flow component
+     * @param requireCache                      the JSON string of the RequireCache ( can be empty )
+     * @throws NullPointerException     if given null-valued name, javascripts or invocationMethod argument
      * @throws IllegalArgumentException if given empty-valued name argument
      */
 
@@ -100,8 +78,7 @@ public class FlowComponentContent implements Serializable {
                                 @JsonProperty("javascripts") List<JavaScript> javascripts,
                                 @JsonProperty("invocationMethod") String invocationMethod,
                                 @JsonProperty("description") String description,
-                                @JsonProperty("requireCache") String requireCache)
-    {
+                                @JsonProperty("requireCache") String requireCache) {
         this(name, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javascripts, invocationMethod, description);
         this.requireCache = requireCache;
     }

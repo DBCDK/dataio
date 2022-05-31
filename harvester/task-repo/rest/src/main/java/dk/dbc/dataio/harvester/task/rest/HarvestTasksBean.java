@@ -1,25 +1,3 @@
-/*
- * DataIO - Data IO
- *
- * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.harvester.task.rest;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -49,18 +27,20 @@ import java.net.URI;
 @Stateless
 @Path("/")
 public class HarvestTasksBean {
-    @EJB TaskRepo taskRepo;
+    @EJB
+    TaskRepo taskRepo;
 
     private JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Creates a new harvest task
-     * @param uriInfo URI information
+     *
+     * @param uriInfo   URI information
      * @param harvestId ID of harvest for which to create task
-     * @param request harvest request
+     * @param request   harvest request
      * @return a HTTP 201 CREATED response,
-     *         a HTTP 400 BAD REQUEST response on unknown request type or if request is invalid JSON,
-     *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
+     * a HTTP 400 BAD REQUEST response on unknown request type or if request is invalid JSON,
+     * a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      */
     @POST
     @Path(HarvesterServiceConstants.HARVEST_TASKS)

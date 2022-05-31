@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -11,6 +6,7 @@ import java.util.HashMap;
 
 public final class Urls extends HashMap<String, String> {
     private static final Urls instance = new Urls();
+
     static {
         instance.put("ELK_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("ELK_URL"));
         instance.put("FILESTORE_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("FILESTORE_URL"));
@@ -23,7 +19,8 @@ public final class Urls extends HashMap<String, String> {
         instance.put("SUBVERSION_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("SUBVERSION_URL"));
     }
 
-    private Urls() {}
+    private Urls() {
+    }
 
     public static Urls getInstance() {
         return instance;

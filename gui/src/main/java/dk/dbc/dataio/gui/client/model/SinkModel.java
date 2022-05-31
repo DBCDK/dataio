@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.model;
 
 import dk.dbc.dataio.commons.types.DpfSinkConfig;
@@ -53,14 +32,15 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Open Update Config Sink
-     * @param id Sink Id
-     * @param version Sink Version
-     * @param sinkType Sink Type
-     * @param name Sink Name
-     * @param resource Sink Resource
-     * @param description Sink Description
+     *
+     * @param id                     Sink Id
+     * @param version                Sink Version
+     * @param sinkType               Sink Type
+     * @param name                   Sink Name
+     * @param resource               Sink Resource
+     * @param description            Sink Description
      * @param sequenceAnalysisOption deciding level of sequence analysis
-     * @param sinkConfig Sink Config
+     * @param sinkConfig             Sink Config
      */
     public SinkModel(long id,
                      long version,
@@ -74,13 +54,14 @@ public class SinkModel extends GenericBackendModel {
         this.sinkType = sinkType;
         this.sinkName = name;
         this.resource = resource;
-        this.description = description == null? "" : description;
+        this.description = description == null ? "" : description;
         this.sequenceAnalysisOption = sequenceAnalysisOption;
         this.sinkConfig = sinkConfig;
     }
 
     /**
      * Gets the Sink Type
+     *
      * @return Sink Type
      */
     public SinkContent.SinkType getSinkType() {
@@ -89,6 +70,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the Sink Type
+     *
      * @param sinkType The Sink Type
      */
     public void setSinkType(SinkContent.SinkType sinkType) {
@@ -97,6 +79,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the Resource name
+     *
      * @return resourceName
      */
     public String getResourceName() {
@@ -105,6 +88,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Set resource name
+     *
      * @param resourceName Resource name
      */
     public void setResourceName(String resourceName) {
@@ -113,6 +97,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the Sink name
+     *
      * @return sinkName
      */
     public String getSinkName() {
@@ -121,6 +106,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Set sink name
+     *
      * @param sinkName Sink name
      */
     public void setSinkName(String sinkName) {
@@ -129,6 +115,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the Description
+     *
      * @return description
      */
     public String getDescription() {
@@ -137,6 +124,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Set sink description
+     *
      * @param description Sink description
      */
     public void setDescription(String description) {
@@ -145,6 +133,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the Open Update Configuration data: User Id
+     *
      * @return Open Update Configuration data: User Id
      */
     public String getOpenUpdateUserId() {
@@ -153,6 +142,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the Open Update Configuration data: User Id
+     *
      * @param openUpdateUserId Open Update Configuration data: User Id
      */
     public void setOpenUpdateUserId(String openUpdateUserId) {
@@ -161,6 +151,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the Open Update Configuration data: Password
+     *
      * @return Open Update Configuration data: Password
      */
     public String getOpenUpdatePassword() {
@@ -169,6 +160,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the Open Update Configuration data: Password
+     *
      * @param openUpdatePassword Open Update Configuration data: Password
      */
     public void setOpenUpdatePassword(String openUpdatePassword) {
@@ -177,6 +169,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the Open Update Configuration data: Endpoint
+     *
      * @return Open Update Configuration data: Endpoint
      */
     public String getOpenUpdateEndpoint() {
@@ -185,6 +178,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the Open Update Configuration data: Endpoint
+     *
      * @param openUpdateEndpoint Open Update Configuration data: Endpoint
      */
     public void setOpenUpdateEndpoint(String openUpdateEndpoint) {
@@ -193,6 +187,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the Open Update Configuration data: List of Available Queue Providers
+     *
      * @return Open Update Configuration data: List of Available Queue Providers
      */
     public List<String> getOpenUpdateAvailableQueueProviders() {
@@ -201,6 +196,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the Open Update Configuration data: List of Available Queue Providers
+     *
      * @param availableQueueProviders Open Update Configuration data: List of Available Queue Providers
      */
     public void setOpenUpdateAvailableQueueProviders(List<String> availableQueueProviders) {
@@ -241,6 +237,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the ES Configuration data: user id
+     *
      * @return ES Configuration data: user id
      */
     public Integer getEsUserId() {
@@ -249,6 +246,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the ES Configuration data: user id
+     *
      * @param userId ES Configuration data: user id
      */
     public void setEsUserId(Integer userId) {
@@ -257,6 +255,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the ES Configuration data: database
+     *
      * @return ES Configuration data: database
      */
     public String getEsDatabase() {
@@ -265,6 +264,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the ES Configuration data: database
+     *
      * @param database ES Configuration data: database
      */
     public void setEsDatabase(String database) {
@@ -273,6 +273,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the IMS Configuration data: endpoint
+     *
      * @return IMS Configuration data: endpoint
      */
     public String getImsEndpoint() {
@@ -281,6 +282,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the WorldCat Configuration data: userId
+     *
      * @param userId WorldCat Configuration data: userId
      */
     public void setWordCatUserId(String userId) {
@@ -289,6 +291,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the WorldCat Configuration data: userId
+     *
      * @return WorldCat Configuration data: userId
      */
     public String getWorldCatUserId() {
@@ -297,6 +300,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the WorldCat Configuration data: password
+     *
      * @param password WorldCat Configuration data: password
      */
     public void setWordCatPassword(String password) {
@@ -305,6 +309,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the WorldCat Configuration data: password
+     *
      * @return WorldCat Configuration data: password
      */
     public String getWorldCatPassword() {
@@ -314,6 +319,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the WorldCat Configuration data: projectId
+     *
      * @param projectId WorldCat Configuration data: projectId
      */
     public void setWordCatProjectId(String projectId) {
@@ -322,6 +328,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the WorldCat Configuration data: projectId
+     *
      * @return WorldCat Configuration data: projectId
      */
     public String getWorldCatProjectId() {
@@ -330,6 +337,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the WorldCat Configuration data: endpoint
+     *
      * @param endpoint WorldCat Configuration data: endpoint
      */
     public void setWorldCatEndpoint(String endpoint) {
@@ -338,6 +346,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the WorldCat Configuration data: endpoint
+     *
      * @return WorldCat Configuration data: endpoint
      */
     public String getWorldCatEndpoint() {
@@ -347,6 +356,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the WorldCat Configuration data: List of Retry diagnostics
+     *
      * @return WorldCat Configuration data: List of Retry diagnostics
      */
     public List<String> getWorldCatRetryDiagnostics() {
@@ -355,6 +365,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the WorldCat Configuration data: List of Retry diagnostics
+     *
      * @param retryDiagnostics WorldCat Configuration data: List of Retry diagnostics
      */
     public void setWorldCatRetryDiagnostics(List<String> retryDiagnostics) {
@@ -363,6 +374,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the IMS Configuration data: endpoint
+     *
      * @param endpoint IMS Configuration data: endpoint
      */
     public void setImsEndpoint(String endpoint) {
@@ -379,6 +391,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Gets the Sequence Analysis Option
+     *
      * @return Sequence Analysis Option
      */
     public SinkContent.SequenceAnalysisOption getSequenceAnalysisOption() {
@@ -387,6 +400,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Sets the Sequence Analysis Option
+     *
      * @param sequenceAnalysisOption the Sequence Analysis Option
      */
     public void setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
@@ -403,10 +417,11 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Checks for null or empty String values
+     *
      * @return true if no null or empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
-        if(sinkName.isEmpty() || resource.isEmpty() || description.isEmpty()) {
+        if (sinkName.isEmpty() || resource.isEmpty() || description.isEmpty()) {
             return true;
         } else {
             switch (sinkType) {
@@ -445,6 +460,7 @@ public class SinkModel extends GenericBackendModel {
     /**
      * Checks if the sink name contains illegal characters.
      * A-Å, 0-9, - (minus), + (plus), _ (underscore) and space is valid
+     *
      * @return a list containing illegal characters found. Empty list if none found.
      */
     public List<String> getDataioPatternMatches() {

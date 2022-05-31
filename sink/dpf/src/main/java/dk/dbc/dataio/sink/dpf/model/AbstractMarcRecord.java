@@ -72,7 +72,7 @@ public class AbstractMarcRecord {
                 if (subfieldName.equals("")) {
                     mm.addField(field);
                 } else {
-                    List <SubField> subfields = ((DataField) field).getSubFields();
+                    List<SubField> subfields = ((DataField) field).getSubFields();
                     for (SubField subField : subfields) {
                         if (subfieldName.equals(subField.getCode())) {
                             mm.addField(field);

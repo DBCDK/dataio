@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -98,12 +77,12 @@ public class EsCleanupBean {
 
     /**
      * Cleanup of ES/Inflight.
-     *
+     * <p>
      * When this thread awakens, it will find the current in-flight
      * target references, lookup those target references in the ES-base,
      * and if any of the corresponding task packages are completed or aborted
      * they will be removed from the ES and the in-flight databases.
-     *
+     * <p>
      * This method runs in its own transactional scope to avoid
      * tearing down any controlling timers
      */
@@ -120,12 +99,12 @@ public class EsCleanupBean {
             final Map<Integer, TaskStatus> taskStatusMap = getTaskStatusForESTaskpackages(esInFlightMap);
 
             final List<Chunk> lostChunks = findLostChunks(esInFlightMap, taskStatusMap);
-            if(!lostChunks.isEmpty()) {
+            if (!lostChunks.isEmpty()) {
                 addChunks(lostChunks);
             }
 
             final List<Chunk> deliveredChunks = findDeliveredChunks(esInFlightMap, taskStatusMap);
-            if(!deliveredChunks.isEmpty()) {
+            if (!deliveredChunks.isEmpty()) {
                 addChunks(deliveredChunks);
             }
 
@@ -138,7 +117,7 @@ public class EsCleanupBean {
 
     private void addChunks(List<Chunk> chunks) {
         JobStoreServiceConnector jobStoreServiceConnector = jobStoreServiceConnectorBean.getConnector();
-        for(Chunk chunk : chunks) {
+        for (Chunk chunk : chunks) {
             try {
                 jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
             } catch (JobStoreServiceConnectorException e) {
@@ -210,6 +189,7 @@ public class EsCleanupBean {
 
     /**
      * Redelivers processed chunk referenced by the EsInFlight given as input
+     *
      * @param currentEsInFlight the EsInFlight needed to create target reference and processed chunk
      * @throws SinkException on any failure
      */
@@ -218,12 +198,12 @@ public class EsCleanupBean {
             final int redelivered = currentEsInFlight.getRedelivered() + 1;
             final int jobId = currentEsInFlight.getJobId().intValue();
             final int chunkId = currentEsInFlight.getChunkId().intValue();
-            final short numberOfItems = (short)(jsonbContext.unmarshall(currentEsInFlight.getIncompleteDeliveredChunk(), Chunk.class).size());
+            final short numberOfItems = (short) (jsonbContext.unmarshall(currentEsInFlight.getIncompleteDeliveredChunk(), Chunk.class).size());
 
             // Rebuild processed chunk
             final Chunk processedChunk = new Chunk(currentEsInFlight.getJobId(), currentEsInFlight.getChunkId(), Chunk.Type.PROCESSED);
 
-            for (int i = 0; i < numberOfItems; i ++) {
+            for (int i = 0; i < numberOfItems; i++) {
                 processedChunk.insertItem(jobStoreServiceConnector.getChunkItem(jobId, chunkId, numberOfItems, State.Phase.PROCESSING));
             }
 
@@ -271,7 +251,7 @@ public class EsCleanupBean {
 
     private ChunkItem createLostChunkItem(ChunkItem chunkItem) {
         final ChunkItem lostChunkItem;
-        if(chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
+        if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
             final String data = "Item status set to failed due to taskpackage lost in ES";
             lostChunkItem = ObjectFactory.buildFailedChunkItem(chunkItem.getId(), data, ChunkItem.Type.STRING, chunkItem.getTrackingId());
             lostChunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(data));

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.urlresolver.service.connector;
 
 import dk.dbc.dataio.commons.time.StopWatch;
@@ -46,8 +25,9 @@ public class UrlResolverServiceConnector {
 
     /**
      * Retrieves all urls used by the system.
+     *
      * @return map containing all known urls mapped by: (url name, url value (can be null))
-     * @throws UrlResolverServiceConnectorException on general communication failure
+     * @throws UrlResolverServiceConnectorException                     on general communication failure
      * @throws UrlResolverServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public Map<String, String> getUrls() throws UrlResolverServiceConnectorException {
@@ -56,7 +36,8 @@ public class UrlResolverServiceConnector {
             final Response response = HttpClient.doGet(httpClient, baseUrl, "urls");
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, new GenericType<Map<String, String>>() {});
+                return readResponseEntity(response, new GenericType<Map<String, String>>() {
+                });
             } finally {
                 response.close();
             }
@@ -91,7 +72,7 @@ public class UrlResolverServiceConnector {
         final Response.Status actualStatus = Response.Status.fromStatusCode(response.getStatus());
         if (actualStatus != expectedStatus) {
             throw new UrlResolverServiceConnectorUnexpectedStatusCodeException(String.format(
-                            "url-resolver service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
+                    "url-resolver service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
         }
     }
 }

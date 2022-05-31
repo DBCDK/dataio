@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
@@ -50,8 +29,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -63,6 +43,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the id field has been changed
+     *
      * @param id, the new id value
      */
     @Override
@@ -74,6 +55,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the name field has been changed
+     *
      * @param name, the new name value
      */
     @Override
@@ -85,6 +67,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the description field has been changed
+     *
      * @param description, the new description value
      */
     @Override
@@ -96,6 +79,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the destination field has been changed
+     *
      * @param destination, the new destination value
      */
     @Override
@@ -107,6 +91,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the format field has been changed
+     *
      * @param format, the new format value
      */
     @Override
@@ -118,6 +103,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the type field has been changed
+     *
      * @param type, the new type value
      */
     @Override
@@ -129,6 +115,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the enabled field has been changed
+     *
      * @param enabled, the new enabled value
      */
     @Override
@@ -140,6 +127,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the notifications enabled field has been changed
+     *
      * @param enabled, the new enabled value
      */
     @Override
@@ -178,6 +166,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method used to set the model after a successful save
+     *
      * @param config The config to save
      */
     void setTickleRepoHarvesterConfig(TickleRepoHarvesterConfig config) {
@@ -190,7 +179,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
 
     private boolean isInputFieldsEmpty(TickleRepoHarvesterConfig config) {
-        return  config == null ||
+        return config == null ||
                 config.getContent() == null ||
                 config.getContent().getId() == null ||
                 config.getContent().getId().isEmpty() ||
@@ -233,7 +222,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.format.setText(format);
         view.format.setEnabled(viewEnabled);
         view.type.clear();
-        for (JobSpecification.Type t: JobSpecification.Type.values()) {
+        for (JobSpecification.Type t : JobSpecification.Type.values()) {
             if (t != JobSpecification.Type.COMPACTED) {
                 view.type.addAvailableItem(t.toString());
             }
@@ -248,7 +237,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", "", "", "", "",false, false);
+        initializeViewFields(false, "", "", "", "", "", "", false, false);
     }
 
     /**
@@ -276,7 +265,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
 
-     /*
+    /*
      * Abstract methods
      */
 

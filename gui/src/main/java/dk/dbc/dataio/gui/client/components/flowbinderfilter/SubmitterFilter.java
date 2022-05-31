@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.components.flowbinderfilter;
 
 import com.google.gwt.core.client.GWT;
@@ -25,7 +20,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class SubmitterFilter extends BaseFlowBinderFilter {
-    interface SubmitterFilterUiBinder extends UiBinder<HTMLPanel, SubmitterFilter> {}
+    interface SubmitterFilterUiBinder extends UiBinder<HTMLPanel, SubmitterFilter> {
+    }
 
     private static SubmitterFilterUiBinder ourUiBinder = GWT.create(SubmitterFilterUiBinder.class);
 
@@ -45,10 +41,12 @@ public class SubmitterFilter extends BaseFlowBinderFilter {
         setParameter(parameter);
     }
 
-    @UiField PromptedTextBox submitter;
+    @UiField
+    PromptedTextBox submitter;
 
     /**
      * Event handler for handling changes in the submitter value
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler("submitter")
@@ -91,6 +89,7 @@ public class SubmitterFilter extends BaseFlowBinderFilter {
     /**
      * Sets the selection according to the key value, setup in the parameter attribute<br>
      * The value is given in url as a plain string
+     *
      * @param filterParameter filter parameters to be used by this filter
      */
     @Override
@@ -108,6 +107,7 @@ public class SubmitterFilter extends BaseFlowBinderFilter {
     /**
      * Explicitly focus/unfocus this widget. Only one widget can have focus
      * at a time, and the widget that does will receive all keyboard events.
+     *
      * @param focused whether this widget should take focus or release it
      */
     @Override
@@ -117,6 +117,6 @@ public class SubmitterFilter extends BaseFlowBinderFilter {
 
     @Override
     public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
-        return submitter.addChangeHandler( changeHandler );
+        return submitter.addChangeHandler(changeHandler);
     }
 }

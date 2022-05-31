@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -83,13 +62,13 @@ public class FlowBindersBean extends AbstractResourceBean {
 
     /**
      * Resolves a flow binder given key parameters
-     * @param packaging set for the flow binder
-     * @param format set for the flow binder
-     * @param charset set for the flow binder
+     *
+     * @param packaging       set for the flow binder
+     * @param format          set for the flow binder
+     * @param charset         set for the flow binder
      * @param submitterNumber to identify the referenced submitter
-     * @param destination set for the flow binder
-     * @return
-     * a HTTP 200 OK response flow binder content as JSON,
+     * @param destination     set for the flow binder
+     * @return a HTTP 200 OK response flow binder content as JSON,
      * a HTTP 404 NOT_FOUND response if flow binder is not found
      * a HTTP 409 CONFLICT response if multiple flow binders were resolved
      * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
@@ -133,19 +112,16 @@ public class FlowBindersBean extends AbstractResourceBean {
      * Creates new flow binder with data POST'ed as JSON and persists it in the
      * underlying data store.
      *
-     * @param uriInfo application and request URI information
+     * @param uriInfo           application and request URI information
      * @param flowBinderContent flow binder data as JSON string
-     *
-     * @return
-     * a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
+     * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
      * a HTTP 400 BAD_REQUEST response on invalid json content,
      * a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints,
      * a HTTP 412 PRECONDITION_FAILED if a referenced submitter or flow no longer exists,
      * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
-     *
      * @throws JSONBException when given invalid (null-valued, empty-valued or
-     * non-json) JSON string, or if JSON object does not comply with model
-     * schema
+     *                        non-json) JSON string, or if JSON object does not comply with model
+     *                        schema
      */
     @POST
     @Path(FlowStoreServiceConstants.FLOW_BINDERS)
@@ -201,21 +177,18 @@ public class FlowBindersBean extends AbstractResourceBean {
      * underlying data store.
      *
      * @param flowBinderContent flow binder data as JSON string
-     * @param id identifying the flow binder in the underlying data store
-     * @param version the current version of the persisted flow binder
-     *
-     * @return
-     * a HTTP 200 OK response flow binder content as JSON,
+     * @param id                identifying the flow binder in the underlying data store
+     * @param version           the current version of the persisted flow binder
+     * @return a HTTP 200 OK response flow binder content as JSON,
      * a HTTP 400 BAD_REQUEST response on invalid json content,
      * a HTTP 404 NOT_FOUND response if flow binder is not found
      * a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints,
      * a HTTP 409 response in case of Concurrent Update error
      * a HTTP 412 PRECONDITION_FAILED on failure to locate one or more of the referenced objects
      * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
-     *
      * @throws JSONBException when given invalid (null-valued, empty-valued or
-     * non-json) JSON string, or if JSON object does not comply with model
-     * schema
+     *                        non-json) JSON string, or if JSON object does not comply with model
+     *                        schema
      */
     @POST
     @Path(FlowStoreServiceConstants.FLOW_BINDER_CONTENT)
@@ -253,7 +226,7 @@ public class FlowBindersBean extends AbstractResourceBean {
                 return Response.status(NOT_ACCEPTABLE).entity("Flow binder search keys already exists").build();
             }
         }
-        
+
         // Retrieve the existing flow binder
         final FlowBinder flowBinderEntity = entityManager.find(FlowBinder.class, id);
         if (flowBinderEntity == null) {
@@ -279,12 +252,11 @@ public class FlowBindersBean extends AbstractResourceBean {
      * Deletes an existing flow binder
      *
      * @param flowBinderId The flow binder ID
-     * @param version The version of the flow binder
-     *
+     * @param version      The version of the flow binder
      * @return a HTTP 204 response with no content,
-     *         a HTTP 404 response in case of flow binder ID not found,
-     *         a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
-     *         a HTTP 500 response in case of general error.
+     * a HTTP 404 response in case of flow binder ID not found,
+     * a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
+     * a HTTP 500 response in case of general error.
      */
     @DELETE
     @Path(FlowStoreServiceConstants.FLOW_BINDER)
@@ -294,7 +266,7 @@ public class FlowBindersBean extends AbstractResourceBean {
 
         final FlowBinder flowBinderEntity = entityManager.find(FlowBinder.class, flowBinderId);
 
-        if(flowBinderEntity == null) {
+        if (flowBinderEntity == null) {
             return Response.status(NOT_FOUND).entity(EMPTY_ENTITY).build();
         }
 
@@ -315,12 +287,11 @@ public class FlowBindersBean extends AbstractResourceBean {
      * Returns list of stored flow binders sorted by name in ascending order
      *
      * @return a HTTP OK response with result list as JSON
-     *
      * @throws JSONBException on failure to create result list as JSON
      */
     @GET
     @Path(FlowStoreServiceConstants.FLOW_BINDERS)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response findAllFlowBinders() throws JSONBException {
         final TypedQuery<dk.dbc.dataio.commons.types.FlowBinder> query = entityManager.createNamedQuery(FlowBinder.FIND_ALL_QUERY_NAME, dk.dbc.dataio.commons.types.FlowBinder.class);
         return Response.ok().entity(jsonbContext.marshall(query.getResultList())).build();
@@ -330,16 +301,14 @@ public class FlowBindersBean extends AbstractResourceBean {
      * Retrieves flow binder from underlying data store
      *
      * @param id flow binder identifier
-     *
      * @return a HTTP 200 response with flow binder as JSON,
-     *         a HTTP 404 response with error content as JSON if not found,
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 404 response with error content as JSON if not found,
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException if unable to marshall value type into its JSON representation
      */
     @GET
     @Path(FlowStoreServiceConstants.FLOW_BINDER)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response getFlowBinderById(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) throws JSONBException {
         final FlowBinder flowBinder = entityManager.find(FlowBinder.class, id);
 
@@ -351,29 +320,31 @@ public class FlowBindersBean extends AbstractResourceBean {
 
     /**
      * Returns list of flow binders found by executing POST'ed IOQL query
+     *
      * @param query IOQL query
      * @return a HTTP OK response with result list as JSON,
-     *         a HTTP 400 BAD_REQUEST response on invalid query expression.
+     * a HTTP 400 BAD_REQUEST response on invalid query expression.
      * @throws JSONBException on failure to create result list as JSON
      */
     @POST
     @Path(FlowStoreServiceConstants.FLOW_BINDERS_QUERIES)
-    @Consumes({ MediaType.TEXT_PLAIN })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.TEXT_PLAIN})
+    @Produces({MediaType.APPLICATION_JSON})
     public Response queryFlowBindersByPost(String query) throws JSONBException {
         return listFlowBindersByIOQL(query);
     }
 
     /**
      * Returns list of flow binders found by executing IOQL query given by the 'q' query parameter
+     *
      * @param query IOQL query
      * @return a HTTP OK response with result list as JSON,
-     *         a HTTP 400 BAD_REQUEST response on invalid query expression.
+     * a HTTP 400 BAD_REQUEST response on invalid query expression.
      * @throws JSONBException on failure to create result list as JSON
      */
     @GET
     @Path(FlowStoreServiceConstants.FLOW_BINDERS_QUERIES)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response queryFlowBindersByGet(@QueryParam("q") String query) throws JSONBException {
         return listFlowBindersByIOQL(query);
     }
@@ -398,8 +369,9 @@ public class FlowBindersBean extends AbstractResourceBean {
 
     /**
      * Finds specific cause of failure to resolve a flow binder
+     *
      * @param submitterNumber submitter number
-     * @param requestedMatch match parameters of the resolve request
+     * @param requestedMatch  match parameters of the resolve request
      * @return error containing the appropriate error message
      */
     private FlowStoreError getFlowBinderResolveError(Long submitterNumber, FlowBinderContentMatch requestedMatch) {
@@ -458,18 +430,19 @@ public class FlowBindersBean extends AbstractResourceBean {
 
     /**
      * Updates the flow binder entity
-     * @param flowBinderEntity the currently persisted flow binder entity
+     *
+     * @param flowBinderEntity        the currently persisted flow binder entity
      * @param flowBinderContentString the new flow binder content as String
-     * @param version the current version of the flow binder
+     * @param version                 the current version of the flow binder
      * @throws PersistenceException if the objects referenced by the flow binder, could not be resolved
      */
     private void updateFlowBinderEntity(FlowBinder flowBinderEntity, String flowBinderContentString, long version)
             throws JSONBException {
-            entityManager.detach(flowBinderEntity);
-            flowBinderEntity.setContent(flowBinderContentString);
-            flowBinderEntity.setVersion(version);
-            entityManager.merge(flowBinderEntity);
-            entityManager.flush();
+        entityManager.detach(flowBinderEntity);
+        flowBinderEntity.setContent(flowBinderContentString);
+        flowBinderEntity.setVersion(version);
+        entityManager.merge(flowBinderEntity);
+        entityManager.flush();
     }
 
     private FlowBinderContentMatch getContentMatch(String charset, String destination, String format, String packaging,

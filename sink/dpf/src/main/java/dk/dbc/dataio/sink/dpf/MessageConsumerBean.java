@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.dpf;
 
 import dk.dbc.commons.addi.AddiReader;
@@ -40,8 +35,10 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     private final JSONBContext jsonbContext = new JSONBContext();
 
-    @EJB ConfigBean configBean;
-    @EJB ServiceBroker serviceBroker;
+    @EJB
+    ConfigBean configBean;
+    @EJB
+    ServiceBroker serviceBroker;
 
     @Timed
     @Override
@@ -112,7 +109,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         while (addiReader.hasNext()) {
             final AddiRecord addiRecord = addiReader.next();
             final ProcessingInstructions processingInstructions = jsonbContext.unmarshall(
-                    StringUtil.asString(addiRecord.getMetaData()), ProcessingInstructions.class)
+                            StringUtil.asString(addiRecord.getMetaData()), ProcessingInstructions.class)
                     .withId(id + "-" + idx);
             dpfRecords.add(new DpfRecord(processingInstructions,
                     MarcRecordFactory.fromMarcXchange(addiRecord.getContentData())));

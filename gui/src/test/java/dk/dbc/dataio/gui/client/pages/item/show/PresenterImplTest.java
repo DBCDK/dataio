@@ -1,25 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 
@@ -76,68 +54,122 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
 
-    @Mock private View mockedView;
-    @Mock private ItemsListView mockedItemsListView;
-    @Mock private Widget mockedViewWidget;
-    @Mock private Throwable mockedException;
-    @Mock private Place mockedPlace;
-    @Mock private SimplePager mockedItemsPager;
-    @Mock private Texts mockedText;
-    @Mock private Label mockedJobHeader;
-    @Mock private CellTable mockedItemsTable;
-    @Mock private CellTable mockedJobDiagnosticTable;
-    @Mock private CellTable mockedItemDiagnosticTable;
-    @Mock private CellTable mockedStacktraceTable;
-    @Mock private HTMLPanel mockedAllItemsListTab;
-    @Mock private HTMLPanel mockedFailedItemsListTab;
-    @Mock private HTMLPanel mockedIgnoredItemsListTab;
-    @Mock private DecoratedTabPanel mockedDecoratedTabPanel;
-    @Mock private DecoratedTabPanel mockedDetailedTabs;
-    @Mock private JobInfoTabContent mockedJobInfoTabContent;
-    @Mock private JobDiagnosticTabContent mockedJobDiagnosticTabContent;
-    @Mock private JobNotificationsTabContent mockedJobNotificationTabContent;
-    @Mock private ItemDiagnosticTabContent mockedItemDiagnosticTabContent;
-    @Mock private WorkflowNoteTabContent mockedWorkflowNoteTabContent;
-    @Mock private TextArea mockedTextArea;
-    @Mock private PromptedLabel mockedPackaging;
-    @Mock private PromptedLabel mockedFormat;
-    @Mock private PromptedLabel mockedCharset;
-    @Mock private PromptedLabel mockedDestination;
-    @Mock private PromptedLabel mockedMailForNotificationAboutVerification;
-    @Mock private PromptedLabel mockedMailForNotificationAboutProcessing;
-    @Mock private PromptedLabel mockedResultMailInitials;
-    @Mock private PromptedLabel mockedType;
-    @Mock private PromptedLabel mockedJobCreationTime;
-    @Mock private PromptedLabel mockedJobCompletionTime;
-    @Mock private PromptedHyperlink mockedPreviousJobId;
-    @Mock private Label mockedExportLinksHeader;
-    @Mock private PromptedAnchor mockedExportLinkItemsPartitioned;
-    @Mock private PromptedAnchor mockedExportLinkItemsProcessed;
-    @Mock private PromptedAnchor mockedExportLinkItemFailedInPartitioning;
-    @Mock private PromptedAnchor mockedExportLinkItemFailedInProcessing;
-    @Mock private PromptedAnchor mockedExportLinkItemFailedInDelivering;
-    @Mock private PromptedAnchor mockedFileStore;
-    @Mock private HTMLPanel mockedAncestrySection;
-    @Mock private PromptedLabel mockedAncestryTransFile;
-    @Mock private PromptedLabel mockedAncestryDataFile;
-    @Mock private PromptedLabel mockedAncestryBatchId;
-    @Mock private InlineHTML mockedAncestryContent;
-    @Mock private TabBar mockedTabBar;
-    @Mock private AsyncItemViewDataProvider mockedDataProvider;
-    @Mock private JobStoreProxyAsync mockedJobStoreProxy;
-    @Mock private LogStoreProxyAsync mockedLogStoreProxy;
-    @Mock private ViewGinjector mockedViewInjector;
-    @Mock private Element mockedElement;
-    @Mock private Style mockedStyle;
-    @Mock private TextBox mockedRecordIdInputField;
+    @Mock
+    private View mockedView;
+    @Mock
+    private ItemsListView mockedItemsListView;
+    @Mock
+    private Widget mockedViewWidget;
+    @Mock
+    private Throwable mockedException;
+    @Mock
+    private Place mockedPlace;
+    @Mock
+    private SimplePager mockedItemsPager;
+    @Mock
+    private Texts mockedText;
+    @Mock
+    private Label mockedJobHeader;
+    @Mock
+    private CellTable mockedItemsTable;
+    @Mock
+    private CellTable mockedJobDiagnosticTable;
+    @Mock
+    private CellTable mockedItemDiagnosticTable;
+    @Mock
+    private CellTable mockedStacktraceTable;
+    @Mock
+    private HTMLPanel mockedAllItemsListTab;
+    @Mock
+    private HTMLPanel mockedFailedItemsListTab;
+    @Mock
+    private HTMLPanel mockedIgnoredItemsListTab;
+    @Mock
+    private DecoratedTabPanel mockedDecoratedTabPanel;
+    @Mock
+    private DecoratedTabPanel mockedDetailedTabs;
+    @Mock
+    private JobInfoTabContent mockedJobInfoTabContent;
+    @Mock
+    private JobDiagnosticTabContent mockedJobDiagnosticTabContent;
+    @Mock
+    private JobNotificationsTabContent mockedJobNotificationTabContent;
+    @Mock
+    private ItemDiagnosticTabContent mockedItemDiagnosticTabContent;
+    @Mock
+    private WorkflowNoteTabContent mockedWorkflowNoteTabContent;
+    @Mock
+    private TextArea mockedTextArea;
+    @Mock
+    private PromptedLabel mockedPackaging;
+    @Mock
+    private PromptedLabel mockedFormat;
+    @Mock
+    private PromptedLabel mockedCharset;
+    @Mock
+    private PromptedLabel mockedDestination;
+    @Mock
+    private PromptedLabel mockedMailForNotificationAboutVerification;
+    @Mock
+    private PromptedLabel mockedMailForNotificationAboutProcessing;
+    @Mock
+    private PromptedLabel mockedResultMailInitials;
+    @Mock
+    private PromptedLabel mockedType;
+    @Mock
+    private PromptedLabel mockedJobCreationTime;
+    @Mock
+    private PromptedLabel mockedJobCompletionTime;
+    @Mock
+    private PromptedHyperlink mockedPreviousJobId;
+    @Mock
+    private Label mockedExportLinksHeader;
+    @Mock
+    private PromptedAnchor mockedExportLinkItemsPartitioned;
+    @Mock
+    private PromptedAnchor mockedExportLinkItemsProcessed;
+    @Mock
+    private PromptedAnchor mockedExportLinkItemFailedInPartitioning;
+    @Mock
+    private PromptedAnchor mockedExportLinkItemFailedInProcessing;
+    @Mock
+    private PromptedAnchor mockedExportLinkItemFailedInDelivering;
+    @Mock
+    private PromptedAnchor mockedFileStore;
+    @Mock
+    private HTMLPanel mockedAncestrySection;
+    @Mock
+    private PromptedLabel mockedAncestryTransFile;
+    @Mock
+    private PromptedLabel mockedAncestryDataFile;
+    @Mock
+    private PromptedLabel mockedAncestryBatchId;
+    @Mock
+    private InlineHTML mockedAncestryContent;
+    @Mock
+    private TabBar mockedTabBar;
+    @Mock
+    private AsyncItemViewDataProvider mockedDataProvider;
+    @Mock
+    private JobStoreProxyAsync mockedJobStoreProxy;
+    @Mock
+    private LogStoreProxyAsync mockedLogStoreProxy;
+    @Mock
+    private ViewGinjector mockedViewInjector;
+    @Mock
+    private Element mockedElement;
+    @Mock
+    private Style mockedStyle;
+    @Mock
+    private TextBox mockedRecordIdInputField;
 
     private final static int OFFSET = 0;
     private final static int ROW_COUNT = 4;
@@ -490,7 +522,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
     private void genericMockedDetailedTabsAssert(boolean isFatal, boolean hasDiagnostics, boolean isAccTest, int selectedTabIndex) {
         verify(mockedDetailedTabs).clear();
-        if(isFatal) {
+        if (isFatal) {
             verify(mockedDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
             verify(mockedDetailedTabs, times(0)).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
             verify(mockedDetailedTabs, times(0)).add(any(ItemTabContent.class), eq(MOCKED_TAB_PARTITIONINGPOST));
@@ -502,13 +534,13 @@ public class PresenterImplTest extends PresenterImplTestBase {
             verify(mockedDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
             verify(mockedDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_PARTITIONINGPOST));
             verify(mockedDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_PROCESSINGPOST));
-            if(isAccTest) {
+            if (isAccTest) {
                 verify(mockedDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
             } else {
                 verify(mockedDetailedTabs, times(0)).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
             }
             verify(mockedDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_DELIVERINGPOST));
-            if(hasDiagnostics){
+            if (hasDiagnostics) {
                 verify(mockedDetailedTabs).add(any(CellTable.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
             } else {
                 verify(mockedDetailedTabs, times(0)).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));

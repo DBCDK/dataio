@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.commons.types.FlowComponent;
@@ -41,22 +20,22 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * FlowComponentModelMapper unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class FlowComponentModelMapperTest {
-    private static final long   ID = 434L;
-    private static final long   VERSION = 215L;
+    private static final long ID = 434L;
+    private static final long VERSION = 215L;
     private static final String NAME = "Flow Component Model Navn";
     private static final String NEXT_NAME = "Next Flow Component Model Navn";
     private static final String DESCRIPTION = "description";
     private static final String NEXT_DESCRIPTION = "next description";
     private static final String SVN_PROJECT = "Svn Project";
     private static final String NEXT_SVN_PROJECT = "Next Svn Project";
-    private static final long   SVN_REVISION_LONG = 747L;
-    private static final long   NEXT_SVN_REVISION_LONG = 748L;
+    private static final long SVN_REVISION_LONG = 747L;
+    private static final long NEXT_SVN_REVISION_LONG = 748L;
     private static final String SVN_REVISION_STR = String.valueOf(SVN_REVISION_LONG);
     private static final String NEXT_SVN_REVISION_STR = String.valueOf(NEXT_SVN_REVISION_LONG);
     private static final String JAVASCRIPT_NAME = "Javascript Name";
@@ -167,14 +146,14 @@ public class FlowComponentModelMapperTest {
         final long VERSION_1 = 5;
         final String NAME_1 = "Name of second flow component";
         final String SVN_PROJECT_1 = "Svn Project_1";
-        final long   SVN_REVISION_1 = 888L;
+        final long SVN_REVISION_1 = 888L;
         final String JAVASCRIPT_NAME_1 = "Javascript Name_1";
         final String INVOCATION_METHOD_1 = "Invocation Method_1";
         final String JAVASCRIPT_1 = "javascript code no. 1";
         final String JAVASCRIPT_2 = "javascript code no. 2";
 
-        List<JavaScript> javaScriptList1  = Collections.singletonList(new JavaScriptBuilder().setModuleName(JAVASCRIPT_1).build());
-        List<JavaScript> javaScriptList2  = Collections.singletonList(new JavaScriptBuilder().setModuleName(JAVASCRIPT_2).build());
+        List<JavaScript> javaScriptList1 = Collections.singletonList(new JavaScriptBuilder().setModuleName(JAVASCRIPT_1).build());
+        List<JavaScript> javaScriptList2 = Collections.singletonList(new JavaScriptBuilder().setModuleName(JAVASCRIPT_2).build());
 
         // Create flow component content
         FlowComponentContent flowComponentContent1 =
@@ -257,8 +236,8 @@ public class FlowComponentModelMapperTest {
 
         try {
             FlowComponentModelMapper.toFlowComponentContent(flowComponentModel, createTestFetchRequiredJavaScriptResult());
-        } catch(IllegalArgumentException e) {
-            assertThat(e.getMessage().contains(expectedIllegalCharacters), is (true));
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage().contains(expectedIllegalCharacters), is(true));
         }
     }
 
@@ -291,11 +270,11 @@ public class FlowComponentModelMapperTest {
         assertThat(flowComponentContent.getInvocationJavascriptName(), is(flowComponentModel.getInvocationJavascript()));
         assertThat(flowComponentContent.getInvocationMethod(), is(flowComponentModel.getInvocationMethod()));
         assertJavaScriptsEquals(flowComponentContent.getJavascripts(), flowComponentModel.getJavascriptModules());
-   }
+    }
 
     private void assertJavaScriptsEquals(List<JavaScript> javaScripts, List<String> javaScriptModules) {
         assertThat(javaScripts.size(), is(javaScriptModules.size()));
-        for(int i = 0; i < javaScripts.size(); i++) {
+        for (int i = 0; i < javaScripts.size(); i++) {
             assertThat(javaScripts.get(i).getModuleName(), is(javaScriptModules.get(i)));
         }
     }

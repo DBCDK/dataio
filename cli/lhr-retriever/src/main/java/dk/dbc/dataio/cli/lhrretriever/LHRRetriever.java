@@ -99,7 +99,7 @@ public class LHRRetriever {
             byte[] records = lhrRetriever.processRecordsWithLHR(scripts);
             lhrRetriever.writeLHRToFile(arguments.outputPath, records);
         } catch (ArgParseException | SQLException | ConfigParseException |
-                LHRRetrieverException | QueueException | ConfigurationException e) {
+                 LHRRetrieverException | QueueException | ConfigurationException e) {
             System.err.println(String.format("unexpected error: %s",
                     e.toString()));
             System.exit(1);

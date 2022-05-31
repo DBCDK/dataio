@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -56,9 +35,10 @@ public class NotificationsBean {
 
     /**
      * Adds a Notification for later processing
+     *
      * @param jsonRequest JSON representation of an {@link AddNotificationRequest} instance
      * @return a HTTP 200 OK response with {@link Notification} entity if notification data is valid,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content
+     * a HTTP 400 BAD_REQUEST response on invalid json content
      * @throws JobStoreException on internal failure to marshall notification context
      */
     @POST
@@ -68,7 +48,7 @@ public class NotificationsBean {
     @Stopwatch
     public Response addNotification(String jsonRequest) throws JobStoreException {
         final AddNotificationRequest addNotificationRequest;
-        try{
+        try {
             addNotificationRequest = jsonbContext.unmarshall(jsonRequest, AddNotificationRequest.class);
         } catch (JSONBException e) {
             return Response.status(BAD_REQUEST)
@@ -85,6 +65,7 @@ public class NotificationsBean {
 
     /**
      * Lists notifications of type INVALID_TRANSFILE
+     *
      * @return a HTTP 200 OK response with list of
      * {@link dk.dbc.dataio.jobstore.service.entity.NotificationEntity} entity
      * @throws JobStoreException on internal failure to marshall notifications

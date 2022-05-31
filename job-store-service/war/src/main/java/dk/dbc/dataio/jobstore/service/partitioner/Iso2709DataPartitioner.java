@@ -1,29 +1,7 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- /* DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.CharacterEncodingScheme;
 import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
@@ -31,6 +9,7 @@ import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.Iso2709Iterator;
 import dk.dbc.marc.Iso2709IteratorReadError;
@@ -64,10 +43,11 @@ public class Iso2709DataPartitioner implements DataPartitioner {
 
     /**
      * Creates new instance of Iso2709 DataPartitioner
-     * @param inputStream stream from which Iso2709 data to be partitioned can be read
+     *
+     * @param inputStream   stream from which Iso2709 data to be partitioned can be read
      * @param inputEncoding encoding from job specification (latin 1 will be interpreted as danmarc2).
      * @return new instance of default Iso2709 DataPartitioner
-     * @throws NullPointerException if given null-valued argument
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
      * @throws InvalidEncodingException if given invalid input encoding name
      */
@@ -135,8 +115,9 @@ public class Iso2709DataPartitioner implements DataPartitioner {
 
     /**
      * This method deciphers if the input stream is empty
+     *
      * @return true if the input stream is not empty, otherwise false
-     * @throws InvalidDataException if data exists but can not be decoded as 2709
+     * @throws InvalidDataException        if data exists but can not be decoded as 2709
      * @throws PrematureEndOfDataException if reading of data terminated abruptly
      */
     protected boolean hasNextDataPartitionerResult() throws InvalidDataException, PrematureEndOfDataException {
@@ -147,8 +128,9 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      * This method builds a new data partitioner result.
      * The data partitioner result contains the chunk item (can be null if the marc record could not be retrieved)
      * and the record result (can be null if a failure occurs while parsing the marc record or if data is deemed invalid).
+     *
      * @return data partitioner result
-     * @throws InvalidDataException if unable to retrieve the marc record
+     * @throws InvalidDataException        if unable to retrieve the marc record
      * @throws PrematureEndOfDataException if reading of data terminated abruptly
      */
     protected DataPartitionerResult nextDataPartitionerResult() throws InvalidDataException, PrematureEndOfDataException {
@@ -177,8 +159,9 @@ public class Iso2709DataPartitioner implements DataPartitioner {
 
     /**
      * This method checks if the Iso2709Iterator inputStream is empty
+     *
      * @return true if the input stream is empty, otherwise false
-     * @throws InvalidDataException if data exists but can not be decoded as 2709
+     * @throws InvalidDataException        if data exists but can not be decoded as 2709
      * @throws PrematureEndOfDataException if reading of data terminated abruptly
      */
     private boolean hasEmptyInputStream() {
@@ -193,11 +176,12 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      * This method evaluates input stream given as input.
      * If the input stream is a BufferedInputStream, the input stream is type cast and returned.
      * If the input stream is not a BufferedInputStream, a new BufferedInputStream is created and returned.
+     *
      * @param inputStream to convert
      * @return bufferedInputStream
      */
     private BufferedInputStream getInputStreamAsBufferedInputStream(InputStream inputStream) {
-        if(inputStream instanceof BufferedInputStream) {
+        if (inputStream instanceof BufferedInputStream) {
             return (BufferedInputStream) inputStream;
         }
         return new BufferedInputStream(inputStream);
@@ -205,8 +189,9 @@ public class Iso2709DataPartitioner implements DataPartitioner {
 
     /**
      * This method reads the next record from the input stream
+     *
      * @return the next record as byte array
-     * @throws InvalidDataException if data exists but can not be decoded as 2709
+     * @throws InvalidDataException        if data exists but can not be decoded as 2709
      * @throws PrematureEndOfDataException if reading of data terminated abruptly
      */
     private byte[] getRecordAsBytes() throws InvalidDataException, PrematureEndOfDataException {
@@ -222,6 +207,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      * If the marcRecord contains no fields (special case), a result with a chunk item with status IGNORE is returned
      * If the marcRecord can be written, a result containing chunk item with status SUCCESS and record info is returned
      * If an error occurs while writing the record, a result with a chunk item with status FAILURE is returned
+     *
      * @param marcRecord the MarcRecord result from the marcReader.read() method
      * @param marcWriter the MarcWriter implementation used to write the marc record
      * @return data partitioner result
@@ -251,6 +237,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
 
     /**
      * This method converts a byte array representation of the record into a marc record.
+     *
      * @param recordAsBytes byte array representation of the record
      * @return marc record or null if a document could not be created
      * @throws Iso2709IteratorReadError if any error occurs while decoding 2709

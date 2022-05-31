@@ -20,7 +20,7 @@ public class RecordFetcher {
         String recordId = getAttachedRecordId(dMatRecord);
 
         // Fetch record and wrap in a collection (although there's always only one record)
-        if( recordId != null ) {
+        if (recordId != null) {
             LOGGER.info("Fetch attached record {}:191919", recordId);
             return recordServiceConnector.getRecordContentCollection(191919, recordId,
                     new RecordServiceConnector.Params()
@@ -37,35 +37,35 @@ public class RecordFetcher {
     private static String getAttachedRecordId(DMatRecord dMatRecord) throws HarvesterException {
 
         // updateCode NEW and AUTO with selection CREATE => no record
-        if( Arrays.asList(UpdateCode.NEW, UpdateCode.AUTO).contains(dMatRecord.getUpdateCode() )
-                && dMatRecord.getSelection() == Selection.CREATE ) {
+        if (Arrays.asList(UpdateCode.NEW, UpdateCode.AUTO).contains(dMatRecord.getUpdateCode())
+                && dMatRecord.getSelection() == Selection.CREATE) {
             return null;
         }
 
         // updateCode NEW and AUTO with selection CLONE => matched record
-        if( Arrays.asList(UpdateCode.NEW, UpdateCode.AUTO).contains(dMatRecord.getUpdateCode() )
-                && dMatRecord.getSelection() == Selection.CLONE ) {
+        if (Arrays.asList(UpdateCode.NEW, UpdateCode.AUTO).contains(dMatRecord.getUpdateCode())
+                && dMatRecord.getSelection() == Selection.CLONE) {
             return dMatRecord.getMatch();
         }
 
         // updateCode ACT with selection CREATE => no record
-        if( dMatRecord.getUpdateCode() == UpdateCode.ACT && dMatRecord.getSelection() == Selection.CREATE) {
+        if (dMatRecord.getUpdateCode() == UpdateCode.ACT && dMatRecord.getSelection() == Selection.CREATE) {
             return null;
         }
 
         // updateCode NNB with selection DROP and AUTODROP => no record
-        if( dMatRecord.getUpdateCode() == UpdateCode.NNB
+        if (dMatRecord.getUpdateCode() == UpdateCode.NNB
                 && Arrays.asList(Selection.DROP, Selection.AUTODROP).contains(dMatRecord.getSelection())) {
             return null;
         }
 
         // updateCode REVIEW with any selection => LU record
-        if( dMatRecord.getUpdateCode() == UpdateCode.REVIEW ) {
+        if (dMatRecord.getUpdateCode() == UpdateCode.REVIEW) {
             return dMatRecord.getReviewId();
         }
 
         // updateCode UPDATE with any selection => own record
-        if( dMatRecord.getUpdateCode() == UpdateCode.UPDATE ) {
+        if (dMatRecord.getUpdateCode() == UpdateCode.UPDATE) {
             return dMatRecord.getRecordId();
         }
 

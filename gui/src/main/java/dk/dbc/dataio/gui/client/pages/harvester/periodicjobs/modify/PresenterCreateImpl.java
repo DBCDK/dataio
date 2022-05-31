@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
 
 import com.google.gwt.event.shared.EventBus;
@@ -58,7 +53,8 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
     }
 
     @Override
-    public void runButtonPressed() {}
+    public void runButtonPressed() {
+    }
 
     @Override
     public void validateSolrButtonPressed() {
@@ -83,7 +79,7 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
         } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.MAIL) {
             config.getContent().withPickup(new MailPickup());
             view.mailSection.setVisible(true);
-        } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.FTP){
+        } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.FTP) {
             config.getContent().withPickup(new FtpPickup());
             view.overrideFilename.setVisible(true);
             view.ftpSection.setVisible(true);
@@ -105,6 +101,7 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
             getView().setErrorText(ProxyErrorTranslator
                     .toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(PeriodicJobsHarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());

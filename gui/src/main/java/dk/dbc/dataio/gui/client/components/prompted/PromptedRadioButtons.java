@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components.prompted;
 
 import com.google.gwt.core.client.GWT;
@@ -41,15 +20,16 @@ public class PromptedRadioButtons extends PromptedData implements HasValue<Strin
     private String radioButtonName = "Name";
     private boolean vertical = true;
 
-    @UiField final FlowPanel containerPanel;
+    @UiField
+    final FlowPanel containerPanel;
 
     /**
      * UI Constructor - carries the parameters to be used by UI Binder
-     * @param guiId The GUI Id to be used for this particular DOM element
+     *
+     * @param guiId  The GUI Id to be used for this particular DOM element
      * @param prompt The Prompt text to be used for the List Box
      */
-    public @UiConstructor
-    PromptedRadioButtons(String guiId, String prompt) {
+    public @UiConstructor PromptedRadioButtons(String guiId, String prompt) {
         super(guiId, prompt);
         radioButtonName = guiId + radioButtonName;
         containerPanel = GWT.create(FlowPanel.class);
@@ -70,18 +50,20 @@ public class PromptedRadioButtons extends PromptedData implements HasValue<Strin
      *   </dio:PromptedRadioButtons>
      * }
      * </pre>
-     * @param text The containing text in the "button" element
+     *
+     * @param text  The containing text in the "button" element
      * @param value The value of the "value" attribute
      */
-    @UiChild(tagname="button")
+    @UiChild(tagname = "button")
     public void addButton(Label text, String value) {
         addButton(new RadioButton(radioButtonName, text.getText()), value);
     }
 
     /**
      * A testable version of the above method with injection of the radio button
+     *
      * @param radioButton The instance of the RadioButton to add
-     * @param value The value of the "value" attribute
+     * @param value       The value of the "value" attribute
      */
     void addButton(RadioButton radioButton, String value) {
         value = value == null ? "" : value;
@@ -94,6 +76,7 @@ public class PromptedRadioButtons extends PromptedData implements HasValue<Strin
     /**
      * Sets the orientation of the radio buttons.
      * Must be used upon initialization - after initialization, the method has no effect.
+     *
      * @param orientation The string "vertical" or "horizontal" sets the orientation of the radio buttons
      */
     public void setOrientation(String orientation) {
@@ -102,7 +85,7 @@ public class PromptedRadioButtons extends PromptedData implements HasValue<Strin
         }
         vertical = orientation.toLowerCase().equals("vertical");
         if (containerPanel != null) {
-            for (int i=0; i<containerPanel.getWidgetCount(); i++) {
+            for (int i = 0; i < containerPanel.getWidgetCount(); i++) {
                 setOrientationOnWidget(containerPanel.getWidget(i));
             }
         }
@@ -114,8 +97,8 @@ public class PromptedRadioButtons extends PromptedData implements HasValue<Strin
     @Override
     public void clear() {
         if (containerPanel != null) {
-            for (int i=0; i<containerPanel.getWidgetCount(); i++) {
-                ((RadioButton)containerPanel.getWidget(i)).setValue(false);
+            for (int i = 0; i < containerPanel.getWidgetCount(); i++) {
+                ((RadioButton) containerPanel.getWidget(i)).setValue(false);
             }
         }
     }
@@ -124,11 +107,12 @@ public class PromptedRadioButtons extends PromptedData implements HasValue<Strin
      * Fetches the selected item from the list box.
      * The string returned is the value attribute, associated with the RadioButton
      * If there is no selection, an empty string is returned
+     *
      * @return The value of the selected RadioButton
      */
     public String getValue() {
         if (containerPanel != null) {
-            for (int i=0; i<containerPanel.getWidgetCount(); i++) {
+            for (int i = 0; i < containerPanel.getWidgetCount(); i++) {
                 RadioButton radioButton = getRadioButton(i);
                 if (radioButton != null && radioButton.getValue()) {
                     return getValueAttributeOfRadioButton(radioButton);
@@ -141,11 +125,12 @@ public class PromptedRadioButtons extends PromptedData implements HasValue<Strin
     /**
      * Sets the selection of the listbox. Use the radio button value to point out the selection.<br>
      * Do not fire a ChangeEvent
+     *
      * @param value The expected value of the RadioButton to select. If not found, no selection is done
      */
     public void setValue(String value) {
         if (containerPanel != null) {
-            for (int i=0; i<containerPanel.getWidgetCount(); i++) {
+            for (int i = 0; i < containerPanel.getWidgetCount(); i++) {
                 RadioButton radioButton = getRadioButton(i);
                 if (radioButton != null) {
                     radioButton.setValue(getValueAttributeOfRadioButton(radioButton).equals(value));
@@ -157,7 +142,8 @@ public class PromptedRadioButtons extends PromptedData implements HasValue<Strin
     /**
      * Sets the selection of the listbox. Use the radio button value to point out the selection.<br>
      * If the supplied boolean is true, do also fire a ChangeEvent
-     * @param value The displayed text of the item to be selected
+     *
+     * @param value      The displayed text of the item to be selected
      * @param fireEvents If true, do fire a ChangeEvent
      */
     @Override
@@ -170,6 +156,7 @@ public class PromptedRadioButtons extends PromptedData implements HasValue<Strin
 
     /**
      * Adds a ValueChangeHandler to the PromptedRadioButtons component
+     *
      * @param changeHandler The ValueChangeHandler to add
      * @return A HandlerRegistration object to be used to remove the change handler
      */
@@ -189,11 +176,12 @@ public class PromptedRadioButtons extends PromptedData implements HasValue<Strin
     }
 
     private RadioButton getRadioButton(int i) {
-        return (RadioButton)containerPanel.getWidget(i);
+        return (RadioButton) containerPanel.getWidget(i);
     }
 
     private void fireChangeEvent(String value) {
-        valueChangeHandler.onValueChange(new ValueChangeEvent<String>(value) {});
+        valueChangeHandler.onValueChange(new ValueChangeEvent<String>(value) {
+        });
     }
 
     private void setValueAttributeOfRadioButton(RadioButton radioButton, String value) {

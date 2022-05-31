@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.commons.addi.AddiRecord;
@@ -46,7 +45,7 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -105,13 +104,13 @@ public class HarvestOperationTest {
     public void constructor_noOpenAgencyTargetIsConfigured_throws() {
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         assertThat(() -> new HarvestOperation(config,
-            harvesterJobBuilderFactory, taskRepo, null, metricRegistry),
-            isThrowing(IllegalArgumentException.class));
+                        harvesterJobBuilderFactory, taskRepo, null, metricRegistry),
+                isThrowing(IllegalArgumentException.class));
     }
 
     @Test
     public void execute_rawRepoConnectorDequeueThrowsSqlException_throws()
-            throws SQLException,QueueException {
+            throws SQLException, QueueException {
         when(rawRepoConnector.dequeue(anyString())).thenThrow(new SQLException());
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(harvestOperation::execute, isThrowing(HarvesterException.class));
@@ -556,8 +555,8 @@ public class HarvestOperationTest {
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
         try {
             return new HarvestOperation(config, harvesterJobBuilderFactory,
-                taskRepo, VIP_CORE_CONNECTION,
-                rawRepoConnector, rawRepoRecordServiceConnector, metricRegistry);
+                    taskRepo, VIP_CORE_CONNECTION,
+                    rawRepoConnector, rawRepoRecordServiceConnector, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }
@@ -600,38 +599,38 @@ public class HarvestOperationTest {
 
     public static String getRecordContent(RecordIdDTO recordId) {
         return
-        "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-            "<marcx:record format=\"danMARC2\">" +
-                "<marcx:leader>00000n 2200000 4500</marcx:leader>" +
-                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
-                    "<marcx:subfield code=\"a\">" + recordId.getBibliographicRecordId() + "</marcx:subfield>" +
-                    "<marcx:subfield code=\"b\">" + recordId.getAgencyId() + "</marcx:subfield>" +
-                "</marcx:datafield>" +
-                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"004\">" +
-                    "<marcx:subfield code=\"r\">n</marcx:subfield>" +
-                    "<marcx:subfield code=\"a\">e</marcx:subfield>" +
-                "</marcx:datafield>" +
-                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                    "<marcx:subfield code=\"a\">title</marcx:subfield>" +
-                "</marcx:datafield>" +
-            "</marcx:record>" +
-        "</marcx:collection>";
+                "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
+                        "<marcx:record format=\"danMARC2\">" +
+                        "<marcx:leader>00000n 2200000 4500</marcx:leader>" +
+                        "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
+                        "<marcx:subfield code=\"a\">" + recordId.getBibliographicRecordId() + "</marcx:subfield>" +
+                        "<marcx:subfield code=\"b\">" + recordId.getAgencyId() + "</marcx:subfield>" +
+                        "</marcx:datafield>" +
+                        "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"004\">" +
+                        "<marcx:subfield code=\"r\">n</marcx:subfield>" +
+                        "<marcx:subfield code=\"a\">e</marcx:subfield>" +
+                        "</marcx:datafield>" +
+                        "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
+                        "<marcx:subfield code=\"a\">title</marcx:subfield>" +
+                        "</marcx:datafield>" +
+                        "</marcx:record>" +
+                        "</marcx:collection>";
     }
 
     public static String getDeleteRecordContent(RecordIdDTO recordId, char recordType) {
         return
-        "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-            "<marcx:record format=\"danMARC2\">" +
-                "<marcx:leader>00000n 2200000 4500</marcx:leader>" +
-                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
-                    "<marcx:subfield code=\"a\">" + recordId.getBibliographicRecordId() + "</marcx:subfield>" +
-                    "<marcx:subfield code=\"b\">" + recordId.getAgencyId() + "</marcx:subfield>" +
-                "</marcx:datafield>" +
-                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"004\">" +
-                    "<marcx:subfield code=\"r\">d</marcx:subfield>" +
-                    "<marcx:subfield code=\"a\">" + recordType + "</marcx:subfield>" +
-                "</marcx:datafield>" +
-            "</marcx:record>" +
-        "</marcx:collection>";
+                "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
+                        "<marcx:record format=\"danMARC2\">" +
+                        "<marcx:leader>00000n 2200000 4500</marcx:leader>" +
+                        "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
+                        "<marcx:subfield code=\"a\">" + recordId.getBibliographicRecordId() + "</marcx:subfield>" +
+                        "<marcx:subfield code=\"b\">" + recordId.getAgencyId() + "</marcx:subfield>" +
+                        "</marcx:datafield>" +
+                        "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"004\">" +
+                        "<marcx:subfield code=\"r\">d</marcx:subfield>" +
+                        "<marcx:subfield code=\"a\">" + recordType + "</marcx:subfield>" +
+                        "</marcx:datafield>" +
+                        "</marcx:record>" +
+                        "</marcx:collection>";
     }
 }

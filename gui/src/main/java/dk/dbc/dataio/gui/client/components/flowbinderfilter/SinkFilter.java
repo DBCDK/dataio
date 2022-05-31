@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.components.flowbinderfilter;
 
 import com.google.gwt.core.client.GWT;
@@ -29,7 +24,8 @@ import java.util.List;
 public class SinkFilter extends BaseFlowBinderFilter {
     private final static String NOOP = "0";
 
-    interface SinkFilterUiBinder extends UiBinder<HTMLPanel, SinkFilter> {}
+    interface SinkFilterUiBinder extends UiBinder<HTMLPanel, SinkFilter> {
+    }
 
     private static SinkFilterUiBinder ourUiBinder = GWT.create(SinkFilterUiBinder.class);
 
@@ -61,10 +57,12 @@ public class SinkFilter extends BaseFlowBinderFilter {
         this.invertFilter = invertFilter;
     }
 
-    @UiField PromptedList sinkList;
+    @UiField
+    PromptedList sinkList;
 
     /**
      * Event handler for handling changes in the sink selection
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler("sinkList")
@@ -116,7 +114,8 @@ public class SinkFilter extends BaseFlowBinderFilter {
      */
     class FetchSinksCallback extends FilteredAsyncCallback<List<SinkModel>> {
         @Override
-        public void onFilteredFailure(Throwable e) {}
+        public void onFilteredFailure(Throwable e) {
+        }
 
         @Override
         public void onSuccess(List<SinkModel> models) {

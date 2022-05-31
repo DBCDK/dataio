@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.infomedia.modify;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -15,16 +10,19 @@ import org.mockito.Mock;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
-    @Mock ViewGinjector viewInjector;
-    @Mock Texts texts;
-    @Mock View view;
+    @Mock
+    ViewGinjector viewInjector;
+    @Mock
+    Texts texts;
+    @Mock
+    View view;
 
     private PresenterImpl presenter;
 
@@ -42,11 +40,14 @@ public class PresenterImplTest {
             config = new InfomediaHarvesterConfig(1, 1, new InfomediaHarvesterConfig.Content());
         }
 
-        @Override void saveModel() {
+        @Override
+        void saveModel() {
             saved = true;
         }
 
-        @Override public void deleteButtonPressed() {}
+        @Override
+        public void deleteButtonPressed() {
+        }
 
         public boolean isSaved() {
             return saved;
@@ -98,7 +99,7 @@ public class PresenterImplTest {
     public void nextPublicationDateChanged() {
         presenter.nextPublicationDateChanged("2019-06-10 00:00:00");
         assertThat(presenter.config.getContent().getNextPublicationDate(),
-                is(new Date(1560117600000L + 2*3600*1000)));
+                is(new Date(1560117600000L + 2 * 3600 * 1000)));
     }
 
     @Test

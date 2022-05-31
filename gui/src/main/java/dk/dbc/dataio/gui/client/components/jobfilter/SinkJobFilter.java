@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
@@ -76,11 +55,13 @@ public class SinkJobFilter extends BaseJobFilter {
         this.invertFilter = invertFilter;
     }
 
-    @UiField PromptedList sinkList;
+    @UiField
+    PromptedList sinkList;
 
 
     /**
      * Event handler for handling changes in the sink selection
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler("sinkList")
@@ -92,6 +73,7 @@ public class SinkJobFilter extends BaseJobFilter {
 
     /**
      * Fetches the name of this filter
+     *
      * @return The name of the filter
      */
     @Override
@@ -102,6 +84,7 @@ public class SinkJobFilter extends BaseJobFilter {
 
     /**
      * Gets the value of this job filter, which is the JobListCriteria to be used in the filter search
+     *
      * @return The JobListCriteria constructed by this job filter
      */
     @Override
@@ -115,6 +98,7 @@ public class SinkJobFilter extends BaseJobFilter {
     /**
      * Sets the selection according to the key value, setup in the parameter attribute<br>
      * The value is given in url as a plain integer, as an index to the sink
+     *
      * @param parameter The filter parameter to be used by this job filter
      */
     @Override
@@ -127,6 +111,7 @@ public class SinkJobFilter extends BaseJobFilter {
 
     /**
      * Gets the parameter value for the filter
+     *
      * @return The stored filter parameter for the specific job filter
      */
     @Override
@@ -153,6 +138,7 @@ public class SinkJobFilter extends BaseJobFilter {
         @Override
         public void onFilteredFailure(Throwable e) {
         }
+
         @Override
         public void onSuccess(List<SinkModel> models) {
             String NO_SINK_ID_SELECTED = "0";

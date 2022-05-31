@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components.popup;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -63,7 +42,7 @@ public class PopupBox<W extends IsWidget> extends Composite implements HasDialog
     /**
      * Constructor
      *
-     * @param widget The widget to be embedded in a Popup Box
+     * @param widget       The widget to be embedded in a Popup Box
      * @param dialogTitle  The title text to display on the Dialog Box (mandatory)
      * @param okButtonText The text to be displayed in the OK Button (mandatory)
      */
@@ -84,16 +63,16 @@ public class PopupBox<W extends IsWidget> extends Composite implements HasDialog
      * Constructor (with component injections - to be used for testing)
      * The Constructor is package scoped - not public
      *
-     * @param widget The widget to be embedded in a Popup Box
-     * @param dialogTitle  The title text to display on the Dialog Box (mandatory)
-     * @param okButtonText The text to be displayed in the OK Button (mandatory)
-     * @param basePanel Basepanel to be used to embed the Dialog
-     * @param dialogBox The Dialog Box component
+     * @param widget         The widget to be embedded in a Popup Box
+     * @param dialogTitle    The title text to display on the Dialog Box (mandatory)
+     * @param okButtonText   The text to be displayed in the OK Button (mandatory)
+     * @param basePanel      Basepanel to be used to embed the Dialog
+     * @param dialogBox      The Dialog Box component
      * @param containerPanel The Container panel to embed the widgets
-     * @param buttonPanel The button container panel to embed the buttons
-     * @param okButton The Ok Button
-     * @param cancelButton The Cancel Button
-     * @param extraButton The Extra Button
+     * @param buttonPanel    The button container panel to embed the buttons
+     * @param okButton       The Ok Button
+     * @param cancelButton   The Cancel Button
+     * @param extraButton    The Extra Button
      */
     PopupBox(W widget,
              String dialogTitle,
@@ -151,6 +130,7 @@ public class PopupBox<W extends IsWidget> extends Composite implements HasDialog
 
     /**
      * Sets the Title of the Dialog
+     *
      * @param title The Dialog Title
      */
     public void setDialogTitle(String title) {
@@ -159,6 +139,7 @@ public class PopupBox<W extends IsWidget> extends Composite implements HasDialog
 
     /**
      * Sets the OK Button Text
+     *
      * @param value The text to display on the button
      */
     public void setOkButtonText(String value) {
@@ -168,6 +149,7 @@ public class PopupBox<W extends IsWidget> extends Composite implements HasDialog
     /**
      * Sets the Cancel Button Text
      * Optional setting in the UI Binder activation
+     *
      * @param value The text to display on the button
      */
     public void setCancelButtonText(String value) {
@@ -177,6 +159,7 @@ public class PopupBox<W extends IsWidget> extends Composite implements HasDialog
     /**
      * Sets the Extra Button Text
      * Optional setting in the UI Binder activation
+     *
      * @param value The text to display on the button
      */
     public void setExtraButtonText(String value) {
@@ -187,6 +170,7 @@ public class PopupBox<W extends IsWidget> extends Composite implements HasDialog
      * Sets the Auto Hide feature. If Auto Hide is set true, the Popup box is removed, if the user
      * clicks outside the Popup box<br>
      * Default value is true.
+     *
      * @param autoHide Auto hide true if a click outside the Popup box hides the Popup box
      */
     public void setAutoHide(Boolean autoHide) {
@@ -196,6 +180,7 @@ public class PopupBox<W extends IsWidget> extends Composite implements HasDialog
     /**
      * Sets the Guid for this element
      * Optional setting in the UI Binder activation
+     *
      * @param guid The Guid for this element
      */
     public void setGuid(String guid) {
@@ -291,7 +276,8 @@ public class PopupBox<W extends IsWidget> extends Composite implements HasDialog
 
     /**
      * Prepares a button on the dialog box
-     * @param button The button to prepare
+     *
+     * @param button     The button to prepare
      * @param buttonText The text to display on the button
      */
     private void setButton(Button button, String buttonText) {

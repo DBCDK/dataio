@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.commons.types.AddiMetaData;
@@ -39,7 +18,7 @@ import java.util.Date;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -48,7 +27,7 @@ import static org.mockito.Mockito.when;
 public class RawRepoQueueTest {
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
     private final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()
-                        .withConsumerId("consumerId"));
+            .withConsumerId("consumerId"));
 
     private RawRepoQueue queue;
 
@@ -100,7 +79,7 @@ public class RawRepoQueueTest {
     @Test
     public void poll_pileUpDuration() throws SQLException, HarvesterException, InterruptedException, QueueException {
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
-                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
+                .thenReturn(new MockedQueueItem("id", 123456, "worker",
                         new Timestamp(new Date().getTime()), 1));
 
         // Keep polling high priority items
@@ -117,7 +96,7 @@ public class RawRepoQueueTest {
     @Test
     public void poll_lowPriorityOnly() throws SQLException, HarvesterException, InterruptedException, QueueException {
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
-                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
+                .thenReturn(new MockedQueueItem("id", 123456, "worker",
                         new Timestamp(new Date().getTime()), 1000));
 
         // Keep polling low priority items
@@ -135,12 +114,12 @@ public class RawRepoQueueTest {
     @Test
     public void poll_highPriorityFollowedByLowPriority() throws SQLException, HarvesterException, QueueException {
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
-                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
+                .thenReturn(new MockedQueueItem("id", 123456, "worker",
                         new Timestamp(new Date().getTime()), 1))
-                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
+                .thenReturn(new MockedQueueItem("id", 123456, "worker",
                         new Timestamp(new Date().getTime()), 1000))
-                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
-                    new Timestamp(new Date().getTime()), 1));
+                .thenReturn(new MockedQueueItem("id", 123456, "worker",
+                        new Timestamp(new Date().getTime()), 1));
 
         assertThat("poll high", queue.poll(), is(notNullValue()));
         assertThat("poll low", queue.poll(), is(notNullValue()));
@@ -152,8 +131,8 @@ public class RawRepoQueueTest {
         final RawRepoRecordHarvestTask expectedRecordHarvestTask = new RawRepoRecordHarvestTask()
                 .withRecordId(new RecordIdDTO("id", 123456))
                 .withAddiMetaData(new AddiMetaData()
-                    .withBibliographicRecordId("id")
-                    .withSubmitterNumber(123456));
+                        .withBibliographicRecordId("id")
+                        .withSubmitterNumber(123456));
 
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
                 .thenReturn(new MockedQueueItem(

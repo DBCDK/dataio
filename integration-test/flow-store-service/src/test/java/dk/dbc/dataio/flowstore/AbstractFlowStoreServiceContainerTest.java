@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.flowstore;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;

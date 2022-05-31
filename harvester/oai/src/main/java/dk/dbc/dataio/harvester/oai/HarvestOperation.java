@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.oai;
 
 import dk.dbc.commons.addi.AddiRecord;
@@ -142,7 +137,7 @@ public class HarvestOperation {
             final Header header = record.getHeader();
             final AddiMetaData addiMetaData = new AddiMetaData()
                     .withTrackingId("oai." + config.getLogId() + "."
-                        + header.getIdentifier())
+                            + header.getIdentifier())
                     .withBibliographicRecordId(header.getIdentifier())
                     .withFormat(config.getContent().getFormat())
                     .withSubmitterNumber(Integer.parseInt(config.getContent().getSubmitterNumber()));

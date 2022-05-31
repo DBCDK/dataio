@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.time.StopWatch;
@@ -59,8 +38,9 @@ public class ChunkProcessorBean {
 
     /**
      * Processes given chunk with business logic dictated by given flow
-     * @param chunk chunk
-     * @param flow flow containing business logic
+     *
+     * @param chunk          chunk
+     * @param flow           flow containing business logic
      * @param additionalArgs supplementary process data
      * @return result of processing
      */
@@ -99,7 +79,8 @@ public class ChunkProcessorBean {
 
     /**
      * Returns flow identified by given ID and version if already cached by this processor thread
-     * @param flowId flow ID
+     *
+     * @param flowId      flow ID
      * @param flowVersion flow version
      * @return Flow instance if cached, empty if not
      */
@@ -142,7 +123,7 @@ public class ChunkProcessorBean {
     private List<ChunkItem> processItemsWithNextRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, String additionalArgs) {
         if (!flowCacheEntry.next.isEmpty()) {
             return processItems(chunk, new ChunkItemProcessor(chunk.getJobId(), chunk.getChunkId(),
-                flowCacheEntry.next, additionalArgs));
+                    flowCacheEntry.next, additionalArgs));
         }
         return null;
     }

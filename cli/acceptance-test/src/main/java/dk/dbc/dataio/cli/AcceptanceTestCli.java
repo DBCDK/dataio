@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.cli;
 
 import com.beust.jcommander.JCommander;
@@ -32,9 +11,9 @@ import dk.dbc.dataio.cli.options.Options;
 /**
  * dataIO acceptance test command line interface
  * <p>
- *     To show usage run
- *
- *     %&gt; java -jar dataio-cli-acctest.jar
+ * To show usage run
+ * <p>
+ * %&gt; java -jar dataio-cli-acctest.jar
  * </p>
  */
 public class AcceptanceTestCli {
@@ -67,9 +46,11 @@ public class AcceptanceTestCli {
             }
 
             switch (argParser.getParsedCommand()) {
-                case "create": new CreateCommand(createOptions).execute();
+                case "create":
+                    new CreateCommand(createOptions).execute();
                     break;
-                case "commit": new CommitCommand(commitOptions).execute();
+                case "commit":
+                    new CommitCommand(commitOptions).execute();
                     break;
                 default:
                     argParser.usage();

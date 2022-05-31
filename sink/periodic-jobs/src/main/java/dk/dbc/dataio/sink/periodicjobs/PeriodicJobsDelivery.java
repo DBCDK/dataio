@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
@@ -19,14 +14,14 @@ import java.util.Objects;
 @Entity
 @Table(name = "delivery")
 @NamedQueries({
-    @NamedQuery(
-            name = PeriodicJobsDelivery.DELETE_DELIVERY_QUERY_NAME,
-            query = PeriodicJobsDelivery.DELETE_DELIVERY_QUERY)
+        @NamedQuery(
+                name = PeriodicJobsDelivery.DELETE_DELIVERY_QUERY_NAME,
+                query = PeriodicJobsDelivery.DELETE_DELIVERY_QUERY)
 })
 public class PeriodicJobsDelivery {
     public static final String DELETE_DELIVERY_QUERY =
             "DELETE FROM PeriodicJobsDelivery delivery" +
-            " WHERE delivery.jobId = :jobId";
+                    " WHERE delivery.jobId = :jobId";
     public static final String DELETE_DELIVERY_QUERY_NAME =
             "PeriodicJobsDelivery.delete";
 
@@ -35,9 +30,10 @@ public class PeriodicJobsDelivery {
 
     @Column(columnDefinition = "jsonb")
     @Convert(converter = PeriodicJobsHarvesterConfigConverter.class)
-	private PeriodicJobsHarvesterConfig config;
+    private PeriodicJobsHarvesterConfig config;
 
-    public PeriodicJobsDelivery() {}
+    public PeriodicJobsDelivery() {
+    }
 
     PeriodicJobsDelivery(Integer jobId) {
         this.jobId = jobId;

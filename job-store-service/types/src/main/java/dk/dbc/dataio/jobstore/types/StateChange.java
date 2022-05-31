@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.types;
 
 import dk.dbc.invariant.InvariantUtil;
@@ -51,6 +30,7 @@ public class StateChange {
 
     /**
      * Sets the begin date
+     *
      * @param beginDate marking the start time
      * @return the begin date of the state change
      */
@@ -68,6 +48,7 @@ public class StateChange {
 
     /**
      * Sets the end date
+     *
      * @param endDate marking the end time
      * @return the end date of the state change
      */
@@ -85,6 +66,7 @@ public class StateChange {
 
     /**
      * Sets succeeded count
+     *
      * @param succeeded number (must be equal to or larger than 0)
      * @return the succeeded count
      */
@@ -95,6 +77,7 @@ public class StateChange {
 
     /**
      * Increments succeeded count
+     *
      * @param delta increment (must be equal to or larger than 0)
      * @return the incremented succeeded counter
      */
@@ -112,6 +95,7 @@ public class StateChange {
 
     /**
      * Sets failed count
+     *
      * @param failed number (must be equal to or larger than 0)
      * @return the failed count
      */
@@ -122,6 +106,7 @@ public class StateChange {
 
     /**
      * Increments failed count
+     *
      * @param delta increment (must be equal to or larger than 0)
      * @return the incremented failed counter
      */
@@ -139,6 +124,7 @@ public class StateChange {
 
     /**
      * Sets ignored count
+     *
      * @param ignored number (must be equal to or larger than 0)
      * @return the ignored count
      */
@@ -149,11 +135,12 @@ public class StateChange {
 
     /**
      * Increments ignored count
+     *
      * @param delta increment (must be equal to or larger than 0)
      * @return the incremented ignored count
      */
     public StateChange incIgnored(int delta) throws IllegalArgumentException {
-        ignored += InvariantUtil.checkIntLowerBoundOrThrow(delta ,"delta", 0);
+        ignored += InvariantUtil.checkIntLowerBoundOrThrow(delta, "delta", 0);
         return this;
     }
 
@@ -167,6 +154,7 @@ public class StateChange {
     /**
      * /**
      * Sets the phase
+     *
      * @param phase (partitioning, processing, delivering)
      * @return the requested phase
      */

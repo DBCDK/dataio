@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.common.utils.io.BoundedInputStream;
@@ -99,7 +94,7 @@ public class TarredXmlDataPartitioner implements DataPartitioner {
                         boundedInputStream, encodingExpected, positionInDatafile)
                         .iterator();
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new UnrecoverableDataException(e);
         }
     }

@@ -1,25 +1,3 @@
-/*
- * DataIO - Data IO
- *
- * Copyright (C) 2018 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.sink.marcconv;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -72,8 +50,10 @@ public class ConversionFinalizerBean {
     @PersistenceContext(unitName = "marcconv_PU")
     EntityManager entityManager;
 
-    @EJB public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-    @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @EJB
+    public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @EJB
+    public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @Timed
     public Chunk handleTerminationChunk(Chunk chunk) throws SinkException {
@@ -85,7 +65,7 @@ public class ConversionFinalizerBean {
         JobInfoSnapshot jobInfoSnapshot;
 
         try {
-             jobInfoSnapshot = jobStoreServiceConnectorBean.getConnector().listJobs(findJobCriteria).get(0);
+            jobInfoSnapshot = jobStoreServiceConnectorBean.getConnector().listJobs(findJobCriteria).get(0);
         } catch (JobStoreServiceConnectorException e) {
             throw new SinkException(
                     format("Failed to find job %d", jobId), e);
@@ -130,7 +110,7 @@ public class ConversionFinalizerBean {
             }
             return Optional.of(files.get(0));
         } catch (FileStoreServiceConnectorException
-                | RuntimeException e) {
+                 | RuntimeException e) {
             throw new SinkException(
                     format("Failed check for existing file for job %d", jobId), e);
         }
@@ -158,7 +138,7 @@ public class ConversionFinalizerBean {
             }
             LOGGER.info("Uploaded conversion file {} for job {}", fileId, jobId);
         } catch (FileStoreServiceConnectorException
-                | RuntimeException e) {
+                 | RuntimeException e) {
             deleteFile(fileStoreServiceConnector, fileId);
             throw new SinkException(e);
         }
@@ -172,7 +152,7 @@ public class ConversionFinalizerBean {
             LOGGER.info("Uploaded conversion metadata {} for job {}",
                     conversionMetadata, chunk.getJobId());
         } catch (FileStoreServiceConnectorException
-                | RuntimeException e) {
+                 | RuntimeException e) {
             deleteFile(fileStoreServiceConnector, fileId);
             throw new SinkException(e);
         }
@@ -231,7 +211,7 @@ public class ConversionFinalizerBean {
         } else {
             chunkItem = ChunkItem.successfulChunkItem()
                     .withData(String.join("/", fileStoreServiceConnector.getBaseUrl(),
-                        "files", fileId));
+                            "files", fileId));
         }
         result.insertItem(chunkItem
                 .withId(0)

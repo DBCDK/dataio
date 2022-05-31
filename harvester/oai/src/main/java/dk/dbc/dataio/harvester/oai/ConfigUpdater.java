@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.oai;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -28,9 +23,10 @@ class ConfigUpdater {
 
     /**
      * Pushes updated config to the flow-store
+     *
      * @param config updated config
-     * @throws HarvesterException on failure to update flow-store
      * @return updated config
+     * @throws HarvesterException on failure to update flow-store
      */
     OaiHarvesterConfig push(OaiHarvesterConfig config) throws HarvesterException {
         try {

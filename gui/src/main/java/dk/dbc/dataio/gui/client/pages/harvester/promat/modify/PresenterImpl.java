@@ -1,9 +1,3 @@
-
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.promat.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
@@ -26,13 +20,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     abstract void initializeModel();
+
     abstract void saveModel();
 
     /**
      * Called by PlaceManager whenever the PlaceCreate or PlaceEdit is invoked.
      * This method is the start signal for the presenter.
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -108,6 +104,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Sets the model after a successful save
+     *
      * @param config the config to set
      */
     void setConfig(PromatHarvesterConfig config) {

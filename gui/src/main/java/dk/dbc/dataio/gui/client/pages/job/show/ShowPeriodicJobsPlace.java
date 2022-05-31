@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.activity.shared.Activity;
@@ -36,6 +31,7 @@ public class ShowPeriodicJobsPlace extends AbstractBasePlace {
         public String getToken(ShowPeriodicJobsPlace place) {
             return place.getToken();
         }
+
         @Override
         public ShowPeriodicJobsPlace getPlace(String token) {
             return new ShowPeriodicJobsPlace(token);

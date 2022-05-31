@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.periodicjobs;
 
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
@@ -27,11 +22,16 @@ import javax.inject.Inject;
 public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PeriodicJobsHarvesterConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
 
-    @EJB BinaryFileStoreBean binaryFileStoreBean;
-    @EJB FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-    @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-    @Inject WeekResolverConnector weekresolverConnector;
+    @EJB
+    BinaryFileStoreBean binaryFileStoreBean;
+    @EJB
+    FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @Inject
+    WeekResolverConnector weekresolverConnector;
 
     @Resource(lookup = "java:comp/DefaultManagedExecutorService")
     private ManagedExecutorService executor;

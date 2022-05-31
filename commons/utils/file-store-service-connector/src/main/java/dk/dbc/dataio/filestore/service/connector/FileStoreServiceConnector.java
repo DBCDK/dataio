@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.filestore.service.connector;
 
 import dk.dbc.dataio.commons.time.StopWatch;
@@ -68,9 +47,9 @@ public class FileStoreServiceConnector {
     private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
             .handle(ProcessingException.class)
             .handleResultIf(response ->
-                       response.getStatus() == 404
-                    || response.getStatus() == 500
-                    || response.getStatus() == 502)
+                    response.getStatus() == 404
+                            || response.getStatus() == 500
+                            || response.getStatus() == 502)
             .withDelay(Duration.ofSeconds(10))
             .withMaxRetries(6);
 
@@ -79,9 +58,10 @@ public class FileStoreServiceConnector {
 
     /**
      * Class constructor
+     *
      * @param httpClient web resources client
-     * @param baseUrl base URL for job-store service endpoint
-     * @throws NullPointerException if given null-valued argument
+     * @param baseUrl    base URL for job-store service endpoint
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
     public FileStoreServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
@@ -95,11 +75,12 @@ public class FileStoreServiceConnector {
 
     /**
      * Adds content of given input stream as file in store
+     *
      * @param is input stream of bytes to be written
      * @return ID of generated file
-     * @throws NullPointerException if given null-valued dataSource argument
-     * @throws ProcessingException on general communication error
-     * @throws FileStoreServiceConnectorException on failure to extract file ID from response
+     * @throws NullPointerException                                   if given null-valued dataSource argument
+     * @throws ProcessingException                                    on general communication error
+     * @throws FileStoreServiceConnectorException                     on failure to extract file ID from response
      * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public String addFile(final InputStream is)
@@ -110,7 +91,7 @@ public class FileStoreServiceConnector {
             InvariantUtil.checkNotNullOrThrow(is, "is");
             final Response response = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
-                    .withPathElements(new String[] {FileStoreServiceConstants.FILES_COLLECTION})
+                    .withPathElements(new String[]{FileStoreServiceConstants.FILES_COLLECTION})
                     .withData(is, MediaType.APPLICATION_OCTET_STREAM)
                     .execute();
             try {
@@ -130,16 +111,17 @@ public class FileStoreServiceConnector {
 
     /**
      * Appends content to existing file in store
+     *
      * @param fileId ID of existing file
-     * @param bytes data to be appended
-     * @throws NullPointerException if given null-valued fileId argument
-     * @throws ProcessingException on general communication error
+     * @param bytes  data to be appended
+     * @throws NullPointerException                                   if given null-valued fileId argument
+     * @throws ProcessingException                                    on general communication error
      * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public void appendToFile(final String fileId, final byte[] bytes)
             throws NullPointerException, ProcessingException, FileStoreServiceConnectorUnexpectedStatusCodeException {
         final StopWatch stopWatch = new StopWatch();
-        Response response=null;
+        Response response = null;
         try {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
             if (bytes != null) {
@@ -166,12 +148,13 @@ public class FileStoreServiceConnector {
      * Note that it is the responsibility of the caller to close the returned
      * stream to free web client resources.
      * </p>
+     *
      * @param fileId ID of file
      * @return file content input stream
-     * @throws NullPointerException if given null-valued fileId argument
-     * @throws IllegalArgumentException if given empty-valued fileId argument
-     * @throws ProcessingException on general communication error
-     * @throws FileStoreServiceConnectorException on failure to extract input stream from response
+     * @throws NullPointerException                                   if given null-valued fileId argument
+     * @throws IllegalArgumentException                               if given empty-valued fileId argument
+     * @throws ProcessingException                                    on general communication error
+     * @throws FileStoreServiceConnectorException                     on failure to extract input stream from response
      * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public InputStream getFile(final String fileId)
@@ -190,8 +173,8 @@ public class FileStoreServiceConnector {
                     .execute();
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, InputStream.class);
-        } catch(FileStoreServiceConnectorException e) {
-            if (response != null){
+        } catch (FileStoreServiceConnectorException e) {
+            if (response != null) {
                 response.close();
             }
             throw e;
@@ -202,10 +185,11 @@ public class FileStoreServiceConnector {
 
     /**
      * Deletes file from store
+     *
      * @param fileId ID of file
-     * @throws NullPointerException if given null-valued fileId argument
-     * @throws IllegalArgumentException if given empty-valued fileId argument
-     * @throws FileStoreServiceConnectorException on general communication error
+     * @throws NullPointerException                                   if given null-valued fileId argument
+     * @throws IllegalArgumentException                               if given empty-valued fileId argument
+     * @throws FileStoreServiceConnectorException                     on general communication error
      * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public void deleteFile(final String fileId)
@@ -231,11 +215,12 @@ public class FileStoreServiceConnector {
 
     /**
      * Retrieves size of a file in bytes.
+     *
      * @param fileId ID of file
      * @return byte size of file
-     * @throws NullPointerException if given null-valued fileId argument
-     * @throws IllegalArgumentException if given empty-valued fileId argument
-     * @throws FileStoreServiceConnectorException on failure to extract byte size from response
+     * @throws NullPointerException                                   if given null-valued fileId argument
+     * @throws IllegalArgumentException                               if given empty-valued fileId argument
+     * @throws FileStoreServiceConnectorException                     on failure to extract byte size from response
      * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public long getByteSize(final String fileId) throws NullPointerException, IllegalArgumentException, FileStoreServiceConnectorException {
@@ -254,7 +239,7 @@ public class FileStoreServiceConnector {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, Long.class);
         } finally {
-            if (response!=null){
+            if (response != null) {
                 response.close();
             }
             log.info("getByteSize({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
@@ -263,15 +248,16 @@ public class FileStoreServiceConnector {
 
     /**
      * Adds metadata for an existing file overwriting any metadata already present
-     * @param fileId ID of existing file
+     *
+     * @param fileId   ID of existing file
      * @param metadata metadata to be added
-     * @throws NullPointerException if given null-valued fileId argument
-     * @throws ProcessingException on general communication error
+     * @throws NullPointerException                                   if given null-valued fileId argument
+     * @throws ProcessingException                                    on general communication error
      * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public void addMetadata(final String fileId, final Object metadata)
             throws NullPointerException, ProcessingException,
-                   FileStoreServiceConnectorUnexpectedStatusCodeException {
+            FileStoreServiceConnectorUnexpectedStatusCodeException {
         final StopWatch stopWatch = new StopWatch();
         Response response = null;
         try {
@@ -287,7 +273,7 @@ public class FileStoreServiceConnector {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             }
         } finally {
-            if (response!=null){
+            if (response != null) {
                 response.close();
             }
             log.info("addMetadata({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
@@ -296,12 +282,13 @@ public class FileStoreServiceConnector {
 
     /**
      * Lists files matching given metadata
+     *
      * @param metadata metadata selector
-     * @param tClass class of result entities
-     * @param <T> type parameter
+     * @param tClass   class of result entities
+     * @param <T>      type parameter
      * @return list of result entities for matching files
-     * @throws ProcessingException on general communication error
-     * @throws FileStoreServiceConnectorException on failure to read result entities from response
+     * @throws ProcessingException                                    on general communication error
+     * @throws FileStoreServiceConnectorException                     on failure to read result entities from response
      * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public <T> List<T> searchByMetadata(final Object metadata, Class<T> tClass)
@@ -349,14 +336,14 @@ public class FileStoreServiceConnector {
     private <T> T readResponseEntity(Response response, Class<T> tClass) throws FileStoreServiceConnectorException {
         final T entity = response.readEntity(tClass);
         if (entity == null) {
-            throw new FileStoreServiceConnectorException (
+            throw new FileStoreServiceConnectorException(
                     String.format("file-store service returned with null-valued %s entity", tClass.getName()));
         }
         return entity;
     }
 
-     private <T> T readResponseEntity(Response response, GenericType<T> genericType)
-             throws FileStoreServiceConnectorException {
+    private <T> T readResponseEntity(Response response, GenericType<T> genericType)
+            throws FileStoreServiceConnectorException {
         response.bufferEntity();
         final T entity = response.readEntity(genericType);
         if (entity == null) {
@@ -370,12 +357,15 @@ public class FileStoreServiceConnector {
     private <T> ParameterizedType createGenericListType(final Class<T> tClass) {
         return new ParameterizedType() {
             private final Type[] actualType = {tClass};
+
             public Type[] getActualTypeArguments() {
                 return actualType;
             }
+
             public Type getRawType() {
                 return List.class;
             }
+
             public Type getOwnerType() {
                 return null;
             }

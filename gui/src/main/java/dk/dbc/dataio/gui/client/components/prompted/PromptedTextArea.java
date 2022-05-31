@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components.prompted;
 
 import com.google.gwt.event.dom.client.BlurHandler;
@@ -33,15 +12,15 @@ import com.google.gwt.user.client.ui.TextArea;
 public class PromptedTextArea extends PromptedData implements HasValue<String> {
     public static final int DEFAULT_CHARACTER_WIDTH = 40;
     public static final int DEFAULT_VISIBLE_LINES = 4;
-    
+
     private final TextArea textArea = new TextArea();
 
-    
+
     public PromptedTextArea(String guiId, String prompt, int maxLength) {
         this(guiId, prompt);
         textArea.getElement().setAttribute("Maxlength", String.valueOf(maxLength));
     }
-    
+
     public PromptedTextArea(String guiId, String prompt) {
         super(guiId, prompt);
         setCharacterWidth(DEFAULT_CHARACTER_WIDTH);
@@ -50,8 +29,7 @@ public class PromptedTextArea extends PromptedData implements HasValue<String> {
         add(textArea);
     }
 
-    public @UiConstructor
-    PromptedTextArea(String guiId, String prompt, String maxLength) {
+    public @UiConstructor PromptedTextArea(String guiId, String prompt, String maxLength) {
         this(guiId, prompt);
         if (!maxLength.isEmpty()) {
             textArea.getElement().setAttribute("Maxlength", maxLength);
@@ -87,11 +65,11 @@ public class PromptedTextArea extends PromptedData implements HasValue<String> {
     public void clearText() {
         textArea.setText("");
     }
-    
+
     public void setText(String value) {
         textArea.setText(value);
     }
-    
+
     public String getText() {
         return textArea.getText();
     }
@@ -99,24 +77,24 @@ public class PromptedTextArea extends PromptedData implements HasValue<String> {
     public void setCharacterWidth(int characterWidth) {
         textArea.setCharacterWidth(characterWidth);
     }
-    
+
     public void setVisibleLines(int visibleLines) {
         textArea.setVisibleLines(visibleLines);
     }
-    
+
     public void setEnabled(boolean enabled) {
         textArea.setEnabled(enabled);
     }
-  
+
     public HandlerRegistration addKeyDownHandler(KeyDownHandler handler) {
         return textArea.addKeyDownHandler(handler);
     }
-    
+
     public HandlerRegistration addChangeHandler(ChangeHandler handler) {
         return textArea.addChangeHandler(handler);
     }
 
-    public HandlerRegistration addBlurHandler(BlurHandler handler){
+    public HandlerRegistration addBlurHandler(BlurHandler handler) {
         return textArea.addBlurHandler(handler);
     }
 

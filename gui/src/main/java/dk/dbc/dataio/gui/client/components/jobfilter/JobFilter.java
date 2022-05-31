@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
@@ -68,6 +47,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     interface JobFilterUiBinder extends UiBinder<HTMLPanel, JobFilter> {
 
     }
+
     private static JobFilterUiBinder ourUiBinder = GWT.create(JobFilterUiBinder.class);
 
     final JobFilterList availableJobFilterList;
@@ -76,8 +56,10 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     boolean initialized = false;
     final Map<String, BaseJobFilter> instantiatedFilters = new HashMap<>();  // Keeps track of all instantiated filters - whether or not they are attached to the GUI
 
-    @UiField FlowPanel jobFilterContainer;
-    @UiField MenuBar filterMenu;
+    @UiField
+    FlowPanel jobFilterContainer;
+    @UiField
+    MenuBar filterMenu;
 
 
     /**
@@ -91,6 +73,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Constructor with list of Available Job Filters to be shown upon startup
+     *
      * @param availableJobFilterList The list of Available Job Filters
      */
     JobFilter(JobFilterList availableJobFilterList) {
@@ -149,7 +132,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
 
         // Finally do replicate setting of the active Job Filters to the Place
         if (place.presenter != null) {
-            ((Presenter)place.presenter).setPlace(place);
+            ((Presenter) place.presenter).setPlace(place);
         }
 
         initialized = true;
@@ -161,6 +144,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Adds a change handler to be notified upon changes in the stored Job List Criteria Model
+     *
      * @param changeHandler The change handler to be notified upon changes
      * @return A Handler Registration object, to be used to remove the Change Handler
      */
@@ -188,6 +172,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     /**
      * Adds a child Job Filter to the list of Job Filters <br>
      * These jobs are listed in the Job Filter Menu
+     *
      * @param jobFilter The job filter to add to the list of Job Filters
      */
     public void add(BaseJobFilter jobFilter) {
@@ -202,6 +187,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Removes a child Job Filter from the list of Job Filters
+     *
      * @param jobFilter The job filter to remove from the list of Job Filters
      */
     public void remove(BaseJobFilter jobFilter) {
@@ -216,6 +202,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Gets the current value of the Job List Criteria Model
+     *
      * @return The current value of the Job List Criteria Model
      */
     public JobListCriteria getValue() {
@@ -226,6 +213,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Update the place to reflect the current status of the filter settings
+     *
      * @param place The place to update
      */
     public void updatePlace(AbstractBasePlace place) {
@@ -242,7 +230,8 @@ public class JobFilter extends Composite implements HasChangeHandlers {
         changeHandler = null;
     }
 
-    private class JobFilterChangeEvent extends ChangeEvent {}
+    private class JobFilterChangeEvent extends ChangeEvent {
+    }
 
     private void valueChanged() {
         if (changeHandler != null) {
@@ -253,6 +242,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     /**
      * Traverses through the list of active filters (filters that are actively used), and calls
      * the functional interface Consumer on each element.
+     *
      * @param action The functional interface to call, for each found active filter
      */
     private void traverseActiveFilters(Consumer<BaseJobFilter> action) {
@@ -273,6 +263,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     /**
      * Sets up the Job Filters according to the supplied list of URL Parameters<br>
      * Also removes any Job Filters, not given in the supplied list
+     *
      * @param urlParameters The URL parameters used as input
      */
     private void setNewUrlParameters(Map<String, AbstractBasePlace.PlaceParameterValue> urlParameters) {

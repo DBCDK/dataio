@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.failedftps.show;
 
 import com.google.gwt.user.cellview.client.Column;
@@ -54,13 +33,20 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class FailedFtpsTableTest {
 
-    @Mock ListDataProvider<Notification> mockedDataProvider;
-    @Mock List<Notification> mockedNotificationList;
-    @Mock Texts mockedTexts;
-    @Mock View mockedView;
-    @Mock Presenter mockedPresenter;
-    @Mock Column mockedColumn;
-    @Mock SingleSelectionModel mockedSelectionModel;
+    @Mock
+    ListDataProvider<Notification> mockedDataProvider;
+    @Mock
+    List<Notification> mockedNotificationList;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    View mockedView;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    Column mockedColumn;
+    @Mock
+    SingleSelectionModel mockedSelectionModel;
 
 
     @Before
@@ -113,9 +99,9 @@ public class FailedFtpsTableTest {
                 new InvalidTransfileNotificationContext("TransFileNameX", "TransFileContentX", "CauseX");
         Notification testNotification =
                 new Notification()
-                .withTimeOfCreation(new Date(1234567890123L))
-                .withStatus(Notification.Status.COMPLETED)
-                .withContext(testNotificationContext);
+                        .withTimeOfCreation(new Date(1234567890123L))
+                        .withStatus(Notification.Status.COMPLETED)
+                        .withContext(testNotificationContext);
 
         // Subject Under Test
         assertThat(failedFtpsTable.getColumnCount(), is(3));

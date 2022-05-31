@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.vip.connector;
 
 import dk.dbc.httpclient.FailSafeHttpClient;
@@ -34,8 +29,8 @@ public class VipCoreConnector {
     private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
             .handle(ProcessingException.class)
             .handleResultIf(response ->
-                       response.getStatus() == 404
-                    || response.getStatus() == 500)
+                    response.getStatus() == 404
+                            || response.getStatus() == 500)
             .withDelay(Duration.ofSeconds(10))
             .withMaxRetries(6);
 
@@ -65,9 +60,10 @@ public class VipCoreConnector {
 
     /**
      * Class constructor
+     *
      * @param httpClient web resources client
-     * @param baseUrl base URL for job-store service endpoint
-     * @throws NullPointerException if given null-valued argument
+     * @param baseUrl    base URL for job-store service endpoint
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
     public VipCoreConnector(Client httpClient, String baseUrl)
@@ -86,7 +82,8 @@ public class VipCoreConnector {
 
     /**
      * Uploads data from 'Kulturstyrelsen' to VIP
-     * @param kind type of record
+     *
+     * @param kind   type of record
      * @param entity BIBBAS record as JSON string
      * @throws VipCoreConnectorException on failure to upload data
      */

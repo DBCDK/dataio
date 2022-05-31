@@ -8,11 +8,12 @@ import dk.dbc.dataio.harvester.periodicjobs.PeriodicJobsHarvesterConnectorUnexpe
 import dk.dbc.dataio.harvester.periodicjobs.PeriodicJobsHarvesterServiceConnector;
 import dk.dbc.dataio.harvester.periodicjobs.PeriodicJobsHarvesterServiceConnectorException;
 import dk.dbc.httpclient.HttpClient;
-import javax.ws.rs.client.Client;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.client.Client;
 
 import static dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator.toProxyError;
 
@@ -39,8 +40,7 @@ public class PeriodicJobsHarvesterProxyImpl implements PeriodicJobsHarvesterProx
             if (e instanceof PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException) {
                 throw new ProxyException(toProxyError(
                         ((PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException) e).getStatusCode()), e);
-            }
-            else {
+            } else {
                 throw new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, e);
             }
         }
@@ -53,8 +53,7 @@ public class PeriodicJobsHarvesterProxyImpl implements PeriodicJobsHarvesterProx
             if (e instanceof PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException) {
                 throw new ProxyException(toProxyError(
                         ((PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException) e).getStatusCode()), e);
-            }
-            else {
+            } else {
                 throw new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, e);
             }
         }

@@ -1,27 +1,3 @@
-/*
- *
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- *
- *
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.show;
 
 import com.google.gwt.cell.client.ButtonCell;
@@ -86,7 +62,8 @@ public class HarvestersTable extends CellTable {
 
     /**
      * This method sets the harvester data for the table
-     * @param presenter The presenter
+     *
+     * @param presenter  The presenter
      * @param harvesters The harvester data
      */
     public void setHarvesters(Presenter presenter, List<CoRepoHarvesterConfig> harvesters) {
@@ -94,7 +71,7 @@ public class HarvestersTable extends CellTable {
         dataProvider.getList().clear();
 
         if (!harvesters.isEmpty()) {
-            for (CoRepoHarvesterConfig CoRepoHarvesterConfig: harvesters ) {
+            for (CoRepoHarvesterConfig CoRepoHarvesterConfig : harvesters) {
                 dataProvider.getList().add(CoRepoHarvesterConfig);
             }
         }
@@ -202,6 +179,7 @@ public class HarvestersTable extends CellTable {
 
     /**
      * This method constructs the Action column
+     *
      * @return The constructed Action column
      */
     private Column constructActionColumn() {
@@ -212,21 +190,23 @@ public class HarvestersTable extends CellTable {
                 return texts.button_Edit();
             }
         };
-        column.setFieldUpdater((index, config, buttonText) -> editCoRepoHarvester((CoRepoHarvesterConfig)config));
+        column.setFieldUpdater((index, config, buttonText) -> editCoRepoHarvester((CoRepoHarvesterConfig) config));
         return column;
     }
 
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
-    DoubleClickHandler getDoubleClickHandler(){
+    DoubleClickHandler getDoubleClickHandler() {
         return doubleClickEvent -> editCoRepoHarvester(selectionModel.getSelectedObject());
     }
 
     /**
      * Sends a request to the presenter for editing the harvester, passed as a parameter in the call
+     *
      * @param harvester The harvester to edit
      */
     private void editCoRepoHarvester(CoRepoHarvesterConfig harvester) {
@@ -248,11 +228,12 @@ public class HarvestersTable extends CellTable {
         public void onFilteredFailure(Throwable e) {
             view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
+
         @Override
         public void onSuccess(List<RRHarvesterConfig> configs) {
             configMap.clear();
             if (configs != null) {
-                for (RRHarvesterConfig config: configs) {
+                for (RRHarvesterConfig config : configs) {
                     configMap.put(config.getId(), config);
                 }
                 setVisibleRangeAndClearData(getVisibleRange(), true);  // Now reload data to display RR Harvester names

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.flowstore;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -49,9 +28,9 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class SinksIT extends AbstractFlowStoreServiceContainerTest {
@@ -61,10 +40,10 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
      * When : valid JSON is POSTed to the sinks path without an identifier
      * Then : a sink is created and returned
      * And  : assert that the sink created has an id, a version
-     *        and contains the same information as the sinkContent given as input
+     * and contains the same information as the sinkContent given as input
      */
     @Test
-    public void createSink_ok() throws Exception{
+    public void createSink_ok() throws Exception {
 
         // When...
         final SinkContent sinkContent = new SinkContentBuilder()
@@ -105,7 +84,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT ACCEPTABLE http status code
      */
     @Test
-    public void createSink_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException{
+    public void createSink_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
         final SinkContent sinkContent = new SinkContentBuilder()
                 .setName("SinksIT.createSink_duplicateName_NotAcceptable").build();
@@ -115,7 +94,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
             flowStoreServiceConnector.createSink(sinkContent);
             fail("Primary key violation was not detected as input to createSink().");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
 
             // And...
             assertThat(e.getStatusCode(), is(406));
@@ -129,7 +108,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
      * And  : assert that the sink found has an id, a version and contains the same information as the sink created
      */
     @Test
-    public void getSink_ok() throws Exception{
+    public void getSink_ok() throws Exception {
 
         // When...
         final SinkContent sinkContent = new SinkContentBuilder()
@@ -153,14 +132,14 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void getSink_wrongIdNumber_NotFound() throws FlowStoreServiceConnectorException{
-        try{
+    public void getSink_wrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
+        try {
             // Given...
             flowStoreServiceConnector.getSink(432);
 
             fail("Invalid request to getSink() was not detected.");
             // Then...
-        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
         }
@@ -176,7 +155,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
      * And  : assert that updated data can be found in the underlying database
      */
     @Test
-    public void updateSink_ok() throws Exception{
+    public void updateSink_ok() throws Exception {
 
         // Given...
         final SinkContent sinkContent = new SinkContentBuilder()
@@ -230,15 +209,15 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
     }
 
     /**
-    * Given: a deployed flow-store service
-    * When : valid JSON is POSTed to the sinks path with an identifier (update) and wrong id number
-    * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
-    * And  : request returns with a NOT_FOUND http status code
-    */
+     * Given: a deployed flow-store service
+     * When : valid JSON is POSTed to the sinks path with an identifier (update) and wrong id number
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
     @Test
     public void updateSink_wrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
         // Given...
-        try{
+        try {
             // When...
             final SinkContent newSinkContent = new SinkContentBuilder().build();
             flowStoreServiceConnector.updateSink(newSinkContent, 687842, 1L);
@@ -246,7 +225,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
             fail("Wrong sink Id was not detected as input to updateSink().");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
         }
@@ -260,7 +239,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT_ACCEPTABLE http status code
      */
     @Test
-    public void updateSink_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException{
+    public void updateSink_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
         final String FIRST_SINK_NAME = "SinksIT.updateSink_duplicateName_NotAcceptable.FirstSinkName";
         final String SECOND_SINK_NAME = "SinksIT.updateSink_duplicateName_NotAcceptable.SecondSinkName";
@@ -277,8 +256,8 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
             flowStoreServiceConnector.updateSink(sinkContent1, sink.getId(), sink.getVersion());
 
             fail("Primary key violation was not detected as input to updateSink().");
-        // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            // Then...
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(406));
         }
@@ -288,10 +267,10 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
      * Given: a deployed flow-store service
      * And  : a valid sink with given id is already stored and the sink is opened for edit by two different users
      * And  : the first user updates the sink, valid JSON is POSTed to the sinks path with an identifier (update)
-     *        and correct version number
+     * and correct version number
      * When : the second user attempts to update the original version of the sink, valid JSON is POSTed to the sinks
-     *        path with an identifier (update) and wrong version number
-
+     * path with an identifier (update) and wrong version number
+     * <p>
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a CONFLICT http status code
      * And  : assert that updated data from the first user can be found in the underlying database
@@ -329,7 +308,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
             fail("Edit conflict, in the case of multiple updates, was not detected as input to updateSink().");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(409));
 
@@ -339,7 +318,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
             assertThat(sink.getContent().getName(), is(SINK_NAME_FROM_FIRST_USER));
 
             // And... Assert the version number has been updated after creation, but only by the first user.
-            assertThat(sink.getVersion(), is(version +1));
+            assertThat(sink.getVersion(), is(version + 1));
         }
     }
 
@@ -366,7 +345,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
         try {
             flowStoreServiceConnector.getSink(sinkId);
             fail("Sink was not deleted");
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // We expect this exception from getSink(...) method when no sink exists!
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
         }
@@ -391,7 +370,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
             fail("None existing Sink was not detected");
 
             // Then ...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And...
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
         }
@@ -400,10 +379,10 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
     /**
      * Given: a deployed flow-store service and a none referenced sink is stored.
      * And  : the sink is updated and, valid JSON is POSTed to the sinks path with an identifier (update)
-     *        and correct version number
+     * and correct version number
      * When : attempting to delete the sink with the previous version number, valid JSON is POSTed to the sinks
-     *        path with an identifier (delete) and wrong version number
-
+     * path with an identifier (delete) and wrong version number
+     * <p>
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a CONFLICT http status code
      */
@@ -435,7 +414,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
             fail("Sink was deleted");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And...
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
         }
@@ -481,7 +460,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
             fail("Sink was deleted");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
         }
@@ -510,11 +489,11 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
         // Then...
         assertNotNull(listOfSinks);
         assertFalse(listOfSinks.isEmpty());
-        assertThat(listOfSinks.size() >= 3, is (true));
+        assertThat(listOfSinks.size() >= 3, is(true));
 
         // And...
-        assertThat(listOfSinks.get(0).getContent().getName(), is (sinkSortsFirst.getContent().getName()));
-        assertThat(listOfSinks.get(1).getContent().getName(), is (sinkSortsSecond.getContent().getName()));
-        assertThat(listOfSinks.get(2).getContent().getName(), is (sinkSortsThird.getContent().getName()));
+        assertThat(listOfSinks.get(0).getContent().getName(), is(sinkSortsFirst.getContent().getName()));
+        assertThat(listOfSinks.get(1).getContent().getName(), is(sinkSortsSecond.getContent().getName()));
+        assertThat(listOfSinks.get(2).getContent().getName(), is(sinkSortsThird.getContent().getName()));
     }
 }

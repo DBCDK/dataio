@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.infomedia.modify;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -21,8 +16,10 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterCreateImplTest {
-    @Mock CommonGinjector commonInjector;
-    @Mock FlowStoreProxyAsync flowStoreProxyAsync;
+    @Mock
+    CommonGinjector commonInjector;
+    @Mock
+    FlowStoreProxyAsync flowStoreProxyAsync;
 
     private PresenterCreateImpl presenter;
 

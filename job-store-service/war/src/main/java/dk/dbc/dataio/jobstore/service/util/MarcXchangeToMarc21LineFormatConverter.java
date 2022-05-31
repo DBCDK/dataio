@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -28,7 +23,7 @@ public class MarcXchangeToMarc21LineFormatConverter extends AbstractToLineFormat
 
     @Override
     public byte[] convert(ChunkItem chunkItem, Charset encodedAs, List<Diagnostic> diagnostics) throws JobStoreException {
-       final MarcRecord record;
+        final MarcRecord record;
         try {
             record = new MarcXchangeV1Reader(getChunkItemInputStream(chunkItem), chunkItem.getEncoding())
                     .setProperty(XmlParser.Property.ALLOW_EMPTY_SUBFIELD_CODE, true)

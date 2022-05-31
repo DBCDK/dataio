@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -64,11 +43,9 @@ public class SinksBean extends AbstractResourceBean {
      * Retrieves sink from underlying data store
      *
      * @param id sink identifier
-     *
      * @return a HTTP 200 response with sink content as JSON,
-     *         a HTTP 404 response with error content as JSON if not found,
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 404 response with error content as JSON if not found,
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException on failure to create json sink
      */
     @GET
@@ -91,13 +68,11 @@ public class SinksBean extends AbstractResourceBean {
     /**
      * Creates a new sink
      *
-     * @param uriInfo URI information
+     * @param uriInfo     URI information
      * @param sinkContent The content of the Sink
-     *
      * @return a HTTP 201 response with sink content as JSON,
-     *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 406 response in case of Unique Restraint of Primary Key Violation
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException on failure to create json sink
      */
     @POST
@@ -123,15 +98,13 @@ public class SinksBean extends AbstractResourceBean {
      * Updates an existing sink
      *
      * @param sinkContent The content of the sink
-     * @param id The Sink ID
-     * @param version The version of the sink
-     *
+     * @param id          The Sink ID
+     * @param version     The version of the sink
      * @return a HTTP 200 response with sink content as JSON,
-     *         a HTTP 404 response in case of Sink ID is not found,
-     *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
-     *         a HTTP 409 response in case of Concurrent Update error
-     *         a HTTP 500 response in case of general error.
-     *
+     * a HTTP 404 response in case of Sink ID is not found,
+     * a HTTP 406 response in case of Unique Restraint of Primary Key Violation
+     * a HTTP 409 response in case of Concurrent Update error
+     * a HTTP 500 response in case of general error.
      * @throws JSONBException on failure to create json sink
      */
     @POST
@@ -139,7 +112,7 @@ public class SinksBean extends AbstractResourceBean {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateSink(String sinkContent, @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
-        @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
+                               @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, SINK_CONTENT_DISPLAY_TEXT);
 
@@ -167,13 +140,12 @@ public class SinksBean extends AbstractResourceBean {
     /**
      * Deletes an existing sink
      *
-     * @param sinkId The Sink ID
+     * @param sinkId  The Sink ID
      * @param version The version of the sink
-     *
      * @return a HTTP 204 response with no content,
-     *         a HTTP 404 response in case of Sink ID not found,
-     *         a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
-     *         a HTTP 500 response in case of general error.
+     * a HTTP 404 response in case of Sink ID not found,
+     * a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
+     * a HTTP 500 response in case of general error.
      */
     @DELETE
     @Path(FlowStoreServiceConstants.SINK)
@@ -183,7 +155,7 @@ public class SinksBean extends AbstractResourceBean {
 
         final SinkEntity entityEntity = entityManager.find(SinkEntity.class, sinkId);
 
-        if(entityEntity == null) {
+        if (entityEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
 
@@ -204,12 +176,11 @@ public class SinksBean extends AbstractResourceBean {
      * Returns list of all stored sinks sorted by name in ascending order
      *
      * @return a HTTP OK response with result list as JSON
-     *
      * @throws JSONBException on failure to create result list as JSON
      */
     @GET
     @Path(FlowStoreServiceConstants.SINKS)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response findAllSinks() throws JSONBException {
         final Query query = entityManager.createNamedQuery(SinkEntity.QUERY_FIND_ALL);
         final List<SinkEntity> results = query.getResultList();

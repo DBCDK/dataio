@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.harvester;
 
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
@@ -65,6 +44,7 @@ public abstract class AbstractScheduledHarvestBean<T extends AbstractHarvesterBe
 
     /**
      * (Re)starts harvester with given schedule.
+     *
      * @param scheduleExpression harvest schedule
      */
     @Lock(LockType.WRITE)
@@ -76,7 +56,7 @@ public abstract class AbstractScheduledHarvestBean<T extends AbstractHarvesterBe
         timerService.createCalendarTimer(scheduleExpression, timerConfig);
     }
 
-   /**
+    /**
      * Executes harvest operations not already running on each scheduled point in time
      */
     @Timeout
@@ -115,6 +95,7 @@ public abstract class AbstractScheduledHarvestBean<T extends AbstractHarvesterBe
      * Can be overridden if additional tests needs to
      * be executed in order to determine if a scheduled
      * harvest may run
+     *
      * @param config harvest config
      * @return always true in this default implementation
      */

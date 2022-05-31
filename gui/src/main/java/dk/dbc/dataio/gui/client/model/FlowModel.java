@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.model;
 
 import dk.dbc.dataio.gui.client.util.Format;
@@ -58,6 +37,7 @@ public class FlowModel extends GenericBackendModel {
 
     /**
      * Set flow name
+     *
      * @param flowName The name of the flow
      */
     public void setFlowName(String flowName) {
@@ -73,6 +53,7 @@ public class FlowModel extends GenericBackendModel {
 
     /**
      * Set flow description
+     *
      * @param description The flow description
      */
     public void setDescription(String description) {
@@ -95,6 +76,7 @@ public class FlowModel extends GenericBackendModel {
 
     /**
      * Set the list of flowcomponents in the flow
+     *
      * @param flowComponents The list of flowcomponents
      */
     public void setFlowComponents(List<FlowComponentModel> flowComponents) {
@@ -103,6 +85,7 @@ public class FlowModel extends GenericBackendModel {
 
     /**
      * Checks for empty String values
+     *
      * @return true if no empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
@@ -117,6 +100,7 @@ public class FlowModel extends GenericBackendModel {
     /**
      * Checks if the flow name contains illegal characters.
      * A-Å, 0-9, - (minus), + (plus), _ (underscore) and space is valid
+     *
      * @return a list containing illegal characters found. Empty list if none found.
      */
     public List<String> getDataioPatternMatches() {

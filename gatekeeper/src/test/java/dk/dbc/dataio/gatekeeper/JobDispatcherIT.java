@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -56,7 +56,8 @@ public class JobDispatcherIT {
     private FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private ShutdownManager shutdownManager;
     private Exception exception;
-    private List<GatekeeperDestination> gatekeeperDestinations = ModificationFactoryTest.getGatekeeperDestinationsForTest();;
+    private List<GatekeeperDestination> gatekeeperDestinations = ModificationFactoryTest.getGatekeeperDestinationsForTest();
+    ;
 
 
     @Before
@@ -70,8 +71,8 @@ public class JobDispatcherIT {
 
     @Before
     public void setupMocks() throws JobStoreServiceConnectorException,
-                                    FlowStoreServiceConnectorException,
-                                    FileStoreServiceConnectorException {
+            FlowStoreServiceConnectorException,
+            FileStoreServiceConnectorException {
         when(connectorFactory.getFileStoreServiceConnector()).thenReturn(fileStoreServiceConnector);
         when(connectorFactory.getJobStoreServiceConnector()).thenReturn(jobStoreServiceConnector);
         when(fileStoreServiceConnector.addFile(any(InputStream.class))).thenReturn("fileId");

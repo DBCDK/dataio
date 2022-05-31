@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.commons.types;
 
 import dk.dbc.invariant.InvariantUtil;
@@ -40,10 +19,11 @@ public class FileStoreUrn {
 
     /**
      * Constructs a URI by parsing the given string
+     *
      * @param urnString string to be parsed into a URN
-     * @throws NullPointerException if given null-valued urnString argument
+     * @throws NullPointerException     if given null-valued urnString argument
      * @throws IllegalArgumentException if given empty-valued urnString argument
-     * @throws URISyntaxException if the given string does not match the format '{@value #SCHEME}:{@value #TYPE}:fileId'
+     * @throws URISyntaxException       if the given string does not match the format '{@value #SCHEME}:{@value #TYPE}:fileId'
      */
     public FileStoreUrn(String urnString) throws NullPointerException, IllegalArgumentException, URISyntaxException {
         final URI uri = new URI(InvariantUtil.checkNotNullNotEmptyOrThrow(urnString, "urnString"));
@@ -54,7 +34,7 @@ public class FileStoreUrn {
         if (!TYPE.equals(parts[0])) {
             throw new URISyntaxException(urnString, String.format("type '%s' is not %s", parts[0], TYPE));
         }
-        if(parts.length != 2) {
+        if (parts.length != 2) {
             throw new URISyntaxException(urnString, "no fileId in URN");
         }
         fileId = parts[1];
@@ -92,11 +72,12 @@ public class FileStoreUrn {
 
     /**
      * Factory method for FileStoreUrn creation
+     *
      * @param fileId file ID to be expressed as URN
      * @return FileStoreUrn instance
-     * @throws NullPointerException if given null-valued fileId argument
+     * @throws NullPointerException     if given null-valued fileId argument
      * @throws IllegalArgumentException if given empty-valued fileId argument or if the given string
-     * does not match the format '{@value #SCHEME}:{@value #TYPE}:fileId'
+     *                                  does not match the format '{@value #SCHEME}:{@value #TYPE}:fileId'
      */
     public static FileStoreUrn create(String fileId) throws NullPointerException, IllegalArgumentException {
         try {
@@ -111,7 +92,7 @@ public class FileStoreUrn {
         try {
             return new FileStoreUrn(urn);
         } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Invalid FileStoreUrn '" + urn + "'" , e);
+            throw new IllegalArgumentException("Invalid FileStoreUrn '" + urn + "'", e);
         }
     }
 }

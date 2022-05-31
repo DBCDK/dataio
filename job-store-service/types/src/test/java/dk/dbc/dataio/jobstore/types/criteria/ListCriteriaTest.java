@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.types.criteria;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -30,7 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 public class ListCriteriaTest {
@@ -93,8 +72,8 @@ public class ListCriteriaTest {
         final ListCriteriaImpl listCriteria = new ListCriteriaImpl().where(other);
 
 
-        assertThat(listCriteria.getFiltering().get(0).getMembers().get(0).getFilter(), is( filters.get(0)));
-        assertThat(listCriteria.getFiltering().get(0).getMembers().get(1).getFilter(), is( filters.get(1)));
+        assertThat(listCriteria.getFiltering().get(0).getMembers().get(0).getFilter(), is(filters.get(0)));
+        assertThat(listCriteria.getFiltering().get(0).getMembers().get(1).getFilter(), is(filters.get(1)));
     }
 
 
@@ -115,11 +94,11 @@ public class ListCriteriaTest {
                 .and(filters.get(1))
                 .and(other);
 
-        assertThat(listCriteria.getFiltering().get(0).getMembers().get(0).getFilter(), is( filters.get(0)));
-        assertThat(listCriteria.getFiltering().get(0).getMembers().get(1).getFilter(), is( filters.get(1)));
+        assertThat(listCriteria.getFiltering().get(0).getMembers().get(0).getFilter(), is(filters.get(0)));
+        assertThat(listCriteria.getFiltering().get(0).getMembers().get(1).getFilter(), is(filters.get(1)));
 
-        assertThat(listCriteria.getFiltering().get(1).getMembers().get(0).getFilter(), is( filters.get(2)));
-        assertThat(listCriteria.getFiltering().get(1).getMembers().get(1).getFilter(), is( filters.get(3)));
+        assertThat(listCriteria.getFiltering().get(1).getMembers().get(0).getFilter(), is(filters.get(2)));
+        assertThat(listCriteria.getFiltering().get(1).getMembers().get(1).getFilter(), is(filters.get(3)));
 
     }
 

@@ -3,7 +3,7 @@ package dk.dbc.dataio.cli.jobreplicator.arguments;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ArgPairTest {
     @Test
@@ -15,7 +15,7 @@ public class ArgPairTest {
     }
 
     @Test(expected = ArgParseException.class)
-    public void fromString_tooManyValues() throws ArgParseException{
+    public void fromString_tooManyValues() throws ArgParseException {
         String input = "key=value=what";
         ArgPair.fromString(input);
     }

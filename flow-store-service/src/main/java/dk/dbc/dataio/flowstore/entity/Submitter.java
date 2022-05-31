@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -48,16 +27,16 @@ import javax.persistence.Table;
 @NamedNativeQueries({
         @NamedNativeQuery(
                 name = Submitter.QUERY_FIND_ALL,
-                query = "SELECT * FROM "+Submitter.TABLE_NAME+" ORDER BY (content->>'number')::BIGINT ASC",
+                query = "SELECT * FROM " + Submitter.TABLE_NAME + " ORDER BY (content->>'number')::BIGINT ASC",
                 resultSetMapping = "Submitter.implicit"
         ),
         @NamedNativeQuery(
                 name = Submitter.QUERY_FIND_ALL_IDS,
-                query = "SELECT id FROM "+Submitter.TABLE_NAME
+                query = "SELECT id FROM " + Submitter.TABLE_NAME
         ),
         @NamedNativeQuery(
                 name = Submitter.QUERY_FIND_BY_CONTENT,
-                query = "SELECT * FROM "+Submitter.TABLE_NAME+" WHERE content @> ?::jsonb",
+                query = "SELECT * FROM " + Submitter.TABLE_NAME + " WHERE content @> ?::jsonb",
                 resultSetMapping = "Submitter.implicit"
         )
 })
@@ -69,9 +48,10 @@ public class Submitter extends Versioned {
 
     /**
      * {@inheritDoc}
-     * @throws NullPointerException if given null-valued data argument
+     *
+     * @throws NullPointerException     if given null-valued data argument
      * @throws IllegalArgumentException if given empty-valued data argument
-     * @throws JSONBException if non-json JSON string or if given JSON is invalid SubmitterContent
+     * @throws JSONBException           if non-json JSON string or if given JSON is invalid SubmitterContent
      */
     @Override
     public void setContent(String data) throws JSONBException {

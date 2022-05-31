@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -95,15 +74,23 @@ public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implem
     }
 
     private static JavaScriptProjectFetcherError toJavaScriptProjectFetcherError(JavaScriptProjectError error) {
-        switch(error) {
-            case SCM_SERVER_ERROR:              return JavaScriptProjectFetcherError.SCM_SERVER_ERROR;
-            case SCM_INVALID_URL:               return JavaScriptProjectFetcherError.SCM_INVALID_URL;
-            case SCM_ILLEGAL_PROJECT_NAME:      return JavaScriptProjectFetcherError.SCM_ILLEGAL_PROJECT_NAME;
-            case SCM_RESOURCE_NOT_FOUND:        return JavaScriptProjectFetcherError.SCM_RESOURCE_NOT_FOUND;
-            case JAVASCRIPT_EVAL_ERROR:         return JavaScriptProjectFetcherError.JAVASCRIPT_EVAL_ERROR;
-            case JAVASCRIPT_REFERENCE_ERROR:    return JavaScriptProjectFetcherError.JAVASCRIPT_REFERENCE_ERROR;
-            case JAVASCRIPT_READ_ERROR:         return JavaScriptProjectFetcherError.JAVASCRIPT_READ_ERROR;
-            default:                            return JavaScriptProjectFetcherError.UNKNOWN;
+        switch (error) {
+            case SCM_SERVER_ERROR:
+                return JavaScriptProjectFetcherError.SCM_SERVER_ERROR;
+            case SCM_INVALID_URL:
+                return JavaScriptProjectFetcherError.SCM_INVALID_URL;
+            case SCM_ILLEGAL_PROJECT_NAME:
+                return JavaScriptProjectFetcherError.SCM_ILLEGAL_PROJECT_NAME;
+            case SCM_RESOURCE_NOT_FOUND:
+                return JavaScriptProjectFetcherError.SCM_RESOURCE_NOT_FOUND;
+            case JAVASCRIPT_EVAL_ERROR:
+                return JavaScriptProjectFetcherError.JAVASCRIPT_EVAL_ERROR;
+            case JAVASCRIPT_REFERENCE_ERROR:
+                return JavaScriptProjectFetcherError.JAVASCRIPT_REFERENCE_ERROR;
+            case JAVASCRIPT_READ_ERROR:
+                return JavaScriptProjectFetcherError.JAVASCRIPT_READ_ERROR;
+            default:
+                return JavaScriptProjectFetcherError.UNKNOWN;
         }
     }
 }

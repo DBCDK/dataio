@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components.prompted;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
@@ -41,18 +20,19 @@ import java.util.List;
 public class PromptedList extends PromptedData implements HasValue<String>, HasValueChangeHandlers<String> {
     private boolean valueChangeHandlerInitialized = false;
 
-    @UiField final ListBox listBox;
+    @UiField
+    final ListBox listBox;
 
 
     /**
      * UI Constructor - carries the parameters to be used by UI Binder
-     * @param guiId The GUI Id to be used for this particular DOM element
-     * @param prompt The Prompt text to be used for the List Box
-     * @param multiSelect A boolean, telling if this is a multiselection list box
+     *
+     * @param guiId        The GUI Id to be used for this particular DOM element
+     * @param prompt       The Prompt text to be used for the List Box
+     * @param multiSelect  A boolean, telling if this is a multiselection list box
      * @param visibleItems Counts the number of visible items
      */
-    public @UiConstructor
-    PromptedList(String guiId, String prompt, boolean multiSelect, int visibleItems) {
+    public @UiConstructor PromptedList(String guiId, String prompt, boolean multiSelect, int visibleItems) {
         super(guiId, prompt);
         listBox = new ListBox();
         listBox.setMultipleSelect(multiSelect);
@@ -78,16 +58,18 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
      *   </dio:PromptedList>
      * }
      * </pre>
-     * @param text The containing text in the "item" element
+     *
+     * @param text  The containing text in the "item" element
      * @param value The value of the "value" attribute
      */
-    @UiChild(tagname="item")
+    @UiChild(tagname = "item")
     public void addItem(Label text, String value) {
         listBox.addItem(text.getText(), value);
     }
 
     /**
      * Sets the Tool Tip to be used. Tool Tips will be shown, whenever the user hovers over the component
+     *
      * @param toolTip The Tool Tip to be shown to the user
      */
     public void setToolTip(String toolTip) {
@@ -108,6 +90,7 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
     /**
      * Adds an item to the list of available items in the listbox<br>
      * Only the textual value of the item is given here (the text displayed in the list)
+     *
      * @param text The textual value of the item
      */
     public void addAvailableItem(String text) {
@@ -117,8 +100,9 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
     /**
      * Adds an item to the list of available items in the listbox<br>
      * Both the textual value and the key value of the item is given
+     *
      * @param text The textual value of the item
-     * @param key The key value of the item
+     * @param key  The key value of the item
      */
     public void addAvailableItem(String text, String key) {
         listBox.addItem(text, key);
@@ -126,17 +110,19 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
 
     /**
      * Adds a list of available items to the listbox
+     *
      * @param items The list of items to be added to the listbox
      */
     public void setAvailableItems(List<String> items) {
         listBox.clear();
-        for(String item : items) {
+        for (String item : items) {
             addAvailableItem(item);
         }
     }
 
     /**
      * Fetches the selected item from the list box.
+     *
      * @return The displayed text of the selected item
      */
     public String getSelectedText() {
@@ -150,6 +136,7 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
 
     /**
      * Fetches the key of the selected item from the list box
+     *
      * @return The key of the selected item
      */
     public String getSelectedKey() {
@@ -163,6 +150,7 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
 
     /**
      * Sets the selected item in the listbox. Use the integer index to point out the selected item.
+     *
      * @param selected The index value of the selected item as an integer
      */
     public void setSelected(int selected) {
@@ -171,6 +159,7 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
 
     /**
      * Set the listbox to be enabled or disabled
+     *
      * @param enabled Sets the listbox enabled if true, disabled if false
      */
     public void setEnabled(boolean enabled) {
@@ -179,6 +168,7 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
 
     /**
      * Sets the selection of the listbox. Use the displayed text to point out the item to be selected.
+     *
      * @param text The displayed text of the item to select
      */
     public void setSelectedText(String text) {
@@ -194,11 +184,12 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
 
     /**
      * Sets the selection of the listbox. Use the key value of the item to be used to point out the item to be selected.
+     *
      * @param value The key value of the item to select
      */
     public void setSelectedValue(String value) {
         if (value != null) {
-            for (int i=0; i < listBox.getItemCount(); i++) {
+            for (int i = 0; i < listBox.getItemCount(); i++) {
                 if (value.equals(listBox.getValue(i))) {
                     listBox.setSelectedIndex(i);
                     break;
@@ -211,12 +202,14 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
      * Fires a ChangeEvent
      */
     public void fireChangeEvent() {
-        class ListBoxChangedEvent extends ChangeEvent {}
+        class ListBoxChangedEvent extends ChangeEvent {
+        }
         listBox.fireEvent(new ListBoxChangedEvent());
     }
 
     /**
      * Adds a ChangeHandler to the PromptedList
+     *
      * @param handler The change handler to add
      * @return a HandlerRegistration object
      */
@@ -226,6 +219,7 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
 
     /**
      * Gets the displayed text of the selected item
+     *
      * @return The displayed text of the selected item
      */
     @Override
@@ -235,6 +229,7 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
 
     /**
      * Sets the selection of the listbox. Use the displayed text to point out the selection.
+     *
      * @param value The displayed text of the item to be selected
      */
     @Override
@@ -245,7 +240,8 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
     /**
      * Sets the selection of the listbox. Use the displayed text to point out the selection.<br>
      * If the supplied boolean is true, do also fire a ChangeEvent
-     * @param value The displayed text of the item to be selected
+     *
+     * @param value      The displayed text of the item to be selected
      * @param fireEvents If true, do fire a ChangeEvent
      */
     @Override
@@ -258,6 +254,7 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
 
     /**
      * Adds a ValueChangeHandler to the PromptedList component
+     *
      * @param handler The ValueChangeHandler to add
      * @return A HandlerRegistration object to be used to remove the change handler
      */

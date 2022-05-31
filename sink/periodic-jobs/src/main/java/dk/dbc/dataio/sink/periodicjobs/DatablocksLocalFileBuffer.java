@@ -4,10 +4,11 @@ import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.common.utils.io.UncheckedFileOutputStream;
 import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
 import dk.dbc.dataio.sink.types.SinkException;
-import java.io.File;
-import java.io.IOException;
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import java.io.File;
+import java.io.IOException;
 
 public class DatablocksLocalFileBuffer {
     private EntityManager entityManager;

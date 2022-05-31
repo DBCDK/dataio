@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.commons.addi.AddiRecord;
@@ -40,7 +19,7 @@ import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class AddiDataPartitionerTest {
     private final static InputStream EMPTY_STREAM = StringUtil.asInputStream("");
@@ -140,13 +119,13 @@ public class AddiDataPartitionerTest {
     @Test
     public void partitioner_metaDataContainsPid_returnsRecordInfoWithPid() {
         final InputStream addiStream = StringUtil.asInputStream(
-            "14\n{\"pid\": \"pid\"}\n7\ncontent\n");
+                "14\n{\"pid\": \"pid\"}\n7\ncontent\n");
         final AddiDataPartitioner partitioner = AddiDataPartitioner
-            .newInstance(addiStream, UTF_8_ENCODING);
+                .newInstance(addiStream, UTF_8_ENCODING);
         final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
         final DataPartitionerResult dataPartitionerResult = iterator.next();
         assertThat("pid", dataPartitionerResult.getRecordInfo().getPid(),
-            is("pid"));
+                is("pid"));
     }
 
     @Test

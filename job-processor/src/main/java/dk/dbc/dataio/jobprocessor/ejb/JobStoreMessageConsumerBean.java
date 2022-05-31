@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -48,17 +27,21 @@ import javax.ejb.MessageDriven;
 public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreMessageConsumerBean.class);
 
-    @EJB JobStoreServiceConnectorBean jobStoreServiceConnector;
-    @EJB ChunkProcessorBean chunkProcessor;
-    @EJB CapacityBean capacityBean;
+    @EJB
+    JobStoreServiceConnectorBean jobStoreServiceConnector;
+    @EJB
+    ChunkProcessorBean chunkProcessor;
+    @EJB
+    CapacityBean capacityBean;
 
     private final JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Processes Chunk received in consumed message
+     *
      * @param consumedMessage message to be handled
      * @throws InvalidMessageException if message payload can not be unmarshalled to chunk instance
-     * @throws JobProcessorException on general handling error
+     * @throws JobProcessorException   on general handling error
      */
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, JobProcessorException {
@@ -113,7 +96,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         final StopWatch stopWatch = new StopWatch();
         try {
             jobStoreServiceConnector.getConnector().addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
-        } catch(RuntimeException | JobStoreServiceConnectorException e) {
+        } catch (RuntimeException | JobStoreServiceConnectorException e) {
             if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
                 final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
                 if (jobError != null) {

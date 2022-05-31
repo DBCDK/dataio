@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
 
 
@@ -47,7 +26,9 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 import java.util.Map;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    interface FlowbinderBinder extends UiBinder<HTMLPanel, View> {}
+    interface FlowbinderBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static FlowbinderBinder uiBinder = GWT.create(FlowbinderBinder.class);
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
@@ -56,27 +37,45 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         add(uiBinder.createAndBindUi(this));
     }
 
-    @UiFactory PopupBox<Label> getPopupBox() {
+    @UiFactory
+    PopupBox<Label> getPopupBox() {
         return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
-    @UiField PromptedTextBox name;
-    @UiField PromptedTextArea description;
-    @UiField PromptedTextBox frame;
-    @UiField PromptedTextBox format;
-    @UiField PromptedTextBox charset;
-    @UiField PromptedTextBox destination;
-    @UiField PromptedList priority;
-    @UiField PromptedList recordSplitter;
-    @UiField PromptedMultiList submitters;
-    @UiField PromptedList flow;
-    @UiField PromptedList sink;
-    @UiField HTMLPanel updateSinkSection;
-    @UiField PromptedList queueProvider;
-    @UiField Button deleteButton;
-    @UiField Label status;
-    @UiField PopupListBox popupListBox;
-    @UiField PopupBox<Label> confirmation;
+    @UiField
+    PromptedTextBox name;
+    @UiField
+    PromptedTextArea description;
+    @UiField
+    PromptedTextBox frame;
+    @UiField
+    PromptedTextBox format;
+    @UiField
+    PromptedTextBox charset;
+    @UiField
+    PromptedTextBox destination;
+    @UiField
+    PromptedList priority;
+    @UiField
+    PromptedList recordSplitter;
+    @UiField
+    PromptedMultiList submitters;
+    @UiField
+    PromptedList flow;
+    @UiField
+    PromptedList sink;
+    @UiField
+    HTMLPanel updateSinkSection;
+    @UiField
+    PromptedList queueProvider;
+    @UiField
+    Button deleteButton;
+    @UiField
+    Label status;
+    @UiField
+    PopupListBox popupListBox;
+    @UiField
+    PopupBox<Label> confirmation;
 
     @UiHandler("name")
     void nameChanged(BlurEvent event) {

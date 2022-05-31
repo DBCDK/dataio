@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.jobstore;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -34,8 +29,8 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
      * Given: a valid job request with a datafile containing 15 items
      * When : submitted to job-store
      * Then : a job is created
-     *  And : two chunks are sent to the processor queue
-     *  And : the job is partitioned
+     * And : two chunks are sent to the processor queue
+     * And : the job is partitioned
      * When : processor results are received for both chunks
      * Then : two chunks are sent to the sink queue
      * When : sink results are received for both chunks

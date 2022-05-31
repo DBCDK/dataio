@@ -22,7 +22,7 @@ public class FileStoreProxyServlet extends RemoteServiceServlet implements FileS
     }
 
     @Override
-    public void addMetadata(final String fileId, final Map<String, String> metadata) throws ProxyException{
+    public void addMetadata(final String fileId, final Map<String, String> metadata) throws ProxyException {
         fileStoreProxy.addMetadata(fileId, metadata);
     }
 

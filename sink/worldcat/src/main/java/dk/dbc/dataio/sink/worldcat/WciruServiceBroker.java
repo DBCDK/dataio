@@ -29,8 +29,9 @@ public class WciruServiceBroker {
 
     /**
      * Pushes record contained in given chunk item to WorldCat via WCIRU service
+     *
      * @param chunkItemWithWorldCatAttributes chunk item enriched with WorldCat attributes
-     * @param worldCatEntity cached WorldCat metadata
+     * @param worldCatEntity                  cached WorldCat metadata
      * @return broker result
      */
     public Result push(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes, WorldCatEntity worldCatEntity) {
@@ -42,6 +43,7 @@ public class WciruServiceBroker {
 
     /**
      * Determines if record is to be deleted
+     *
      * @param chunkItemWithWorldCatAttributes chunk item enriched with WorldCat attributes
      * @return true if all holdings have action delete, otherwise false
      */
@@ -54,8 +56,9 @@ public class WciruServiceBroker {
 
     /**
      * Deletes record and associated holdings
+     *
      * @param chunkItemWithWorldCatAttributes chunk item enriched with WorldCat attributes
-     * @param worldCatEntity cached WorldCat metadata
+     * @param worldCatEntity                  cached WorldCat metadata
      * @return {@link Result}
      */
     private Result wciruDeleteRecord(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes, WorldCatEntity worldCatEntity) {
@@ -106,8 +109,9 @@ public class WciruServiceBroker {
 
     /**
      * Adds or updates record and associated holdings
+     *
      * @param chunkItemWithWorldCatAttributes chunk item enriched with WorldCat attributes
-     * @param worldCatEntity cached WorldCat metadata
+     * @param worldCatEntity                  cached WorldCat metadata
      * @return {@link Result}
      */
     private Result wciruAddOrUpdateRecord(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes, WorldCatEntity worldCatEntity) {
@@ -143,6 +147,7 @@ public class WciruServiceBroker {
 
     /**
      * Extracts WorldCat identifier (OCN) from WCIRU service response
+     *
      * @param response WCIRU service response
      * @return WorldCat identifier
      * @throws IllegalStateException if no OCN was returned by WCIRU service
@@ -157,6 +162,7 @@ public class WciruServiceBroker {
 
     /**
      * Extracts diagnostics from WCIRU service response
+     *
      * @param response WCIRU service response
      * @return list of diagnostics
      */
@@ -171,7 +177,8 @@ public class WciruServiceBroker {
 
     /**
      * Verifies that given OCN matches the one in the given WCIRU service response
-     * @param response WCIRU service response
+     *
+     * @param response    WCIRU service response
      * @param expectedOcn expected WorldCat identifier
      * @throws OcnMismatchException on mismatch
      */
@@ -189,6 +196,7 @@ public class WciruServiceBroker {
 
     /**
      * Transforms chunk item data into WCIRU service payload
+     *
      * @param chunkItemWithWorldCatAttributes chunk item enriched with WorldCat attributes
      * @return WCIRU service payload
      * @throws IllegalArgumentException on failure to transform data
@@ -310,9 +318,10 @@ public class WciruServiceBroker {
 
         /**
          * Replaces record in WorldCat
-         * @param ocn WorldCat record identifier
+         *
+         * @param ocn           WorldCat record identifier
          * @param recordContent record content
-         * @param holding holding symbol and action
+         * @param holding       holding symbol and action
          * @return WCIRU service response
          * @throws WciruServiceConnectorException on WCIRU service failure
          */
@@ -333,7 +342,8 @@ public class WciruServiceBroker {
 
         /**
          * Unlinks record in WorldCat
-         * @param ocn WorldCat record identifier
+         *
+         * @param ocn           WorldCat record identifier
          * @param recordContent record content
          * @return WCIRU service response
          * @throws WciruServiceConnectorException on WCIRU service failure
@@ -350,9 +360,10 @@ public class WciruServiceBroker {
 
         /**
          * Creates new or updates existing record in WorldCat
-         * @param ocn WorldCat record identifier
+         *
+         * @param ocn           WorldCat record identifier
          * @param recordContent record content
-         * @param holding holding symbol
+         * @param holding       holding symbol
          * @return WCIRU service response
          * @throws WciruServiceConnectorException on WCIRU service failure
          */

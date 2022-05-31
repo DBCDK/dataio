@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -40,16 +19,20 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
-    @Mock private Texts mockedTexts;
-    @Mock private EditPlace mockedEditPlace;
-    @Mock private ViewGinjector mockedViewGinjector;
-    @Mock private DataBinder mockedDataBinder;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private EditPlace mockedEditPlace;
+    @Mock
+    private ViewGinjector mockedViewGinjector;
+    @Mock
+    private DataBinder mockedDataBinder;
 
     private View editView;
     private PresenterEditImpl presenterEditImpl;
     private final static long DEFAULT_SUBMITTER_ID = 426L;
 
-    class PresenterEditImplConcrete <Place extends EditPlace> extends PresenterEditImpl {
+    class PresenterEditImplConcrete<Place extends EditPlace> extends PresenterEditImpl {
         public PresenterEditImplConcrete(Place place, String header) {
             super(place, header);
             commonInjector = mockedCommonGinjector;
@@ -58,7 +41,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
         public GetSubmitterModelFilteredAsyncCallback getSubmitterModelFilteredAsyncCallback = new GetSubmitterModelFilteredAsyncCallback();
     }
-        //------------------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------------
 
     @Before
     public void setupMockedObjects() {

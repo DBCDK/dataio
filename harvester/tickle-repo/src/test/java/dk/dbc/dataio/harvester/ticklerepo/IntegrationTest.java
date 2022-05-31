@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.harvester.ticklerepo;
 
 import dk.dbc.commons.persistence.JpaTestEnvironment;
@@ -54,7 +33,7 @@ public abstract class IntegrationTest extends MultiJpaIntegrationTest {
                 .add("ticklerepo", new JpaTestEnvironment(tickleRepoDataSource, "tickleRepoIT",
                         getTickleRepoEntityManagerFactoryProperties(tickleRepoDataSource)));
         try (Connection conn = tickleRepoDataSource.getConnection();
-                Statement statement = conn.createStatement()) {
+             Statement statement = conn.createStatement()) {
             statement.executeUpdate("DELETE FROM record");
             statement.executeUpdate("DELETE FROM batch");
             statement.executeUpdate("DELETE FROM dataset");
@@ -66,7 +45,7 @@ public abstract class IntegrationTest extends MultiJpaIntegrationTest {
         executeScriptResource("ticklerepo", "/tickle-repo.sql");
         return environment;
     }
-    
+
     @Before
     public void clearTaskRepo() {
         final JpaTestEnvironment taskEnvironment = environment.get("taskrepo");

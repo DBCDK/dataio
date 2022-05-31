@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -127,7 +106,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             flowComponents = getFlowComponentsLatestVersion(model.getFlowComponents());
             flow = flowStoreServiceConnector.createFlow(FlowModelMapper.toFlowContent(model, flowComponents));
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return FlowModelMapper.toModel(flow);
@@ -146,12 +125,11 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             if (model.getVersion() != flowOpenedForUpdate.getVersion()) {
                 log.error("FlowStoreProxy: updateFlow - Concurrent Update Error");
                 throw new ProxyException(ProxyError.CONFLICT_ERROR, "Concurrent Update Error");
-            }
-            else {
+            } else {
                 flowComponents = getFlowComponents(flowOpenedForUpdate, model.getFlowComponents());
                 flow = flowStoreServiceConnector.updateFlow(FlowModelMapper.toFlowContent(model, flowComponents), model.getId(), model.getVersion());
             }
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return FlowModelMapper.toModel(flow);
@@ -163,7 +141,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", flowId, version);
         try {
             flowStoreServiceConnector.deleteFlow(flowId, version);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
     }
@@ -175,7 +153,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             flowViews = flowStoreServiceConnector.findAllFlows();
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return FlowModelMapper.fromListOfFlowViews(flowViews);
@@ -188,7 +166,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         Flow flow = null;
         try {
             flow = flowStoreServiceConnector.getFlow(id);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return FlowModelMapper.toModel(flow);
@@ -213,7 +191,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                     createdFlowComponent.getId(),
                     createdFlowComponent.getVersion());
 
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return FlowComponentModelMapper.toModel(flowComponent);
@@ -235,7 +213,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                     updatedContentFlowComponent.getId(),
                     updatedContentFlowComponent.getVersion());
 
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return FlowComponentModelMapper.toModel(flowComponent);
@@ -248,7 +226,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         Flow flow = null;
         try {
             flow = flowStoreServiceConnector.refreshFlowComponents(id, version);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return FlowModelMapper.toModel(flow);
@@ -260,7 +238,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", flowComponentId, version);
         try {
             flowStoreServiceConnector.deleteFlowComponent(flowComponentId, version);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
     }
@@ -272,7 +250,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: {}()", callerMethodName);
         try {
             result = flowStoreServiceConnector.findAllFlowComponents();
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return FlowComponentModelMapper.fromListOfFlowComponentViews(result);
@@ -285,7 +263,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({});", id);
         try {
             result = flowStoreServiceConnector.getFlowComponent(id);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return FlowComponentModelMapper.toModel(result);
@@ -308,7 +286,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                     getFlowModelLatestVersion(model.getFlowModel()),
                     getSubmitterModelsLatestVersion(model.getSubmitterModels()),
                     getSinkModelLatestVersion(model.getSinkModel()));
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return flowBinderModel;
@@ -325,12 +303,12 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             flowBinder = flowStoreServiceConnector.updateFlowBinder(FlowBinderModelMapper.toFlowBinderContent(model), model.getId(), model.getVersion());
             submitterModels = new ArrayList<>(flowBinder.getContent().getSubmitterIds().size());
-            for(Long submitterId : flowBinder.getContent().getSubmitterIds()) {
+            for (Long submitterId : flowBinder.getContent().getSubmitterIds()) {
                 submitterModels.add(SubmitterModelMapper.toModel(flowStoreServiceConnector.getSubmitter(submitterId)));
             }
             flowModel = FlowModelMapper.toModel(flowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId()));
             sinkModel = SinkModelMapper.toModel(flowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId()));
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return FlowBinderModelMapper.toModel(flowBinder, flowModel, submitterModels, sinkModel);
@@ -342,7 +320,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", flowBinderId, version);
         try {
             flowStoreServiceConnector.deleteFlowBinder(flowBinderId, version);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
     }
@@ -377,10 +355,10 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                                     .withOrder(Ordering.Order.ASC)
                                     .withSortCase(Ordering.SortCase.LOWER))
                             .build());
-            for (FlowBinder flowBinder: flowBinders) {
+            for (FlowBinder flowBinder : flowBinders) {
                 final List<SubmitterModel> submitterModels =
                         new ArrayList<>(flowBinder.getContent().getSubmitterIds().size());
-                for (long submitterId: flowBinder.getContent().getSubmitterIds()) {
+                for (long submitterId : flowBinder.getContent().getSubmitterIds()) {
                     submitterModels.add(cachedSubmitterMap.get(submitterId));
                 }
                 flowBinderModels.add(
@@ -392,7 +370,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                         )
                 );
             }
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return flowBinderModels;
@@ -419,21 +397,21 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         cachedFlowMap.clear();
         try {
             flowBinders = flowStoreServiceConnector.findAllFlowBinders();
-            for (FlowBinder flowBinder: flowBinders) {
+            for (FlowBinder flowBinder : flowBinders) {
                 submitterModels = new ArrayList<>(flowBinder.getContent().getSubmitterIds().size());
-                for (long submitterId: flowBinder.getContent().getSubmitterIds()) {
+                for (long submitterId : flowBinder.getContent().getSubmitterIds()) {
                     submitterModels.add(cachedSubmitterMap.get(submitterId));
                 }
                 flowBinderModels.add(
                         FlowBinderModelMapper.toModel(
-                                    flowBinder,
-                                    cachedFlowMap.get(flowBinder.getContent().getFlowId()),
-                                    submitterModels,
-                                    cachedSinkMap.get(flowBinder.getContent().getSinkId())
-                                )
+                                flowBinder,
+                                cachedFlowMap.get(flowBinder.getContent().getFlowId()),
+                                submitterModels,
+                                cachedSinkMap.get(flowBinder.getContent().getSinkId())
+                        )
                 );
             }
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return flowBinderModels;
@@ -450,11 +428,11 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             flowBinder = flowStoreServiceConnector.getFlowBinder(id);
             flowModel = FlowModelMapper.toModel(flowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId()));
-            for (long submitterId: flowBinder.getContent().getSubmitterIds()) {
+            for (long submitterId : flowBinder.getContent().getSubmitterIds()) {
                 submitterModels.add(SubmitterModelMapper.toModel(flowStoreServiceConnector.getSubmitter(submitterId)));
             }
             sinkModel = SinkModelMapper.toModel(flowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId()));
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return FlowBinderModelMapper.toModel(flowBinder, flowModel, submitterModels, sinkModel);
@@ -471,7 +449,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", model.getId(), model.getVersion());
         try {
             submitter = flowStoreServiceConnector.createSubmitter(SubmitterModelMapper.toSubmitterContent(model));
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return SubmitterModelMapper.toModel(submitter);
@@ -484,7 +462,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", model.getId(), model.getVersion());
         try {
             submitter = flowStoreServiceConnector.updateSubmitter(SubmitterModelMapper.toSubmitterContent(model), model.getId(), model.getVersion());
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return SubmitterModelMapper.toModel(submitter);
@@ -496,7 +474,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", submitterId, version);
         try {
             flowStoreServiceConnector.deleteSubmitter(submitterId, version);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
     }
@@ -513,10 +491,10 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                                     .withIdentifier("submitters:content.number")
                                     .withOrder(Ordering.Order.ASC))
                             .build());
-            for (Submitter submitter: submitters) {
+            for (Submitter submitter : submitters) {
                 submitterModels.add(SubmitterModelMapper.toModel(submitter));
             }
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return submitterModels;
@@ -529,7 +507,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName);
         try {
             submitters = flowStoreServiceConnector.findAllSubmitters();
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return SubmitterModelMapper.toListOfSubmitterModels(submitters);
@@ -542,11 +520,12 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({});", submitterId);
         try {
             submitter = flowStoreServiceConnector.getSubmitter(submitterId);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return SubmitterModelMapper.toModel(submitter);
     }
+
     @Override
     public List<FlowBinderIdent> getFlowBindersForSubmitter(long submitterId) throws ProxyException {
         final String callerMethodName = "getFlowBindersForSubmitter";
@@ -554,7 +533,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({});", submitterId);
         try {
             flowBinderIdents = flowStoreServiceConnector.getFlowBindersForSubmitter(submitterId);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return flowBinderIdents;
@@ -572,7 +551,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", model.getSinkName());
         try {
             sink = flowStoreServiceConnector.createSink(SinkModelMapper.toSinkContent(model));
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return SinkModelMapper.toModel(sink);
@@ -585,7 +564,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", model.getId(), model.getVersion());
         try {
             sink = flowStoreServiceConnector.updateSink(SinkModelMapper.toSinkContent(model), model.getId(), model.getVersion());
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return SinkModelMapper.toModel(sink);
@@ -597,7 +576,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", sinkId, version);
         try {
             flowStoreServiceConnector.deleteSink(sinkId, version);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
     }
@@ -609,7 +588,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             sinks = flowStoreServiceConnector.findAllSinks();
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return SinkModelMapper.toListOfSinkModels(sinks);
@@ -622,7 +601,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
         try {
             sink = flowStoreServiceConnector.getSink(id);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return SinkModelMapper.toModel(sink);
@@ -639,7 +618,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", config.getId(), config.getVersion());
         try {
             return flowStoreServiceConnector.updateHarvesterConfig(config);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
             return null;
         }
@@ -651,7 +630,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", sinkId, version);
         try {
             flowStoreServiceConnector.deleteHarvesterConfig(sinkId, version);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
     }
@@ -663,7 +642,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         //log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getKey()); // ja7
         try {
             return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), RRHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
             return null;
         }
@@ -672,12 +651,12 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public List<RRHarvesterConfig> findAllRRHarvesterConfigs() throws ProxyException {
         final String callerMethodName = "findAllRRHarvesterConfigs";
-        List<RRHarvesterConfig> rrHarvesterConfigs=null;
+        List<RRHarvesterConfig> rrHarvesterConfigs = null;
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             rrHarvesterConfigs = new ArrayList<>();
-            rrHarvesterConfigs.addAll( flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class));
-        } catch(Exception genericException) {
+            rrHarvesterConfigs.addAll(flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class));
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return rrHarvesterConfigs;
@@ -703,7 +682,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId());
         try {
             return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), TickleRepoHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
             return null;
         }
@@ -716,7 +695,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             tickleRepoHarvesterConfigs = flowStoreServiceConnector.findHarvesterConfigsByType(TickleRepoHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return tickleRepoHarvesterConfigs;
@@ -729,7 +708,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
         try {
             harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, TickleRepoHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return harvesterConfig;
@@ -742,7 +721,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId());
         try {
             return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), CoRepoHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
             return null;
         }
@@ -755,7 +734,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             CoRepoHarvesterConfigs = flowStoreServiceConnector.findHarvesterConfigsByType(CoRepoHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return CoRepoHarvesterConfigs;
@@ -768,7 +747,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
         try {
             harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, CoRepoHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return harvesterConfig;
@@ -782,7 +761,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId());
         try {
             return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), InfomediaHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
             return null;
         }
@@ -795,7 +774,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             configs = flowStoreServiceConnector.findHarvesterConfigsByType(InfomediaHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return configs;
@@ -808,7 +787,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
         try {
             config = flowStoreServiceConnector.getHarvesterConfig(id, InfomediaHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return config;
@@ -821,7 +800,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId());
         try {
             return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), PeriodicJobsHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
             return null;
         }
@@ -834,7 +813,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             configs = flowStoreServiceConnector.findHarvesterConfigsByType(PeriodicJobsHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return configs;
@@ -847,7 +826,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
         try {
             config = flowStoreServiceConnector.getHarvesterConfig(id, PeriodicJobsHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return config;
@@ -861,7 +840,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             configs = flowStoreServiceConnector.findHarvesterConfigsByType(PromatHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return configs;
@@ -874,7 +853,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
         try {
             config = flowStoreServiceConnector.getHarvesterConfig(id, PromatHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return config;
@@ -888,7 +867,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             configs = flowStoreServiceConnector.findHarvesterConfigsByType(DMatHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return configs;
@@ -901,7 +880,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
         try {
             config = flowStoreServiceConnector.getHarvesterConfig(id, DMatHarvesterConfig.class);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return config;
@@ -918,7 +897,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             destination = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestination);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return destination;
@@ -931,7 +910,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             destinations = flowStoreServiceConnector.findAllGatekeeperDestinations();
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return destinations;
@@ -943,7 +922,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             flowStoreServiceConnector.deleteGatekeeperDestination(id);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
     }
@@ -955,7 +934,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             updatedGatekeeperDestination = flowStoreServiceConnector.updateGatekeeperDestination(gatekeeperDestination);
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return updatedGatekeeperDestination;
@@ -976,9 +955,10 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     /**
      * Handle exceptions thrown by the FlowStoreServiceConnector and wrap them in ProxyExceptions
-     * @param exception generic exception which in turn can be both Checked and Unchecked
+     *
+     * @param exception        generic exception which in turn can be both Checked and Unchecked
      * @param callerMethodName calling method name for logging
-     * @throws ProxyException GUI exception
+     * @throws ProxyException       GUI exception
      * @throws NullPointerException Null pointer exception
      */
     private void handleExceptions(Exception exception, String callerMethodName) throws ProxyException, NullPointerException {
@@ -1009,12 +989,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     /**
      * Fetches the latest Submitter Models given as input
+     *
      * @param submitterModels The current versions of the Submitter Models
      * @return The latest versions of the Submitter Models
      */
     private List<SubmitterModel> getSubmitterModelsLatestVersion(List<SubmitterModel> submitterModels) throws FlowStoreServiceConnectorException {
         List<SubmitterModel> models = new ArrayList<>();
-        for (SubmitterModel model: submitterModels) {
+        for (SubmitterModel model : submitterModels) {
             models.add(SubmitterModelMapper.toModel(flowStoreServiceConnector.getSubmitter(model.getId())));
         }
         return models;
@@ -1022,6 +1003,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     /**
      * Fetches the latest version of the Flow Model given as input
+     *
      * @param flowModel The current version of the Flow Model
      * @return The latest version of the Flow Model
      */
@@ -1031,6 +1013,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     /**
      * Fetches the latest version of the Sink Model given as input
+     *
      * @param sinkModel The current version of the Sink Model
      * @return The latest version of the Sink Model
      */
@@ -1044,12 +1027,11 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      *
      * @param flowComponentModels containing information regarding which flow components should be retrieved from the flow store
      * @return flowComponents, a list containing the retrieved flow components
-     *
      * @throws FlowStoreServiceConnectorException Flowstore Service Connector Exception
      */
-    private List<FlowComponent> getFlowComponentsLatestVersion (List<FlowComponentModel> flowComponentModels) throws FlowStoreServiceConnectorException {
+    private List<FlowComponent> getFlowComponentsLatestVersion(List<FlowComponentModel> flowComponentModels) throws FlowStoreServiceConnectorException {
         List<FlowComponent> flowComponents = new ArrayList<>(flowComponentModels.size());
-        for(FlowComponentModel flowComponentModel : flowComponentModels) {
+        for (FlowComponentModel flowComponentModel : flowComponentModels) {
             FlowComponent flowComponent = flowStoreServiceConnector.getFlowComponent(flowComponentModel.getId());
             flowComponents.add(flowComponent);
         }
@@ -1061,33 +1043,32 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      * within the flow.
      * if the id is located, the method takes the flow component from the flow, and adds it to a list
      * if the id is not located, the flow component is taken directly from the flow store and adds it to the list
-     *
+     * <p>
      * This is done for the following reasons:
-     *      The frontend object (flowComponentModel) does not contain the full data set needed by
-     *      the backend object (flowComponent).
-     *
-     *      The flow component is nested within a flow. Therefore the flow components of an existing flow cannot be replaced by
-     *      retrieving the latest version of the same flow component from the flow store.
+     * The frontend object (flowComponentModel) does not contain the full data set needed by
+     * the backend object (flowComponent).
+     * <p>
+     * The flow component is nested within a flow. Therefore the flow components of an existing flow cannot be replaced by
+     * retrieving the latest version of the same flow component from the flow store.
      *
      * @param flow, the version of the flow that is currently saved in the underlying database
      * @param model containing the updated flow data
-     *
      * @return flowComponents, a list containing the flow components that should be used.
      * @throws FlowStoreServiceConnectorException Flowstore Service Connector Exception
      */
-    private List<FlowComponent> getFlowComponents (Flow flow, List<FlowComponentModel> model) throws FlowStoreServiceConnectorException {
+    private List<FlowComponent> getFlowComponents(Flow flow, List<FlowComponentModel> model) throws FlowStoreServiceConnectorException {
         List<FlowComponent> flowComponents = new ArrayList<>(model.size());
         for (FlowComponentModel flowComponentModel : model) {
             int counter = 0;
             boolean isNewFlowComponent = true;
-            while(isNewFlowComponent && counter < flow.getContent().getComponents().size()) {
+            while (isNewFlowComponent && counter < flow.getContent().getComponents().size()) {
                 if (flowComponentModel.getId() == flow.getContent().getComponents().get(counter).getId()) {
                     // The flow component lave been located within the existing flow. Re-use the flow component
                     flowComponents.add(flow.getContent().getComponents().get(counter));
                     // End loop.
                     isNewFlowComponent = false;
                 }
-                counter ++;
+                counter++;
             }
             if (isNewFlowComponent) {
                 // Retrieve the latest version of the flow component from the flow store
@@ -1126,12 +1107,24 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     // Additional stuff for the Cache class to facilitate usage of exception throwing Supplier classes
 
-    @FunctionalInterface public interface Supplier_WithExceptions<T, E extends Exception> {T get() throws E;}
-    @SuppressWarnings ("unchecked") private static <E extends Throwable> void throwAsUnchecked(Exception exception) throws E {throw (E)exception;}
+    @FunctionalInterface
+    public interface Supplier_WithExceptions<T, E extends Exception> {
+        T get() throws E;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <E extends Throwable> void throwAsUnchecked(Exception exception) throws E {
+        throw (E) exception;
+    }
+
     private static <T, E extends Exception> Supplier<T> rethrowSupplier(Supplier_WithExceptions<T, E> function) {
         return () -> {
-            try { return function.get(); }
-            catch (Exception exception) { throwAsUnchecked(exception); return null; }
+            try {
+                return function.get();
+            } catch (Exception exception) {
+                throwAsUnchecked(exception);
+                return null;
+            }
         };
     }
 

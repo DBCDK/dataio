@@ -54,23 +54,23 @@ public class ConfigJson {
             String config = new String(bytes, StandardCharsets.UTF_8);
             JSONBContext jsonbContext = new JSONBContext();
             return jsonbContext.unmarshall(config, ConfigJson.class);
-        } catch(IOException | JSONBException e) {
+        } catch (IOException | JSONBException e) {
             throw new ConfigParseException(String.format(
-                "Error parsing config %s: %s", configPath, e.toString()), e);
+                    "Error parsing config %s: %s", configPath, e.toString()), e);
         }
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(this.getClass().getSimpleName())
-            .append("{vipCoreEndpoint=").append(vipCoreEndpoint)
-            .append(", ocn2pidServiceTarget=").append(ocn2pidServiceTarget)
-            .append(", flowStoreEndpoint=").append(flowStoreEndpoint)
-            .append(", dbHost=").append(dbHost)
-            .append(", dbName=").append(dbName)
-            .append(", dbUser=").append(dbUser)
-            .append(", dbPassword=").append(dbPassword)
-            .append(", dbPort}").append(dbPort);
+                .append("{vipCoreEndpoint=").append(vipCoreEndpoint)
+                .append(", ocn2pidServiceTarget=").append(ocn2pidServiceTarget)
+                .append(", flowStoreEndpoint=").append(flowStoreEndpoint)
+                .append(", dbHost=").append(dbHost)
+                .append(", dbName=").append(dbName)
+                .append(", dbUser=").append(dbUser)
+                .append(", dbPassword=").append(dbPassword)
+                .append(", dbPort}").append(dbPort);
         return sb.toString();
     }
 }

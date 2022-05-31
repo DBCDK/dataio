@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -41,7 +20,7 @@ public class State {
     @JsonProperty
     private final List<Diagnostic> diagnostics;
 
-    public enum Phase { PARTITIONING, PROCESSING, DELIVERING }
+    public enum Phase {PARTITIONING, PROCESSING, DELIVERING}
 
     public State() {
         diagnostics = new ArrayList<>();
@@ -73,16 +52,15 @@ public class State {
 
     /**
      * Method used to update the state object through the state elements: partitioning, processing, delivering
+     *
      * @param stateChange holding the values used for update
      */
     public void updateState(StateChange stateChange) {
-        if(stateChange == null) {
+        if (stateChange == null) {
             throw new NullPointerException("State Change input cannot be null");
-        }
-        else if(stateChange.getPhase() == null) {
+        } else if (stateChange.getPhase() == null) {
             throw new IllegalStateException("Phase: (Partitioning, Processing, Delivering) must be provided as input");
-        }
-        else {
+        } else {
             updateStateElement(states.get(stateChange.getPhase()), stateChange);
         }
     }
@@ -99,6 +77,7 @@ public class State {
 
     /**
      * Checks if all phases are done (end dates are set on all phases)
+     *
      * @return true if all phases have completed, otherwise false
      */
     public boolean allPhasesAreDone() {
@@ -112,6 +91,7 @@ public class State {
 
     /**
      * Retrieves the list of diagnostics
+     *
      * @return list of diagnostics, empty list if no diagnostic has been added.
      */
     public List<Diagnostic> getDiagnostics() {
@@ -120,12 +100,13 @@ public class State {
 
     /**
      * Checks if a diagnostic with level: FATAL has been set on state
+     *
      * @return true if the list of diagnostics contains any diagnostic with level: FATAL,
-     *         otherwise false.
+     * otherwise false.
      */
     public boolean fatalDiagnosticExists() {
-        for(Diagnostic diagnostic : diagnostics) {
-            if(diagnostic.getLevel() == Diagnostic.Level.FATAL) {
+        for (Diagnostic diagnostic : diagnostics) {
+            if (diagnostic.getLevel() == Diagnostic.Level.FATAL) {
                 return true;
             }
         }
@@ -140,10 +121,10 @@ public class State {
      * Method updating used to update a state element
      *
      * @param stateElement to update
-     * @param stateChange holding the values used for update
+     * @param stateChange  holding the values used for update
      */
     private void updateStateElement(StateElement stateElement, StateChange stateChange) {
-        if(stateElement.getEndDate() == null) {
+        if (stateElement.getEndDate() == null) {
             setBeginDate(stateElement, stateChange);
             updateStateElementStatusCounters(stateElement, stateChange);
             setEndDate(stateElement, stateChange);
@@ -155,7 +136,7 @@ public class State {
      * The begin date from state element is used if set. If not set the current time is used as beginDate
      *
      * @param stateElement to update
-     * @param stateChange holding the values used for update
+     * @param stateChange  holding the values used for update
      */
     private void setBeginDate(StateElement stateElement, StateChange stateChange) {
         if (stateElement.getBeginDate() == null && stateChange.getBeginDate() != null) {
@@ -170,7 +151,7 @@ public class State {
      * The incrementation number, provided through the state change object, CANNOT be a negative number.
      *
      * @param stateElement to update
-     * @param stateChange holding the values used for update
+     * @param stateChange  holding the values used for update
      */
     private void updateStateElementStatusCounters(StateElement stateElement, StateChange stateChange) throws IllegalArgumentException {
         stateElement.withSucceeded(stateElement.getSucceeded() + stateChange.getSucceeded());
@@ -181,21 +162,20 @@ public class State {
     /**
      * Method used to determine if an end date should be set on the state element object
      * partitioning must be complete before either processing or delivering can complete.
-     *
+     * <p>
      * Note: regarding asynchronous returns:
      * We are assuming its possible for delivering to be marked as "finished" before processing
      * is marked as "finished" due to asynchronous returns.
      * -> Our current requirements might need polishing later on.
      *
      * @param stateElement partitioning, processing or delivering
-     * @param stateChange containing the desired changes
-     *
+     * @param stateChange  containing the desired changes
      * @throws IllegalStateException if attempting to set an end date on either processing or delivering before
-     *         partitioning is done
+     *                               partitioning is done
      */
     private void setEndDate(StateElement stateElement, StateChange stateChange) throws IllegalStateException {
         if (stateChange.getPhase() == Phase.PARTITIONING) {
-                stateElement.withEndDate(stateChange.getEndDate());
+            stateElement.withEndDate(stateChange.getEndDate());
         } else {
             StateElement partitioning = getPhase(Phase.PARTITIONING);
             if (partitioning.getEndDate() != null && stateChange.getEndDate() != null) {
@@ -212,7 +192,7 @@ public class State {
 
     /**
      * Method used to determine if an end date should be added to the stateElement.
-     *
+     * <p>
      * Returns true if:
      * The end date is set on partitioning and:
      * The sum of (succeeded, failed, ignored) on partitioning equals the sum of
@@ -231,6 +211,7 @@ public class State {
 
     /**
      * Retrieves the current time in milliseconds
+     *
      * @return new Date
      */
     private Date getDateWithCurrentTime() {

@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.commons.types.jndi;
 
 import java.util.HashMap;
@@ -18,8 +13,9 @@ public enum RawRepo {
     FBSTEST("jdbc/dataio/rawrepo-exttest");
 
     private static final Map<String, RawRepo> BY_STRING = new HashMap<>();
+
     static {
-        for (RawRepo rawRepo: values()) {
+        for (RawRepo rawRepo : values()) {
             BY_STRING.put(rawRepo.name().toLowerCase(), rawRepo);
             BY_STRING.put(rawRepo.jndiResourceName, rawRepo);
         }

@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.promat.modify;
 
 import com.google.gwt.event.shared.EventBus;
@@ -46,6 +41,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
                     e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(PromatHarvesterConfig config) {
             if (config == null) {
@@ -63,6 +59,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
                     e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(HarvesterConfig config) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());

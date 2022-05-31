@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.types.criteria;
 
 import dk.dbc.invariant.InvariantUtil;
@@ -55,7 +34,7 @@ import java.util.Objects;
  * }
  * </code>
  * </pre>
- *
+ * <p>
  * Upcoming features:
  * <pre>
  *   andWhere(ListFilter&lt;T&gt; filter)
@@ -63,7 +42,7 @@ import java.util.Objects;
  *   whereIn(T, List&lt;Object&gt;)
  * </pre>
  */
-public abstract class ListCriteria<T extends ListFilterField, U extends ListCriteria<T,U>> implements Serializable {
+public abstract class ListCriteria<T extends ListFilterField, U extends ListCriteria<T, U>> implements Serializable {
     private LinkedList<ListFilterGroup<T>> filtering;
     private ArrayList<ListOrderBy<T>> ordering;
     private int limit;
@@ -77,49 +56,49 @@ public abstract class ListCriteria<T extends ListFilterField, U extends ListCrit
     @SuppressWarnings("unchecked")
     public U where(ListFilter<T> filter) throws NullPointerException {
         filtering.add(new ListFilterGroup<T>().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND)));
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
     public U and(ListFilter<T> filter) throws NullPointerException {
         filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND));
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
-    public U where( ListCriteria<T,U> other) {
+    public U where(ListCriteria<T, U> other) {
         filtering.addAll(other.filtering);
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
-    public U and(ListCriteria<T,U> other) {
+    public U and(ListCriteria<T, U> other) {
         filtering.addAll(other.filtering);
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
     public U or(ListFilter<T> filter) throws NullPointerException {
         filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.OR));
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
     public U not() {
         filtering.getLast().not();
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
     public U limit(int limit) {
         this.limit = limit;
-        return (U)this;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
     public U offset(int offset) {
         this.offset = offset;
-        return (U)this;
+        return (U) this;
     }
 
     public List<ListFilterGroup<T>> getFiltering() {
@@ -133,7 +112,7 @@ public abstract class ListCriteria<T extends ListFilterField, U extends ListCrit
     @SuppressWarnings("unchecked")
     public U orderBy(ListOrderBy<T> orderBy) throws NullPointerException {
         ordering.add(InvariantUtil.checkNotNullOrThrow(orderBy, "orderBy"));
-        return (U)this;
+        return (U) this;
     }
 
     public void removeOrderBy() {

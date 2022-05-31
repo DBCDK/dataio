@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.flowcomponent.modify;
 
 import com.google.gwt.user.client.ui.IsWidget;
@@ -59,9 +38,12 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
 
-    @Mock private Texts mockedTexts;
-    @Mock private JavaScriptProjectFetcherAsync mockedJavaScriptProjectFetcher;
-    @Mock private ViewGinjector mockedViewGinjector;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private JavaScriptProjectFetcherAsync mockedJavaScriptProjectFetcher;
+    @Mock
+    private ViewGinjector mockedViewGinjector;
 
     private static boolean initializeModelHasBeenCalled;
     private static boolean saveModelHasBeenCalled;
@@ -189,7 +171,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         assertThat(presenterImpl.availableRevisions.isEmpty(), is(true));
         presenterImpl.setAvailableRevisions(Arrays.asList(revisionInfo));
         assertThat(presenterImpl.availableRevisions.size(), is(1));
-        assertThat(presenterImpl.availableRevisions.get(0), is (Long.valueOf(revisionInfo.getRevision()).toString()));
+        assertThat(presenterImpl.availableRevisions.get(0), is(Long.valueOf(revisionInfo.getRevision()).toString()));
     }
 
     @Test
@@ -198,7 +180,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         assertThat(presenterImpl.availableScripts.isEmpty(), is(true));
         presenterImpl.setAvailableScripts(Collections.singletonList(JAVA_SCRIPT_NAME));
         assertThat(presenterImpl.availableScripts.size(), is(1));
-        assertThat(presenterImpl.availableScripts.get(0), is (JAVA_SCRIPT_NAME));
+        assertThat(presenterImpl.availableScripts.get(0), is(JAVA_SCRIPT_NAME));
     }
 
     @Test
@@ -207,7 +189,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         assertThat(presenterImpl.availableInvocationMethods.isEmpty(), is(true));
         presenterImpl.setAvailableInvocationMethods(Collections.singletonList(INVOCATION_METHOD));
         assertThat(presenterImpl.availableInvocationMethods.size(), is(1));
-        assertThat(presenterImpl.availableInvocationMethods.get(0), is (INVOCATION_METHOD));
+        assertThat(presenterImpl.availableInvocationMethods.get(0), is(INVOCATION_METHOD));
     }
 
     @Test
@@ -349,6 +331,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenter();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }
+
     private void setupPresenter() {
         presenterImpl = new PresenterImplConcrete(header);
         presenterImpl.commonInjector = mockedCommonGinjector;

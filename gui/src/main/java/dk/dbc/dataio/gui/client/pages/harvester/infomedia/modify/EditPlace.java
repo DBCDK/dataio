@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.infomedia.modify;
 
 import com.google.gwt.activity.shared.Activity;
@@ -38,6 +33,7 @@ public class EditPlace extends AbstractBasePlace {
         public String getToken(EditPlace place) {
             return String.valueOf(place.getHarvesterId());
         }
+
         @Override
         public EditPlace getPlace(String token) {
             return new EditPlace(token);

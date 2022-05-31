@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.types;
 
 /**
@@ -44,9 +23,10 @@ public class MarcRecordInfo extends RecordInfo {
 
     /**
      * constructor
-     * @param id identifier of marc record
-     * @param type type of marc record
-     * @param isDelete flag indicating if marc record is delete marked
+     *
+     * @param id             identifier of marc record
+     * @param type           type of marc record
+     * @param isDelete       flag indicating if marc record is delete marked
      * @param parentRelation identifier of marc record parent, can be null or empty
      */
     @JsonCreator
@@ -70,7 +50,7 @@ public class MarcRecordInfo extends RecordInfo {
     @Override
     public Set<String> getKeys(SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
         final Set<String> keys = super.getKeys(sequenceAnalysisOption);
-        if(sequenceAnalysisOption == SinkContent.SequenceAnalysisOption.ALL && parentRelation != null) {
+        if (sequenceAnalysisOption == SinkContent.SequenceAnalysisOption.ALL && parentRelation != null) {
             keys.add(parentRelation);
         }
         return keys;

@@ -33,19 +33,19 @@ public class TestableAddJobParamBuilder {
     private FlowStoreReferences flowStoreReferences = new FlowStoreReferencesBuilder().build();
     private FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private byte[] records = (
-              "<records>"
-            + "<record>first</record>"
-            + "<record>second</record>"
-            + "<record>third</record>"
-            + "<record>fourth</record>"
-            + "<record>fifth</record>"
-            + "<record>sixth</record>"
-            + "<record>seventh</record>"
-            + "<record>eighth</record>"
-            + "<record>ninth</record>"
-            + "<record>tenth</record>"
-            + "<record>eleventh</record>"
-            + "</records>").getBytes();
+            "<records>"
+                    + "<record>first</record>"
+                    + "<record>second</record>"
+                    + "<record>third</record>"
+                    + "<record>fourth</record>"
+                    + "<record>fifth</record>"
+                    + "<record>sixth</record>"
+                    + "<record>seventh</record>"
+                    + "<record>eighth</record>"
+                    + "<record>ninth</record>"
+                    + "<record>tenth</record>"
+                    + "<record>eleventh</record>"
+                    + "</records>").getBytes();
 
     public TestableAddJobParamBuilder setDiagnostics(List<Diagnostic> diagnostics) {
         this.diagnostics = diagnostics;

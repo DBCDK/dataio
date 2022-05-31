@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.promat;
 
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
@@ -42,7 +37,7 @@ public class ScheduledHarvestBeanTest {
     }
 
     @Test
-     void canRunWithValidSchedule() {
+    void canRunWithValidSchedule() {
         final PromatHarvesterConfig config = new PromatHarvesterConfig(1, 2,
                 new PromatHarvesterConfig.Content()
                         .withSchedule("* * * * *")

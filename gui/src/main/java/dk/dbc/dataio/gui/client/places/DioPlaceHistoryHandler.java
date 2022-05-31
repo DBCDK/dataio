@@ -70,7 +70,7 @@ public class DioPlaceHistoryHandler {
          * {@link ValueChangeHandler#onValueChange(com.google.gwt.event.logical.shared.ValueChangeEvent)}
          * to be called as well.
          *
-         * @param token The token
+         * @param token      The token
          * @param issueEvent A boolean determining whether to issue an event
          */
         void newItem(String token, boolean issueEvent);
@@ -99,7 +99,7 @@ public class DioPlaceHistoryHandler {
     /**
      * Create a new PlaceHistoryHandler.
      *
-     * @param mapper a {@link PlaceHistoryMapper} instance
+     * @param mapper    a {@link PlaceHistoryMapper} instance
      * @param historian a {@link DioPlaceHistoryHandler.Historian} instance
      */
     public DioPlaceHistoryHandler(PlaceHistoryMapper mapper, DioPlaceHistoryHandler.Historian historian) {
@@ -118,12 +118,11 @@ public class DioPlaceHistoryHandler {
     /**
      * Legacy method tied to the old location for {@link EventBus}.
      *
-     * @deprecated use {@link #register(PlaceController, EventBus, Place)}
-     *
      * @param placeController The Placecontroller
-     * @param eventBus The Eventbus
-     * @param defaultPlace The default place
+     * @param eventBus        The Eventbus
+     * @param defaultPlace    The default place
      * @return A Handler Registration Object
+     * @deprecated use {@link #register(PlaceController, EventBus, Place)}
      */
     @Deprecated
     public com.google.gwt.event.shared.HandlerRegistration register(PlaceController placeController,
@@ -133,12 +132,12 @@ public class DioPlaceHistoryHandler {
 
     /**
      * Initialize this place history handler.
-     *
+     * <p>
      * Returns a registration object to de-register the handler
      *
      * @param placeController The Placecontroller
-     * @param eventBus The Eventbus
-     * @param defaultPlace The default place
+     * @param eventBus        The Eventbus
+     * @param defaultPlace    The default place
      * @return A Handler Registration Object
      */
     public HandlerRegistration register(PlaceController placeController, EventBus eventBus,

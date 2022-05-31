@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.logstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
@@ -50,12 +29,13 @@ public class LogEntriesBean {
 
     /**
      * Retrieves log for given item in given chunk in given job
-     * @param jobId ID of job
+     *
+     * @param jobId   ID of job
      * @param chunkId ID of chunk in job
-     * @param itemId ID of item in chunk
+     * @param itemId  ID of item in chunk
      * @return a HTTP 200 OK response with log entries as text
-     *         a HTTP 404 NOT_FOUND response in case no log entries could be found
-     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     * a HTTP 404 NOT_FOUND response in case no log entries could be found
+     * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      */
     @GET
     @Path(LogStoreServiceConstants.ITEM_LOG_ENTRY_COLLECTION)

@@ -1,25 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 
@@ -33,8 +11,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -42,10 +20,10 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class JavascriptLogTabContentTest {
@@ -53,9 +31,12 @@ public class JavascriptLogTabContentTest {
     final String CANNOT_FETCH_JAVASCRIPT_LOG = "Mocked Cannot fetch javascript log";
     private final static String NBSP = new String(new char[8]).replace("\0", "\u00A0");
 
-    @Mock LogStoreProxyAsync mockedLogStoreProxy;
-    @Mock Texts mockedTexts;
-    @Mock Throwable mockedThrowable;
+    @Mock
+    LogStoreProxyAsync mockedLogStoreProxy;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    Throwable mockedThrowable;
 
 
     class JavascriptLogTabContentConcrete extends JavascriptLogTabContent {

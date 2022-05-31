@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.dpf.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -21,7 +16,7 @@ public class ProcessingInstructions {
     private DpfRecord.State recordState;
     private List<String> errors = new ArrayList<>(0);
 
-   public int getSubmitter() {
+    public int getSubmitter() {
         return submitter;
     }
 

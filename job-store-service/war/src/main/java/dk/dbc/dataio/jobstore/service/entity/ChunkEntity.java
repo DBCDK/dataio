@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
@@ -45,7 +24,7 @@ public class ChunkEntity {
      */
 
     @EmbeddedId
-    private Key key=new Key(-1,-1);
+    private Key key = new Key(-1, -1);
 
     @Column(nullable = false)
     private String dataFileId;
@@ -123,12 +102,12 @@ public class ChunkEntity {
 
     // builder api
     public ChunkEntity withJobId(int jobId) {
-        this.key.setJobId(jobId );
+        this.key.setJobId(jobId);
         return this;
     }
 
     public ChunkEntity withChunkId(int chunkId) {
-        this.key.setId( chunkId );
+        this.key.setId(chunkId);
         return this;
     }
 
@@ -168,7 +147,8 @@ public class ChunkEntity {
         private int jobId;
 
         /* Private constructor in order to keep class static */
-        private Key(){}
+        private Key() {
+        }
 
         public Key(int id, int jobId) {
             this.id = id;

@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -15,13 +10,14 @@ import java.io.Serializable;
     actual instantiable type.
 */
 
-@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, property="type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "type")
 public class Pickup implements Serializable {
     private String overrideFilename;
     private String contentHeader;
     private String contentFooter;
 
-    Pickup() {}
+    Pickup() {
+    }
 
     public String getOverrideFilename() {
         return overrideFilename;
@@ -40,12 +36,12 @@ public class Pickup implements Serializable {
         return contentFooter;
     }
 
-    public Pickup withContentHeader(String contentHeader)  throws UnsupportedOperationException {
+    public Pickup withContentHeader(String contentHeader) throws UnsupportedOperationException {
         this.contentHeader = contentHeader;
         return this;
     }
-    
-    public Pickup withContentFooter(String contentFooter)  throws UnsupportedOperationException  {
+
+    public Pickup withContentFooter(String contentFooter) throws UnsupportedOperationException {
         this.contentFooter = contentFooter;
         return this;
     }

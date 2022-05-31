@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.core.client.GWT;
@@ -51,11 +30,14 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     // Instantiate UI Binder
-    interface MyUiBinder extends UiBinder<Widget, ViewWidget> {}
+    interface MyUiBinder extends UiBinder<Widget, ViewWidget> {
+    }
+
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
     /**
      * Default constructor
+     *
      * @param headerText, the text for the header in the view
      */
     public ViewWidget(String headerText) {
@@ -67,26 +49,45 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     }
 
     // UI Fields
-    @UiField CellTable jobsTable;
-    @UiField JobFilter jobFilter;
-    @UiField SimplePager pagerTop;
-    @UiField SimplePager pagerBottom;
-    @UiField Button refreshButton;
-    @UiField Button rerunAllShownJobsButton;
-    @UiField PromptedList numberOfShownJobsSelection;
-    @UiField TextBox jobIdInputField;
-    @UiField PushButton showJobButton;
-    @UiField DialogBox rerunAllShownJobsConfirmationDialog;
-    @UiField Label rerunJobsCount;
-    @UiField Label rerunJobsList;
-    @UiField Label rerunJobsConfirmation;
-    @UiField Button rerunOkButton;
-    @UiField PopupSelectBox popupSelectBox;
-    @UiField PushButton changeColorSchemeButton;
-    @UiField PushButton logButton;
+    @UiField
+    CellTable jobsTable;
+    @UiField
+    JobFilter jobFilter;
+    @UiField
+    SimplePager pagerTop;
+    @UiField
+    SimplePager pagerBottom;
+    @UiField
+    Button refreshButton;
+    @UiField
+    Button rerunAllShownJobsButton;
+    @UiField
+    PromptedList numberOfShownJobsSelection;
+    @UiField
+    TextBox jobIdInputField;
+    @UiField
+    PushButton showJobButton;
+    @UiField
+    DialogBox rerunAllShownJobsConfirmationDialog;
+    @UiField
+    Label rerunJobsCount;
+    @UiField
+    Label rerunJobsList;
+    @UiField
+    Label rerunJobsConfirmation;
+    @UiField
+    Button rerunOkButton;
+    @UiField
+    PopupSelectBox popupSelectBox;
+    @UiField
+    PushButton changeColorSchemeButton;
+    @UiField
+    PushButton logButton;
     // Only public due to JobFilterTest
-    @UiField public PopupListBox changeColorSchemeListBox;
-    @UiField CheckBox autoRefresh;
+    @UiField
+    public PopupListBox changeColorSchemeListBox;
+    @UiField
+    CheckBox autoRefresh;
 
 
     @UiFactory
@@ -104,7 +105,8 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @SuppressWarnings("unused")
     void jobFilterChanged(ChangeEvent event) {
         presenter.updateSelectedJobs();
-        logButton.fireEvent(new ClickEvent(){});
+        logButton.fireEvent(new ClickEvent() {
+        });
     }
 
     @UiHandler("refreshButton")
@@ -160,7 +162,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     @UiHandler("jobIdInputField")
     void onKeyDown(KeyDownEvent event) {
-        if(event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
+        if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
             presenter.showJob();
         }
     }
@@ -213,7 +215,9 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     // Abstract methods
     abstract void rerunAllShownJobs();
+
     abstract void rerunAllShownJobsConfirmed();
+
     abstract void setAutoRefresh(boolean autoRefresh);
 
 }

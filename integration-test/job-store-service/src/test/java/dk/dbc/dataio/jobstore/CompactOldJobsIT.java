@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobstore;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -14,26 +13,26 @@ import org.junit.Test;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.fail;
 
-public class CompactOldJobsIT extends AbstractJobStoreServiceContainerTest{
-    final String OLD_JOB_ID                 = "41434";
-    final String A_LITTLE_YOUNGER_JOB_ID    = "41435";
+public class CompactOldJobsIT extends AbstractJobStoreServiceContainerTest {
+    final String OLD_JOB_ID = "41434";
+    final String A_LITTLE_YOUNGER_JOB_ID = "41435";
 
 
     /**
      * Given: Two existing jobs
-     *      - One old. To be cleaned. One chunk with six items.
-     *      - One a little younger. One chunk with six items. Left as is.
-     *
+     * - One old. To be cleaned. One chunk with six items.
+     * - One a little younger. One chunk with six items. Left as is.
+     * <p>
      * When: purgeJobs is executed
-     *
+     * <p>
      * Then:
-     *      - The old job no longer has logs. Chunk and items for the job no longer exists.
-     *      - The younger job has been left unharmed.
+     * - The old job no longer has logs. Chunk and items for the job no longer exists.
+     * - The younger job has been left unharmed.
      */
     @Test
     public void cleanOldJobs() throws JobStoreServiceConnectorException, LogStoreServiceConnectorException {

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -45,11 +24,11 @@ import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN
 /**
  * Rerun rules: (top 3 supersedes bottom 3):
  * Type = [any] means that the Action takes precedence.
- *
+ * <p>
  * Action = COPY, the job can only by rerun by re-submitting a copy of the existing job.
  * Action = RERUN_ALL, the job can be rerun by re-creating the job.
  * Action = RERUN_FAILED, the job can be rerun by re-creating a job containing only failed items.
- *
+ * <p>
  * ************************************************************************* *
  * +------------------+  +-----------------------+  +----------------------+ *
  * | fatal diagnostic |= | Action = COPY         |= | Type = [any]         | *
@@ -67,19 +46,19 @@ import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN
  * +----------------------+  +-----------------------+  +------------------+ *
  * | to tickle incremental|= | Action = RERUN_ALL    |= | Type = TICKLE    | *
  * +----------------------+  | Action = RERUN_FAILED |  |                  | *
- *                           +-----------------------+  +------------------+ *
+ * +-----------------------+  +------------------+ *
  * +------------------+  +-----------------------+  +----------------------+ *
  * | from tickle      |= | Action = RERUN_ALL    |= | Type = TICKLE        | *
  * +------------------+  | Action = RERUN_FAILED |  |                      | *
- *                       +-----------------------+  +----------------------+ *
+ * +-----------------------+  +----------------------+ *
  * +------------------+  +-----------------------+  +----------------------+ *
  * | from raw repo    |= | Action = RERUN_ALL    |= | Type = RR            | *
  * +------------------+  | Action = RERUN_FAILED |  |                      | *
- *                       +-----------------------+  +----------------------+ *
+ * +-----------------------+  +----------------------+ *
  * +------------------+  +-----------------------+  +----------------------+ *
  * | "normal" job     |= | Action = RERUN_ALL    |= | Type = ORIGINAL_FILE | *
  * +------------------+  | Action = RERUN_FAILED |  |                      | *
- *                       +-----------------------+  +----------------------+ *
+ * +-----------------------+  +----------------------+ *
  * ************************************************************************* *
  */
 public class JobRerunSchemeParser {
@@ -91,8 +70,8 @@ public class JobRerunSchemeParser {
 
     /**
      * Deciphers the rule set for rerunning different types of jobs.
-     * @param jobInfoSnapshot the job to decipher the rerun rules for.
      *
+     * @param jobInfoSnapshot the job to decipher the rerun rules for.
      * @return jobRerunScheme containing legal actions for given job as well as type of rerun.
      * @throws FlowStoreServiceConnectorException on failure to look up sink
      */
@@ -106,9 +85,9 @@ public class JobRerunSchemeParser {
     /* private methods */
 
     private Type getRerunType(JobInfoSnapshot jobInfoSnapshot, Sink sink) {
-        if(isFromRawRepo(jobInfoSnapshot)) {
+        if (isFromRawRepo(jobInfoSnapshot)) {
             return Type.RR;
-        } else if(isTickle(jobInfoSnapshot, sink)) {
+        } else if (isTickle(jobInfoSnapshot, sink)) {
             return Type.TICKLE;
         } else {
             // Any job that is not of type (TICKLE, RR)
@@ -121,17 +100,17 @@ public class JobRerunSchemeParser {
     }
 
     /*
-    * Determines if the job is to be rerun towards tickle repo
-    */
+     * Determines if the job is to be rerun towards tickle repo
+     */
     private boolean isToTickle(Sink sink) {
-        if(sink == null) {
+        if (sink == null) {
             return false;
         }
         return sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE;
     }
 
     private Sink lookupSink(JobInfoSnapshot jobInfoSnapshot) throws FlowStoreServiceConnectorException {
-        if(jobInfoSnapshot.getSpecification().getType() == JobSpecification.Type.ACCTEST
+        if (jobInfoSnapshot.getSpecification().getType() == JobSpecification.Type.ACCTEST
                 || jobInfoSnapshot.getFlowStoreReferences() == null || jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK) == null) {
             return null;
         }
@@ -142,7 +121,7 @@ public class JobRerunSchemeParser {
      * Determines if the job is to be rerun from tickle repo
      */
     private boolean isFromTickle(JobInfoSnapshot jobInfoSnapshot) {
-        if(jobInfoSnapshot.getSpecification().getAncestry() == null) {
+        if (jobInfoSnapshot.getSpecification().getAncestry() == null) {
             return false;
         }
         final HarvesterToken harvesterToken = HarvesterToken.of(jobInfoSnapshot.getSpecification().getAncestry().getHarvesterToken());
@@ -153,7 +132,7 @@ public class JobRerunSchemeParser {
      * Determines if the job is to be rerun from raw repo
      */
     private boolean isFromRawRepo(JobInfoSnapshot jobInfoSnapshot) {
-        if(jobInfoSnapshot.getSpecification().getAncestry() == null) {
+        if (jobInfoSnapshot.getSpecification().getAncestry() == null) {
             return false;
         }
         final HarvesterToken harvesterToken = HarvesterToken.of(jobInfoSnapshot.getSpecification().getAncestry().getHarvesterToken());
@@ -169,11 +148,11 @@ public class JobRerunSchemeParser {
             return legalActions;
         }
 
-        if(isCopyJob(jobInfoSnapshot)) {
+        if (isCopyJob(jobInfoSnapshot)) {
             legalActions.add(Action.COPY);
         } else {
             legalActions.add(Action.RERUN_ALL);
-            if(canRerunFailedOnly(jobInfoSnapshot, sink)) {
+            if (canRerunFailedOnly(jobInfoSnapshot, sink)) {
                 legalActions.add(Action.RERUN_FAILED);
             }
         }
@@ -211,6 +190,7 @@ public class JobRerunSchemeParser {
             return false;
         } else return sink == null || !sink.getContent().getResource().equals(JobRerunScheme.TICKLE_TOTAL);
     }
+
     /*
      * Determines if the given job has failed items in any phase
      */

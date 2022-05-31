@@ -58,9 +58,9 @@ public class StateModel implements Serializable {
     }
 
     public int getIgnoredCounter() {
-        if(delivering.getIgnored() != 0) {
+        if (delivering.getIgnored() != 0) {
             return delivering.getIgnored();
-        } else if(processing.getIgnored() != 0) {
+        } else if (processing.getIgnored() != 0) {
             return processing.getIgnored();
         } else {
             return partitioning.getIgnored();

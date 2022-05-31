@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.commons.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -30,15 +9,15 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsNull.nullValue;
-import static org.junit.Assert.assertThat;
 
 /**
  * FlowComponentContent unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class FlowComponentContentTest {
     private static final String NAME = "name";
@@ -47,7 +26,7 @@ public class FlowComponentContentTest {
     private static final String JAVA_SCRIPT_NAME = "invocationJavascriptName";
     private static final String INVOCATION_METHOD = "method";
     private static final List<JavaScript> JAVASCRIPTS = Collections.singletonList(JavaScriptTest.newJavaScriptInstance());
-    private static final String REQUIRE_CACHE="";
+    private static final String REQUIRE_CACHE = "";
     private static final String DESCRIPTION = "description";
     private final JSONBContext jsonbContext = new JSONBContext();
 
@@ -148,7 +127,7 @@ public class FlowComponentContentTest {
 
     @Test
     public void testJsonUnmarchallOld() throws Exception {
-        String data="{ \"invocationJavascriptName\": \"trunk/tracerBulletXmlDom.js\",\n" +
+        String data = "{ \"invocationJavascriptName\": \"trunk/tracerBulletXmlDom.js\",\n" +
                 "        \"invocationMethod\": \"tracerbullet_xmldom\",\n" +
                 "        \"javascripts\": [\n" +
                 "            {\n" +
@@ -162,19 +141,18 @@ public class FlowComponentContentTest {
                 "        \"name\": \"test\",\n" +
                 "        \"svnProjectForInvocationJavascript\": \"dataio-js-test-projects\",\n" +
                 "        \"svnRevision\": 83597" +
-                "}"
-                ;
+                "}";
 
         final FlowComponentContent flowComponentContent = jsonbContext.unmarshall(data, FlowComponentContent.class);
         assertThat("fisk", flowComponentContent.getName(), is("test"));
-        assertThat( flowComponentContent.getRequireCache(), is(nullValue()));
-        assertThat( flowComponentContent.getDescription(), is(nullValue()));
+        assertThat(flowComponentContent.getRequireCache(), is(nullValue()));
+        assertThat(flowComponentContent.getDescription(), is(nullValue()));
     }
 
     @Test
     public void testJsonUnmarchall() throws Exception {
 
-        String data="{ \"invocationJavascriptName\": \"trunk/tracerBulletXmlDom.js\",\n" +
+        String data = "{ \"invocationJavascriptName\": \"trunk/tracerBulletXmlDom.js\",\n" +
                 "        \"invocationMethod\": \"tracerbullet_xmldom\",\n" +
                 "        \"javascripts\": [\n" +
                 "            {\n" +
@@ -190,8 +168,7 @@ public class FlowComponentContentTest {
                 "        \"svnProjectForInvocationJavascript\": \"dataio-js-test-projects\",\n" +
                 "        \"svnRevision\": 83597,\n" +
                 "        \"requireCache\": \"RequireCacheString\"" +
-                "}"
-                ;
+                "}";
 
         final FlowComponentContent flowComponentContent = jsonbContext.unmarshall(data, FlowComponentContent.class);
         assertThat(flowComponentContent.getName(), is("test"));

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.sink.batchexchange;
 
 import dk.dbc.batchexchange.dto.Batch;
@@ -44,7 +23,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class MessageConsumerBeanIT extends IntegrationTest {
@@ -105,7 +84,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                 .build());
 
         // item with three addi records
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         outputStream.write(addiRecordX.getBytes());
         outputStream.write(addiRecordY.getBytes());
         outputStream.write(addiRecordX.getBytes());
@@ -135,8 +114,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("batch status", batch.getStatus(), is(Batch.Status.PENDING));
         assertThat("batch name", batch.getName(), is(BatchName.fromChunk(chunk).toString()));
 
-        @SuppressWarnings("unchecked")
-        final List<BatchEntry> entries = (List<BatchEntry>) entityManager
+        @SuppressWarnings("unchecked") final List<BatchEntry> entries = (List<BatchEntry>) entityManager
                 .createNamedQuery(BatchEntry.GET_BATCH_ENTRIES_QUERY_NAME)
                 .setParameter(1, batch.getId())
                 .setHint("eclipselink.refresh", true)

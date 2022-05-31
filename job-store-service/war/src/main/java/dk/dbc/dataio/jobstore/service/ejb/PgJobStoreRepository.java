@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -173,9 +152,10 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * Exports from a job all chunk items which have failed in a specific phase
-     * @param jobId of the job
+     *
+     * @param jobId     of the job
      * @param fromPhase specified phase
-     * @param type of export
+     * @param type      of export
      * @param encodedAs specified encoding
      * @return byteArrayOutputStream containing the requested items.
      * @throws JobStoreException on general failure to write output stream
@@ -190,8 +170,9 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * Exports all successful chunk items for a given phase for a given job to file in file-store
-     * @param jobId ID of the job from which to export items
-     * @param fromPhase phase to export
+     *
+     * @param jobId                     ID of the job from which to export items
+     * @param fromPhase                 phase to export
      * @param fileStoreServiceConnector connector used to upload export
      * @return URL of export
      * @throws JobStoreException on failure to export
@@ -206,6 +187,7 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * Tests existance of given job
+     *
      * @param jobId ID of job
      * @return true if job exists, otherwise false
      */
@@ -229,6 +211,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * Creates new job entity and caches associated Flow and Sink as needed.
      * If any Diagnostic with level FATAL is located, the elements will not be cashed.
      * Instead timeOfCompletion is set on the jobEntity, to mark the job as finished as it will be unable to complete if added.
+     *
      * @param addJobParam containing parameter abstraction for the parameters needed by PgJobStore.addJob() method.
      * @return created job entity (managed)
      * @throws JobStoreException if unable to cache associated flow or sink
@@ -270,6 +253,7 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * Creates new job entity with all phases set to completed
+     *
      * @param addJobParam containing parameter abstraction for the parameters
      *                    needed by PgJobStore.addEmptyJob() method.
      * @return created job entity (managed)
@@ -296,20 +280,21 @@ public class PgJobStoreRepository extends RepositoryBase {
      * intended for use outside of this class - accessibility is only so defined
      * to allow the method to be called internally as an EJB business method.
      * </p>
-     * @param submitterId submitter number
-     * @param jobId id of job for which the chunk is to be created
-     * @param chunkId id of the chunk to be created
-     * @param maxChunkSize maximum number of items to be associated to the chunk
+     *
+     * @param submitterId     submitter number
+     * @param jobId           id of job for which the chunk is to be created
+     * @param chunkId         id of the chunk to be created
+     * @param maxChunkSize    maximum number of items to be associated to the chunk
      * @param dataPartitioner data partitioner used for item data extraction
-     * @param keyGenerator dependency tracking key generator
-     * @param dataFileId id of data file from where the items of the chunk originated
+     * @param keyGenerator    dependency tracking key generator
+     * @param dataFileId      id of data file from where the items of the chunk originated
      * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion
      * @throws JobStoreException on referenced entities not found
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public ChunkEntity createChunkEntity(long submitterId, int jobId, int chunkId, short maxChunkSize,
-            DataPartitioner dataPartitioner, KeyGenerator keyGenerator, String dataFileId)
+                                         DataPartitioner dataPartitioner, KeyGenerator keyGenerator, String dataFileId)
             throws JobStoreException {
 
         final ChunkEntity chunkEntity = persistChunk(jobId, chunkId, dataFileId);
@@ -422,8 +407,8 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * @param entityClass class of the Entity
-     * @param primaryKey the primary key
-     * @param <T> the type
+     * @param primaryKey  the primary key
+     * @param <T>         the type
      * @return locked entity
      */
     public <T> T getExclusiveAccessFor(Class<T> entityClass, Object primaryKey) {
@@ -431,7 +416,7 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     /**
-     * @param jobEntity Job Entity
+     * @param jobEntity   Job Entity
      * @param stateChange changed state of the Job
      * @return the updated state
      */
@@ -446,7 +431,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * sets a workflow note on an existing job. Any workflow previously added will be wiped in the process
      *
      * @param workflowNote the note to set
-     * @param jobId of the job to which a workflow note should be attached.
+     * @param jobId        of the job to which a workflow note should be attached.
      * @return the updated jobEntity
      * @throws JobStoreException if unable to find referenced job entity
      */
@@ -463,9 +448,9 @@ public class PgJobStoreRepository extends RepositoryBase {
      * sets a workflow note on an existing item. Any workflow previously added will be wiped in the process
      *
      * @param workflowNote the note to set
-     * @param jobId of the referenced job
-     * @param chunkId of the referenced chunk
-     * @param itemId of the item to which a workflow note should be attached.
+     * @param jobId        of the referenced job
+     * @param chunkId      of the referenced chunk
+     * @param itemId       of the item to which a workflow note should be attached.
      * @return the updated itemEntity
      * @throws JobStoreException if unable to find referenced item entity
      */
@@ -485,7 +470,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @param jobId of job to bundle resources for
      * @return resource bundle
      * @throws InvalidInputException on failure to retrieve job
-     * @throws NullPointerException on null valued input when creating new resource bundle
+     * @throws NullPointerException  on null valued input when creating new resource bundle
      */
     @Stopwatch
     public Flow getCachedFlow(int jobId) throws JobStoreException, NullPointerException {
@@ -497,17 +482,17 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     /**
-     * @param type type of requested chunk
-     * @param jobId id of job containing chunk
+     * @param type    type of requested chunk
+     * @param jobId   id of job containing chunk
      * @param chunkId id of chunk
      * @return chunk representation for given chunk ID, job ID and type or
      * null if no item entities could be found
      * @throws NullPointerException if given null-valued type or if any of
-     * underlying item entities contains no data for the corresponding phase
+     *                              underlying item entities contains no data for the corresponding phase
      */
     @Stopwatch
     public Chunk getChunk(Chunk.Type type, int jobId, int chunkId) throws NullPointerException {
-        final Profiler profiler=new Profiler("pgJobStoreRepository.getChunk");
+        final Profiler profiler = new Profiler("pgJobStoreRepository.getChunk");
         try {
             final State.Phase phase = chunkTypeToStatePhase(InvariantUtil.checkNotNullOrThrow(type, "type"));
             final ItemListCriteria criteria = new ItemListCriteria()
@@ -521,7 +506,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             if (itemEntities.size() > 0) {
                 profiler.start("Loop itemEntities");
                 final Chunk chunk = new Chunk(jobId, chunkId, type);
-                int i=0;
+                int i = 0;
                 for (ItemEntity itemEntity : itemEntities) {
                     if (PROCESSED == type) {
                         // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
@@ -536,7 +521,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             }
             return null;
         } finally {
-            LOGGER.info("pgJobStoreRepository.getChunk timings:\n"+profiler.toString());
+            LOGGER.info("pgJobStoreRepository.getChunk timings:\n" + profiler.toString());
         }
     }
 
@@ -547,19 +532,22 @@ public class PgJobStoreRepository extends RepositoryBase {
         if (itemEntity == null) {
             throwInvalidInputException(format("ItemEntity.Key{jobId:%d, chunkId:%d, itemId:%d} could not be found", jobId, chunkId, itemId), JobError.Code.INVALID_ITEM_IDENTIFIER);
         }
-        switch(phase) {
-            case PARTITIONING:  return itemEntity.getPartitioningOutcome();
-            case PROCESSING:    return itemEntity.getProcessingOutcome();
-            default:            return itemEntity.getDeliveringOutcome();
+        switch (phase) {
+            case PARTITIONING:
+                return itemEntity.getPartitioningOutcome();
+            case PROCESSING:
+                return itemEntity.getProcessingOutcome();
+            default:
+                return itemEntity.getDeliveringOutcome();
         }
     }
 
     /**
      * Retrieves next processing outcome as chunk item
-     * @param jobId id of job containing chunk
-     * @param chunkId id of chunk containing item
-     * @param itemId id of the item
      *
+     * @param jobId   id of job containing chunk
+     * @param chunkId id of chunk containing item
+     * @param itemId  id of the item
      * @return next processing outcome
      * @throws InvalidInputException if unable to find referenced item
      */
@@ -575,12 +563,13 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * Updates item entities for given chunk
+     *
      * @param chunk chunk
      * @return item entities compound object
      * @throws DuplicateChunkException if attempting to update already existing chunk
-     * @throws InvalidInputException if unable to find referenced items or if chunk belongs to PARTITIONING
-     * phase
-     * @throws JobStoreException Job Store Exception
+     * @throws InvalidInputException   if unable to find referenced items or if chunk belongs to PARTITIONING
+     *                                 phase
+     * @throws JobStoreException       Job Store Exception
      */
     @Stopwatch
     public ChunkItemEntities updateChunkItemEntities(Chunk chunk) throws JobStoreException {
@@ -634,12 +623,13 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * Adds Flow instance to job-store cache if not already cached
+     *
      * @param flowJson Flow document to cache
      * @return id of cache line
-     * @throws NullPointerException if given null-valued flowJson
+     * @throws NullPointerException     if given null-valued flowJson
      * @throws IllegalArgumentException if given empty-valued flowJson
-     * @throws IllegalStateException if unable to create checksum digest
-     * entity object to JSON
+     * @throws IllegalStateException    if unable to create checksum digest
+     *                                  entity object to JSON
      */
     @Stopwatch
     public FlowCacheEntity cacheFlow(String flowJson) throws NullPointerException, IllegalArgumentException, IllegalStateException {
@@ -652,12 +642,13 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * Adds Sink instance to job-store cache if not already cached
+     *
      * @param sinkJson Sink document to cache
      * @return id of cache line
-     * @throws NullPointerException if given null-valued sinkJson
+     * @throws NullPointerException     if given null-valued sinkJson
      * @throws IllegalArgumentException if given empty-valued sinkJson
-     * @throws IllegalStateException if unable to create checksum digest
-     * entity object to JSON
+     * @throws IllegalStateException    if unable to create checksum digest
+     *                                  entity object to JSON
      */
     @Stopwatch
     public SinkCacheEntity cacheSink(String sinkJson) throws NullPointerException, IllegalArgumentException, IllegalStateException {
@@ -670,9 +661,10 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * Creates item entities for given chunk using data extracted via given data partitioner
-     * @param jobId id of job containing chunk
-     * @param chunkId id of chunk for which items are to be created
-     * @param maxChunkSize maximum number of items to be associated to the chunk
+     *
+     * @param jobId           id of job containing chunk
+     * @param chunkId         id of chunk for which items are to be created
+     * @param maxChunkSize    maximum number of items to be associated to the chunk
      * @param dataPartitioner data partitioner used for item data extraction
      * @return item entities compound object
      */
@@ -695,14 +687,14 @@ public class PgJobStoreRepository extends RepositoryBase {
                 if (trackingId == null || trackingId.trim().isEmpty()) {
                     // Generate dataio specific tracking id
                     RecordInfo recordInfo = dataPartitionerResult.getRecordInfo();
-                    if(recordInfo instanceof MarcRecordInfo) {
+                    if (recordInfo instanceof MarcRecordInfo) {
                         String recordId = recordInfo.getId();
                         trackingId = TrackingIdGenerator.getTrackingId(
-                            submitterId, recordId, jobId, chunkId, itemCounter);
+                                submitterId, recordId, jobId, chunkId, itemCounter);
                         chunkItem.withTrackingId(trackingId);
                     } else {
                         trackingId = TrackingIdGenerator.getTrackingId(jobId,
-                            chunkId, itemCounter);
+                                chunkId, itemCounter);
                         chunkItem.withTrackingId(trackingId);
                     }
                 }
@@ -774,7 +766,8 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * Updates the job with item information before closing it
-     * @param jobId of the job to preview
+     *
+     * @param jobId           of the job to preview
      * @param dataPartitioner data partitioner used for item data extraction
      * @return job preview
      */
@@ -785,12 +778,12 @@ public class PgJobStoreRepository extends RepositoryBase {
         int succeeded = 0;
         try {
             for (DataPartitionerResult ignored : dataPartitioner) {
-                succeeded ++;
+                succeeded++;
             }
         } catch (PrematureEndOfDataException e) {
             throw e;
         } catch (RuntimeException e) {
-            failed ++;
+            failed++;
         }
         StateChange stateChange = new StateChange();
         stateChange.setPhase(State.Phase.PARTITIONING);
@@ -849,17 +842,21 @@ public class PgJobStoreRepository extends RepositoryBase {
                 break;
         }
     }
+
     private State updateItemEntityState(ItemEntity itemEntity, StateChange stateChange) {
         final State itemState = new State(itemEntity.getState());
         itemState.updateState(stateChange);
         itemEntity.setState(itemState);
         return itemState;
     }
+
     private void setOutcomeOnItemEntityFromPhase(Chunk chunk, State.Phase phase, ItemEntity itemEntity, ChunkItem chunkItem) throws InvalidInputException {
         switch (phase) {
-            case PROCESSING: itemEntity.setProcessingOutcome(chunkItem);
+            case PROCESSING:
+                itemEntity.setProcessingOutcome(chunkItem);
                 break;
-            case DELIVERING: itemEntity.setDeliveringOutcome(chunkItem);
+            case DELIVERING:
+                itemEntity.setDeliveringOutcome(chunkItem);
                 break;
             case PARTITIONING:
                 throwInvalidInputException(format("Trying to add items to %s phase of Chunk[%d,%d]", phase, chunk.getJobId(), chunk.getChunkId()), JobError.Code.ILLEGAL_CHUNK);
@@ -877,19 +874,24 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     private State.Phase chunkTypeToStatePhase(Chunk.Type chunkType) {
         switch (chunkType) {
-            case PARTITIONED: return State.Phase.PARTITIONING;
-            case PROCESSED:   return State.Phase.PROCESSING;
-            case DELIVERED:   return State.Phase.DELIVERING;
-            default: throw new IllegalStateException(format("Unknown type: '%s'", chunkType));
+            case PARTITIONED:
+                return State.Phase.PARTITIONING;
+            case PROCESSED:
+                return State.Phase.PROCESSING;
+            case DELIVERED:
+                return State.Phase.DELIVERING;
+            default:
+                throw new IllegalStateException(format("Unknown type: '%s'", chunkType));
         }
     }
+
     private void throwDuplicateChunkException(String errMsg, JobError.Code jobErrorCode) throws DuplicateChunkException {
         final JobError jobError = new JobError(jobErrorCode, errMsg, JobError.NO_STACKTRACE);
         throw new DuplicateChunkException(errMsg, jobError);
     }
 
     // EJB specification dictates Public across EJB's.
-    public static class  ChunkItemEntities {
+    public static class ChunkItemEntities {
         public final List<ItemEntity> entities;
         public final StateChange chunkStateChange;
         public final List<String> keys;

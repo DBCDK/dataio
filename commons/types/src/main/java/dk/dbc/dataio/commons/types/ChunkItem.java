@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -37,7 +16,7 @@ import java.util.List;
 
 /**
  * Chunk item DTO class.
- *
+ * <p>
  * This class is NOT thread safe.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -45,8 +24,10 @@ public class ChunkItem implements Serializable {
     public static final ChunkItem UNDEFINED = null;
     private static final long serialVersionUID = -7214362358523195493L;
 
-    public enum Status { SUCCESS, FAILURE, IGNORE }
-    public enum Type { UNKNOWN,
+    public enum Status {SUCCESS, FAILURE, IGNORE}
+
+    public enum Type {
+        UNKNOWN,
         ADDI,
         DANMARC2_LINEFORMAT,
         MARC21_LINEFORMAT,
@@ -89,10 +70,11 @@ public class ChunkItem implements Serializable {
 
     /**
      * Class constructor (deprecated)
-     * @param id item identifier, must be larger than {@value Constants#CHUNK_ITEM_ID_LOWER_BOUND}
-     * @param data item data, can be empty, but not null
-     * @param status item status can not be null
-     * @param type item type as list to support Embeddable formats, can also be null or empty
+     *
+     * @param id       item identifier, must be larger than {@value Constants#CHUNK_ITEM_ID_LOWER_BOUND}
+     * @param data     item data, can be empty, but not null
+     * @param status   item status can not be null
+     * @param type     item type as list to support Embeddable formats, can also be null or empty
      * @param encoding item charset encoding, can also be null
      */
     public ChunkItem(long id, byte[] data, Status status, List<Type> type, Charset encoding) {
@@ -107,8 +89,9 @@ public class ChunkItem implements Serializable {
 
     /**
      * Class constructor (used to enforce invariant checks during deserialization)
-     * @param id item identifier, must be larger than {@value Constants#CHUNK_ITEM_ID_LOWER_BOUND}
-     * @param data item data, can be empty, but not null
+     *
+     * @param id     item identifier, must be larger than {@value Constants#CHUNK_ITEM_ID_LOWER_BOUND}
+     * @param data   item data, can be empty, but not null
      * @param status item status can not be null
      */
     @JsonCreator
@@ -184,8 +167,9 @@ public class ChunkItem implements Serializable {
 
     /**
      * If given list of diagnostics is not null or empty:
-     *   - If any one of the diagnostics has a level different from WARNING, then status of this chunk item is set to FAILURE.
-     *   - Given diagnostics are appended to this chunk item.
+     * - If any one of the diagnostics has a level different from WARNING, then status of this chunk item is set to FAILURE.
+     * - Given diagnostics are appended to this chunk item.
+     *
      * @param diagnostics containing list of descriptions of the reasons for failure
      * @return reference to self
      */
@@ -205,6 +189,7 @@ public class ChunkItem implements Serializable {
 
     /**
      * Alias for withDiagnostic() with a single diagnostic argument.
+     *
      * @param diagnostic diagnostic to be appended to this chunk item
      */
     public void appendDiagnostics(Diagnostic diagnostic) {
@@ -213,6 +198,7 @@ public class ChunkItem implements Serializable {
 
     /**
      * Alias for withDiagnostic() with a multiple diagnostic arguments.
+     *
      * @param diagnostics diagnostics to be appended to this chunk item
      */
     public void appendDiagnostics(List<Diagnostic> diagnostics) {

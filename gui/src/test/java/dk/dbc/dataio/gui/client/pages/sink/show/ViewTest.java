@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.sink.show;
 
 import com.google.gwt.cell.client.FieldUpdater;
@@ -59,10 +38,14 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
-    @Mock Presenter mockedPresenter;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock static ClickEvent mockedClickEvent;
-    @Mock private ViewGinjector mockedViewGinjector;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock
+    static ClickEvent mockedClickEvent;
+    @Mock
+    private ViewGinjector mockedViewGinjector;
 
 
     // Test Data
@@ -75,7 +58,8 @@ public class ViewTest {
     private View view;
 
     // Mocked Texts
-    @Mock static Texts mockedTexts;
+    @Mock
+    static Texts mockedTexts;
     final static String MOCKED_LABEL_SINKS = "Mocked Text: label_Sinks";
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: button_Edit";
     final static String MOCKED_COLUMNHEADER_TYPE = "Mocked Text: columnHeader_Type";
@@ -91,6 +75,7 @@ public class ViewTest {
         public ViewConcrete() {
             super();
         }
+
         @Override
         public Texts getTexts() {
             return mockedTexts;
@@ -127,7 +112,7 @@ public class ViewTest {
 
         // Verify invocations
         verify(view.sinksTable).addRangeChangeHandler(any(RangeChangeEvent.Handler.class));
-        verify(view.sinksTable).setRowCount(0,true);
+        verify(view.sinksTable).setRowCount(0, true);
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_TYPE));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_DESCRIPTION));

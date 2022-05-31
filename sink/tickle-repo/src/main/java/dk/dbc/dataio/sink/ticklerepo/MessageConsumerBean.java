@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.sink.ticklerepo;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -92,7 +71,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             final Batch batch = getBatch(chunk);
 
             final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-            if(chunk.isTerminationChunk()) {
+            if (chunk.isTerminationChunk()) {
                 try {
                     // Give the before-last message enough time to commit
                     // its records to the tickle-repo before initiating
@@ -102,7 +81,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     // small risk that the end-chunk would reach this bean
                     // before all data was available.)
                     Thread.sleep(5000);
-                } catch(InterruptedException e) {
+                } catch (InterruptedException e) {
                     throw new SinkException(e);
                 }
                 result.insertItem(handleJobEnd(chunk.getItems().get(0), batch));
@@ -112,7 +91,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             }
 
             uploadChunk(result);
-        } catch( Exception any ) {
+        } catch (Exception any) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
             metricsHandler.increment(TickleCounterMetrics.UNHANDLED_EXCEPTIONS);
             throw any;
@@ -209,7 +188,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     long handleChunkItemStartTime = System.currentTimeMillis();
                     ChunkItem item = putInTickleBatch(batch, chunkItem);
                     metricsHandler.update(TickleTimerMetrics.HANDLE_CHUNK_ITEM, Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime),
-                            new Tag("dataset", Integer.toString( batch.getDataset() )));
+                            new Tag("dataset", Integer.toString(batch.getDataset())));
                     return item;
                 case FAILURE:
                     return ChunkItem.ignoredChunkItem()

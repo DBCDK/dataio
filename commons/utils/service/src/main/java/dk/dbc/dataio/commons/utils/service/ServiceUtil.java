@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.commons.utils.service;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -38,15 +17,15 @@ public class ServiceUtil {
     private static final Logger log = LoggerFactory.getLogger(ServiceUtil.class);
     private static final JSONBContext jsonbContext = new JSONBContext();
 
-    private ServiceUtil() { }
+    private ServiceUtil() {
+    }
 
     /**
      * Builds service method response
      *
      * @param status HTTP status code of response
      * @param entity entity to include in response
-     * @param <T> type parameter for entity type
-     *
+     * @param <T>    type parameter for entity type
      * @return response object
      */
     public static <T> Response buildResponse(Response.Status status, T entity) {
@@ -58,7 +37,6 @@ public class ServiceUtil {
      * constructed from given exception
      *
      * @param ex exception to wrap
-     *
      * @return JSON string representation of ServiceError object
      */
     public static String asJsonError(Exception ex) {
@@ -69,9 +47,8 @@ public class ServiceUtil {
      * Returns JSON string representation of dk.dbc.dataio.commons.types.ServiceError object
      * constructed from given exception and message
      *
-     * @param ex exception to wrap
+     * @param ex      exception to wrap
      * @param message describing the error
-     *
      * @return JSON string representation of ServiceError object
      */
     public static String asJsonError(Exception ex, String message) {

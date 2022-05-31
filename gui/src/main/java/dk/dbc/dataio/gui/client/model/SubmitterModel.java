@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.model;
 
 import dk.dbc.dataio.gui.client.util.Format;
@@ -34,13 +13,14 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Constructor with all parameters
-     * @param id Id for the Submitter Model
-     * @param version Version number for the Submitter Model
-     * @param number Submitter number
-     * @param name Submitter name
+     *
+     * @param id          Id for the Submitter Model
+     * @param version     Version number for the Submitter Model
+     * @param number      Submitter number
+     * @param name        Submitter name
      * @param description Submitter description
-     * @param priority Submitter priority
-     * @param enabled Submitter status
+     * @param priority    Submitter priority
+     * @param enabled     Submitter status
      */
     public SubmitterModel(long id, long version, String number, String name, String description, Integer priority, Boolean enabled) {
         super(id, version);
@@ -75,6 +55,7 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set number
+     *
      * @param number Submitter number
      */
     public void setNumber(String number) {
@@ -90,6 +71,7 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set name
+     *
      * @param name Submitter name
      */
     public void setName(String name) {
@@ -105,6 +87,7 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set description
+     *
      * @param description Submitter description
      */
     public void setDescription(String description) {
@@ -120,6 +103,7 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set priority
+     *
      * @param priority Submitter priority
      */
     public void setPriority(Integer priority) {
@@ -135,6 +119,7 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set enabled
+     *
      * @param enabled Submitter status
      */
     public void setEnabled(Boolean enabled) {
@@ -142,8 +127,8 @@ public class SubmitterModel extends GenericBackendModel {
     }
 
     /*
-         * Validates if the String, set as number, can be cast to number format
-         */
+     * Validates if the String, set as number, can be cast to number format
+     */
     public boolean isNumberValid() {
         try {
             Long.valueOf(number);
@@ -155,15 +140,17 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Checks for empty String values
+     *
      * @return true if no empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
-        return number.isEmpty() || name.isEmpty() || description.isEmpty() ;
+        return number.isEmpty() || name.isEmpty() || description.isEmpty();
     }
 
     /**
      * Checks if the submitter name contains illegal characters.
      * A-Å, 0-9, - (minus), + (plus), _ (underscore) and space is valid
+     *
      * @return a list containing illegal characters found. Empty list if none found.
      */
     public List<String> getDataioPatternMatches() {

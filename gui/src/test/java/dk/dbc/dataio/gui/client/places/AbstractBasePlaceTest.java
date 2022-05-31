@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.places;
 
 import com.google.gwt.activity.shared.Activity;
@@ -38,10 +17,10 @@ import static org.hamcrest.Matchers.nullValue;
 
 /**
  * PresenterCreateImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class AbstractBasePlaceTest {
@@ -50,9 +29,11 @@ public class AbstractBasePlaceTest {
         ConcreteAbstractBasePlace(String... tokens) {
             super(tokens);
         }
+
         ConcreteAbstractBasePlace(String url) {
             super(url);
         }
+
         @Override
         public Activity createPresenter(ClientFactory clientFactory) {
             return null;
@@ -75,7 +56,7 @@ public class AbstractBasePlaceTest {
     @Test
     public void constructorWithUrl_nullUrl_emptyUrlStored() {
         // Subject under test
-        AbstractBasePlace place = new ConcreteAbstractBasePlace((String)null);
+        AbstractBasePlace place = new ConcreteAbstractBasePlace((String) null);
 
         // Test validation
         assertThat(place.getToken(), is(""));

@@ -1,6 +1,5 @@
 package dk.dbc.dataio.gatekeeper;
 
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.gatekeeper.operation.CreateInvalidTransfileNotificationOperation;
 import dk.dbc.dataio.gatekeeper.operation.CreateJobOperation;
 import dk.dbc.dataio.gatekeeper.operation.FileDeleteOperation;
@@ -10,6 +9,7 @@ import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.dataio.gatekeeper.wal.Modification;
 import dk.dbc.dataio.gatekeeper.wal.ModificationLockedException;
 import dk.dbc.dataio.gatekeeper.wal.WriteAheadLog;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

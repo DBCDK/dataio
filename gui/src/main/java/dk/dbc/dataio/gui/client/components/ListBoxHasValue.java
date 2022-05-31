@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -51,6 +30,7 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map<String, Str
 
     /**
      * Gets the value of the selected item
+     *
      * @return The value of the selected item
      */
     @Override
@@ -72,6 +52,7 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map<String, Str
      * Sets the selection to the item, matching the input parameter
      * If no match is found within the list, the selection will not be changed
      * No Value Change event is fired
+     *
      * @param value The item to be the future selected item
      */
     @Override
@@ -82,13 +63,14 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map<String, Str
     /**
      * Sets the selection to the item, matching the input parameter
      * If no match is found within the list, the selection will not be changed
-     * @param value The item to be the future selected item
+     *
+     * @param value      The item to be the future selected item
      * @param fireEvents If true, a Value Change event will be fired if a match is found
      */
     @Override
     public void setValue(Map<String, String> value, boolean fireEvents) {
         if (value != null) {
-            for (int i=0; i<getItemCount(); i++) {
+            for (int i = 0; i < getItemCount(); i++) {
                 setItemSelected(i, value.containsKey(getValue(i)));
             }
         }
@@ -99,6 +81,7 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map<String, Str
 
     /**
      * Adds a Value Change Handler
+     *
      * @param changeHandler The Value Change Handler
      * @return A Remove Handler to be used, if the event handler needs to be removed
      */
@@ -118,7 +101,8 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map<String, Str
      */
     private void triggerValueChangeEvent() {
         if (valueChangeHandler != null) {
-            valueChangeHandler.onValueChange(new ValueChangeEvent<Map<String, String>>(getValue()) {});
+            valueChangeHandler.onValueChange(new ValueChangeEvent<Map<String, String>>(getValue()) {
+            });
         }
     }
 

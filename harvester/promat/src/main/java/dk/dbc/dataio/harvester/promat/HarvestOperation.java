@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.promat;
 
 import dk.dbc.commons.addi.AddiRecord;
@@ -131,7 +126,7 @@ public class HarvestOperation {
         if (DayOfWeek.from(zonedDateTime).getValue() >= 5) {
             zonedDateTime = zonedDateTime.plusWeeks(1);
         }
-        return String.format("%d%02d",  zonedDateTime.getYear(), zonedDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+        return String.format("%d%02d", zonedDateTime.getYear(), zonedDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
     }
 
     private static ZoneId getTimezone() {
@@ -211,10 +206,10 @@ public class HarvestOperation {
         }
     }
 
-   /* Abstraction over one or more promat service fetch cycles.
-       The purpose of this ResultSet class is to avoid high memory consumption
-       both on the server and client side if a very large number of cases need
-       to be harvested. */
+    /* Abstraction over one or more promat service fetch cycles.
+        The purpose of this ResultSet class is to avoid high memory consumption
+        both on the server and client side if a very large number of cases need
+        to be harvested. */
     private static class ResultSet implements Iterable<PromatCase> {
         private final PromatServiceConnector promatServiceConnector;
         private final ListCasesParams listCasesParams;

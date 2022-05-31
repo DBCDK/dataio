@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.flowbinder.show;
 
 import com.google.gwt.cell.client.AbstractCell;
@@ -109,6 +88,7 @@ public class FlowBindersTable extends CellTable {
 
     /**
      * Sets the presenter to allow communication back to the presenter
+     *
      * @param presenter The presenter to set
      */
     public void setPresenter(Presenter presenter) {
@@ -170,6 +150,7 @@ public class FlowBindersTable extends CellTable {
 
     /**
      * This method constructs a sort handler for a String column
+     *
      * @param column The column to sort
      * @return The list handler for the column
      */
@@ -183,16 +164,18 @@ public class FlowBindersTable extends CellTable {
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
-    DoubleClickHandler getDoubleClickHandler(){
+    DoubleClickHandler getDoubleClickHandler() {
         return doubleClickEvent -> {
-            editFlowBinder(((SingleSelectionModel<FlowBinderModel>)getSelectionModel()).getSelectedObject());
+            editFlowBinder(((SingleSelectionModel<FlowBinderModel>) getSelectionModel()).getSelectedObject());
         };
     }
 
     /**
      * This method activates the edit flowbinder page
+     *
      * @param model The model to edit
      */
     private void editFlowBinder(FlowBinderModel model) {
@@ -203,8 +186,9 @@ public class FlowBindersTable extends CellTable {
 
     /**
      * This metods constructs a SafeHtml snippet, that constitutes a text with a popup mouseover help text
+     *
      * @param headerText The headertext to be displayed
-     * @param helpText The popup help text
+     * @param helpText   The popup help text
      * @return The SafeHtml snippet
      */
     SafeHtml textWithToolTip(String headerText, String helpText) {
@@ -220,6 +204,7 @@ public class FlowBindersTable extends CellTable {
         public SafeHtmlCell() {
             super("click", "keydown");
         }
+
         @Override
         public void render(Cell.Context context, SafeHtml value, SafeHtmlBuilder sb) {
             if (value != null) {
@@ -269,7 +254,7 @@ public class FlowBindersTable extends CellTable {
         private void showSubmittersInPopupList(List<SubmitterModel> submitters) {
             Collections.sort(submitters, (sm1, sm2) -> Long.valueOf(sm1.getNumber()).compareTo(Long.valueOf(sm2.getNumber())));
             view.popupList.clear();
-            for (SubmitterModel model: submitters) {
+            for (SubmitterModel model : submitters) {
                 view.popupList.addItem(Format.inBracketsPairString(model.getNumber(), model.getName()), model.getNumber());
             }
             view.popupList.show();

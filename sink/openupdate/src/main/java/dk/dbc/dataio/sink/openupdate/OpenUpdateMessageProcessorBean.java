@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
@@ -56,11 +35,15 @@ import java.nio.charset.StandardCharsets;
 public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateMessageProcessorBean.class);
 
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-    @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-    @EJB OpenUpdateConfigBean openUpdateConfigBean;
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @EJB
+    OpenUpdateConfigBean openUpdateConfigBean;
 
-    @Inject MetricsHandlerBean metricsHandler;
+    @Inject
+    MetricsHandlerBean metricsHandler;
 
     AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
@@ -81,7 +64,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         try {
 
             final OpenUpdateSinkConfig latestConfig = openUpdateConfigBean.getConfig(consumedMessage);
-            if(!latestConfig.equals(config)) {
+            if (!latestConfig.equals(config)) {
                 LOGGER.debug("Updating connector");
                 connector = getOpenUpdateServiceConnector(latestConfig);
                 config = latestConfig;
@@ -89,14 +72,14 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
 
             final Chunk outcome = buildOutcomeFromProcessedChunk(chunk);
             try {
-                for(ChunkItem chunkItem : chunk) {
+                for (ChunkItem chunkItem : chunk) {
                     DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                     LOGGER.info("Handling item {}/{}/{}", chunk.getJobId(), chunk.getChunkId(), chunkItem.getId());
                     final ChunkItemProcessor chunkItemProcessor = new ChunkItemProcessor(chunkItem,
                             addiRecordPreprocessor, connector, updateRecordResultMarshaller,
                             new UpdateRecordErrorInterpreter(config.getIgnoredValidationErrors()), metricsHandler);
 
-                    switch(chunkItem.getStatus()) {
+                    switch (chunkItem.getStatus()) {
                         case SUCCESS:
                             outcome.insertItem(chunkItemProcessor.processForQueueProvider(queueProvider));
                             break;
@@ -130,7 +113,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
             metricsHandler.increment(CounterMetrics.CHUNK_ITEMS, chunk.size(),
                     new Tag("queueProvider", queueProvider));
 
-        } catch( Exception any ) {
+        } catch (Exception any) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
             metricsHandler.increment(CounterMetrics.UNHANDLED_EXCEPTIONS,
                     new Tag("queueProvider", queueProvider));

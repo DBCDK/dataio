@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.flowstore;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
@@ -60,8 +39,8 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 /**
@@ -129,7 +108,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
             flowStoreServiceConnector.createFlow(flowContent);
             fail("Primary key violation was not detected as input to createFlow().");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(406));
         }
@@ -142,14 +121,14 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void getFlow_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException{
-        try{
+    public void getFlow_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
+        try {
             // When...
             flowStoreServiceConnector.getFlow(new Date().getTime());
 
             fail("Invalid request to getFlow() was not detected.");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
         }
@@ -250,7 +229,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
 
             fail("Invalid request to findFlowByName() was not detected");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
         }
@@ -343,14 +322,14 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
     @Test
     public void refreshFlowComponents_wrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
         // Given...
-        try{
+        try {
             // When...
             flowStoreServiceConnector.refreshFlowComponents(new Date().getTime(), 1L);
 
             fail("Wrong flow Id was not detected as input to refreshFlowComponents().");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
         }
@@ -358,11 +337,11 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
 
     /**
      * Given: a deployed flow-store service where a valid flow with given id is already stored and the flow
-     *        is opened for edit by two different users
+     * is opened for edit by two different users
      * And  : the first user updates the flow, valid JSON is POSTed to the flows path with an identifier (update)
-     *        and correct version number
+     * and correct version number
      * When : the second user attempts to update the original version of the flow, valid JSON is POSTed to the flow components
-     *        path with an identifier (update) and wrong version number
+     * path with an identifier (update) and wrong version number
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a CONFLICT http status code
      */
@@ -407,7 +386,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
             fail("Edit conflict, in the case of multiple updates, was not detected as input to refreshFlowComponents().");
 
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(409));
         }
@@ -531,7 +510,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
 
             fail("Wrong flow Id was not detected as input to updateFlow()");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
         }
@@ -544,7 +523,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
      * And  : request returns with a NOT_ACCEPTABLE http status code
      */
     @Test
-    public void updateFlow_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException{
+    public void updateFlow_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
         final String FIRST_FLOW_NAME = "FlowsIT.updateFlow_duplicateName_NotAcceptable.1";
         final String SECOND_FLOW_NAME = "FlowsIT.updateFlow_duplicateName_NotAcceptable.2";
@@ -567,7 +546,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
 
             fail("Primary key violation was not detected as input to updateFlow()");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
         }
@@ -639,7 +618,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
         try {
             flowStoreServiceConnector.getFlow(flow.getId());
             fail("Flow was not deleted");
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
         }
     }
@@ -661,7 +640,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
             fail("None existing flow was not detected");
 
             // Then ...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And...
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
         }
@@ -670,10 +649,10 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
     /**
      * Given: a deployed flow-store service and a none referenced flow is stored.
      * And  : the flow is updated and, valid JSON is POSTed to the flows path with an identifier (update)
-     *        and correct version number
+     * and correct version number
      * When : attempting to delete the flow with the previous version number, valid JSON is POSTed to the flows
-     *        path with an identifier (delete) and wrong version number
-
+     * path with an identifier (delete) and wrong version number
+     * <p>
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a CONFLICT http status code
      */
@@ -707,7 +686,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
             flowStoreServiceConnector.deleteFlow(flow.getId(), versionFirst);
             fail("Flow was deleted");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And...
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
         }
@@ -747,7 +726,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
             flowStoreServiceConnector.deleteFlow(flow.getId(), flow.getVersion());
             fail("Flow was deleted");
             // Then...
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
         }
@@ -764,7 +743,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
         assertThat(flowContent1.getName(), is(flowContent2.getName()));
         assertThat(flowContent1.getDescription(), is(flowContent2.getDescription()));
         assertThat(flowContent1.getComponents().size(), is(flowContent2.getComponents().size()));
-        if(isRefresh){
+        if (isRefresh) {
             assertFlowComponentDifferentVersion(flowContent1.getComponents(), flowContent2.getComponents());
         } else {
             assertFlowComponents(flowContent1.getComponents(), flowContent2.getComponents());
@@ -773,16 +752,16 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
 
     private void assertFlowComponents(List<FlowComponent> flowComponents1, List<FlowComponent> flowComponents2) {
         assertThat(flowComponents1.size(), is(flowComponents2.size()));
-        for(int i = 0; i < flowComponents1.size(); i++) {
+        for (int i = 0; i < flowComponents1.size(); i++) {
             assertThat(flowComponents1.get(i), is(flowComponents2.get(i)));
         }
     }
 
     private void assertFlowComponentDifferentVersion(List<FlowComponent> flowComponents1, List<FlowComponent> flowComponents2) {
         boolean hasComponentsBeenUpdated = false;
-        for(int i = 0; i < flowComponents1.size(); i++) {
+        for (int i = 0; i < flowComponents1.size(); i++) {
             assertThat(flowComponents1.get(i).getId(), is(flowComponents2.get(i).getId()));
-            if(flowComponents1.get(i).getVersion() != flowComponents2.get(i).getVersion()) {
+            if (flowComponents1.get(i).getVersion() != flowComponents2.get(i).getVersion()) {
                 hasComponentsBeenUpdated = true;
             }
         }

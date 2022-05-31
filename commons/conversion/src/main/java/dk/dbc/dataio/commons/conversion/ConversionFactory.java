@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.commons.conversion;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -22,9 +17,12 @@ public class ConversionFactory {
         }
         final String trimmedPackaging = packaging.get().trim().toLowerCase();
         switch (trimmedPackaging) {
-            case "iso": return newConversionISO2709(param);
-            case "":    return new ConversionNOOP();
-            default:    throw new ConversionException("Unknown conversion: " + trimmedPackaging);
+            case "iso":
+                return newConversionISO2709(param);
+            case "":
+                return new ConversionNOOP();
+            default:
+                throw new ConversionException("Unknown conversion: " + trimmedPackaging);
         }
     }
 

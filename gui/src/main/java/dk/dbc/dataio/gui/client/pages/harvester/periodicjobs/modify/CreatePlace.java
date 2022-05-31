@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
 
 import com.google.gwt.activity.shared.Activity;
@@ -12,7 +7,8 @@ import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class CreatePlace extends AbstractBasePlace {
-    public CreatePlace() {}
+    public CreatePlace() {
+    }
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
@@ -25,6 +21,7 @@ public class CreatePlace extends AbstractBasePlace {
         public String getToken(CreatePlace place) {
             return "";
         }
+
         @Override
         public CreatePlace getPlace(String token) {
             return new CreatePlace();

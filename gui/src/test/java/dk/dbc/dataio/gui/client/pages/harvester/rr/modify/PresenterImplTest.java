@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.rr.modify;
 
 import com.google.gwt.user.client.ui.Button;
@@ -49,16 +28,16 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
  * PresenterImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
@@ -66,32 +45,58 @@ public class PresenterImplTest extends PresenterImplTestBase {
     /*
      * Mocks
      */
-    @Mock private Texts mockedTexts;
-    @Mock private View mockedView;
-    @Mock private PromptedTextBox mockedName;
-    @Mock private PromptedTextBox mockedDescription;
-    @Mock private PromptedTextBox mockedResource;
-    @Mock private PromptedTextBox mockedTargetUrl;
-    @Mock private PromptedTextBox mockedTargetGroup;
-    @Mock private PromptedTextBox mockedTargetUser;
-    @Mock private PromptedPasswordTextBox mockedTargetPassword;
-    @Mock private PromptedTextBox mockedConsumerId;
-    @Mock private PromptedTextBox mockedSize;
-    @Mock private PromptedMultiList mockedFormatOverrides;
-    @Mock private PromptedCheckBox mockedRelations;
-    @Mock private PromptedCheckBox mockedExpand;
-    @Mock private PromptedCheckBox mockedLibraryRules;
-    @Mock private PromptedList mockedImsHarvester;
-    @Mock private PromptedTextBox mockedImsHoldingsTarget;
-    @Mock private PromptedTextBox mockedDestination;
-    @Mock private PromptedTextBox mockedFormat;
-    @Mock private PromptedList mockedType;
-    @Mock private PromptedTextArea mockedNote;
-    @Mock private PromptedCheckBox mockedEnabled;
-    @Mock private Button mockedUpdateButton;
-    @Mock private Label mockedStatus;
-    @Mock private PopupMapEntry mockedPopupFormatOverrideEntry;
-    @Mock private Widget mockedWidget;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private View mockedView;
+    @Mock
+    private PromptedTextBox mockedName;
+    @Mock
+    private PromptedTextBox mockedDescription;
+    @Mock
+    private PromptedTextBox mockedResource;
+    @Mock
+    private PromptedTextBox mockedTargetUrl;
+    @Mock
+    private PromptedTextBox mockedTargetGroup;
+    @Mock
+    private PromptedTextBox mockedTargetUser;
+    @Mock
+    private PromptedPasswordTextBox mockedTargetPassword;
+    @Mock
+    private PromptedTextBox mockedConsumerId;
+    @Mock
+    private PromptedTextBox mockedSize;
+    @Mock
+    private PromptedMultiList mockedFormatOverrides;
+    @Mock
+    private PromptedCheckBox mockedRelations;
+    @Mock
+    private PromptedCheckBox mockedExpand;
+    @Mock
+    private PromptedCheckBox mockedLibraryRules;
+    @Mock
+    private PromptedList mockedImsHarvester;
+    @Mock
+    private PromptedTextBox mockedImsHoldingsTarget;
+    @Mock
+    private PromptedTextBox mockedDestination;
+    @Mock
+    private PromptedTextBox mockedFormat;
+    @Mock
+    private PromptedList mockedType;
+    @Mock
+    private PromptedTextArea mockedNote;
+    @Mock
+    private PromptedCheckBox mockedEnabled;
+    @Mock
+    private Button mockedUpdateButton;
+    @Mock
+    private Label mockedStatus;
+    @Mock
+    private PopupMapEntry mockedPopupFormatOverrideEntry;
+    @Mock
+    private Widget mockedWidget;
     private RRHarvesterConfig.Content content;
     private RRHarvesterConfig config;
 
@@ -117,20 +122,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         public PresenterImplConcrete(String header) {
             super(header);
         }
+
         @Override
         void initializeModel() {
             initializeModelCalled = true;
         }
+
         @Override
         void saveModel() {
             saveModelCalled = true;
         }
+
         String getHeader() {
             return header;
         }
 
         @Override
-        public void deleteButtonPressed() {}
+        public void deleteButtonPressed() {
+        }
     }
 
 
@@ -711,7 +720,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.keyPressed();
 
         // Test verification
-        verifyZeroInteractions(mockedView.status);
+        verifyNoInteractions(mockedView.status);
     }
 
     @Test

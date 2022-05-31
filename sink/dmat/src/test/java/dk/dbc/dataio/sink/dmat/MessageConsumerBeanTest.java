@@ -12,9 +12,9 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.dmat.service.connector.DMatServiceConnectorException;
 import dk.dbc.dmat.service.dto.RecordData;
+import dk.dbc.dmat.service.persistence.DMatRecord;
 import dk.dbc.dmat.service.persistence.enums.EReolCode;
 import dk.dbc.dmat.service.persistence.enums.Status;
-import dk.dbc.dmat.service.persistence.DMatRecord;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.Is;
 import org.junit.Before;
@@ -47,7 +47,7 @@ public class MessageConsumerBeanTest {
     public void setupMocks() throws DMatServiceConnectorException, JSONBException {
         messageConsumerBean.connector = mock(DMatServiceConnector.class);
         when(messageConsumerBean.connector.upsertRecord(any(RecordData.class))).thenReturn(
-                        new DMatRecord().withId(1).withStatus(Status.NEW));
+                new DMatRecord().withId(1).withStatus(Status.NEW));
 
         messageConsumerBean.metricsHandler = mock(MetricsHandlerBean.class);
         doNothing().when(messageConsumerBean.metricsHandler).increment(any(CounterMetric.class));
@@ -122,6 +122,7 @@ public class MessageConsumerBeanTest {
      * This test mimics a test in the dmat-service, to check that the RecordData object correctly
      * serializes and deserializes the incomming addi data, thus checking that we have the proper
      * versions of the dmat-connector (and by transitive dependency) the dmat-model
+     *
      * @throws IOException
      * @throws JSONBException
      */

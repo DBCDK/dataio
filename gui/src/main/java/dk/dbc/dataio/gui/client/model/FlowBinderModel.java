@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.model;
 
 import dk.dbc.dataio.commons.types.Priority;
@@ -44,24 +23,24 @@ public class FlowBinderModel extends GenericBackendModel {
 
 
     public FlowBinderModel() {
-        this(0L, 0L, "", "", "", "", "", "", Priority.NORMAL.getValue(),  "", new FlowModel(), new ArrayList<>(), new SinkModel(), "");
+        this(0L, 0L, "", "", "", "", "", "", Priority.NORMAL.getValue(), "", new FlowModel(), new ArrayList<>(), new SinkModel(), "");
     }
 
     /**
-     * @param id The ID of the Flow Binder
-     * @param version The version of the Flow Binder
-     * @param name The name of the Flow Binder
-     * @param description The description for the Flow Binder
-     * @param packaging The packaging of the Flow Binder
-     * @param format The format of the Flow Binder
-     * @param charset The charset for the Flow Binder
-     * @param destination The destination of the Flow Binder
-     * @param priority The priority of the Flow Binder
-     * @param recordSplitter The record splitter of the Flow Binder
-     * @param flowModel The flow model of the Flow Binder
+     * @param id              The ID of the Flow Binder
+     * @param version         The version of the Flow Binder
+     * @param name            The name of the Flow Binder
+     * @param description     The description for the Flow Binder
+     * @param packaging       The packaging of the Flow Binder
+     * @param format          The format of the Flow Binder
+     * @param charset         The charset for the Flow Binder
+     * @param destination     The destination of the Flow Binder
+     * @param priority        The priority of the Flow Binder
+     * @param recordSplitter  The record splitter of the Flow Binder
+     * @param flowModel       The flow model of the Flow Binder
      * @param submitterModels The submitter models for the Flow Binder
-     * @param sinkModel The sink model of the Flow Binder
-     * @param queueProvider The Queue Provider for the Flow Binder
+     * @param sinkModel       The sink model of the Flow Binder
+     * @param queueProvider   The Queue Provider for the Flow Binder
      */
     public FlowBinderModel(long id, long version, String name, String description, String packaging, String format, String charset, String destination, Integer priority, String recordSplitter, FlowModel flowModel, List<SubmitterModel> submitterModels, SinkModel sinkModel, String queueProvider) {
         super(id, version);
@@ -83,7 +62,7 @@ public class FlowBinderModel extends GenericBackendModel {
      * @param model The model to clone
      */
     public FlowBinderModel(FlowBinderModel model) {
-        this(   model.getId(),
+        this(model.getId(),
                 model.getVersion(),
                 model.getName(),
                 model.getDescription(),
@@ -317,6 +296,7 @@ public class FlowBinderModel extends GenericBackendModel {
 
     /**
      * Checks for empty String values
+     *
      * @return true if no empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
@@ -367,6 +347,7 @@ public class FlowBinderModel extends GenericBackendModel {
     /**
      * Checks if the flow binder name contains illegal characters.
      * A-Å, 0-9, - (minus), + (plus), _ (underscore) and space is valid
+     *
      * @return a list containing illegal characters found. Empty list if none found.
      */
     public List<String> getDataioPatternMatches() {

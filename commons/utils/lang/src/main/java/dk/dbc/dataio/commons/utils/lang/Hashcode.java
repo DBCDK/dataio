@@ -1,46 +1,26 @@
-/*
- * DataIO - Data IO
- *
- * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.commons.utils.lang;
 
 /**
- *  HashCode implementation suitable for general hash-based lookup
- *  based on the MurmurHash3 algorithm.
- *  <p>
- *  The MurmurHash3 algorithm was created by Austin Appleby and put into the public domain.
- *  See http://code.google.com/p/smhasher/.
- *
- *  The java port was authored by Yonik Seeley and was placed into the public domain per
- *  https://github.com/yonik/java_util/blob/master/src/util/hash/MurmurHash3.java.
- *  </p>
+ * HashCode implementation suitable for general hash-based lookup
+ * based on the MurmurHash3 algorithm.
+ * <p>
+ * The MurmurHash3 algorithm was created by Austin Appleby and put into the public domain.
+ * See http://code.google.com/p/smhasher/.
+ * <p>
+ * The java port was authored by Yonik Seeley and was placed into the public domain per
+ * https://github.com/yonik/java_util/blob/master/src/util/hash/MurmurHash3.java.
+ * </p>
  */
 public class Hashcode {
-    public Hashcode() {}
+    public Hashcode() {
+    }
 
     /**
      * Generates 32 bit hash from string.
      * Note: that this method is slower than java.lang.String.hashCode() but is
      * less prone to collisions and does not suffer from the "common prefix" problem
      * (see https://dzone.com/articles/what-is-wrong-with-hashcode-in-javalangstring)
+     *
      * @param str string to hash
      * @return 32 bit hash of the given string
      */
@@ -50,6 +30,7 @@ public class Hashcode {
 
     /**
      * Generates 32 bit hash from byte array.
+     *
      * @param data byte array to hash
      * @return 32 bit hash of the given array
      */
@@ -62,10 +43,11 @@ public class Hashcode {
      * of the given length and seed.
      * For more info on the MurmurHash algorithm see https://en.wikipedia.org/wiki/MurmurHash
      * and http://yonik.com/murmurhash3-for-java/
-     * @param data byte array to hash
+     *
+     * @param data   byte array to hash
      * @param offset array offset
-     * @param len length of the array to hash
-     * @param seed initial seed value
+     * @param len    length of the array to hash
+     * @param seed   initial seed value
      * @return 32 bit hash of the given array
      */
     public static int murmurhash32(byte[] data, int offset, int len, int seed) {

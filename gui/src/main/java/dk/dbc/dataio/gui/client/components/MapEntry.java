@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.core.client.GWT;
@@ -43,12 +22,15 @@ import java.util.Map;
 public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, String>>, HasValueChangeHandlers<Map.Entry<String, String>>, Focusable {
     ValueChangeHandler<Map.Entry<String, String>> valueChangeHandler = null;
 
-    @UiField final PromptedTextBox keyBox;
-    @UiField final PromptedTextBox valueBox;
+    @UiField
+    final PromptedTextBox keyBox;
+    @UiField
+    final PromptedTextBox valueBox;
 
     /**
      * Constructor
-     * @param keyPrompt The prompt text to be used for the key item
+     *
+     * @param keyPrompt   The prompt text to be used for the key item
      * @param valuePrompt The prompt text to be used for the value item
      */
     @UiConstructor
@@ -68,6 +50,7 @@ public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, St
 
     /**
      * Sets the orientation of the two textboxes and their associated prompt labels
+     *
      * @param orientation The string "vertical" or "horizontal" sets the orientation of the radio buttons
      */
     public void setOrientation(String orientation) {
@@ -84,6 +67,7 @@ public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, St
 
     /**
      * Sets the Gui Id to be used to identify this component in the DOM
+     *
      * @param guiId The Gui Id to identify this component in the DOM
      */
     public void setGuiId(String guiId) {
@@ -97,6 +81,7 @@ public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, St
 
     /**
      * Gets the value of the component in the form of a Map.Entry
+     *
      * @return The value of the key/value pair
      */
     @Override
@@ -106,6 +91,7 @@ public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, St
 
     /**
      * Sets the value of the component in the form of a Map.Entry
+     *
      * @param value The value of the key/value pair
      */
     @Override
@@ -118,7 +104,8 @@ public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, St
 
     /**
      * Sets the value of the component in the form of a Map.Entry
-     * @param value The value of the key/value pair
+     *
+     * @param value     The value of the key/value pair
      * @param fireEvent If true: Fire a ValueChangeEvent
      */
     @Override
@@ -130,6 +117,7 @@ public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, St
 
     /**
      * Adds a ValueChangeHandler to take action upon changes in the MapEntry component
+     *
      * @param changeHandler A ValueChangeHandler to take action upon changes
      * @return A HandlerRegistration object, that allows deletion of the ValueChangeHandler
      */
@@ -150,6 +138,7 @@ public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, St
     /**
      * Gets the widget's position in the tab index
      * No implementation needed
+     *
      * @return the widget's tab index
      */
     @Override
@@ -160,13 +149,16 @@ public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, St
     /**
      * Sets the widget's 'access key'. This key is used (in conjunction with a browser-specific modifier key) to automatically focus the widget.
      * No implementation needed
+     *
      * @param key the widget's access key
      */
     @Override
-    public void setAccessKey(char key) {}
+    public void setAccessKey(char key) {
+    }
 
     /**
      * Explicitly focus/unfocus this widget. Only one widget can have focus at a time, and the widget that does will receive all keyboard events.
+     *
      * @param focused whether this widget should take focus or release it
      */
     @Override
@@ -177,10 +169,12 @@ public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, St
     /**
      * Sets the widget's position in the tab index. If more than one widget has the same tab index, each such widget will receive focus in an arbitrary order. Setting the tab index to -1 will cause this widget to be removed from the tab order.
      * No implementation needed
+     *
      * @param index the widget's tab index
      */
     @Override
-    public void setTabIndex(int index) {}
+    public void setTabIndex(int index) {
+    }
 
 
     /*
@@ -189,11 +183,13 @@ public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, St
 
     /**
      * Triggers a Value Change Event - but only if there is an eventhandler registered
+     *
      * @param fireEvent Only fire event if fireEvent is true
      */
     private void triggerValueChangeEvent(boolean fireEvent) {
         if (valueChangeHandler != null && fireEvent) {
-            valueChangeHandler.onValueChange(new ValueChangeEvent<Map.Entry<String, String>>(getValue()) {});
+            valueChangeHandler.onValueChange(new ValueChangeEvent<Map.Entry<String, String>>(getValue()) {
+            });
         }
     }
 

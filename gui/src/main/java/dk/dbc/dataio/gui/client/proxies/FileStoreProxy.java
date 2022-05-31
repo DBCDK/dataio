@@ -18,6 +18,7 @@ public interface FileStoreProxy extends RemoteService {
 
     class Factory {
         private static FileStoreProxyAsync asyncInstance = null;
+
         public static FileStoreProxyAsync getAsyncInstance() {
             if (asyncInstance == null) {
                 asyncInstance = GWT.create(FileStoreProxy.class);

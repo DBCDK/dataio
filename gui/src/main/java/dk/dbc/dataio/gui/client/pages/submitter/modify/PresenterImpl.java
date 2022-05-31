@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
@@ -51,7 +30,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Constructor
      * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
      * Put code, utilizing view in the start method
-     * @param header    Breadcrumb header breadcrumb
+     *
+     * @param header Breadcrumb header breadcrumb
      */
     public PresenterImpl(String header) {
         this.header = header;
@@ -62,8 +42,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -77,6 +58,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the number field has been changed
+     *
      * @param number, the new number value
      */
     public void numberChanged(String number) {
@@ -85,6 +67,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the name field has been changed
+     *
      * @param name, the new name value
      */
     public void nameChanged(String name) {
@@ -93,6 +76,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the description field has been changed
+     *
      * @param description, the new description value
      */
     public void descriptionChanged(String description) {
@@ -101,6 +85,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the priority field has been changed
+     *
      * @param priority, the new value
      */
     @Override
@@ -114,6 +99,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the value of the disable field has changed
+     *
      * @param isSubmitterDisabled, true if submitter is disabled, false if submitter is enabled.
      */
     @Override
@@ -136,7 +122,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             if (model.isInputFieldsEmpty()) {
                 getView().setErrorText(getTexts().error_InputFieldValidationError());
             } else if (!model.isNumberValid()) {
-               getView().setErrorText(getTexts().error_NumberInputFieldValidationError());
+                getView().setErrorText(getTexts().error_NumberInputFieldValidationError());
             } else if (!model.getDataioPatternMatches().isEmpty()) {
                 getView().setErrorText(getTexts().error_NameFormatValidationError());
             } else {
@@ -171,7 +157,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     void updateAllFieldsAccordingToCurrentState() {
         View view = getView();
-        if(model.getId() == 0) {
+        if (model.getId() == 0) {
             view.number.setEnabled(true);
         }
         view.number.setValue(model.getNumber());
@@ -197,10 +183,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private String formatPriority(Priority priority) {
         switch (priority) {
-            case LOW: return getTexts().selection_Low();
-            case NORMAL: return getTexts().selection_Normal();
-            case HIGH: return getTexts().selection_High();
-            default: return "<unknown priority>";
+            case LOW:
+                return getTexts().selection_Low();
+            case NORMAL:
+                return getTexts().selection_Normal();
+            case HIGH:
+                return getTexts().selection_High();
+            default:
+                return "<unknown priority>";
         }
     }
 
@@ -211,6 +201,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method used to set the model after a successful update or a save
+     *
      * @param model The model to save
      */
     protected void setSubmitterModel(SubmitterModel model) {

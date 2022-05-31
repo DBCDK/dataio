@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -20,7 +15,7 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -39,8 +34,8 @@ public class CsvDataPartitionerTest {
     public void partitioningCSV() {
         final String csvRecords =
                 "a,\"b, with whitespace and comma\",\n" +
-                "\"d has unbalanced\"\",and,fails\n" +
-                "\"\"\"g\"\"\",\"h contains<p><a href=\"\"url\"\">html</a>\"";
+                        "\"d has unbalanced\"\",and,fails\n" +
+                        "\"\"\"g\"\"\",\"h contains<p><a href=\"\"url\"\">html</a>\"";
 
         final CsvDataPartitioner partitioner = newCsvDataPartitionerFor(csvRecords);
 
@@ -86,9 +81,9 @@ public class CsvDataPartitionerTest {
     public void drainItems() {
         final String csvRecords =
                 "a,b\n" +
-                "c,d\n" +
-                "e,f\n" +
-                "g,h\n";
+                        "c,d\n" +
+                        "e,f\n" +
+                        "g,h\n";
 
         final CsvDataPartitioner partitioner = newCsvDataPartitionerFor(csvRecords);
         partitioner.drainItems(3);
@@ -115,7 +110,7 @@ public class CsvDataPartitionerTest {
         assertThat("hasNext() defers handling of IOException", iterator.hasNext(), is(true));
         assertThat(iterator::next, isThrowing(PrematureEndOfDataException.class));
     }
-    
+
     private CsvDataPartitioner newCsvDataPartitionerFor(String csv) {
         return CsvDataPartitioner.newInstance(
                 StringUtil.asInputStream(csv), StandardCharsets.UTF_8.name());

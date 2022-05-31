@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -46,11 +25,11 @@ public class FlowContent implements Serializable {
     /**
      * Class constructor
      *
-     * @param name flow name
-     * @param description flow description
-     * @param components flow components attached to this flow (can be empty)
+     * @param name                      flow name
+     * @param description               flow description
+     * @param components                flow components attached to this flow (can be empty)
      * @param timeOfFlowComponentUpdate time of last time the flow components nested within the flow were updated
-     * @throws NullPointerException if given null-valued name, description or components argument
+     * @throws NullPointerException     if given null-valued name, description or components argument
      * @throws IllegalArgumentException if given empty-valued name
      */
     @JsonCreator
@@ -78,7 +57,7 @@ public class FlowContent implements Serializable {
 
     public FlowContent withComponents(FlowComponent... components) {
         final List<FlowComponent> flowComponents = new ArrayList<>();
-        if(components != null && components.length > 0) {
+        if (components != null && components.length > 0) {
             for (FlowComponent component : components) {
                 if (component != null) {
                     flowComponents.add(component);

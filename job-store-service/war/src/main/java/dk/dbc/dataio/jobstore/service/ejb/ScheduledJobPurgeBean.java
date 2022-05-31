@@ -15,11 +15,12 @@ import javax.ejb.Startup;
 @Startup
 public class ScheduledJobPurgeBean {
 
-    @EJB JobPurgeBean jobPurgeBean;
+    @EJB
+    JobPurgeBean jobPurgeBean;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledJobPurgeBean.class);
 
-    @Schedule(hour="23", persistent = false)
+    @Schedule(hour = "23", persistent = false)
     public void run() {
         try {
             jobPurgeBean.purgeJobs();

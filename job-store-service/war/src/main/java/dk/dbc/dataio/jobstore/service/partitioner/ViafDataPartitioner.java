@@ -27,10 +27,11 @@ public class ViafDataPartitioner extends Iso2709DataPartitioner {
 
     /**
      * Creates new instance of a Iso2709 DataPartitioner for VIAF records
-     * @param inputStream stream from which Iso2709 data to be partitioned can be read
+     *
+     * @param inputStream   stream from which Iso2709 data to be partitioned can be read
      * @param inputEncoding encoding from job specification
      * @return new instance of VIAF data partitioner
-     * @throws NullPointerException if given null-valued argument
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
      * @throws InvalidEncodingException if given invalid input encoding name
      */
@@ -59,6 +60,7 @@ public class ViafDataPartitioner extends Iso2709DataPartitioner {
      * If the MARC record is irrelevant for DBC, an empty result is returned.
      * If an error occurs while writing the record, a result with a chunk
      * item with status FAILURE is returned.
+     *
      * @param marcRecord the MarcRecord result from the marcReader.read() method
      * @param marcWriter the MarcWriter implementation used to write the marc record
      * @return data partitioner result
@@ -68,8 +70,8 @@ public class ViafDataPartitioner extends Iso2709DataPartitioner {
         ChunkItem chunkItem = null;
         Optional<MarcRecordInfo> recordInfo = Optional.empty();
         try {
-            if (marcRecord.getFields(hasTag("700") .and(hasSubFieldValueStartingWith('0', "(DBC)"))) .size() > 0 ||
-                    marcRecord.getFields(hasTag("710") .and(hasSubFieldValueStartingWith('0', "(DBC)"))) .size() > 0 ) {
+            if (marcRecord.getFields(hasTag("700").and(hasSubFieldValueStartingWith('0', "(DBC)"))).size() > 0 ||
+                    marcRecord.getFields(hasTag("710").and(hasSubFieldValueStartingWith('0', "(DBC)"))).size() > 0) {
                 chunkItem = ChunkItem.successfulChunkItem()
                         .withType(ChunkItem.Type.MARCXCHANGE)
                         .withData(marcWriter.write(marcRecord, encoding));

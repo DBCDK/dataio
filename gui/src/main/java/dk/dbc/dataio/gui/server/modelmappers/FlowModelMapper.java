@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.commons.types.Flow;
@@ -39,14 +18,16 @@ public final class FlowModelMapper {
     /**
      * Private Constructor prevents instantiation of this static class
      */
-    private FlowModelMapper(){}
+    private FlowModelMapper() {
+    }
 
     /**
      * Maps a Flow to a Model
+     *
      * @param flow, the flow
      * @return the flow model
      */
-    public static FlowModel toModel(Flow flow){
+    public static FlowModel toModel(Flow flow) {
         return new FlowModel(
                 flow.getId(),
                 flow.getVersion(),
@@ -57,7 +38,7 @@ public final class FlowModelMapper {
         );
     }
 
-    public static FlowModel toModel(FlowView flowView){
+    public static FlowModel toModel(FlowView flowView) {
         return new FlowModel(
                 flowView.getId(),
                 flowView.getVersion(),
@@ -70,19 +51,20 @@ public final class FlowModelMapper {
 
     /**
      * Maps a model to flow content
-     * @param model The model
+     *
+     * @param model          The model
      * @param flowComponents the list of flow components
      * @return FlowContent The content of the Flow
      * @throws IllegalArgumentException if any matches were found
      */
     public static FlowContent toFlowContent(FlowModel model, List<FlowComponent> flowComponents) throws IllegalArgumentException {
-        if(model.isInputFieldsEmpty()) {
+        if (model.isInputFieldsEmpty()) {
             throw new IllegalArgumentException("model.name, model.description, model.flowcomponents cannot be empty");
         }
 
         List<String> matches = model.getDataioPatternMatches();
-        if(!matches.isEmpty()) {
-           throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
+        if (!matches.isEmpty()) {
+            throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
         }
         try {
             return new FlowContent(
@@ -124,10 +106,10 @@ public final class FlowModelMapper {
 
     private static String buildPatternMatchesErrorMsg(List<String> matches) {
         StringBuilder stringBuilder = new StringBuilder("Illegal characters found in flow name:");
-        for(String match : matches) {
+        for (String match : matches) {
             stringBuilder.append(" [").append(match).append("],");
         }
-        return stringBuilder.deleteCharAt(stringBuilder.length() -1).toString();
+        return stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
     }
 
 

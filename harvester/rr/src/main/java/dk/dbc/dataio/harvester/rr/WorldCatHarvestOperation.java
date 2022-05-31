@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.commons.time.StopWatch;
@@ -50,7 +29,7 @@ public class WorldCatHarvestOperation extends HarvestOperation {
                                     TaskRepo taskRepo, VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector, OcnRepo ocnRepo, MetricRegistry metricRegistry)
             throws SQLException, QueueException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
-            new VipCoreConnection(vipCoreLibraryRulesConnector), null, ocnRepo, null, metricRegistry);
+                new VipCoreConnection(vipCoreLibraryRulesConnector), null, ocnRepo, null, metricRegistry);
     }
 
     WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
@@ -64,6 +43,7 @@ public class WorldCatHarvestOperation extends HarvestOperation {
     /**
      * Runs this harvest operation, creating dataIO jobs from harvested records.
      * If any non-internal error occurs a record is marked as failed.
+     *
      * @return number of records processed
      * @throws HarvesterException on failure to complete harvest operation
      */
@@ -113,12 +93,12 @@ public class WorldCatHarvestOperation extends HarvestOperation {
         if (hasPid(addiMetaData)) {
             // single entity from exact ocn-repo key lookup
             return ocnRepo.lookupWorldCatEntity(new WorldCatEntity()
-                                .withPid(addiMetaData.pid()));
+                    .withPid(addiMetaData.pid()));
         }
         // potentially multiple entities from agencyId/bibliographicRecordId query
         return ocnRepo.lookupWorldCatEntity(new WorldCatEntity()
-                            .withAgencyId(addiMetaData.submitterNumber())
-                            .withBibliographicRecordId(addiMetaData.bibliographicRecordId()));
+                .withAgencyId(addiMetaData.submitterNumber())
+                .withBibliographicRecordId(addiMetaData.bibliographicRecordId()));
     }
 
     private RawRepoRecordHarvestTask mergeTaskWithWorldCatEntity(RawRepoRecordHarvestTask task, WorldCatEntity worldCatEntity) {

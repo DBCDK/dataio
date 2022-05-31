@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -27,7 +6,7 @@ import com.google.gwt.user.client.ui.HTML;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 
-public class ItemTabContent extends HTML{
+public class ItemTabContent extends HTML {
     private Texts texts;
     private JobStoreProxyAsync jobStoreProxy;
     private final static String NBSP = new String(new char[4]).replace("\0", "\u00A0");
@@ -51,6 +30,7 @@ public class ItemTabContent extends HTML{
         public void onFailure(Throwable throwable) {
             setText(texts.error_CouldNotFetchData());
         }
+
         @Override
         public void onSuccess(String data) {
             setHTML(formatXml(data));

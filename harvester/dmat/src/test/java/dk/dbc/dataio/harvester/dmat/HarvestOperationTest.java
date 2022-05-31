@@ -69,7 +69,8 @@ public class HarvestOperationTest extends IntegrationTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperationTest.class);
     private final String PUBLISHER_DATASET_NAME = "150015-forlag";
 
-    @TempDir Path tempDir;
+    @TempDir
+    Path tempDir;
 
     @BeforeEach
     public void setupMocks() throws Exception {
@@ -162,7 +163,7 @@ public class HarvestOperationTest extends IntegrationTest {
                         .withCreationDate(accession.toLocalDate())
                         .withRecords(Arrays.asList(
                                 mockRecord(3, accession, UpdateCode.NEW, Selection.CREATE)
-                )));
+                        )));
 
         when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
@@ -409,7 +410,7 @@ public class HarvestOperationTest extends IntegrationTest {
         // Make sure tickleFetcher behaves properly beforehand.
         persistenceContext.run(() -> {
             assertThat("publisher content", new String(new TickleFetcher()
-                    .getOnixProductFor(mockPublisherRecord(accession,"9788771981544"),
+                    .getOnixProductFor(mockPublisherRecord(accession, "9788771981544"),
                             tickleRepo, PUBLISHER_DATASET_NAME)), containsString("<PublisherName>Lindhardt og Ringhof</PublisherName></Publisher>"));
         });
 
@@ -417,7 +418,7 @@ public class HarvestOperationTest extends IntegrationTest {
                 .thenReturn((ExportedRecordList) new ExportedRecordList()
                         .withCreationDate(accession.toLocalDate())
                         .withRecords(Arrays.asList(
-                                mockPublisherRecord(accession,"9788771981544")
+                                mockPublisherRecord(accession, "9788771981544")
                         )));
         persistenceContext.run(() -> {
             final int casesHarvested = harvestOperation.execute();
@@ -436,7 +437,7 @@ public class HarvestOperationTest extends IntegrationTest {
     @Test
     public void harvestInvalidRecords() throws DMatServiceConnectorException, JSONBException, JobStoreServiceConnectorException, HarvesterException {
 
-        for(Status status : Arrays.stream(Status.values())
+        for (Status status : Arrays.stream(Status.values())
                 .filter(s -> s != Status.PENDING_EXPORT)
                 .collect(Collectors.toList())) {
             executeExpectSkipped(harvestOperation, 1, UpdateCode.NEW, Selection.CREATE, status);
@@ -542,7 +543,7 @@ public class HarvestOperationTest extends IntegrationTest {
                 "http://some.dmat.service/api/v1/records/%d/download",
                 tickleRepo,
                 PUBLISHER_DATASET_NAME
-                );
+        );
     }
 
     private DMatHarvesterConfig newConfig() {
@@ -568,7 +569,9 @@ public class HarvestOperationTest extends IntegrationTest {
 
     private DMatRecord mockPublisherRecord(LocalDateTime accession, String isbn) {
         return mockRecord(1, accession, UpdateCode.PUBLISHER, Selection.CREATE, isbn);
-    };
+    }
+
+    ;
 
     private DMatRecord mockRecord(Integer id, LocalDateTime accession, UpdateCode updateCode, Selection selection) {
         return mockRecord(id, accession, updateCode, selection, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST);
@@ -580,7 +583,7 @@ public class HarvestOperationTest extends IntegrationTest {
     }
 
     private DMatRecord mockRecord(Integer id, LocalDateTime accession, UpdateCode updateCode, Selection selection,
-            Status status, String recordId, String reviewId, String match) {
+                                  Status status, String recordId, String reviewId, String match) {
         RecordData recordData = new RecordData();
         recordData.setRecordReference("2a69b0a2-cbdd-4afa-9dc8-9fb203732f01");
         return new DMatRecord().withActive(true).withAccession(accession)

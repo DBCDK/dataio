@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -15,7 +10,7 @@ import org.junit.Test;
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class MarcXchangeToLineFormatConverterTest {
     @Test
@@ -40,9 +35,9 @@ public class MarcXchangeToLineFormatConverterTest {
         final byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8, null);
         assertThat(StringUtil.asString(danmarc2LineFormat),
                 is("245 12 $aA *programmer is born$beveryday@dbc\n" +
-                         "530    $ithis is to be used in test$ testing blank subfield code\n" +
-                         "001 123456\n" +
-                         "003 TEST\n\n"));
+                        "530    $ithis is to be used in test$ testing blank subfield code\n" +
+                        "001 123456\n" +
+                        "003 TEST\n\n"));
     }
 
     @Test
@@ -57,7 +52,7 @@ public class MarcXchangeToLineFormatConverterTest {
         final byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8, null);
         assertThat(StringUtil.asString(danmarc2LineFormat),
                 is("245 12 *aA @*programmer is born*beveryday@@dbc\n" +
-                         "530 00 *ithis is to be used in test* testing blank subfield code\n$\n"));
+                        "530 00 *ithis is to be used in test* testing blank subfield code\n$\n"));
     }
 
     @Test
@@ -78,7 +73,7 @@ public class MarcXchangeToLineFormatConverterTest {
         final byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8, null);
         assertThat(StringUtil.asString(danmarc2LineFormat),
                 is("245 12 *aA @*programmer is born*beveryday@@dbc\n" +
-                         "530 00 *ithis is to be used in test* testing blank subfield code\n" +
-                         "e01 00 *bfelt '700'*afelt '700' mangler delfelter\n$\n"));
+                        "530 00 *ithis is to be used in test* testing blank subfield code\n" +
+                        "e01 00 *bfelt '700'*afelt '700' mangler delfelter\n$\n"));
     }
 }

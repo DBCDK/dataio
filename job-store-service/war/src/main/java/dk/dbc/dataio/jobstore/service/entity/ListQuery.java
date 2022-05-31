@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.jobstore.types.criteria.ListCriteria;
@@ -42,6 +21,7 @@ import java.util.function.Function;
 
 /**
  * Abstract listing query class
+ *
  * @param <T> ListCriteria subtype
  * @param <U> ListFilterField subtype
  * @param <V> value type to be returned by this query
@@ -58,6 +38,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
     protected final Map<U, FieldMapping> fieldMap = new HashMap<>();
 
     private static Set<ListFilter.Op> unaryOpSet = new HashSet<>();
+
     static {
         unaryOpSet.add(ListFilter.Op.IS_NOT_NULL);
         unaryOpSet.add(ListFilter.Op.IS_NULL);
@@ -65,6 +46,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
 
     /**
      * Creates and executes listing query with given criteria
+     *
      * @param criteria query criteria
      * @return list of selected objects
      */
@@ -100,7 +82,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
                 final ListFilter<U> filter = member.getFilter();
                 FieldMapping fieldMapping = fieldMap.get(filter.getField());
                 if (fieldMapping instanceof BooleanOpField && !unaryOpSet.contains(filter.getOperator())) {
-                    final ParameterValue value = ((BooleanOpField)fieldMapping).getValue();
+                    final ParameterValue value = ((BooleanOpField) fieldMapping).getValue();
                     value.set(query, parameterIndex, filter.getValue());
                     parameterIndex++;
                 }
@@ -221,54 +203,92 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
 
     private static String filterOpToString(ListFilter.Op op) {
         switch (op) {
-            case LESS_THAN:                 return "<";
-            case GREATER_THAN:              return ">";
-            case LESS_THAN_OR_EQUAL_TO:     return "<=";
-            case GREATER_THAN_OR_EQUAL_TO:  return ">=";
-            case EQUAL:                     return "=";
-            case NOT_EQUAL:                 return "!=";
-            case IS_NULL:                   return " IS NULL";
-            case IS_NOT_NULL:               return " IS NOT NULL";
-            case JSON_LEFT_CONTAINS:        return "@>";
-            case JSON_NOT_LEFT_CONTAINS:    return "@>";
-            case IN:                        return " IN (";
-            default: throw new IllegalArgumentException("Unknown filter operator " + op);
+            case LESS_THAN:
+                return "<";
+            case GREATER_THAN:
+                return ">";
+            case LESS_THAN_OR_EQUAL_TO:
+                return "<=";
+            case GREATER_THAN_OR_EQUAL_TO:
+                return ">=";
+            case EQUAL:
+                return "=";
+            case NOT_EQUAL:
+                return "!=";
+            case IS_NULL:
+                return " IS NULL";
+            case IS_NOT_NULL:
+                return " IS NOT NULL";
+            case JSON_LEFT_CONTAINS:
+                return "@>";
+            case JSON_NOT_LEFT_CONTAINS:
+                return "@>";
+            case IN:
+                return " IN (";
+            default:
+                throw new IllegalArgumentException("Unknown filter operator " + op);
         }
     }
 
     private static String filterOpToPrefixString(ListFilter.Op op) {
         switch (op) {
-            case LESS_THAN:                 return " ";
-            case GREATER_THAN:              return " ";
-            case LESS_THAN_OR_EQUAL_TO:     return " ";
-            case GREATER_THAN_OR_EQUAL_TO:  return " ";
-            case EQUAL:                     return " ";
-            case NOT_EQUAL:                 return " ";
-            case NOOP:                      return " ";
-            case IS_NULL:                   return " ";
-            case IS_NOT_NULL:               return " ";
-            case JSON_LEFT_CONTAINS:        return " ";
-            case JSON_NOT_LEFT_CONTAINS:    return " NOT ";
-            case IN:                        return " ";
-            default: throw new IllegalArgumentException("Unknown prefix filter operator " + op);
+            case LESS_THAN:
+                return " ";
+            case GREATER_THAN:
+                return " ";
+            case LESS_THAN_OR_EQUAL_TO:
+                return " ";
+            case GREATER_THAN_OR_EQUAL_TO:
+                return " ";
+            case EQUAL:
+                return " ";
+            case NOT_EQUAL:
+                return " ";
+            case NOOP:
+                return " ";
+            case IS_NULL:
+                return " ";
+            case IS_NOT_NULL:
+                return " ";
+            case JSON_LEFT_CONTAINS:
+                return " ";
+            case JSON_NOT_LEFT_CONTAINS:
+                return " NOT ";
+            case IN:
+                return " ";
+            default:
+                throw new IllegalArgumentException("Unknown prefix filter operator " + op);
         }
     }
 
     private static String filterOpToPostfixString(ListFilter.Op op) {
         switch (op) {
-            case LESS_THAN:                 return "";
-            case GREATER_THAN:              return "";
-            case LESS_THAN_OR_EQUAL_TO:     return "";
-            case GREATER_THAN_OR_EQUAL_TO:  return "";
-            case EQUAL:                     return "";
-            case NOT_EQUAL:                 return "";
-            case NOOP:                      return "";
-            case IS_NULL:                   return "";
-            case IS_NOT_NULL:               return "";
-            case JSON_LEFT_CONTAINS:        return "";
-            case JSON_NOT_LEFT_CONTAINS:    return "";
-            case IN:                        return ")";
-            default: throw new IllegalArgumentException("Unknown postfix filter operator " + op);
+            case LESS_THAN:
+                return "";
+            case GREATER_THAN:
+                return "";
+            case LESS_THAN_OR_EQUAL_TO:
+                return "";
+            case GREATER_THAN_OR_EQUAL_TO:
+                return "";
+            case EQUAL:
+                return "";
+            case NOT_EQUAL:
+                return "";
+            case NOOP:
+                return "";
+            case IS_NULL:
+                return "";
+            case IS_NOT_NULL:
+                return "";
+            case JSON_LEFT_CONTAINS:
+                return "";
+            case JSON_NOT_LEFT_CONTAINS:
+                return "";
+            case IN:
+                return ")";
+            default:
+                throw new IllegalArgumentException("Unknown postfix filter operator " + op);
         }
     }
 
@@ -303,6 +323,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
 
     public static class BooleanOpField extends FieldMapping {
         private final ParameterValue value;
+
         public BooleanOpField(String name, ParameterValue value) {
             super(name);
             this.value = value;
@@ -315,6 +336,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
 
     public static class VerbatimBooleanOpField extends FieldMapping {
         private final VerbatimValue value;
+
         public VerbatimBooleanOpField(String name, VerbatimValue value) {
             super(name);
             this.value = value;
@@ -333,15 +355,17 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
      */
     public static class ParameterValue<T> {
         private Function<String, T> f;
+
         ParameterValue(Function<String, T> f) {
             this.f = f;
         }
 
         /**
          * Binds the actual value to the query
-         * @param query The query
+         *
+         * @param query          The query
          * @param parameterIndex The parameter index
-         * @param value The actual value, to be bound to the query
+         * @param value          The actual value, to be bound to the query
          */
         public void set(Query query, int parameterIndex, String value) {
             query.setParameter(parameterIndex, f.apply(value));
@@ -350,6 +374,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         /**
          * Returns the SQL query representation of the parameter in the SQL query
          * Which is simply the text: "?n" - where n is the index number of the parameter
+         *
          * @param parameterIndex The parameter index
          * @return The SQL query representation of the parameter
          */
@@ -391,6 +416,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
      */
     public static class SubSelectJsonValue extends ParameterValue<String> {
         private static String subselectRepresentation;
+
         public SubSelectJsonValue(String column, String table, String jsonColumn, String jsonValue) {
             super(s -> s);
             subselectRepresentation = new StringBuilder().
@@ -405,6 +431,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
                     append("' = ").
                     toString();
         }
+
         @Override
         public String getSqlString(int parameterIndex) {
             return subselectRepresentation + super.getSqlString(parameterIndex);
@@ -426,7 +453,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
      */
     public static class JsonbValue implements VerbatimValue {
         @Override
-        public String toString (Object raw) {
+        public String toString(Object raw) {
             return "'" + escapeSQL(raw.toString()) + "'::jsonb";
         }
     }

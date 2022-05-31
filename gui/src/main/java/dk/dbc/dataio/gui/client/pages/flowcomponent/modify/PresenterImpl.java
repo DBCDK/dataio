@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.flowcomponent.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
@@ -60,7 +39,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Constructor
      * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
      * Put code, utilizing view in the start method.
-     * @param header    Breadcrumb header text
+     *
+     * @param header Breadcrumb header text
      */
     public PresenterImpl(String header) {
         isInitialPopulationOfView = true;
@@ -71,8 +51,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter.
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -85,6 +66,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the name field has been changed
+     *
      * @param name, the new name value
      */
     @Override
@@ -94,6 +76,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the description field has been changed
+     *
      * @param description, the new description value
      */
     public void descriptionChanged(String description) {
@@ -102,6 +85,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the svn project field has been changed
+     *
      * @param projectName, the new svn project name value
      */
     @Override
@@ -118,6 +102,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the svn revision field has been changed
+     *
      * @param selectedRevision, the new svn revision value
      */
     @Override
@@ -132,6 +117,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the svn next revision field has been changed
+     *
      * @param selectedNext, the new next svn revision value
      */
     @Override
@@ -141,6 +127,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the java script name has been changed
+     *
      * @param selectedScript, the new java script name value
      */
     @Override
@@ -153,6 +140,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the invocation method has been changed
+     *
      * @param selectedInvocationMethod, the new invocation method value
      */
     @Override
@@ -196,6 +184,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onFilteredFailure(Throwable e) {
             onFailureSendExceptionToView(e);
         }
+
         @Override
         public void onSuccess(List<RevisionInfo> revisionInfoList) {
             setAvailableRevisions(revisionInfoList);
@@ -217,6 +206,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             model.setInvocationJavascript("");
             model.setInvocationMethod("");
         }
+
         @Override
         public void onSuccess(List<String> scriptNames) {
             setAvailableScripts(scriptNames);
@@ -238,6 +228,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             setAvailableInvocationMethods(new ArrayList<String>());
             model.setInvocationMethod("");
         }
+
         @Override
         public void onSuccess(List<String> invocationMethods) {
             setAvailableInvocationMethods(invocationMethods);
@@ -267,40 +258,40 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method setting the list of available revisions.
-     *
+     * <p>
      * When modifying a flow component, a change event is fired in order to:
      * Load and display the available revisions, scripts and invocation methods as well as the actual
      * revision, script name and invocation method for the flow component.
      * (Default chosen is the first of each available).
-     *
+     * <p>
      * For CREATE: The event is fired -&gt; when the user has typed in a valid svn project.
      * For EDIT  : The event is fired -&gt; when populating the svn project view field with the existing
      * svn project value.
-     *
+     * <p>
      * The user should be able to see the existing values before editing.
      * Therefore: The change event will not result in a reset of project dependent model values when
      * the view is populated for the very first time.
-     *
+     * <p>
      * Any change of the svn project, EXCEPT the initial one, will result in a reset of all project
      * dependent model values.
      *
      * @param revisionInfoList containing the available revisions
      */
     protected void setAvailableRevisions(List<RevisionInfo> revisionInfoList) {
-        if(isInitialPopulationOfView) {
+        if (isInitialPopulationOfView) {
             isInitialPopulationOfView = false;
         } else {
             resetProjectDependentModelValues();
         }
         availableRevisions.clear();
-        for(RevisionInfo revisionInfo : revisionInfoList) {
+        for (RevisionInfo revisionInfo : revisionInfoList) {
             availableRevisions.add(Long.toString(revisionInfo.getRevision()));
         }
         View view = getView();
         view.revision.setAvailableItems(availableRevisions);
         availableNextRevisions = new ArrayList<String>(availableRevisions);
         view.next.setAvailableItems(availableNextRevisions);
-        if(!model.getSvnNext().isEmpty()) {
+        if (!model.getSvnNext().isEmpty()) {
             view.next.setSelectedText(model.getSvnNext());
         }
         view.next.fireChangeEvent();
@@ -310,6 +301,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method setting the list of available script names
+     *
      * @param scriptNames containing the available script names
      */
     protected void setAvailableScripts(List<String> scriptNames) {
@@ -322,6 +314,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method setting the list of available invocation methods
+     *
      * @param invocationMethods containing the available invocation methods
      */
     protected void setAvailableInvocationMethods(List<String> invocationMethods) {
@@ -339,6 +332,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method used to set the model after a successful update or a save
+     *
      * @param model The model to save
      */
     protected void setFlowComponentModel(FlowComponentModel model) {
@@ -361,14 +355,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setEnabled(true);
         view.project.setText(model.getSvnProject());
         view.project.setEnabled(true);
-        if(model.getId() != 0) {
+        if (model.getId() != 0) {
             projectChanged(model.getSvnProject());
         }
     }
 
     /*
-    * Private methods
-    */
+     * Private methods
+     */
 
     View getView() {
         return viewInjector.getView();
@@ -377,6 +371,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     Texts getTexts() {
         return viewInjector.getTexts();
     }
+
     /**
      * Method used to set the initial state of the fields in the view
      */
@@ -414,28 +409,34 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method translating a JavaScriptProjectFetcherException to an error string specified in the texts for flow component modify
+     *
      * @param e the exception to translate
      */
     private void translateJavaScriptProjectFetcherError(Throwable e) {
         JavaScriptProjectFetcherError errorCode = ((JavaScriptProjectFetcherException) e).getErrorCode();
         switch (errorCode) {
-            case SCM_RESOURCE_NOT_FOUND: getView().setErrorText(getTexts().error_ScmProjectNotFoundError());
+            case SCM_RESOURCE_NOT_FOUND:
+                getView().setErrorText(getTexts().error_ScmProjectNotFoundError());
                 break;
-            case SCM_ILLEGAL_PROJECT_NAME: getView().setErrorText(getTexts().error_ScmIllegalProjectNameError());
+            case SCM_ILLEGAL_PROJECT_NAME:
+                getView().setErrorText(getTexts().error_ScmIllegalProjectNameError());
                 break;
-            case JAVASCRIPT_REFERENCE_ERROR: getView().setErrorText(getTexts().error_JavaScriptReferenceError());
+            case JAVASCRIPT_REFERENCE_ERROR:
+                getView().setErrorText(getTexts().error_JavaScriptReferenceError());
                 break;
-            default: getView().setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+            default:
+                getView().setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
         }
     }
 
     /**
      * Method decoding which error message to display to the user
+     *
      * @param e the exception previously thrown
      */
     private void onFailureSendExceptionToView(Throwable e) {
         getView().busy.setVisible(false);
-        if(e instanceof JavaScriptProjectFetcherException) {
+        if (e instanceof JavaScriptProjectFetcherException) {
             translateJavaScriptProjectFetcherError(e);
         } else {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
@@ -444,6 +445,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method retrieving available revisions for a given svn project.
+     *
      * @param projectName the svn project name value
      */
     void fetchAvailableRevisions(String projectName) {
@@ -452,8 +454,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method retrieving available scripts for a given svn project with a given revision.
+     *
      * @param projectName the svn project name value
-     * @param revision the given revision
+     * @param revision    the given revision
      */
     void fetchAvailableScripts(String projectName, long revision) {
         commonInjector.getJavaScriptProjectFetcherAsync().fetchJavaScriptFileNames(projectName, revision, new FetchScriptsFilteredAsyncCallback());
@@ -462,15 +465,16 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     /**
      * Method retrieving all available java script invocation methods for a given svn project with
      * a given revision and a chosen java script.
+     *
      * @param projectName the svn project name value
-     * @param revision the given revision
-     * @param scriptName the chosen script
+     * @param revision    the given revision
+     * @param scriptName  the chosen script
      */
     void fetchAvailableInvocationMethods(String projectName, long revision, String scriptName) {
         commonInjector.getJavaScriptProjectFetcherAsync().fetchJavaScriptInvocationMethods(projectName, revision, scriptName, new FetchInvocationMethodsFilteredAsyncCallback());
     }
 
-     /*
+    /*
      * Abstract methods
      */
 

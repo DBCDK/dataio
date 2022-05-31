@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.jobstore;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -84,7 +79,6 @@ public abstract class AbstractJobStoreServiceContainerTest {
         logstoreDBContainer.exposeHostPort();
 
 
-
         logstoreContainer = startLogstoreServiceContainer(network);
         logstoreDbConnection = connectToLogstoreDB();
         populateLogstoreDB(logstoreDbConnection);
@@ -152,7 +146,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("OPENMQ_SERVER", OPENMQ_ALIAS + ":7676")
                 .withExposedPorts(8080);
         container.start();
-        return container;    
+        return container;
     }
 
     private static GenericContainer startJobStoreServiceContainer(Network network) {
@@ -170,7 +164,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("OPENMQ_SERVER", OPENMQ_ALIAS + ":7676")
                 .withEnv("FLOWSTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
                 .withEnv("FILESTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
-                .withEnv("LOGSTORE_URL", "http://"+LOGSTORE+":8080/dataio/log-store-service/")
+                .withEnv("LOGSTORE_URL", "http://" + LOGSTORE + ":8080/dataio/log-store-service/")
                 .withEnv("RAWREPO_HARVESTER_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
                 .withEnv("TICKLE_REPO_HARVESTER_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
                 .withEnv("VIPCORE_ENDPOINT", "http://vipcore-dummy")
@@ -246,7 +240,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
     static Connection connectToLogstoreDB() {
         try {
-            return  logstoreDBContainer.createConnection();
+            return logstoreDBContainer.createConnection();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

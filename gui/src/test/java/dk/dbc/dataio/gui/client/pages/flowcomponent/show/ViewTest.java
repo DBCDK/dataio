@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.flowcomponent.show;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -36,8 +15,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
@@ -54,11 +33,16 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
-    @Mock Presenter mockedPresenter;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock static ClickEvent mockedClickEvent;
-    @Mock private ViewGinjector mockedViewInjector;
-    @Mock private CommonGinjector mockedCommonInjector;
+    @Mock
+    Presenter mockedPresenter;
+    @Mock
+    dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock
+    static ClickEvent mockedClickEvent;
+    @Mock
+    private ViewGinjector mockedViewInjector;
+    @Mock
+    private CommonGinjector mockedCommonInjector;
 
 
     // Test Data
@@ -76,7 +60,8 @@ public class ViewTest {
     private View view;
 
     // Mocked Texts
-    @Mock static Texts mockedTexts;
+    @Mock
+    static Texts mockedTexts;
     final static String MOCKED_LABEL_FLOWCOMPONENTS = "Mocked Text: label_FlowComponents";
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: button_Edit";
     final static String MOCKED_BUTTON_CREATE = "Mocked Text: button_Create";
@@ -129,11 +114,13 @@ public class ViewTest {
         public View getView() {
             return view;
         }
+
         @Override
         public Texts getTexts() {
             return mockedTexts;
         }
     }
+
     /*
      * Testing starts here...
      */

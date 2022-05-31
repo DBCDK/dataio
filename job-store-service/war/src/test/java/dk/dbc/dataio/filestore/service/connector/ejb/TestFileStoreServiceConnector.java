@@ -1,11 +1,10 @@
-
 package dk.dbc.dataio.filestore.service.connector.ejb;
 
 
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.httpclient.HttpClient;
 
 import javax.ws.rs.ProcessingException;
 import java.io.ByteArrayInputStream;
@@ -20,25 +19,26 @@ import java.util.Map;
 public class TestFileStoreServiceConnector extends FileStoreServiceConnector {
 
 
-   static Map<String, String> files = new HashMap();
-   static Map<String, Long> fileLengthOverWrite = new HashMap<>();
+    static Map<String, String> files = new HashMap();
+    static Map<String, Long> fileLengthOverWrite = new HashMap<>();
 
 
-    public static void updateFileContent( String fileId, String fileContent ) {
+    public static void updateFileContent(String fileId, String fileContent) {
         files.put(fileId, fileContent);
     }
-    public static void updateFileContentLength( String fileId, Long newSize ) {
+
+    public static void updateFileContentLength(String fileId, Long newSize) {
         fileLengthOverWrite.put(fileId, newSize);
     }
 
 
     public TestFileStoreServiceConnector() throws NullPointerException, IllegalArgumentException {
         super(HttpClient.newClient(), "baseUrl");
-        
+
     }
 
     public static void resetTestData() {
-        files= new HashMap<>();
+        files = new HashMap<>();
         fileLengthOverWrite = new HashMap<>();
     }
 
@@ -53,9 +53,9 @@ public class TestFileStoreServiceConnector extends FileStoreServiceConnector {
             throw new FileStoreServiceConnectorUnexpectedStatusCodeException("not found", 404);
         }
 
-        ByteArrayInputStream  res=null;
+        ByteArrayInputStream res = null;
         try {
-            res=new ByteArrayInputStream(files.get(fileId).getBytes("UTF-8"));
+            res = new ByteArrayInputStream(files.get(fileId).getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -70,8 +70,8 @@ public class TestFileStoreServiceConnector extends FileStoreServiceConnector {
     @Override
     public long getByteSize(String fileId) throws NullPointerException, IllegalArgumentException, FileStoreServiceConnectorException {
         try {
-            if( fileLengthOverWrite.containsKey( fileId)) return fileLengthOverWrite.get(fileId );
-            
+            if (fileLengthOverWrite.containsKey(fileId)) return fileLengthOverWrite.get(fileId);
+
             return files.get(fileId).getBytes("UTF-8").length;
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

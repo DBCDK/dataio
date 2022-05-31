@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.infomedia;
 
 import dk.dbc.autonomen.AutoNomenConnector;
@@ -25,13 +20,19 @@ import javax.inject.Inject;
 public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, InfomediaHarvesterConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
 
-    @EJB BinaryFileStoreBean binaryFileStoreBean;
-    @EJB FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-    @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @EJB
+    BinaryFileStoreBean binaryFileStoreBean;
+    @EJB
+    FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
-    @Inject InfomediaConnector infomediaConnector;
-    @Inject AutoNomenConnector autoNomenConnector;
+    @Inject
+    InfomediaConnector infomediaConnector;
+    @Inject
+    AutoNomenConnector autoNomenConnector;
 
     @Override
     public int executeFor(InfomediaHarvesterConfig config) throws HarvesterException {

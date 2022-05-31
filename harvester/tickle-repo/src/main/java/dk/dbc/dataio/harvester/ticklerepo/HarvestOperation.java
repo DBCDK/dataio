@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.harvester.ticklerepo;
 
 import dk.dbc.commons.addi.AddiRecord;
@@ -66,14 +45,15 @@ public class HarvestOperation {
 
     /**
      * Class constructor
-     * @param config configuration used for this harvest
+     *
+     * @param config                    configuration used for this harvest
      * @param flowStoreServiceConnector connector used to update configuration
-     * @param binaryFileStore used to create HarvesterJobBuilder in order to create dataIO job
+     * @param binaryFileStore           used to create HarvesterJobBuilder in order to create dataIO job
      * @param fileStoreServiceConnector used to create HarvesterJobBuilder in order to create dataIO job
-     * @param jobStoreServiceConnector used to create HarvesterJobBuilder in order to create dataIO job
-     * @param tickleRepo tickle repository API
-     * @param taskRepo harvest task repository API
-     * @throws NullPointerException if given any null-valued argument
+     * @param jobStoreServiceConnector  used to create HarvesterJobBuilder in order to create dataIO job
+     * @param tickleRepo                tickle repository API
+     * @param taskRepo                  harvest task repository API
+     * @throws NullPointerException  if given any null-valued argument
      * @throws IllegalStateException if unable to resolve tickle dataset
      */
     HarvestOperation(TickleRepoHarvesterConfig config,
@@ -97,9 +77,10 @@ public class HarvestOperation {
 
     /**
      * Runs this harvest operation
+     *
      * @return number of records harvested
      * @throws HarvesterException if unable to complete harvest operation
-    */
+     */
     int execute() throws HarvesterException {
         final StopWatch stopWatch = new StopWatch();
 
@@ -156,7 +137,7 @@ public class HarvestOperation {
     AddiRecord createAddiRecord(AddiMetaData addiMetaData, byte[] content) throws HarvesterException {
         return new AddiRecord(getBytes(addiMetaData), content);
     }
-    
+
     byte[] getBytes(AddiMetaData addiMetaData) throws HarvesterException {
         try {
             return jsonbContext.marshall(addiMetaData).getBytes(StandardCharsets.UTF_8);

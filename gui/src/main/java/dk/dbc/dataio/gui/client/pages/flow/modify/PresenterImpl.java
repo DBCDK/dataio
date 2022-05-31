@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
@@ -60,8 +39,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
      * Put code, utilizing view in the start method
      *
-     * @param placeController   PlaceController for navigation
-     * @param header            Breadcrumb header text
+     * @param placeController PlaceController for navigation
+     * @param header          Breadcrumb header text
      */
     public PresenterImpl(PlaceController placeController, String header) {
         this.placeController = placeController;
@@ -118,7 +97,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void flowComponentsChanged(Map<String, String> flowComponents) {
         if (flowComponents != null) {
             List<FlowComponentModel> flowComponentModels = new ArrayList<>();
-            for (Map.Entry<String, String> entry: flowComponents.entrySet()) {
+            for (Map.Entry<String, String> entry : flowComponents.entrySet()) {
                 flowComponentModels.add(getFlowComponentModel(entry.getKey()));
             }
             getView().model.setFlowComponents(flowComponentModels);
@@ -149,7 +128,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void addButtonPressed() {
-        if (availableFlowComponentModels != null ) {
+        if (availableFlowComponentModels != null) {
             getView().popupListBox.clear();
             for (FlowComponentModel component : getNonSelectedFlowComponents()) {
                 getView().popupListBox.addItem(component.getName(), String.valueOf(component.getId()));
@@ -185,7 +164,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void selectFlowComponentButtonPressed(Map<String, String> selectedKeys) {
         Set<FlowComponentModel> flowComponentModels = new LinkedHashSet<>();  // Preserve order in the set
         flowComponentModels.addAll(getView().model.getFlowComponents());  // Put in a set to avoid duplicates
-        for (String id: selectedKeys.keySet()) {
+        for (String id : selectedKeys.keySet()) {
             flowComponentModels.add(getFlowComponentModel(id));
         }
         final List<FlowComponentModel> result = new ArrayList<>();
@@ -218,12 +197,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setText(view.model.getDescription());
         view.description.setEnabled(true);
         view.flowComponents.clear();
-        for (FlowComponentModel flowComponentModel: view.model.getFlowComponents()) {
+        for (FlowComponentModel flowComponentModel : view.model.getFlowComponents()) {
             view.flowComponents.addValue(flowComponentModel.getName(), Long.toString(flowComponentModel.getId()));
         }
         if (availableFlowComponentModels != null) {
             view.flowComponents.setEnabled(true);
-            if(view.showAvailableFlowComponents) {
+            if (view.showAvailableFlowComponents) {
                 addButtonPressed();
                 view.showAvailableFlowComponents = false;
             }
@@ -234,6 +213,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method used to set the model after a successful update or a save
+     *
      * @param model The model to save
      */
     protected void setFlowModel(FlowModel model) {
@@ -276,12 +256,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         List<FlowComponentModel> nonSelectedFlowComponents = new ArrayList<>();
         List<Long> selectedFlowComponentIds = new ArrayList<>();
         if (getView().model != null) {
-            for (FlowComponentModel selected: getView().model.getFlowComponents()) {
+            for (FlowComponentModel selected : getView().model.getFlowComponents()) {
                 selectedFlowComponentIds.add(selected.getId());
             }
         }
         if (availableFlowComponentModels != null) {
-            for (FlowComponentModel available:  availableFlowComponentModels) {
+            for (FlowComponentModel available : availableFlowComponentModels) {
                 if (!selectedFlowComponentIds.contains(available.getId())) {
                     nonSelectedFlowComponents.add(available);
                 }
@@ -292,7 +272,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private FlowComponentModel getFlowComponentModel(String idString) {
         long id = Long.parseLong(idString);
-        for (FlowComponentModel flowComponentModel: availableFlowComponentModels) {
+        for (FlowComponentModel flowComponentModel : availableFlowComponentModels) {
             if (flowComponentModel.getId() == id) {
                 return flowComponentModel;
             }
@@ -323,6 +303,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onFailure(Throwable e) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
+
         @Override
         public void onSuccess(List<FlowComponentModel> result) {
             availableFlowComponentModels = result;

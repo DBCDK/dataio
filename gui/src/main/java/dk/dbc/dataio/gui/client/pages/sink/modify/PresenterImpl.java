@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
@@ -57,8 +36,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -70,6 +50,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the selection of Sink Type has changed
+     *
      * @param sinkType Sink Type selection
      */
     public void sinkTypeChanged(SinkContent.SinkType sinkType) {
@@ -87,6 +68,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the name field has been changed
+     *
      * @param name, the new name value
      */
     public void nameChanged(String name) {
@@ -95,6 +77,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the description field has been changed
+     *
      * @param description, the new description value
      */
     @Override
@@ -104,6 +87,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the resource field has been changed
+     *
      * @param resource, the new resource value
      */
     @Override
@@ -113,6 +97,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the User Id field has been changed
+     *
      * @param userId, the new User Id value
      */
     @Override
@@ -126,11 +111,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the openupdatepassword field has been changed
+     *
      * @param password, the new openupdatepassword value
      */
     @Override
     public void passwordChanged(String password) {
-        if(isValid(password)) {
+        if (isValid(password)) {
             model.setOpenUpdatePassword(password);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -139,11 +125,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the list of Available Queue Providers has been changed
+     *
      * @param availableQueueProviders The list of Available Queue Providers
      */
     @Override
     public void queueProvidersChanged(List<String> availableQueueProviders) {
-        if(isValid(availableQueueProviders)) {
+        if (isValid(availableQueueProviders)) {
             model.setOpenUpdateAvailableQueueProviders(availableQueueProviders);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -178,7 +165,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void dpfUpdateServicePasswordChanged(String password) {
-        if(isValid(password)) {
+        if (isValid(password)) {
             model.setDpfUpdateServicePassword(password);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -187,7 +174,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void dpfUpdateServiceQueueProvidersChanged(List<String> availableQueueProviders) {
-        if(isValid(availableQueueProviders)) {
+        if (isValid(availableQueueProviders)) {
             model.setDpfUpdateServiceAvailableQueueProviders(availableQueueProviders);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -196,11 +183,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the sequence analysis selection has changed
+     *
      * @param value Holds the value attribute of the selected Radio Button
      */
     @Override
     public void sequenceAnalysisSelectionChanged(String value) {
-        if(isValid(value)) {
+        if (isValid(value)) {
             model.setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.valueOf(value));
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -209,11 +197,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the endpoint field has been changed
+     *
      * @param endpoint, the new endpoint value
      */
     @Override
     public void endpointChanged(String endpoint) {
-        if(isValid(endpoint)) {
+        if (isValid(endpoint)) {
             model.setOpenUpdateEndpoint(endpoint);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -222,11 +211,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the es user id field has been changed
+     *
      * @param userId, the new es user id value
      */
     @Override
     public void esUserIdChanged(String userId) {
-        if(isValid(userId)) {
+        if (isValid(userId)) {
             try {
                 model.setEsUserId(Integer.valueOf(userId));
             } catch (NumberFormatException e) {
@@ -239,11 +229,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the es database field has been changed
+     *
      * @param esDatabase, the new es database name value
      */
     @Override
     public void esDatabaseChanged(String esDatabase) {
-        if(isValid(esDatabase)) {
+        if (isValid(esDatabase)) {
             model.setEsDatabase(esDatabase);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -252,11 +243,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the ims endpoint field has been changed
+     *
      * @param imsEndpoint, the new ims endpoint value
      */
     @Override
     public void imsEndpointChanged(String imsEndpoint) {
-        if(isValid(imsEndpoint)) {
+        if (isValid(imsEndpoint)) {
             model.setImsEndpoint(imsEndpoint);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -265,11 +257,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the worldcat user id field has been changed
+     *
      * @param userId, the new worldcat user id value
      */
     @Override
     public void worldCatUserIdChanged(String userId) {
-        if(isValid(userId)) {
+        if (isValid(userId)) {
             model.setWordCatUserId(userId);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -278,11 +271,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the worldcat password field has been changed
+     *
      * @param password, the new worldcat password value
      */
     @Override
     public void worldCatPasswordChanged(String password) {
-        if(isValid(password)) {
+        if (isValid(password)) {
             model.setWordCatPassword(password);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -291,11 +285,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the worldCat project id field has been changed
+     *
      * @param projectId, the new worldCat project id value
      */
     @Override
     public void worldCatProjectIdChanged(String projectId) {
-        if(isValid(projectId)) {
+        if (isValid(projectId)) {
             model.setWordCatProjectId(projectId);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -304,11 +299,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the worldCat endpoint field has been changed
+     *
      * @param endpoint, the new worldCat endpoint value
      */
     @Override
     public void worldCatEndpointChanged(String endpoint) {
-        if(isValid(endpoint)) {
+        if (isValid(endpoint)) {
             model.setWorldCatEndpoint(endpoint);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -317,11 +313,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the worldCat list of retry diagnostics has been changed
+     *
      * @param diagnostics, the new worldCat list of retry diagnostics
      */
     @Override
     public void worldCatRetryDiagnosticsChanged(List<String> diagnostics) {
-        if(isValid(diagnostics)) {
+        if (isValid(diagnostics)) {
             model.setWorldCatRetryDiagnostics(diagnostics);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -330,7 +327,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void vipEndpointChanged(String vipEndpoint) {
-        if(isValid(vipEndpoint)) {
+        if (isValid(vipEndpoint)) {
             model.setVipEndpoint(vipEndpoint);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -379,6 +376,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Removes a diagnostic from the list of retry diagnostics
+     *
      * @param retryDiagnostic The diagnostic to remove from the list of retry diagnostics
      */
     @Override
@@ -395,6 +393,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method used to set the model after a successful update or a save
+     *
      * @param model The model to save
      */
     protected void setSinkModel(SinkModel model) {
@@ -521,11 +520,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected View getView() {
         return viewInjector.getView();
     }
+
     protected Texts getTexts() {
         return viewInjector.getTexts();
     }
 
-     /*
+    /*
      * Abstract methods
      */
 
@@ -541,6 +541,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * handleSinkConfig
+     *
      * @param sinkType defining the type of sinkConfig
      */
     abstract void handleSinkConfig(SinkContent.SinkType sinkType);

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 
@@ -90,9 +69,10 @@ public class View extends ViewWidget {
 
     /**
      * Stores the itemModels given as a parameter to the presenter
+     *
      * @param itemModels The itemModels to store to the presenter
      */
-    public void setItemModels(List<ItemModel> itemModels){
+    public void setItemModels(List<ItemModel> itemModels) {
         presenter.setItemModels(itemsListView, itemModels);
     }
 
@@ -157,8 +137,8 @@ public class View extends ViewWidget {
         Column column = new Column(statusCell) {
             @Override
             public Object getValue(Object model) {
-                final String stacktrace = ((DiagnosticModel)model).getStacktrace();
-                if(stacktrace != null && !stacktrace.isEmpty()) {
+                final String stacktrace = ((DiagnosticModel) model).getStacktrace();
+                if (stacktrace != null && !stacktrace.isEmpty()) {
                     return resources.plusUpButton();
                 } else {
                     return resources.emptyIcon();
@@ -166,8 +146,8 @@ public class View extends ViewWidget {
             }
         };
         column.setFieldUpdater((index, model, value) -> {
-            final String stacktrace = ((DiagnosticModel)model).getStacktrace();
-            if(stacktrace != null && !stacktrace.isEmpty()) {
+            final String stacktrace = ((DiagnosticModel) model).getStacktrace();
+            if (stacktrace != null && !stacktrace.isEmpty()) {
                 Window.alert(((DiagnosticModel) model).getStacktrace());
             }
         });
@@ -241,6 +221,7 @@ public class View extends ViewWidget {
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
     Column constructFixedColumn() {
@@ -250,6 +231,7 @@ public class View extends ViewWidget {
             public Boolean getValue(ItemModel itemModel) {
                 return itemModel.getWorkflowNoteModel().isProcessed();
             }
+
             @Override
             public void onBrowserEvent(Cell.Context context, Element elem, ItemModel itemModel, NativeEvent event) {
                 if (Event.as(event).getTypeInt() == Event.ONCHANGE) {
@@ -257,6 +239,7 @@ public class View extends ViewWidget {
                 }
                 super.onBrowserEvent(context, elem, itemModel, event);
             }
+
             @Override
             public String getCellStyleNames(Cell.Context context, ItemModel model) {
                 return fixedColumnVisible ? "visible center" : "invisible";
@@ -306,6 +289,7 @@ public class View extends ViewWidget {
         public SelectionChangeHandlerClass() {
             super();
         }
+
         public void onSelectionChange(SelectionChangeEvent event) {
             ItemModel selected = selectionModel.getSelectedObject();
             if (selected != null) {
@@ -319,14 +303,17 @@ public class View extends ViewWidget {
      */
     class HidableColumnHeader extends Header<String> {
         private String headerText;
+
         public HidableColumnHeader(String text) {
             super(new TextCell());
             headerText = text;
         }
+
         @Override
         public String getValue() {
             return headerText;
         }
+
         @Override
         public String getHeaderStyleNames() {
             return fixedColumnVisible ? "visible" : "invisible";

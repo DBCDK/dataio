@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.vip;
 
 import dk.dbc.commons.addi.AddiRecord;
@@ -16,10 +11,10 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 
-// TODO: 24-04-19 Add wiremock request/response tests when VIP-CORE service is available 
+// TODO: 24-04-19 Add wiremock request/response tests when VIP-CORE service is available
 
 public class MessageConsumerBeanTest {
     private final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();

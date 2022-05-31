@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.sink.diff;
 
 import org.slf4j.Logger;
@@ -58,9 +37,10 @@ public class ExternalToolDiffGenerator {
      * Creates diff string through external tool, returning
      * empty string   : if the two input parameters are identical or semantic identical.
      * diff as string : if the two input parameters are different from one another.
-     * @param kind the kind of diff to generate
+     *
+     * @param kind    the kind of diff to generate
      * @param current the current item data
-     * @param next the next item data
+     * @param next    the next item data
      * @return the diff string
      * @throws DiffGeneratorException on failure to create diff
      */
@@ -84,10 +64,10 @@ public class ExternalToolDiffGenerator {
                     kind.getTool(), tempFile1.getAbsolutePath(), tempFile2.getAbsolutePath()));
             final StringBuilder out = new StringBuilder();
             final StreamHandler outHandler = new StreamHandler(p.getInputStream(),
-                (line) -> out.append(line).append("\n"), stdoutDone::setTrue);
+                    (line) -> out.append(line).append("\n"), stdoutDone::setTrue);
             final StringBuilder err = new StringBuilder();
             final StreamHandler errHandler = new StreamHandler(p.getErrorStream(),
-                (line) -> err.append(line).append("\n"), stderrDone::setTrue);
+                    (line) -> err.append(line).append("\n"), stderrDone::setTrue);
 
             //Thread outputThread = threadFactory.newThread(outHandler);
             final Thread outputThread = new Thread(outHandler);
@@ -113,7 +93,7 @@ public class ExternalToolDiffGenerator {
         } catch (IOException | InterruptedException e) {
             throw new DiffGeneratorException(kind.getTool() +
                     " failed to compare input", e);
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             LOGGER.error("Unexpected exception: ", e);
             throw e;
         } finally {
@@ -130,6 +110,7 @@ public class ExternalToolDiffGenerator {
         private InputStream is;
         private Consumer<String> consumer;
         private Runnable done;
+
         public StreamHandler(InputStream is, Consumer<String> consumer, Runnable done) {
             this.is = is;
             this.consumer = consumer;
@@ -138,21 +119,23 @@ public class ExternalToolDiffGenerator {
 
         @Override
         public void run() {
-            try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     consumer.accept(line);
                 }
-            } catch(IOException e) {
+            } catch (IOException e) {
                 consumer.accept("caught exception: " + e.toString());
             } finally {
                 done.run();
             }
         }
     }
+
     // convenience class because Boolean is immutable
     private class BooleanHolder {
         boolean value;
+
         public void setTrue() {
             value = true;
         }

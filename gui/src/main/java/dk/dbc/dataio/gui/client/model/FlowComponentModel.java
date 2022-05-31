@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.model;
 
 import dk.dbc.dataio.gui.client.util.Format;
@@ -47,7 +26,7 @@ public class FlowComponentModel extends GenericBackendModel {
         this.invocationMethod = invocationMethod;
         this.javascriptModules = javascriptModules;
         this.nextJavascriptModules = nextJavascriptModules;
-        this.description = description == null? "" : description;
+        this.description = description == null ? "" : description;
         this.svnNext = svnNext;
     }
 
@@ -64,6 +43,7 @@ public class FlowComponentModel extends GenericBackendModel {
 
     /**
      * Set flow component name
+     *
      * @param name The name of the flow component
      */
     public void setName(String name) {
@@ -79,6 +59,7 @@ public class FlowComponentModel extends GenericBackendModel {
 
     /**
      * Set the SVN Project name
+     *
      * @param svnProject The SVN Project name
      */
     public void setSvnProject(String svnProject) {
@@ -94,6 +75,7 @@ public class FlowComponentModel extends GenericBackendModel {
 
     /**
      * Set the SVN Revision number
+     *
      * @param svnRevision The SVN Revision number
      */
     public void setSvnRevision(String svnRevision) {
@@ -109,6 +91,7 @@ public class FlowComponentModel extends GenericBackendModel {
 
     /**
      * Set the SVN Revision number
+     *
      * @param svnNext The next SVN Revision number
      */
     public void setSvnNext(String svnNext) {
@@ -124,6 +107,7 @@ public class FlowComponentModel extends GenericBackendModel {
 
     /**
      * Set Invocation Javascript name
+     *
      * @param invocationJavascript The name of the Invocation Javascript
      */
     public void setInvocationJavascript(String invocationJavascript) {
@@ -139,6 +123,7 @@ public class FlowComponentModel extends GenericBackendModel {
 
     /**
      * Set name of the Invocation Method in the Javascript
+     *
      * @param invocationMethod The name of the Invocation Method in the Javascript
      */
     public void setInvocationMethod(String invocationMethod) {
@@ -154,6 +139,7 @@ public class FlowComponentModel extends GenericBackendModel {
 
     /**
      * Set the list of all Javascript modules
+     *
      * @param javascriptModules The list of all Javascript modules
      */
     public void setJavascriptModules(List<String> javascriptModules) {
@@ -169,6 +155,7 @@ public class FlowComponentModel extends GenericBackendModel {
 
     /**
      * Set the list of all Next Javascript modules
+     *
      * @param nextJavascriptModules The list of all Next Javascript modules
      */
     public void setNextJavascriptModules(List<String> nextJavascriptModules) {
@@ -184,6 +171,7 @@ public class FlowComponentModel extends GenericBackendModel {
 
     /**
      * Set description
+     *
      * @param description Flow component description
      */
     public void setDescription(String description) {
@@ -193,6 +181,7 @@ public class FlowComponentModel extends GenericBackendModel {
 
     /**
      * Checks for empty String values
+     *
      * @return true if no empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
@@ -232,6 +221,7 @@ public class FlowComponentModel extends GenericBackendModel {
     /**
      * Checks if the flow component name contains illegal characters.
      * A-Å, 0-9, - (minus), + (plus), _ (underscore) and space is valid
+     *
      * @return a list containing illegal characters found. Empty list if none found.
      */
     public List<String> getDataioPatternMatches() {

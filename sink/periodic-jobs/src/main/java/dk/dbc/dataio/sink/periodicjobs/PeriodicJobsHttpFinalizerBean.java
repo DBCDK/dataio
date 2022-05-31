@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.periodicjobs;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -36,7 +31,8 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     public static final String ORIGIN = "dataio/sink/periodic-jobs";
 
-    @EJB public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @EJB
+    public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
 
     @Timed
     @Override
@@ -154,7 +150,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
         try {
             LOGGER.info("Removing file with id {} from file-store", fileId);
             fileStoreServiceConnector.deleteFile(fileId);
-        } catch (RuntimeException | FileStoreServiceConnectorException  e) {
+        } catch (RuntimeException | FileStoreServiceConnectorException e) {
             LOGGER.error("Failed to remove uploaded file with id {}", fileId, e);
         }
     }

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show;
 
 import com.google.gwt.cell.client.ButtonCell;
@@ -74,7 +53,8 @@ public class HarvestersTable extends CellTable {
 
     /**
      * This method sets the harvester data for the table
-     * @param presenter The presenter
+     *
+     * @param presenter  The presenter
      * @param harvesters The harvester data
      */
     public void setHarvesters(Presenter presenter, List<TickleRepoHarvesterConfig> harvesters) {
@@ -82,7 +62,7 @@ public class HarvestersTable extends CellTable {
         dataProvider.getList().clear();
 
         if (!harvesters.isEmpty()) {
-            for (TickleRepoHarvesterConfig TickleRepoHarvesterConfig: harvesters ) {
+            for (TickleRepoHarvesterConfig TickleRepoHarvesterConfig : harvesters) {
                 dataProvider.getList().add(TickleRepoHarvesterConfig);
             }
         }
@@ -209,7 +189,7 @@ public class HarvestersTable extends CellTable {
         return new TextColumn<TickleRepoHarvesterConfig>() {
             @Override
             public String getValue(TickleRepoHarvesterConfig harvester) {
-                        return harvester.getContent().isEnabled() ? texts.value_Enabled() : texts.value_Disabled();
+                return harvester.getContent().isEnabled() ? texts.value_Enabled() : texts.value_Disabled();
             }
         };
     }
@@ -226,6 +206,7 @@ public class HarvestersTable extends CellTable {
 
     /**
      * This method constructs the Action column
+     *
      * @return The constructed Action column
      */
     private Column constructActionColumn() {
@@ -248,14 +229,16 @@ public class HarvestersTable extends CellTable {
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
-    DoubleClickHandler getDoubleClickHandler(){
+    DoubleClickHandler getDoubleClickHandler() {
         return doubleClickEvent -> editTickleRepoHarvester(selectionModel.getSelectedObject());
     }
 
     /**
      * Sends a request to the presenter for editing the harvester, passed as a parameter in the call
+     *
      * @param harvester The harvester to edit
      */
     private void editTickleRepoHarvester(TickleRepoHarvesterConfig harvester) {
@@ -266,7 +249,7 @@ public class HarvestersTable extends CellTable {
 
     private String buildCommaSeperatedHarvestBatchTimeStamp(TickleRepoHarvesterConfig.Content content) {
         StringBuilder stringBuilder = new StringBuilder();
-        if(content.getTimeOfLastBatchHarvested() != null) {
+        if (content.getTimeOfLastBatchHarvested() != null) {
             stringBuilder.append(Format.formatLongDate(content.getTimeOfLastBatchHarvested())).append(", ");
         } else {
             stringBuilder.append("na, ");
@@ -277,8 +260,9 @@ public class HarvestersTable extends CellTable {
 
     /**
      * This metods constructs a SafeHtml snippet, that constitutes a text with a popup mouseover help text
+     *
      * @param headerText The headertext to be displayed
-     * @param helpText The popup help text
+     * @param helpText   The popup help text
      * @return The SafeHtml snippet
      */
     SafeHtml textWithToolTip(String headerText, String helpText) {

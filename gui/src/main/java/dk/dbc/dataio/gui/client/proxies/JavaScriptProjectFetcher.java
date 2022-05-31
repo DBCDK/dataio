@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.proxies;
 
 import com.google.gwt.core.client.GWT;
@@ -39,9 +18,7 @@ public interface JavaScriptProjectFetcher extends RemoteService {
      * all commited revisions for project pointed to by given URL
      *
      * @param projectUrl project URL
-     *
      * @return list of revision information in descending revision order
-     *
      * @throws JavaScriptProjectFetcherException if unable to fetch revision information
      */
     List<RevisionInfo> fetchRevisions(String projectUrl) throws JavaScriptProjectFetcherException;
@@ -51,10 +28,8 @@ public interface JavaScriptProjectFetcher extends RemoteService {
      * revision of project pointed to by given URL
      *
      * @param projectUrl project URL
-     * @param revision project revision
-     *
+     * @param revision   project revision
      * @return list of file names
-     *
      * @throws JavaScriptProjectFetcherException if unable to fetch files
      */
     List<String> fetchJavaScriptFileNames(String projectUrl, long revision) throws JavaScriptProjectFetcherException;
@@ -63,12 +38,10 @@ public interface JavaScriptProjectFetcher extends RemoteService {
      * Fetches names of all potential invocation methods contained in specified
      * javaScript file in given revision of project pointed to by given URL
      *
-     * @param projectUrl project URL
-     * @param revision project revision
+     * @param projectUrl         project URL
+     * @param revision           project revision
      * @param javaScriptFileName name of script file
-     *
      * @return list of method names in alphabetical order
-     *
      * @throws JavaScriptProjectFetcherException if unable to fetch method names
      */
     List<String> fetchJavaScriptInvocationMethods(String projectUrl, long revision, String javaScriptFileName) throws JavaScriptProjectFetcherException;
@@ -77,22 +50,21 @@ public interface JavaScriptProjectFetcher extends RemoteService {
      * Feches script content of specified javaScript file (and any of its dependencies)
      * in given revision of project pointed to by given URL
      *
-     * @param projectUrl project URL
-     * @param revision project revision
+     * @param projectUrl         project URL
+     * @param revision           project revision
      * @param javaScriptFileName name of script file
      * @param javaScriptFunction name of invocation function in script file
-     *
      * @return list of javaScripts
-     *
      * @throws JavaScriptProjectFetcherException if unable to fetch javaScript content
      */
     fetchRequiredJavaScriptResult fetchRequiredJavaScript(String projectUrl, long revision, String javaScriptFileName, String javaScriptFunction) throws JavaScriptProjectFetcherException;
-    
+
     /**
      * The factory class for JavaScriptProjectFetcher
      */
     class Factory {
         private static JavaScriptProjectFetcherAsync asyncInstance = null;
+
         public static JavaScriptProjectFetcherAsync getAsyncInstance() {
             if (asyncInstance == null) {
                 asyncInstance = GWT.create(JavaScriptProjectFetcher.class);
@@ -115,5 +87,5 @@ public interface JavaScriptProjectFetcher extends RemoteService {
         }
     }
 
-    
+
 }

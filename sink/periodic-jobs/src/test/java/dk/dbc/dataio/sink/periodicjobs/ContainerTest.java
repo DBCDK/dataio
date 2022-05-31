@@ -1,15 +1,16 @@
 package dk.dbc.dataio.sink.periodicjobs;
 
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
+
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.time.Duration;
 
 public abstract class ContainerTest extends IntegrationTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ContainerTest.class);
@@ -43,7 +44,7 @@ public abstract class ContainerTest extends IntegrationTest {
     }
 
     protected String getLocalIPAddress() {
-        try(final DatagramSocket socket = new DatagramSocket()){
+        try (final DatagramSocket socket = new DatagramSocket()) {
             socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
             return socket.getLocalAddress().getHostAddress();
         } catch (SocketException | UnknownHostException e) {

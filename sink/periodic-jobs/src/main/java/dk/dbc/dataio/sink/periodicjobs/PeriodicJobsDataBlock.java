@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.periodicjobs;
 
 import javax.persistence.Column;
@@ -19,23 +14,23 @@ import java.util.Objects;
 @Entity
 @Table(name = "datablock")
 @NamedQueries({
-    @NamedQuery(
-            name = PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME,
-            query = PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY),
-    @NamedQuery(
-            name = PeriodicJobsDataBlock.DELETE_DATA_BLOCKS_QUERY_NAME,
-            query = PeriodicJobsDataBlock.DELETE_DATA_BLOCKS_QUERY)
+        @NamedQuery(
+                name = PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME,
+                query = PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY),
+        @NamedQuery(
+                name = PeriodicJobsDataBlock.DELETE_DATA_BLOCKS_QUERY_NAME,
+                query = PeriodicJobsDataBlock.DELETE_DATA_BLOCKS_QUERY)
 })
 public class PeriodicJobsDataBlock {
     public static final String GET_DATA_BLOCKS_QUERY =
             "SELECT datablock FROM PeriodicJobsDataBlock datablock" +
-            " WHERE datablock.key.jobId = ?1" +
-            " ORDER BY datablock.sortkey ASC";
+                    " WHERE datablock.key.jobId = ?1" +
+                    " ORDER BY datablock.sortkey ASC";
     public static final String GET_DATA_BLOCKS_QUERY_NAME =
             "PeriodicJobsDataBlock.get";
     public static final String DELETE_DATA_BLOCKS_QUERY =
             "DELETE FROM PeriodicJobsDataBlock datablock" +
-            " WHERE datablock.key.jobId = :jobId";
+                    " WHERE datablock.key.jobId = :jobId";
     public static final String DELETE_DATA_BLOCKS_QUERY_NAME =
             "PeriodicJobsDataBlock.delete";
 
@@ -48,7 +43,7 @@ public class PeriodicJobsDataBlock {
     private byte[] bytes;
 
     @Lob
-	private byte[] groupHeader;
+    private byte[] groupHeader;
 
     public Key getKey() {
         return key;
@@ -141,7 +136,8 @@ public class PeriodicJobsDataBlock {
             this.recordPart = recordPart;
         }
 
-        private Key() {}
+        private Key() {
+        }
 
         public int getJobId() {
             return jobId;

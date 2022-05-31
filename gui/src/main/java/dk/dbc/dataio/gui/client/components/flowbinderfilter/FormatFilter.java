@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.components.flowbinderfilter;
 
 import com.google.gwt.core.client.GWT;
@@ -23,7 +18,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class FormatFilter extends BaseFlowBinderFilter {
-    interface FormatFilterUiBinder extends UiBinder<HTMLPanel, FormatFilter> {}
+    interface FormatFilterUiBinder extends UiBinder<HTMLPanel, FormatFilter> {
+    }
 
     private static FormatFilterUiBinder ourUiBinder = GWT.create(FormatFilterUiBinder.class);
 
@@ -43,10 +39,12 @@ public class FormatFilter extends BaseFlowBinderFilter {
         setParameter(parameter);
     }
 
-    @UiField PromptedTextBox format;
+    @UiField
+    PromptedTextBox format;
 
     /**
      * Event handler for handling changes in the format value
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler("format")
@@ -78,6 +76,7 @@ public class FormatFilter extends BaseFlowBinderFilter {
     /**
      * Sets the selection according to the key value, setup in the parameter attribute<br>
      * The value is given in url as a plain string
+     *
      * @param filterParameter filter parameters to be used by this filter
      */
     @Override
@@ -95,6 +94,7 @@ public class FormatFilter extends BaseFlowBinderFilter {
     /**
      * Explicitly focus/unfocus this widget. Only one widget can have focus
      * at a time, and the widget that does will receive all keyboard events.
+     *
      * @param focused whether this widget should take focus or release it
      */
     @Override

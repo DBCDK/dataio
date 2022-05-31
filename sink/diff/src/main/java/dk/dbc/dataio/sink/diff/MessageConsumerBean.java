@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.sink.diff;
 
 import dk.dbc.dataio.commons.types.Chunk;
@@ -66,12 +45,13 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
      * <br/>  - If the diff produces an empty string, the item is converted into a SUCCESS item in result.
      * <br/>  - If the diff produces a non-empty string, the item is converted into a FAILURE item in result.
      * <br/>  - If a DiffGeneratorException is thrown while comparing, the item is converted into a FAILURE item result.
+     *
      * @param chunk processed chunk
      * @return result of diff
      * @throws SinkException on failure to produce diff
      */
     Chunk handleChunk(Chunk chunk) throws SinkException {
-        if(!chunk.hasNextItems()) {
+        if (!chunk.hasNextItems()) {
             return failWithMissingNextItem(chunk);
         }
 
@@ -171,10 +151,10 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private ChunkItem getChunkItemWithDiffResult(ChunkItemPair pair) {
         if (Arrays.equals(pair.current.getData(), pair.next.getData())) {
             return ChunkItem.successfulChunkItem()
-                        .withId(pair.current.getId())
-                        .withData("Current and next output were identical")
-                        .withType(ChunkItem.Type.STRING)
-                        .withTrackingId(pair.current.getTrackingId());
+                    .withId(pair.current.getId())
+                    .withData("Current and next output were identical")
+                    .withType(ChunkItem.Type.STRING)
+                    .withTrackingId(pair.current.getTrackingId());
         }
 
         String diff;
@@ -218,9 +198,12 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     private static String statusToString(ChunkItem.Status status) {
         switch (status) {
-            case FAILURE: return "Failure";
-            case SUCCESS: return "Success";
-            case IGNORE: return "Ignore";
+            case FAILURE:
+                return "Failure";
+            case SUCCESS:
+                return "Success";
+            case IGNORE:
+                return "Ignore";
             default:
                 return "Internal Error: Unknown Status";
         }

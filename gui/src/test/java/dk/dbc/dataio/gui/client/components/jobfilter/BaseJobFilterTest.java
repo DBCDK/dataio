@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.Scheduler;
@@ -60,67 +39,89 @@ public class BaseJobFilterTest {
     private HandlerRegistration clickHandlerRegistration;
     private boolean instantiateJobFilterMethodCalled = false;
 
-    @Mock private JobFilter mockedJobFilter;
-    @Mock private JobFilterPanel mockedJobFilterPanel;
-    @Mock private HandlerRegistration mockedClickHandlerRegistration;
-    @Mock private AbstractBasePlace mockedPlace;
-    @Mock private ChangeHandler mockedChangeHandler;
+    @Mock
+    private JobFilter mockedJobFilter;
+    @Mock
+    private JobFilterPanel mockedJobFilterPanel;
+    @Mock
+    private HandlerRegistration mockedClickHandlerRegistration;
+    @Mock
+    private AbstractBasePlace mockedPlace;
+    @Mock
+    private ChangeHandler mockedChangeHandler;
 
 
     class ConcreteBaseJobFilter extends BaseJobFilter {
         String storedName;
+
         ConcreteBaseJobFilter(String name, boolean invertFilter) {
             super(mock(Texts.class), mock(Resources.class), invertFilter);
             this.storedName = name;
         }
+
         @Override
         public String getName() {
             return storedName;
         }
+
         @Override
         public JobListCriteria getValue() {
             return new JobListCriteria();
         }
+
         @Override
         public void setParameter(String filterParameter) {
         }
+
         @Override
         public String getParameter() {
             return "parm";
         }
+
         public Texts getTexts() {
             return texts;
         }
+
         Widget getThisAsWidget() {
             return thisAsWidget;
         }
+
         void setParentJobFilter(JobFilter jobFilter) {
             parentJobFilter = jobFilter;
         }
+
         JobFilter getParentJobFilter() {
             return parentJobFilter;
         }
+
         void setFilterPanel(JobFilterPanel filterPanel) {
             this.filterPanel = filterPanel;
         }
+
         JobFilterPanel getFilterPanel() {
             return filterPanel;
         }
+
         boolean getInvertFilter() {
             return initialInvertFilterValue;
         }
+
         void setClickHandlerRegistration(HandlerRegistration reg) {
             this.clickHandlerRegistration = reg;
         }
+
         HandlerRegistration getClickHandlerRegistration() {
             return clickHandlerRegistration;
         }
+
         @Override
         public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
             return null;
         }
+
         @Override
-        public void localSetParameter(String filterParameter) {}
+        public void localSetParameter(String filterParameter) {
+        }
     }
 
     class BaseJobFilterWithOverriddenAddMethod extends ConcreteBaseJobFilter {
@@ -128,6 +129,7 @@ public class BaseJobFilterTest {
             super(name, true);
             instantiateJobFilterMethodCalled = false;
         }
+
         @Override
         public void instantiateJobFilter(boolean notifyPlace) {
             instantiateJobFilterMethodCalled = true;
@@ -301,7 +303,7 @@ public class BaseJobFilterTest {
         jobFilter.removeJobFilter(true);
 
         // Verify test
-        verify(mockedPlace).addParameter("ConcreteBaseJobFilter", false,"parm");
+        verify(mockedPlace).addParameter("ConcreteBaseJobFilter", false, "parm");
         verifyNoMoreInteractions(mockedPlace);
         getAttributes(jobFilter);
         verify(mockedClickHandlerRegistration).removeHandler();
@@ -448,7 +450,7 @@ public class BaseJobFilterTest {
         jobFilter.handleFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.REMOVE_BUTTON);
 
         // Verify test
-        verify(mockedPlace).addParameter("ConcreteBaseJobFilter", false,"parm");
+        verify(mockedPlace).addParameter("ConcreteBaseJobFilter", false, "parm");
         verifyNoMoreInteractions(mockedPlace);
         getAttributes(jobFilter);
         verify(mockedClickHandlerRegistration).removeHandler();

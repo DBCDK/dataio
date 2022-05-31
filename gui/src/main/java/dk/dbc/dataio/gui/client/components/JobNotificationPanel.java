@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.core.client.GWT;
@@ -42,16 +21,24 @@ public class JobNotificationPanel extends Composite {
     // UI Fields
     @UiField
     PromptedLabel jobId;
-    @UiField PromptedLabel destination;
-    @UiField PromptedLabel timeOfCreation;
-    @UiField PromptedLabel timeOfLastModification;
-    @UiField PromptedLabel type;
-    @UiField PromptedLabel status;
-    @UiField PromptedLabel statusMessage;
-    @UiField InlineHTML content;
+    @UiField
+    PromptedLabel destination;
+    @UiField
+    PromptedLabel timeOfCreation;
+    @UiField
+    PromptedLabel timeOfLastModification;
+    @UiField
+    PromptedLabel type;
+    @UiField
+    PromptedLabel status;
+    @UiField
+    PromptedLabel statusMessage;
+    @UiField
+    InlineHTML content;
 
     /**
      * Set job id
+     *
      * @param jobId The Job Id
      */
     public void setJobId(String jobId) {
@@ -60,6 +47,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * Set destination
+     *
      * @param destination The destination mail address
      */
     public void setDestination(String destination) {
@@ -68,6 +56,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * Set Time of Creation
+     *
      * @param timeOfCreation The time of creation
      */
     public void setTimeOfCreation(String timeOfCreation) {
@@ -76,6 +65,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * Set time of last modification
+     *
      * @param timeOfLastModification The time of the last modification
      */
     public void setTimeOfLastModification(String timeOfLastModification) {
@@ -84,6 +74,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * Set Type
+     *
      * @param type The type of the Job Notification
      */
     public void setType(String type) {
@@ -92,6 +83,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * Set Status
+     *
      * @param status The status of the Job Notification mail
      */
     public void setStatus(String status) {
@@ -100,6 +92,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * The status message
+     *
      * @param statusMessage The status message
      */
     public void setStatusMessage(String statusMessage) {
@@ -108,6 +101,7 @@ public class JobNotificationPanel extends Composite {
 
     /**
      * Set the content of the Job Notification (the body of the mail)
+     *
      * @param content The content of the Job Notification
      */
     public void setContent(String content) {

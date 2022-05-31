@@ -1,12 +1,8 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.diff;
 
 public class DiffKindDetector {
-    private DiffKindDetector() {}
+    private DiffKindDetector() {
+    }
 
     public static ExternalToolDiffGenerator.Kind getKind(byte[] data) {
         if (data != null && data.length > 0) {

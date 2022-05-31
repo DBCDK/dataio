@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.commons.macroexpansion;
 
 import org.junit.Before;
@@ -21,7 +20,7 @@ public class MacroSubstitutorTest {
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     private final WeekcodeSupplier weekcodeSupplier = (catalogueCode, localDate) -> {
-        switch(catalogueCode) {
+        switch (catalogueCode) {
             case "EMS":
                 return "code4ems";
             case "LEK":

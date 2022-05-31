@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobprocessor.util;
 
 import dk.dbc.dataio.commons.time.StopWatch;
@@ -53,7 +32,8 @@ public class FlowCache {
             @Override
             public boolean removeEldestEntry(Map.Entry eldest) {
                 return size() > CACHE_MAX_ENTRIES;
-            }};
+            }
+        };
     }
 
     /**
@@ -75,11 +55,12 @@ public class FlowCache {
     /**
      * Creates script environment for the given flow and associates it with the specified key in this cache.
      * If this cache previously contained a mapping for the key, the old value is replaced by the new entry.
-     * @param key key with which the create script environment is to be associated in this cache
+     *
+     * @param key  key with which the create script environment is to be associated in this cache
      * @param flow flow from which a scripting environment is created
      * @return script environment as FlowCacheEntry
      * @throws IllegalStateException if given flow contains no script
-     * @throws Throwable on general script environment creation failure
+     * @throws Throwable             on general script environment creation failure
      */
     public FlowCacheEntry put(String key, Flow flow) throws Throwable {
         LOGGER.info("Setting up javascript environment for flow '{}'", flow.getContent().getName());

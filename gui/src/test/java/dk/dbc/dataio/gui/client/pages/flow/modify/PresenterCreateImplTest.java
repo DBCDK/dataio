@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import com.google.gwt.place.shared.PlaceController;
@@ -46,16 +25,18 @@ import static org.mockito.Mockito.when;
 
 /**
  * PresenterCreateImpl unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterCreateImplTest extends PresenterImplTestBase {
 
-    @Mock Texts mockedTexts;
-    @Mock ViewGinjector mockedViewGinjector;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    ViewGinjector mockedViewGinjector;
 
     private ViewWidget createView;
 
@@ -92,6 +73,7 @@ public class PresenterCreateImplTest extends PresenterImplTestBase {
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
     }
+
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
         setupPresenterAndStart();
@@ -112,7 +94,6 @@ public class PresenterCreateImplTest extends PresenterImplTestBase {
         assertThat(createView.showAvailableFlowComponents, is(false));
         verifyNoMoreInteractions(createView.flowComponents);  // To make sure, that there are no addValue() calls
     }
-
 
 
     @Test

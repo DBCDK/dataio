@@ -1,30 +1,9 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -50,6 +29,7 @@ public class ChunkItemExporter {
 
     /* Associates wrapping formats with their corresponding unwrap handler */
     private Map<ChunkItem.Type, ChunkItemUnwrapper> wrapperFormats = new HashMap<>();
+
     {
         wrapperFormats.put(ChunkItem.Type.UNKNOWN, addiUnwrapper);  // ToDo: remove when all chunk items are created with type information
         wrapperFormats.put(ChunkItem.Type.ADDI, addiUnwrapper);
@@ -57,6 +37,7 @@ public class ChunkItemExporter {
 
     /* Associates legal conversions with their corresponding converter type */
     private Map<Conversion, ConverterType> conversions = new HashMap<>();
+
     {
         conversions.put(new Conversion(ChunkItem.Type.MARCXCHANGE, ChunkItem.Type.DANMARC2_LINEFORMAT),
                 ConverterType.MARCXCHANGE_TO_DANMARC2_LINEFORMAT);
@@ -70,14 +51,15 @@ public class ChunkItemExporter {
 
     /**
      * Exports given chunk item as given type in given encoding
-     * @param chunkItem chunk item to be exported
-     * @param toType type of export
-     * @param encodedAs export encoding
+     *
+     * @param chunkItem   chunk item to be exported
+     * @param toType      type of export
+     * @param encodedAs   export encoding
      * @param diagnostics diagnostics to include in exported item if supported by conversion
      * @return export as bytes
      * @throws NullPointerException if given null-valued argument
-     * @throws JobStoreException on unwrap error, on illegal type conversion, on failure to read input data
-     * or on failure to write output data
+     * @throws JobStoreException    on unwrap error, on illegal type conversion, on failure to read input data
+     *                              or on failure to write output data
      */
     public byte[] export(ChunkItem chunkItem, ChunkItem.Type toType, Charset encodedAs, List<Diagnostic> diagnostics)
             throws NullPointerException, JobStoreException {
@@ -161,7 +143,7 @@ public class ChunkItemExporter {
     }
 
     private boolean isLineFormatType(ChunkItem.Type type) {
-        return     type == ChunkItem.Type.LINEFORMAT
+        return type == ChunkItem.Type.LINEFORMAT
                 || type == ChunkItem.Type.DANMARC2_LINEFORMAT
                 || type == ChunkItem.Type.MARC21_LINEFORMAT;
     }

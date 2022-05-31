@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.components.submitterfilter;
 
 import com.google.gwt.core.client.GWT;
@@ -51,7 +46,8 @@ import java.util.function.Consumer;
  */
 public class SubmitterFilter extends Composite implements HasChangeHandlers {
 
-    interface SubmitterFilterUiBinder extends UiBinder<HTMLPanel, SubmitterFilter> {}
+    interface SubmitterFilterUiBinder extends UiBinder<HTMLPanel, SubmitterFilter> {
+    }
 
     private static SubmitterFilterUiBinder ourUiBinder = GWT.create(SubmitterFilterUiBinder.class);
 
@@ -61,8 +57,10 @@ public class SubmitterFilter extends Composite implements HasChangeHandlers {
     boolean initialized = false;
     final Map<String, BaseSubmitterFilter> instantiatedFilters = new HashMap<>();  // Keeps track of all instantiated filters - whether or not they are attached to the GUI
 
-    @UiField FlowPanel submitterFilterContainer;
-    @UiField MenuBar filterMenu;
+    @UiField
+    FlowPanel submitterFilterContainer;
+    @UiField
+    MenuBar filterMenu;
 
     @SuppressWarnings("unused")
     @UiConstructor
@@ -72,6 +70,7 @@ public class SubmitterFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Constructor with list of available filters to be shown upon startup
+     *
      * @param availableFilterList list of available filters
      */
     SubmitterFilter(SubmitterFilterList availableFilterList) {
@@ -96,6 +95,7 @@ public class SubmitterFilter extends Composite implements HasChangeHandlers {
      * This method is the body of the empty-parameter onLoad method<br>
      * the getClass() method of an object cannot be mocked - therefore this method
      * allows unit test of the onLoad method by injecting the place name
+     *
      * @param placeName The place name used to select the correct filter list
      */
     void onLoad(String placeName) {
@@ -131,7 +131,7 @@ public class SubmitterFilter extends Composite implements HasChangeHandlers {
 
         // Finally do replicate setting of the active filters to the Place
         if (place.presenter != null) {
-            ((Presenter)place.presenter).setPlace(place);
+            ((Presenter) place.presenter).setPlace(place);
         }
 
         initialized = true;
@@ -139,6 +139,7 @@ public class SubmitterFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Adds a change handler to be notified upon changes in the stored query clause
+     *
      * @param changeHandler change handler to be notified upon changes
      * @return handler registration object, to be used to remove the ChangeHandler
      */
@@ -151,6 +152,7 @@ public class SubmitterFilter extends Composite implements HasChangeHandlers {
     /**
      * Injects the place into the filter. <br>
      * If set, it allows the filter to maintain the url, while adding and removing filters
+     *
      * @param place The place to inject into the filter
      */
     public void setPlace(AbstractBasePlace place) {
@@ -159,6 +161,7 @@ public class SubmitterFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Adds a child filter to the list of filters <br>
+     *
      * @param submitterFilter filter to add to the list of filters
      */
     public void add(BaseSubmitterFilter submitterFilter) {
@@ -172,6 +175,7 @@ public class SubmitterFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Removes a child filter from the list of filters
+     *
      * @param submitterFilter filter to remove from the list of filters
      */
     public void remove(BaseSubmitterFilter submitterFilter) {
@@ -195,6 +199,7 @@ public class SubmitterFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Update the place to reflect the current status of the filter settings
+     *
      * @param place The place to update
      */
     public void updatePlace(AbstractBasePlace place) {
@@ -205,7 +210,8 @@ public class SubmitterFilter extends Composite implements HasChangeHandlers {
         changeHandler = null;
     }
 
-    private class SubmitterFilterChangeEvent extends ChangeEvent {}
+    private class SubmitterFilterChangeEvent extends ChangeEvent {
+    }
 
     private void valueChanged() {
         if (changeHandler != null) {
@@ -216,6 +222,7 @@ public class SubmitterFilter extends Composite implements HasChangeHandlers {
     /**
      * Traverses through the list of active filters (filters that are actively used), and calls
      * the functional interface Consumer on each element.
+     *
      * @param action The functional interface to call, for each found active filter
      */
     private void traverseActiveFilters(Consumer<BaseSubmitterFilter> action) {
@@ -236,6 +243,7 @@ public class SubmitterFilter extends Composite implements HasChangeHandlers {
     /**
      * Sets up the filters according to the supplied list of URL Parameters<br>
      * Also removes any filters, not given in the supplied list
+     *
      * @param urlParameters The URL parameters used as input
      */
     private void setNewUrlParameters(Map<String, AbstractBasePlace.PlaceParameterValue> urlParameters) {

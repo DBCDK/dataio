@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2018 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.failedftps.show;
 
 import com.google.gwt.core.client.GWT;
@@ -66,6 +45,7 @@ public class FailedFtpsTable extends CellTable {
 
     /**
      * Sets the presenter to allow communication back to the presenter
+     *
      * @param presenter The presenter to set
      */
     public void setPresenter(Presenter presenter) {
@@ -86,16 +66,18 @@ public class FailedFtpsTable extends CellTable {
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
-    DoubleClickHandler getDoubleClickHandler(){
+    DoubleClickHandler getDoubleClickHandler() {
         return doubleClickEvent -> {
-            showTransFileContent(((SingleSelectionModel<Notification>)getSelectionModel()).getSelectedObject());
+            showTransFileContent(((SingleSelectionModel<Notification>) getSelectionModel()).getSelectedObject());
         };
     }
 
     /**
      * This method activates the show transfile content page
+     *
      * @param notification The notification to show
      */
     private void showTransFileContent(Notification notification) {

@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.periodicjobs;
 
 import dk.dbc.dataio.bfs.api.BinaryFileFsImpl;
@@ -44,7 +39,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 public class RecordSearcherIT {
@@ -148,7 +143,8 @@ public class RecordSearcherIT {
         long waitMs = 0L;
         long maxWaitMs = 20 * 1000L;
         boolean allReplicasUp = false;
-        waitLoop: while (waitMs < maxWaitMs && !allReplicasUp) {
+        waitLoop:
+        while (waitMs < maxWaitMs && !allReplicasUp) {
             Thread.sleep(500L);
             waitMs += 500L;
 

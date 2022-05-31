@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify;
 
 
@@ -36,6 +15,7 @@ import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl {
     /**
      * Constructor
+     *
      * @param header The header
      */
     public PresenterCreateImpl(String header) {
@@ -47,8 +27,9 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -73,7 +54,7 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
                         .withFormat("")
                         .withType(JobSpecification.Type.TRANSIENT)
                         .withEnabled(false)
-            );
+        );
         setTickleRepoHarvesterConfig(tickleRepoHarvesterConfig);
         updateAllFieldsAccordingToCurrentState();
     }
@@ -91,29 +72,34 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
     /**
      * This has no implementation because "Create" does not have a delete button!
      */
-    public void deleteButtonPressed() {}
+    public void deleteButtonPressed() {
+    }
 
     /**
      * This has no implementation because "Create" does not have a task record harvest button!
      */
-    public void taskRecordHarvestButtonPressed() {}
+    public void taskRecordHarvestButtonPressed() {
+    }
 
     /**
      * This has no implementation because "Create" does not have a delete outdated records button!
      */
     @Override
-    public void deleteOutdatedRecordsButtonPressed() {}
+    public void deleteOutdatedRecordsButtonPressed() {
+    }
 
     /**
      * This has no implementation because "Create" does not have a delete outdated records button!
      */
     @Override
-    public void deleteOutdatedRecords() {}
+    public void deleteOutdatedRecords() {
+    }
 
     /**
      * This has no implementation because "Create" does not have a task record harvest button!
      */
-    public void setRecordHarvestCount() {}
+    public void setRecordHarvestCount() {
+    }
 
 
     /*
@@ -126,6 +112,7 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
             String msg = "HarvesterConfig.id: [new Harvester]";
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(TickleRepoHarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());

@@ -10,16 +10,16 @@ import dk.dbc.dataio.harvester.types.SFtpPickup;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.time.LocalDate;
-import java.util.Date;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -116,7 +116,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
                 periodicJobsSFtpFinalizerBean.deliver(chunk, delivery));
 
         String dataSentUsingSFtp = fakeSFtpServer.getFileContent(
-                String.format("%s/%s",testDir, "testMyNewFileName.data"), StandardCharsets.UTF_8);
+                String.format("%s/%s", testDir, "testMyNewFileName.data"), StandardCharsets.UTF_8);
         assertThat("Content received", dataSentUsingSFtp, is("groupA\n0\n1\ngroupB\n2"));
     }
 
@@ -145,10 +145,10 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
                 periodicJobsSFtpFinalizerBean.deliver(chunk, delivery));
 
         String dataSentUsingSFtp = fakeSFtpServer.getFileContent(
-                String.format("%s/%s",testDir, "testMyNewFileName.data"), StandardCharsets.UTF_8);
+                String.format("%s/%s", testDir, "testMyNewFileName.data"), StandardCharsets.UTF_8);
         assertThat("Content received", dataSentUsingSFtp, is("Ugekorrektur uge 202041\ngroupA\n0\n1\ngroupB\n2\nslut uge 202041"));
     }
-    
+
     @Test
     public void deliver_testThatSftpGoesViaProxy() {
         assertThat("sftp traffic goes via proxy", getProxyLog(), containsString("local client closed.  Session duration:"));

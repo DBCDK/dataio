@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GPLv3
- * See license text in LICENSE.txt or at https://opensource.dbc.dk/licenses/gpl-3.0/
- */
-
 package dk.dbc.dataio.filestore.service.ejb;
 
 import org.flywaydb.core.Flyway;
@@ -20,7 +15,7 @@ import javax.sql.DataSource;
 @Startup
 public class DatabaseMigrator {
     private static final Logger LOGGER = LoggerFactory.getLogger(
-        DatabaseMigrator.class);
+            DatabaseMigrator.class);
 
     @Resource(lookup = "jdbc/dataio/fileStore")
     DataSource dataSource;
@@ -34,7 +29,7 @@ public class DatabaseMigrator {
                 .load();
         for (MigrationInfo i : flyway.info().all()) {
             LOGGER.info("db task {} : {} from file '{}'", i.getVersion(),
-                i.getDescription(), i.getScript());
+                    i.getDescription(), i.getScript());
         }
         flyway.migrate();
     }

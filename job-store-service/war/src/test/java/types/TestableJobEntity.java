@@ -10,13 +10,13 @@ import java.sql.Timestamp;
 
 public class TestableJobEntity extends JobEntity {
 
-    public TestableJobEntity (Timestamp timeOfCreation,
-                              State state,
-                              JobSpecification jobSpecification,
-                              SinkCacheEntity sinkCacheEntity,
-                              FlowStoreReferences flowStoreReferences,
-                              int numberOfItems,
-                              int numberOfChunks) {
+    public TestableJobEntity(Timestamp timeOfCreation,
+                             State state,
+                             JobSpecification jobSpecification,
+                             SinkCacheEntity sinkCacheEntity,
+                             FlowStoreReferences flowStoreReferences,
+                             int numberOfItems,
+                             int numberOfChunks) {
 
         this.timeOfCreation = timeOfCreation;
         this.setState(state);

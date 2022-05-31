@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -80,6 +59,7 @@ public class JobNotificationRepository extends RepositoryBase {
 
     /**
      * Gets all notifications associated with job
+     *
      * @param jobId id of job for which to get notifications
      * @return list of notifications
      */
@@ -101,8 +81,7 @@ public class JobNotificationRepository extends RepositoryBase {
         final Query waitingNotificationsQuery = getWaitingNotificationsQuery();
         int numberOfNotificationsFound;
         do {
-            @SuppressWarnings("unchecked")
-            final List<NotificationEntity> waitingNotifications = (List<NotificationEntity>) waitingNotificationsQuery.getResultList();
+            @SuppressWarnings("unchecked") final List<NotificationEntity> waitingNotifications = (List<NotificationEntity>) waitingNotificationsQuery.getResultList();
 
             numberOfNotificationsFound = waitingNotifications.size();
             if (numberOfNotificationsFound > 0) {
@@ -120,6 +99,7 @@ public class JobNotificationRepository extends RepositoryBase {
 
     /**
      * Processes given notification in a separate transactional scope
+     *
      * @param notification notification to be processed
      * @return true if notification was processed without failure, otherwise false
      */
@@ -157,8 +137,9 @@ public class JobNotificationRepository extends RepositoryBase {
 
     /**
      * Adds waiting notification entity of given type linked to given job
+     *
      * @param type type of notification
-     * @param job associated job
+     * @param job  associated job
      * @return managed instance of notification entity
      */
     public NotificationEntity addNotification(Notification.Type type, JobEntity job) {
@@ -172,14 +153,15 @@ public class JobNotificationRepository extends RepositoryBase {
 
     /**
      * Adds waiting notification entity of given type with given context
+     *
      * @param notificationType type of notification
-     * @param mailDestination destination of mail
-     * @param context notification Context
+     * @param mailDestination  destination of mail
+     * @param context          notification Context
      * @return created notification entity
      * @throws JobStoreException on internal failure to marshall notification context
      */
     public NotificationEntity addNotification(Notification.Type notificationType,
-                String mailDestination, NotificationContext context) throws JobStoreException {
+                                              String mailDestination, NotificationContext context) throws JobStoreException {
         final NotificationEntity notificationEntity = new NotificationEntity();
         notificationEntity.setStatus(Notification.Status.WAITING);
         notificationEntity.setType(notificationType);
@@ -195,6 +177,7 @@ public class JobNotificationRepository extends RepositoryBase {
 
     /**
      * Lists notifications of given type ordered by descending timeOfCreation
+     *
      * @param type {@link Notification.Type}
      * @return list of {@link NotificationEntity}
      */
@@ -220,7 +203,7 @@ public class JobNotificationRepository extends RepositoryBase {
         final JobEntity job = notification.getJob();
         if (notification.getType() == Notification.Type.JOB_COMPLETED && job.hasFailedItems() && !job.hasFatalDiagnostics()) {
             final JobExporter jobExporter = new JobExporter(entityManager);
-            if(job.getState().getPhase(State.Phase.PARTITIONING).getFailed() > 0) {
+            if (job.getState().getPhase(State.Phase.PARTITIONING).getFailed() > 0) {
                 final JobExporter.FailedItemsContent failedItemsContent =
                         jobExporter.exportFailedItemsContent(job.getId(),
                                 Collections.singletonList(State.Phase.PARTITIONING),

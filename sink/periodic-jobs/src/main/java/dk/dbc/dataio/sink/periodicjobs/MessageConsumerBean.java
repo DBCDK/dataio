@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.commons.addi.AddiReader;
@@ -43,7 +38,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     @PersistenceContext(unitName = "periodic-jobs_PU")
     EntityManager entityManager;
 
-    @EJB PeriodicJobsFinalizerBean periodicJobsFinalizerBean;
+    @EJB
+    PeriodicJobsFinalizerBean periodicJobsFinalizerBean;
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage)
@@ -202,7 +198,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     }
 
     private int getRecordNumber(int chunkId, int itemId) {
-        return 10*chunkId + itemId;
+        return 10 * chunkId + itemId;
     }
 
     private String getDefaultSortKey(int recordNumber) {

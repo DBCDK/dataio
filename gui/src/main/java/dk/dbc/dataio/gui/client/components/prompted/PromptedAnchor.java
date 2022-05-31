@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components.prompted;
 
 import com.google.gwt.uibinder.client.UiConstructor;
@@ -38,6 +17,7 @@ public class PromptedAnchor extends PromptedData {
     /**
      * Constructor
      * This is the @UiConstructor, meaning that the two parameters are mandatory inputs, when used by UiBinder
+     *
      * @param guiId  The GUI Id
      * @param prompt The prompt label for the widget
      */
@@ -50,6 +30,7 @@ public class PromptedAnchor extends PromptedData {
 
     /**
      * Sets the text for the anchor
+     *
      * @param text The text value for the anchor
      */
     public void setText(String text) {
@@ -58,6 +39,7 @@ public class PromptedAnchor extends PromptedData {
 
     /**
      * Fetches the text from the anchor
+     *
      * @return The text for the anchor
      */
     public String getText() {
@@ -66,6 +48,7 @@ public class PromptedAnchor extends PromptedData {
 
     /**
      * Sets the Href for the anchor
+     *
      * @param href The Href value for the anchor
      */
     public void setHref(String href) {
@@ -75,13 +58,14 @@ public class PromptedAnchor extends PromptedData {
         anchor.setHref(href);
     }
 
-    public void setHrefAndText( String href) {
-        anchor.setText( href );
-        anchor.setHref( href );
+    public void setHrefAndText(String href) {
+        anchor.setText(href);
+        anchor.setHref(href);
     }
 
     /**
      * Fetches the text from the anchor
+     *
      * @return The text for the anchor
      */
     public String getHref() {
@@ -90,6 +74,7 @@ public class PromptedAnchor extends PromptedData {
 
     /**
      * Sets the target for the anchor
+     *
      * @param target The target value for the anchor
      */
     public void setTarget(String target) {
@@ -98,6 +83,7 @@ public class PromptedAnchor extends PromptedData {
 
     /**
      * Fetches the target from the anchor
+     *
      * @return The target for the anchor
      */
     public String getTarget() {

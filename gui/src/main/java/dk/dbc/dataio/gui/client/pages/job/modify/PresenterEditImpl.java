@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.job.modify;
 
 import com.google.gwt.dom.client.Document;
@@ -41,7 +20,7 @@ import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
 /**
  * Concrete Presenter Implementation Class for Job Edit
  */
-public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
+public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     private Long jobId;
     private Boolean failedItemsOnly;
     LogPanel logPanel;
@@ -50,15 +29,16 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
     /**
      * Constructor
-     * @param place     the place
-     * @param header    Breadcrumb header text
+     *
+     * @param place  the place
+     * @param header Breadcrumb header text
      */
     public PresenterEditImpl(Place place, String header) {
         super(header);
         jobId = Long.valueOf(place.getParameter(EditPlace.JOB_ID));
         failedItemsOnly = Boolean.valueOf(place.getParameter(EditPlace.FAILED_ITEMS_ONLY));
 
-        if(Document.get().getElementById(GUIID_CONTENT_PANEL) != null && Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL) != null) {
+        if (Document.get().getElementById(GUIID_CONTENT_PANEL) != null && Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL) != null) {
             logPanel = ((ContentPanel) Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL)).getLogPanel();
         }
     }
@@ -105,8 +85,8 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void doReSubmitJobInJobStore() {
-        if(jobRerunScheme.getActions().contains(JobRerunScheme.Action.COPY)) {
-            commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback() );
+        if (jobRerunScheme.getActions().contains(JobRerunScheme.Action.COPY)) {
+            commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback());
         } else {
             commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback());
         }
@@ -134,7 +114,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
         @Override
         public void onSuccess(List<JobModel> jobModels) {
-            if (jobModels != null  && jobModels.size() > 0) {
+            if (jobModels != null && jobModels.size() > 0) {
                 setJobModel(jobModels.get(0));
                 getJobRerunScheme(jobModel);
             }

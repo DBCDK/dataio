@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.commons.addi.AddiRecord;
@@ -55,7 +34,7 @@ public class ChunkItemProcessor {
     private final ChunkItem chunkItem;
 
     private final MetricsHandlerBean metricsHandler;
-    
+
     private int addiRecordIndex;
     private int totalNumberOfAddiRecords;
     private List<Diagnostic> diagnostics;
@@ -68,12 +47,12 @@ public class ChunkItemProcessor {
     int maxNumberOfRetries = 6;
 
     /**
-     * @param chunkItem chunk item to be processed
-     * @param addiRecordPreprocessor ADDI record pre-processor
-     * @param openUpdateServiceConnector OpenUpdate webservice connector
+     * @param chunkItem                    chunk item to be processed
+     * @param addiRecordPreprocessor       ADDI record pre-processor
+     * @param openUpdateServiceConnector   OpenUpdate webservice connector
      * @param updateRecordResultMarshaller updateRecordResultMarshaller
      * @param updateRecordErrorInterpreter {@link UpdateRecordErrorInterpreter} instance
-     * @param metricsHandler MetricsHandlerBean object
+     * @param metricsHandler               MetricsHandlerBean object
      * @throws NullPointerException if given null-valued argument
      */
     public ChunkItemProcessor(ChunkItem chunkItem, AddiRecordPreprocessor addiRecordPreprocessor,
@@ -92,6 +71,7 @@ public class ChunkItemProcessor {
     /**
      * Calls the update web service for all ADDI records contained in this chunk item and combines
      * the results to into a single result chunk item.
+     *
      * @param queueProvider name of queue provider to be included in request
      * @return resulting chunk item
      */
@@ -133,7 +113,7 @@ public class ChunkItemProcessor {
         return result;
     }
 
-    private AddiStatus addDiagnosticsForError(Throwable t){
+    private AddiStatus addDiagnosticsForError(Throwable t) {
         crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE));
         crossAddiRecordsMessage.append(StringUtil.getStackTraceString(t));
         diagnostics.add(buildFatalDiagnostic(t));
@@ -174,14 +154,14 @@ public class ChunkItemProcessor {
 
             return AddiStatus.FAILED_VALIDATION;
 
-        } catch(WebServiceException e) {
+        } catch (WebServiceException e) {
             // http error codes:
             final int[] errorCodes = {404, 502, 503};
             if (IntStream.of(errorCodes).anyMatch(n -> n == getStatusCodeFromError(e)) && currentRetry < maxNumberOfRetries) {
                 try {
                     Thread.sleep((currentRetry + 1) * retrySleepMillis);
                     return callUpdateService(addiRecord, addiRecordIndex, queueProvider, ++currentRetry);
-                } catch(InterruptedException e2) {
+                } catch (InterruptedException e2) {
                     return callUpdateService(addiRecord, addiRecordIndex, queueProvider, ++currentRetry);
                 }
             } else {
@@ -193,10 +173,10 @@ public class ChunkItemProcessor {
     }
 
     private int getStatusCodeFromError(WebServiceException e) {
-        if(e.getMessage() == null) return -1;
+        if (e.getMessage() == null) return -1;
         // there isn't a method to get the error code like in HTTPException
         Matcher m = errorCodePattern.matcher(e.getMessage());
-        if(m.find()) {
+        if (m.find()) {
             return Integer.valueOf(m.group(1));
         }
         return -1;
@@ -205,7 +185,7 @@ public class ChunkItemProcessor {
     private Diagnostic buildFatalDiagnostic(Throwable t) {
         return new Diagnostic(Diagnostic.Level.FATAL,
                 t.getMessage() != null ? t.getMessage() : t.getClass().getCanonicalName()
-                    + " occurred while calling openUpdateService", t);
+                        + " occurred while calling openUpdateService", t);
     }
 
     private String getAddiRecordMessage(AddiStatus addiStatus) {
@@ -214,7 +194,7 @@ public class ChunkItemProcessor {
     }
 
     private String getItemContentCrossAddiRecords() {
-        if(!diagnostics.isEmpty()) {
+        if (!diagnostics.isEmpty()) {
             appendDiagnosticsContentToCrossAddiRecordsMessage();
         }
         return crossAddiRecordsMessage.toString();
@@ -222,8 +202,8 @@ public class ChunkItemProcessor {
 
     private void appendDiagnosticsContentToCrossAddiRecordsMessage() {
         crossAddiRecordsMessage.append(System.lineSeparator());
-        for(Diagnostic diagnostic : diagnostics) {
-            if(diagnostic.getStacktrace() != null) {
+        for (Diagnostic diagnostic : diagnostics) {
+            if (diagnostic.getStacktrace() != null) {
                 crossAddiRecordsMessage.append(diagnostic.getMessage());
             } else {
                 crossAddiRecordsMessage.append("e01 00 *a").append(diagnostic.getMessage());

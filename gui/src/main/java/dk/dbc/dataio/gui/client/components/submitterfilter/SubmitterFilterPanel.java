@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.components.submitterfilter;
 
 import com.google.gwt.core.client.GWT;
@@ -46,26 +41,31 @@ import java.util.Iterator;
  *    <g:Label>Panel content...</g:Label>
  * </dio:SubmitterFilterPanel>
  * }</pre>
- *
  */
 public class SubmitterFilterPanel extends Composite implements HasWidgets, HasSubmitterFilterPanelHandlers {
-    interface TitledSubmitterFilterPanelUiBinder extends UiBinder<HTMLPanel, SubmitterFilterPanel> {}
+    interface TitledSubmitterFilterPanelUiBinder extends UiBinder<HTMLPanel, SubmitterFilterPanel> {
+    }
+
     private static TitledSubmitterFilterPanelUiBinder ourUiBinder = GWT.create(TitledSubmitterFilterPanelUiBinder.class);
 
     protected Resources resources;
 
     SubmitterFilterPanelHandler submitterFilterPanelHandler = null;  // This is package private because of test - should be private
 
-    @UiField PushButton invertButton;
-    @UiField PushButton deleteButton;
-    @UiField SimplePanel content;
+    @UiField
+    PushButton invertButton;
+    @UiField
+    PushButton deleteButton;
+    @UiField
+    SimplePanel content;
 
     private Boolean invertFilter = true;
 
     /**
      * Constructor taking the title of the panel and the deleteButton image as parameters (mandatory in UI Binder)
-     * @param title The title of the panel
-     * @param resources the resource for the panel
+     *
+     * @param title        The title of the panel
+     * @param resources    the resource for the panel
      * @param invertFilter True if filter is inverted, false if not
      */
     @UiConstructor
@@ -97,6 +97,7 @@ public class SubmitterFilterPanel extends Composite implements HasWidgets, HasSu
 
     /**
      * Test whether this filter inverted
+     *
      * @return True if the filter is inverted, false if not
      */
     public boolean isInvertFilter() {
@@ -105,6 +106,7 @@ public class SubmitterFilterPanel extends Composite implements HasWidgets, HasSu
 
     /**
      * Set the filter inverted
+     *
      * @param invert Sets whether the job filter is inverted
      */
     public void setInvertFilter(boolean invert) {
@@ -114,6 +116,7 @@ public class SubmitterFilterPanel extends Composite implements HasWidgets, HasSu
 
     /**
      * Adds a widget to the panel
+     *
      * @param widget The widget to add to the panel
      */
     @Override
@@ -131,6 +134,7 @@ public class SubmitterFilterPanel extends Composite implements HasWidgets, HasSu
 
     /**
      * Gets an iterator for the contained widgets.
+     *
      * @return The iterator for the contained widgets.
      */
     @Override
@@ -140,6 +144,7 @@ public class SubmitterFilterPanel extends Composite implements HasWidgets, HasSu
 
     /**
      * Removes a widget from this panel
+     *
      * @param widget The widget to be removed
      * @return True if the widget was present
      */
@@ -150,6 +155,7 @@ public class SubmitterFilterPanel extends Composite implements HasWidgets, HasSu
 
     /**
      * Sets the delete deleteButton image
+     *
      * @param resources The resources to be used for fetching the deleteButton images
      */
     private void setDeleteButtonImage(Resources resources) {
@@ -161,6 +167,7 @@ public class SubmitterFilterPanel extends Composite implements HasWidgets, HasSu
      * Sets the invert button image
      * Please note, that an invert button shall be shown with a Plus sign, since we want to show the action: Plus means make not inverted
      * Similarly, a Minus sign means not-inverted - in the meaning, that a click on the button makes it inverted.
+     *
      * @param inverted Determines whether to show a minus button (true) or a plus button (false)
      */
     private void setInvertButtonImage(boolean inverted) {
@@ -175,6 +182,7 @@ public class SubmitterFilterPanel extends Composite implements HasWidgets, HasSu
 
     /**
      * Adds a SubmitterFilterPanel handler to be fired upon click on one of the buttons
+     *
      * @param handler filter Panel handler
      * @return A Handler Registration object for destroying the handler when no longer in use.
      */
@@ -186,6 +194,7 @@ public class SubmitterFilterPanel extends Composite implements HasWidgets, HasSu
 
     /**
      * Triggers a ClickEvent
+     *
      * @param button The button, that is being triggered
      */
     protected void triggerFilterPanelEvent(SubmitterFilterPanelEvent.FilterPanelButton button) {

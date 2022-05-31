@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -47,7 +26,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -213,7 +192,8 @@ public class JobNotificationRepositoryTest {
     public void addNotification_withContext_persistsAndReturnsEntityInWaitingState() throws JobStoreException {
         final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
         final NotificationEntity notificationEntity = jobNotificationRepository.addNotification(
-                Notification.Type.INVALID_TRANSFILE, destination, new NotificationContext() {});
+                Notification.Type.INVALID_TRANSFILE, destination, new NotificationContext() {
+                });
 
         assertThat("getStatus()", notificationEntity.getStatus(), is(Notification.Status.WAITING));
         assertThat("getType()", notificationEntity.getType(), is(Notification.Type.INVALID_TRANSFILE));
@@ -239,7 +219,7 @@ public class JobNotificationRepositoryTest {
     }
 
     public static NotificationEntity getNotificationEntity(Notification.Type type) {
-       final NotificationEntity notification = new NotificationEntity();
+        final NotificationEntity notification = new NotificationEntity();
         notification.setStatus(Notification.Status.WAITING);
         notification.setType(type);
         return notification;
@@ -258,5 +238,6 @@ public class JobNotificationRepositoryTest {
         return notification;
     }
 
-    public static class NotificationContextImpl implements NotificationContext { }
+    public static class NotificationContextImpl implements NotificationContext {
+    }
 }

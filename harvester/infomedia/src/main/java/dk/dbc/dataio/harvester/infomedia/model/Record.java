@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.infomedia.model;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -12,14 +7,14 @@ import dk.dbc.autonomen.AutoNomenSuggestions;
 
 import java.util.List;
 
-@JacksonXmlRootElement(localName="record")
+@JacksonXmlRootElement(localName = "record")
 public class Record {
     private Infomedia infomedia;
 
     @JacksonXmlProperty(localName = "author-name-suggestion")
     @JacksonXmlElementWrapper(localName = "author-name-suggestions")
     private List<AutoNomenSuggestions> autoNomenSuggestions;
-    
+
     public Infomedia getInfomedia() {
         return infomedia;
     }

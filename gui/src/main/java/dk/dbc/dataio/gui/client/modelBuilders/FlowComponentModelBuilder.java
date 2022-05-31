@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.modelBuilders;
 
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
@@ -51,48 +30,48 @@ public class FlowComponentModelBuilder {
         return this;
     }
 
-    public FlowComponentModelBuilder setName (String name) {
+    public FlowComponentModelBuilder setName(String name) {
         this.name = name;
         return this;
     }
 
-    public FlowComponentModelBuilder setSvnProject (String svnProject) {
+    public FlowComponentModelBuilder setSvnProject(String svnProject) {
         this.svnProject = svnProject;
         return this;
     }
 
-    public FlowComponentModelBuilder setSvnRevision (String svnRevision) {
+    public FlowComponentModelBuilder setSvnRevision(String svnRevision) {
         this.svnRevision = svnRevision;
         return this;
     }
 
-    public FlowComponentModelBuilder setSvnNext (String svnNext) {
+    public FlowComponentModelBuilder setSvnNext(String svnNext) {
         this.svnNext = svnNext;
         return this;
     }
 
-    public FlowComponentModelBuilder setInvocationJavascript (String invocationJavascript) {
+    public FlowComponentModelBuilder setInvocationJavascript(String invocationJavascript) {
         this.invocationJavascript = invocationJavascript;
         return this;
     }
 
 
-    public FlowComponentModelBuilder setInvocationMethod (String invocationMethod) {
+    public FlowComponentModelBuilder setInvocationMethod(String invocationMethod) {
         this.invocationMethod = invocationMethod;
         return this;
     }
 
-    public FlowComponentModelBuilder setJavascriptModules (List<String> javascriptModules) {
+    public FlowComponentModelBuilder setJavascriptModules(List<String> javascriptModules) {
         this.javascriptModules = javascriptModules;
         return this;
     }
 
-    public FlowComponentModelBuilder setNextJavascriptModules (List<String> nextJavascriptModules) {
+    public FlowComponentModelBuilder setNextJavascriptModules(List<String> nextJavascriptModules) {
         this.nextJavascriptModules = nextJavascriptModules;
         return this;
     }
 
-    public FlowComponentModelBuilder setDescription (String description) {
+    public FlowComponentModelBuilder setDescription(String description) {
         this.description = description;
         return this;
     }

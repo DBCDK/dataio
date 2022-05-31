@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -12,7 +7,7 @@ import org.junit.Test;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class InfomediaHarvesterConfigTest {
     private final JSONBContext jsonbContext = new JSONBContext();

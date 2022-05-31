@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.promat;
 
 import dk.dbc.dataio.harvester.AbstractScheduledHarvestBean;
@@ -27,8 +22,10 @@ public class ScheduledHarvestBean extends AbstractScheduledHarvestBean<Harvester
         PromatHarvesterConfig, HarvesterConfigurationBean> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledHarvestBean.class);
 
-    @EJB HarvesterBean harvesterBean;
-    @EJB HarvesterConfigurationBean harvesterConfigurationBean;
+    @EJB
+    HarvesterBean harvesterBean;
+    @EJB
+    HarvesterConfigurationBean harvesterConfigurationBean;
 
     @Override
     public HarvesterBean getHarvesterBeanImpl() {

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.sink.util;
 
 import org.w3c.dom.Document;
@@ -45,11 +24,11 @@ import java.io.IOException;
 public class DocumentTransformer {
 
     public static final String DATAIO_PROCESSING_NAMESPACE_URI = "dk.dbc.dataio.processing";
-    public static final String DATAIO_PROCESSING_ELEMENT       = "sink-processing";
-    public static final String UPDATE_TEMPLATE_ELEMENT         = "sink-update-template";
+    public static final String DATAIO_PROCESSING_ELEMENT = "sink-processing";
+    public static final String UPDATE_TEMPLATE_ELEMENT = "sink-update-template";
 
-    public static final String ES_NAMESPACE_URI                = "http://oss.dbc.dk/ns/es";
-    public static final String ES_INFO_ELEMENT                 = "info";
+    public static final String ES_NAMESPACE_URI = "http://oss.dbc.dk/ns/es";
+    public static final String ES_INFO_ELEMENT = "info";
 
     private DocumentBuilder documentBuilder;
     private Transformer transformer;
@@ -68,10 +47,10 @@ public class DocumentTransformer {
 
     /**
      * Converts a byte array to a document
+     *
      * @param byteArray the byte array to convert
      * @return the byte array as document
-     *
-     * @throws IOException If any IO errors occur.
+     * @throws IOException  If any IO errors occur.
      * @throws SAXException If any parse errors occur
      */
     public Document byteArrayToDocument(byte[] byteArray) throws IOException, SAXException {
@@ -82,10 +61,11 @@ public class DocumentTransformer {
 
     /**
      * This method removes all nodes in given node list from the dom
+     *
      * @param nodes the nodes to remove
      */
     public void removeFromDom(NodeList nodes) {
-        while(nodes.getLength() > 0) {
+        while (nodes.getLength() > 0) {
             final Node node = nodes.item(0);
             node.getParentNode().removeChild(node); // Remove node from dom
         }
@@ -93,11 +73,11 @@ public class DocumentTransformer {
 
     /**
      * Converts a document to a byte array
-     * @param document the document to convert
      *
+     * @param document the document to convert
      * @return document content as byte array
      * @throws TransformerException If an unrecoverable error occurs
-     *         during the course of the transformation.
+     *                              during the course of the transformation.
      */
     public byte[] documentToByteArray(Document document) throws TransformerException {
         Source source = new DOMSource(document);
@@ -110,12 +90,13 @@ public class DocumentTransformer {
 
     /**
      * Extracts attribute value from given document
-     * @param document document from which to extract
-     * @param namespaceUri namespace URI of element containing attribute
-     * @param elementName name of element containing attribute
+     *
+     * @param document      document from which to extract
+     * @param namespaceUri  namespace URI of element containing attribute
+     * @param elementName   name of element containing attribute
      * @param attributeName name of attribute
      * @return value of attribute or empty string if no attribute could be found on specified element
-     * @throws NullPointerException if given any null valued argument
+     * @throws NullPointerException     if given any null valued argument
      * @throws IllegalArgumentException if named element could not be found or if multiple elements were found
      */
     public String extractAttributeValue(Document document, String namespaceUri, String elementName, String attributeName)

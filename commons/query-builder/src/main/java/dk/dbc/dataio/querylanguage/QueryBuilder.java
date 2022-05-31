@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.querylanguage;
 
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -37,6 +32,7 @@ public class QueryBuilder {
 
     /**
      * Adds given {@link Clause} to those already added using boolean AND
+     *
      * @param clause {@link Clause} to add
      * @return this {@link QueryBuilder}
      */
@@ -47,6 +43,7 @@ public class QueryBuilder {
 
     /**
      * Adds given {@link Clause} to those already added using boolean OR
+     *
      * @param clause {@link Clause} to add
      * @return this {@link QueryBuilder}
      */
@@ -57,6 +54,7 @@ public class QueryBuilder {
 
     /**
      * Adds ORDER BY condition
+     *
      * @param ordering {@link Ordering} to add
      * @return this {@link QueryBuilder}
      */
@@ -67,6 +65,7 @@ public class QueryBuilder {
 
     /**
      * Limits number of results returned
+     *
      * @param limit upper limit
      * @return this {@link QueryBuilder}
      */
@@ -77,6 +76,7 @@ public class QueryBuilder {
 
     /**
      * Sets starting offset for results returned
+     *
      * @param offset offset
      * @return this {@link QueryBuilder}
      */
@@ -87,6 +87,7 @@ public class QueryBuilder {
 
     /**
      * Builds query expression
+     *
      * @return query expression as string
      */
     public String buildQuery() {
@@ -103,6 +104,7 @@ public class QueryBuilder {
 
     /**
      * Builds COUNT query expression
+     *
      * @return query expression as string
      */
     public String buildCountQuery() {
@@ -180,7 +182,7 @@ public class QueryBuilder {
     }
 
     private String escapeString(String str) {
-        return str.replaceAll("'","\\\\'");
+        return str.replaceAll("'", "\\\\'");
     }
 
     private static class LogicalPair {

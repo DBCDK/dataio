@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.rr.modify;
 
 import com.google.gwt.core.client.GWT;
@@ -45,7 +24,9 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 import java.util.Map;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    interface HarvesterBinder extends UiBinder<HTMLPanel, View> {}
+    interface HarvesterBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static HarvesterBinder uiBinder = GWT.create(HarvesterBinder.class);
     private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
@@ -62,28 +43,48 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
 
-    @UiField PromptedTextBox name;
-    @UiField PromptedTextBox description;
-    @UiField PromptedTextBox resource;
-    @UiField PromptedTextBox consumerId;
-    @UiField PromptedTextBox size;
-    @UiField PromptedMultiList formatOverrides;
-    @UiField PromptedCheckBox relations;
-    @UiField PromptedCheckBox expand;
-    @UiField PromptedCheckBox libraryRules;
-    @UiField PromptedList harvesterType;
-    @UiField PromptedTextBox holdingsTarget;
-    @UiField PromptedTextBox destination;
-    @UiField PromptedTextBox format;
-    @UiField PromptedList type;
-    @UiField PromptedTextArea note;
-    @UiField PromptedCheckBox enabled;
-    @UiField Label status;
-    @UiField PopupMapEntry popupFormatOverrideEntry;
-    @UiField Button updateButton;
-    @UiField Button deleteButton;
-    @UiField PopupBox<Label> confirmation;
-
+    @UiField
+    PromptedTextBox name;
+    @UiField
+    PromptedTextBox description;
+    @UiField
+    PromptedTextBox resource;
+    @UiField
+    PromptedTextBox consumerId;
+    @UiField
+    PromptedTextBox size;
+    @UiField
+    PromptedMultiList formatOverrides;
+    @UiField
+    PromptedCheckBox relations;
+    @UiField
+    PromptedCheckBox expand;
+    @UiField
+    PromptedCheckBox libraryRules;
+    @UiField
+    PromptedList harvesterType;
+    @UiField
+    PromptedTextBox holdingsTarget;
+    @UiField
+    PromptedTextBox destination;
+    @UiField
+    PromptedTextBox format;
+    @UiField
+    PromptedList type;
+    @UiField
+    PromptedTextArea note;
+    @UiField
+    PromptedCheckBox enabled;
+    @UiField
+    Label status;
+    @UiField
+    PopupMapEntry popupFormatOverrideEntry;
+    @UiField
+    Button updateButton;
+    @UiField
+    Button deleteButton;
+    @UiField
+    PopupBox<Label> confirmation;
 
 
     @SuppressWarnings("unused")
@@ -199,7 +200,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @SuppressWarnings("unused")
     @UiHandler("popupFormatOverrideEntry")
-    void popupFormatOverrideOkButton(DialogEvent event)  {
+    void popupFormatOverrideOkButton(DialogEvent event) {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
             String overrideKey = popupFormatOverrideEntry.getValue().getKey();
             String overrideValue = popupFormatOverrideEntry.getValue().getValue();
@@ -240,7 +241,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     void setFormatOverrides(Map<String, String> formats) {
         this.formatOverrides.clear();
-        for (String key: formats.keySet()) {
+        for (String key : formats.keySet()) {
             this.formatOverrides.addValue(prepareFormatOverride(key, formats.get(key)), key);
         }
     }

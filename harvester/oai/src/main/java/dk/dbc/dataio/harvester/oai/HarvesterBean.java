@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.oai;
 
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
@@ -24,10 +19,14 @@ import javax.ejb.Singleton;
 public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, OaiHarvesterConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
 
-    @EJB BinaryFileStoreBean binaryFileStoreBean;
-    @EJB FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-    @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @EJB
+    BinaryFileStoreBean binaryFileStoreBean;
+    @EJB
+    FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @Override
     public int executeFor(OaiHarvesterConfig config) throws HarvesterException {

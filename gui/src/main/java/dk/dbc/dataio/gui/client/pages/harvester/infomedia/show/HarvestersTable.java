@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.infomedia.show;
 
 import com.google.gwt.cell.client.ButtonCell;
@@ -53,7 +48,8 @@ public class HarvestersTable extends CellTable {
 
     /**
      * This method sets the harvester data for the table
-     * @param presenter The presenter
+     *
+     * @param presenter  The presenter
      * @param harvesters The harvester data
      */
     public void setHarvesters(Presenter presenter, List<InfomediaHarvesterConfig> harvesters) {
@@ -167,6 +163,7 @@ public class HarvestersTable extends CellTable {
 
     /**
      * This method constructs the Action column
+     *
      * @return The constructed Action column
      */
     private Column constructActionColumn() {
@@ -189,14 +186,16 @@ public class HarvestersTable extends CellTable {
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
+     *
      * @return the double click handler
      */
-    DoubleClickHandler getDoubleClickHandler(){
+    DoubleClickHandler getDoubleClickHandler() {
         return doubleClickEvent -> editInfomediaHarvester(selectionModel.getSelectedObject());
     }
 
     /**
      * Sends a request to the presenter for editing the harvester, passed as a parameter in the call
+     *
      * @param harvester The harvester to edit
      */
     private void editInfomediaHarvester(InfomediaHarvesterConfig harvester) {
@@ -207,8 +206,9 @@ public class HarvestersTable extends CellTable {
 
     /**
      * Constructs a SafeHtml snippet constituting a text with a popup mouseover help text
+     *
      * @param headerText header text to be displayed
-     * @param helpText popup help text
+     * @param helpText   popup help text
      * @return SafeHtml snippet
      */
     SafeHtml textWithToolTip(String headerText, String helpText) {

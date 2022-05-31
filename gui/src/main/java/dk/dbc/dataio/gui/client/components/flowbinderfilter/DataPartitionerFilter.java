@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.components.flowbinderfilter;
 
 import com.google.gwt.core.client.GWT;
@@ -25,7 +20,8 @@ import java.util.List;
 
 public class DataPartitionerFilter extends BaseFlowBinderFilter {
 
-    interface DataPartitionerFilterUiBinder extends UiBinder<HTMLPanel, DataPartitionerFilter> {}
+    interface DataPartitionerFilterUiBinder extends UiBinder<HTMLPanel, DataPartitionerFilter> {
+    }
 
     private static DataPartitionerFilterUiBinder ourUiBinder = GWT.create(DataPartitionerFilterUiBinder.class);
 
@@ -48,10 +44,12 @@ public class DataPartitionerFilter extends BaseFlowBinderFilter {
         setParameter(parameter);
     }
 
-    @UiField PromptedList dataPartitionerList;
+    @UiField
+    PromptedList dataPartitionerList;
 
     /**
      * Event handler for handling changes in the data partitioner selection
+     *
      * @param event The ValueChangeEvent
      */
     @UiHandler("dataPartitionerList")

@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.pages.harvester.promat.show;
 
 import com.google.gwt.activity.shared.Activity;
@@ -27,6 +22,7 @@ public class Place extends AbstractBasePlace {
         public String getToken(Place place) {
             return "";
         }
+
         @Override
         public Place getPlace(String token) {
             return new Place();

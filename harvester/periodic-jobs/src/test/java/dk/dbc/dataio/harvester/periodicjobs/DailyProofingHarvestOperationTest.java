@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.periodicjobs;
 
 import dk.dbc.commons.addi.AddiRecord;
@@ -111,33 +106,33 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
                         getRecordContent(recordIdRef1, "e"),
                         getRecordContent(recordIdRef2, "e"),
                         getRecordContent(recordIdRef3, "e")
-                        )));
-                        
+                )));
+
     }
 
     private static String getRecordContent(RecordIdDTO recordId, String type, RecordIdDTO... ref520) {
         String record =
                 "<record>" +
-                  "<leader>00000n 2200000 4500</leader>" +
-                    "<datafield ind1='0' ind2='0' tag='001'>" +
-                    "<subfield code='a'>" + recordId.getBibliographicRecordId() + "</subfield>" +
-                    "<subfield code='b'>" + recordId.getAgencyId() + "</subfield>" +
-                    "</datafield>" +
-                  "<datafield ind1='0' ind2='0' tag='004'>" +
-                    "<subfield code='a'>" + type + "</subfield>" +
-                  "</datafield>" +
-                  "<datafield ind1='0' ind2='0' tag='520'>" +
-                    "<subfield code='a'>Originaludgave: 2021</subfield>" +
-                  "</datafield>";
+                        "<leader>00000n 2200000 4500</leader>" +
+                        "<datafield ind1='0' ind2='0' tag='001'>" +
+                        "<subfield code='a'>" + recordId.getBibliographicRecordId() + "</subfield>" +
+                        "<subfield code='b'>" + recordId.getAgencyId() + "</subfield>" +
+                        "</datafield>" +
+                        "<datafield ind1='0' ind2='0' tag='004'>" +
+                        "<subfield code='a'>" + type + "</subfield>" +
+                        "</datafield>" +
+                        "<datafield ind1='0' ind2='0' tag='520'>" +
+                        "<subfield code='a'>Originaludgave: 2021</subfield>" +
+                        "</datafield>";
         if (ref520 != null) {
             for (RecordIdDTO ref : ref520) {
                 // This is a bit ugly, but we test handling af repeated 520n's using the same record twice.
                 record +=
-                  "<datafield ind1='0' ind2='0' tag='520'>" +
-                    "<subfield code='a'>Tidligere udgave: 2021</subfield>" +
-                    "<subfield code='n'>" + ref.getBibliographicRecordId() + "</subfield>" +
-                    "<subfield code='n'>" + ref.getBibliographicRecordId() + "</subfield>" +
-                  "</datafield>";
+                        "<datafield ind1='0' ind2='0' tag='520'>" +
+                                "<subfield code='a'>Tidligere udgave: 2021</subfield>" +
+                                "<subfield code='n'>" + ref.getBibliographicRecordId() + "</subfield>" +
+                                "<subfield code='n'>" + ref.getBibliographicRecordId() + "</subfield>" +
+                                "</datafield>";
             }
         }
         record +=
@@ -149,8 +144,8 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
     private static String asCollection(String... records) {
         return
                 "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                "<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
-                  String.join("", records) +
-                "</collection>";
+                        "<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
+                        String.join("", records) +
+                        "</collection>";
     }
 }

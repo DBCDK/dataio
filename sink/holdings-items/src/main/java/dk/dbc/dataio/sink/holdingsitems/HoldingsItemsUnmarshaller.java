@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.sink.holdingsitems;
 
 import com.fasterxml.jackson.databind.type.CollectionType;
@@ -28,7 +23,7 @@ import java.util.regex.Pattern;
 /**
  * This class is responsible for unmarshalling byte[] representation of JSON array of holdings items
  * into List of {@link HoldingsItems}.
- *
+ * <p>
  * This class also tests the existence of already created holdings items against the input in order
  * to delete any deprecated entries in accordance with the "248 datafield" model.
  */
@@ -38,8 +33,10 @@ public class HoldingsItemsUnmarshaller {
     private final CollectionType holdingsItemsListType = jsonbContext.getTypeFactory()
             .constructCollectionType(List.class, HoldingsItems.class);
 
-    @Inject SolrDocStoreConnector solrDocStoreConnector;
-    @Inject MetricsHandlerBean metricsHandler;
+    @Inject
+    SolrDocStoreConnector solrDocStoreConnector;
+    @Inject
+    MetricsHandlerBean metricsHandler;
 
     public List<HoldingsItems> unmarshall(byte[] bytes, String trackingId)
             throws JSONBException, SolrDocStoreConnectorException {

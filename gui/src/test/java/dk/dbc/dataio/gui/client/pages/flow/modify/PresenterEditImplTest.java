@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import com.google.gwt.place.shared.PlaceController;
@@ -54,9 +33,12 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
 
-    @Mock Texts mockedTexts;
-    @Mock EditPlace mockedEditPlace;
-    @Mock ViewGinjector mockedViewGinjector;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    EditPlace mockedEditPlace;
+    @Mock
+    ViewGinjector mockedViewGinjector;
 
     private ViewWidget editView;
 
@@ -212,9 +194,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
                 .setComponents(Collections.singletonList(new FlowComponentModelBuilder().setId(id).setVersion(version).build()))
                 .build();
     }
+
     private void assertFlowComponentModelsEquals(List<FlowComponentModel> flowComponentModelList1, List<FlowComponentModel> flowComponentModelList2) {
         assertThat(flowComponentModelList1.size(), is(flowComponentModelList2.size()));
-        for(int i = 0; i < flowComponentModelList1.size(); i ++) {
+        for (int i = 0; i < flowComponentModelList1.size(); i++) {
             assertFlowComponentModelEquals(flowComponentModelList1.get(i), flowComponentModelList2.get(i));
         }
     }
@@ -232,7 +215,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
     private void assertJavaScriptModulesEquals(List<String> javaScriptModules1, List<String> javaScriptModules2) {
         assertThat(javaScriptModules1.size(), is(javaScriptModules2.size()));
-        for(int i = 0; i < javaScriptModules1.size(); i++) {
+        for (int i = 0; i < javaScriptModules1.size(); i++) {
             assertThat(javaScriptModules1.get(i), is(javaScriptModules2.get(i)));
         }
     }

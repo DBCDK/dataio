@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.jms;
 
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
@@ -61,7 +56,8 @@ public class JmsQueueServiceConnector {
                 .withPathElements(QUEUE_RESOURCE_PATH, queue.getUrlEncodedQueueName())
                 .execute()) {
             verifyResponseStatus(response, Response.Status.OK);
-            return response.readEntity(new GenericType<List<MockedJmsTextMessage>>() {});
+            return response.readEntity(new GenericType<List<MockedJmsTextMessage>>() {
+            });
         }
     }
 

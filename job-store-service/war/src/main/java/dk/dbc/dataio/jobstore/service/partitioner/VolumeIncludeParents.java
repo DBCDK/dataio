@@ -1,25 +1,3 @@
-/*
- * DataIO - Data IO
- *
- * Copyright (C) 2018 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -39,10 +17,10 @@ import java.util.Optional;
 /**
  * The responsibility of this class is to ensure that volume records are
  * returned with their parents and possibly grandparents.
- *
+ * <p>
  * This class assumes it is called in a transactional context with regards to
  * the given entity manager.
- *
+ * <p>
  * This class is not thread safe.
  */
 public class VolumeIncludeParents extends JobItemReorderer {
@@ -79,9 +57,12 @@ public class VolumeIncludeParents extends JobItemReorderer {
            section and head records are removed from the
            scratchpad. */
         switch (recordInfo.getType()) {
-            case VOLUME:  return SortOrder.VOLUME_DELETE;
-            case SECTION: return SortOrder.SECTION_DELETE;
-            default:      return SortOrder.HEAD_DELETE;
+            case VOLUME:
+                return SortOrder.VOLUME_DELETE;
+            case SECTION:
+                return SortOrder.SECTION_DELETE;
+            default:
+                return SortOrder.HEAD_DELETE;
         }
     }
 
@@ -136,8 +117,8 @@ public class VolumeIncludeParents extends JobItemReorderer {
             final MarcXchangeV1Writer writer = new MarcXchangeV1Writer();
             final ChunkItem volume = collection.get(0);
             return ChunkItem.successfulChunkItem()
-                        .withType(volume.getType().toArray(new ChunkItem.Type[0]))
-                        .withData(writer.writeCollection(marcRecords, volume.getEncoding()));
+                    .withType(volume.getType().toArray(new ChunkItem.Type[0]))
+                    .withData(writer.writeCollection(marcRecords, volume.getEncoding()));
         } catch (MarcReaderException e) {
             throw new RuntimeException("An error occurred while reducing MARC records", e);
         }

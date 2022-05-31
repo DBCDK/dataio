@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class FormattedOutputTest {
@@ -63,24 +63,24 @@ public class FormattedOutputTest {
                 is(dk.dbc.dataio.commons.types.Diagnostic.Level.FATAL));
         assertThat("diagnostic message", diagnostic.getMessage(), is(exception.getMessage()));
     }
-    
+
     private WciruServiceBroker.Result getBrokerResult() {
         return new WciruServiceBroker(wciruServiceConnector).new Result()
                 .withOcn("789")
                 .withEvents(new WciruServiceBroker.Event()
-                    .withAction(WciruServiceBroker.Event.Action.ADD_OR_UPDATE)
-                    .withHolding(new Holding()
-                        .withSymbol(WciruServiceBroker.PRIMARY_HOLDING_SYMBOL)
-                        .withAction(Holding.Action.INSERT))
-                    .withDiagnostics(warning, error))
+                        .withAction(WciruServiceBroker.Event.Action.ADD_OR_UPDATE)
+                        .withHolding(new Holding()
+                                .withSymbol(WciruServiceBroker.PRIMARY_HOLDING_SYMBOL)
+                                .withAction(Holding.Action.INSERT))
+                        .withDiagnostics(warning, error))
                 .withEvents(new WciruServiceBroker.Event()
-                    .withAction(WciruServiceBroker.Event.Action.REPLACE)
-                    .withHolding(new Holding()
-                        .withSymbol("ABC")
-                        .withAction(Holding.Action.DELETE)))
+                        .withAction(WciruServiceBroker.Event.Action.REPLACE)
+                        .withHolding(new Holding()
+                                .withSymbol("ABC")
+                                .withAction(Holding.Action.DELETE)))
                 .withEvents(new WciruServiceBroker.Event()
-                    .withAction(WciruServiceBroker.Event.Action.DELETE)
-                    .withDiagnostics(warning));
+                        .withAction(WciruServiceBroker.Event.Action.DELETE)
+                        .withDiagnostics(warning));
     }
 
     private Diagnostic getWarning() {

@@ -19,7 +19,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Class used for verification of harvester data files containing addi records
@@ -34,9 +34,10 @@ public class AddiFileVerifier {
     /**
      * Verifies content of given addi file against given list of
      * expectations throwing assertion error unless all expectations can be met
-     * @param dataFile harvester data file containing addi records
+     *
+     * @param dataFile         harvester data file containing addi records
      * @param addiMetaDataList expectations for addi records meta data
-     * @param expectations expectations for addi records content
+     * @param expectations     expectations for addi records content
      */
     public void verify(File dataFile, List<AddiMetaData> addiMetaDataList, List<? extends Expectation> expectations) {
         try {

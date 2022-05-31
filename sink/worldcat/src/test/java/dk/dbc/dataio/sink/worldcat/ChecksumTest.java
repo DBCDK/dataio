@@ -7,7 +7,7 @@ import java.util.Arrays;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ChecksumTest {
     @Test
@@ -35,10 +35,10 @@ public class ChecksumTest {
                         new Holding().withSymbol("ABC").withAction(Holding.Action.DELETE),
                         new Holding().withSymbol("DEF").withAction(Holding.Action.INSERT))))), is(not(referenceChecksum)));
         assertThat("LHR flag affects checksum", Checksum.of(chunkItem.withWorldCatAttributes(
-                new WorldCatAttributes().withLhr(true)
-                        .withHoldings(Arrays.asList(
-                                new Holding().withSymbol("DEF").withAction(Holding.Action.INSERT),
-                                new Holding().withSymbol("ABC").withAction(Holding.Action.INSERT))))),
+                        new WorldCatAttributes().withLhr(true)
+                                .withHoldings(Arrays.asList(
+                                        new Holding().withSymbol("DEF").withAction(Holding.Action.INSERT),
+                                        new Holding().withSymbol("ABC").withAction(Holding.Action.INSERT))))),
                 is(not(referenceChecksum)));
         assertThat("chunk item data affects checksum", Checksum.of((ChunkItemWithWorldCatAttributes) chunkItem
                 .withWorldCatAttributes(attributes).withData("updated record data")), is(not(referenceChecksum)));

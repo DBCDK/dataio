@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.filestore.service.ejb;
 
 import dk.dbc.dataio.bfs.api.BinaryFile;
@@ -35,7 +14,7 @@ import java.nio.file.Paths;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -92,13 +71,13 @@ public class FileStoreBeanTest {
     @Test
     public void addMetadata() {
         FileAttributes fileAttributes = new FileAttributes(new Date(),
-            Paths.get("path"));
+                Paths.get("path"));
         when(entityManager.find(eq(FileAttributes.class), anyLong()))
-            .thenReturn(fileAttributes);
+                .thenReturn(fileAttributes);
         FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         fileStoreBean.addMetaData("123456", "{\"meta\": \"data\"}");
         assertThat("added metadata", fileAttributes.getMetadata(),
-            is("{\"meta\": \"data\"}"));
+                is("{\"meta\": \"data\"}"));
     }
 
     @Test(expected = NullPointerException.class)
@@ -198,21 +177,23 @@ public class FileStoreBeanTest {
     }
 
     @Test
-    public void getByteSize_fileIdIsEmpty_throws() throws IllegalArgumentException{
+    public void getByteSize_fileIdIsEmpty_throws() throws IllegalArgumentException {
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         try {
             fileStoreBean.getByteSize("", true);
             fail("getByteSize: Invalid file ID was not detected");
-        } catch (IllegalArgumentException e) {}
+        } catch (IllegalArgumentException e) {
+        }
     }
 
     @Test
-    public void getByteSize_fileIdIsNull_throws() throws IllegalArgumentException{
+    public void getByteSize_fileIdIsNull_throws() throws IllegalArgumentException {
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         try {
             fileStoreBean.getByteSize(null, true);
             fail("getByteSize: Invalid file ID was not detected");
-        } catch (NullPointerException e) {}
+        } catch (NullPointerException e) {
+        }
     }
 
     @Test
@@ -221,20 +202,22 @@ public class FileStoreBeanTest {
         try {
             fileStoreBean.getByteSize("notANumber", true);
             fail("getByteSize: Invalid file ID was not detected");
-        } catch(IllegalArgumentException e) {}
+        } catch (IllegalArgumentException e) {
+        }
     }
 
     @Test
-    public void getByteSize_filAttributesNotFound_throws() throws IllegalArgumentException{
+    public void getByteSize_filAttributesNotFound_throws() throws IllegalArgumentException {
         when(entityManager.find(eq(FileAttributes.class), eq(Long.valueOf(fileId)))).thenReturn(null);
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         try {
             fileStoreBean.getByteSize(fileId, true);
-        } catch (EJBException e) {}
+        } catch (EJBException e) {
+        }
     }
 
     @Test
-    public void getByteSize_fileAttributesExist_returnsByteSize() throws IllegalArgumentException{
+    public void getByteSize_fileAttributesExist_returnsByteSize() throws IllegalArgumentException {
         FileAttributes fileAttributes = new FileAttributes(new Date(), path);
         when(entityManager.find(FileAttributes.class, Long.parseLong(fileId))).thenReturn(fileAttributes);
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();

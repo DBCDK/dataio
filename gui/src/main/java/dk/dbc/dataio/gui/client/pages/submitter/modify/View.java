@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
 import com.google.gwt.core.client.GWT;
@@ -43,7 +22,9 @@ import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    interface SubmitterBinder extends UiBinder<HTMLPanel, View> {}
+    interface SubmitterBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static SubmitterBinder uiBinder = GWT.create(SubmitterBinder.class);
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     Texts texts = viewInjector.getTexts();
@@ -52,15 +33,24 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         super("");
         number = new DataBinder<>(
                 new Prompted<>(new TextBox(), texts.label_SubmitterNumber()),
-                number -> {presenter.keyPressed(); presenter.numberChanged(number);}
+                number -> {
+                    presenter.keyPressed();
+                    presenter.numberChanged(number);
+                }
         );
         name = new DataBinder<>(
                 new Prompted<>(new TextBox(), texts.label_SubmitterName()),
-                name -> {presenter.keyPressed(); presenter.nameChanged(name);}
+                name -> {
+                    presenter.keyPressed();
+                    presenter.nameChanged(name);
+                }
         );
         description = new DataBinder<>(
                 new Prompted<>(new TextArea(), texts.label_Description()),
-                description -> {presenter.keyPressed(); presenter.descriptionChanged(description);}
+                description -> {
+                    presenter.keyPressed();
+                    presenter.descriptionChanged(description);
+                }
         );
         add(uiBinder.createAndBindUi(this));
     }
@@ -70,14 +60,22 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
-    @UiField(provided=true) DataBinder<String, Prompted<String, TextBox>> number;
-    @UiField(provided=true) DataBinder<String, Prompted<String, TextBox>> name;
-    @UiField(provided=true) DataBinder<String, Prompted<String, TextArea>> description;
-    @UiField PromptedList priority;
-    @UiField Button deleteButton;
-    @UiField Label status;
-    @UiField PopupBox<Label> confirmation;
-    @UiField PromptedCheckBox disabledStatus;
+    @UiField(provided = true)
+    DataBinder<String, Prompted<String, TextBox>> number;
+    @UiField(provided = true)
+    DataBinder<String, Prompted<String, TextBox>> name;
+    @UiField(provided = true)
+    DataBinder<String, Prompted<String, TextArea>> description;
+    @UiField
+    PromptedList priority;
+    @UiField
+    Button deleteButton;
+    @UiField
+    Label status;
+    @UiField
+    PopupBox<Label> confirmation;
+    @UiField
+    PromptedCheckBox disabledStatus;
 
     @UiHandler("priority")
     void priorityChanged(ValueChangeEvent<String> event) {

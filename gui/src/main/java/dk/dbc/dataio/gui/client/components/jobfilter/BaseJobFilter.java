@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.Scheduler;
@@ -52,8 +31,9 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
 
     /**
      * Constructor
-     * @param texts Internationalized texts to be used by this class
-     * @param resources Resources to be used by this class
+     *
+     * @param texts          Internationalized texts to be used by this class
+     * @param resources      Resources to be used by this class
      * @param invertedFilter True: This is an inverted filter, False: This is not an inverted filter
      */
     public BaseJobFilter(Texts texts, Resources resources, boolean invertedFilter) {
@@ -64,6 +44,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
 
     /**
      * This method codes the behavior when adding the actual Job Filter (activating the menu)
+     *
      * @param parentJobFilter The JobFilter, where the current JobFilter is being added to
      * @return The Scheduler command to be used, when adding the Job Filter
      */
@@ -99,6 +80,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
     /**
      * Sets the parameter value for the filter<br>
      * The default implementation assumes, that the filter is always active, and there is therefore no value to set
+     *
      * @param filterParameter The filter parameter for the specific job filter
      */
     public void setParameter(String filterParameter) {
@@ -108,7 +90,8 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
     /**
      * Sets the parameter value for the filter<br>
      * The default implementation assumes, that the filter is always active, and there is therefore no value to set
-     * @param inverted True if filter is inverted, false if not
+     *
+     * @param inverted        True if filter is inverted, false if not
      * @param filterParameter The filter parameter for the specific job filter
      */
     public void setParameter(boolean inverted, String filterParameter) {
@@ -155,6 +138,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
 
     /**
      * Test whether this is an inverted filter.
+     *
      * @return True if the filter is an inverted, false not
      */
     boolean isInvertFilter() {
@@ -168,6 +152,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
 
     /**
      * Handles a Filter Panel Event, and takes action upon it
+     *
      * @param button The button event
      */
     void handleFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton button) {
@@ -200,6 +185,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
 
     /**
      * Gets the widget's position in the tab index.
+     *
      * @return the widget's tab index
      */
     public int getTabIndex() {
@@ -209,6 +195,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
 
     /**
      * Sets the widget's 'access key'. This key is used (in conjunction with a browser-specific modifier key) to automatically focus the widget.
+     *
      * @param accessKey the widget's access key
      */
     public void setAccessKey(char accessKey) {
@@ -217,6 +204,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
 
     /**
      * Explicitly focus/unfocus this widget. Only one widget can have focus at a time, and the widget that does will receive all keyboard events.
+     *
      * @param focused whether this widget should take focus or release it
      */
     public void setFocus(boolean focused) {
@@ -224,7 +212,8 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
     }
 
     /**
-     *  Sets the widget's position in the tab index. If more than one widget has the same tab index, each such widget will receive focus in an arbitrary order. Setting the tab index to -1 will cause this widget to be removed from the tab order.
+     * Sets the widget's position in the tab index. If more than one widget has the same tab index, each such widget will receive focus in an arbitrary order. Setting the tab index to -1 will cause this widget to be removed from the tab order.
+     *
      * @param index the widget's tab index
      */
     public void setTabIndex(int index) {
@@ -239,6 +228,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
     /**
      * Gets the parameter value for the filter<br>
      * The default implementation always returns an empty string, since the assumption is, that the filter is always active
+     *
      * @return The stored filter parameter for the specific job filter
      */
     public String getParameter() {
@@ -248,12 +238,14 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
     /**
      * Adds a ChangeHandler for this job filter<br>
      * The default implementation assumes, that there is no changeable input elements on the form, and there are consequently no changehandler to add, since no change handler is needed.
+     *
      * @param changeHandler The ChangeHandler for this job filter
      * @return A HandlerRegistration object to be used to remove the job filter
      */
     @Override
     public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
-        return () -> {};  // Returns a handler registration object, that is empty
+        return () -> {
+        };  // Returns a handler registration object, that is empty
     }
 
     /**
@@ -273,18 +265,21 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
 
     /**
      * Sets the parameter value for the filter<br>
+     *
      * @param filterParameter The filter parameter for the specific job filter
      */
     public abstract void localSetParameter(String filterParameter);
 
     /**
      * Gets the name of the actual Job Filter
+     *
      * @return The name of the Job Filter
      */
     public abstract String getName();
 
     /**
      * Gets the value of the current Job List Criteria Model
+     *
      * @return The current value of the Job List Criteria Model
      */
     abstract public JobListCriteria getValue();

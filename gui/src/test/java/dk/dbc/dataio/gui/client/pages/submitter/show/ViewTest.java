@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.submitter.show;
 
 import com.google.gwt.cell.client.FieldUpdater;
@@ -47,8 +26,8 @@ import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -61,13 +40,20 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
-    @Mock private Presenter mockedPresenter;
-    @Mock private dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock private ViewGinjector mockedViewInjector;
-    @Mock private CommonGinjector mockedCommonInjector;
-    @Mock private Texts mockedTexts;
-    @Mock private PopupListBox mockedPopupList;
-    @Mock private ListBoxHasValue mockedListBox;
+    @Mock
+    private Presenter mockedPresenter;
+    @Mock
+    private dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock
+    private ViewGinjector mockedViewInjector;
+    @Mock
+    private CommonGinjector mockedCommonInjector;
+    @Mock
+    private Texts mockedTexts;
+    @Mock
+    private PopupListBox mockedPopupList;
+    @Mock
+    private ListBoxHasValue mockedListBox;
 
 
     // Test Data
@@ -93,6 +79,7 @@ public class ViewTest {
         public ViewConcrete() {
             super();
         }
+
         @Override
         public Texts getTexts() {
             return mockedTexts;
@@ -161,7 +148,7 @@ public class ViewTest {
         view.showFlowBinders(null);
 
         // Verify Test
-        verifyZeroInteractions(view.popupList);
+        verifyNoInteractions(view.popupList);
     }
 
     @Test
@@ -173,7 +160,7 @@ public class ViewTest {
                 new FlowBinderModelBuilder().setId(111).setName("one").build(),
                 new FlowBinderModelBuilder().setId(222).setName("two").build(),
                 new FlowBinderModelBuilder().setId(333).setName("three").build()
-                ));
+        ));
 
         // Verify Test
         verify(view.popupList).clear();
@@ -276,7 +263,7 @@ public class ViewTest {
         view.setPopupListButtonPressed(null);
 
         // Test that correct getValue handler has been setup
-        verifyZeroInteractions(mockedPresenter);
+        verifyNoInteractions(mockedPresenter);
     }
 
     @Test
@@ -293,7 +280,7 @@ public class ViewTest {
         view.setPopupListButtonPressed(okEvent);
 
         // Test that correct getValue handler has been setup
-        verifyZeroInteractions(mockedPresenter);
+        verifyNoInteractions(mockedPresenter);
     }
 
     @Test

@@ -1,31 +1,10 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,11 +21,12 @@ public class Iso2709ReorderingDataPartitioner extends Iso2709DataPartitioner {
 
     /**
      * Creates new instance of Iso2709 re-ordering DataPartitioner
-     * @param inputStream stream from which data to be partitioned can be read
+     *
+     * @param inputStream   stream from which data to be partitioned can be read
      * @param inputEncoding encoding from job specification (latin 1 will be interpreted as danmarc2).
-     * @param reorderer record ordering handler
+     * @param reorderer     record ordering handler
      * @return new instance of data partitioner
-     * @throws NullPointerException if given null-valued argument
+     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
      * @throws InvalidEncodingException if given invalid input encoding name
      */

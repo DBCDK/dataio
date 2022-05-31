@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
@@ -42,7 +21,7 @@ import java.util.Date;
  * This is the Date Job Filter
  */
 public class DateJobFilter extends BaseJobFilter {
-    private final static Integer ONE_DAY_IN_MILLISECONDS = 24*60*60*1000;
+    private final static Integer ONE_DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
     private final static String DEFAULT_TO_DATE = "";
     private final static String DEFAULT_EMPTY_TIME = "00:00:00";
     private static final String INTEGER_MATCHER = "^\\d+$";
@@ -55,8 +34,10 @@ public class DateJobFilter extends BaseJobFilter {
     ChangeHandler callbackChangeHandler = null;
 
 
-    @UiField PromptedDateTimeBox fromDate;
-    @UiField PromptedDateTimeBox toDate;
+    @UiField
+    PromptedDateTimeBox fromDate;
+    @UiField
+    PromptedDateTimeBox toDate;
 
 
     @SuppressWarnings("unused")
@@ -79,10 +60,11 @@ public class DateJobFilter extends BaseJobFilter {
 
     /**
      * Event handler for handling changes in the selection of from and to dates
+     *
      * @param event The ValueChangeEvent
      */
     @SuppressWarnings("unused")
-    @UiHandler(value={"fromDate", "toDate"})
+    @UiHandler(value = {"fromDate", "toDate"})
     void dateChanged(ValueChangeEvent<String> event) {
         filterChanged();
         if (callbackChangeHandler != null) {
@@ -91,12 +73,13 @@ public class DateJobFilter extends BaseJobFilter {
     }
 
 
-     /*
+    /*
      * Abstract methods from BaseJobFilter
      */
 
     /**
      * Fetches the name of this filter
+     *
      * @return The name of the filter
      */
     @Override
@@ -106,6 +89,7 @@ public class DateJobFilter extends BaseJobFilter {
 
     /**
      * Gets the value of the job filter, which is the constructed JobListCriteria to be used in the filter search
+     *
      * @return The constructed JobListCriteria filter
      */
     @Override
@@ -120,10 +104,11 @@ public class DateJobFilter extends BaseJobFilter {
      * Sets the selection according to the value, setup in the parameter attribute<br>
      * The value is one or two date parameters, separated by commas<br>
      * Each date parameter can be entered in two different formats:<br>
-     *     <ul>
-     *          <li>An integer: Giving a number of days to subtract from the current date</li>
-     *          <li>A date format in the format: 'yyyy-MM-dd HH:mm:ss'</li>
-     *     </ul>
+     * <ul>
+     *      <li>An integer: Giving a number of days to subtract from the current date</li>
+     *      <li>A date format in the format: 'yyyy-MM-dd HH:mm:ss'</li>
+     * </ul>
+     *
      * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
@@ -139,6 +124,7 @@ public class DateJobFilter extends BaseJobFilter {
 
     /**
      * Gets the parameter value for the filter
+     *
      * @return The stored filter parameter for the specific job filter
      */
     @Override
@@ -165,16 +151,18 @@ public class DateJobFilter extends BaseJobFilter {
 
     /**
      * Calculates the default "from" date to be used. Should be set to the current day minus two days, at 00:00:00
+     *
      * @param days Gives the number of days to subtract from the current date
      * @return The default From date
      */
     private String daysFromNow(int days) {
-        String date = Format.formatLongDate(new Date(System.currentTimeMillis()- days * ONE_DAY_IN_MILLISECONDS));
+        String date = Format.formatLongDate(new Date(System.currentTimeMillis() - days * ONE_DAY_IN_MILLISECONDS));
         return date.substring(0, date.length() - DEFAULT_EMPTY_TIME.length()) + DEFAULT_EMPTY_TIME;
     }
 
     /**
      * Evaluates a string, and returns a proper date value in the form 'yyyy-MM-dd HH:mm:ss'
+     *
      * @param date The input string to evaluate
      * @return The resulting date
      */

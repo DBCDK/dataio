@@ -1,14 +1,14 @@
 package dk.dbc.dataio.harvester.dmat;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
+import dk.dbc.dataio.harvester.types.HarvesterException;
 
 class JobSpecificationTemplate {
     public static final int SUBMITTER_NUMBER_RR = 190015;
     public static final int SUBMITTER_NUMBER_PUBLIZON = 150015;
 
-    public enum JobSpecificationType { RR, PUBLISHER }
+    public enum JobSpecificationType {RR, PUBLISHER}
 
     public static int getSubmitterNumberFor(JobSpecificationType type) {
         return type == JobSpecificationType.PUBLISHER

@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.commons.types;
 
 import dk.dbc.invariant.InvariantUtil;
@@ -30,7 +9,7 @@ import java.util.List;
 
 /**
  * The RevisionInfo class represents information about a committed revision in the source control management system.
- *
+ * <p>
  * In all essence objects of this class are immutable, but due to GWT serialization
  * issues we cannot have final fields and need a default no-arg constructor.
  * Also due to GWT compatibility no java7 constructs are allowed,
@@ -44,17 +23,17 @@ public class RevisionInfo implements Serializable {
     private /* final */ Date date;
     private /* final */ List<ChangedItem> changedItems;
 
-    private RevisionInfo() { }
+    private RevisionInfo() {
+    }
 
     /**
      * Class constructor
      *
-     * @param revision number of the revision that this object represents
-     * @param author author of the revision that this object represents
-     * @param date datestamp when the revision was committed
-     * @param message log message attached to the revision
+     * @param revision     number of the revision that this object represents
+     * @param author       author of the revision that this object represents
+     * @param date         datestamp when the revision was committed
+     * @param message      log message attached to the revision
      * @param changedItems list of items changed in the revision
-     *
      * @throws NullPointerException if given null-valued argument
      */
     public RevisionInfo(long revision, String author, Date date, String message, List<ChangedItem> changedItems)
@@ -88,7 +67,7 @@ public class RevisionInfo implements Serializable {
 
     /**
      * The ChangedItem class represents a single item changed in a revision
-     *
+     * <p>
      * In all essence objects of this class are immutable, but due to GWT serialization
      * issues we cannot have final fields and need a default no-arg constructor.
      * Also due to GWT compatibility no java7 constructs are allowed,
@@ -99,15 +78,15 @@ public class RevisionInfo implements Serializable {
         private /* final */ String path;
         private /* final */ String type;
 
-        private ChangedItem() { }
+        private ChangedItem() {
+        }
 
         /**
          * Class constructor
          *
          * @param path path of the item represented by this object
-         * @param type  type of the change applied to the item represented by this object
-         *
-         * @throws NullPointerException if given null-valued argument
+         * @param type type of the change applied to the item represented by this object
+         * @throws NullPointerException     if given null-valued argument
          * @throws IllegalArgumentException if given empty-valued argument
          */
         public ChangedItem(String path, String type)

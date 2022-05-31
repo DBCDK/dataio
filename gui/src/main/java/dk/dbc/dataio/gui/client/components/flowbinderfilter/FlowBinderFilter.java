@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.gui.client.components.flowbinderfilter;
 
 import com.google.gwt.core.client.GWT;
@@ -51,7 +46,8 @@ import java.util.function.Consumer;
  */
 public class FlowBinderFilter extends Composite implements HasChangeHandlers {
 
-    interface FlowBinderFilterUiBinder extends UiBinder<HTMLPanel, FlowBinderFilter> {}
+    interface FlowBinderFilterUiBinder extends UiBinder<HTMLPanel, FlowBinderFilter> {
+    }
 
     private static FlowBinderFilterUiBinder ourUiBinder = GWT.create(FlowBinderFilterUiBinder.class);
 
@@ -61,8 +57,10 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
     boolean initialized = false;
     final Map<String, BaseFlowBinderFilter> instantiatedFilters = new HashMap<>();  // Keeps track of all instantiated filters - whether or not they are attached to the GUI
 
-    @UiField FlowPanel flowBinderFilterContainer;
-    @UiField MenuBar filterMenu;
+    @UiField
+    FlowPanel flowBinderFilterContainer;
+    @UiField
+    MenuBar filterMenu;
 
     @SuppressWarnings("unused")
     @UiConstructor
@@ -72,6 +70,7 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Constructor with list of available filters to be shown upon startup
+     *
      * @param availableFilterList list of available filters
      */
     FlowBinderFilter(FlowBinderFilterList availableFilterList) {
@@ -96,6 +95,7 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
      * This method is the body of the empty-parameter onLoad method<br>
      * the getClass() method of an object cannot be mocked - therefore this method
      * allows unit test of the onLoad method by injecting the place name
+     *
      * @param placeName The place name used to select the correct filter list
      */
     void onLoad(String placeName) {
@@ -131,7 +131,7 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
 
         // Finally do replicate setting of the active Job Filters to the Place
         if (place.presenter != null) {
-            ((Presenter)place.presenter).setPlace(place);
+            ((Presenter) place.presenter).setPlace(place);
         }
 
         initialized = true;
@@ -139,6 +139,7 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Adds a change handler to be notified upon changes in the stored query clause
+     *
      * @param changeHandler change handler to be notified upon changes
      * @return handler registration object, to be used to remove the ChangeHandler
      */
@@ -151,6 +152,7 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
     /**
      * Injects the place into the filter. <br>
      * If set, it allows the filter to maintain the url, while adding and removing filters
+     *
      * @param place The place to inject into the filter
      */
     public void setPlace(AbstractBasePlace place) {
@@ -159,6 +161,7 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Adds a child filter to the list of filters <br>
+     *
      * @param flowBinderFilter filter to add to the list of filters
      */
     public void add(BaseFlowBinderFilter flowBinderFilter) {
@@ -172,6 +175,7 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Removes a child filter from the list of filters
+     *
      * @param flowBinderFilter filter to remove from the list of filters
      */
     public void remove(BaseFlowBinderFilter flowBinderFilter) {
@@ -186,6 +190,7 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Gets the current value of the Job List Criteria Model
+     *
      * @return The current value of the Job List Criteria Model
      */
     public List<GwtQueryClause> getValue() {
@@ -196,6 +201,7 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Update the place to reflect the current status of the filter settings
+     *
      * @param place The place to update
      */
     public void updatePlace(AbstractBasePlace place) {
@@ -206,7 +212,8 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
         changeHandler = null;
     }
 
-    private class FlowBinderFilterChangeEvent extends ChangeEvent {}
+    private class FlowBinderFilterChangeEvent extends ChangeEvent {
+    }
 
     private void valueChanged() {
         if (changeHandler != null) {
@@ -217,6 +224,7 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
     /**
      * Traverses through the list of active filters (filters that are actively used), and calls
      * the functional interface Consumer on each element.
+     *
      * @param action The functional interface to call, for each found active filter
      */
     private void traverseActiveFilters(Consumer<BaseFlowBinderFilter> action) {
@@ -237,6 +245,7 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
     /**
      * Sets up the filters according to the supplied list of URL Parameters<br>
      * Also removes any filters, not given in the supplied list
+     *
      * @param urlParameters The URL parameters used as input
      */
     private void setNewUrlParameters(Map<String, AbstractBasePlace.PlaceParameterValue> urlParameters) {

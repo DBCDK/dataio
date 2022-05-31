@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.dataio.harvester.periodicjobs;
 
 import dk.dbc.commons.addi.AddiRecord;
@@ -93,36 +88,36 @@ public class SubjectProofingHarvestOperationTest extends HarvestOperationTest {
     private static String getRecordContent190004(RecordIdDTO recordId, String bibliographicRecordId) {
         return
                 "<record>" +
-                  "<leader>00000n 2200000 4500</leader>" +
-                  "<datafield ind1='0' ind2='0' tag='001'>" +
-                    "<subfield code='a'>" + recordId.getBibliographicRecordId() + "</subfield>" +
-                    "<subfield code='b'>190004</subfield>" +
-                  "</datafield>" +
-                  "<datafield ind1='0' ind2='0' tag='670'>" +
-                    "<subfield code='a'>" + bibliographicRecordId + "</subfield>" +
-                  "</datafield>" +
-                "</record>";
+                        "<leader>00000n 2200000 4500</leader>" +
+                        "<datafield ind1='0' ind2='0' tag='001'>" +
+                        "<subfield code='a'>" + recordId.getBibliographicRecordId() + "</subfield>" +
+                        "<subfield code='b'>190004</subfield>" +
+                        "</datafield>" +
+                        "<datafield ind1='0' ind2='0' tag='670'>" +
+                        "<subfield code='a'>" + bibliographicRecordId + "</subfield>" +
+                        "</datafield>" +
+                        "</record>";
     }
 
     private static String getRecordContent(RecordIdDTO recordId) {
         return
                 "<record>" +
-                  "<leader>00000n 2200000 4500</leader>" +
-                  "<datafield ind1='0' ind2='0' tag='001'>" +
-                    "<subfield code='a'>" + recordId.getBibliographicRecordId() + "</subfield>" +
-                    "<subfield code='b'>" + recordId.getAgencyId() + "</subfield>" +
-                  "</datafield>" +
-                  "<datafield ind1='0' ind2='0' tag='245'>" +
-                    "<subfield code='a'>title</subfield>" +
-                  "</datafield>" +
-                "</record>";
+                        "<leader>00000n 2200000 4500</leader>" +
+                        "<datafield ind1='0' ind2='0' tag='001'>" +
+                        "<subfield code='a'>" + recordId.getBibliographicRecordId() + "</subfield>" +
+                        "<subfield code='b'>" + recordId.getAgencyId() + "</subfield>" +
+                        "</datafield>" +
+                        "<datafield ind1='0' ind2='0' tag='245'>" +
+                        "<subfield code='a'>title</subfield>" +
+                        "</datafield>" +
+                        "</record>";
     }
 
     private static String asCollection(String... records) {
         return
                 "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                "<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
-                  String.join("", records) +
-                "</collection>";
+                        "<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
+                        String.join("", records) +
+                        "</collection>";
     }
 }

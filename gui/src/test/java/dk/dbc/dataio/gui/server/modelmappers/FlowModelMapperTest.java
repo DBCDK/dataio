@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.commons.types.Flow;
@@ -50,24 +29,24 @@ import static org.junit.Assert.fail;
 
 /**
  * FlowModelMapper unit tests
- *
+ * <p>
  * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
+ * <p>
+ * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class FlowModelMapperTest {
     private final static SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Format.LONG_DATE_TIME_FORMAT);
-    private static final long   ID = 746L;
-    private static final long   VERSION = 8483L;
+    private static final long ID = 746L;
+    private static final long VERSION = 8483L;
     private static final String NAME = "the name";
     private static final String DESCRIPTION = "the description";
     private static final Date TIME_OF_FLOW_COMPONENT_UPDATE = new Date();
 
-    private static final long   FLOW_COMPONENT_ID_1 = 364L;
-    private static final long   FLOW_COMPONENT_VERSION_1 = 156L;
+    private static final long FLOW_COMPONENT_ID_1 = 364L;
+    private static final long FLOW_COMPONENT_VERSION_1 = 156L;
 
-    private static final long   FLOW_COMPONENT_ID_2 = 227884L;
-    private static final long   FLOW_COMPONENT_VERSION_2 = 74L;
+    private static final long FLOW_COMPONENT_ID_2 = 227884L;
+    private static final long FLOW_COMPONENT_VERSION_2 = 74L;
 
     @Test
     public void toModel_validInputNoFlowComponents_returnsValidModelNoFlowComponents() {
@@ -154,8 +133,8 @@ public class FlowModelMapperTest {
         try {
             FlowModelMapper.toFlowContent(model, Collections.singletonList(flowComponent));
             fail("Illegal flow name not detected");
-        } catch(IllegalArgumentException e) {
-            assertThat(e.getMessage().contains(expectedIllegalCharacters), is (true));
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage().contains(expectedIllegalCharacters), is(true));
         }
     }
 
@@ -274,7 +253,7 @@ public class FlowModelMapperTest {
                 .setId(ID)
                 .build();
         Flow flow2 = new FlowBuilder()
-                .setId(ID+1)
+                .setId(ID + 1)
                 .build();
 
         List<Flow> flows = new ArrayList<>(2);
@@ -305,9 +284,9 @@ public class FlowModelMapperTest {
 
     private void assertJavaScriptsEquals(List<JavaScript> javaScripts, List<String> javaScriptModules, String javaScript) {
         assertThat(javaScripts.size(), is(javaScriptModules.size()));
-        for (int i = 0; i < javaScripts.size(); i ++) {
+        for (int i = 0; i < javaScripts.size(); i++) {
             assertThat(javaScripts.get(i).getModuleName(), is(javaScriptModules.get(i)));
-            if(javaScript != null) {
+            if (javaScript != null) {
                 assertThat(javaScripts.get(i).getJavascript(), is(javaScript));
             }
         }

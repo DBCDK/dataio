@@ -20,8 +20,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -167,27 +165,6 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                 readInputStream(ftpClient.get(String.format("deliver_test.%d.EMPTY", jobId))),
                 is(""));
     }
-
-    @Test
-    public void useAuthenticationWithProxy() {
-        PeriodicJobsFtpFinalizerBean finalizerBean = newPeriodicJobsFtpFinalizerBean();
-        finalizerBean.proxyHost = "a.proxyhost.near.you";
-        finalizerBean.proxyUser = "proxyUser";
-        finalizerBean.proxyPassword = "password";
-        finalizerBean.proxyPort = "1080";
-        finalizerBean.setAuthentication();
-        PasswordAuthentication authenticator = Authenticator.requestPasswordAuthentication(finalizerBean.proxyHost,
-                null,
-                Integer.parseInt(finalizerBean.proxyPort),
-                "FTP",
-                "",
-                "ftp",
-                null,
-                Authenticator.RequestorType.PROXY);
-        assertThat("proxy-username is set", authenticator.getUserName(), is(finalizerBean.proxyUser));
-        assertThat("proxy-password is set", authenticator.getPassword(), is(finalizerBean.proxyPassword.toCharArray()));
-    }
-
 
     @After
     public void tearDown() {

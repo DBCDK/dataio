@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:marcxv1="info:lc/xmlns/marcxchange-v1" xmlns:tns="http://oss.dbc.dk/ns/updateMarcXchange" elementFormDefault="qualified" targetNamespace="http://oss.dbc.dk/ns/updateMarcXchange">
+  <xs:import namespace="info:lc/xmlns/marcxchange-v1" schemaLocation="marcxchange-1-1.xsd"/>
+  <!--  request / response  -->
+  <xs:element name="updateMarcXchange">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="updateMarcXchangeRequest" type="tns:UpdateMarcXchangeRequest"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="UpdateMarcXchangeRequest" type="tns:UpdateMarcXchangeRequest"/>
+  <xs:complexType name="UpdateMarcXchangeRequest">
+    <xs:sequence>
+      <xs:element name="marcXchangeRecord" type="tns:MarcXchangeRecord" maxOccurs="unbounded" />
+      <xs:element ref="tns:trackingId" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="updateMarcXchangeResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="updateMarcXchangeResult" type="tns:UpdateMarcXchangeResult" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="UpdateMarcXchangeResult" type="tns:UpdateMarcXchangeResult"/>
+  <xs:complexType name="UpdateMarcXchangeResult">
+    <xs:sequence>
+      <xs:element name="updateMarcXchangeStatus" type="tns:updateMarcXchangeStatusEnum"/>
+      <xs:element ref="tns:updateMarcXchangeMessage" minOccurs="0"/>
+      <xs:element ref="tns:MarcXchangeRecordId" />
+    </xs:sequence>
+  </xs:complexType>
+  <!--  structs  -->
+  <xs:element name="MarcXchangeRecord" nillable="true" type="tns:MarcXchangeRecord"/>
+  <xs:complexType name="MarcXchangeRecord">
+    <xs:sequence>
+      <xs:element ref="marcxv1:collection"/>
+      <xs:element ref="tns:MarcXchangeRecordId" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="MarcXchangeRecordId" type="xs:string">
+    <xs:annotation>
+      <xs:documentation xml:lang="en">Unique id for the MarcXchangeRecord. The ID must be unique in this request.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--  types  -->
+  <xs:element name="trackingId" type="xs:string">
+    <xs:annotation>
+      <xs:documentation xml:lang="en">Unique id to track this request</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="updateMarcXchangeMessage" type="xs:string">
+    <xs:annotation>
+      <xs:documentation xml:lang="en">
+        Further info if updateMarcXchangeStatus differs from OK
+      </xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--  enums  -->
+  <xs:simpleType name="updateMarcXchangeStatusEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ok"/>
+      <xs:enumeration value="update_failed_please_resend_later"/>
+      <xs:enumeration value="update_failed_invalid_record"/>
+      <xs:enumeration value="update_failed_fatal_internal_error"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

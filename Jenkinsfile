@@ -10,9 +10,10 @@ pipeline {
 		maven 'Maven 3'
     }
     environment {
-        MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true"
+        MAVEN_OPTS="-B -Dmaven.repo.local=\$WORKSPACE/.repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true"
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
+
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara5-bump-trigger",
@@ -29,11 +30,11 @@ pipeline {
             steps {
                 sh """
                     rm -f docker-images.log
-                    mvn -B clean
-                    mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo dependency:resolve dependency:resolve-plugins >/dev/null || true
-                    mvn -B -T 6 install
-                    mvn -B -P !integration-test -T 6 pmd:pmd
-                    mvn -B javadoc:aggregate
+                    mvn clean
+                    mvn dependency:resolve dependency:resolve-plugins >/dev/null || true
+                    mvn -T 6 install
+                    mvn -P !integration-test -T 6 pmd:pmd
+                    mvn javadoc:aggregate
                     ./cli/build_docker_image.sh
                 """
                 script {

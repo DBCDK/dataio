@@ -1,14 +1,13 @@
 package dk.dbc.dataio.sink.periodicjobs;
 
-import com.jcraft.jsch.ProxySOCKS5;
 import dk.dbc.commons.sftpclient.SFTPConfig;
 import dk.dbc.commons.sftpclient.SFtpClient;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.harvester.types.SFtpPickup;
 import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.proxy.ProxyBean;
 import dk.dbc.util.Timed;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,31 +19,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.util.Set;
 
 @Stateless
 public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsSFtpFinalizerBean.class);
 
     @Inject
-    @ConfigProperty(name = "PROXY_HOST")
-    String proxyHost;
-
-    @Inject
-    @ConfigProperty(name = "PROXY_PORT")
-    String proxyPort;
-
-    @Inject
-    @ConfigProperty(name = "PROXY_USER")
-    String proxyUser;
-
-    @Inject
-    @ConfigProperty(name = "PROXY_PASSWORD")
-    String proxyPassword;
-
-    @Inject
-    @ConfigProperty(name = "NON_PROXYED_SFTP_DOMAINS")
-    String nonProxyedDomains;
+    ProxyBean proxyBean;
 
     @Timed
     @Override
@@ -96,26 +78,21 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     }
 
     private SFtpClient open(SFtpPickup sFtpPickup) {
-        ProxySOCKS5 proxyHandlerBean = null;
-        if (!proxyHost.isEmpty() && !proxyPort.isEmpty() && !proxyUser.isEmpty() && !proxyPassword.isEmpty()) {
-            proxyHandlerBean = new ProxySOCKS5(proxyHost, Integer.parseInt(proxyPort));
-            proxyHandlerBean.setUserPasswd(proxyUser, proxyPassword);
-        }
         return new SFtpClient(
                 new SFTPConfig()
-                        .withHost(sFtpPickup.getsFtpHost())
-                        .withPort(Integer.parseInt(sFtpPickup.getsFtpPort()))
-                        .withUsername(sFtpPickup.getsFtpUser())
-                        .withPassword(sFtpPickup.getsFtpPassword())
-                        .withDir(sFtpPickup.getsFtpSubdirectory()),
-                proxyHandlerBean,
-                Arrays.asList(nonProxyedDomains.split("\\s*,\\s*")));
+                .withHost(sFtpPickup.getsFtpHost())
+                .withPort(Integer.parseInt(sFtpPickup.getsFtpPort()))
+                .withUsername(sFtpPickup.getsFtpUser())
+                .withPassword(sFtpPickup.getsFtpPassword())
+                .withDir(sFtpPickup.getsFtpSubdirectory()),
+                proxyBean.getProxy(),
+                proxyBean.getNonProxyHosts() == null ? Set.of() : proxyBean.getNonProxyHosts());
     }
 
     private void uploadLocalFileToSFtp(SFtpPickup sFtpPickup, File local, String remote) throws SinkException {
         try (BufferedInputStream dataBlockStream = new BufferedInputStream(new FileInputStream(local), 1024);
              SFtpClient sFtpClient = open(sFtpPickup)) {
-            sFtpClient.putContent(remote, dataBlockStream);
+             sFtpClient.putContent(remote, dataBlockStream);
         } catch (IOException e) {
             throw new SinkException(e);
         }

@@ -27,6 +27,13 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     @Inject
     ProxyBean proxyBean;
 
+    public PeriodicJobsFtpFinalizerBean() {
+    }
+
+    public PeriodicJobsFtpFinalizerBean(ProxyBean proxyBean) {
+        this.proxyBean = proxyBean;
+    }
+
     @Timed
     @Override
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {

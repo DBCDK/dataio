@@ -27,6 +27,11 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-proxy</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-conversion</artifactId>
       <version>${project.version}</version>
     </dependency>

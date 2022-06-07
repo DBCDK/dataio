@@ -5,7 +5,7 @@ dataIO
 
 **Requirements**
 
-To build this project JDK 1.8 and Apache Maven is required.
+To build this project JDK 11 and Apache Maven is required.
 
 **Scripts**
 * clean - clears build artifacts

@@ -5,8 +5,8 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.harvester.types.FtpPickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.ftp.FtpClient;
+import dk.dbc.proxy.ProxyBean;
 import dk.dbc.util.Timed;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,31 +16,23 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.Authenticator;
-import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 @Stateless
 public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsFtpFinalizerBean.class);
 
     @Inject
-    @ConfigProperty(name = "PROXY_HOST")
-    String proxyHost;
+    ProxyBean proxyBean;
 
-    @Inject
-    @ConfigProperty(name = "PROXY_PORT")
-    String proxyPort;
+    public PeriodicJobsFtpFinalizerBean() {
+    }
 
-    @Inject
-    @ConfigProperty(name = "PROXY_USER")
-    String proxyUser;
-
-    @Inject
-    @ConfigProperty(name = "PROXY_PASSWORD")
-    String proxyPassword;
+    public PeriodicJobsFtpFinalizerBean(ProxyBean proxyBean) {
+        this.proxyBean = proxyBean;
+    }
 
     @Timed
     @Override
@@ -122,39 +114,23 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
         return result;
     }
 
-    private FtpClient open(FtpPickup ftpPickup) {
+    FtpClient open(FtpPickup ftpPickup) {
+        String host = ftpPickup.getFtpHost();
         final String subDir = ftpPickup.getFtpSubdirectory();
+        Proxy proxy = Optional.ofNullable(proxyBean)
+                .filter(p -> p.useProxy(host))
+                .map(ProxyBean::getJavaProxy)
+                .orElse(Proxy.NO_PROXY);
+        LOGGER.info("Opening ftp connection to: {}, using proxy: {}", ftpPickup, proxy);
         final FtpClient ftpClient = new FtpClient()
-                .withHost(ftpPickup.getFtpHost())
+                .withHost(host)
                 .withPort(Integer.valueOf(ftpPickup.getFtpPort()))
                 .withUsername(ftpPickup.getFtpUser())
-                .withPassword(ftpPickup.getFtpPassword());
-        if (proxyHost != null && proxyPort != null && proxyUser != null && proxyPassword != null) {
-            final InetSocketAddress address = new InetSocketAddress(proxyHost, Integer.parseInt(proxyPort));
-            ftpClient.withProxy(new Proxy(Proxy.Type.SOCKS, address));
-        }
-        setAuthentication();
+                .withPassword(ftpPickup.getFtpPassword())
+                .withProxy(proxy);
         if (subDir != null && !subDir.isEmpty()) {
             ftpClient.cd(subDir);
         }
         return ftpClient;
-    }
-
-    void setAuthentication() {
-        Authenticator.setDefault(
-                new Authenticator() {
-                    @Override
-                    public PasswordAuthentication getPasswordAuthentication() {
-                        if (proxyUser == null || proxyPassword == null) {
-                            return null;
-                        }
-                        if (getRequestingHost().equalsIgnoreCase(proxyHost)) {
-                            return new PasswordAuthentication(
-                                    proxyUser, proxyPassword.toCharArray());
-                        }
-                        return null;
-                    }
-                }
-        );
     }
 }

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://oss.dbc.dk/ns/updateMarcXchange" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" name="UpdateMarcXchangeServices" targetNamespace="http://oss.dbc.dk/ns/updateMarcXchange">
+  <wsdl:types>
+    <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified">
+      <xs:import namespace="http://oss.dbc.dk/ns/updateMarcXchange" schemaLocation="updateMarcXchange.xsd"/>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="UpdateMarcXchangeInputMessage">
+    <wsdl:part name="parameters" element="tns:updateMarcXchange"/>
+  </wsdl:message>
+  <wsdl:message name="UpdateMarcXchangeOutputMessage">
+    <wsdl:part name="parameters" element="tns:updateMarcXchangeResponse"/>
+  </wsdl:message>
+  <wsdl:portType name="UpdateMarcXchangePortType">
+    <wsdl:operation name="updateMarcXchange">
+      <wsdl:input wsaw:Action="http://oss.dbc.dk/ns/updateMarcXchange/UpdateMarcXchange" message="tns:UpdateMarcXchangeInputMessage"/>
+      <wsdl:output wsaw:Action="http://oss.dbc.dk/ns/updateMarcXchange/UpdateMarcXchangeResponse" message="tns:UpdateMarcXchangeOutputMessage"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="UpdateMarcXchangeBinding" type="tns:UpdateMarcXchangePortType">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="updateMarcXchange">
+      <soap:operation soapAction="http://oss.dbc.dk/ns/updateMarcXchange/UpdateMarcXchange" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="UpdateMarcXchangeServices">
+    <wsdl:port name="UpdateMarcXchangePort" binding="tns:UpdateMarcXchangeBinding">
+      <soap:address location="http://updatemarcxchange.addi.dk/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.SFtpPickup;
+import dk.dbc.proxy.ProxyBean;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
@@ -158,11 +159,9 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = new PeriodicJobsSFtpFinalizerBean();
         periodicJobsSFtpFinalizerBean.entityManager = env().getEntityManager();
         periodicJobsSFtpFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
-        periodicJobsSFtpFinalizerBean.proxyHost = PROXY_HOST;
-        periodicJobsSFtpFinalizerBean.proxyPort = Integer.toString(PROXY_PORT);
-        periodicJobsSFtpFinalizerBean.proxyUser = PROXY_USER;
-        periodicJobsSFtpFinalizerBean.proxyPassword = PROXY_PASSWORD;
-        periodicJobsSFtpFinalizerBean.nonProxyedDomains = "";
+        periodicJobsSFtpFinalizerBean.proxyBean = new ProxyBean(PROXY_HOST, PROXY_PORT)
+                .withProxyUsername(PROXY_USER)
+                .withProxyPassword(PROXY_PASSWORD);
         periodicJobsSFtpFinalizerBean.weekResolverConnector = weekResolverConnector;
         periodicJobsSFtpFinalizerBean.initialize();
         return periodicJobsSFtpFinalizerBean;

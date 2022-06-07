@@ -92,7 +92,7 @@ public class FtpPickup extends Pickup {
                 "ftpPort='" + ftpPort + '\'' +
                 ", ftpHost='" + ftpHost + '\'' +
                 ", ftpUser='" + ftpUser + '\'' +
-                ", ftpPassword='" + ftpPassword + '\'' +
+                ", ftpPassword='" + (ftpPassword == null ? "<none>" : ftpPassword.replaceAll(".*", "*****")) + '\'' +
                 ", ftpSubdirectory='" + ftpSubdirectory + '\'' +
                 '}';
     }

@@ -27,6 +27,13 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     @Inject
     ProxyBean proxyBean;
 
+    public PeriodicJobsFtpFinalizerBean() {
+    }
+
+    public PeriodicJobsFtpFinalizerBean(ProxyBean proxyBean) {
+        this.proxyBean = proxyBean;
+    }
+
     @Timed
     @Override
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
@@ -107,14 +114,16 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
         return result;
     }
 
-    private FtpClient open(FtpPickup ftpPickup) {
+    FtpClient open(FtpPickup ftpPickup) {
+        String host = ftpPickup.getFtpHost();
         final String subDir = ftpPickup.getFtpSubdirectory();
         Proxy proxy = Optional.ofNullable(proxyBean)
-                .filter(p -> p.useProxy(ftpPickup.getFtpHost()))
+                .filter(p -> p.useProxy(host))
                 .map(ProxyBean::getJavaProxy)
                 .orElse(Proxy.NO_PROXY);
+        LOGGER.info("Opening ftp connection to: {}, using proxy: {}", ftpPickup, proxy);
         final FtpClient ftpClient = new FtpClient()
-                .withHost(ftpPickup.getFtpHost())
+                .withHost(host)
                 .withPort(Integer.valueOf(ftpPickup.getFtpPort()))
                 .withUsername(ftpPickup.getFtpUser())
                 .withPassword(ftpPickup.getFtpPassword())

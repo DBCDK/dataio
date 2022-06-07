@@ -19,7 +19,7 @@ import java.util.List;
  */
 @WebService(name = "UpdateMarcXchangePortType", targetNamespace = "http://oss.dbc.dk/ns/updateMarcXchange")
 @XmlSeeAlso({
-    dk.dbc.oss.ns.updatemarcxchange.ObjectFactory.class,
+    ObjectFactory.class,
     info.lc.xmlns.marcxchange_v1.ObjectFactory.class
 })
 public interface UpdateMarcXchangePortType {
@@ -35,7 +35,7 @@ public interface UpdateMarcXchangePortType {
     @WebResult(name = "updateMarcXchangeResult", targetNamespace = "http://oss.dbc.dk/ns/updateMarcXchange")
     @RequestWrapper(localName = "updateMarcXchange", targetNamespace = "http://oss.dbc.dk/ns/updateMarcXchange", className = "dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchange")
     @ResponseWrapper(localName = "updateMarcXchangeResponse", targetNamespace = "http://oss.dbc.dk/ns/updateMarcXchange", className = "dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResponse")
-    public List<UpdateMarcXchangeResult> updateMarcXchange(
+    List<UpdateMarcXchangeResult> updateMarcXchange(
         @WebParam(name = "updateMarcXchangeRequest", targetNamespace = "http://oss.dbc.dk/ns/updateMarcXchange")
         UpdateMarcXchangeRequest updateMarcXchangeRequest);
 

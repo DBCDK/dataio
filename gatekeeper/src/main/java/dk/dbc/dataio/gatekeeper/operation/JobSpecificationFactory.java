@@ -56,6 +56,10 @@ public class JobSpecificationFactory {
         if (Constants.JOBTYPE_TRANSIENT.equals(getFieldValue(line, "j", Constants.JOBTYPE_PERSISTENT))) {
             jobType = JobSpecification.Type.TRANSIENT;
         }
+        if (Constants.JOBTYPE_SUPER_TRANSIENT.equals(getFieldValue(line, "j", Constants.JOBTYPE_PERSISTENT))) {
+            jobType = JobSpecification.Type.SUPER_TRANSIENT;
+        }
+
 
         final String packaging = getFieldValue(line, "t", defaultPackaging);
         final String format = getFieldValue(line, "o", Constants.MISSING_FIELD_VALUE);

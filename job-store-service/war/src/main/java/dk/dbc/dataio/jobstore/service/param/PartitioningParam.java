@@ -167,7 +167,8 @@ public class PartitioningParam {
 
     private boolean canBePreviewOnly() {
         return jobEntity.getSpecification().getType() == JobSpecification.Type.TRANSIENT
-                || jobEntity.getSpecification().getType() == JobSpecification.Type.PERSISTENT;
+                || jobEntity.getSpecification().getType() == JobSpecification.Type.PERSISTENT
+                || jobEntity.getSpecification().getType() == JobSpecification.Type.SUPER_TRANSIENT;
     }
 
     private DataPartitioner createDataPartitioner(BitSet includeFilter) {

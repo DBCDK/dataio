@@ -1,10 +1,12 @@
 package dk.dbc.dataio.jobstore;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.dataio.commons.testcontainers.Containers;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.jms.JmsQueueServiceConnector;
+import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
 import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
@@ -23,7 +25,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.Duration;
@@ -32,20 +33,15 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN_DAYS;
 
 public abstract class AbstractJobStoreServiceContainerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobStoreServiceContainerTest.class);
 
     static {
-        Testcontainers.exposeHostPorts(Integer.parseInt(
-                System.getProperty("jobstore.it.postgresql.port")));
-        Testcontainers.exposeHostPorts(Integer.parseInt(
-                System.getProperty("jobstore.it.wiremock.port")));
+
     }
 
-    static final Connection jobStoreDbConnection;
     static final Connection logstoreDbConnection;
     static final JobStoreServiceConnector jobStoreServiceConnector;
     static final LogStoreServiceConnector logStoreServiceConnector;
@@ -61,20 +57,42 @@ public abstract class AbstractJobStoreServiceContainerTest {
     private static GenericContainer jmsQueueServiceContainer;
     private static GenericContainer jobStoreServiceContainer;
     private static DBCPostgreSQLContainer logstoreDBContainer;
+    private static DBCPostgreSQLContainer jobstoreDBContainer;
     private static GenericContainer logstoreContainer;
 
-    static {
-        jobStoreDbConnection = connectToJobStoreDB();
 
+    private static final LocalDateTime oldJobDateTime = LocalDateTime.now()
+            .minus(JOB_EXPIRATION_AGE_IN_DAYS + 1, ChronoUnit.DAYS);
+
+    private static final LocalDateTime aLittleYoungerJobDateTime = LocalDateTime.now()
+            .minus(JOB_EXPIRATION_AGE_IN_DAYS - 1, ChronoUnit.DAYS);
+    private static final LocalDateTime jobFromTheDayBeforeYesterday = LocalDateTime.now()
+            .minus(2, ChronoUnit.DAYS);
+    private static final LocalDateTime jobFromToday = LocalDateTime.now()
+            .minus(2, ChronoUnit.HOURS);
+
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    static {
         wireMockServer = startWireMockServer();
 
         final Network network = Network.newNetwork();
         openmqContainer = startOpenmqContainer(network);
         jmsQueueServiceContainer = startJmsQueueServiceContainer(network);
+
+        jobstoreDBContainer = new DBCPostgreSQLContainer()
+                .withNetwork(network).withReuse(false);
+        jobstoreDBContainer.start();
+        jobstoreDBContainer.exposeHostPort();
+        new DatabaseMigrator()
+                .withDataSource(jobstoreDBContainer.datasource())
+                .onStartup();
+        populateJobstoreDB(connectToJobstoreDB());
+
         jobStoreServiceContainer = startJobStoreServiceContainer(network);
-        populateJobstoreDB(jobStoreDbConnection);
+
         logstoreDBContainer = new DBCPostgreSQLContainer()
-                .withNetwork(network);
+                .withNetwork(network).withReuse(false);
         logstoreDBContainer.start();
         logstoreDBContainer.exposeHostPort();
 
@@ -104,10 +122,11 @@ public abstract class AbstractJobStoreServiceContainerTest {
     }
 
     private static WireMockServer startWireMockServer() {
-        final int port = Integer.parseInt(System.getProperty("jobstore.it.wiremock.port"));
-        final WireMockServer wireMockServer = new WireMockServer(options().port(port));
+        wireMockServer = new WireMockServer(new WireMockConfiguration().dynamicPort());
         wireMockServer.start();
         configureFor("localhost", wireMockServer.port());
+        Testcontainers.exposeHostPorts(wireMockServer.port());
+        LOGGER.info("Wiremock server at port:{}", wireMockServer.port());
         return wireMockServer;
     }
 
@@ -156,11 +175,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withLogConsumer(new Slf4jLogConsumer(LOGGER))
                 .withEnv("LOG_FORMAT", "text")
                 .withEnv("JAVA_MAX_HEAP_SIZE", "4G")
-                .withEnv("JOBSTORE_DB_URL", String.format("%s:%s@host.testcontainers.internal:%s/%s",
-                        System.getProperty("user.name"),
-                        System.getProperty("user.name"),
-                        System.getProperty("jobstore.it.postgresql.port"),
-                        System.getProperty("jobstore.it.postgresql.dbname")))
+                .withEnv("JOBSTORE_DB_URL", jobstoreDBContainer.getPayaraDockerJdbcUrl())
                 .withEnv("OPENMQ_SERVER", OPENMQ_ALIAS + ":7676")
                 .withEnv("FLOWSTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
                 .withEnv("FILESTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
@@ -180,33 +195,14 @@ public abstract class AbstractJobStoreServiceContainerTest {
         return container;
     }
 
-    static Connection connectToJobStoreDB() {
-        try {
-            Class.forName("org.postgresql.Driver");
-            final String dbUrl = String.format("jdbc:postgresql://localhost:%s/%s",
-                    System.getProperty("jobstore.it.postgresql.port"),
-                    System.getProperty("jobstore.it.postgresql.dbname"));
-            final Connection connection = DriverManager.getConnection(dbUrl,
-                    System.getProperty("user.name"),
-                    System.getProperty("user.name"));
-            connection.setAutoCommit(true);
-            return connection;
-        } catch (ClassNotFoundException | SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     static void populateJobstoreDB(Connection connection) {
         try {
-            final LocalDateTime oldJobDateTime = LocalDateTime.now()
-                    .minus(JOB_EXPIRATION_AGE_IN_DAYS + 1, ChronoUnit.DAYS);
-            final LocalDateTime aLittleYoungerJobDateTime = LocalDateTime.now()
-                    .minus(JOB_EXPIRATION_AGE_IN_DAYS - 1, ChronoUnit.DAYS);
 
-            final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             final String sql = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/jobstore.sql")), StandardCharsets.UTF_8)
                     .replaceAll("__DATE_1__", oldJobDateTime.format(formatter))
-                    .replaceAll("__DATE_2__", aLittleYoungerJobDateTime.format(formatter));
+                    .replaceAll("__DATE_2__", aLittleYoungerJobDateTime.format(formatter))
+                    .replaceAll("__DATE_3__", jobFromTheDayBeforeYesterday.format(formatter))
+                    .replaceAll("__DATE_4__", jobFromToday.format(formatter));
             final PreparedStatement statement = connection.prepareStatement(sql);
             statement.executeUpdate();
 
@@ -217,18 +213,11 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
     static void populateLogstoreDB(Connection connection) {
         try {
-            final LocalDateTime oldJobDateTime = LocalDateTime.now()
-                    .minus(5, ChronoUnit.YEARS)
-                    .minus(1, ChronoUnit.DAYS);
-            final LocalDateTime aLittleYoungerJobDateTime = LocalDateTime.now()
-                    .minus(5, ChronoUnit.YEARS)
-                    .plus(1, ChronoUnit.DAYS);
-
-
-            final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             final String sql = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/logstore.sql")), StandardCharsets.UTF_8)
                     .replaceAll("__DATE_1__", oldJobDateTime.format(formatter))
-                    .replaceAll("__DATE_2__", aLittleYoungerJobDateTime.format(formatter));
+                    .replaceAll("__DATE_2__", aLittleYoungerJobDateTime.format(formatter))
+                    .replaceAll("__DATE_3__", jobFromTheDayBeforeYesterday.format(formatter))
+                    .replaceAll("__DATE_4__", jobFromToday.format(formatter));
             final PreparedStatement statement = connection.prepareStatement(sql);
             statement.executeUpdate();
 
@@ -241,6 +230,14 @@ public abstract class AbstractJobStoreServiceContainerTest {
     static Connection connectToLogstoreDB() {
         try {
             return logstoreDBContainer.createConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static Connection connectToJobstoreDB() {
+        try {
+            return jobstoreDBContainer.createConnection();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

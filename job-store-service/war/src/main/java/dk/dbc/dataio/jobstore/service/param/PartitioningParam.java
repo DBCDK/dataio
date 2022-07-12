@@ -44,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.EnumSet;
 import java.util.List;
 
 import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter;
@@ -166,9 +167,10 @@ public class PartitioningParam {
     }
 
     private boolean canBePreviewOnly() {
-        return jobEntity.getSpecification().getType() == JobSpecification.Type.TRANSIENT
-                || jobEntity.getSpecification().getType() == JobSpecification.Type.PERSISTENT
-                || jobEntity.getSpecification().getType() == JobSpecification.Type.SUPER_TRANSIENT;
+        EnumSet<JobSpecification.Type> previewSet = EnumSet.of(
+                JobSpecification.Type.SUPER_TRANSIENT, JobSpecification.Type.TRANSIENT,
+                JobSpecification.Type.PERSISTENT);
+        return previewSet.contains(jobEntity.getSpecification().getType());
     }
 
     private DataPartitioner createDataPartitioner(BitSet includeFilter) {

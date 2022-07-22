@@ -173,6 +173,7 @@ public class JobPurgeBean {
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.ACCTEST, 5));
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TEST, 90));
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TRANSIENT, 90));
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.SUPER_TRANSIENT, 2));
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.INFOMEDIA, 14));
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.PERIODIC, 180));
         return toDelete;

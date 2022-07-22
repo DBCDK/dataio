@@ -9,6 +9,8 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorException;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,21 +20,30 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
-public class CompactOldJobsIT extends AbstractJobStoreServiceContainerTest {
+public class CompactAndCleanOldJobsIT extends AbstractJobStoreServiceContainerTest {
+    Logger LOGGER = LoggerFactory.getLogger(AbstractJobStoreServiceContainerTest.class);
+
     final String OLD_JOB_ID = "41434";
     final String A_LITTLE_YOUNGER_JOB_ID = "41435";
+    final String OLD_JOB_SUPER_TRANSIENT_ID = "41436";
+    final String A_LITTLE_YOUNGERSUPER_TRANSIENT__JOB_ID = "41437";
+
 
 
     /**
-     * Given: Two existing jobs
-     * - One old. To be cleaned. One chunk with six items.
-     * - One a little younger. One chunk with six items. Left as is.
+     * Given: Four existing jobs
+     * - One job old persistent. To be cleaned (compacted). One chunk with six items.
+     * - One job, two days old, super transient. To be removed. One chunk with six items.
+     * - One persistent job, a little younger. One chunk with six items. Left as is.
+     * - One super transient job, from today. One chunk with six items. Left as is.
      * <p>
      * When: purgeJobs is executed
      * <p>
      * Then:
-     * - The old job no longer has logs. Chunk and items for the job no longer exists.
+     * - The old persistent job no longer has logs. Chunk and items for the job no longer exists.
      * - The younger job has been left unharmed.
+     * - The super transient job two days old is deleted. Chunk and items for the job no longer exists.
+     * - The super transient job from today is left unharmed.
      */
     @Test
     public void cleanOldJobs() throws JobStoreServiceConnectorException, LogStoreServiceConnectorException {
@@ -40,6 +51,8 @@ public class CompactOldJobsIT extends AbstractJobStoreServiceContainerTest {
         // Given ...
         assertChunksItemsAndLogs(OLD_JOB_ID, 1, 6, true);
         assertChunksItemsAndLogs(A_LITTLE_YOUNGER_JOB_ID, 1, 6, true);
+        assertChunksItemsAndLogs(OLD_JOB_SUPER_TRANSIENT_ID, 1, 6, true);
+        assertChunksItemsAndLogs(A_LITTLE_YOUNGERSUPER_TRANSIENT__JOB_ID, 1, 6, true);
 
         // When ...
         jobStoreServiceConnector.purge();
@@ -47,6 +60,10 @@ public class CompactOldJobsIT extends AbstractJobStoreServiceContainerTest {
         // Then ...
         assertChunksItemsAndLogs(OLD_JOB_ID, 0, 0, false);
         assertChunksItemsAndLogs(A_LITTLE_YOUNGER_JOB_ID, 1, 6, true);
+
+        assertChunksItemsAndLogs(OLD_JOB_SUPER_TRANSIENT_ID, 0, 0, false);
+        assertChunksItemsAndLogs(A_LITTLE_YOUNGERSUPER_TRANSIENT__JOB_ID, 1, 6, true);
+
 
         final JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, OLD_JOB_ID));
         JobInfoSnapshot oldJob = jobStoreServiceConnector.listJobs(criteria).get(0);

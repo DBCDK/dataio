@@ -35,7 +35,6 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.descriptor.api.Descriptors;
 import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceDescriptor;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.jboss.shrinkwrap.resolver.api.maven.ScopeType;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -129,7 +128,7 @@ public class PgJobStoreArquillianIT {
                     .addClasses(TestFlowStoreServiceConnector.class);
 
             File[] deps = Maven.configureResolver().workOffline().loadPomFromFile("pom.xml")
-                    .importDependencies(ScopeType.COMPILE)
+                    .importRuntimeDependencies()
                     .resolve().withTransitivity().asFile();
             Set<String> undesirables = Set.of("jersey", "jakarta-inject", "jakarta.ws.rs-api", "jackson");
             File[] files = Arrays.stream(deps).filter(f -> undesirables.stream().noneMatch(u -> f.getName().contains(u))).toArray(File[]::new);

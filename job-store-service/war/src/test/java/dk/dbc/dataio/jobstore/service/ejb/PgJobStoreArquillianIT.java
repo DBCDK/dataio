@@ -128,7 +128,7 @@ public class PgJobStoreArquillianIT {
                     .addClasses(TestFileStoreServiceConnector.class)
                     .addClasses(TestFlowStoreServiceConnector.class);
 
-            File[] deps = Maven.configureResolver().workOffline().loadPomFromFile("pom.xml")
+                File[] deps = Maven.configureResolver().loadPomFromFile("pom.xml")
                     .importDependencies(ScopeType.COMPILE)
                     .resolve().withTransitivity().asFile();
             Set<String> undesirables = Set.of("jersey", "jakarta-inject", "jakarta.ws.rs-api", "jackson");

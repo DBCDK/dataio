@@ -100,7 +100,7 @@ public class JobSchedulerBeanArquillianIT {
         LOGGER.info("Before Test cleanTestConsumers and stuff");
         TestJobProcessorMessageConsumerBean.reset();
         TestSinkMessageConsumerBean.reset();
-        dbCleanUp();
+        dbAndQueuesCleanup();
 
         JobSchedulerBean.resetAllSinkStatuses();
         TestJobStoreConnection.resetConnector(
@@ -109,7 +109,7 @@ public class JobSchedulerBeanArquillianIT {
 
 
     @After
-    public void dbCleanUp() throws Exception {
+    public void dbAndQueuesCleanup() throws Exception {
         utx.begin();
         entityManager.joinTransaction();
 
@@ -128,7 +128,6 @@ public class JobSchedulerBeanArquillianIT {
                     .fromFile("src/main/resources/META-INF/persistence.xml")
                     .getOrCreatePersistenceUnit().name("jobstorePU")
                     .getOrCreateProperties()
-                    //.createProperty().name("eclipselink.logging.file").value("../logs/eclipselink.log").up()
                     .createProperty().name("eclipselink.allow-zero-id").value("true").up()
                     .createProperty().name("eclipselink.logging.level").value("FINEST").up()
                     .createProperty().name("eclipselink.logging.logger").value("JavaLogger").up()
@@ -160,7 +159,6 @@ public class JobSchedulerBeanArquillianIT {
 
             // Add Maven Dependencies  // .workOffline fails med  mvnLocal ( .m2 i projectHome
             File[] files = Maven.configureResolver().workOffline().withMavenCentralRepo(false).loadPomFromFile("pom.xml")
-                    //File[] files = Maven.configureResolver().loadPomFromFile("pom.xml")
                     .importRuntimeDependencies().resolve().withTransitivity().asFile();
             war.addAsLibraries(files);
 
@@ -179,8 +177,6 @@ public class JobSchedulerBeanArquillianIT {
             war.addAsWebInfResource(new File("src/main/webapp/WEB-INF/beans.xml"));
             war.addAsWebInfResource(new File("src/test/resources/arquillian_logback.xml"), "classes/logback-test.xml");
             war.addAsResource(new File("src/test/resources/", "JobSchedulerBeanArquillianIT_findWaitForChunks.sql"));
-
-            //LOGGER.info("war {}", war.toString(true));
 
             return war;
         } catch (Exception e) {

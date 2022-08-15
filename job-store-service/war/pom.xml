@@ -103,7 +103,6 @@
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
-      <version>2.30</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -267,13 +266,13 @@
     <dependency>
       <groupId>fish.payara.arquillian</groupId>
       <artifactId>arquillian-payara-server-embedded</artifactId>
-      <version>2.4.5</version>
+      <version>2.4.6</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>fish.payara.extras</groupId>
       <artifactId>payara-embedded-all</artifactId>
-      <version>5.21.2</version>
+      <version>5.2022.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -402,6 +401,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
+          <argLine>--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED</argLine>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>
             <container.http.port>${container.http.port}</container.http.port>
@@ -412,6 +412,9 @@
             <VIPCORE_ENDPOINT>http://vipcore-dummy</VIPCORE_ENDPOINT>
             <deployment.resource.validation>false</deployment.resource.validation>
           </systemPropertyVariables>
+          <classpathDependencyExcludes>
+            <dependencyExclude>org.glassfish.jersey.core:jersey-client</dependencyExclude>
+          </classpathDependencyExcludes>
         </configuration>
         <executions>
           <execution>

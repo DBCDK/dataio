@@ -109,17 +109,17 @@ public class HarvestOperation {
             for (DMatRecord dmatRecord : dmatRecords) {
                 LOGGER.info("Fetched dmat record {}", dmatRecord.getId());
                 recordsHarvested++;
-
                 try {
 
                     // Check validity of the received record
                     assertRecordState(dmatRecord);
 
                     // Create the addi object and add it to the job
-                    final ExtendedAddiMetaData addiMetaData = createAddiMetaData(dmatRecords.getCreationTime(), dmatRecord);
+                    ExtendedAddiMetaData addiMetaData = createAddiMetaData(dmatRecords.getCreationTime(), dmatRecord);
                     try {
                         DBCTrackedLogContext.setTrackingId(addiMetaData.trackingId());
-                        final AddiRecord addiRecord = createAddiRecord(recordServiceConnector, addiMetaData, dmatRecord);
+                        AddiRecord addiRecord = createAddiRecord(recordServiceConnector, addiMetaData, dmatRecord);
+                        LOGGER.info("dmat-Addirecord:{}", new String(addiRecord.getMetaData()));
                         if (dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER) {
                             publisherJobBuilder.addRecord(addiRecord);
                             statusAfterExportPublisher.put(dmatRecord.getId(), Status.EXPORTED);
@@ -261,19 +261,20 @@ public class HarvestOperation {
                 dmatRecord.getId()));
     }
 
-    private ExtendedAddiMetaData createAddiMetaData(LocalDate creationDate, DMatRecord dmatRecord) {
-        return ((ExtendedAddiMetaData) new ExtendedAddiMetaData()
-                .withTrackingId(String.join(".", "dmat", config.getLogId(),
-                        String.valueOf(dmatRecord.getId())))
-                .withSubmitterNumber(JobSpecificationTemplate.getSubmitterNumberFor(
-                        dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER
-                                ? JobSpecificationTemplate.JobSpecificationType.PUBLISHER
-                                : JobSpecificationTemplate.JobSpecificationType.RR))
-                .withFormat(config.getContent().getFormat())
-                .withCreationDate(Date.from(creationDate.atStartOfDay(timezone).plusHours(12).toInstant()))
-                .withBibliographicRecordId(dmatRecord.getIsbn()))
+    protected ExtendedAddiMetaData createAddiMetaData(LocalDate creationDate, DMatRecord dmatRecord) {
+        ExtendedAddiMetaData extendedAddiMetaData = new ExtendedAddiMetaData()
                 .withDmatRecord(dmatRecord)
                 .withDmatUrl(String.format(dmatDownloadUrl, dmatRecord.getId()));
+        if (dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER) {
+            extendedAddiMetaData.withSubmitterNumber(JobSpecificationTemplate
+                    .getSubmitterNumberFor(JobSpecificationTemplate.JobSpecificationType.PUBLISHER));
+            extendedAddiMetaData.withFormat(config.getContent().getPublisherFormat());
+        } else {
+            extendedAddiMetaData.withSubmitterNumber(JobSpecificationTemplate
+                    .getSubmitterNumberFor(JobSpecificationTemplate.JobSpecificationType.RR));
+            extendedAddiMetaData.withFormat(config.getContent().getFormat());
+        }
+
 
         // Note: Using creationDate.atStartOfDay(...) will actually, for us in a timezone with UTC -1 or -2
         //       hours, put the creationdate stamp at the day before.  This is kind of weird, but is
@@ -281,6 +282,11 @@ public class HarvestOperation {
         //
         // The flowscript handling jobs from the dmat harvester MUST use the 'formattedCreationDate property
         // provided by the dmat export object.
+        return (ExtendedAddiMetaData) extendedAddiMetaData
+                .withTrackingId(String.join(".", "dmat", config.getLogId(),
+                        String.valueOf(dmatRecord.getId())))
+                .withCreationDate(Date.from(creationDate.atStartOfDay(timezone).plusHours(12).toInstant()))
+                .withBibliographicRecordId(dmatRecord.getIsbn());
     }
 
     private AddiRecord createAddiRecord(RecordServiceConnector recordServiceConnector, ExtendedAddiMetaData addiMetaData,

@@ -6,10 +6,12 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
+import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -39,8 +41,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
@@ -414,23 +418,29 @@ public class HarvestOperationTest extends IntegrationTest {
                             tickleRepo, PUBLISHER_DATASET_NAME)), containsString("<PublisherName>Lindhardt og Ringhof</PublisherName></Publisher>"));
         });
 
+        // Make sure beforehand that we get specified the correct publisher-format as addi format
+        persistenceContext.run(() -> {
+            ExtendedAddiMetaData addiMetaData = harvestOperation.createAddiMetaData(LocalDate.now(), mockPublisherRecord(accession, "9788771981544"));
+           assertThat("metadata format", addiMetaData.format(), is("--publisher-format--"));
+        });
+
         when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
                 .thenReturn((ExportedRecordList) new ExportedRecordList()
                         .withCreationDate(accession.toLocalDate())
-                        .withRecords(Arrays.asList(
+                        .withRecords(Collections.singletonList(
                                 mockPublisherRecord(accession, "9788771981544")
                         )));
         persistenceContext.run(() -> {
             final int casesHarvested = harvestOperation.execute();
             assertThat("Number of cases harvested", casesHarvested, is(1));
-            verify(harvestOperation.publisherJobBuilder).addRecord(any(AddiRecord.class));
+            verify(harvestOperation.publisherJobBuilder, times(1)).addRecord(any(AddiRecord.class));
             verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
-            verify(recordServiceConnector, times(0)).getRecordContentCollection(any(Integer.class),
+            verify(recordServiceConnector, never()).getRecordContentCollection(any(Integer.class),
                     any(String.class), any(RecordServiceConnector.Params.class));
-            verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
-            verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
             verify(harvestOperation.tickleFetcher, times(1))
                     .getOnixProductFor(any(DMatRecord.class), any(TickleRepo.class), eq(PUBLISHER_DATASET_NAME));
+            verify(flowStoreServiceConnector, times(1)).updateHarvesterConfig(any(HarvesterConfig.class));
+            verify(harvestOperation, times(2)).createAddiMetaData(any(LocalDate.class), any(DMatRecord.class));
         });
     }
 
@@ -552,6 +562,7 @@ public class HarvestOperationTest extends IntegrationTest {
         config.getContent()
                 .withName("HarvestOperationTest")
                 .withFormat("-format-")
+                .withPublisherFormat("--publisher-format--")
                 .withDestination("-destination-")
                 .withPublizon("-publizon-");
         return config;

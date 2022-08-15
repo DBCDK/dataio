@@ -62,6 +62,9 @@ public class DMatHarvesterConfig
          */
         private String format;
 
+        private String publisherFormat;
+
+
         /**
          * Flag Indicating if the configuration is enabled
          */
@@ -125,6 +128,15 @@ public class DMatHarvesterConfig
             return this;
         }
 
+        public String getPublisherFormat() {
+            return publisherFormat;
+        }
+
+        public Content withPublisherFormat(String publisherFormat) {
+            this.publisherFormat = publisherFormat;
+            return this;
+        }
+
         public boolean isEnabled() {
             return enabled;
         }
@@ -180,6 +192,9 @@ public class DMatHarvesterConfig
             if (format != null ? !format.equals(content.format) : content.format != null) {
                 return false;
             }
+            if (publisherFormat != null ? !publisherFormat.equals(content.publisherFormat) : content.publisherFormat != null) {
+                return false;
+            }
             return timeOfLastHarvest != null ? timeOfLastHarvest.equals(content.timeOfLastHarvest) : content.timeOfLastHarvest == null;
         }
 
@@ -191,6 +206,7 @@ public class DMatHarvesterConfig
             result = 31 * result + (destination != null ? destination.hashCode() : 0);
             result = 31 * result + (publizon != null ? publizon.hashCode() : 0);
             result = 31 * result + (format != null ? format.hashCode() : 0);
+            result = 31 * result + (publisherFormat != null ? publisherFormat.hashCode() : 0);
             result = 31 * result + (enabled ? 1 : 0);
             result = 31 * result + (timeOfLastHarvest != null ? timeOfLastHarvest.hashCode() : 0);
             return result;
@@ -205,6 +221,7 @@ public class DMatHarvesterConfig
                     ", destination='" + destination + '\'' +
                     ", publizon='" + publizon + '\'' +
                     ", format='" + format + '\'' +
+                    ", publisherFormat='" + publisherFormat + '\'' +
                     ", enabled=" + enabled +
                     ", timeOfLastHarvest=" + timeOfLastHarvest +
                     '}';

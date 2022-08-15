@@ -43,6 +43,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField
     PromptedTextBox format;
     @UiField
+    PromptedTextBox publisherFormat;
+    @UiField
     PromptedCheckBox enabled;
 
     @UiField
@@ -89,6 +91,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("format")
     void formatChanged(ValueChangeEvent<String> event) {
         presenter.formatChanged(format.getText());
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("publisherFormat")
+    void publisherFormatChanged(ValueChangeEvent<String> event) {
+        presenter.publisherFormatChanged(publisherFormat.getText());
         presenter.keyPressed();
     }
 

@@ -314,7 +314,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
     private JobModel testJobModelSucceeded = new JobModel()
             .withJobId("JobSucceeded")
-            .withType(JobSpecification.Type.TRANSIENT)
+            .withType(JobSpecification.Type.SUPER_TRANSIENT)
             .withWorkflowNoteModel(new WorkflowNoteModelBuilder().build())
             .withAncestry(new JobSpecification.Ancestry().withTransfile("transfile").withDetails("details".getBytes()).withDatafile("datafile").withBatchId("batchid").withHarvesterToken("harvesterToken"));
 

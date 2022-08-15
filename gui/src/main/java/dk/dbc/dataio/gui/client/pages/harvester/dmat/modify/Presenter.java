@@ -14,6 +14,7 @@ public interface Presenter extends GenericPresenter {
     void publizonChanged(String publizon);
 
     void formatChanged(String format);
+    void publisherFormatChanged(String publisherFormat);
 
     void enabledChanged(Boolean value);
 

@@ -80,6 +80,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
+    public void publisherFormatChanged(String publisherFormat) {
+        if (config != null) {
+            config.getContent().withPublisherFormat(publisherFormat);
+        }
+    }
+
+    @Override
     public void enabledChanged(Boolean enabled) {
         if (config != null) {
             config.getContent().withEnabled(enabled);
@@ -129,6 +136,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.destination.setEnabled(true);
         view.publizon.setEnabled(true);
         view.format.setEnabled(true);
+        view.publisherFormat.setEnabled(true);
         view.enabled.setEnabled(true);
     }
 
@@ -141,6 +149,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.destination.setText(configContent.getDestination());
         view.publizon.setText(configContent.getPublizon());
         view.format.setText(configContent.getFormat());
+        view.publisherFormat.setText(configContent.getPublisherFormat());
         view.enabled.setValue(configContent.isEnabled());
         view.status.setText("");
     }
@@ -153,7 +162,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 || isUndefined(config.getContent().getDescription())
                 || isUndefined(config.getContent().getDestination())
                 || isUndefined(config.getContent().getPublizon())
-                || isUndefined(config.getContent().getFormat());
+                || isUndefined(config.getContent().getFormat())
+                || isUndefined(config.getContent().getPublisherFormat());
     }
 
     private boolean isUndefined(String value) {

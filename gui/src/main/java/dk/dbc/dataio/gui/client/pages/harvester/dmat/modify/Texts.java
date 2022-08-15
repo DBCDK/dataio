@@ -23,6 +23,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String prompt_Format();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String prompt_PublisherFormat();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String prompt_Enabled();
 
     // Buttons

@@ -36,6 +36,7 @@ public class HarvestersTable extends CellTable {
         addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
         addColumn(constructDestinationColumn(), texts.columnHeader_Destination());
         addColumn(constructFormatColumn(), texts.columnHeader_Format());
+        addColumn(constructPulisherFormatColumn(), texts.columnHeader_PublisherFormat());
         addColumn(constructTimeOfLastHarvestColumn(), texts.columnHeader_TimeOfLastHarvest());
         addColumn(constructStatusColumn(), texts.columnHeader_Status());
         addColumn(constructActionColumn(), texts.columnHeader_Action());
@@ -103,6 +104,15 @@ public class HarvestersTable extends CellTable {
             @Override
             public String getValue(DMatHarvesterConfig config) {
                 return config.getContent().getFormat();
+            }
+        };
+    }
+
+    private Column constructPulisherFormatColumn() {
+        return new TextColumn<DMatHarvesterConfig>() {
+            @Override
+            public String getValue(DMatHarvesterConfig config) {
+                return config.getContent().getPublisherFormat();
             }
         };
     }

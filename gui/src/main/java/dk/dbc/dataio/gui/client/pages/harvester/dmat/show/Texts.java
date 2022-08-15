@@ -16,6 +16,9 @@ public interface Texts extends Constants {
     String columnHeader_Format();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_PublisherFormat();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Name();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

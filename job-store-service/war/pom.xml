@@ -363,6 +363,7 @@
               <portNames>
                 <portName>jobstore.it.postgresql.port</portName>
                 <portName>container.http.port</portName>
+                <portName>container.admin.port</portName>
               </portNames>
             </configuration>
           </execution>
@@ -405,6 +406,7 @@
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>
             <container.http.port>${container.http.port}</container.http.port>
+            <container.admin.port>${container.admin.port}</container.admin.port>
             <postgresql.port>${jobstore.it.postgresql.port}</postgresql.port>
             <postgresql.dbname>${jobstore.it.postgresql.dbname}</postgresql.dbname>
             <persistence.unit.name>${jobstore.it.persistence.unit.name}</persistence.unit.name>

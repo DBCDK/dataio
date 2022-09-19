@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-
-docker build -f target/docker/Dockerfile . -t docker-metascrum.artifacts.dbccloud.dk:devel || exit 1
+cd target
+docker build -f docker/Dockerfile . -t docker-metascrum.artifacts.dbccloud.dk/dbc-payara-artemis-base:devel || exit 1

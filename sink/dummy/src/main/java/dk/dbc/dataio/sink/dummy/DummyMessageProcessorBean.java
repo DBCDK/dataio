@@ -14,11 +14,21 @@ import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.MessageDriven;
 
-@MessageDriven
+@MessageDriven(name = "dummyListener", activationConfig = {
+        // https://activemq.apache.org/activation-spec-properties
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/dataio/sinks"),
+        @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "true"),
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis-ra"),
+        @ActivationConfigProperty(propertyName = "messageSelector", propertyValue = "dummy"),
+        @ActivationConfigProperty(propertyName = "initialRedeliveryDelay", propertyValue = "5000"),
+        @ActivationConfigProperty(propertyName = "redeliveryUseExponentialBackOff", propertyValue = "true")
+})
 public class DummyMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(DummyMessageProcessorBean.class);
 

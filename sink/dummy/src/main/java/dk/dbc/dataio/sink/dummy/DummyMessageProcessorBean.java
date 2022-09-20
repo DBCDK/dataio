@@ -24,8 +24,8 @@ import javax.ejb.MessageDriven;
         @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/dataio/sinks"),
         @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "true"),
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-        @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis-ra"),
-        @ActivationConfigProperty(propertyName = "messageSelector", propertyValue = "dummy"),
+        @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis"),
+        @ActivationConfigProperty(propertyName = "messageSelector", propertyValue = "resource = '${ENV=MESSAGE_NAME_FILTER}'"),
         @ActivationConfigProperty(propertyName = "initialRedeliveryDelay", propertyValue = "5000"),
         @ActivationConfigProperty(propertyName = "redeliveryUseExponentialBackOff", propertyValue = "true")
 })

@@ -9,6 +9,6 @@ COPY --chown=gfish docker/scripts scripts/
 # REMOVE
 COPY docker/deployments/payara-artemis.json deployments/payara-artemis.json
 # END REMOVE
-COPY docker/deployments/artemis-rar-2.23.0.rar deployments/artemis.rar
+COPY docker/deployments/artemis-rar-${artemisVersion}.rar deployments/artemis.rar
 
 CMD ./scripts/artemis-connect.sh && ./scripts/start-payara.sh

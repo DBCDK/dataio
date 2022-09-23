@@ -25,13 +25,13 @@ public abstract class AbstractFlowStoreServiceContainerTest {
                 System.getProperty("flowstore.it.postgresql.port")));
     }
 
-    static final GenericContainer flowstoreServiceContainer;
+    static final GenericContainer<?> flowstoreServiceContainer;
     static final String flowStoreServiceBaseUrl;
     static final FlowStoreServiceConnector flowStoreServiceConnector;
     static final Connection flowStoreDbConnection;
 
     static {
-        flowstoreServiceContainer = Containers.flowstoreServiceContainer()
+        flowstoreServiceContainer = Containers.FLOW_STORE.makeContainer()
                 .withLogConsumer(new Slf4jLogConsumer(LOGGER))
                 .withEnv("LOG_FORMAT", "text")
                 .withEnv("JAVA_MAX_HEAP_SIZE", "4G")

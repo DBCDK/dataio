@@ -25,7 +25,6 @@ import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.Filters;
 import org.jboss.shrinkwrap.api.GenericArchive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -37,10 +36,7 @@ import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceDescriptor;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.ScopeType;
 import org.junit.Before;
-import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,8 +67,8 @@ import static org.junit.Assert.assertThat;
  * dk.dbc.arquillian.container : arquillian-glassfish-remote-3.1
  */
 @SuppressWarnings("JavaDoc")
-@RunWith(Arquillian.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+//@RunWith(Arquillian.class)
+//@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PgJobStoreArquillianIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStoreArquillianIT.class);
 
@@ -124,7 +120,6 @@ public class PgJobStoreArquillianIT {
             WebArchive war = ShrinkWrap.create(WebArchive.class, "jobstore-pgjobstore-test.war")
                     .addPackages(true, Filters.exclude(".*(Test|IT)(\\$.*)?\\.class"), "dk/dbc/dataio/jobstore")
                     // add ejb-jar.xml for DmqMessageConsumerBean
-                    .addAsWebInfResource(new File("src/main/webapp/WEB-INF/ejb-jar.xml"), "ejb-jar.xml")
                     .addClasses(TestFileStoreServiceConnector.class)
                     .addClasses(TestFlowStoreServiceConnector.class);
 

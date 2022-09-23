@@ -18,7 +18,6 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.logstore.service.connector.ejb.LogStoreServiceConnectorBean;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -27,10 +26,7 @@ import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceDescriptor;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,8 +66,8 @@ import static org.junit.Assert.assertThat;
  * dk.dbc.arquillian.container : arquillian-glassfish-remote-3.1
  */
 @SuppressWarnings("JavaDoc")
-@RunWith(Arquillian.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+//@RunWith(Arquillian.class)
+//@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JobSchedulerBeanArquillianIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBeanArquillianIT.class);
 

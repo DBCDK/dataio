@@ -36,7 +36,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-@MessageDriven(name = "dummyListener", activationConfig = {
+@MessageDriven(name = "batchListener", activationConfig = {
         // https://activemq.apache.org/activation-spec-properties
         @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/dataio/sinks"),
         @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "true"),

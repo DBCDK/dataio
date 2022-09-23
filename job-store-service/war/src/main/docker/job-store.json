@@ -6,15 +6,6 @@
       "maxSize": 200
     }
   },
-  "jms": {
-    "server": "${OPENMQ_SERVER}",
-    "maxSize": "${OPENMQ_MAX_CONNECTIONS:-300}",
-    "queues": {
-      "jms/dataio/dmq": "mq.sys.dmq",
-      "jms/dataio/processor": "jmsDataioProcessor",
-      "jms/dataio/sinks": "jmsDataioSinks"
-    }
-  },
   "mail": {
     "mail/dataio/jobstore/notifications": {
       "mailhost": "${MAIL_HOST}",

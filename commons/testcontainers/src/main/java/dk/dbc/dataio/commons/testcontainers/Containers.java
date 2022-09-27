@@ -10,20 +10,20 @@ public enum Containers {
     ARTEMIS("artemis:2_24_0-15"),
     LOG_STORE("dbc-payara-logstore:" + getTag());
 
-    private final String host;
+    private final String dockerRepo;
     private final String path;
 
     Containers(String path) {
         this("docker-metascrum.artifacts.dbccloud.dk", path);
     }
 
-    Containers(String host, String path) {
-        this.host = host;
+    Containers(String dockerRepo, String path) {
+        this.dockerRepo = dockerRepo;
         this.path = path;
     }
 
     public GenericContainer<?> makeContainer() {
-        return new GenericContainer<>(host + "/" + path);
+        return new GenericContainer<>(dockerRepo + "/" + path);
     }
 
     public static String getTag() {

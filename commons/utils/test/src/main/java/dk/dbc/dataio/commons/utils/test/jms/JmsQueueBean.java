@@ -5,7 +5,6 @@ import dk.dbc.commons.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.jms.ConnectionFactory;
@@ -39,7 +38,6 @@ public class JmsQueueBean {
 
     JSONBContext jsonbContext = new JSONBContext();
 
-    @Resource(lookup = "jms/artemisConnectionFactory")
     private ConnectionFactory messageQueueConnectionFactory;
 
     @GET

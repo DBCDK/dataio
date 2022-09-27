@@ -14,12 +14,22 @@ import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@MessageDriven
+@MessageDriven(name = "diffListener", activationConfig = {
+        // https://activemq.apache.org/activation-spec-properties
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/dataio/sinks"),
+        @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "true"),
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis"),
+        @ActivationConfigProperty(propertyName = "messageSelector", propertyValue = "resource = '${ENV=MESSAGE_NAME_FILTER}'"),
+        @ActivationConfigProperty(propertyName = "initialRedeliveryDelay", propertyValue = "5000"),
+        @ActivationConfigProperty(propertyName = "redeliveryUseExponentialBackOff", propertyValue = "true")
+})
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 

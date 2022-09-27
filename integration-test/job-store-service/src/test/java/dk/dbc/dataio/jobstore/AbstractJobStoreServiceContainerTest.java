@@ -188,7 +188,8 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("MAIL_FROM", "danbib")
                 .withEnv("MAIL_TO_FALLBACK", "fallback")
                 .withEnv("TZ", "Europe/Copenhagen")
-                .withExposedPorts(8080)
+                .withEnv("REMOTE_DEBUGGING_HOST", "172.17.28.50:5005")
+                .withExposedPorts(5005, 8080)
                 .waitingFor(Wait.forHttp(System.getProperty("jobstore.it.service.context") + "/status"))
                 .withStartupTimeout(Duration.ofMinutes(5));
         container.start();

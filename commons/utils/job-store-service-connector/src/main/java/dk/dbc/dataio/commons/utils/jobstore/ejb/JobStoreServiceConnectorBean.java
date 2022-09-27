@@ -24,12 +24,16 @@ public class JobStoreServiceConnectorBean {
 
     @PostConstruct
     public void initializeConnector() {
-        LOGGER.debug("Initializing connector");
-        final Client client = HttpClient.newClient(new ClientConfig()
-                .register(new JacksonFeature()));
-        final String endpoint = System.getenv("JOBSTORE_URL");
-        jobStoreServiceConnector = new JobStoreServiceConnector(client, endpoint);
-        LOGGER.info("Using service endpoint {}", endpoint);
+        try {
+            LOGGER.debug("Initializing connector");
+            final Client client = HttpClient.newClient(new ClientConfig()
+                    .register(new JacksonFeature()));
+            final String endpoint = System.getenv("JOBSTORE_URL");
+            jobStoreServiceConnector = new JobStoreServiceConnector(client, endpoint);
+            LOGGER.info("Using service endpoint {}", endpoint);
+        } catch (Exception e) {
+            LOGGER.error("Shit happened", e);
+        }
     }
 
     public JobStoreServiceConnector getConnector() {

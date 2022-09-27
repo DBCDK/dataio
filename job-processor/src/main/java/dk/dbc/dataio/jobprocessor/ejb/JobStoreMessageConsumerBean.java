@@ -17,13 +17,23 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 
 /**
  * Handles Chunk messages received from the job-store
  */
-@MessageDriven
+@MessageDriven(name = "jobStoreListener", activationConfig = {
+        // https://activemq.apache.org/activation-spec-properties
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/dataio/processor"),
+        @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "true"),
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis"),
+        @ActivationConfigProperty(propertyName = "messageSelector", propertyValue = "shard = '${ENV=PROCESSOR_SHARD}'"),
+        @ActivationConfigProperty(propertyName = "initialRedeliveryDelay", propertyValue = "5000"),
+        @ActivationConfigProperty(propertyName = "redeliveryUseExponentialBackOff", propertyValue = "true")
+})
 public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreMessageConsumerBean.class);
 

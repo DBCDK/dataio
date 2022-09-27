@@ -39,7 +39,7 @@ public class JmsQueueBean {
 
     JSONBContext jsonbContext = new JSONBContext();
 
-    @Resource
+    @Resource(lookup = "jms/artemisConnectionFactory")
     private ConnectionFactory messageQueueConnectionFactory;
 
     @GET

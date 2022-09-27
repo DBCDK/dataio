@@ -38,7 +38,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-@MessageDriven(name = "dummyListener", activationConfig = {
+@MessageDriven(name = "tickleRepoListener", activationConfig = {
         // https://activemq.apache.org/activation-spec-properties
         @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/dataio/sinks"),
         @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "true"),

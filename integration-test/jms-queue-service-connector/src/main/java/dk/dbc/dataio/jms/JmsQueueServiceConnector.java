@@ -23,15 +23,13 @@ public class JmsQueueServiceConnector {
     private static final long SLEEP_INTERVAL_IN_MS = 250;
 
     public enum Queue {
-        PROCESSING("jms/dataio/processor", "jmsDataioProcessor"),
-        SINK("jms/dataio/sinks", "jmsDataioSinks");
+        PROCESSING("jms/dataio/processor"),
+        SINK("jms/dataio/sinks");
 
-        public final String queueName;
-        public final String physicalName;
+        private final String queueName;
 
-        Queue(String queueName, String physicalName) {
+        Queue(String queueName) {
             this.queueName = queueName;
-            this.physicalName = physicalName;
         }
 
         public String getQueueName() {

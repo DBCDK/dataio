@@ -21,7 +21,6 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -213,7 +212,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
     static void populateLogstoreDB(Connection connection) {
         try {
-            final String sql = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/logstore.sql")), StandardCharsets.UTF_8)
+            final String sql = Files.readString(Paths.get("src/test/resources/sql/logstore.sql"))
                     .replaceAll("__DATE_1__", oldJobDateTime.format(formatter))
                     .replaceAll("__DATE_2__", aLittleYoungerJobDateTime.format(formatter))
                     .replaceAll("__DATE_3__", jobFromTheDayBeforeYesterday.format(formatter))

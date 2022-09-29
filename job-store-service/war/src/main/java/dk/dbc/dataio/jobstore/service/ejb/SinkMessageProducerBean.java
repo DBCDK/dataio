@@ -4,7 +4,6 @@ import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
@@ -22,8 +21,6 @@ import javax.jms.JMSException;
 import javax.jms.JMSProducer;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
 
 /**
  * This Enterprise Java Bean (EJB) functions as JMS message producer for
@@ -31,7 +28,6 @@ import javax.ws.rs.Path;
  */
 @LocalBean
 @Stateless
-@Path("/")
 public class SinkMessageProducerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageProducerBean.class);
 
@@ -42,24 +38,6 @@ public class SinkMessageProducerBean {
     Queue sinksQueue;
 
     JSONBContext jsonbContext = new JSONBContext();
-
-    @GET
-    @Path("test/producer")
-    public String testProducer() throws JobStoreException {
-        Chunk chunk = new Chunk(0, 0, Chunk.Type.PARTITIONED);
-        try (JMSContext context = sinksQueueConnectionFactory.createContext()) {
-            SinkContent sinkContent = new SinkContent("test", "dummy", "test", SinkContent.SinkType.DUMMY, null, SinkContent.SequenceAnalysisOption.ID_ONLY);
-            FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
-            flowStoreReferences.withReference(FlowStoreReferences.Elements.FLOW_BINDER, new FlowStoreReference(1, 1, "hest"))
-                    .withReference(FlowStoreReferences.Elements.SINK, new FlowStoreReference(1, 1, "fest"));
-            TextMessage message = createMessage(context, chunk, new Sink(1, 1, sinkContent), flowStoreReferences);
-            JMSProducer producer = context.createProducer();
-            producer.send(sinksQueue, message);
-            return "Sent:\n" + message.getText();
-        } catch (JSONBException | JMSException e) {
-            throw new JobStoreException("test failed", e);
-        }
-    }
 
     /**
      * Sends given processed chunk as JMS message with JSON payload to sink queue destination

@@ -53,7 +53,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
     private static final String JOBSTORE_SERVICE_ALIAS = "dataio-jobstore-service";
 
     private static WireMockServer wireMockServer;
-    private static GenericContainer<?> artemisContainer;
+    static GenericContainer<?> artemisContainer;
     private static GenericContainer<?> jmsQueueServiceContainer;
     private static GenericContainer<?> jobStoreServiceContainer;
     private static DBCPostgreSQLContainer logstoreDBContainer;
@@ -188,8 +188,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("MAIL_FROM", "danbib")
                 .withEnv("MAIL_TO_FALLBACK", "fallback")
                 .withEnv("TZ", "Europe/Copenhagen")
-                .withEnv("REMOTE_DEBUGGING_HOST", "172.17.28.50:5005")
-                .withExposedPorts(5005, 8080)
+                .withExposedPorts(4848, 8080)
                 .waitingFor(Wait.forHttp(System.getProperty("jobstore.it.service.context") + "/status"))
                 .withStartupTimeout(Duration.ofMinutes(5));
         container.start();

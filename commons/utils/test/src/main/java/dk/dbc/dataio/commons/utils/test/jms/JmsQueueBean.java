@@ -5,6 +5,7 @@ import dk.dbc.commons.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Resource;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.jms.ConnectionFactory;
@@ -37,7 +38,7 @@ public class JmsQueueBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JmsQueueBean.class);
 
     JSONBContext jsonbContext = new JSONBContext();
-
+    @Resource(lookup = "jms/artemisConnectionFactory")
     private ConnectionFactory messageQueueConnectionFactory;
 
     @GET
@@ -101,13 +102,10 @@ public class JmsQueueBean {
                 do {
                     message = consumer.receive(1000);
                     if (message != null) {
-                        message.acknowledge();
                         numDeleted++;
                     }
                 } while (message != null);
             }
-        } catch (JMSException e) {
-            throw new EJBException(e);
         }
         return numDeleted;
     }

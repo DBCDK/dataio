@@ -10,6 +10,4 @@ set server.thread-pools.thread-pool.http-thread-pool.min-thread-pool-size=50\n\
 set server.thread-pools.thread-pool.thread-pool-1.max-thread-pool-size=200\n\
 set server.thread-pools.thread-pool.thread-pool-1.min-thread-pool-size=50" >>scripts/prebootcommandfile.txt
 
-RUN echo 'create-jvm-options -agentlib:jdwp=transport=dt_socket,server=n,address=172.17.28.50:5005,suspend=n' >> scripts/ls \
-    jvm-extra-options-file
 COPY dataio-job-store-service-war-${project.version}.war docker/job-store.json deployments/

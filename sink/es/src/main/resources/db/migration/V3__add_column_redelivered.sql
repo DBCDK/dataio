@@ -1,1 +1,0 @@
-ALTER TABLE esinflight ADD COLUMN redelivered INTEGER NOT NULL DEFAULT 0;

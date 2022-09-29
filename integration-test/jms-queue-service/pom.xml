@@ -66,6 +66,7 @@
       <groupId>dk.dbc</groupId>
       <artifactId>artemis-jms-base-image</artifactId>
       <version>java11-SNAPSHOT</version>
+      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>javax</groupId>

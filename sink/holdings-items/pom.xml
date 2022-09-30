@@ -17,6 +17,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>artemis-jms-base-image</artifactId>
+      <version>java11-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>jakarta.platform</groupId>
       <artifactId>jakarta.jakartaee-api</artifactId>
     </dependency>

@@ -34,6 +34,12 @@
 
   <dependencies>
     <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>artemis-jms-base-image</artifactId>
+      <version>java11-SNAPSHOT</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
       <version>${javaee.version}</version>
@@ -398,53 +404,53 @@
         </executions>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <configuration>
-          <argLine>--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED</argLine>
-          <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <systemPropertyVariables>
-            <container.http.port>${container.http.port}</container.http.port>
-            <container.https.port>${container.https.port}</container.https.port>
-            <postgresql.port>${jobstore.it.postgresql.port}</postgresql.port>
-            <postgresql.dbname>${jobstore.it.postgresql.dbname}</postgresql.dbname>
-            <persistence.unit.name>${jobstore.it.persistence.unit.name}</persistence.unit.name>
-            <arquillian.launch>payara-embedded</arquillian.launch>
-            <VIPCORE_ENDPOINT>http://vipcore-dummy</VIPCORE_ENDPOINT>
-            <deployment.resource.validation>false</deployment.resource.validation>
-          </systemPropertyVariables>
-          <classpathDependencyExcludes>
-            <dependencyExclude>org.glassfish.jersey.core:jersey-client</dependencyExclude>
-          </classpathDependencyExcludes>
-        </configuration>
-        <executions>
-          <execution>
-            <id>non-arquillian-tests</id>
-            <configuration>
-              <excludes>
-                <exclude>**/*ArquillianIT.java</exclude>
-              </excludes>
-            </configuration>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>arquillian-tests</id>
-            <configuration>
-              <includes>
-                <include>**/*ArquillianIT.java</include>
-              </includes>
-            </configuration>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+<!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-failsafe-plugin</artifactId>-->
+<!--        <configuration>-->
+<!--          <argLine>&#45;&#45;add-opens=java.base/jdk.internal.loader=ALL-UNNAMED</argLine>-->
+<!--          <redirectTestOutputToFile>true</redirectTestOutputToFile>-->
+<!--          <systemPropertyVariables>-->
+<!--            <container.http.port>${container.http.port}</container.http.port>-->
+<!--            <container.https.port>${container.https.port}</container.https.port>-->
+<!--            <postgresql.port>${jobstore.it.postgresql.port}</postgresql.port>-->
+<!--            <postgresql.dbname>${jobstore.it.postgresql.dbname}</postgresql.dbname>-->
+<!--            <persistence.unit.name>${jobstore.it.persistence.unit.name}</persistence.unit.name>-->
+<!--            <arquillian.launch>payara-embedded</arquillian.launch>-->
+<!--            <VIPCORE_ENDPOINT>http://vipcore-dummy</VIPCORE_ENDPOINT>-->
+<!--            <deployment.resource.validation>false</deployment.resource.validation>-->
+<!--          </systemPropertyVariables>-->
+<!--          <classpathDependencyExcludes>-->
+<!--            <dependencyExclude>org.glassfish.jersey.core:jersey-client</dependencyExclude>-->
+<!--          </classpathDependencyExcludes>-->
+<!--        </configuration>-->
+<!--        <executions>-->
+<!--          <execution>-->
+<!--            <id>non-arquillian-tests</id>-->
+<!--            <configuration>-->
+<!--              <excludes>-->
+<!--                <exclude>**/*ArquillianIT.java</exclude>-->
+<!--              </excludes>-->
+<!--            </configuration>-->
+<!--            <goals>-->
+<!--              <goal>integration-test</goal>-->
+<!--              <goal>verify</goal>-->
+<!--            </goals>-->
+<!--          </execution>-->
+<!--          <execution>-->
+<!--            <id>arquillian-tests</id>-->
+<!--            <configuration>-->
+<!--              <includes>-->
+<!--                <include>**/*ArquillianIT.java</include>-->
+<!--              </includes>-->
+<!--            </configuration>-->
+<!--            <goals>-->
+<!--              <goal>integration-test</goal>-->
+<!--              <goal>verify</goal>-->
+<!--            </goals>-->
+<!--          </execution>-->
+<!--        </executions>-->
+<!--      </plugin>-->
     </plugins>
   </build>
 </project>

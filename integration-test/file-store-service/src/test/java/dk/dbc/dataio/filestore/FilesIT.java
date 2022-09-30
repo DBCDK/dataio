@@ -79,7 +79,7 @@ public class FilesIT {
     private static final int BUFFER_SIZE = 8192;
 
     @ClassRule
-    public static GenericContainer filestoreService = Containers.filestoreServiceContainer()
+    public static GenericContainer<?> filestoreService = Containers.FILE_STORE.makeContainer()
             .withLogConsumer(new Slf4jLogConsumer(LOGGER))
             .withEnv("JAVA_MAX_HEAP_SIZE", "4G")
             .withEnv("FILESTORE_DB_URL", String.format("%s:%s@host.testcontainers.internal:%s/%s",
@@ -102,8 +102,7 @@ public class FilesIT {
         final FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(newRestClient(),
                 new RetryPolicy().withMaxRetries(0));
 
-        fileStoreServiceConnector =
-                new FileStoreServiceConnector(failSafeHttpClient,
+        fileStoreServiceConnector = new FileStoreServiceConnector(failSafeHttpClient,
                         "http://" + filestoreService.getContainerIpAddress() +
                                 ":" + filestoreService.getMappedPort(8080) +
                                 System.getProperty("filestore.it.service.context"));

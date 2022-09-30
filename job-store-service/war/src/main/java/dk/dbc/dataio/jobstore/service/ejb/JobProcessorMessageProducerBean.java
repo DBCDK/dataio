@@ -30,7 +30,7 @@ import javax.jms.TextMessage;
 public class JobProcessorMessageProducerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobProcessorMessageProducerBean.class);
 
-    @Resource
+    @Resource(lookup = "jms/artemisConnectionFactory")
     ConnectionFactory processorQueueConnectionFactory;
 
     @Resource(lookup = "jms/dataio/processor")

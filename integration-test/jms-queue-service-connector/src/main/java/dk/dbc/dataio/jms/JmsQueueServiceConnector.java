@@ -6,6 +6,8 @@ import dk.dbc.httpclient.HttpDelete;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.invariant.InvariantUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
@@ -16,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class JmsQueueServiceConnector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JmsQueueServiceConnector.class);
     private static final String QUEUE_RESOURCE_PATH = "queue";
     private static final long SLEEP_INTERVAL_IN_MS = 250;
 
@@ -72,10 +75,9 @@ public class JmsQueueServiceConnector {
     }
 
     public int emptyQueue(Queue queue) {
-        try (Response response = new HttpDelete(httpClient)
-                .withBaseUrl(baseUrl)
-                .withPathElements(QUEUE_RESOURCE_PATH, queue.getUrlEncodedQueueName())
-                .execute()) {
+        HttpDelete httpDelete = new HttpDelete(httpClient).withBaseUrl(baseUrl).withPathElements(QUEUE_RESOURCE_PATH, queue.getUrlEncodedQueueName());
+        LOGGER.info("Executing delete: " + httpDelete);
+        try (Response response = httpDelete.execute()) {
             verifyResponseStatus(response, Response.Status.OK);
             return response.readEntity(Integer.class);
         }

@@ -5,10 +5,10 @@ import dk.dbc.dataio.jobstore.service.ejb.JobsBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobsExportsBean;
 import dk.dbc.dataio.jobstore.service.ejb.NotificationsBean;
 import dk.dbc.dataio.jobstore.service.ejb.RerunsBean;
+import dk.dbc.dataio.jobstore.service.ejb.SinkMessageProducerBean;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -17,16 +17,8 @@ import java.util.Set;
  */
 @ApplicationPath("/")
 public class JobStoreApplication extends Application {
-    private static final Set<Class<?>> classes = new HashSet<>();
-
-    static {
-        classes.add(JobsBean.class);
-        classes.add(JobsExportsBean.class);
-        classes.add(NotificationsBean.class);
-        classes.add(StatusBean.class);
-        classes.add(JobSchedulerRestBean.class);
-        classes.add(RerunsBean.class);
-    }
+    private static final Set<Class<?>> classes = Set.of(JobsBean.class, JobsExportsBean.class, NotificationsBean.class, StatusBean.class, JobSchedulerRestBean.class,
+            RerunsBean.class, SinkMessageProducerBean.class);
 
     @Override
     public Set<Class<?>> getClasses() {

@@ -1,13 +1,4 @@
 {
   "appName": "JmsQueueService",
-  "profiles": ["long-running-requests"],
-  "jms": {
-    "server": "${OPENMQ_SERVER}",
-    "maxSize": "${OPENMQ_MAX_CONNECTIONS:-50}",
-    "queues": {
-      "jms/dataio/dmq": "mq.sys.dmq",
-      "jms/dataio/processor": "jmsDataioProcessor",
-      "jms/dataio/sinks": "jmsDataioSinks"
-    }
-  }
+  "profiles": ["long-running-requests"]
 }

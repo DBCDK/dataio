@@ -31,7 +31,7 @@ import javax.jms.TextMessage;
 public class SinkMessageProducerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageProducerBean.class);
 
-    @Resource
+    @Resource(lookup = "jms/artemisConnectionFactory")
     ConnectionFactory sinksQueueConnectionFactory;
 
     @Resource(lookup = "jms/dataio/sinks")

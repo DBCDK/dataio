@@ -21,7 +21,6 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -47,18 +46,18 @@ public abstract class AbstractJobStoreServiceContainerTest {
     static final LogStoreServiceConnector logStoreServiceConnector;
     static final JmsQueueServiceConnector jmsQueueServiceConnector;
 
-    private static final String OPENMQ_ALIAS = "dataio-openmq";
+    private static final String ARTEMIS_ALIAS = "dataio-artemis";
     private static final String LOGSTORE = "dataio-logstore";
     private static final String JMS_QUEUE_SERVICE_ALIAS = "dataio-jms-queue-service";
     private static final String JOBSTORE_SERVICE_ALIAS = "dataio-jobstore-service";
 
     private static WireMockServer wireMockServer;
-    private static GenericContainer openmqContainer;
-    private static GenericContainer jmsQueueServiceContainer;
-    private static GenericContainer jobStoreServiceContainer;
+    static GenericContainer<?> artemisContainer;
+    private static GenericContainer<?> jmsQueueServiceContainer;
+    private static GenericContainer<?> jobStoreServiceContainer;
     private static DBCPostgreSQLContainer logstoreDBContainer;
     private static DBCPostgreSQLContainer jobstoreDBContainer;
-    private static GenericContainer logstoreContainer;
+    private static GenericContainer<?> logstoreContainer;
 
 
     private static final LocalDateTime oldJobDateTime = LocalDateTime.now()
@@ -77,7 +76,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
         wireMockServer = startWireMockServer();
 
         final Network network = Network.newNetwork();
-        openmqContainer = startOpenmqContainer(network);
+        artemisContainer = startArtemisContainer(network);
         jmsQueueServiceContainer = startJmsQueueServiceContainer(network);
 
         jobstoreDBContainer = new DBCPostgreSQLContainer()
@@ -130,19 +129,19 @@ public abstract class AbstractJobStoreServiceContainerTest {
         return wireMockServer;
     }
 
-    private static GenericContainer startOpenmqContainer(Network network) {
-        final GenericContainer container = Containers.openmqContainer()
+    private static GenericContainer<?> startArtemisContainer(Network network) {
+        final GenericContainer<?> container = Containers.ARTEMIS.makeContainer()
                 .withNetwork(network)
-                .withNetworkAliases(OPENMQ_ALIAS)
+                .withNetworkAliases(ARTEMIS_ALIAS)
                 .withLogConsumer(new Slf4jLogConsumer(LOGGER))
-                .withExposedPorts(7676);
+                .withExposedPorts(8161, 61616);
         container.start();
         return container;
     }
 
 
-    private static GenericContainer startLogstoreServiceContainer(Network network) {
-        final GenericContainer container = Containers.logstoreContainer()
+    private static GenericContainer<?> startLogstoreServiceContainer(Network network) {
+        final GenericContainer<?> container = Containers.LOG_STORE.makeContainer()
                 .withNetwork(network)
                 .withNetworkAliases(LOGSTORE)
                 .withLogConsumer(new Slf4jLogConsumer(LOGGER))
@@ -155,28 +154,28 @@ public abstract class AbstractJobStoreServiceContainerTest {
         return container;
     }
 
-    private static GenericContainer startJmsQueueServiceContainer(Network network) {
-        final GenericContainer container = Containers.jmsQueueServiceContainer()
+    private static GenericContainer<?> startJmsQueueServiceContainer(Network network) {
+        final GenericContainer<?> container = Containers.JMS_QUEUE_SVC.makeContainer()
                 .withNetwork(network)
                 .withNetworkAliases(JMS_QUEUE_SERVICE_ALIAS)
                 .withLogConsumer(new Slf4jLogConsumer(LOGGER))
                 .withEnv("LOG_FORMAT", "text")
-                .withEnv("JAVA_MAX_HEAP_SIZE", "2G")
-                .withEnv("OPENMQ_SERVER", OPENMQ_ALIAS + ":7676")
+                .withEnv("JAVA_MAX_HEAP_SIZE", "1G")
+                .withEnv("ARTEMIS_MQ_HOST", ARTEMIS_ALIAS)
                 .withExposedPorts(8080);
         container.start();
         return container;
     }
 
-    private static GenericContainer startJobStoreServiceContainer(Network network) {
-        final GenericContainer container = Containers.jobstoreServiceContainer()
+    private static GenericContainer<?> startJobStoreServiceContainer(Network network) {
+        final GenericContainer<?> container = Containers.JOB_STORE.makeContainer()
                 .withNetwork(network)
                 .withNetworkAliases(JOBSTORE_SERVICE_ALIAS)
                 .withLogConsumer(new Slf4jLogConsumer(LOGGER))
                 .withEnv("LOG_FORMAT", "text")
                 .withEnv("JAVA_MAX_HEAP_SIZE", "4G")
                 .withEnv("JOBSTORE_DB_URL", jobstoreDBContainer.getPayaraDockerJdbcUrl())
-                .withEnv("OPENMQ_SERVER", OPENMQ_ALIAS + ":7676")
+                .withEnv("ARTEMIS_MQ_HOST", ARTEMIS_ALIAS)
                 .withEnv("FLOWSTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
                 .withEnv("FILESTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
                 .withEnv("LOGSTORE_URL", "http://" + LOGSTORE + ":8080/dataio/log-store-service/")
@@ -188,7 +187,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("MAIL_FROM", "danbib")
                 .withEnv("MAIL_TO_FALLBACK", "fallback")
                 .withEnv("TZ", "Europe/Copenhagen")
-                .withExposedPorts(8080)
+                .withExposedPorts(4848, 8080)
                 .waitingFor(Wait.forHttp(System.getProperty("jobstore.it.service.context") + "/status"))
                 .withStartupTimeout(Duration.ofMinutes(5));
         container.start();
@@ -198,7 +197,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
     static void populateJobstoreDB(Connection connection) {
         try {
 
-            final String sql = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/jobstore.sql")), StandardCharsets.UTF_8)
+            final String sql = Files.readString(Paths.get("src/test/resources/sql/jobstore.sql"))
                     .replaceAll("__DATE_1__", oldJobDateTime.format(formatter))
                     .replaceAll("__DATE_2__", aLittleYoungerJobDateTime.format(formatter))
                     .replaceAll("__DATE_3__", jobFromTheDayBeforeYesterday.format(formatter))
@@ -213,7 +212,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
     static void populateLogstoreDB(Connection connection) {
         try {
-            final String sql = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/logstore.sql")), StandardCharsets.UTF_8)
+            final String sql = Files.readString(Paths.get("src/test/resources/sql/logstore.sql"))
                     .replaceAll("__DATE_1__", oldJobDateTime.format(formatter))
                     .replaceAll("__DATE_2__", aLittleYoungerJobDateTime.format(formatter))
                     .replaceAll("__DATE_3__", jobFromTheDayBeforeYesterday.format(formatter))

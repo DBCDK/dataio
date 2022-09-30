@@ -57,9 +57,11 @@ IMAGE=${REGISTRY}/${NAME}:${TAG}
 echo building ${IMAGE} docker image
 
 ##
-time docker build -t ${IMAGE} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg git_commit=${GIT_COMMIT:=devel} -f docker/Dockerfile --pull --no-cache .
+time docker build -t ${IMAGE} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg git_commit=${GIT_COMMIT:=devel} -f docker/Dockerfile --no-cache .
+# Todo: JEGA - Har midlertidigt fjernet --pull
+#time docker build -t ${IMAGE} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg git_commit=${GIT_COMMIT:=devel} -f docker/Dockerfile --pull --no-cache .
 
-echo ${REGISTRY}/${NAME} >> %s
+echo ${IMAGE} >> %s
 
 cd "${RETURN_DIR}"
 """ % (image_name, log)

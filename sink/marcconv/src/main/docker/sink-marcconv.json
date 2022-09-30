@@ -4,12 +4,5 @@
     "jdbc/dataio/sink/marcconv": {
       "url": "${MARCCONV_DB_URL}"
     }
-  },
-  "jms": {
-    "server": "${OPENMQ_SERVER}",
-    "queues": {
-      "jms/dataio/dmq": "mq.sys.dmq",
-      "jms/dataio/sinks": "jmsDataioSinks"
-    }
   }
 }

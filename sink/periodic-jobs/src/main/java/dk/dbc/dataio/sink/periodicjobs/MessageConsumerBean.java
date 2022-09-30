@@ -30,6 +30,8 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 
 @MessageDriven(name = "periodicJobsListener", activationConfig = {
+        // Please see the following url for a explanation of the available settings.
+        // The message selector variable is defined in the dataio-secrets project
         // https://activemq.apache.org/activation-spec-properties
         @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/dataio/sinks"),
         @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "true"),

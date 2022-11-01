@@ -13,7 +13,7 @@ pipeline {
         MAVEN_OPTS="-Dmaven.repo.local=\$WORKSPACE/.repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true"
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
-
+        BRANCH_NAME="artemis-master
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara5-bump-trigger",
@@ -29,7 +29,6 @@ pipeline {
         stage("build") {
             steps {
                 sh """
-                    export BRANCH_NAME="artemis-master"
                     rm -f docker-images.log
                     mvn -B clean
                     mvn -B dependency:resolve dependency:resolve-plugins >/dev/null || true

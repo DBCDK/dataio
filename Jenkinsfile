@@ -69,6 +69,20 @@ pipeline {
                 }
             }
         }
+        stage("docker push artemis") {
+            when {
+                branch "artemis-master"
+            }
+            steps {
+                sh """
+                    cat docker-images.log | parallel -j 3 docker push {}:artemis-master-${env.BUILD_NUMBER}
+                """
+                script {
+                    stash includes: "docker-images.log", name: docker_images_log_stash_tag
+                    archiveArtifacts "docker-images.log"
+                }
+            }
+        }
         stage("deploy to mavenrepo.dbc.dk") {
             when {
                 branch "master"
@@ -77,6 +91,20 @@ pipeline {
                 sh """
                     mvn deploy -Dmaven.test.skip=true -am -pl commons/utils/flow-store-service-connector -pl commons/utils/tickle-harvester-service-connector
                 """
+            }
+        }
+        stage("promote to DIT Artemis") {
+            when {
+                branch "artemis-master"
+            }
+            steps {
+                dir("docker") {
+                    unstash docker_images_log_stash_tag
+                    sh """
+                        cat docker-images.log | parallel -j 3 docker tag {}:artemis-master-${env.BUILD_NUMBER} {}:DIT_Artemis-${env.BUILD_NUMBER}
+                        cat docker-images.log | parallel -j 3 docker push {}:DIT_Artemis-${env.BUILD_NUMBER}
+                    """
+                }
             }
         }
         stage("promote to DIT") {
@@ -137,6 +165,25 @@ pipeline {
                 script {
                     sh """
                         set-new-version services/dataio-project ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets DIT-${env.BUILD_NUMBER} -b master
+                    """
+                }
+            }
+        }
+        stage("bump docker tags in dit-gitops-secrets:DIT_Artemis") {
+            agent {
+                docker {
+                    label workerNode
+                    image "docker.dbc.dk/build-env:latest"
+                    alwaysPull true
+                }
+            }
+            when {
+                branch "artemis-master"
+            }
+            steps {
+                script {
+                    sh """
+                        set-new-version services/dataio-project ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets DIT_Artemis-${env.BUILD_NUMBER} -b artemis
                     """
                 }
             }

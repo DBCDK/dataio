@@ -101,8 +101,8 @@ pipeline {
                 dir("docker") {
                     unstash docker_images_log_stash_tag
                     sh """
-                        cat docker-images.log | parallel -j 3 docker tag {}:artemis-master-${env.BUILD_NUMBER} {}:DIT_Artemis-${env.BUILD_NUMBER}
-                        cat docker-images.log | parallel -j 3 docker push {}:DIT_Artemis-${env.BUILD_NUMBER}
+                        cat docker-images.log | parallel -j 3 docker tag {}:artemis-master-${env.BUILD_NUMBER} {}:DIT-Artemis-${env.BUILD_NUMBER}
+                        cat docker-images.log | parallel -j 3 docker push {}:DIT-Artemis-${env.BUILD_NUMBER}
                     """
                 }
             }
@@ -183,7 +183,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        set-new-version services/dataio-project ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets DIT_Artemis-${env.BUILD_NUMBER} -b artemis
+                        set-new-version services/dataio-project ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets DIT-Artemis-${env.BUILD_NUMBER} -b artemis
                     """
                 }
             }

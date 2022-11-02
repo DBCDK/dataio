@@ -25,6 +25,6 @@ echo building ${IMAGE} docker image
 
 time docker build -t ${IMAGE} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg git_commit=${GIT_COMMIT:=devel} -f Dockerfile --pull --no-cache .
 
-echo ${REGISTRY}/${NAME} >> ../docker-images.log
+echo ${IMAGE} >> ../docker-images.log
 
 cd "${RETURN_DIR}"

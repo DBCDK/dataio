@@ -154,9 +154,6 @@
                 <goal>exec</goal>
               </goals>
               <configuration>
-                <environmentVariables>
-                  <BRANCH_NAME>artemis-master</BRANCH_NAME>
-                </environmentVariables>
                 <executable>${build-docker-image}</executable>
                 <arguments>
                   <argument>--src-directory</argument>
@@ -177,6 +174,9 @@
                 <goal>exec</goal>
               </goals>
               <configuration>
+                <environmentVariables>
+                  <BRANCH_NAME>artemis-master</BRANCH_NAME>
+                </environmentVariables>
                 <executable>${project.build.directory}/docker/build_docker_image.sh</executable>
               </configuration>
             </execution>

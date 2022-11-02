@@ -165,7 +165,7 @@
                   <argument>${project.build.directory}</argument>
                   <argument>--images-log</argument>
                   <!--suppress UnresolvedMavenProperty -->
-                  <argument>${project.basedir}/docker-images.log</argument>
+                  <argument>${session.executionRootDirectory}/docker-images.log</argument>
                   <argument>${project.build.finalName}.${project.packaging}</argument>
                 </arguments>
               </configuration>

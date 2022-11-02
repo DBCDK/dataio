@@ -69,20 +69,20 @@ pipeline {
                 }
             }
         }
-        stage("docker push artemis") {
-            when {
-                branch "artemis-master"
-            }
-            steps {
-                sh """
-                    cat docker-images.log | parallel -j 3 docker push {}
-                """
-                script {
-                    stash includes: "docker-images.log", name: docker_images_log_stash_tag
-                    archiveArtifacts "docker-images.log"
-                }
-            }
-        }
+//        stage("docker push artemis") {
+//            when {
+//                branch "artemis-master"
+//            }
+//            steps {
+//                sh """
+//                    cat docker-images.log | parallel -j 3 docker push {}
+//                """
+//                script {
+//                    stash includes: "docker-images.log", name: docker_images_log_stash_tag
+//                    archiveArtifacts "docker-images.log"
+//                }
+//            }
+//        }
         stage("deploy to mavenrepo.dbc.dk") {
             when {
                 branch "master"

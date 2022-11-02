@@ -75,7 +75,7 @@ pipeline {
             }
             steps {
                 sh """
-                    cat docker-images.log | parallel -j 3 docker push {}:artemis-master-${env.BUILD_NUMBER}
+                    cat docker-images.log | parallel -j 3 docker push {}
                 """
                 script {
                     stash includes: "docker-images.log", name: docker_images_log_stash_tag

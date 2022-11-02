@@ -101,8 +101,8 @@ pipeline {
                 dir("docker") {
                     unstash docker_images_log_stash_tag
                     sh """
-                        cat docker-images.log | parallel -j 3 docker tag {}:artemis-master-${env.BUILD_NUMBER} {}:DIT_Artemis-${env.BUILD_NUMBER}
-                        cat docker-images.log | parallel -j 3 docker push {}:DIT_Artemis-${env.BUILD_NUMBER}
+                        cat docker-images.log | sed 's/:.*//g' | parallel -j 3 docker tag {}:artemis-master-${env.BUILD_NUMBER} {}:DIT_Artemis-${env.BUILD_NUMBER}
+                        cat docker-images.log | sed 's/:.*//g' | parallel -j 3 docker push {}:DIT_Artemis-${env.BUILD_NUMBER}
                     """
                 }
             }

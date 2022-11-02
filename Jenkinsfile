@@ -29,6 +29,7 @@ pipeline {
         stage("build") {
             steps {
                 sh """
+                    export BRANCH_NAME=artemis-master
                     rm -f docker-images.log
                     mvn -B clean
                     mvn -B dependency:resolve dependency:resolve-plugins >/dev/null || true

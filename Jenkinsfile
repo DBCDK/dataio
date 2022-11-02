@@ -14,6 +14,7 @@ pipeline {
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BRANCH_NAME="artemis-master"
+        BUILD_NUMBER="${env.BUILD_NUMBER}"
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara5-bump-trigger",

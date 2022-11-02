@@ -36,6 +36,7 @@ pipeline {
                     mvn -B -T 6 install
                     mvn -B -P !integration-test -T 6 pmd:pmd
                     mvn -B javadoc:aggregate
+                    echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                     ./cli/build_docker_image.sh
                 """
                 script {

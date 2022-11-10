@@ -139,7 +139,7 @@ public class HarvestOperationTest extends IntegrationTest {
         if (addiReader.hasNext()) {
             final AddiRecord addiRecord = addiReader.next();
             String meta = new String(addiRecord.getMetaData());
-            assertThat("dmat url", meta.contains("\"dmatUrl\":\"http://some.dmat.service/api/v1/records/1/download\""));
+            assertThat("dmat url", meta.contains("\"dmatUrl\":\"http://some.dmat.service/api/v1/content/faust/" + RECORD_FAUST + "\""));
         } else {
             throw new AssertionError("Expecting addi record");
         }
@@ -540,7 +540,7 @@ public class HarvestOperationTest extends IntegrationTest {
                 jobStoreServiceConnector,
                 dmatServiceConnector,
                 recordServiceConnector,
-                "http://some.dmat.service/api/v1/records/%d/download",
+                "http://some.dmat.service/api/v1/content/faust/%s",
                 tickleRepo,
                 PUBLISHER_DATASET_NAME
         );

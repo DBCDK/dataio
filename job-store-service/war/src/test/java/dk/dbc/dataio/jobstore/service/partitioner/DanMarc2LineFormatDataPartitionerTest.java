@@ -26,8 +26,8 @@ public class DanMarc2LineFormatDataPartitionerTest {
     public void specifiedWrongEncoding_throws() {
         try {
             DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, "hest");
-        } catch (InvalidEncodingException ignored) {
             fail("No exception thrown");
+        } catch (InvalidEncodingException ignored) {
         }
     }
 

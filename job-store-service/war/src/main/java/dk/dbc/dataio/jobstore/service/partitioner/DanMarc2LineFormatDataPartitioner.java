@@ -35,8 +35,6 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
     private final ByteCountingInputStream inputStream;
     private final MarcRecordInfoBuilder marcRecordInfoBuilder;
     final MarcXchangeV1Writer marcWriter;
-
-    private String specifiedEncoding;
     private DanMarc2Charset danMarc2Charset;
 
     /**
@@ -58,7 +56,6 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
 
     protected DanMarc2LineFormatDataPartitioner(InputStream inputStream, String specifiedEncoding) throws PrematureEndOfDataException {
         this.inputStream = new ByteCountingInputStream(inputStream);
-        this.specifiedEncoding = specifiedEncoding;
         Charset charset = CharacterEncodingScheme.charsetOf(specifiedEncoding);
         if(StandardCharsets.ISO_8859_1.equals(charset)) {
             this.danMarc2Charset = new DanMarc2Charset(DanMarc2Charset.Variant.LINE_FORMAT);

@@ -62,4 +62,9 @@ public class DataPartitionerResult {
         result = 31 * result + positionInDatafile;
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "DataPartitionerResult{" + "chunkItem=" + chunkItem + ", recordInfo=" + recordInfo + ", positionInDatafile=" + positionInDatafile + '}';
+    }
 }

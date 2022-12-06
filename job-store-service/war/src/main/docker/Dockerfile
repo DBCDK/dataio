@@ -1,5 +1,4 @@
 FROM docker-metascrum.artifacts.dbccloud.dk/dbc-payara-artemis-base:devel
-
 ARG build_number=unknown
 LABEL BuildNumber=$build_number
 ARG git_commit=unknown

@@ -21,6 +21,8 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -127,6 +129,13 @@ public abstract class AbstractJobStoreServiceContainerTest {
         configureFor("localhost", wireMockServer.port());
         Testcontainers.exposeHostPorts(wireMockServer.port());
         LOGGER.info("Wiremock server at port:{}", wireMockServer.port());
+//        URL sinks = AbstractJobStoreServiceContainerTest.class.getClassLoader().getResource("flowstore/sinks.json");
+//        try {
+//            String sinksResponse = Files.readString(Path.of(sinks.toURI()));
+//            wireMockServer.stubFor(get("/dataio/flow-store-service/sinks").willReturn(ResponseDefinitionBuilder.okForJson(sinksResponse)));
+//        } catch (IOException | URISyntaxException e) {
+//            throw new RuntimeException(e);
+//        }
         return wireMockServer;
     }
 
@@ -188,11 +197,20 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("MAIL_FROM", "danbib")
                 .withEnv("MAIL_TO_FALLBACK", "fallback")
                 .withEnv("TZ", "Europe/Copenhagen")
+                .withEnv("REMOTE_DEBUGGING_HOST", getDebuggingHost())
                 .withExposedPorts(8080)
                 .waitingFor(Wait.forHttp(System.getProperty("jobstore.it.service.context") + "/status"))
                 .withStartupTimeout(Duration.ofMinutes(5));
         container.start();
         return container;
+    }
+
+    private static String getDebuggingHost() {
+        try {
+            return InetAddress.getLocalHost().getHostAddress() + ":5005";
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     static void populateJobstoreDB(Connection connection) {

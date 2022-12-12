@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
+import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,8 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
         } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid %s type",
                     consumedMessage.getMessageId(), consumedMessage.getMessagePayload()), e);
+        } catch (DuplicateChunkException e) {
+            LOGGER.error("Jobstore DuplicateChunkException from DMQMessagebean:", e);
         }
     }
 

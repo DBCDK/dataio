@@ -4,5 +4,5 @@ create-connector-connection-pool --raname artemis --connectiondefinition org.apa
 create-connector-resource --poolname jms/artemisConnectionPool jms/artemisConnectionFactory
 create-admin-object --raname artemis --restype javax.jms.Queue --property PhysicalName=jmsDataioProcessor:Address=jmsDataioProcessor jms/dataio/processor
 create-admin-object --raname artemis --restype javax.jms.Queue --property PhysicalName=jmsDataioSinks:Address=jmsDataioSinks jms/dataio/sinks
-create-admin-object --raname artemis --restype javax.jms.Queue --property PhysicalName=mq.sys.dmq:Address=mq.sys.dmq jms/dataio/dmq
+create-admin-object --raname artemis --restype javax.jms.Queue --property PhysicalName=DLQ:Address=DLQ jms/dataio/dmq
 

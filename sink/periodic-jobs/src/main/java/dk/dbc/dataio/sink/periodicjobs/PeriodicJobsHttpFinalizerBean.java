@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
-@Stateless
+@Stateless(name = "periodicJobsHttpFinalizerBean")
 public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsHttpFinalizerBean.class);
 

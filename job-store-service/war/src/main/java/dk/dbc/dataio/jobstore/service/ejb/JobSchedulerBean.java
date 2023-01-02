@@ -136,8 +136,7 @@ public class JobSchedulerBean {
      * @throws NullPointerException if given any null-valued argument
      */
     @Stopwatch
-    @Timed(displayName = "chunks", tags = "status=scheduled")
-//    @Counted(displayName = "chunks", tags = "scheduled")
+    @Timed(name = "chunks", tags = "status=scheduled")
     public void scheduleChunk(ChunkEntity chunk, JobEntity job) {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(job, "job");
@@ -300,8 +299,7 @@ public class JobSchedulerBean {
      * @param chunk Chunk completed from processing
      */
     @Stopwatch
-    @Timed(displayName = "chunks", tags = "status=processed")
-//    @Counted(displayName = "chunks", tags = "processed")
+    @Timed(name = "chunks", tags = "status=processed")
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void chunkProcessingDone(Chunk chunk) {
         final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId());
@@ -352,7 +350,6 @@ public class JobSchedulerBean {
      */
     @Stopwatch
     @Timed(displayName = "chunks", tags = "status=delivered")
-//    @Counted(displayName = "chunks", tags = "delivered")
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void chunkDeliveringDone(Chunk chunk) throws JobStoreException {
         final DependencyTrackingEntity.Key chunkDoneKey =

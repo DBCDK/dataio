@@ -3,17 +3,17 @@
 <glassfish-ejb-jar>
   <enterprise-beans>
     <ejb>
-      <ejb-name>MessageConsumerBean</ejb-name>
+      <ejb-name>periodicJobsListener</ejb-name>
       <!-- 8 hours -->
       <cmt-timeout-in-seconds>28800</cmt-timeout-in-seconds>
     </ejb>
     <ejb>
-      <ejb-name>PeriodicJobsFinalizerBean</ejb-name>
+      <ejb-name>periodicJobsFinalizerBean</ejb-name>
       <!-- 8 hours -->
       <cmt-timeout-in-seconds>28800</cmt-timeout-in-seconds>
     </ejb>
     <ejb>
-      <ejb-name>PeriodicJobsHttpFinalizerBean</ejb-name>
+      <ejb-name>periodicJobsHttpFinalizerBean</ejb-name>
       <!-- 8 hours -->
       <cmt-timeout-in-seconds>28800</cmt-timeout-in-seconds>
     </ejb>

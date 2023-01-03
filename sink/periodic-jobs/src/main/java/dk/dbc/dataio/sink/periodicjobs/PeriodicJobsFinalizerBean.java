@@ -20,7 +20,7 @@ import javax.persistence.PersistenceContext;
 /**
  * It is the responsibility of this class to facilitate delivery of a periodic job
  */
-@Stateless
+@Stateless(name = "periodicJobsFinalizerBean")
 public class PeriodicJobsFinalizerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsFinalizerBean.class);
 

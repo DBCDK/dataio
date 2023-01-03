@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function die() {
-  error "$@"
+  echo "$@"
   exit 1
 }
 

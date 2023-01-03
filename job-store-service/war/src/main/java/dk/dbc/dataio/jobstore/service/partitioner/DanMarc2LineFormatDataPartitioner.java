@@ -35,9 +35,6 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
     private final ByteCountingInputStream inputStream;
     private final MarcRecordInfoBuilder marcRecordInfoBuilder;
     final MarcXchangeV1Writer marcWriter;
-
-    private String specifiedEncoding;
-    private Charset encoding;
     private DanMarc2Charset danMarc2Charset;
 
     /**
@@ -59,22 +56,24 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
 
     protected DanMarc2LineFormatDataPartitioner(InputStream inputStream, String specifiedEncoding) throws PrematureEndOfDataException {
         this.inputStream = new ByteCountingInputStream(inputStream);
-        this.encoding = StandardCharsets.UTF_8;
-        this.specifiedEncoding = specifiedEncoding;
-        this.danMarc2Charset = new DanMarc2Charset(DanMarc2Charset.Variant.LINE_FORMAT);
-        validateSpecifiedEncoding();
-        marcWriter = new MarcXchangeV1Writer();
-        try {
-            marcReader = new DanMarc2LineFormatReader(this.inputStream, danMarc2Charset);
-        } catch (IllegalStateException e) {
-            throw new PrematureEndOfDataException(e.getCause());
+        Charset charset = CharacterEncodingScheme.charsetOf(specifiedEncoding);
+        if(StandardCharsets.ISO_8859_1.equals(charset)) {
+            this.danMarc2Charset = new DanMarc2Charset(DanMarc2Charset.Variant.LINE_FORMAT);
+            try {
+                marcReader = new DanMarc2LineFormatReader(this.inputStream, danMarc2Charset);
+            } catch (IllegalStateException e) {
+                throw new PrematureEndOfDataException(e.getCause());
+            }
+        } else {
+            marcReader = new DanMarc2LineFormatReader(this.inputStream, charset);
         }
+        marcWriter = new MarcXchangeV1Writer();
         marcRecordInfoBuilder = new MarcRecordInfoBuilder();
     }
 
     @Override
     public Charset getEncoding() throws InvalidEncodingException {
-        return encoding;
+        return StandardCharsets.UTF_8;
     }
 
     @Override
@@ -150,7 +149,7 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
             } else {
                 chunkItem = ChunkItem.successfulChunkItem()
                         .withType(ChunkItem.Type.MARCXCHANGE)
-                        .withData(marcWriter.write(marcRecord, encoding));
+                        .withData(marcWriter.write(marcRecord, getEncoding()));
                 recordInfo = marcRecordInfoBuilder.parse(marcRecord);
             }
         } catch (MarcWriterException e) {
@@ -162,15 +161,5 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
                             Diagnostic.Level.FATAL, e.getMessage(), e));
         }
         return new DataPartitionerResult(chunkItem, recordInfo.orElse(null), positionInDatafile++);
-    }
-
-    /**
-     * This method verifies if the specified encoding is latin1
-     */
-    private void validateSpecifiedEncoding() {
-        if (!StandardCharsets.ISO_8859_1.name().equals(CharacterEncodingScheme.charsetOf(specifiedEncoding).name())) {
-            throw new InvalidEncodingException(String.format(
-                    "Specified encoding not supported: '%s' ", specifiedEncoding));
-        }
     }
 }

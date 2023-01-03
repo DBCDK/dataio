@@ -63,6 +63,8 @@ import java.util.Set;
                 // certainly is a lot faster than OR'ing together 'matchKeys @>' expressions.
                 query = "SELECT jobid, chunkid FROM dependencyTracking WHERE sinkId = ? AND submitter = ? AND hashes && ?::INTEGER[] ORDER BY jobId, chunkId FOR NO KEY UPDATE",
                 resultSetMapping = DependencyTrackingEntity.KEY_RESULT),
+        @NamedNativeQuery(name = "DependencyTrackingEntity.blockedGroupedBySink", query = "SELECT sinkid, 3, count(*) from dependencyTracking d where d.status = 3 group by d.sinkid",
+                resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT)
 })
 @NamedQueries({
         @NamedQuery(name = DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY,
@@ -76,6 +78,7 @@ public class DependencyTrackingEntity {
     public static final String RELATED_CHUNKS_QUERY = "DependencyTrackingEntity.relatedChunks";
     public static final String BY_SINKID_AND_STATE_QUERY = "DependencyTrackingEntity.bySinkIdAndState";
     public static final String CHUNKS_TO_WAIT_FOR_QUERY = "DependencyTrackingEntity.chunksToWaitFor";
+    public static final String BLOCKED_GROUPED_BY_SINK = "DependencyTrackingEntity.blockedGroupedBySink";
 
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
         this.key = new Key(chunk.getKey());
@@ -101,11 +104,17 @@ public class DependencyTrackingEntity {
      */
 
     public enum ChunkSchedulingStatus {
-        READY_FOR_PROCESSING,   // chunk is ready for processing
-        QUEUED_FOR_PROCESSING,  // chunk is sent to processor JMS queue
-        BLOCKED,                // chunk is waiting for other chunk(s) to return from sink
-        READY_FOR_DELIVERY,     // chunk is ready for delivery
-        QUEUED_FOR_DELIVERY     // chunk is sent to sink JMS queue
+        READY_FOR_PROCESSING(1),   // chunk is ready for processing
+        QUEUED_FOR_PROCESSING(2),  // chunk is sent to processor JMS queue
+        BLOCKED(3),                // chunk is waiting for other chunk(s) to return from sink
+        READY_FOR_DELIVERY(4),     // chunk is ready for delivery
+        QUEUED_FOR_DELIVERY(5);     // chunk is sent to sink JMS queue
+
+        public final Integer value;
+
+        ChunkSchedulingStatus(Integer value) {
+            this.value = value;
+        }
     }
 
     @EmbeddedId

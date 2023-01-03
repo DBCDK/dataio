@@ -6,6 +6,7 @@ import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.marc.DanMarc2Charset;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -22,11 +23,20 @@ public class DanMarc2LineFormatDataPartitionerTest {
     private static final InputStream INPUT_STREAM = StringUtil.asInputStream("");
 
     @Test
-    public void specifiedEncodingDiffersFromActualEncoding_throws() {
+    public void specifiedWrongEncoding_throws() {
         try {
-            DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, StandardCharsets.UTF_8.name());
+            DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, "hest");
             fail("No exception thrown");
         } catch (InvalidEncodingException ignored) {
+        }
+    }
+
+    @Test
+    public void specifiedUtf8Encoding_ok() {
+        try {
+            DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, StandardCharsets.UTF_8.name());
+        } catch (InvalidEncodingException ignored) {
+            fail("Exception thrown");
         }
     }
 
@@ -134,6 +144,20 @@ public class DanMarc2LineFormatDataPartitionerTest {
         assertThat("Number of chunk item created", chunkItemNo, is(74));
         assertThat("Number of bytes read", dataPartitioner.getBytesRead(), is(71516L));
     }
+
+    @Test
+    public void dm2LineFormatDataPartitioner_multipleIterations_UTF8() {
+        DataPartitioner dpLatin1 = DanMarc2LineFormatDataPartitioner.newInstance(getClass().getResourceAsStream("/test-records-74-danmarc2.lin"), SPECIFIED_ENCODING);
+        DataPartitioner dpUtf8 = DanMarc2LineFormatDataPartitioner.newInstance(getClass().getResourceAsStream("/test-records-74-danmarc2-utf8.lin"), StandardCharsets.UTF_8.name());
+        Iterator<DataPartitionerResult> dpUtf8Iter = dpUtf8.iterator();
+        int chunkItemNo = 0;
+        for (DataPartitionerResult dpRes : dpLatin1) {
+            Assertions.assertEquals(dpRes, dpUtf8Iter.next(), "Chunk " + chunkItemNo + " did not match");
+            chunkItemNo++;
+        }
+        Assertions.assertFalse(dpUtf8Iter.hasNext(), "All chunks should have been processed");
+    }
+
 
     @Test
     public void dm2LineFormatDataPartitioner_drain40() {

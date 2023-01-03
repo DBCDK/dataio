@@ -273,7 +273,7 @@ public class HarvestOperation {
                 .withCreationDate(Date.from(creationDate.atStartOfDay(timezone).plusHours(12).toInstant()))
                 .withBibliographicRecordId(dmatRecord.getIsbn()))
                 .withDmatRecord(dmatRecord)
-                .withDmatUrl(String.format(dmatDownloadUrl, dmatRecord.getId()));
+                .withDmatUrl(String.format(dmatDownloadUrl, dmatRecord.getRecordId()));
 
         // Note: Using creationDate.atStartOfDay(...) will actually, for us in a timezone with UTC -1 or -2
         //       hours, put the creationdate stamp at the day before.  This is kind of weird, but is

@@ -1,6 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -18,12 +20,18 @@ import dk.dbc.dataio.jobstore.service.entity.SinkIdStatusCountResult;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.invariant.InvariantUtil;
+import org.eclipse.microprofile.metrics.Gauge;
+import org.eclipse.microprofile.metrics.MetricID;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.AsyncResult;
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
+import javax.ejb.Schedule;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -33,8 +41,12 @@ import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.BLOCKED_GROUPED_BY_SINK;
 
 /**
  * Handles chunk scheduling as they pass through partitioning, processing and delivery phases.
@@ -105,6 +117,12 @@ public class JobSchedulerBean {
     @EJB
     protected PgJobStoreRepository pgJobStoreRepository;
 
+    @Inject
+    MetricRegistry metricRegistry;
+    @EJB
+    FlowStoreServiceConnectorBean flowStore;
+    private final Map<String, Integer> blockedCounts = new ConcurrentHashMap<>();
+
     public JobSchedulerBean withEntityManager(EntityManager entityManager) {
         this.entityManager = entityManager;
         return this;
@@ -118,6 +136,7 @@ public class JobSchedulerBean {
      * @throws NullPointerException if given any null-valued argument
      */
     @Stopwatch
+    @Timed(name = "chunks", tags = "status=scheduled")
     public void scheduleChunk(ChunkEntity chunk, JobEntity job) {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(job, "job");
@@ -138,6 +157,25 @@ public class JobSchedulerBean {
         // check before submit to avoid unnecessary Async call.
         if (getSinkStatus(sinkId).isProcessingModeDirectSubmit()) {
             jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sinkId, e.getPriority());
+        }
+    }
+
+    @Schedule(second = "0", minute = "*", hour = "*", persistent = false)
+    public void updateSinks() {
+        try {
+            LOGGER.info("Updating chunks.blocked metrics");
+            List<Sink> sinks = flowStore.getConnector().findAllSinks();
+            Map<Integer, Integer> counts = entityManager.createNamedQuery(BLOCKED_GROUPED_BY_SINK, SinkIdStatusCountResult.class)
+                    .getResultStream().collect(Collectors.toMap(s -> s.sinkId, s -> s.count));
+            Map<String, Integer> bc = sinks.stream().collect(Collectors.toMap(s -> s.getContent().getName(), s -> counts.getOrDefault((int)s.getId(), 0)));
+            blockedCounts.putAll(bc);
+            for (String sinkName : bc.keySet()) {
+                MetricID metricID = getBlockedMetricID(sinkName);
+                Gauge<?> gauge = metricRegistry.getGauge(metricID);
+                if (gauge == null) metricRegistry.gauge(metricID, () -> blockedCounts.get(sinkName));
+            }
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -261,6 +299,7 @@ public class JobSchedulerBean {
      * @param chunk Chunk completed from processing
      */
     @Stopwatch
+    @Timed(name = "chunks", tags = "status=processed")
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void chunkProcessingDone(Chunk chunk) {
         final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId());
@@ -310,6 +349,7 @@ public class JobSchedulerBean {
      * @throws JobStoreException on failure to queue other chunks
      */
     @Stopwatch
+    @Timed(displayName = "chunks", tags = "status=delivered")
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void chunkDeliveringDone(Chunk chunk) throws JobStoreException {
         final DependencyTrackingEntity.Key chunkDoneKey =
@@ -477,8 +517,12 @@ public class JobSchedulerBean {
             LOGGER.error("Unable to serialize DependencyTrackingKey to JSON in JobSchedulerBean", e);
             throw new JobStoreException("Unable to serialize DependencyTrackingKey to JSON", e);
         }
-
     }
+
+    private MetricID getBlockedMetricID(String sinkName) {
+        return new MetricID("chunks.blocked", new Tag("sink_name", sinkName));
+    }
+
 
     @SuppressWarnings("EjbClassBasicInspection")
     static JobSchedulerSinkStatus getSinkStatus(long sinkId) {

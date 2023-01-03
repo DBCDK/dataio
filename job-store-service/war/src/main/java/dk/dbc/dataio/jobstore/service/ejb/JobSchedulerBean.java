@@ -349,7 +349,7 @@ public class JobSchedulerBean {
      * @throws JobStoreException on failure to queue other chunks
      */
     @Stopwatch
-    @Timed(displayName = "chunks", tags = "status=delivered")
+    @Timed(name = "chunks", tags = "status=delivered")
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void chunkDeliveringDone(Chunk chunk) throws JobStoreException {
         final DependencyTrackingEntity.Key chunkDoneKey =

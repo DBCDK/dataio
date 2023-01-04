@@ -228,7 +228,6 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>

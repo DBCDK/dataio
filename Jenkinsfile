@@ -10,7 +10,7 @@ pipeline {
 		maven 'Maven 3'
     }
     environment {
-        MAVEN_OPTS="-Dmaven.repo.local=\$WORKSPACE/.repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
+        MAVEN_OPTS="-Dmaven.repo.local=.repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BRANCH_NAME="artemis-master"
@@ -31,6 +31,7 @@ pipeline {
             steps {
                 sh """
                     ls
+                    exit 1
                     mvn -B -T 6 install
                     mvn -B -P !integration-test -T 6 pmd:pmd
                     mvn -B javadoc:aggregate

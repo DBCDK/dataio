@@ -21,17 +21,22 @@ pipeline {
 			threshold: hudson.model.Result.SUCCESS)
     }
     options {
+        skipDefaultCheckout(true)
         buildDiscarder(logRotator(artifactDaysToKeepStr: "",
             artifactNumToKeepStr: "", daysToKeepStr: "30", numToKeepStr: "30"))
         timestamps()
         timeout(time: 1, unit: "HOURS")
     }
     stages {
+        stage('clean and checkout') {
+            steps {
+                cleanWs()
+                checkout scm
+            }
+        }
         stage("build") {
             steps {
                 sh """
-                    ls
-                    exit 1
                     mvn -B -T 6 install
                     mvn -B -P !integration-test -T 6 pmd:pmd
                     mvn -B javadoc:aggregate

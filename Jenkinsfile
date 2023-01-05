@@ -26,13 +26,13 @@ pipeline {
         timestamps()
         timeout(time: 1, unit: "HOURS")
     }
-    stage("Clean Workspace") {
-        steps {
-            deleteDir()
-            checkout scm
-        }
-    }
     stages {
+        stage("Clean Workspace") {
+            steps {
+                deleteDir()
+                checkout scm
+            }
+        }
         stage("build") {
             steps {
                 sh """

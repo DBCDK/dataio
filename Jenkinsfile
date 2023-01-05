@@ -27,15 +27,10 @@ pipeline {
         timeout(time: 1, unit: "HOURS")
     }
     stages {
-        stage("Clean Workspace") {
-            steps {
-                deleteDir()
-                checkout scm
-            }
-        }
         stage("build") {
             steps {
                 sh """
+                    ls
                     mvn -B -T 6 install
                     mvn -B -P !integration-test -T 6 pmd:pmd
                     mvn -B javadoc:aggregate

@@ -194,5 +194,10 @@ pipeline {
                 }
             }
         }
+        stage("clean up successful build") {
+            steps {
+                cleanWs()
+            }
+        }
     }
 }

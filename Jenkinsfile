@@ -10,7 +10,7 @@ pipeline {
 		maven 'Maven 3'
     }
     environment {
-        MAVEN_OPTS="-Dmaven.repo.local=\$WORKSPACE/.repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true"
+        MAVEN_OPTS="-Dmaven.repo.local=\$WORKSPACE/.repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BRANCH_NAME="artemis-master"
@@ -24,15 +24,18 @@ pipeline {
         buildDiscarder(logRotator(artifactDaysToKeepStr: "",
             artifactNumToKeepStr: "", daysToKeepStr: "30", numToKeepStr: "30"))
         timestamps()
-        timeout(time: 2, unit: "DAYS")
+        timeout(time: 1, unit: "HOURS")
+    }
+    stage("Clean Workspace") {
+        steps {
+            deleteDir()
+            checkout scm
+        }
     }
     stages {
         stage("build") {
             steps {
                 sh """
-                    rm -f docker-images.log
-                    mvn -B clean
-                    mvn -B dependency:resolve dependency:resolve-plugins >/dev/null || true
                     mvn -B -T 6 install
                     mvn -B -P !integration-test -T 6 pmd:pmd
                     mvn -B javadoc:aggregate

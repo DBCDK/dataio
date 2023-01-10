@@ -1,0 +1,214 @@
+[
+  {
+    "id": 18401,
+    "version": 2,
+    "content": {
+      "name": "dmat",
+      "resource": "dmat",
+      "sinkType": "DMAT",
+      "sinkConfig": null,
+      "description": "DMat staging",
+      "sequenceAnalysisOption": "ALL"
+    }
+  },
+  {
+    "id": 15101,
+    "version": 3,
+    "content": {
+      "name": "DPF sink staging",
+      "resource": "dpf",
+      "sinkType": "DPF",
+      "sinkConfig": {
+        "@class": "dk.dbc.dataio.commons.types.DpfSinkConfig",
+        "updateServiceUserId": "netpunkt-DBC",
+        "updateServicePassword": "1ftMa2fts#2016",
+        "updateServiceAvailableQueueProviders": [
+          "dbckat-update-ims"
+        ]
+      },
+      "description": "DPF sink på dataio staging som skal snakke med basismig Update. ",
+      "sequenceAnalysisOption": "ALL"
+    }
+  },
+  {
+    "id": 54,
+    "version": 3,
+    "content": {
+      "name": "dummy",
+      "resource": "dummy",
+      "sinkType": "DUMMY",
+      "sinkConfig": {
+        "@class": "dk.dbc.dataio.commons.types.EsSinkConfig",
+        "esAction": "INSERT"
+      },
+      "description": "Ny tracer bullet sink",
+      "sequenceAnalysisOption": "ALL"
+    }
+  },
+  {
+    "id": 18301,
+    "version": 1,
+    "content": {
+      "name": "Fbstest holdings items",
+      "resource": "holdings-items/fbstest",
+      "sinkType": "HOLDINGS_ITEMS",
+      "sinkConfig": null,
+      "description": "Test af holdings items afleveringer til solr-doc-store",
+      "sequenceAnalysisOption": "ALL"
+    }
+  },
+  {
+    "id": 7401,
+    "version": 6,
+    "content": {
+      "name": "Hive sink staging",
+      "resource": "batch-exchange/loadtest",
+      "sinkType": "HIVE",
+      "sinkConfig": null,
+      "description": "Batchexchange hive sink på staging som rammer Corepo. Bruges også til loadtest",
+      "sequenceAnalysisOption": "ALL"
+    }
+  },
+  {
+    "id": 6401,
+    "version": 5,
+    "content": {
+      "name": "IMS sink staging",
+      "resource": "ims",
+      "sinkType": "IMS",
+      "sinkConfig": {
+        "@class": "dk.dbc.dataio.commons.types.ImsSinkConfig",
+        "endpoint": "http://dummy.url"
+      },
+      "description": "lidt beskrivelse",
+      "sequenceAnalysisOption": "ALL"
+    }
+  },
+  {
+    "id": 9751,
+    "version": 4,
+    "content": {
+      "name": "Kilderepo inkremental",
+      "resource": "tickle-repo/incremental",
+      "sinkType": "TICKLE",
+      "sinkConfig": null,
+      "description": "Inkremental leveringer til kilde repositoriet",
+      "sequenceAnalysisOption": "ALL"
+    }
+  },
+  {
+    "id": 7751,
+    "version": 4,
+    "content": {
+      "name": "Kilderepo total",
+      "resource": "tickle-repo/total",
+      "sinkType": "TICKLE",
+      "sinkConfig": null,
+      "description": "Totalleveringer til kilde repositoriet",
+      "sequenceAnalysisOption": "ALL"
+    }
+  },
+  {
+    "id": 12451,
+    "version": 2,
+    "content": {
+      "name": "MARC konverteringsservice",
+      "resource": "marcconv",
+      "sinkType": "MARCCONV",
+      "sinkConfig": null,
+      "description": "Konverteringsservice for poster til MARC format.",
+      "sequenceAnalysisOption": "ALL"
+    }
+  },
+  {
+    "id": 11101,
+    "version": 3,
+    "content": {
+      "name": "OCLC test sink",
+      "resource": "worldcat",
+      "sinkType": "WORLDCAT",
+      "sinkConfig": {
+        "@class": "dk.dbc.dataio.commons.types.WorldCatSinkConfig",
+        "userId": "WCIRUINT_DKDLA_015290",
+        "endpoint": "https://wciru-test.oclc.org/recordupdate/worldcat/Update",
+        "password": "4yjfv12d7hfGF6j",
+        "projectId": "015290",
+        "retryDiagnostics": [
+          "hvad skal der staa her"
+        ]
+      },
+      "description": "Til OCLCs test WCIRU",
+      "sequenceAnalysisOption": "ID_ONLY"
+    }
+  },
+  {
+    "id": 15501,
+    "version": 2,
+    "content": {
+      "name": "Periodiske job",
+      "resource": "periodic-jobs",
+      "sinkType": "PERIODIC_JOBS",
+      "sinkConfig": null,
+      "description": "Specialiserede afleveringer for periodiske job.",
+      "sequenceAnalysisOption": "ALL"
+    }
+  },
+  {
+    "id": 16706,
+    "version": 1,
+    "content": {
+      "name": "Periodiske job - tomme job test",
+      "resource": "dataio/sinks/periodic-jobs-empty-jobs-test",
+      "sinkType": "PERIODIC_JOBS",
+      "sinkConfig": null,
+      "description": "Periodiske job - tomme job test",
+      "sequenceAnalysisOption": "ALL"
+    }
+  },
+  {
+    "id": 8401,
+    "version": 3,
+    "content": {
+      "name": "test",
+      "resource": "dummy (bruges ikke lige nu fordi den larmer i overvaagningen)",
+      "sinkType": "ES",
+      "sinkConfig": {
+        "@class": "dk.dbc.dataio.commons.types.EsSinkConfig",
+        "userId": 1,
+        "esAction": "INSERT",
+        "databaseName": "test"
+      },
+      "description": "test",
+      "sequenceAnalysisOption": "ALL"
+    }
+  },
+  {
+    "id": 1651,
+    "version": 14,
+    "content": {
+      "name": "TestBasis",
+      "resource": "test4 (Bruges ikke (heller ikke) lige nu)",
+      "sinkType": "ES",
+      "sinkConfig": {
+        "@class": "dk.dbc.dataio.commons.types.EsSinkConfig",
+        "userId": 3,
+        "esAction": "INSERT",
+        "databaseName": "default"
+      },
+      "description": "Test basis sink II ",
+      "sequenceAnalysisOption": "ALL"
+    }
+  },
+  {
+    "id": 8504,
+    "version": 2,
+    "content": {
+      "name": "tracer-bullet-sink",
+      "resource": "dummy",
+      "sinkType": "DUMMY",
+      "sinkConfig": null,
+      "description": "description",
+      "sequenceAnalysisOption": "ALL"
+    }
+  }
+]

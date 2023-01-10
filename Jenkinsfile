@@ -10,31 +10,37 @@ pipeline {
 		maven 'Maven 3'
     }
     environment {
-        MAVEN_OPTS="-Dmaven.repo.local=\$WORKSPACE/.repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true"
+        MAVEN_OPTS="-Dmaven.repo.local=.repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
-
+        BRANCH_NAME="artemis-master"
+        BUILD_NUMBER="${env.BUILD_NUMBER}"
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara5-bump-trigger",
 			threshold: hudson.model.Result.SUCCESS)
     }
     options {
+        skipDefaultCheckout(true)
         buildDiscarder(logRotator(artifactDaysToKeepStr: "",
             artifactNumToKeepStr: "", daysToKeepStr: "30", numToKeepStr: "30"))
         timestamps()
-        timeout(time: 2, unit: "DAYS")
+        timeout(time: 1, unit: "HOURS")
     }
     stages {
+        stage('clean and checkout') {
+            steps {
+                cleanWs()
+                checkout scm
+            }
+        }
         stage("build") {
             steps {
                 sh """
-                    rm -f docker-images.log
-                    mvn -B clean
-                    mvn -B dependency:resolve dependency:resolve-plugins >/dev/null || true
                     mvn -B -T 6 install
                     mvn -B -P !integration-test -T 6 pmd:pmd
                     mvn -B javadoc:aggregate
+                    echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                     ./cli/build_docker_image.sh
                 """
                 script {
@@ -69,6 +75,20 @@ pipeline {
                 }
             }
         }
+        stage("docker push artemis") {
+            when {
+                branch "artemis-master"
+            }
+            steps {
+                sh """
+                    cat docker-images.log | parallel -j 3 docker push {}
+                """
+                script {
+                    stash includes: "docker-images.log", name: docker_images_log_stash_tag
+                    archiveArtifacts "docker-images.log"
+                }
+            }
+        }
         stage("deploy to mavenrepo.dbc.dk") {
             when {
                 branch "master"
@@ -77,6 +97,20 @@ pipeline {
                 sh """
                     mvn deploy -Dmaven.test.skip=true -am -pl commons/utils/flow-store-service-connector -pl commons/utils/tickle-harvester-service-connector
                 """
+            }
+        }
+        stage("promote to DIT Artemis") {
+            when {
+                branch "artemis-master"
+            }
+            steps {
+                dir("docker") {
+                    unstash docker_images_log_stash_tag
+                    sh """
+                        cat docker-images.log | sed 's/:.*//g' | parallel -j 3 docker tag {}:artemis-master-${env.BUILD_NUMBER} {}:DIT_Artemis-${env.BUILD_NUMBER}
+                        cat docker-images.log | sed 's/:.*//g' | parallel -j 3 docker push {}:DIT_Artemis-${env.BUILD_NUMBER}
+                    """
+                }
             }
         }
         stage("promote to DIT") {
@@ -139,6 +173,30 @@ pipeline {
                         set-new-version services/dataio-project ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets DIT-${env.BUILD_NUMBER} -b master
                     """
                 }
+            }
+        }
+        stage("bump docker tags in dit-gitops-secrets:DIT_Artemis") {
+            agent {
+                docker {
+                    label workerNode
+                    image "docker.dbc.dk/build-env:latest"
+                    alwaysPull true
+                }
+            }
+            when {
+                branch "artemis-master"
+            }
+            steps {
+                script {
+                    sh """
+                        set-new-version services/dataio-project ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets DIT_Artemis-${env.BUILD_NUMBER} -b artemis
+                    """
+                }
+            }
+        }
+        stage("clean up successful build") {
+            steps {
+                cleanWs()
             }
         }
     }

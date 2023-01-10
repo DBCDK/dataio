@@ -2,34 +2,28 @@ package dk.dbc.dataio.commons.testcontainers;
 
 import org.testcontainers.containers.GenericContainer;
 
-public class Containers {
-    private Containers() {
+public enum Containers {
+    FILE_STORE("dbc-payara-filestore:" + getTag()),
+    FLOW_STORE("dbc-payara-flowstore:" + getTag()),
+    JOB_STORE("dbc-payara-jobstore:" + getTag()),
+    JMS_QUEUE_SVC("dbc-payara-jms-queue-service:" + getTag()),
+    ARTEMIS("artemis:2_24_0-15"),
+    LOG_STORE("dbc-payara-logstore:" + getTag());
+
+    private final String dockerRepo;
+    private final String path;
+
+    Containers(String path) {
+        this("docker-metascrum.artifacts.dbccloud.dk", path);
     }
 
-    public static GenericContainer filestoreServiceContainer() {
-        return new GenericContainer(
-                "docker-metascrum.artifacts.dbccloud.dk/dbc-payara-filestore:" + getTag());
+    Containers(String dockerRepo, String path) {
+        this.dockerRepo = dockerRepo;
+        this.path = path;
     }
 
-    public static GenericContainer flowstoreServiceContainer() {
-        return new GenericContainer(
-                "docker-metascrum.artifacts.dbccloud.dk/dbc-payara-flowstore:" + getTag());
-    }
-
-    public static GenericContainer jobstoreServiceContainer() {
-        return new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/dbc-payara-jobstore:" + getTag());
-    }
-
-    public static GenericContainer jmsQueueServiceContainer() {
-        return new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/dbc-payara-jms-queue-service:" + getTag());
-    }
-
-    public static GenericContainer openmqContainer() {
-        return new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/dbc-openmq:latest");
-    }
-
-    public static GenericContainer logstoreContainer() {
-        return new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/dbc-payara-logstore:" + getTag());
+    public GenericContainer<?> makeContainer() {
+        return new GenericContainer<>(dockerRepo + "/" + path);
     }
 
     public static String getTag() {

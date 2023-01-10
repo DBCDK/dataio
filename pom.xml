@@ -174,6 +174,9 @@
                 <goal>exec</goal>
               </goals>
               <configuration>
+                <environmentVariables>
+                  <BRANCH_NAME>artemis-master</BRANCH_NAME>
+                </environmentVariables>
                 <executable>${project.build.directory}/docker/build_docker_image.sh</executable>
               </configuration>
             </execution>
@@ -333,6 +336,49 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>vipcore-connector</artifactId>
+        <version>${vipcore-connector.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.glassfish.ha</groupId>
+            <artifactId>ha-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jakarta.jws</groupId>
+            <artifactId>jakarta.jws-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jakarta.xml.ws</groupId>
+            <artifactId>jakarta.xml.ws-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.glassfish.external</groupId>
+            <artifactId>management-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.jvnet.mimepull</groupId>
+            <artifactId>mimepull</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.glassfish.pfl</groupId>
+            <artifactId>pfl-basic</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.glassfish.pfl</groupId>
+            <artifactId>pfl-tf</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.woodstox</groupId>
+            <artifactId>stax2-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.fasterxml.woodstox</groupId>
+            <artifactId>woodstox-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-compress</artifactId>
@@ -521,6 +567,20 @@
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
       <version>5.4.33</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.sun.istack</groupId>
+          <artifactId>istack-commons-runtime</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.javassist</groupId>
+          <artifactId>javassist</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.logging</groupId>
+          <artifactId>jboss-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 

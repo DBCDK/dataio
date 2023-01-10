@@ -22,6 +22,7 @@ import dk.dbc.solrdocstore.connector.model.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
 import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
@@ -30,7 +31,18 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 
-@MessageDriven
+@MessageDriven(name = "holdingsItemsListener", activationConfig = {
+        // Please see the following url for a explanation of the available settings.
+        // The message selector variable is defined in the dataio-secrets project
+        // https://activemq.apache.org/activation-spec-properties
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/dataio/sinks"),
+        @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "true"),
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis"),
+        @ActivationConfigProperty(propertyName = "messageSelector", propertyValue = "resource = '${ENV=MESSAGE_NAME_FILTER}'"),
+        @ActivationConfigProperty(propertyName = "initialRedeliveryDelay", propertyValue = "5000"),
+        @ActivationConfigProperty(propertyName = "redeliveryUseExponentialBackOff", propertyValue = "true")
+})
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 

@@ -8,10 +8,12 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
+import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +23,15 @@ import java.nio.charset.StandardCharsets;
  * ensuring that they are marked as completed with failures in
  * the underlying store
  */
-@MessageDriven
+@MessageDriven(name = "dmqListener", activationConfig = {
+        // Please see the following url for a explanation of the available settings.
+        // The message selector variable is defined in the dataio-secrets project
+        // https://activemq.apache.org/activation-spec-properties
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/dataio/dmq"),
+        @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "true"),
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis")
+})
 public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(DmqMessageConsumerBean.class);
 
@@ -50,6 +60,8 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
         } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid %s type",
                     consumedMessage.getMessageId(), consumedMessage.getMessagePayload()), e);
+        } catch (DuplicateChunkException e) {
+            LOGGER.error("Jobstore DuplicateChunkException from DMQMessagebean:", e);
         }
     }
 

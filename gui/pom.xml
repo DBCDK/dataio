@@ -286,102 +286,110 @@
       <!-- DevMode dependencies END -->
   </dependencies>
 
-  <build>
-    <resources>
-      <resource>
-        <directory>src/main/java</directory>
-        <includes>
-          <include>**/*.properties</include>
-        </includes>
-      </resource>
-    </resources>
+  <profiles>
+    <profile>
+      <id>gwt</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <resources>
+          <resource>
+            <directory>src/main/java</directory>
+            <includes>
+              <include>**/*.properties</include>
+            </includes>
+          </resource>
+        </resources>
 
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>${maven-resources-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>process config</id>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <version>${exec-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>prepare-build-docker-image</id>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>${maven-resources-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>process config</id>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>exec-maven-plugin</artifactId>
+            <groupId>org.codehaus.mojo</groupId>
+            <version>${exec-maven-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>prepare-build-docker-image</id>
+                <configuration>
+                  <arguments combine.children="append">
+                    <argument>dbc-payara-gui</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>2.4</version>
+            <executions>
+              <execution>
+                <id>classes</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+                <phase>package</phase>
+                <configuration>
+                  <classifier>classes</classifier>
+                  <includes>
+                    <include>**/*</include>
+                  </includes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>gwt-maven-plugin</artifactId>
+            <version>${gwt.version}</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>compile</goal>
+                  <goal>test</goal>
+                </goals>
+              </execution>
+            </executions>
             <configuration>
-              <arguments combine.children="append">
-                <argument>dbc-payara-gui</argument>
-              </arguments>
+              <hostedWebapp>${project.build.directory}/${project.build.finalName}</hostedWebapp>
+              <!--localWorkers>1</localWorkers-->
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
+          </plugin>
 
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
-        <executions>
-          <execution>
-            <id>classes</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <phase>package</phase>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <version>${maven.war.plugin.version}</version>
             <configuration>
-              <classifier>classes</classifier>
-              <includes>
-                <include>**/*</include>
-              </includes>
+              <failOnMissingWebXml>false</failOnMissingWebXml>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
+          </plugin>
 
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>gwt-maven-plugin</artifactId>
-        <version>${gwt.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile</goal>
-              <goal>test</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <hostedWebapp>${project.build.directory}/${project.build.finalName}</hostedWebapp>
-          <!--localWorkers>1</localWorkers-->
-        </configuration>
-      </plugin>
+          <!-- We need to force reuseForks to false to avoid suspected GwtMockito memory leak -->
+          <!--plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.16</version>
+            <configuration>
+              <redirectTestOutputToFile>true</redirectTestOutputToFile>
+              <forkCount>1</forkCount>
+              <reuseForks>false</reuseForks>
+            </configuration>
+          </plugin-->
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>${maven.war.plugin.version}</version>
-        <configuration>
-          <failOnMissingWebXml>false</failOnMissingWebXml>
-        </configuration>
-      </plugin>
-
-      <!-- We need to force reuseForks to false to avoid suspected GwtMockito memory leak -->
-      <!--plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.16</version>
-        <configuration>
-          <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <forkCount>1</forkCount>
-          <reuseForks>false</reuseForks>
-        </configuration>
-      </plugin-->
-
-    </plugins>
-  </build>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

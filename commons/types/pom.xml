@@ -77,6 +77,10 @@
       <version>1.3-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.microprofile.metrics</groupId>
+      <artifactId>microprofile-metrics-api</artifactId>
+    </dependency>
   </dependencies>
 
 

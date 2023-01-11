@@ -15,6 +15,7 @@ import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
+import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,28 +145,24 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             }
 
             long handleChunkItemStartTime = System.currentTimeMillis();
-            final WciruServiceBroker.Result brokerResult =
-                    wciruServiceBroker.push(chunkItemWithWorldCatAttributes, worldCatEntity);
-            metricsHandler.update(WorldcatTimerMetrics.WCIRU_SERVICE_REQUESTS, Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime));
-
-            if (!brokerResult.isFailed()) {
-                if (brokerResult.getLastEvent().getAction() == WciruServiceBroker.Event.Action.DELETE) {
-                    LOGGER.info("Deletion of PID '{}' triggered WorldCat entry removal in repository", pid);
-                    ocnRepo.getEntityManager().remove(worldCatEntity);
-                } else {
-                    worldCatEntity
-                            .withOcn(brokerResult.getOcn())
-                            .withChecksum(checksum)
-                            .withActiveHoldingSymbols(chunkItemWithWorldCatAttributes.getActiveHoldingSymbols())
-                            .setHasLHR(chunkItemWithWorldCatAttributes.getWorldCatAttributes().hasLhr());
+            WciruServiceBroker.Result brokerResult = null;
+            try {
+                brokerResult = wciruServiceBroker.push(chunkItemWithWorldCatAttributes, worldCatEntity);
+                if (!brokerResult.isFailed()) {
+                    if (brokerResult.getLastEvent().getAction() == WciruServiceBroker.Event.Action.DELETE) {
+                        LOGGER.info("Deletion of PID '{}' triggered WorldCat entry removal in repository", pid);
+                        ocnRepo.getEntityManager().remove(worldCatEntity);
+                    } else {
+                        worldCatEntity.withOcn(brokerResult.getOcn()).withChecksum(checksum).withActiveHoldingSymbols(chunkItemWithWorldCatAttributes.getActiveHoldingSymbols()).setHasLHR(chunkItemWithWorldCatAttributes.getWorldCatAttributes().hasLhr());
+                    }
                 }
-            } else {
-                metricsHandler.increment(WorldcatCounterMetrics.WCIRU_IS_FAILED);
-            }
 
-            return FormattedOutput.of(pid, brokerResult)
-                    .withId(chunkItem.getId())
-                    .withTrackingId(chunkItem.getTrackingId());
+                return FormattedOutput.of(pid, brokerResult).withId(chunkItem.getId()).withTrackingId(chunkItem.getTrackingId());
+            } finally {
+                Tag tag = new Tag("status", brokerResult == null ? "timeout" : brokerResult.isFailed() ? "failed" : "success");
+                metricsHandler.increment(WorldcatCounterMetrics.WCIRU_UPDATE, tag);
+                metricsHandler.update(WorldcatTimerMetrics.WCIRU_SERVICE_REQUESTS, Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime), tag);
+            }
         } catch (IllegalArgumentException e) {
             return FormattedOutput.of(e)
                     .withId(chunkItem.getId())

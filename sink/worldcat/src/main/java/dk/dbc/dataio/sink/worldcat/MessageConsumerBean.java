@@ -160,7 +160,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 return FormattedOutput.of(pid, brokerResult).withId(chunkItem.getId()).withTrackingId(chunkItem.getTrackingId());
             } finally {
                 Tag tag = new Tag("status", brokerResult == null ? "timeout" : brokerResult.isFailed() ? "failed" : "success");
-                metricsHandler.increment(WorldcatCounterMetrics.WCIRU_IS_FAILED, tag);
+                metricsHandler.increment(WorldcatCounterMetrics.WCIRU_UPDATE, tag);
                 metricsHandler.update(WorldcatTimerMetrics.WCIRU_SERVICE_REQUESTS, Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime), tag);
             }
         } catch (IllegalArgumentException e) {

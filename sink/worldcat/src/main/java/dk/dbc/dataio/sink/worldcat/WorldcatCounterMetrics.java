@@ -7,7 +7,7 @@ import org.eclipse.microprofile.metrics.MetricType;
 enum WorldcatCounterMetrics implements CounterMetric {
 
     WCIRU_UPDATE(Metadata.builder()
-            .withName("dataio_sink_worldcat_wciru_update")
+            .withName("dataio_sink_worldcat_handle_chunk_item_counter")
             .withDescription("Number of update to wciru")
             .withType(MetricType.COUNTER)
             .withUnit("chunkitems").build()),

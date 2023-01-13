@@ -6,10 +6,7 @@ import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.MetricType;
-import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +29,6 @@ import java.util.Optional;
 public abstract class AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMessageConsumerBean.class);
     private static final String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
-    private final Metadata messageTimer = Metadata.builder()
-            .withName("dataio_messages_time")
-            .withDescription("Duration of handling a message")
-            .withType(MetricType.SIMPLE_TIMER)
-            .withUnit(MetricUnits.MILLISECONDS).build();
-
     @Resource
     protected MessageDrivenContext messageDrivenContext;
     @Inject

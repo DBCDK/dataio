@@ -323,6 +323,11 @@ public class WciruServiceConnector {
     }
 
     private UpdateInterface getProxy(UpdateService service) {
+        System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
+        System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
+        System.setProperty("com.sun.xml.ws.transport.http.HttpAdapter.dump", "true");
+        System.setProperty("com.sun.xml.internal.ws.transport.http.HttpAdapter.dump", "true");
+
         final UpdateInterface proxy = service.getUpdate();
 
         // We don't want to rely on the endpoint from the WSDL

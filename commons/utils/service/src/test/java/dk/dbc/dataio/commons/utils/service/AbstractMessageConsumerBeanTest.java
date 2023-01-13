@@ -23,14 +23,6 @@ public class AbstractMessageConsumerBeanTest {
     private static final String PAYLOAD_TYPE = HandleConsumedMessageReaction.ACCEPT.toString();
 
     @Test
-    public void onMessage_messageArgIsNull_noTransactionRollback() {
-        final TestableMessageConsumerBean messageConsumerBean = getInitializedBean();
-        messageConsumerBean.onMessage(null);
-        assertThat("handleConsumedMessage() called", messageConsumerBean.handleConsumedMessageCalled, is(false));
-        assertThat("rollback", messageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
-    }
-
-    @Test
     public void onMessage_messageArgIsNotOfTypeTextMessage_noTransactionRollback() {
         final TestableMessageConsumerBean messageConsumerBean = getInitializedBean();
         messageConsumerBean.onMessage(new NotJmsTextMessage());

@@ -27,6 +27,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public abstract class AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMessageConsumerBean.class);
@@ -107,7 +108,7 @@ public abstract class AbstractMessageConsumerBean {
         Instant startTime = Instant.now();
         List<Tag> tags = new ArrayList<>();
         try {
-            tags.add(new Tag("destination", message.getJMSDestination().toString()));
+            tags.add(new Tag("destination", Optional.ofNullable(message.getJMSDestination()).map(Object::toString).orElse("none")));
             tags.add(new Tag("redelivery", Boolean.toString(message.getJMSRedelivered())));
             final ConsumedMessage consumedMessage = validateMessage(message);
             messageId = consumedMessage.getMessageId();
@@ -128,8 +129,10 @@ public abstract class AbstractMessageConsumerBean {
             throw new IllegalStateException(String.format("Exception caught while processing message<%s>", messageId), t);
         } finally {
             Tag[] tagArray = tags.toArray(Tag[]::new);
-            metricRegistry.counter("dataio_message_count", tagArray).inc();
-            metricRegistry.timer("dataio_message_time", tagArray).update(Duration.between(startTime, Instant.now()));
+            if(metricRegistry != null) {
+                metricRegistry.counter("dataio_message_count", tagArray).inc();
+                metricRegistry.timer("dataio_message_time", tagArray).update(Duration.between(startTime, Instant.now()));
+            }
         }
     }
 

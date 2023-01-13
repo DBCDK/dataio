@@ -32,7 +32,7 @@ public abstract class AbstractMessageConsumerBean {
     @Resource
     protected MessageDrivenContext messageDrivenContext;
     @Inject
-    MetricRegistry metricRegistry;
+    private MetricRegistry metricRegistry;
 
     /**
      * Message validation.

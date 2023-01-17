@@ -34,4 +34,10 @@
     <module>marc-client</module>
   </modules>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.eclipse.microprofile.metrics</groupId>
+      <artifactId>microprofile-metrics-api</artifactId>
+    </dependency>
+  </dependencies>
 </project>

@@ -6,24 +6,33 @@ import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import javax.ejb.MessageDrivenContext;
+import javax.inject.Inject;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public abstract class AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMessageConsumerBean.class);
     private static final String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
-
     @Resource
     protected MessageDrivenContext messageDrivenContext;
+    @Inject
+    private MetricRegistry metricRegistry;
 
     /**
      * Message validation.
@@ -87,7 +96,11 @@ public abstract class AbstractMessageConsumerBean {
      */
     public void onMessage(Message message) throws IllegalStateException {
         String messageId = null;
+        Instant startTime = Instant.now();
+        List<Tag> tags = new ArrayList<>();
         try {
+            tags.add(new Tag("destination", Optional.ofNullable(message.getJMSDestination()).map(Object::toString).orElse("none")));
+            tags.add(new Tag("redelivery", Boolean.toString(message.getJMSRedelivered())));
             final ConsumedMessage consumedMessage = validateMessage(message);
             messageId = consumedMessage.getMessageId();
             message.getIntProperty(DELIVERY_COUNT_PROPERTY);
@@ -97,11 +110,20 @@ public abstract class AbstractMessageConsumerBean {
             }
         } catch (InvalidMessageException e) {
             LOGGER.error("Message rejected", e);
+            tags.add(new Tag("rejected", "true"));
+
         } catch (Throwable t) {
+            tags.add(new Tag("rollback", "true"));
             LOGGER.error("Transaction rollback", t);
             // Ensure that this container-managed transaction can not commit
             // and therefore that this message subsequently will be re-delivered.
             throw new IllegalStateException(String.format("Exception caught while processing message<%s>", messageId), t);
+        } finally {
+            Tag[] tagArray = tags.toArray(Tag[]::new);
+            if(metricRegistry != null) {
+                metricRegistry.counter("dataio_message_count", tagArray).inc();
+                metricRegistry.timer("dataio_message_time", tagArray).update(Duration.between(startTime, Instant.now()));
+            }
         }
     }
 

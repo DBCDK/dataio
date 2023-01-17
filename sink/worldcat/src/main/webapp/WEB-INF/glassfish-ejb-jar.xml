@@ -4,8 +4,8 @@
   <enterprise-beans>
     <ejb>
       <ejb-name>worldcatListener</ejb-name>
-      <!-- 5 days -->
-      <cmt-timeout-in-seconds>300000</cmt-timeout-in-seconds>
+      <!-- 3 min -->
+      <cmt-timeout-in-seconds>300</cmt-timeout-in-seconds>
     </ejb>
   </enterprise-beans>
 </glassfish-ejb-jar>

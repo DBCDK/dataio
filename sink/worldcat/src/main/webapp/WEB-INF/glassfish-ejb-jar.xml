@@ -4,7 +4,7 @@
   <enterprise-beans>
     <ejb>
       <ejb-name>worldcatListener</ejb-name>
-      <!-- 3 min -->
+      <!-- 5 min -->
       <cmt-timeout-in-seconds>300</cmt-timeout-in-seconds>
     </ejb>
   </enterprise-beans>

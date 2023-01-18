@@ -2,6 +2,7 @@ package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -16,7 +17,10 @@ import javax.ejb.SessionContext;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
+import java.util.Set;
 import java.util.concurrent.Future;
+
 
 /**
  * This Enterprise Java Bean (EJB) handles an actual RawRepo harvest
@@ -32,6 +36,10 @@ public class HarvesterBean {
     @EJB
     HarvestOperationFactoryBean harvestOperationFactory;
 
+    @Inject
+    @ConfigProperty (name = "EXCLUDED_HARVESTER_IDS", defaultValue = "")
+    Set<Long> excludedHarvesterIds;
+
     /**
      * Executes harvest operation in batches (each batch in its own transactional
      * scope to avoid tearing down any controlling timers in case of an exception)
@@ -46,14 +54,20 @@ public class HarvesterBean {
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public Future<Integer> harvest(RRHarvesterConfig config) throws HarvesterException {
-        LOGGER.debug("Called with config {}", config);
-        try {
-            MDC.put(HARVESTER_MDC_KEY, config.getContent().getId());
-            final HarvesterBean businessObject = sessionContext.getBusinessObject(HarvesterBean.class);
-            int itemsHarvested = businessObject.executeFor(config);
-            return new AsyncResult<>(itemsHarvested);
-        } finally {
-            MDC.remove(HARVESTER_MDC_KEY);
+        boolean allowRun = !excludedHarvesterIds.contains(config.getId());
+        LOGGER.debug("Called with config id: {}, and excludedHarvesterIds:{}", config.getId(), excludedHarvesterIds);
+        if (allowRun) {
+            try {
+                MDC.put(HARVESTER_MDC_KEY, config.getContent().getId());
+                final HarvesterBean businessObject = sessionContext.getBusinessObject(HarvesterBean.class);
+                int itemsHarvested = businessObject.executeFor(config);
+                return new AsyncResult<>(itemsHarvested);
+            } finally {
+                MDC.remove(HARVESTER_MDC_KEY);
+            }
+        } else {
+            LOGGER.info("Config with id {} not allowed to run. ExcludedharvesterIds:{}", config.getId(), excludedHarvesterIds);
+            return new AsyncResult<>(0);
         }
     }
 

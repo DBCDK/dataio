@@ -39,9 +39,9 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -77,13 +77,7 @@ import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.BLO
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
 
-    private static final HashSet<SinkContent.SinkType> REQUIRES_TERMINATION_CHUNK = new HashSet<>();
-
-    static {
-        REQUIRES_TERMINATION_CHUNK.add(SinkContent.SinkType.MARCCONV);
-        REQUIRES_TERMINATION_CHUNK.add(SinkContent.SinkType.PERIODIC_JOBS);
-        REQUIRES_TERMINATION_CHUNK.add(SinkContent.SinkType.TICKLE);
-    }
+    private static final Set<SinkContent.SinkType> REQUIRES_TERMINATION_CHUNK = Set.of(SinkContent.SinkType.MARCCONV, SinkContent.SinkType.PERIODIC_JOBS, SinkContent.SinkType.TICKLE);
 
     enum QueueSubmitMode {
         DIRECT,              // enqueue chunk directly
@@ -121,7 +115,7 @@ public class JobSchedulerBean {
     MetricRegistry metricRegistry;
     @EJB
     FlowStoreServiceConnectorBean flowStore;
-    private final Map<String, Integer> blockedCounts = new ConcurrentHashMap<>();
+    private static final Map<String, Integer> blockedCounts = new ConcurrentHashMap<>();
 
     public JobSchedulerBean withEntityManager(EntityManager entityManager) {
         this.entityManager = entityManager;

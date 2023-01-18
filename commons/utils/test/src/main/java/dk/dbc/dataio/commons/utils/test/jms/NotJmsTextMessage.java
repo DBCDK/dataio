@@ -3,6 +3,7 @@ package dk.dbc.dataio.commons.utils.test.jms;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
+import javax.jms.Queue;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -84,7 +85,7 @@ public class NotJmsTextMessage implements Message {
 
     @Override
     public Destination getJMSDestination() throws JMSException {
-        return null;
+        return (Queue) () -> "dummy";
     }
 
     @Override

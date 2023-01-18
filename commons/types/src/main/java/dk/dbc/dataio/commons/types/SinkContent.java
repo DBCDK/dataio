@@ -25,7 +25,8 @@ public class SinkContent implements Serializable {
         TICKLE,
         VIP,
         WORLDCAT,
-        DMAT
+        DMAT,
+        DIFF_SINK
     }
 
     public enum SequenceAnalysisOption {ALL, ID_ONLY}

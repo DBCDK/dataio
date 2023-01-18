@@ -63,7 +63,7 @@ import java.util.Set;
                 // certainly is a lot faster than OR'ing together 'matchKeys @>' expressions.
                 query = "SELECT jobid, chunkid FROM dependencyTracking WHERE sinkId = ? AND submitter = ? AND hashes && ?::INTEGER[] ORDER BY jobId, chunkId FOR NO KEY UPDATE",
                 resultSetMapping = DependencyTrackingEntity.KEY_RESULT),
-        @NamedNativeQuery(name = "DependencyTrackingEntity.blockedGroupedBySink", query = "SELECT sinkid, 3, count(*) from dependencyTracking d where d.status = 3 group by d.sinkid",
+        @NamedNativeQuery(name = "DependencyTrackingEntity.blockedGroupedBySink", query = "SELECT sinkid, 3 as status, count(*) from dependencyTracking where status = 3 group by sinkid",
                 resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT)
 })
 @NamedQueries({

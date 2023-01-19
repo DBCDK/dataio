@@ -9,6 +9,7 @@ import org.mockito.Mockito;
 
 import javax.ejb.SessionContext;
 import java.sql.SQLException;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -39,6 +40,7 @@ public class HarvesterBeanTest {
         final HarvesterBean harvesterBean = Mockito.spy(new HarvesterBean());
         harvesterBean.sessionContext = sessionContext;
         harvesterBean.harvestOperationFactory = harvestOperationFactory;
+        harvesterBean.excludedHarvesterIds = Set.of();
         when(sessionContext.getBusinessObject(HarvesterBean.class)).thenReturn(harvesterBean);
         when(harvestOperationFactory.createFor(any(RRHarvesterConfig.class))).thenReturn(harvestOperation);
         return harvesterBean;

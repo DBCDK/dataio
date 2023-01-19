@@ -14,6 +14,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Class for retrieving record IDs based on a Solr search
@@ -28,9 +30,8 @@ public class RecordSearcher implements AutoCloseable {
      * @param solrZkHost Solr cloud zookeeper connect string
      */
     public RecordSearcher(String solrZkHost) {
-        solrClient = new CloudSolrClient.Builder()
-                .withZkHost(solrZkHost)
-                .build();
+        List<String> hosts = Arrays.asList(solrZkHost.split(", *"));
+        solrClient = new CloudSolrClient.Builder(hosts).build();
         solrClient.connect();
     }
 

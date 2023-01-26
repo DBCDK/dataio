@@ -14,10 +14,6 @@
   <artifactId>dataio-harvester-utils-holdings-items-connector</artifactId>
   <name>dataio-harvester-utils-holdings-items-connector</name>
 
-  <properties>
-    <solr.version>8.4.1</solr.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -33,7 +29,6 @@
     <dependency>
       <groupId>org.apache.solr</groupId>
       <artifactId>solr-solrj</artifactId>
-      <version>${solr.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

@@ -48,9 +48,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     private OpenUpdateServiceConnector mockedOpenUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
     private static final String WIREDENDPOINTURL = "/UpdateService/2.0";
-    private OpenUpdateServiceConnector wiredOpenUpdateServiceConnector =
-            new OpenUpdateServiceConnector(String.format(
-                    "http://localhost:%s%s", WIREMOCK_PORT, WIREDENDPOINTURL), "", "");
+    private OpenUpdateServiceConnector wiredOpenUpdateServiceConnector;
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
     private final UpdateRecordErrorInterpreter updateRecordErrorInterpreter = new UpdateRecordErrorInterpreter();
     private final String submitter = "870970";
@@ -72,7 +70,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
 
     // needed for intellij:
     private static String getWiremockPort() {
-        final String defaultPort = "8998";
+        final String defaultPort = "0";
         String wiremockPort = System.getProperty("wiremock.port", defaultPort);
         if (wiremockPort == null || wiremockPort.equals("")) {
             wiremockPort = defaultPort;
@@ -87,6 +85,8 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
 
     @Before
     public void setupMocks() {
+        wiredOpenUpdateServiceConnector = new OpenUpdateServiceConnector(String.format(
+                "http://localhost:%s%s", wireMockRule.port(), WIREDENDPOINTURL), "", "");
         doNothing().when(mockedTimer).update(any(Duration.class));
     }
 

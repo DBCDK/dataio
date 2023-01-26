@@ -32,9 +32,9 @@ public class RecordSearcher implements AutoCloseable {
      * @param solrZkHost Solr cloud zookeeper connect string
      */
     public RecordSearcher(String solrZkHost) {
-        String[] hostsNCollection = solrZkHost.split("/", 2);
-        List<String> hosts = Arrays.stream(hostsNCollection[0].split(", *")).map(s -> s.contains(":") ? s : s + ":2181").collect(Collectors.toList());
-        solrClient = new CloudSolrClient.Builder(hosts, Optional.of(hostsNCollection).filter(sa -> sa.length > 1).map(sa -> "/" + sa[1])).build();
+        String[] hostsAndCollection = solrZkHost.split("/", 2);
+        List<String> hosts = Arrays.stream(hostsAndCollection[0].split(", *")).map(s -> s.contains(":") ? s : s + ":2181").collect(Collectors.toList());
+        solrClient = new CloudSolrClient.Builder(hosts, Optional.of(hostsAndCollection).filter(sa -> sa.length > 1).map(sa -> "/" + sa[1])).build();
         solrClient.connect();
     }
 

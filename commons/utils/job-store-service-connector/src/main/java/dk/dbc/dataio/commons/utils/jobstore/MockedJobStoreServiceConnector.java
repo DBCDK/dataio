@@ -19,7 +19,7 @@ public class MockedJobStoreServiceConnector extends JobStoreServiceConnector {
     public Queue<Chunk> chunks;
 
     public MockedJobStoreServiceConnector() throws NullPointerException, IllegalArgumentException {
-        super(HttpClient.newClient(), "baseurl");
+        super(HttpClient.newClient(), "baseurl", null);
         jobInputStreams = new LinkedList<>();
         jobInfoSnapshots = new LinkedList<>();
         chunks = new LinkedList<>();

@@ -117,11 +117,6 @@
       <artifactId>postgresql</artifactId>
       <version>${postgresql-driver.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.eclipse.microprofile.metrics</groupId>
-      <artifactId>microprofile-metrics-api</artifactId>
-    </dependency>
-
   </dependencies>
 
   <build>

@@ -155,7 +155,7 @@ public class CreateInvalidTransfileNotificationOperationTest {
         public final LinkedList<AddNotificationRequest> addNotificationRequests;
 
         public MockedJobStoreServiceConnector() {
-            super(HttpClient.newClient(), "baseurl");
+            super(HttpClient.newClient(), "baseurl", null);
             addNotificationRequests = new LinkedList<>();
         }
 

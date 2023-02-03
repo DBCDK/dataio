@@ -23,7 +23,6 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -109,7 +108,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 System.getProperty("jobstore.it.service.context");
         jobStoreServiceConnector = new JobStoreServiceConnector(
                 HttpClient.newClient(new ClientConfig().register(new JacksonFeature())),
-                jobStoreServiceBaseurl);
+                jobStoreServiceBaseurl, null);
 
         final String jmsQueueServiceBaseurl = "http://" + jmsQueueServiceContainer.getContainerIpAddress() +
                 ":" + jmsQueueServiceContainer.getMappedPort(8080);

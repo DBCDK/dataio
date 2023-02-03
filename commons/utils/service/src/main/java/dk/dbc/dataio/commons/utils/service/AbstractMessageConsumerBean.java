@@ -11,6 +11,7 @@ import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.MessageDrivenContext;
 import javax.inject.Inject;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMessageConsumerBean.class);
@@ -33,6 +35,12 @@ public abstract class AbstractMessageConsumerBean {
     protected MessageDrivenContext messageDrivenContext;
     @Inject
     private MetricRegistry metricRegistry;
+    private static final AtomicInteger RUNNING_TRANSACTIONS = new AtomicInteger(0);
+
+    @PostConstruct
+    public void init() {
+        if(metricRegistry != null) metricRegistry.gauge("dataio_running_transactions", RUNNING_TRANSACTIONS::get);
+    }
 
     /**
      * Message validation.
@@ -95,6 +103,7 @@ public abstract class AbstractMessageConsumerBean {
      * @param message message received
      */
     public void onMessage(Message message) throws IllegalStateException {
+        RUNNING_TRANSACTIONS.incrementAndGet();
         String messageId = null;
         Instant startTime = Instant.now();
         List<Tag> tags = new ArrayList<>();
@@ -124,6 +133,7 @@ public abstract class AbstractMessageConsumerBean {
                 metricRegistry.counter("dataio_message_count", tagArray).inc();
                 metricRegistry.timer("dataio_message_time", tagArray).update(Duration.between(startTime, Instant.now()));
             }
+            RUNNING_TRANSACTIONS.decrementAndGet();
         }
     }
 

@@ -9,7 +9,6 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessor.util.ChunkItemProcessor;
 import dk.dbc.dataio.jobprocessor.util.FlowCache;
 import dk.dbc.log.DBCTrackedLogContext;
-import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -17,7 +16,6 @@ import org.slf4j.MDC;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,9 +31,7 @@ public class ChunkProcessorBean {
     private static final String FLOW_VERSION_MDC_KEY = "flowVersion";
 
     @EJB
-    HealthBean healthBean;
-    @Inject
-    private MetricRegistry metricRegistry;
+    private HealthBean healthBean;
 
     // A per bean instance LRU flow cache
     private final FlowCache flowCache = new FlowCache();

@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Duration;
+import java.time.Instant;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -143,6 +144,31 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
         assertThat("5th chunkItem 2nd diagnostic message", chunkItem.getDiagnostics().get(1).getMessage(), is("error42-0-5b"));
         assertThat("5th chunkItem data", StringUtil.asString(chunkItem.getData()),
                 is("Consumer system responded with ERROR: error42-0-5a\nConsumer system responded with ERROR: error42-0-5b\nConsumer system responded with OK: ok42-0-5c\n"));
+    }
+
+    @Test
+    public void isUpTest() {
+        ScheduledBatchFinalizerBean batchFinalizerBean = new MockScheduledBatchFinalizerBean(Instant.now().minusSeconds(299));
+        assertThat("Bean should be up", !batchFinalizerBean.isDown());
+    }
+
+    @Test
+    public void isDownTest() {
+        ScheduledBatchFinalizerBean batchFinalizerBean = new MockScheduledBatchFinalizerBean(Instant.now().minusSeconds(301));
+        assertThat("Bean should be down", batchFinalizerBean.isDown());
+    }
+
+    public static class MockScheduledBatchFinalizerBean extends ScheduledBatchFinalizerBean {
+        Instant lastRun;
+
+        public MockScheduledBatchFinalizerBean(Instant lastRun) {
+            this.lastRun = lastRun;
+        }
+
+        @Override
+        protected Instant getLastRun() {
+            return lastRun;
+        }
     }
 
     private BatchFinalizerBean createBatchFinalizerBean() {

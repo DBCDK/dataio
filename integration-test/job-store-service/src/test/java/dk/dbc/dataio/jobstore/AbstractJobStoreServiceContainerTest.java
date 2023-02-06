@@ -108,7 +108,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 System.getProperty("jobstore.it.service.context");
         jobStoreServiceConnector = new JobStoreServiceConnector(
                 HttpClient.newClient(new ClientConfig().register(new JacksonFeature())),
-                jobStoreServiceBaseurl, null);
+                jobStoreServiceBaseurl);
 
         final String jmsQueueServiceBaseurl = "http://" + jmsQueueServiceContainer.getContainerIpAddress() +
                 ":" + jmsQueueServiceContainer.getMappedPort(8080);

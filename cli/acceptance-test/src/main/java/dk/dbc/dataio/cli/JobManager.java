@@ -54,7 +54,7 @@ public class JobManager {
     public JobManager(String jobStoreEndpoint, String fileStoreEndPoint) {
         final Client client = HttpClient.newClient(new ClientConfig()
                 .register(new JacksonFeature()));
-        jobStoreServiceConnector = new JobStoreServiceConnector(client, jobStoreEndpoint, null);
+        jobStoreServiceConnector = new JobStoreServiceConnector(client, jobStoreEndpoint);
         fileStoreServiceConnector = initializeFileStoreServiceConnector(fileStoreEndPoint);
     }
 

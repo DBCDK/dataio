@@ -80,9 +80,12 @@ public class JobStoreServiceConnector {
      * @param client  web resources client
      * @param baseUrl base URL for job-store service endpoint
      * @param metricRegistry a metric registry
-     * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
+    public JobStoreServiceConnector(Client client, String baseUrl) throws NullPointerException, IllegalArgumentException {
+        this(HttpClient.create(client), baseUrl, null);
+    }
+
     public JobStoreServiceConnector(Client client, String baseUrl, MetricRegistry metricRegistry) throws NullPointerException, IllegalArgumentException {
         this(HttpClient.create(client), baseUrl, metricRegistry);
     }

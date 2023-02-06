@@ -93,7 +93,7 @@ public class TracerBullet {
 
         fileStoreServiceConnector = new FileStoreServiceConnector(httpClient, filestoreBaseurl);
         flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, flowstoreBaseurl);
-        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, jobstoreBaseurl, null);
+        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, jobstoreBaseurl);
     }
 
     @Test

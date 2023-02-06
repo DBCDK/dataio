@@ -102,7 +102,7 @@ public class JobReplicator {
             JobInputStream jobInputStream = new JobInputStream(specification);
             String targetJobStoreEndpoint = targetEndpoints.get("JOBSTORE_URL");
             JobStoreServiceConnector targetJobStore =
-                    new JobStoreServiceConnector(client, targetJobStoreEndpoint, null);
+                    new JobStoreServiceConnector(client, targetJobStoreEndpoint);
             JobInfoSnapshot jobInfoSnapshot = targetJobStore.addJob(
                     jobInputStream);
             System.out.println(String.format("added job %d", jobInfoSnapshot
@@ -129,7 +129,7 @@ public class JobReplicator {
     private JobSpecification getJobSpecificationFromJobId(long jobId,
                                                           Client client, String jobStoreEndpoint) throws JobReplicatorException {
         JobStoreServiceConnector jobStoreServiceConnector =
-                new JobStoreServiceConnector(client, jobStoreEndpoint, null);
+                new JobStoreServiceConnector(client, jobStoreEndpoint);
         JobListCriteria criteria = new JobListCriteria();
         criteria.where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
         try {

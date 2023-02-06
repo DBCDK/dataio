@@ -55,7 +55,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         client = HttpClient.newClient(clientConfig);
         endpoint = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("JOBSTORE_URL");
         log.info("JobStoreProxy: Using Endpoint {}", endpoint);
-        jobStoreServiceConnector = new JobStoreServiceConnector(client, endpoint, null);
+        jobStoreServiceConnector = new JobStoreServiceConnector(client, endpoint);
     }
 
     // This constructor is intended for test purpose only (new job store) with reference to dependency injection.

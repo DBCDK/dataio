@@ -25,7 +25,7 @@ public class JobStoreSearcher {
     public JobStoreSearcher(String jobStoreServiceEndpoint) {
         final Client client = HttpClient.newClient(new ClientConfig()
                 .register(new JacksonFeature()));
-        jobStoreServiceConnector = new JobStoreServiceConnector(client, jobStoreServiceEndpoint, null);
+        jobStoreServiceConnector = new JobStoreServiceConnector(client, jobStoreServiceEndpoint);
     }
 
     public Map<String, Datafile> findDatafiles(Namespace args) {

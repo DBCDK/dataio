@@ -66,6 +66,7 @@ import static dk.dbc.dataio.commons.utils.jobstore.Metric.SINK_STATUS;
  * This class is thread safe, as long as the given web resources client remains thread safe.
  * </p>
  */
+@SuppressWarnings("PMD.TooManyStaticImports")
 public class JobStoreServiceConnector {
     private static final Logger log = LoggerFactory.getLogger(JobStoreServiceConnector.class);
 

@@ -59,8 +59,7 @@ public class JobStoreServiceConnectorTest {
 
     private final HttpClient httpClient = mock(HttpClient.class);
 
-    private final JobStoreServiceConnector jobStoreServiceConnector =
-            new JobStoreServiceConnector(httpClient, JOB_STORE_URL);
+    private final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, JOB_STORE_URL, null);
 
 
     // ******************************************* add job tests ********************************************

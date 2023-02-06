@@ -39,6 +39,8 @@ import java.nio.charset.StandardCharsets;
         @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis"),
         @ActivationConfigProperty(propertyName = "messageSelector", propertyValue = "resource = '${ENV=MESSAGE_NAME_FILTER}'"),
         @ActivationConfigProperty(propertyName = "initialRedeliveryDelay", propertyValue = "5000"),
+        @ActivationConfigProperty(propertyName = "redeliveryBackOffMultiplier", propertyValue = "4"),
+        @ActivationConfigProperty(propertyName = "maximumRedeliveries", propertyValue = "3"),
         @ActivationConfigProperty(propertyName = "redeliveryUseExponentialBackOff", propertyValue = "true")
 })
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {

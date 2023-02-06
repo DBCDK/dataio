@@ -31,7 +31,7 @@ public class ChunkProcessorBean {
     private static final String FLOW_VERSION_MDC_KEY = "flowVersion";
 
     @EJB
-    HealthBean healthBean;
+    private HealthBean healthBean;
 
     // A per bean instance LRU flow cache
     private final FlowCache flowCache = new FlowCache();

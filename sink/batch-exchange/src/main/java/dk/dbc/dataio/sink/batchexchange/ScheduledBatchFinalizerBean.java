@@ -7,6 +7,9 @@ import javax.ejb.EJB;
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * This enterprise Java bean represents periodic attempts at completing chunks as a result of finished batches
@@ -19,6 +22,9 @@ public class ScheduledBatchFinalizerBean {
 
     @EJB
     BatchFinalizerBean batchFinalizerBean;
+    private static final Duration LIVENESS_THRESHOLD = Duration.ofMinutes(5);
+    private static final AtomicReference<Instant> LAST_RUN = new AtomicReference<>(Instant.now());
+
 
     @Schedule(second = "*/5", minute = "*", hour = "*", persistent = false)
     public void run() {
@@ -29,8 +35,17 @@ public class ScheduledBatchFinalizerBean {
                 numberOfBatchesCompleted++;
             }
             LOGGER.info("Finalized {} batches", numberOfBatchesCompleted);
+            LAST_RUN.set(Instant.now());
         } catch (Exception e) {
             LOGGER.error("Exception caught during scheduled batch finalization", e);
         }
+    }
+
+    protected Instant getLastRun() {
+        return LAST_RUN.get();
+    }
+
+    public boolean isDown() {
+        return getLastRun().plus(LIVENESS_THRESHOLD).isBefore(Instant.now());
     }
 }

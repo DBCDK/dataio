@@ -14,7 +14,6 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import dk.dbc.dataio.jobstore.types.JobError;
-import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +22,6 @@ import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import javax.ejb.Schedule;
-import javax.inject.Inject;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,8 +54,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     CapacityBean capacityBean;
 
     private final JSONBContext jsonbContext = new JSONBContext();
-    @Inject
-    MetricRegistry metricRegistry;
+
     private final Map<WatchKey, Long> scriptStartTimes = new ConcurrentHashMap<>();
 
     @PostConstruct

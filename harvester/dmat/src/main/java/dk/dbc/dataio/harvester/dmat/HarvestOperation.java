@@ -27,7 +27,6 @@ import dk.dbc.dmat.service.persistence.enums.UpdateCode;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
-import dk.dbc.ticklerepo.TickleRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,22 +48,12 @@ public class HarvestOperation {
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
-    private final ZoneId timezone;
-    private static final ObjectMapper objectMapper;
+    private static final ZoneId TIMEZONE = getTimezone();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().registerModule(new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     private final DMatServiceConnector dmatServiceConnector;
     private final RecordServiceConnector recordServiceConnector;
     private final String dmatDownloadUrl;
-    private final String publisherDataSetName;
-    protected TickleRepo tickleRepo;
     protected JobBuilder publisherJobBuilder;
-
-    protected TickleFetcher tickleFetcher = new TickleFetcher();
-
-    static {
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    }
 
     public HarvestOperation(DMatHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
@@ -73,20 +62,15 @@ public class HarvestOperation {
                             JobStoreServiceConnector jobStoreServiceConnector,
                             DMatServiceConnector dmatServiceConnector,
                             RecordServiceConnector recordServiceConnector,
-                            String dmatDownloadUrl,
-                            TickleRepo tickleRepo,
-                            String publisherDataSetName) throws HarvesterException {
+                            String dmatDownloadUrl) throws HarvesterException {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
-        this.timezone = getTimezone();
         this.dmatServiceConnector = dmatServiceConnector;
         this.recordServiceConnector = recordServiceConnector;
         this.dmatDownloadUrl = dmatDownloadUrl;
-        this.tickleRepo = tickleRepo;
-        this.publisherDataSetName = publisherDataSetName;
         this.publisherJobBuilder = new JobBuilder(
                 binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
                 JobSpecificationTemplate.create(config, JobSpecificationTemplate.JobSpecificationType.PUBLISHER));
@@ -95,7 +79,6 @@ public class HarvestOperation {
     public int execute() throws HarvesterException {
         final StopWatch stopwatch = new StopWatch();
         final Map<Integer, Status> statusAfterExportRr = new HashMap<>();
-        final Map<Integer, Status> statusAfterExportPublisher = new HashMap<>();
         int recordsHarvested = 0;
         int recordsProcessed = 0;
         int recordsSkipped = 0;
@@ -120,13 +103,8 @@ public class HarvestOperation {
                     try {
                         DBCTrackedLogContext.setTrackingId(addiMetaData.trackingId());
                         final AddiRecord addiRecord = createAddiRecord(recordServiceConnector, addiMetaData, dmatRecord);
-                        if (dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER) {
-                            publisherJobBuilder.addRecord(addiRecord);
-                            statusAfterExportPublisher.put(dmatRecord.getId(), Status.EXPORTED);
-                        } else {
-                            rrJobBuilder.addRecord(addiRecord);
-                            statusAfterExportRr.put(dmatRecord.getId(), Status.EXPORTED);
-                        }
+                        rrJobBuilder.addRecord(addiRecord);
+                        statusAfterExportRr.put(dmatRecord.getId(), Status.EXPORTED);
                         recordsProcessed++;
                     } finally {
                         DBCTrackedLogContext.remove();
@@ -140,8 +118,7 @@ public class HarvestOperation {
                             dmatRecord.getId(), e.getMessage());
                     recordsSkipped++;
                 } catch (Exception e) {
-                    LOGGER.error("Caught unexpected Exception for dmatrecord {}: {}",
-                            dmatRecord.getId(), e.getMessage());
+                    LOGGER.error("Caught unexpected Exception for dmatrecord {}", dmatRecord.getId(), e);
                     recordsSkipped++;
                 }
             }
@@ -156,7 +133,6 @@ public class HarvestOperation {
             // harvested dmat records to ensure that no record is marked as exported
             // if job creation fails
             publisherJobBuilder.build();
-            statusAfterExportPublisher.forEach(this::updateStatus);
 
             updateConfig(config);
 
@@ -248,11 +224,6 @@ public class HarvestOperation {
                     dmatRecord.getRecordId());
             return;
         }
-        if (dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER) {
-            LOGGER.info("Received DMatRecord {} with faust {} for PUBLISHER:*", dmatRecord.getId(),
-                    dmatRecord.getRecordId());
-            return;
-        }
 
         // Remaining combinations is an error
         LOGGER.error("Received DMatRecord {} with unknown combination of updateCode {} and selection {}", dmatRecord.getId(),
@@ -265,12 +236,9 @@ public class HarvestOperation {
         return ((ExtendedAddiMetaData) new ExtendedAddiMetaData()
                 .withTrackingId(String.join(".", "dmat", config.getLogId(),
                         String.valueOf(dmatRecord.getId())))
-                .withSubmitterNumber(JobSpecificationTemplate.getSubmitterNumberFor(
-                        dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER
-                                ? JobSpecificationTemplate.JobSpecificationType.PUBLISHER
-                                : JobSpecificationTemplate.JobSpecificationType.RR))
+                .withSubmitterNumber(JobSpecificationTemplate.getSubmitterNumberFor(JobSpecificationTemplate.JobSpecificationType.RR))
                 .withFormat(config.getContent().getFormat())
-                .withCreationDate(Date.from(creationDate.atStartOfDay(timezone).plusHours(12).toInstant()))
+                .withCreationDate(Date.from(creationDate.atStartOfDay(TIMEZONE).plusHours(12).toInstant()))
                 .withBibliographicRecordId(dmatRecord.getIsbn()))
                 .withDmatRecord(dmatRecord)
                 .withDmatUrl(String.format(dmatDownloadUrl, dmatRecord.getRecordId()));
@@ -288,14 +256,12 @@ public class HarvestOperation {
             RecordServiceConnectorException {
 
         // Write the DMatRecord out with only those fields visible for export operations
-        String metaData = objectMapper
+        String metaData = OBJECT_MAPPER
                 .writerWithView(RecordView.Export.class).writeValueAsString(addiMetaData);
 
         // Fetch attached record. MarcXchange records is wrapped in a collection since this is required by DAM,
         // even though there is ever only one record. Publizon records from tickle-repo is attached as is
-        byte[] content = dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER
-                ? tickleFetcher.getOnixProductFor(dmatRecord, tickleRepo, publisherDataSetName)
-                : RecordFetcher.getRecordCollectionFor(recordServiceConnector, dmatRecord);
+        byte[] content = RecordFetcher.getRecordCollectionFor(recordServiceConnector, dmatRecord);
 
         // Assembly addi object
         return new AddiRecord(
@@ -362,7 +328,7 @@ public class HarvestOperation {
 
         @Override
         public Iterator<DMatRecord> iterator() {
-            return new Iterator<DMatRecord>() {
+            return new Iterator<>() {
                 @Override
                 public boolean hasNext() {
                     if (!records.hasNext() && !exhausted) {
@@ -383,10 +349,10 @@ public class HarvestOperation {
         }
 
         private void fetchRecords() throws DMatServiceConnectorException, HarvesterException {
-            Map<String, String> queryParms = new HashMap<>();
-            queryParms.put("limit", Integer.toString(DMAT_SERVICE_FETCH_SIZE));
-            queryParms.put("from", Integer.toString(from));
-            final ExportedRecordList result = dmatServiceConnector.getExportedRecords(queryParms);
+            Map<String, String> queryParams = new HashMap<>();
+            queryParams.put("limit", Integer.toString(DMAT_SERVICE_FETCH_SIZE));
+            queryParams.put("from", Integer.toString(from));
+            final ExportedRecordList result = dmatServiceConnector.getExportedRecords(queryParams);
 
             this.records = result.getRecords().iterator();
             this.creationTime = result.getCreationDate();

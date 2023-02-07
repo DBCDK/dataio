@@ -9,7 +9,6 @@ import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
-import dk.dbc.ticklerepo.TickleRepo;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -48,19 +47,12 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarv
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
-    @EJB
-    TickleRepo tickleRepo;
-
     @Inject
     DMatServiceConnector dMatServiceConnector;
 
     @Inject
     @ConfigProperty(name = "DMAT_DOWNLOAD_URL", defaultValue = "NONE")
     private String dmatDownloadBaseUrl;
-
-    @Inject
-    @ConfigProperty(name = "TICKLEREPO_PUBLISHER_DATASET", defaultValue = "150015-forlag")
-    private String publisherDatasetName;
 
     @Inject
     RecordServiceConnector recordServiceConnector;
@@ -78,7 +70,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarv
                     flowStoreServiceConnectorBean.getConnector(),
                     jobStoreServiceConnectorBean.getConnector(),
                     dMatServiceConnector, recordServiceConnector,
-                    dmatDownloadBaseUrl, tickleRepo, publisherDatasetName);
+                    dmatDownloadBaseUrl);
             final int numberOfRecordsHarvested = harvestOperation.execute();
             metricRegistry.counter(recordCounterMetadata).inc(numberOfRecordsHarvested);
             return numberOfRecordsHarvested;

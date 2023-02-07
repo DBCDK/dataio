@@ -28,6 +28,11 @@
       <artifactId>jcommander</artifactId>
       <version>1.58</version>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.microprofile.metrics</groupId>
+      <artifactId>microprofile-metrics-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <profiles>

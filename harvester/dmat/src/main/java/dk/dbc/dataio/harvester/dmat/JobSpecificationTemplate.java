@@ -22,8 +22,7 @@ class JobSpecificationTemplate {
                     .withPackaging("addi-xml")
                     .withFormat(configFields.getFormat())
                     .withCharset("utf8")
-                    .withDestination(type == JobSpecificationType.PUBLISHER
-                            ? configFields.getPublizon() : configFields.getDestination())
+                    .withDestination(configFields.getDestination())
                     .withSubmitterId(getSubmitterNumberFor(type))
                     .withMailForNotificationAboutVerification("placeholder")
                     .withMailForNotificationAboutProcessing("placeholder")

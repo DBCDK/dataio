@@ -3,8 +3,6 @@ package dk.dbc.dataio.harvester.dmat;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.commons.persistence.TransactionScopedPersistenceContext;
 import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
-import dk.dbc.ticklerepo.TickleRepo;
-import dk.dbc.ticklerepo.TickleRepoDatabaseMigrator;
 import org.junit.jupiter.api.BeforeAll;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
@@ -30,7 +28,6 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 
 public abstract class IntegrationTest {
-    protected static TickleRepo tickleRepo;
     private static final Logger LOGGER = LoggerFactory.getLogger(IntegrationTest.class);
 
     static final DBCPostgreSQLContainer tickleRepoDBContainer;
@@ -55,8 +52,6 @@ public abstract class IntegrationTest {
             Connection connection = tickleRepoDBContainer.createConnection();
             LOGGER.info("..Connection created.");
             DataSource dataSource = getDataSource(tickleRepoDBContainer);
-            migrateTickleRepoDatabase(dataSource);
-
 
             executeScript(connection, IntegrationTest.class.getResource("/dk/dbc/dmat/db/tickle.sql"));
             entityManager = createEntityManager((PGSimpleDataSource) dataSource,
@@ -64,7 +59,6 @@ public abstract class IntegrationTest {
             persistenceContext = new TransactionScopedPersistenceContext(entityManager);
             LOGGER.info("..Populating database tables done");
             LOGGER.info("..Done");
-            tickleRepo = new TickleRepo(entityManager);
             LOGGER.info("Setup done!");
             setupDone = true;
         } else {
@@ -98,11 +92,4 @@ public abstract class IntegrationTest {
     protected static void executeScript(Connection connection, URL script) throws IOException, SQLException, URISyntaxException {
         JDBCUtil.executeScript(connection, new File(script.toURI()), StandardCharsets.UTF_8.name());
     }
-
-    private static void migrateTickleRepoDatabase(DataSource dataSource) {
-        final TickleRepoDatabaseMigrator tickleRepoDatabaseMigrator = new TickleRepoDatabaseMigrator(dataSource);
-        tickleRepoDatabaseMigrator.migrate();
-    }
-
-
 }

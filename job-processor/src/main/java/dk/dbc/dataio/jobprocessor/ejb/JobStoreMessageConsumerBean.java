@@ -117,7 +117,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     }
 
     private Chunk processChunk(Chunk chunk, Flow flow, String additionalArgs) {
-        WatchKey key = new WatchKey(chunk.getChunkId(), chunk.getJobId(), flow.getContent().getName());
+        WatchKey key = new WatchKey(chunk, flow);
         Instant start = Instant.now();
         scriptStartTimes.put(key, start.toEpochMilli());
         try {
@@ -126,7 +126,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
             scriptStartTimes.remove(key);
             Duration duration = Duration.between(start, Instant.now());
             if(duration.compareTo(SLOW_THRESHOLD_MS) > 0) {
-                Tag tag = new Tag("flow", flow.getContent().getName());
+                Tag tag = new Tag("flow", key.flow);
                 metricRegistry.simpleTimer("dataio_jobprocessor_slow_jobs", tag).update(duration);
             }
         }
@@ -169,13 +169,13 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     public static class WatchKey {
         public final long chunkId;
         public final long jobId;
-        public final String flowName;
+        public final String flow;
         public final long threadId;
 
-        public WatchKey(long chunkId, long jobId, String flowName) {
-            this.chunkId = chunkId;
-            this.jobId = jobId;
-            this.flowName = flowName;
+        public WatchKey(Chunk chunk, Flow flow) {
+            chunkId = chunk.getChunkId();
+            jobId = chunk.getJobId();
+            this.flow = String.join(", ", "id=" + flow.getId(), "version=" + flow.getVersion(), "name=" + flow.getContent().getName());
             threadId = Thread.currentThread().getId();
         }
 
@@ -184,12 +184,12 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             WatchKey watchKey = (WatchKey) o;
-            return chunkId == watchKey.chunkId && jobId == watchKey.jobId && threadId == watchKey.threadId && Objects.equals(flowName, watchKey.flowName);
+            return chunkId == watchKey.chunkId && jobId == watchKey.jobId && threadId == watchKey.threadId && Objects.equals(flow, watchKey.flow);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(chunkId, jobId, flowName, threadId);
+            return Objects.hash(chunkId, jobId, flow, threadId);
         }
     }
 }

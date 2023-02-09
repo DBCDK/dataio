@@ -36,7 +36,7 @@ public abstract class AbstractMessageConsumerBean {
     @Resource
     protected MessageDrivenContext messageDrivenContext;
     @Inject
-    protected MetricRegistry metricRegistry;
+    private MetricRegistry metricRegistry;
     private static final AtomicInteger RUNNING_TRANSACTIONS = new AtomicInteger(0);
 
     @PostConstruct

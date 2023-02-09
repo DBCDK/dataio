@@ -11,7 +11,6 @@ public interface Presenter extends GenericPresenter {
 
     void destinationChanged(String destination);
 
-    void publizonChanged(String publizon);
 
     void formatChanged(String format);
 

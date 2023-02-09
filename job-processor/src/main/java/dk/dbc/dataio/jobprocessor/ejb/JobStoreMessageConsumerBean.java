@@ -14,7 +14,7 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import dk.dbc.dataio.jobstore.types.JobError;
-import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +23,8 @@ import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import javax.ejb.Schedule;
-import javax.inject.Inject;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,6 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
 })
 public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreMessageConsumerBean.class);
+    private static final Duration SLOW_THRESHOLD_MS = Duration.ofMinutes(2);
 
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnector;
@@ -56,9 +58,8 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     CapacityBean capacityBean;
 
     private final JSONBContext jsonbContext = new JSONBContext();
-    @Inject
-    MetricRegistry metricRegistry;
-    private final Map<WatchKey, Long> scriptStartTimes = new ConcurrentHashMap<>();
+
+    private final Map<WatchKey, Instant> scriptStartTimes = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -83,11 +84,12 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         sendResultToJobStore(processChunk(chunk, flow, additionalArgs));
     }
 
-    @Schedule(second = "0", minute = "*", hour = "*")
+    @SuppressWarnings("unused")
+    @Schedule(minute = "*", hour = "*")
     public void zombieWatch() {
-        long now = System.currentTimeMillis();
+        Instant now = Instant.now();
         scriptStartTimes.entrySet().stream()
-                .filter(e -> now - e.getValue() > CapacityBean.MAXIMUM_TIME_TO_PROCESS_IN_MILLISECONDS)
+                .filter(e -> Duration.between(e.getValue(), now).compareTo(CapacityBean.MAXIMUM_TIME_TO_PROCESS) > 0)
                 .findFirst()
                 .map(Map.Entry::getKey)
                 .ifPresent(this::timeoutChunk);
@@ -95,12 +97,12 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
 
     private long getLongestRunningChunkDuration() {
         long now = System.currentTimeMillis();
-        return scriptStartTimes.values().stream().mapToLong(t -> now - t).max().orElse(0);
+        return scriptStartTimes.values().stream().mapToLong(t -> now - t.toEpochMilli()).max().orElse(0);
     }
 
     private void timeoutChunk(WatchKey watchKey) {
         LOGGER.error("Processing of chunk id: {}, job: {} has exceeded its allowed time. Marking the server down!", watchKey.chunkId, watchKey.jobId);
-        capacityBean.signalCapacityExceeded();
+        capacityBean.signalTimeout();
     }
 
     private Chunk extractChunkFromConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
@@ -115,13 +117,18 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     }
 
     private Chunk processChunk(Chunk chunk, Flow flow, String additionalArgs) {
-        WatchKey key = new WatchKey(chunk.getChunkId(), chunk.getJobId());
-        scriptStartTimes.put(key, System.currentTimeMillis());
+        WatchKey key = new WatchKey(chunk, flow);
+        Instant start = Instant.now();
+        scriptStartTimes.put(key, start);
         try {
-            final Chunk result = chunkProcessor.process(chunk, flow, additionalArgs);
-            return result;
+            return chunkProcessor.process(chunk, flow, additionalArgs);
         } finally {
             scriptStartTimes.remove(key);
+            Duration duration = Duration.between(start, Instant.now());
+            if(duration.compareTo(SLOW_THRESHOLD_MS) > 0) {
+                Tag tag = new Tag("flow", key.flow);
+                metricRegistry.simpleTimer("dataio_jobprocessor_slow_jobs", tag).update(duration);
+            }
         }
     }
 
@@ -162,11 +169,13 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     public static class WatchKey {
         public final long chunkId;
         public final long jobId;
+        public final String flow;
         public final long threadId;
 
-        public WatchKey(long chunkId, long jobId) {
-            this.chunkId = chunkId;
-            this.jobId = jobId;
+        public WatchKey(Chunk chunk, Flow flow) {
+            chunkId = chunk.getChunkId();
+            jobId = chunk.getJobId();
+            this.flow = String.join(", ", "id=" + flow.getId(), "version=" + flow.getVersion(), "name=" + flow.getContent().getName());
             threadId = Thread.currentThread().getId();
         }
 
@@ -175,12 +184,12 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             WatchKey watchKey = (WatchKey) o;
-            return chunkId == watchKey.chunkId && jobId == watchKey.jobId && threadId == watchKey.threadId;
+            return chunkId == watchKey.chunkId && jobId == watchKey.jobId && threadId == watchKey.threadId && Objects.equals(flow, watchKey.flow);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(chunkId, jobId, threadId);
+            return Objects.hash(chunkId, jobId, flow, threadId);
         }
     }
 }

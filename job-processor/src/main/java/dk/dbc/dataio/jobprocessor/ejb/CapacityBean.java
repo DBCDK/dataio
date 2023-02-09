@@ -6,6 +6,7 @@ import javax.annotation.PostConstruct;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
+import java.time.Duration;
 
 /**
  * The purpose of this singleton bean is to maintain a flag indicating whether or not this processor has exceeded its
@@ -13,9 +14,9 @@ import javax.ejb.Singleton;
  */
 @Singleton
 public class CapacityBean {
-    public final static int MAXIMUM_TIME_TO_PROCESS_IN_MILLISECONDS = 180000;
+    public final static Duration MAXIMUM_TIME_TO_PROCESS = Duration.ofMinutes(3);
 
-    private boolean capacityExceeded = false;
+    private boolean timeout = false;
     private String shardId;
 
     @PostConstruct
@@ -29,12 +30,12 @@ public class CapacityBean {
     }
 
     @Lock(LockType.READ)
-    public boolean isCapacityExceeded() {
-        return capacityExceeded;
+    public boolean isTimeout() {
+        return timeout;
     }
 
     @Lock(LockType.WRITE)
-    public void signalCapacityExceeded() {
-        capacityExceeded = true;
+    public void signalTimeout() {
+        timeout = true;
     }
 }

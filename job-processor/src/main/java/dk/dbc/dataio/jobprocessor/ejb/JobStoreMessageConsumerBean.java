@@ -62,7 +62,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     private final Map<WatchKey, Instant> scriptStartTimes = new ConcurrentHashMap<>();
 
     @PostConstruct
-    public void init() {
+    private void init() {
         metricRegistry.gauge("dataio_jobprocessor_chunk_duration_ms", this::getLongestRunningChunkDuration);
     }
 

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.ejb.LocalBean;
 import javax.ejb.MessageDrivenContext;
 import javax.inject.Inject;
 import javax.jms.JMSException;
@@ -28,13 +29,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@LocalBean
 public abstract class AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMessageConsumerBean.class);
     private static final String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
     @Resource
     protected MessageDrivenContext messageDrivenContext;
     @Inject
-    private MetricRegistry metricRegistry;
+    protected MetricRegistry metricRegistry;
     private static final AtomicInteger RUNNING_TRANSACTIONS = new AtomicInteger(0);
 
     @PostConstruct

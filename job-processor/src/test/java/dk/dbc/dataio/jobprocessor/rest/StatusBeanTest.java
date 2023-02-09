@@ -2,14 +2,15 @@ package dk.dbc.dataio.jobprocessor.rest;
 
 import dk.dbc.dataio.jobprocessor.ejb.CapacityBean;
 import dk.dbc.dataio.jobprocessor.ejb.HealthBean;
-import dk.dbc.dataio.jobprocessor.exception.JobProcessorCapacityExceededException;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorTerminallyIllException;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+
+import javax.ws.rs.core.Response;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 
 public class StatusBeanTest {
     @Test
@@ -19,26 +20,17 @@ public class StatusBeanTest {
     }
 
     @Test
-    public void statusBeanThrowsWhenCapacityIsExceeded()
-            throws JobProcessorTerminallyIllException {
+    public void statusBeanDownsWhenCapacityIsExceeded() {
         final StatusBean statusBean = createStatusBean();
-        statusBean.capacityBean.signalCapacityExceeded();
-        try {
-            statusBean.getStatus();
-            fail("no JobProcessorCapacityExceededException thrown");
-        } catch (JobProcessorCapacityExceededException ignored) {
-        }
+        statusBean.capacityBean.signalTimeout();
+        Assertions.assertNotEquals(Response.Status.OK, statusBean.getStatus().getStatusInfo(), "Server should be marked down");
     }
 
     @Test
-    public void statusBeanThrowsOnTerminallyIll() {
+    public void statusBeanDownOnTerminallyIll() {
         final StatusBean statusBean = createStatusBean();
         statusBean.healthBean.signalTerminallyIll();
-        try {
-            statusBean.getStatus();
-            fail("no JobProcessorTerminallyIllException thrown");
-        } catch (JobProcessorTerminallyIllException ignored) {
-        }
+        Assertions.assertNotEquals(Response.Status.OK, statusBean.getStatus().getStatusInfo(), "Server should be marked down");
     }
 
     private StatusBean createStatusBean() {

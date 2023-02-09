@@ -23,14 +23,14 @@ public class StatusBeanTest {
     public void statusBeanDownsWhenCapacityIsExceeded() {
         final StatusBean statusBean = createStatusBean();
         statusBean.capacityBean.signalTimeout();
-        Assertions.assertNotEquals(Response.Status.OK.toEnum(), statusBean.getStatus().getStatusInfo().toEnum(), "Server should be marked down");
+        Assertions.assertNotEquals(Response.Status.OK, statusBean.getStatus().getStatusInfo(), "Server should be marked down");
     }
 
     @Test
     public void statusBeanDownOnTerminallyIll() {
         final StatusBean statusBean = createStatusBean();
         statusBean.healthBean.signalTerminallyIll();
-        Assertions.assertNotEquals(Response.Status.OK.toEnum(), statusBean.getStatus().getStatusInfo().toEnum(), "Server should be marked down");
+        Assertions.assertNotEquals(Response.Status.OK, statusBean.getStatus().getStatusInfo(), "Server should be marked down");
     }
 
     private StatusBean createStatusBean() {

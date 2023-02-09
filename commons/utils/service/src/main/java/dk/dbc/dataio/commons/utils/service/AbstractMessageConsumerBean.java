@@ -40,6 +40,7 @@ public abstract class AbstractMessageConsumerBean {
     private static final AtomicInteger RUNNING_TRANSACTIONS = new AtomicInteger(0);
 
     @PostConstruct
+    @SuppressWarnings("PMD")
     private void initMetrics() {
         if(metricRegistry != null) metricRegistry.gauge("dataio_running_transactions", RUNNING_TRANSACTIONS::get);
     }

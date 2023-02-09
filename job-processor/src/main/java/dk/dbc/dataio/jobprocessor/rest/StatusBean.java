@@ -3,17 +3,19 @@ package dk.dbc.dataio.jobprocessor.rest;
 import dk.dbc.dataio.commons.utils.service.ServiceStatus;
 import dk.dbc.dataio.jobprocessor.ejb.CapacityBean;
 import dk.dbc.dataio.jobprocessor.ejb.HealthBean;
-import dk.dbc.dataio.jobprocessor.exception.JobProcessorCapacityExceededException;
-import dk.dbc.dataio.jobprocessor.exception.JobProcessorTerminallyIllException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.Path;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
 @Stateless
 @Path("/")
 public class StatusBean implements ServiceStatus {
+    private static final Logger LOGGER = LoggerFactory.getLogger(StatusBean.class);
     @EJB
     CapacityBean capacityBean;
 
@@ -21,15 +23,14 @@ public class StatusBean implements ServiceStatus {
     HealthBean healthBean;
 
     @Override
-    public Response getStatus() throws JobProcessorTerminallyIllException {
-        if (capacityBean.isCapacityExceeded()) {
-            throw new JobProcessorCapacityExceededException(String.format(
-                    "Processor on shard '%s' has exceeded its capacity, forcing restart", capacityBean.getShardId()));
+    public Response getStatus() {
+        if (capacityBean.isTimeout()) {
+            return Response.status(Response.Status.REQUEST_TIMEOUT).entity(Entity.text("Processor on shard '%s' has exceeded its allotted time, forcing restart")).build();
         }
         if (healthBean.isTerminallyIll()) {
-            throw new JobProcessorTerminallyIllException(String.format(
-                    "Processor on shard '%s' has reported itself terminally ill, forcing restart",
-                    healthBean.getShardId()), healthBean.getCause());
+            Throwable cause = healthBean.getCause();
+            String msg = "Processor on shard " + healthBean.getShardId() + " is marked down, forcing restart." + (cause == null ? "" :  " Reason: " + cause.getMessage());
+            return Response.status(Response.Status.GONE).entity(Entity.text(msg)).build();
         }
         return Response.ok().build();
     }

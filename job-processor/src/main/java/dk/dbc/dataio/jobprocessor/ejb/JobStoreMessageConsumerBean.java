@@ -59,7 +59,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
 
     private final JSONBContext jsonbContext = new JSONBContext();
 
-    private final Map<WatchKey, Long> scriptStartTimes = new ConcurrentHashMap<>();
+    private final Map<WatchKey, Instant> scriptStartTimes = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -87,9 +87,9 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     @SuppressWarnings("unused")
     @Schedule(minute = "*", hour = "*")
     public void zombieWatch() {
-        long now = System.currentTimeMillis();
+        Instant now = Instant.now();
         scriptStartTimes.entrySet().stream()
-                .filter(e -> now - e.getValue() > CapacityBean.MAXIMUM_TIME_TO_PROCESS_IN_MILLISECONDS)
+                .filter(e -> Duration.between(e.getValue(), now).compareTo(CapacityBean.MAXIMUM_TIME_TO_PROCESS) > 0)
                 .findFirst()
                 .map(Map.Entry::getKey)
                 .ifPresent(this::timeoutChunk);
@@ -97,12 +97,12 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
 
     private long getLongestRunningChunkDuration() {
         long now = System.currentTimeMillis();
-        return scriptStartTimes.values().stream().mapToLong(t -> now - t).max().orElse(0);
+        return scriptStartTimes.values().stream().mapToLong(t -> now - t.toEpochMilli()).max().orElse(0);
     }
 
     private void timeoutChunk(WatchKey watchKey) {
         LOGGER.error("Processing of chunk id: {}, job: {} has exceeded its allowed time. Marking the server down!", watchKey.chunkId, watchKey.jobId);
-        capacityBean.signalCapacityExceeded();
+        capacityBean.signalTimeout();
     }
 
     private Chunk extractChunkFromConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
@@ -119,7 +119,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     private Chunk processChunk(Chunk chunk, Flow flow, String additionalArgs) {
         WatchKey key = new WatchKey(chunk, flow);
         Instant start = Instant.now();
-        scriptStartTimes.put(key, start.toEpochMilli());
+        scriptStartTimes.put(key, start);
         try {
             return chunkProcessor.process(chunk, flow, additionalArgs);
         } finally {

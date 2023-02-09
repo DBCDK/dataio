@@ -3,8 +3,6 @@ package dk.dbc.dataio.jobprocessor.rest;
 import dk.dbc.dataio.commons.utils.service.ServiceStatus;
 import dk.dbc.dataio.jobprocessor.ejb.CapacityBean;
 import dk.dbc.dataio.jobprocessor.ejb.HealthBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -15,7 +13,6 @@ import javax.ws.rs.core.Response;
 @Stateless
 @Path("/")
 public class StatusBean implements ServiceStatus {
-    private static final Logger LOGGER = LoggerFactory.getLogger(StatusBean.class);
     @EJB
     CapacityBean capacityBean;
 

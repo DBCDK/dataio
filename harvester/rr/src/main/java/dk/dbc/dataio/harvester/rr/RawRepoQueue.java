@@ -23,7 +23,7 @@ public class RawRepoQueue implements RecordHarvestTaskQueue {
     private static final int HIGH_PRIORITY_THRESHOLD = 500;
 
     private final RRHarvesterConfig.Content config;
-    private final RawRepoConnector rawRepoConnector;
+    protected final RawRepoConnector rawRepoConnector;
     private final int pileUpDuration;
     private final ChronoUnit pileUpDurationUnit;
     private RawRepoRecordHarvestTask head;

@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public class ImsHarvestOperation extends HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImsHarvestOperation.class);
 
-    private final HoldingsItemsConnector holdingsItemsConnector;
+    protected final HoldingsItemsConnector holdingsItemsConnector;
 
     public ImsHarvestOperation(RRHarvesterConfig config,
                                HarvesterJobBuilderFactory harvesterJobBuilderFactory,

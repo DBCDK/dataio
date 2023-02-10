@@ -14,7 +14,7 @@ import java.util.Map;
 public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content> implements Serializable {
     private static final long serialVersionUID = 3701420845816493033L;
 
-    public enum HarvesterType {STANDARD, IMS, WORLDCAT}
+    public enum HarvesterType {STANDARD, IMS, WORLDCAT, UCSYNC}
 
     @JsonCreator
     public RRHarvesterConfig(

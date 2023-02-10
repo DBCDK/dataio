@@ -54,6 +54,8 @@ public class HarvestOperationFactoryBean {
                     return new WorldCatHarvestOperation(config,
                             harvesterJobBuilderFactory, taskRepo, vipCoreLibraryRulesConnector,
                             ocnRepo, metricRegistry);
+                case UCSYNC:
+                    return new UCSyncHarvestOperation(config,harvesterJobBuilderFactory, taskRepo, metricRegistry, vipCoreLibraryRulesConnector);
                 default:
                     return new HarvestOperation(config,
                             harvesterJobBuilderFactory, taskRepo,

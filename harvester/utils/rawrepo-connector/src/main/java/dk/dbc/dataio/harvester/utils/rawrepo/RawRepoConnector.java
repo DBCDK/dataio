@@ -13,6 +13,8 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 
@@ -24,7 +26,6 @@ public class RawRepoConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoConnector.class);
     private static final String RECORD_SERVICE_URL_KEY = "RECORD_SERVICE_URL";
     private static final String SOLR_ZK_HOST_KEY = "SOLR_ZK_HOST";
-
     private DataSource dataSource;
 
     public RawRepoConnector(DataSource dataSource) {
@@ -94,6 +95,22 @@ public class RawRepoConnector {
             final String recordServiceUrl = configuration.get(RECORD_SERVICE_URL_KEY);
             LOGGER.info("Using record service URL from database configuration: {}", recordServiceUrl);
             return recordServiceUrl;
+        }
+    }
+
+    public int getFirstNonDBCAgencyIdOnQueue(String consumerId) throws SQLException {
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement stmt = connection.prepareStatement(
+            "select agencyId from queue where " +
+                    "worker = ? and " +
+                    "agencyId != '191919' order by queued asc limit 1");
+
+            stmt.setString(1, consumerId);
+            ResultSet resultSet = stmt.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("agencyId");
+            }
+            return -1;
         }
     }
 

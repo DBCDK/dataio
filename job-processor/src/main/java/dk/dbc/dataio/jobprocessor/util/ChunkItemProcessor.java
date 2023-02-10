@@ -35,7 +35,7 @@ public class ChunkItemProcessor {
        Occasionally nashorn RewriteException.toObjectArray throws IllegalArgumentException: Argument is not an array.
      */
     public ChunkItem processWithRetry(ChunkItem chunkItem) {
-        int retriesRemaining = 10;
+        int retriesRemaining = 3;
         while (retriesRemaining-- > 0) {
             try {
                 final ChunkItem result = process(chunkItem);

@@ -1,5 +1,5 @@
 deploy --type rar ./deployments/artemis.rar
-create-resource-adapter-config --property=ConnectionParameters=host\=${ARTEMIS_MQ_HOST},port\=61616:ConnectorClassName=org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactory,steadypoolsize\=2,maxpoolsize\=4 artemis
+create-resource-adapter-config --property=ConnectionParameters=host\=${ARTEMIS_MQ_HOST},port\=61616:ConnectorClassName=org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactory:steadypoolsize=1:maxpoolsize=4:poolresize=1 artemis
 create-connector-connection-pool --raname artemis --connectiondefinition org.apache.activemq.artemis.ra.ActiveMQRAConnectionFactory --ping true --isconnectvalidatereq true --transactionsupport XATransaction jms/artemisConnectionPool
 create-connector-resource --poolname jms/artemisConnectionPool jms/artemisConnectionFactory
 create-admin-object --raname artemis --restype javax.jms.Queue --property PhysicalName=jmsDataioProcessor:Address=jmsDataioProcessor jms/dataio/processor

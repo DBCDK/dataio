@@ -36,7 +36,8 @@ import java.util.Collections;
 import java.util.List;
 
 @Stateless
-public class ServiceBroker {
+public class
+ServiceBroker {
     @Inject
     LobbyConnector lobbyConnector;
     @Inject
@@ -101,7 +102,7 @@ public class ServiceBroker {
 
     public String getNewFaust() throws OpennumberRollConnectorException {
         OpennumberRollConnector.Params params = new OpennumberRollConnector.Params();
-        params.withRollName("faust_8");
+        params.withRollName("faust");
         return opennumberRollConnector.getId(params);
     }
 

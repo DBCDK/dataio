@@ -39,7 +39,7 @@ public class ChunkItemProcessor {
         while (retriesRemaining-- > 0) {
             try {
                 final ChunkItem result = process(chunkItem);
-                LOGGER.info("Chunk item needed " + (10 - retriesRemaining) + " attempts before succeeding");
+                LOGGER.info("Chunk item needed " + (3 - retriesRemaining) + " attempts before succeeding");
                 return result;
             } catch (IllegalArgumentException e) {
                 if ("argument is not an array".equalsIgnoreCase(e.getMessage())) {

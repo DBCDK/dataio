@@ -81,7 +81,7 @@ public class UCSyncHarvestOperation extends ImsHarvestOperation {
     private RawRepoRecordHarvestTask unfoldRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask, int agencyId) {
         RecordIdDTO recordId = recordHarvestTask.getRecordId();
 
-        if (recordId.getAgencyId() == DBC_LIBRARY) {
+        if (recordId.getAgencyId() == DBC_LIBRARY || DBC_COMMUNITY.contains(recordId.getAgencyId())) {
             return unfoldTaskDBC(recordHarvestTask, agencyId);
         } else {
             return unfoldTaskUCSync(recordHarvestTask, agencyId);

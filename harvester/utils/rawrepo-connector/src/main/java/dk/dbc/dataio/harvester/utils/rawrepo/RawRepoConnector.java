@@ -110,6 +110,7 @@ public class RawRepoConnector {
             if (resultSet.next()) {
                 return resultSet.getInt("agencyId");
             }
+            resultSet.close();
             return -1;
         }
     }

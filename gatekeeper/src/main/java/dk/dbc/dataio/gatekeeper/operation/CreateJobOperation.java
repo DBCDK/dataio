@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gatekeeper.operation;
 
+import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -10,6 +11,7 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.invariant.InvariantUtil;
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,7 @@ public class CreateJobOperation implements Operation {
     private final Path workingDir;
     private final String transfileName;
     private final String transfileData;
+    MetricRegistry metricRegistry;
 
     public CreateJobOperation(JobStoreServiceConnector jobStoreServiceConnector,
                               FileStoreServiceConnector fileStoreServiceConnector,
@@ -93,8 +96,11 @@ public class CreateJobOperation implements Operation {
         }
 
         try (InputStream is = new FileInputStream(dataFile.toFile())) {
-            final String fileStoreId = fileStoreServiceConnector.addFile(is);
+            ByteCountingInputStream countingInputStream = new ByteCountingInputStream(is);
+            final String fileStoreId = fileStoreServiceConnector.addFile(countingInputStream);
             LOGGER.info("Added file with ID {} to file-store", fileStoreId);
+            metricRegistry.counter("dataio_gatekeeper_to_jobstore_data_bytes_uploaded").inc(countingInputStream.getBytesRead());
+            metricRegistry.counter("dataio_gatekeeper_to_jobstore_data_files_uploaded").inc();
             return fileStoreId;
         } catch (Exception e) {
             throw new OperationExecutionException(e);

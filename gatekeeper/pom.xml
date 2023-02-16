@@ -77,6 +77,12 @@
       <version>1.2</version>
     </dependency>
     <dependency>
+      <artifactId>dataio-commons-utils-io</artifactId>
+      <groupId>dk.dbc</groupId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
       <version>${logback.version}</version>

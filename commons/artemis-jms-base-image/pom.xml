@@ -5,12 +5,15 @@
   <parent>
     <groupId>dk.dbc</groupId>
     <artifactId>microservice-pom</artifactId>
-    <version>java11-SNAPSHOT</version>
+    <version>java11-old-payara5</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>artemis-jms-base-image</artifactId>
+  <properties>
+    <artemis.version>2.28.0</artemis.version>
+  </properties>
 
   <build>
     <plugins>
@@ -30,7 +33,7 @@
                 <artifactItem>
                   <groupId>dk.dbc</groupId>
                   <artifactId>artemis-rar</artifactId>
-                  <version>2.23.0</version>
+                  <version>${artemis.version}</version>
                   <type>rar</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.basedir}/target/docker/deployments</outputDirectory>
@@ -64,7 +67,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>artemis-rar</artifactId>
-      <version>2.23.0</version>
+      <version>${artemis.version}</version>
       <type>rar</type>
     </dependency>
   </dependencies>

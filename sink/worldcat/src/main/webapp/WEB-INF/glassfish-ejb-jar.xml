@@ -6,6 +6,11 @@
       <ejb-name>worldcatListener</ejb-name>
       <!-- 5 min -->
       <cmt-timeout-in-seconds>300</cmt-timeout-in-seconds>
+      <bean-pool>
+        <steady-pool-size>1</steady-pool-size>
+        <resize-quantity>2</resize-quantity>
+        <max-pool-size>6</max-pool-size>
+      </bean-pool>
     </ejb>
   </enterprise-beans>
 </glassfish-ejb-jar>

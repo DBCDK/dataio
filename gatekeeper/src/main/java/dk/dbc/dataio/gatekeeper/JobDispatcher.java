@@ -116,6 +116,7 @@ public class JobDispatcher {
     private void monitorDirEvents() throws InterruptedException, IOException,
             ModificationLockedException, OperationExecutionException {
         // Start the infinite polling loop
+        //noinspection InfiniteLoopStatement
         while (true) {
             final WatchKey key = dirMonitor.take();
             for (WatchEvent<?> watchEvent : key.pollEvents()) {
@@ -140,12 +141,11 @@ public class JobDispatcher {
      *
      * @param file file to test and possibly process
      * @return true if transfile was processed, false if not
-     * @throws IOException                 if unable to read transfile
      * @throws ModificationLockedException if WAL modification is already locked
      * @throws OperationExecutionException if an operation was unable to complete successfully
      * @throws InterruptedException        if shutdown was detected before WAL could be emptied
      */
-    boolean processIfCompleteTransfile(Path file) throws IOException, ModificationLockedException,
+    boolean processIfCompleteTransfile(Path file) throws ModificationLockedException,
             OperationExecutionException, InterruptedException {
         for (String extension : TRANSFILE_EXTENSIONS) {
             if (file.getFileName().toString().endsWith(extension)) {

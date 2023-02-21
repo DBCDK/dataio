@@ -11,7 +11,6 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.invariant.InvariantUtil;
-import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static dk.dbc.dataio.gatekeeper.operation.Metric.TAG_FAILED;
 
 public class CreateJobOperation implements Operation {
     private static final Opcode OPCODE = Opcode.CREATE_JOB;
@@ -32,7 +33,6 @@ public class CreateJobOperation implements Operation {
     private final Path workingDir;
     private final String transfileName;
     private final String transfileData;
-    MetricRegistry metricRegistry;
 
     public CreateJobOperation(JobStoreServiceConnector jobStoreServiceConnector,
                               FileStoreServiceConnector fileStoreServiceConnector,
@@ -99,10 +99,11 @@ public class CreateJobOperation implements Operation {
             ByteCountingInputStream countingInputStream = new ByteCountingInputStream(is);
             final String fileStoreId = fileStoreServiceConnector.addFile(countingInputStream);
             LOGGER.info("Added file with ID {} to file-store", fileStoreId);
-            metricRegistry.counter("dataio_gatekeeper_to_jobstore_data_bytes_uploaded").inc(countingInputStream.getBytesRead());
-            metricRegistry.counter("dataio_gatekeeper_to_jobstore_data_files_uploaded").inc();
+            Metric.DATA_BYTES_UPLOADED.counter().inc(countingInputStream.getBytesRead());
+            Metric.DATA_FILES_UPLOADED.counter().inc();
             return fileStoreId;
         } catch (Exception e) {
+            Metric.DATA_FILES_UPLOADED.counter(TAG_FAILED).inc();
             throw new OperationExecutionException(e);
         }
     }
@@ -111,8 +112,10 @@ public class CreateJobOperation implements Operation {
         try {
             LOGGER.info("Removing file with id {} from file-store", fileStoreId);
             fileStoreServiceConnector.deleteFile(fileStoreId);
+            Metric.DATA_FILES_REMOVED.counter().inc();
         } catch (Exception e) {
             LOGGER.error("Failed to remove uploaded file with id {}", fileStoreId, e);
+            Metric.DATA_FILES_REMOVED.counter(TAG_FAILED).inc();
         }
     }
 
@@ -122,9 +125,11 @@ public class CreateJobOperation implements Operation {
             LOGGER.info("Creating job with spec:{}", jobSpecification);
             final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(new JobInputStream(jobSpecification, true, 0));
             LOGGER.info("Created job in job-store with ID {} for trans file {}", jobInfoSnapshot.getJobId(), transfileName);
+            Metric.CREATE_JOB.counter().inc();
             return jobInfoSnapshot;
         } catch (Exception e) {
             LOGGER.error("Caught exception from job-store communication", e);
+            Metric.CREATE_JOB.counter(TAG_FAILED).inc();
             if (canRemoveFromFileStore(e)) {
                 removeFromFileStore(fileStoreId);
             }

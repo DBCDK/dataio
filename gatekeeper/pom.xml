@@ -81,6 +81,11 @@
       <groupId>dk.dbc</groupId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>jmx-metric-registry</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>ch.qos.logback</groupId>

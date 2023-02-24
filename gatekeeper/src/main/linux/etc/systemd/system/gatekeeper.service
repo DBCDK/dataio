@@ -1,0 +1,24 @@
+[Unit]
+Description=Gatekeeper service
+After=syslog.target network.target
+StartLimitIntervalSec=0
+StartLimitBurst=3
+
+[Service]
+User=gkeep
+WorkingDirectory=/data/gkeep
+EnvironmentFile=/etc/gatekeeper
+ExecStart=/usr/bin/java -Dcom.sun.management.jmxremote.port=1868 \
+                                            -Dcom.sun.management.jmxremote.ssl=false \
+                                            -Dcom.sun.management.jmxremote.authenticate=false \
+                                            -Xmx${MAX_HEAP} \
+                                            -jar /home/gkeep/bin/dataio-gatekeeper.jar \
+                                            -d "${FTP_DIR}" \
+                                            -f "${FILESTORE_SERVICE}" \
+                                            -j "${JOBSTORE_SERVICE}" \
+                                            -c "${FLOWSTORE_SERVICE}"
+Restart=always
+RestartSec=10
+TimeoutStopSec=60
+[Install]
+WantedBy=multi-user.target

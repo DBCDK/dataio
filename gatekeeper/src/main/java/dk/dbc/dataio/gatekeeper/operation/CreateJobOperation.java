@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.gatekeeper.Metric;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -21,7 +22,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static dk.dbc.dataio.gatekeeper.operation.Metric.TAG_FAILED;
+import static dk.dbc.dataio.gatekeeper.Metric.TAG_FAILED;
 
 public class CreateJobOperation implements Operation {
     private static final Opcode OPCODE = Opcode.CREATE_JOB;

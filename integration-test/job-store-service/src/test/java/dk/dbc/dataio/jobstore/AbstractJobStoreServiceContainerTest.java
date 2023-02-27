@@ -38,11 +38,6 @@ import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN
 
 public abstract class AbstractJobStoreServiceContainerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobStoreServiceContainerTest.class);
-
-    static {
-
-    }
-
     static final Connection logstoreDbConnection;
     static final JobStoreServiceConnector jobStoreServiceConnector;
     static final LogStoreServiceConnector logStoreServiceConnector;
@@ -197,9 +192,9 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("MAIL_TO_FALLBACK", "fallback")
                 .withEnv("TZ", "Europe/Copenhagen")
 //                .withEnv("REMOTE_DEBUGGING_HOST", getDebuggingHost())
-                .withExposedPorts(4848, 8080, 8686)
+                .withExposedPorts(4848, 8080)
                 .waitingFor(Wait.forHttp(System.getProperty("jobstore.it.service.context") + "/status"))
-                .withStartupTimeout(Duration.ofMinutes(5));
+                .withStartupTimeout(Duration.ofMinutes(10));
         container.start();
         return container;
     }

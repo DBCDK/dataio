@@ -7,5 +7,5 @@ WORKDIR /home/jmx
 COPY --chown=jmx jmx_prometheus_httpserver-*.jar jmx_prometheus_httpserver.jar
 COPY --chown=jmx config.yaml config.yaml
 EXPOSE 8080/tcp
-ENV JMX_HOST=localhost:8686
+ENV JMX_HOST=localhost:1868
 CMD /bin/bash -c "envsubst < config.yaml > config-x.yaml && java -jar -Xmx256m jmx_prometheus_httpserver.jar 8080 config-x.yaml"

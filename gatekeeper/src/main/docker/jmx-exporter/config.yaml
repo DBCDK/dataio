@@ -6,12 +6,14 @@ jmxUrl: service:jmx:rmi:///jndi/rmi://${JMX_HOST}/jmxrmi
 ssl: false
 lowercaseOutputName: false
 lowercaseOutputLabelNames: false
-whitelistObjectNames: ["dbc:*.*", "java.lang:type=Memory", "java.lang:type=OperatingSystem"]
+whitelistObjectNames: ["dbc:*", "java.lang:type=Memory", "java.lang:type=OperatingSystem"]
 
 rules:
-  - pattern: "^.*?<:*?type=(\\w*)(?:,name=(\\*))?><>(.*)"
+  - pattern: "java.lang<type=(\\w+)><>(\\w+)"
     attrNameSnakeCase: true
-    name: $3
+    name: $2
     labels:
       type: $1
-      name: $2
+  - pattern: "dbc<.*name=(\\w+)><>(.*)"
+    attrNameSnakeCase: true
+    name: $1

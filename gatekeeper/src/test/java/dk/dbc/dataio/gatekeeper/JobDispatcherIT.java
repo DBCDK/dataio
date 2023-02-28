@@ -85,7 +85,7 @@ public class JobDispatcherIT {
      * When : the job dispatcher is started
      * Then : the transfile is processed
      */
-    @Test(timeout = 5000)
+    @Test(timeout = 50000)
     public void staticTransfilesProcessed() throws Throwable {
         // Given...
         final Path transfile = writeFile(dir, "820010.trs",

@@ -130,7 +130,7 @@ public class CreateJobOperationTest {
     }
 
     @Test
-    public void execute_dataFileReadFails_throws() throws OperationExecutionException, FileStoreServiceConnectorException, IOException {
+    public void execute_dataFileReadFails_throws() throws IOException {
         testFolder.newFile(transfileName);
         testFolder.newFolder("123456.file");
 
@@ -146,7 +146,7 @@ public class CreateJobOperationTest {
     }
 
     @Test
-    public void execute_fileStoreServiceConnectorThrows_throws() throws OperationExecutionException, FileStoreServiceConnectorException, IOException {
+    public void execute_fileStoreServiceConnectorThrows_throws() throws FileStoreServiceConnectorException, IOException {
         testFolder.newFile(transfileName);
         testFolder.newFile("123456.file");
 
@@ -182,7 +182,7 @@ public class CreateJobOperationTest {
     }
 
     @Test
-    public void execute_jobStoreServiceConnectorThrows_removesFileFromFileStoreAndThrows() throws IOException, OperationExecutionException, JobStoreServiceConnectorException, FileStoreServiceConnectorException {
+    public void execute_jobStoreServiceConnectorThrows_removesFileFromFileStoreAndThrows() throws IOException, JobStoreServiceConnectorException, FileStoreServiceConnectorException {
         testFolder.newFile(transfileName);
         testFolder.newFile("123456.file");
 
@@ -204,7 +204,7 @@ public class CreateJobOperationTest {
     }
 
     @Test
-    public void execute_jobStoreServiceConnectorThrowsWithInternalServerError_throws() throws IOException, OperationExecutionException, JobStoreServiceConnectorException, FileStoreServiceConnectorException {
+    public void execute_jobStoreServiceConnectorThrowsWithInternalServerError_throws() throws IOException, JobStoreServiceConnectorException, FileStoreServiceConnectorException {
         testFolder.newFile(transfileName);
         testFolder.newFile("123456.file");
 
@@ -227,7 +227,7 @@ public class CreateJobOperationTest {
     }
 
     @Test
-    public void execute_transfileDoesNotExist_throws() throws OperationExecutionException {
+    public void execute_transfileDoesNotExist_throws() {
         final CreateJobOperation createJobOperation = new CreateJobOperation(
                 jobStoreServiceConnector, fileStoreServiceConnector, testFolder.getRoot().toPath(), transfileName, "foo");
 

@@ -67,6 +67,10 @@ pipeline {
             steps {
                 sh """
                     cat docker-images.log | parallel -j 3 docker push {}:master-${env.BUILD_NUMBER}
+                    docker tag docker-metascrum.artifacts.dbccloud.dk/gatekeeper-staging:devel docker-metascrum.artifacts.dbccloud.dk/gatekeeper-staging:DIT-${env.BUILD_NUMBER}
+                    docker tag docker-metascrum.artifacts.dbccloud.dk/jmx-exporter:devel docker-metascrum.artifacts.dbccloud.dk/jmx-exporter:DIT-${env.BUILD_NUMBER}
+                    docker push docker-metascrum.artifacts.dbccloud.dk/gatekeeper-staging:DIT-${env.BUILD_NUMBER}
+                    docker push docker-metascrum.artifacts.dbccloud.dk/jmx-exporter:DIT-${env.BUILD_NUMBER}
                 """
                 script {
                     stash includes: "docker-images.log", name: docker_images_log_stash_tag
@@ -80,7 +84,7 @@ pipeline {
             }
             steps {
                 sh """
-                    mvn deploy -Dmaven.test.skip=true -am -pl commons/utils/flow-store-service-connector -pl commons/utils/tickle-harvester-service-connector
+                    mvn deploy -Dmaven.test.skip=true -am -pl commons/utils/flow-store-service-connector -pl commons/utils/tickle-harvester-service-connector -pl gatekeeper
                 """
             }
         }

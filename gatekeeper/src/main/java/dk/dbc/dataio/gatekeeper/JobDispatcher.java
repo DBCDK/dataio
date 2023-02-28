@@ -27,6 +27,8 @@ import java.nio.file.attribute.FileTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,6 +37,7 @@ public class JobDispatcher {
     public static final long STALLED_TRANSFILE_THRESHOLD_IN_MS = 60 * 60 * 1000; // 1 hour
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobDispatcher.class);
+    private static final AtomicLong LIVENESS_COUNTER = new AtomicLong(0);
     private static final Set<String> TRANSFILE_EXTENSIONS = Stream.of(".trans", ".trs")
             .collect(Collectors.toCollection(HashSet::new));
 
@@ -51,6 +54,7 @@ public class JobDispatcher {
         this.wal = InvariantUtil.checkNotNullOrThrow(wal, "wal");
         this.connectorFactory = InvariantUtil.checkNotNullOrThrow(connectorFactory, "connectorFactory");
         this.shutdownManager = InvariantUtil.checkNotNullOrThrow(shutdownManager, "shutdownManager");
+        Metric.LIVENESS.gauge(LIVENESS_COUNTER::get);
     }
 
     public void execute() throws IOException, InterruptedException, ModificationLockedException, OperationExecutionException {
@@ -116,22 +120,26 @@ public class JobDispatcher {
     private void monitorDirEvents() throws InterruptedException, IOException,
             ModificationLockedException, OperationExecutionException {
         // Start the infinite polling loop
+        //noinspection InfiniteLoopStatement
         while (true) {
-            final WatchKey key = dirMonitor.take();
-            for (WatchEvent<?> watchEvent : key.pollEvents()) {
-                if (StandardWatchEventKinds.OVERFLOW == watchEvent.kind()) {
-                    // Too many events accumulated - throw exception to enable the caller
-                    // to reset this job dispatcher
-                    throw new IllegalStateException("Directory monitoring overflowed");
-                } else {
-                    final Path file = dir.resolve((Path) watchEvent.context());
-                    if (processIfCompleteTransfile(file)) {
-                        // Do occasional check for stalled transfiles
-                        processStalledTransfiles();
+            final WatchKey key = dirMonitor.poll(1, TimeUnit.MINUTES);
+            if(key != null) {
+                for (WatchEvent<?> watchEvent : key.pollEvents()) {
+                    if (StandardWatchEventKinds.OVERFLOW == watchEvent.kind()) {
+                        // Too many events accumulated - throw exception to enable the caller
+                        // to reset this job dispatcher
+                        throw new IllegalStateException("Directory monitoring overflowed");
+                    } else {
+                        final Path file = dir.resolve((Path) watchEvent.context());
+                        if (processIfCompleteTransfile(file)) {
+                            // Do occasional check for stalled transfiles
+                            processStalledTransfiles();
+                        }
                     }
                 }
+                key.reset();
             }
-            key.reset();
+            LIVENESS_COUNTER.incrementAndGet();
         }
     }
 
@@ -140,12 +148,11 @@ public class JobDispatcher {
      *
      * @param file file to test and possibly process
      * @return true if transfile was processed, false if not
-     * @throws IOException                 if unable to read transfile
      * @throws ModificationLockedException if WAL modification is already locked
      * @throws OperationExecutionException if an operation was unable to complete successfully
      * @throws InterruptedException        if shutdown was detected before WAL could be emptied
      */
-    boolean processIfCompleteTransfile(Path file) throws IOException, ModificationLockedException,
+    boolean processIfCompleteTransfile(Path file) throws ModificationLockedException,
             OperationExecutionException, InterruptedException {
         for (String extension : TRANSFILE_EXTENSIONS) {
             if (file.getFileName().toString().endsWith(extension)) {
@@ -228,6 +235,7 @@ public class JobDispatcher {
      *                                     shutdownManager. The modification will also be unlocked in the WAL.
      */
     void processModification(Modification modification) throws OperationExecutionException, InterruptedException {
+        LIVENESS_COUNTER.incrementAndGet();
         if (shutdownManager.signalBusy()) {
             try {
                 final Operation operation = getOperation(modification);

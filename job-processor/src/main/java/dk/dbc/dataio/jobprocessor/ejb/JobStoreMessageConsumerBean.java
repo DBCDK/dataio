@@ -29,11 +29,9 @@ import javax.ejb.Schedule;
 import javax.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * Handles Chunk messages received from the job-store
@@ -58,7 +56,6 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final Duration SLOW_THRESHOLD_MS = Duration.ofMinutes(2);
     private static final Duration STALE_JMS_PROVIDER = Duration.ofMinutes(5);
     private static final int STALE_THRESHOLD = 20;
-    private Map<String, String> activationProps = Map.of();
     private AdminClient adminClient;
 
     @EJB
@@ -96,9 +93,6 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     @PostConstruct
     public void init() {
         adminClient = artemisPort == null ? null : new AdminClient("http://" + artemisHost + ":" + artemisPort, artemisUser, artemisPassword);
-        activationProps = Arrays.stream(getClass()
-                        .getAnnotation(MessageDriven.class).activationConfig())
-                .collect(Collectors.toMap(ActivationConfigProperty::propertyName, ActivationConfigProperty::propertyValue));
         metricRegistry.gauge("dataio_jobprocessor_chunk_duration_ms", this::getLongestRunningChunkDuration);
     }
 

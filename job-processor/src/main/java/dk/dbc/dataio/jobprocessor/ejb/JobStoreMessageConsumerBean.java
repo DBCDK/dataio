@@ -14,6 +14,8 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.jms.artemis.AdminClient;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
@@ -27,9 +29,11 @@ import javax.ejb.Schedule;
 import javax.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Handles Chunk messages received from the job-store
@@ -52,6 +56,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreMessageConsumerBean.class);
     private static final Duration SLOW_THRESHOLD_MS = Duration.ofMinutes(2);
+    private static final Duration STALE_JMS_PROVIDER = Duration.ofMinutes(5);
+    private static final int STALE_THRESHOLD = 20;
+    private Map<String, String> activationProps = Map.of();
+    private AdminClient adminClient;
 
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnector;
@@ -60,8 +68,26 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     @EJB
     CapacityBean capacityBean;
 
+    @EJB
+    private HealthBean healthBean;
+
     @Inject
     private MetricRegistry metricRegistry;
+
+    @Inject
+    @ConfigProperty(name = "ARTEMIS_MQ_HOST")
+    private String artemisHost;
+
+    @Inject
+    @ConfigProperty(name = "ARTEMIS_ADMIN_PORT")
+    private Integer artemisPort;
+
+    @Inject
+    @ConfigProperty(name = "ARTEMIS_USER")
+    private String artemisUser;
+    @Inject
+    @ConfigProperty(name = "ARTEMIS_PASSWORD")
+    private String artemisPassword;
 
     private final JSONBContext jsonbContext = new JSONBContext();
 
@@ -69,6 +95,10 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
 
     @PostConstruct
     public void init() {
+        adminClient = artemisPort == null ? null : new AdminClient("http://" + artemisHost + ":" + artemisPort, artemisUser, artemisPassword);
+        activationProps = Arrays.stream(getClass()
+                        .getAnnotation(MessageDriven.class).activationConfig())
+                .collect(Collectors.toMap(ActivationConfigProperty::propertyName, ActivationConfigProperty::propertyValue));
         metricRegistry.gauge("dataio_jobprocessor_chunk_duration_ms", this::getLongestRunningChunkDuration);
     }
 
@@ -99,6 +129,18 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
                 .findFirst()
                 .map(Map.Entry::getKey)
                 .ifPresent(this::timeoutChunk);
+        Duration sinceLastRun = Duration.ofMillis(getTimeSinceLastMessage());
+        LOGGER.info("Time since last message: {}", sinceLastRun);
+        if(adminClient != null && sinceLastRun.compareTo(STALE_JMS_PROVIDER) >= 0) {
+            String messageSelector = "shard = '" + System.getenv("PROCESSOR_SHARD") + "'";
+            int count = adminClient.countMessages("jmsDataioProcessor", "jmsDataioProcessor", activationProps.get("messageSelector"));
+
+            LOGGER.info("Messages on queue: {}, with filter: {}", count, messageSelector);
+            if(count > STALE_THRESHOLD) {
+                LOGGER.error("MessageBean has gone stale, marking the server down");
+                healthBean.signalTerminallyIll(new IllegalStateException("Message bean seems to be stuck"));
+            }
+        }
     }
 
     private long getLongestRunningChunkDuration() {

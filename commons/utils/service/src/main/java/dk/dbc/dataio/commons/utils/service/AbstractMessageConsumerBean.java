@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 @LocalBean
 public abstract class AbstractMessageConsumerBean {
@@ -37,12 +38,14 @@ public abstract class AbstractMessageConsumerBean {
     protected MessageDrivenContext messageDrivenContext;
     @Inject
     private MetricRegistry metricRegistry;
-    private static final AtomicInteger RUNNING_TRANSACTIONS = new AtomicInteger(0);
+    protected static final AtomicInteger RUNNING_TRANSACTIONS = new AtomicInteger(0);
+    protected static final AtomicLong LAST_MESSAGE_TS = new AtomicLong(System.currentTimeMillis());
 
     @PostConstruct
     @SuppressWarnings("PMD")
     private void initMetrics() {
         if(metricRegistry != null) metricRegistry.gauge("dataio_running_transactions", RUNNING_TRANSACTIONS::get);
+        if(metricRegistry != null) metricRegistry.gauge("dataio_time_since_last_message_ms",this::getTimeSinceLastMessage);
     }
 
     /**
@@ -107,8 +110,9 @@ public abstract class AbstractMessageConsumerBean {
      */
     public void onMessage(Message message) throws IllegalStateException {
         RUNNING_TRANSACTIONS.incrementAndGet();
-        String messageId = null;
         Instant startTime = Instant.now();
+        LAST_MESSAGE_TS.set(startTime.toEpochMilli());
+        String messageId = null;
         List<Tag> tags = new ArrayList<>();
         try {
             tags.add(new Tag("destination", Optional.ofNullable(message.getJMSDestination()).map(Object::toString).orElse("none")));
@@ -138,6 +142,10 @@ public abstract class AbstractMessageConsumerBean {
             }
             RUNNING_TRANSACTIONS.decrementAndGet();
         }
+    }
+
+    public long getTimeSinceLastMessage() {
+        return System.currentTimeMillis() - LAST_MESSAGE_TS.get();
     }
 
     /**

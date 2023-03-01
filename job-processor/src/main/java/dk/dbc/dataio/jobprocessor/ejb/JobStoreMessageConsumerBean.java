@@ -133,7 +133,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         LOGGER.info("Time since last message: {}", sinceLastRun);
         if(adminClient != null && sinceLastRun.compareTo(STALE_JMS_PROVIDER) >= 0) {
             String messageSelector = "shard = '" + System.getenv("PROCESSOR_SHARD") + "'";
-            int count = adminClient.countMessages("jmsDataioProcessor", "jmsDataioProcessor", activationProps.get("messageSelector"));
+            int count = adminClient.countMessages("jmsDataioProcessor", "jmsDataioProcessor", messageSelector);
 
             LOGGER.info("Messages on queue: {}, with filter: {}", count, messageSelector);
             if(count > STALE_THRESHOLD) {

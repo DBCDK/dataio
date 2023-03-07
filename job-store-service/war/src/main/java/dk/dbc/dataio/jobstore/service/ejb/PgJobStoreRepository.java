@@ -14,6 +14,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowConverter;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -57,6 +58,7 @@ import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.CoderMalfunctionError;
@@ -116,6 +118,27 @@ public class PgJobStoreRepository extends RepositoryBase {
     public long countJobs(String query) throws NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(query, "query");
         return new JobListQuery(entityManager).count(query);
+    }
+
+    public long getChunksToBeResetForState(DependencyTrackingEntity.ChunkSchedulingStatus status) {
+        TypedQuery<Long> q = entityManager
+                .createNamedQuery(DependencyTrackingEntity.CHUNKS_IN_STATE, Long.class);
+        q.setParameter("status", status);
+        return q.getSingleResult();
+    }
+
+    public void resetStatus(DependencyTrackingEntity.ChunkSchedulingStatus fromStatus,
+                            DependencyTrackingEntity.ChunkSchedulingStatus toStatus) {
+        Query q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING);
+        q.setParameter("fromStatus", fromStatus);
+        q.setParameter("toStatus", toStatus);
+        q.executeUpdate();
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void resetChunk(DependencyTrackingEntity e, DependencyTrackingEntity.ChunkSchedulingStatus status) {
+        e.setStatus(status);
+        entityManager.persist(e);
     }
 
     public List<ItemInfoSnapshot> listItems(String query)

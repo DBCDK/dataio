@@ -1,4 +1,4 @@
-package dk.dbc.dataio.commons.utils.service;
+package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.jms.artemis.AdminClient;
 import org.eclipse.microprofile.config.inject.ConfigProperty;

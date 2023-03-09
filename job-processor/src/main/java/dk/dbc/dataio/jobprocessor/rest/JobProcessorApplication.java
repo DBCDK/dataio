@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobprocessor.rest;
 
-import dk.dbc.dataio.commons.utils.service.JMSConnectionDetach;
+import dk.dbc.dataio.jobprocessor.ejb.JMSConnectionDetach;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;

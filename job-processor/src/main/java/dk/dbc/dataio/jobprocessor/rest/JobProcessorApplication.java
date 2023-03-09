@@ -1,9 +1,9 @@
 package dk.dbc.dataio.jobprocessor.rest;
 
+import dk.dbc.dataio.commons.utils.service.JMSConnectionDetach;
+
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -15,6 +15,6 @@ public class JobProcessorApplication extends Application {
 
     @Override
     public Set<Class<?>> getClasses() {
-        return new HashSet<>(Collections.singletonList(StatusBean.class));
+        return Set.of(StatusBean.class, JMSConnectionDetach.class);
     }
 }

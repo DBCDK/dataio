@@ -1,0 +1,6 @@
+# Please be aware that this file is not deployed as a part of the build process
+MAX_HEAP="256m"
+FTP_DIR="/data/ftp/datain"
+FILESTORE_SERVICE="http://dataio-filestore-service.metascrum-staging.svc.dbc.dk/dataio/file-store-service"
+JOBSTORE_SERVICE="http://dataio-jobstore-service.metascrum-staging.svc.dbc.dk/dataio/job-store-service"
+FLOWSTORE_SERVICE="http://dataio-flowstore-service.metascrum-staging.svc.dbc.dk/dataio/flow-store-service"

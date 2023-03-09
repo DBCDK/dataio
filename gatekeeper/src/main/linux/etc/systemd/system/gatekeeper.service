@@ -8,15 +8,18 @@ StartLimitBurst=3
 User=gkeep
 WorkingDirectory=/data/gkeep
 EnvironmentFile=/etc/gatekeeper
-ExecStart=/usr/bin/java -Dcom.sun.management.jmxremote.port=1868 \
-                                            -Dcom.sun.management.jmxremote.ssl=false \
-                                            -Dcom.sun.management.jmxremote.authenticate=false \
-                                            -Xmx${MAX_HEAP} \
-                                            -jar /home/gkeep/bin/dataio-gatekeeper.jar \
-                                            -d "${FTP_DIR}" \
-                                            -f "${FILESTORE_SERVICE}" \
-                                            -j "${JOBSTORE_SERVICE}" \
-                                            -c "${FLOWSTORE_SERVICE}"
+ExecStart=/usr/bin/java -Dcom.sun.management.jmxremote \
+                        -Dcom.sun.management.jmxremote.local.only=false \
+                        -Dcom.sun.management.jmxremote.ssl=false \
+                        -Dcom.sun.management.jmxremote.authenticate=false\
+                        -Dcom.sun.management.jmxremote.rmi.port=1868 \
+                        -Dcom.sun.management.jmxremote.port=1868 \
+                        -Xmx${MAX_HEAP} \
+                        -jar /home/gkeep/bin/dataio-gatekeeper.jar \
+                        -d "${FTP_DIR}" \
+                        -f "${FILESTORE_SERVICE}" \
+                        -j "${JOBSTORE_SERVICE}" \
+                        -c "${FLOWSTORE_SERVICE}"
 Restart=always
 RestartSec=10
 TimeoutStopSec=60

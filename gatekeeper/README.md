@@ -78,3 +78,7 @@ Gate keeper relies on a couple of other DataIO service and an incoming ftp direc
 ## Deployment
 Gatekeeper basically conists of a jar file, a configuration and a service definition. Of these only the jar file is deployed by jenkins,
 everything else is maintained manually.
+
+
+## install.sh
+This install script was not actually used to install a server, but more a recollection of what was done, so handle with care.  

@@ -286,11 +286,12 @@ public class HarvestOperation implements AutoCloseable {
     }
 
     private HarvesterJobBuilder getHarvesterJobBuilder(int agencyId) throws HarvesterException {
-        if (!harvesterJobBuilders.containsKey(agencyId)) {
-            harvesterJobBuilders.put(agencyId, harvesterJobBuilderFactory
-                    .newHarvesterJobBuilder(getJobSpecificationTemplate(agencyId)));
+        HarvesterJobBuilder job = harvesterJobBuilders.get(agencyId);
+        if(job == null) {
+            job = harvesterJobBuilderFactory.newHarvesterJobBuilder(getJobSpecificationTemplate(agencyId));
+            harvesterJobBuilders.put(agencyId, job);
         }
-        return harvesterJobBuilders.get(agencyId);
+        return job;
     }
 
     private void closeHarvesterJobBuilders() {

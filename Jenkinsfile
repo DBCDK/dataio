@@ -70,7 +70,7 @@ pipeline {
                     docker tag docker-metascrum.artifacts.dbccloud.dk/gatekeeper-staging:devel docker-metascrum.artifacts.dbccloud.dk/gatekeeper-staging:DIT-${env.BUILD_NUMBER}
                     docker tag docker-metascrum.artifacts.dbccloud.dk/jmx-exporter:devel docker-metascrum.artifacts.dbccloud.dk/jmx-exporter:DIT-${env.BUILD_NUMBER}
                     docker push docker-metascrum.artifacts.dbccloud.dk/gatekeeper-staging:DIT-${env.BUILD_NUMBER}
-                    docker push docker-metascrum.artifacts.dbccloud.dk/jmx-exporter:DIT-${env.BUILD_NUMBER}
+                    docker push docker-metascrum.artifacts.dbccloud.dk/gatekeeper-jmx-exporter:DIT-${env.BUILD_NUMBER}
                 """
                 script {
                     stash includes: "docker-images.log", name: docker_images_log_stash_tag

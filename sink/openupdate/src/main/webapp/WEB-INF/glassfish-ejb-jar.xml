@@ -3,11 +3,6 @@
 <glassfish-ejb-jar>
   <enterprise-beans>
     <ejb>
-      <ejb-name>ConversionFinalizerBean</ejb-name>
-      <!-- 8 hours -->
-      <cmt-timeout-in-seconds>28800</cmt-timeout-in-seconds>
-    </ejb>
-    <ejb>
       <ejb-name>openUpdateListener</ejb-name>
       <bean-pool>
         <steady-pool-size>1</steady-pool-size>

@@ -44,7 +44,8 @@ import java.nio.charset.StandardCharsets;
         @ActivationConfigProperty(propertyName = "initialRedeliveryDelay", propertyValue = "5000"),
         @ActivationConfigProperty(propertyName = "redeliveryBackOffMultiplier", propertyValue = "4"),
         @ActivationConfigProperty(propertyName = "maximumRedeliveries", propertyValue = "3"),
-        @ActivationConfigProperty(propertyName = "redeliveryUseExponentialBackOff", propertyValue = "true")
+        @ActivationConfigProperty(propertyName = "redeliveryUseExponentialBackOff", propertyValue = "true"),
+        @ActivationConfigProperty(propertyName = "MaxSession", propertyValue = "4")
 })
 public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateMessageProcessorBean.class);

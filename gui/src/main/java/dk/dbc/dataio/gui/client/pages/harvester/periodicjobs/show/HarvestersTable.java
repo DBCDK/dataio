@@ -37,6 +37,7 @@ public class HarvestersTable extends CellTable {
         addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
         addColumn(constructResourceColumn(), textWithToolTip(texts.columnHeader_Resource(), texts.help_Resource()));
         addColumn(constructCollectionColumn(), textWithToolTip(texts.columnHeader_Collection(), texts.help_Collection()));
+        addColumn(constructHoldingsSolrUrl(), textWithToolTip(texts.columnHeader_HoldingsSolrUrl(), texts.help_HoldingsSolrUrl()));
         addColumn(constructDestinationColumn(), texts.columnHeader_Destination());
         addColumn(constructFormatColumn(), texts.columnHeader_Format());
         addColumn(constructSubmitterColumn(), texts.columnHeader_SubmitterNumber());
@@ -112,6 +113,15 @@ public class HarvestersTable extends CellTable {
             @Override
             public String getValue(PeriodicJobsHarvesterConfig config) {
                 return config.getContent().getCollection();
+            }
+        };
+    }
+
+    private Column constructHoldingsSolrUrl() {
+        return new TextColumn<PeriodicJobsHarvesterConfig>() {
+            @Override
+            public String getValue(PeriodicJobsHarvesterConfig config) {
+                return config.getContent().getHoldingsSolrUrl();
             }
         };
     }
@@ -217,6 +227,8 @@ public class HarvestersTable extends CellTable {
                 return texts.columnValue_HarvesterType_DAILY_PROOFING();
             case SUBJECT_PROOFING:
                 return texts.columnValue_HarvesterType_SUBJECT_PROOFING();
+            case STANDARD_WITH_HOLDINGS:
+                return texts.columnValue_HarvesterType_STANDARD_WITH_HOLDINGS();
             default:
                 return type.name();
         }

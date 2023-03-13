@@ -22,6 +22,7 @@
                 <prompted:item value="STANDARD"><g:Label><ui:text from="{txt.selection_HarvesterType_STANDARD}"/></g:Label></prompted:item>
                 <prompted:item value="DAILY_PROOFING"><g:Label><ui:text from="{txt.selection_HarvesterType_DAILY_PROOFING}"/></g:Label></prompted:item>
                 <prompted:item value="SUBJECT_PROOFING"><g:Label><ui:text from="{txt.selection_HarvesterType_SUBJECT_PROOFING}"/></g:Label></prompted:item>
+                <prompted:item value="STANDARD_WITH_HOLDINGS"><g:Label><ui:text from="{txt.selection_HarvesterType_STANDARD_WITH_HOLDINGS}"/></g:Label></prompted:item>
             </prompted:PromptedList>
         </li>
         <li><prompted:PromptedTextBox ui:field="name" guiId="harvesternamepanel" prompt="{txt.prompt_Name}"/></li>
@@ -34,6 +35,17 @@
         </prompted:PromptedAnchorWithButton></li>
         <li><prompted:PromptedFileStoreUpload ui:field="fileStoreUpload" guiId="harvesterqueryfileidpanel" prompt=""/></li>
         <li><prompted:PromptedTextBox ui:field="collection" guiId="harvestercollectionpanel" prompt="{txt.prompt_Collection}"/></li>
+
+        <g:HTMLPanel ui:field="holdingsSection" visible="false">
+            <li><prompted:PromptedTextBox ui:field="holdingsSolrUrl" guiId="holdingssolryrl" prompt="{txt.prompt_HoldingsSolrUrl}"/></li>
+            <li>
+                <prompted:PromptedList ui:field="holdingsTypeSelection" visibleItems="1" guiId="holdingstypeselection" prompt="{txt.prompt_HoldingsType}" multiSelect="false" enabled="true">
+                    <prompted:item value="WITH_HOLDINGS"><g:Label><ui:text from="{txt.selection_HoldingsType_INCLUSIVE}"/></g:Label></prompted:item>
+                    <prompted:item value="WITHOUT_HOLDINGS"><g:Label><ui:text from="{txt.selection_HoldingsType_EXCLUSIVE}"/></g:Label></prompted:item>
+                </prompted:PromptedList>
+            </li>
+        </g:HTMLPanel>
+
         <li><prompted:PromptedTextBox ui:field="destination" guiId="harvesterdestinationpanel" prompt="{txt.prompt_Destination}" maxLength="160"/></li>
         <li><prompted:PromptedTextBox ui:field="format" guiId="harvesterformatpanel" prompt="{txt.prompt_Format}"/></li>
         <li><prompted:PromptedTextBox ui:field="submitter" guiId="harvestersubmitterpanel" prompt="{txt.prompt_Submitter}"/></li>

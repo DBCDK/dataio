@@ -149,6 +149,20 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         commonInjector.getFileStoreProxyAsync().removeFile(fileId, new FileStoreFileAsyncCallback());
     }
 
+    @Override
+    public void holdingsSolrUrlChanged(String url) {
+        if (config != null) {
+            config.getContent().withHoldingsSolrUrl(url);
+        }
+    }
+
+    @Override
+    public void holdingsTypeSelectionChanged(PeriodicJobsHarvesterConfig.HoldingsFilter holdingsFilter) {
+        if (config != null) {
+            config.getContent().withHoldingsFilter(holdingsFilter);
+        }
+    }
+
     class FileStoreFileAsyncCallback implements AsyncCallback<Void> {
         @Override
         public void onFailure(Throwable e) {

@@ -115,6 +115,19 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         }
     }
 
+    private void handleHarvesterType() {
+        if (config != null) {
+            final View view = getView();
+            view.holdingsSection.setVisible(false);
+
+            if (config.getContent().getHarvesterType() == PeriodicJobsHarvesterConfig.HarvesterType.STANDARD_WITH_HOLDINGS) {
+                view.holdingsSection.setVisible(true);
+                view.holdingsTypeSelection.setValue(config.getContent().getHoldingsFilter().name());
+                view.holdingsSolrUrl.setText(config.getContent().getHoldingsSolrUrl());
+            }
+        }
+    }
+
     class GetPeriodicJobsHarvesterConfigAsyncCallback implements AsyncCallback<PeriodicJobsHarvesterConfig> {
         @Override
         public void onFailure(Throwable e) {
@@ -130,6 +143,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             } else {
                 setConfig(config);
                 handlePickupType();
+                handleHarvesterType();
             }
         }
     }

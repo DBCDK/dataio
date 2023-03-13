@@ -29,6 +29,12 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
     }
 
     @Override
+    public void harvesterTypeChanged(PeriodicJobsHarvesterConfig.HarvesterType harvesterType) {
+        super.harvesterTypeChanged(harvesterType);
+        handleHarvesterType(harvesterType);
+    }
+
+    @Override
     public void initializeModel() {
         final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
@@ -42,6 +48,7 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
                         .withFormat("")
                         .withSubmitterNumber("")
                         .withContact("")
+                        .withHoldingsSolrUrl("")
                         .withEnabled(false));
         setConfig(config);
     }
@@ -91,6 +98,17 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
             config.getContent().withPickup(null);
             view.contentHeader.setVisible(false);
             view.contentFooter.setVisible(false);
+        }
+    }
+
+    private void handleHarvesterType(PeriodicJobsHarvesterConfig.HarvesterType harvesterType) {
+        final View view = getView();
+
+        view.holdingsSection.setVisible(false);
+        if (harvesterType == PeriodicJobsHarvesterConfig.HarvesterType.STANDARD_WITH_HOLDINGS) {
+            config.getContent().withHoldingsFilter(PeriodicJobsHarvesterConfig.HoldingsFilter.WITHOUT_HOLDINGS);
+            config.getContent().withHoldingsSolrUrl("");
+            view.holdingsSection.setVisible(true);
         }
     }
 

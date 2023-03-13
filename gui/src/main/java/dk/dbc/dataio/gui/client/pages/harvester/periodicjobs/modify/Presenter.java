@@ -24,6 +24,10 @@ public interface Presenter extends GenericPresenter {
 
     void collectionChanged(String collection);
 
+    void holdingsTypeSelectionChanged(PeriodicJobsHarvesterConfig.HoldingsFilter holdingsFilter);
+
+    void holdingsSolrUrlChanged(String holdingsSolrUrl);
+
     void destinationChanged(String destination);
 
     void formatChanged(String format);

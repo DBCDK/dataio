@@ -48,6 +48,7 @@ public class HarvestersTableTest {
                         .withDescription("-description-")
                         .withResource("jdbc/dataio/rawrepo-cisterne")
                         .withCollection("-collection-")
+                        .withHoldingsSolrUrl("-holdings-solr-url-")
                         .withDestination("-destination-")
                         .withFormat("-format-")
                         .withSubmitterNumber("123456")
@@ -65,19 +66,21 @@ public class HarvestersTableTest {
                 is("cisterne"));
         assertThat("Collection column", harvestersTable.getColumn(4).getValue(config),
                 is(config.getContent().getCollection()));
-        assertThat("Destination column", harvestersTable.getColumn(5).getValue(config),
+        assertThat("HoldingsSolrUrl column", harvestersTable.getColumn(5).getValue(config),
+                is(config.getContent().getHoldingsSolrUrl()));
+        assertThat("Destination column", harvestersTable.getColumn(6).getValue(config),
                 is(config.getContent().getDestination()));
-        assertThat("Format column", harvestersTable.getColumn(6).getValue(config),
+        assertThat("Format column", harvestersTable.getColumn(7).getValue(config),
                 is(config.getContent().getFormat()));
-        assertThat("Submitter column", harvestersTable.getColumn(7).getValue(config),
+        assertThat("Submitter column", harvestersTable.getColumn(8).getValue(config),
                 is(config.getContent().getSubmitterNumber()));
-        assertThat("HarvesterType column", harvestersTable.getColumn(8).getValue(config),
+        assertThat("HarvesterType column", harvestersTable.getColumn(9).getValue(config),
                 is("std"));
-        assertThat("TimeOfLastHarvest column", harvestersTable.getColumn(9).getValue(config),
+        assertThat("TimeOfLastHarvest column", harvestersTable.getColumn(10).getValue(config),
                 is(Format.formatLongDate(config.getContent().getTimeOfLastHarvest())));
-        assertThat("Enabled column", harvestersTable.getColumn(10).getValue(config),
+        assertThat("Enabled column", harvestersTable.getColumn(11).getValue(config),
                 is(texts.value_Enabled()));
 
-        assertThat("Number of columns tested", harvestersTable.getColumnCount(), is(12));
+        assertThat("Number of columns tested", harvestersTable.getColumnCount(), is(13));
     }
 }

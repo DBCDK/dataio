@@ -8,12 +8,14 @@ import dk.dbc.dataio.commons.types.HarvesterToken;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 public class PeriodicJobsHarvesterConfig
         extends HarvesterConfig<PeriodicJobsHarvesterConfig.Content>
         implements Serializable {
 
-    public enum HarvesterType {STANDARD, DAILY_PROOFING, SUBJECT_PROOFING}
+    public enum HarvesterType {STANDARD, DAILY_PROOFING, SUBJECT_PROOFING, STANDARD_WITH_HOLDINGS}
+    public enum HoldingsFilter {WITH_HOLDINGS, WITHOUT_HOLDINGS}
 
     public enum PickupType {HTTP, MAIL, FTP, SFTP, ANY_SINK}
 
@@ -110,6 +112,10 @@ public class PeriodicJobsHarvesterConfig
          * Contact person eq. mail or initials
          */
         private String contact;
+
+        private HoldingsFilter holdingsFilter;
+
+        private String holdingsSolrUrl;
 
         public String getName() {
             return name;
@@ -251,6 +257,24 @@ public class PeriodicJobsHarvesterConfig
             return this;
         }
 
+        public HoldingsFilter getHoldingsFilter() {
+            return holdingsFilter;
+        }
+
+        public Content withHoldingsFilter(HoldingsFilter holdingsFilter) {
+            this.holdingsFilter = holdingsFilter;
+            return this;
+        }
+
+        public String getHoldingsSolrUrl() {
+            return holdingsSolrUrl;
+        }
+
+        public Content withHoldingsSolrUrl(String holdingsSolrUrl) {
+            this.holdingsSolrUrl = holdingsSolrUrl;
+            return this;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) {
@@ -265,43 +289,52 @@ public class PeriodicJobsHarvesterConfig
             if (enabled != content.enabled) {
                 return false;
             }
-            if (name != null ? !name.equals(content.name) : content.name != null) {
+            if (!Objects.equals(name, content.name)) {
                 return false;
             }
-            if (pickup != null ? !pickup.equals(content.pickup) : content.pickup != null) {
+            if (!Objects.equals(pickup, content.pickup)) {
                 return false;
             }
-            if (description != null ? !description.equals(content.description) : content.description != null) {
+            if (!Objects.equals(description, content.description)) {
                 return false;
             }
-            if (schedule != null ? !schedule.equals(content.schedule) : content.schedule != null) {
+            if (!Objects.equals(schedule, content.schedule)) {
                 return false;
             }
-            if (query != null ? !query.equals(content.query) : content.query != null) {
+            if (!Objects.equals(query, content.query)) {
                 return false;
             }
-            if (collection != null ? !collection.equals(content.collection) : content.collection != null) {
+            if (!Objects.equals(collection, content.collection)) {
                 return false;
             }
-            if (timeOfLastHarvest != null ? !timeOfLastHarvest.equals(content.timeOfLastHarvest) : content.timeOfLastHarvest != null) {
+            if (!Objects.equals(timeOfLastHarvest, content.timeOfLastHarvest)) {
                 return false;
             }
-            if (resource != null ? !resource.equals(content.resource) : content.resource != null) {
+            if (!Objects.equals(resource, content.resource)) {
                 return false;
             }
-            if (destination != null ? !destination.equals(content.destination) : content.destination != null) {
+            if (!Objects.equals(destination, content.destination)) {
                 return false;
             }
-            if (format != null ? !format.equals(content.format) : content.format != null) {
+            if (!Objects.equals(format, content.format)) {
                 return false;
             }
-            if (submitterNumber != null ? !submitterNumber.equals(content.submitterNumber) : content.submitterNumber != null) {
+            if (!Objects.equals(submitterNumber, content.submitterNumber)) {
                 return false;
             }
             if (harvesterType != content.harvesterType) {
                 return false;
             }
-            return contact != null ? contact.equals(content.contact) : content.contact == null;
+
+            if (!Objects.equals(holdingsFilter, content.holdingsFilter)) {
+                return false;
+            }
+
+            if (!Objects.equals(holdingsSolrUrl, content.holdingsSolrUrl)) {
+                return false;
+            }
+
+            return Objects.equals(contact, content.contact);
         }
 
         @Override
@@ -320,6 +353,8 @@ public class PeriodicJobsHarvesterConfig
             result = 31 * result + (submitterNumber != null ? submitterNumber.hashCode() : 0);
             result = 31 * result + (harvesterType != null ? harvesterType.hashCode() : 0);
             result = 31 * result + (contact != null ? contact.hashCode() : 0);
+            result = 31 * result + (holdingsFilter != null ? holdingsFilter.hashCode() : 0);
+            result = 31 * result + (holdingsSolrUrl != null ? holdingsSolrUrl.hashCode() : 0);
             return result;
         }
 

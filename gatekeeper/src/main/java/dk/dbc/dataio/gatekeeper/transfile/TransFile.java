@@ -94,10 +94,6 @@ public class TransFile {
         return isValid;
     }
 
-    public boolean isEmpty() {
-        return lines.isEmpty();
-    }
-
     public boolean isStalled() {
         return isStalled(path);
     }

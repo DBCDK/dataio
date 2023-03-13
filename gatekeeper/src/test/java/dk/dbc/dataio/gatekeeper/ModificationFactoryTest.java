@@ -14,6 +14,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,9 +38,10 @@ public class ModificationFactoryTest {
         final TransFile transfile = createTransfile("123456.trans", "slut");
         final ModificationFactory modificationFactory = new ModificationFactory(transfile);
         final List<Modification> modifications = modificationFactory.getModifications();
-        assertThat("Number of modifications", modifications.size(), is(1));
+        assertThat("Number of modifications", modifications.size(), is(2));
         assertThat("Modification opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_INVALID_TRANSFILE_NOTIFICATION));
-        assertThat("Modification arg", modifications.get(0).getArg(), is("Transfilen har intet indhold"));
+        assertThat("Modification opcode", modifications.get(1).getOpcode(), is(Opcode.DELETE_FILE));
+        assertThat("Modification arg", modifications.get(0).getArg(), is("Transfil har intet indhold"));
         assertThat("Modification trans file name", modifications.get(0).getTransfileName(), is(transfile.getPath().getFileName().toString()));
 
     }
@@ -175,6 +179,7 @@ public class ModificationFactoryTest {
     private TransFile createTransfile(String transfileName, String content) throws IOException {
         final Path transfilePath = testFolder.newFile(transfileName).toPath();
         writeFile(transfilePath, content);
+        Files.setLastModifiedTime(transfilePath, FileTime.from(Instant.now().minus(1, ChronoUnit.HOURS)));
         return new TransFile(transfilePath);
     }
 }

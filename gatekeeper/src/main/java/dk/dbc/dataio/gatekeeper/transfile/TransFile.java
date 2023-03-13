@@ -30,7 +30,7 @@ public class TransFile {
     private static final Pattern WHITESPACE = Pattern.compile("\\s+");
     private static final Pattern DATAFILE_NAME = Pattern.compile("^[-\\p{L}0-9._%]*$");
     private static final Logger LOGGER = LoggerFactory.getLogger(TransFile.class);
-    private static final Duration WAIT_FOR_TRANSFILE = Duration.ofMinutes(1);
+    private static final Duration WAIT_FOR_TRANSFILE = Duration.ofMinutes(5);
 
     private final Path path;
     private boolean isComplete = false;
@@ -98,10 +98,14 @@ public class TransFile {
         return lines.isEmpty();
     }
 
-    public boolean isBeingWritten() {
+    public boolean isStalled() {
+        return isStalled(path);
+    }
+
+    public static boolean isStalled(Path transfile) {
         try {
-            Duration elapsed = Duration.between(Files.getLastModifiedTime(path).toInstant(), Instant.now());
-            return elapsed.compareTo(WAIT_FOR_TRANSFILE) < 0;
+            Duration elapsed = Duration.between(Files.getLastModifiedTime(transfile).toInstant(), Instant.now());
+            return elapsed.compareTo(WAIT_FOR_TRANSFILE) > 0;
         } catch (IOException e) {
             return false;
         }
@@ -142,18 +146,17 @@ public class TransFile {
 
     private void verify() {
         if (isValid) { // only verify if transfile has not already been invalidated
+            final String transfileName = path.getFileName().toString();
+            if (WHITESPACE.matcher(transfileName).find()) {
+                invalidate("Transfilnavn indeholder blanktegn");
+                return;
+            }
             if(lines.isEmpty()) {
                 invalidate("Transfil har intet indhold");
                 return;
             }
             if (!isComplete) {
                 invalidate("Transfil mangler slut-linje");
-                return;
-            }
-
-            final String transfileName = path.getFileName().toString();
-            if (WHITESPACE.matcher(transfileName).find()) {
-                invalidate("Transfilnavn indeholder blanktegn");
                 return;
             }
 

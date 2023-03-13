@@ -85,11 +85,11 @@ public class JobDispatcherIT {
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshot());
     }
 
-    @Test(timeout = 50000)
+    @Test(timeout = 120000)
     public void emptyTransfilesProcessed() throws Throwable {
         // Given...
         Path transfile = writeFile(dir, "820010.trs", "");
-        Files.setLastModifiedTime(transfile, FileTime.from(Instant.now().minus(1, ChronoUnit.DAYS)));
+        Files.setLastModifiedTime(transfile, FileTime.from(Instant.now().minus(1, ChronoUnit.HOURS)));
         JobDispatcher jobDispatcher = getJobDispatcher();
         Thread t = getJobDispatcherThread(jobDispatcher);
 

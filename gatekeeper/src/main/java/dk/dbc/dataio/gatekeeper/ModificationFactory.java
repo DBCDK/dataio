@@ -39,7 +39,7 @@ public class ModificationFactory {
     public List<Modification> getModifications() {
         final ArrayList<Modification> modifications = new ArrayList<>();
         if (!transfile.isValid()) {
-            if(transfile.isBeingWritten()) return List.of();
+            if(!transfile.isComplete() && !transfile.isStalled()) return List.of();
             modifications.add(getCreateInvalidTransfileNotificationModification());
             modifications.add(getFileDeleteModification(transfile.getPath().getFileName().toString()));
         } else {

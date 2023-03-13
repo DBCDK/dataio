@@ -56,7 +56,7 @@ public class TransFileTest {
         final TransFile transFile = new TransFile(testFolder.newFile().toPath());
         assertThat("Transfile is invalid", transFile.isValid(), is(false));
         assertThat("Invalidation cause", transFile.getCauseForInvalidation(),
-                is("Transfil mangler slut-linje"));
+                is("Transfil har intet indhold"));
     }
 
     @Test

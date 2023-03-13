@@ -131,14 +131,13 @@ public class JobDispatcher {
                         throw new IllegalStateException("Directory monitoring overflowed");
                     } else {
                         final Path file = dir.resolve((Path) watchEvent.context());
-                        if (processIfCompleteTransfile(file)) {
-                            // Do occasional check for stalled transfiles
-                            processStalledTransfiles();
-                        }
+                        processIfCompleteTransfile(file);
                     }
                 }
                 key.reset();
             }
+            // Do occasional check for stalled transfiles
+            processStalledTransfiles();
             LIVENESS_COUNTER.incrementAndGet();
         }
     }

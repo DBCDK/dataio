@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +30,7 @@ public class TransFile {
     private static final Pattern WHITESPACE = Pattern.compile("\\s+");
     private static final Pattern DATAFILE_NAME = Pattern.compile("^[-\\p{L}0-9._%]*$");
     private static final Logger LOGGER = LoggerFactory.getLogger(TransFile.class);
+    private static final Duration WAIT_FOR_TRANSFILE = Duration.ofMinutes(1);
 
     private final Path path;
     private boolean isComplete = false;
@@ -91,6 +94,19 @@ public class TransFile {
         return isValid;
     }
 
+    public boolean isEmpty() {
+        return lines.isEmpty();
+    }
+
+    public boolean isBeingWritten() {
+        try {
+            Duration elapsed = Duration.between(Files.getLastModifiedTime(path).toInstant(), Instant.now());
+            return elapsed.compareTo(WAIT_FOR_TRANSFILE) < 0;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     /**
      * @return Transfile lines as unmodifiable list
      */
@@ -126,6 +142,10 @@ public class TransFile {
 
     private void verify() {
         if (isValid) { // only verify if transfile has not already been invalidated
+            if(lines.isEmpty()) {
+                invalidate("Transfil har intet indhold");
+                return;
+            }
             if (!isComplete) {
                 invalidate("Transfil mangler slut-linje");
                 return;

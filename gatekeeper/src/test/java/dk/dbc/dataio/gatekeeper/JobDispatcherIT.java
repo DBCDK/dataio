@@ -12,6 +12,7 @@ import dk.dbc.dataio.gatekeeper.operation.OperationExecutionException;
 import dk.dbc.dataio.gatekeeper.wal.ModificationLockedException;
 import dk.dbc.dataio.gatekeeper.wal.WriteAheadLog;
 import dk.dbc.dataio.gatekeeper.wal.WriteAheadLogH2;
+import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import org.junit.Before;
@@ -33,6 +34,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -41,6 +44,8 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JobDispatcherIT {
@@ -78,6 +83,29 @@ public class JobDispatcherIT {
         when(fileStoreServiceConnector.addFile(any(InputStream.class))).thenReturn("fileId");
         when(flowStoreServiceConnector.findAllGatekeeperDestinations()).thenReturn(gatekeeperDestinations);
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshot());
+    }
+
+    @Test(timeout = 50000)
+    public void emptyTransfilesProcessed() throws Throwable {
+        // Given...
+        Path transfile = writeFile(dir, "820010.trs", "");
+        Files.setLastModifiedTime(transfile, FileTime.from(Instant.now().minus(1, ChronoUnit.DAYS)));
+        JobDispatcher jobDispatcher = getJobDispatcher();
+        Thread t = getJobDispatcherThread(jobDispatcher);
+
+        try {
+            // When...
+            t.start();
+
+            // Then...
+            waitWhileFileExists(transfile);
+            assertThat("No exception from thread", exception, is(nullValue()));
+            assertThat("dir/820010.trs exists", Files.exists(transfile), is(false));
+            verify(jobStoreServiceConnector, times(1)).addNotification(any(AddNotificationRequest.class));
+            assertEmptyWal();
+        } finally {
+            t.interrupt();
+        }
     }
 
     /*

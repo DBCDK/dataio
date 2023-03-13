@@ -38,11 +38,8 @@ public class ModificationFactory {
      */
     public List<Modification> getModifications() {
         final ArrayList<Modification> modifications = new ArrayList<>();
-        if (transfile.getLines().isEmpty()) {
-            // Handle special case where transfile is empty.
-            // For now just move to posthus...
-            modifications.add(getCreateInvalidTransfileNotificationModification());
-        } else if (!transfile.isValid()) {
+        if (!transfile.isValid()) {
+            if(transfile.isBeingWritten()) return List.of();
             modifications.add(getCreateInvalidTransfileNotificationModification());
             modifications.add(getFileDeleteModification(transfile.getPath().getFileName().toString()));
         } else {
@@ -98,9 +95,6 @@ public class ModificationFactory {
         createNotification.setOpcode(Opcode.CREATE_INVALID_TRANSFILE_NOTIFICATION);
         createNotification.setTransfileName(transfile.getPath().getFileName().toString());
         String causeForInvalidation = transfile.getCauseForInvalidation();
-        if (causeForInvalidation == null || causeForInvalidation.isEmpty()) {
-            causeForInvalidation = "Transfilen har intet indhold";
-        }
         createNotification.setArg(causeForInvalidation);
         return createNotification;
     }

@@ -106,8 +106,6 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
 
         view.holdingsSection.setVisible(false);
         if (harvesterType == PeriodicJobsHarvesterConfig.HarvesterType.STANDARD_WITH_HOLDINGS) {
-            config.getContent().withHoldingsFilter(PeriodicJobsHarvesterConfig.HoldingsFilter.WITHOUT_HOLDINGS);
-            config.getContent().withHoldingsSolrUrl("");
             view.holdingsSection.setVisible(true);
         }
     }

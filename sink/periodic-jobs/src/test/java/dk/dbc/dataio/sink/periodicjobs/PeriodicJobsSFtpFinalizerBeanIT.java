@@ -86,7 +86,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
                         .withName("Deliver testÆØÅ")
                         .withSubmitterNumber("111111")
                         .withTimeOfLastHarvest(new Date())
-                        .withPickup(getPickup().withOverrideFilename("deliver_test"))));
+                        .withPickup(getPickup())));
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = newPeriodicJobsSFtpFinalizerBean();
         env().getPersistenceContext().run(() ->

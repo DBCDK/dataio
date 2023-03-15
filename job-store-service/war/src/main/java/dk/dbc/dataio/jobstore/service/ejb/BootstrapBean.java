@@ -12,7 +12,6 @@ import javax.ejb.Startup;
 import javax.ejb.TimerService;
 
 @Singleton
-
 @Startup
 @DependsOn("DatabaseMigrator")
 public class BootstrapBean {

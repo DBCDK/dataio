@@ -539,7 +539,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 || isUndefined(config.getContent().getDestination())
                 || isUndefined(config.getContent().getFormat())
                 || isUndefined(config.getContent().getContact())
-                || isInputFieldMissingFromPickup();
+                || isInputFieldMissingFromPickup()
+                || config.getContent().getHarvesterType() == PeriodicJobsHarvesterConfig.HarvesterType.STANDARD_WITH_HOLDINGS && (
+                isUndefined(config.getContent().getHoldingsSolrUrl()) || config.getContent().getHoldingsFilter() == null);
     }
 
     private boolean isInputFieldMissingFromPickup() {

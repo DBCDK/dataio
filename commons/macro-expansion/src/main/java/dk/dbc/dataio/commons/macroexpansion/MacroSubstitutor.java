@@ -196,7 +196,7 @@ public class MacroSubstitutor {
                 key -> String.format("%s", getYearAndWeek(nowUTC.minusWeeks(parseLong(dateStamp))))));
         getDateStampsToResolve(str, WEEK_PATTERN_PLUS).forEach(dateStamp -> substitutions.computeIfAbsent(
                 String.format("__WEEK_PLUS_%s__", dateStamp),
-                key -> String.format("%s", getYearAndWeek(nowUTC.minusWeeks(parseLong(dateStamp))))));
+                key -> String.format("%s", getYearAndWeek(nowUTC.plusWeeks(parseLong(dateStamp))))));
     }
 
     private List<String> getDateStampsToResolve(String str, Pattern pattern) {

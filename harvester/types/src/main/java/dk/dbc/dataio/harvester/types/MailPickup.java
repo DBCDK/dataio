@@ -8,7 +8,6 @@ public class MailPickup extends Pickup {
     private String mimetype;
     private String body;
     private Integer recordLimit;
-
     public MailPickup() {
         super();
     }
@@ -56,11 +55,6 @@ public class MailPickup extends Pickup {
     public MailPickup withRecordLimit(Integer recordLimit) {
         this.recordLimit = recordLimit;
         return this;
-    }
-
-    @Override
-    public Pickup withOverrideFilename(String overrideFilename) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Value not allowed for overrideFilename with type MailPickup");
     }
 
     @Override

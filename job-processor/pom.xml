@@ -122,11 +122,6 @@
       <version>2012.1-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${postgresql-driver.version}</version>
-    </dependency>
   </dependencies>
 
   <build>
@@ -213,7 +208,7 @@
             <id>prepare-build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-payara-jobprocessor</argument>
+                <argument>dbc-payara-jobprocessor2</argument>
               </arguments>
             </configuration>
           </execution>

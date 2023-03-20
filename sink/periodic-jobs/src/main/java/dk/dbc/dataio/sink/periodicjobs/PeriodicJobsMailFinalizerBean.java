@@ -147,7 +147,10 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
                 } else {
                     filenameExtension = mimeType;
                 }
-                attachmentBodyPart.setFileName(String.format("%s.%s", "delivery.data", filenameExtension));
+                String filename =  mailPickup.getOverrideFilename() != null ?
+                        mailPickup.getOverrideFilename() : "delivery.data";
+                attachmentBodyPart.setFileName(String.format("%s.%s", macroSubstitutor.replace(filename),
+                        filenameExtension));
                 multipart.addBodyPart(attachmentBodyPart);
                 message.setContent(multipart);
             } else {

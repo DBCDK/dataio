@@ -25,6 +25,8 @@ import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.annotation.Timed;
+import dk.dbc.jms.artemis.AdminClientFactory;
+import dk.dbc.jms.artemis.AdminClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,6 +104,8 @@ public class JobSchedulerBean {
     // If the Application is run in multiple JVM's the limiter is pr jvm not pr application
     static final ConcurrentHashMap<Long, JobSchedulerSinkStatus> sinkStatusMap = new ConcurrentHashMap<>(16, 0.9F, 1);
 
+    // Artemis admin client. Used for regularly ditch stale jms connections.
+    static final AdminClient adminClient = AdminClientFactory.getAdminClient();
     @Inject
     @JobstoreDB
     EntityManager entityManager;
@@ -172,6 +176,13 @@ public class JobSchedulerBean {
         } catch (FlowStoreServiceConnectorException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Schedule(second = "0", minute = "5", hour = "*", persistent = false)
+    public void cleanStaleJMSConnections() {
+        LOGGER.info("Cleaning stale artemis connections");
+        adminClient.resetStaleConnections("jmsDataioProcessor", null);
+        adminClient.resetStaleConnections("jmsDataioSinks", null);
     }
 
     /**

@@ -15,6 +15,7 @@
         <artemis-client.version>2.28.0</artemis-client.version>
         <micrometer.version>1.9.4</micrometer.version>
         <jetty.version>11.0.14</jetty.version>
+        <tag>devel</tag>
     </properties>
 
     <dependencies>
@@ -231,9 +232,10 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <tagName>devel</tagName>
                     <images>
                         <image>
-                            <name>docker-metascrum.artifacts.dbccloud.dk/dataio-%a:devel</name>
+                            <name>docker-metascrum.artifacts.dbccloud.dk/dataio-%a:${tag}</name>
                             <build>
                                 <from>docker-dbc.artifacts.dbccloud.dk/dbc-java11:master</from>
                                 <assemblies>
@@ -253,6 +255,9 @@
     <profiles>
         <profile>
             <id>docker-push</id>
+            <properties>
+                <tag>DIT-${BUILD_NUMBER}</tag>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -261,30 +266,13 @@
                         <version>0.42.0</version>
                         <executions>
                             <execution>
-                                <id>build</id>
-                                <phase>pre-integration-test</phase>
+                                <id>push</id>
+                                <phase>deploy</phase>
                                 <goals>
-                                    <goal>build</goal>
+                                    <goal>push</goal>
                                 </goals>
                             </execution>
                         </executions>
-                        <configuration>
-                            <images>
-                                <image>
-                                    <name>docker-metascrum.artifacts.dbccloud.dk/dataio-%a:devel</name>
-                                    <build>
-                                        <from>docker-dbc.artifacts.dbccloud.dk/dbc-java11:master</from>
-                                        <assemblies>
-                                            <assembly>
-                                                <descriptorRef>artifact</descriptorRef>
-                                                <targetDir>/work</targetDir>
-                                            </assembly>
-                                        </assemblies>
-                                        <cmd>java -jar -Xmx256m /work/${build.finalName}.jar</cmd>
-                                    </build>
-                                </image>
-                            </images>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>

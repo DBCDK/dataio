@@ -85,10 +85,8 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .onStartup();
         populateJobstoreDB(connectToJobstoreDB());
 
-        jobStoreServiceContainer = startJobStoreServiceContainer(network);
 
-        logstoreDBContainer = new DBCPostgreSQLContainer()
-                .withNetwork(network).withReuse(false);
+        logstoreDBContainer = new DBCPostgreSQLContainer().withNetwork(network).withReuse(false);
         logstoreDBContainer.start();
         logstoreDBContainer.exposeHostPort();
 
@@ -97,6 +95,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
         logstoreDbConnection = connectToLogstoreDB();
         populateLogstoreDB(logstoreDbConnection);
 
+        jobStoreServiceContainer = startJobStoreServiceContainer(network);
 
         final String jobStoreServiceBaseurl = "http://" + jobStoreServiceContainer.getContainerIpAddress() +
                 ":" + jobStoreServiceContainer.getMappedPort(8080) +

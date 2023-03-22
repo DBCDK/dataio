@@ -32,16 +32,18 @@ public class JMXMetricRegistry implements IMetricRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(JMXMetricRegistry.class);
     private static final MBeanServer beanServer = ManagementFactory.getPlatformMBeanServer();
     private static final Map<MetricID, Metric> map = new ConcurrentHashMap<>();
-    private static final JMXMetricRegistry INSTANCE = new JMXMetricRegistry();
+    private static final JMXMetricRegistry INSTANCE = new JMXMetricRegistry(true);
+    private boolean enableJMX = true;
 
-    private JMXMetricRegistry() {
+    protected JMXMetricRegistry(boolean enableJMX) {
+        this.enableJMX = enableJMX;
     }
 
     public static JMXMetricRegistry create() {
         return INSTANCE;
     }
 
-    public ObjectName makeObjectName(MetricID metricID) {
+    private ObjectName makeObjectName(MetricID metricID) {
         String name = null;
         try {
             String tags = metricID.getTags().entrySet().stream()
@@ -88,7 +90,7 @@ public class JMXMetricRegistry implements IMetricRegistry {
 
     private <T extends Metric> T registerBean(MetricID metricID, T metric) {
         try {
-            beanServer.registerMBean(metric, makeObjectName(metricID));
+            if(enableJMX) beanServer.registerMBean(metric, makeObjectName(metricID));
             return metric;
         } catch (NotCompliantMBeanException | InstanceAlreadyExistsException | MBeanRegistrationException e) {
             throw new RuntimeException(e);
@@ -104,7 +106,7 @@ public class JMXMetricRegistry implements IMetricRegistry {
     }
 
     public void removeAll() {
-        map.keySet().forEach(this::unregister);
+        if(enableJMX) map.keySet().forEach(this::unregister);
         map.clear();
     }
 

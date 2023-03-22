@@ -26,6 +26,7 @@
     <module>utils</module>
     <module>artemis-jms-base-image</module>
     <module>jmx-metric-registry</module>
+    <module>javascript</module>
   </modules>
 
 </project>

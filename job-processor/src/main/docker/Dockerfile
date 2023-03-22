@@ -1,4 +1,4 @@
-FROM docker-metascrum.artifacts.dbccloud.dk/dbc-payara-artemis-base:devel
+FROM docker-dbc.artifacts.dbccloud.dk/dbc-java11:master
 
 ARG build_number=unknown
 LABEL BuildNumber=$build_number

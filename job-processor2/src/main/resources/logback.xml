@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration scan="true">
+  <jmxConfigurator />
+  <shutdownHook/>
+  <contextName>${HOSTNAME}</contextName>
+  <!-- propagate changes to java.util.logging --> (1)
+  <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+    <resetJUL>true</resetJUL>
+  </contextListener>
+
+  <appender name="LOGSTORE" class="dk.dbc.dataio.logstore.logback.LogStoreMergingJdbcAppender">
+    <filter class="dk.dbc.dataio.logstore.logback.MdcKeyExistsFilter">
+      <MDCKey>logStoreTrackingId</MDCKey>
+      <OnMatch>ACCEPT</OnMatch>
+      <onMismatch>DENY</onMismatch>
+    </filter>
+
+    <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+      <driverClass>org.postgresql.Driver</driverClass>
+      <url>jdbc:postgresql://${LOGSTORE_DB_URL}</url>
+      <user>${LOGSTORE_DB_USER}</user>
+      <password>${LOGSTORE_DB_PASSWORD}</password>
+    </connectionSource>
+  </appender>
+
+  <appender name="STDOUT-json" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <fieldNames>
+        <timestamp>timestamp</timestamp>
+        <thread>thread</thread>
+        <logger>logger</logger>
+        <version>version</version>
+        <mdc>mdc</mdc>
+        <message>message</message>
+      </fieldNames>
+    </encoder>
+  </appender>
+
+  <appender name="ASYNC-json" class="ch.qos.logback.classic.AsyncAppender">
+    <filter class="dk.dbc.dataio.logstore.logback.MdcKeyExistsFilter">
+      <MDCKey>logStoreTrackingId</MDCKey>
+      <OnMatch>DENY</OnMatch>
+      <onMismatch>ACCEPT</onMismatch>
+    </filter>
+    <queueSize>1000</queueSize>
+    <discardingThreshold>0</discardingThreshold>
+    <appender-ref ref="STDOUT-json" />
+  </appender>
+
+  <appender name="STDOUT-json-include-caller-data" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <fieldNames>
+        <timestamp>timestamp</timestamp>
+        <thread>thread</thread>
+        <logger>logger</logger>
+        <version>version</version>
+        <mdc>mdc</mdc>
+        <message>message</message>
+      </fieldNames>
+      <includeCallerData>true</includeCallerData>
+    </encoder>
+  </appender>
+
+  <appender name="ASYNC-json-include-caller-data" class="ch.qos.logback.classic.AsyncAppender">
+    <filter class="dk.dbc.dataio.logstore.logback.MdcKeyExistsFilter">
+      <MDCKey>logStoreTrackingId</MDCKey>
+      <OnMatch>DENY</OnMatch>
+      <onMismatch>ACCEPT</onMismatch>
+    </filter>
+    <queueSize>1000</queueSize>
+    <discardingThreshold>0</discardingThreshold>
+    <appender-ref ref="STDOUT-json-include-caller-data" />
+    <includeCallerData>true</includeCallerData>
+  </appender>
+
+  <appender name="STDOUT-text" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <Pattern>%d{HH:mm:ss.SSS} %-5highlight([%level]) [%thread] %logger{52} - %msg%n</Pattern>
+    </encoder>
+  </appender>
+
+  <appender name="ASYNC-text" class="ch.qos.logback.classic.AsyncAppender">
+    <filter class="dk.dbc.dataio.logstore.logback.MdcKeyExistsFilter">
+      <MDCKey>logStoreTrackingId</MDCKey>
+      <OnMatch>DENY</OnMatch>
+      <onMismatch>ACCEPT</onMismatch>
+    </filter>
+    <queueSize>1000</queueSize>
+    <discardingThreshold>0</discardingThreshold>
+    <appender-ref ref="STDOUT-text" />
+  </appender>
+
+  <appender name="STDOUT-text-include-caller-data" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <Pattern>%d{HH:mm:ss.SSS} %-5highlight([%level]) [%thread] %logger{52} %file:%line %method - %msg%n</Pattern>
+    </encoder>
+  </appender>
+
+  <appender name="ASYNC-text-include-caller-data" class="ch.qos.logback.classic.AsyncAppender">
+    <filter class="dk.dbc.dataio.logstore.logback.MdcKeyExistsFilter">
+      <MDCKey>logStoreTrackingId</MDCKey>
+      <OnMatch>DENY</OnMatch>
+      <onMismatch>ACCEPT</onMismatch>
+    </filter>
+    <queueSize>1000</queueSize>
+    <discardingThreshold>0</discardingThreshold>
+    <appender-ref ref="STDOUT-text-include-caller-data" />
+    <includeCallerData>true</includeCallerData>
+  </appender>
+
+  <!-- LOGGER -->
+
+  <!-- org.glassfish.security.services.common.SecurityAccessValidator
+       generates excessive amounts of log at DEBUG level.
+       Note that placing the configuration in logging.properties instead
+       does not seem to have any effect. -->
+  <logger name="org.glassfish.security" level="INFO" />
+
+  <!-- Or else LOG_LEVEL=TRACE causes payara to fail during startup -->
+  <logger name="org.hibernate" level="INFO" />
+
+  <include file="${PAYARA_CONFIG_DIR}/loggers.xml"/>
+
+  <root level="${LOG_LEVEL}">
+    <appender-ref ref="ASYNC-${LOG_FORMAT}" />
+    <appender-ref ref="LOGSTORE"/>
+  </root>
+
+</configuration>

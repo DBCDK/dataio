@@ -246,7 +246,7 @@
         <profile>
             <id>docker-push</id>
             <properties>
-                <tag>test-${BUILD_NUMBER}</tag>
+                <tag>DIT-${BUILD_NUMBER}</tag>
             </properties>
             <build>
                 <plugins>

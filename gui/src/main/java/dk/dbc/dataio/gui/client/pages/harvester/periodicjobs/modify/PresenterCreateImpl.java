@@ -79,6 +79,7 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
         } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.MAIL) {
             config.getContent().withPickup(new MailPickup());
             view.mailSection.setVisible(true);
+            view.overrideFilename.setVisible(true);
         } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.FTP) {
             config.getContent().withPickup(new FtpPickup());
             view.overrideFilename.setVisible(true);

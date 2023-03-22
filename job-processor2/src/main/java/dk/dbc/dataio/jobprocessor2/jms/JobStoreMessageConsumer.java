@@ -58,12 +58,18 @@ public class JobStoreMessageConsumer implements MessageValidator {
         healthService = serviceHub.healthService;
         chunkProcessor = serviceHub.chunkProcessor;
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
-        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1, r -> new Thread(r, "zombie-watch"));
+        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1, this::makeWatchThread);
         scheduledExecutorService.scheduleAtFixedRate(this::zombieWatch, 1, 1, TimeUnit.MINUTES);
         adminClient = ARTEMIS_ADMIN_PORT.asOptionalInteger()
                 .map(port -> new AdminClient("http://" + ARTEMIS_MQ_HOST + ":" + port, ARTEMIS_USER.toString(), ARTEMIS_PASSWORD.toString()))
                 .orElse(null);
         Metric.dataio_jobprocessor_chunk_duration_ms.gauge(this::getLongestRunningChunkDuration);
+    }
+
+    private Thread makeWatchThread(Runnable runnable) {
+        Thread thread = new Thread(runnable, "zombie-watch");
+        thread.setDaemon(true);
+        return thread;
     }
 
     /**

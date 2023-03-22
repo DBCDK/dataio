@@ -117,13 +117,12 @@
     <module>gui</module>
     <module>harvester</module>
     <module>integration-test</module>
-    <module>job-processor</module>
     <module>job-store-service</module>
     <module>log-store-service</module>
     <module>performance-benchmarks</module>
     <module>sink</module>
     <module>commons/utils/openupdate-service-connector</module>
-      <module>job-processor2</module>
+    <module>job-processor2</module>
   </modules>
 
 

@@ -256,7 +256,7 @@
         <profile>
             <id>docker-push</id>
             <properties>
-                <tag>DIT-${BUILD_NUMBER}</tag>
+                <tag>test-${BUILD_NUMBER}</tag>
             </properties>
             <build>
                 <plugins>
@@ -267,7 +267,7 @@
                         <executions>
                             <execution>
                                 <id>push</id>
-                                <phase>deploy</phase>
+                                <phase>install</phase>
                                 <goals>
                                     <goal>push</goal>
                                 </goals>

@@ -40,7 +40,7 @@ public class ServiceHub implements AutoCloseable {
         private HealthService healthService = new HealthService(httpService);
         private MetricsService metricsService = new MetricsService(httpService, metricRegistry);
         private ChunkProcessor chunkProcessor = new ChunkProcessor(healthService);
-        private JobStoreServiceConnector jobStoreServiceConnector = Config.JOB_STORE.asOptionalString().map(js -> new JobStoreServiceConnector(ClientBuilder.newClient(), js)).orElse(null);
+        private JobStoreServiceConnector jobStoreServiceConnector = Config.JOB_STORE_URL.asOptionalString().map(js -> new JobStoreServiceConnector(ClientBuilder.newClient(), js)).orElse(null);
 
         public ServiceHub build() {
             return new ServiceHub(metricRegistry, httpService, healthService, metricsService, chunkProcessor, jobStoreServiceConnector);

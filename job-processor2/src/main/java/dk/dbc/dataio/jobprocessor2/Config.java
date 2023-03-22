@@ -3,8 +3,7 @@ package dk.dbc.dataio.jobprocessor2;
 import java.util.Optional;
 
 public enum Config {
-    WEB_PORT("8080"),
-    ARTEMIS_HOST,
+    WEB_PORT("8080"), ARTEMIS_MQ_HOST,
     ARTEMIS_JMS_PORT("61616"),
     ARTEMIS_ADMIN_PORT,
     ARTEMIS_USER,
@@ -12,7 +11,7 @@ public enum Config {
     QUEUE("jmsDataioProcessor"),
     RECONNECT_DELAY("PT10s"),
     MESSAGE_FILTER,
-    JOB_STORE;
+    JOB_STORE_URL;
 
     private final String defaultValue;
 

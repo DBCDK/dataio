@@ -34,7 +34,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static dk.dbc.dataio.jobprocessor2.Config.ARTEMIS_ADMIN_PORT;
-import static dk.dbc.dataio.jobprocessor2.Config.ARTEMIS_HOST;
+import static dk.dbc.dataio.jobprocessor2.Config.ARTEMIS_MQ_HOST;
 import static dk.dbc.dataio.jobprocessor2.Config.ARTEMIS_PASSWORD;
 import static dk.dbc.dataio.jobprocessor2.Config.ARTEMIS_USER;
 
@@ -61,7 +61,7 @@ public class JobStoreMessageConsumer implements MessageValidator {
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1, r -> new Thread(r, "zombie-watch"));
         scheduledExecutorService.scheduleAtFixedRate(this::zombieWatch, 1, 1, TimeUnit.MINUTES);
         adminClient = ARTEMIS_ADMIN_PORT.asOptionalInteger()
-                .map(port -> new AdminClient("http://" + ARTEMIS_HOST + ":" + port, ARTEMIS_USER.toString(), ARTEMIS_PASSWORD.toString()))
+                .map(port -> new AdminClient("http://" + ARTEMIS_MQ_HOST + ":" + port, ARTEMIS_USER.toString(), ARTEMIS_PASSWORD.toString()))
                 .orElse(null);
         Metric.dataio_jobprocessor_chunk_duration_ms.gauge(this::getLongestRunningChunkDuration);
     }

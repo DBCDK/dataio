@@ -84,7 +84,7 @@ pipeline {
             }
             steps {
                 sh """
-                    mvn deploy -Dmaven.test.skip=true -am -pl commons/utils/flow-store-service-connector -pl commons/utils/tickle-harvester-service-connector -pl gatekeeper
+                    mvn deploy -Dmaven.test.skip=true -Pdocker-push -am -pl commons/utils/flow-store-service-connector -pl commons/utils/tickle-harvester-service-connector -pl gatekeeper -pl job-processor2
                 """
             }
         }

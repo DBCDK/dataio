@@ -111,17 +111,6 @@
 
   <!-- LOGGER -->
 
-  <!-- org.glassfish.security.services.common.SecurityAccessValidator
-       generates excessive amounts of log at DEBUG level.
-       Note that placing the configuration in logging.properties instead
-       does not seem to have any effect. -->
-  <logger name="org.glassfish.security" level="INFO" />
-
-  <!-- Or else LOG_LEVEL=TRACE causes payara to fail during startup -->
-  <logger name="org.hibernate" level="INFO" />
-
-  <include file="${PAYARA_CONFIG_DIR}/loggers.xml"/>
-
   <root level="${LOG_LEVEL}">
     <appender-ref ref="ASYNC-${LOG_FORMAT}" />
     <appender-ref ref="LOGSTORE"/>

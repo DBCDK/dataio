@@ -75,6 +75,10 @@ public class FileFinderTest {
         final Path first = testFolder.newFile("2.trans").toPath();
         final Path second = testFolder.newFile("3.trans").toPath();
         final Path third = testFolder.newFile("1.trans").toPath();
+        long now = System.currentTimeMillis();
+        setFileCreationTime(first, now);
+        setFileCreationTime(second, now);
+        setFileCreationTime(third, now);
 
         final List<Path> matchingFiles = FileFinder.findFilesWithExtension(
                 testFolder.getRoot().toPath(), new HashSet<>(Collections.singletonList(".trans")));

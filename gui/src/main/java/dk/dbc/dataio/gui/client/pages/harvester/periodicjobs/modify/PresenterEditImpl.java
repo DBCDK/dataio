@@ -89,8 +89,10 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 view.mailSubject.setText(mailPickup.getSubject());
                 view.mailMimetype.setText(mailPickup.getMimetype());
                 view.mailBody.setValue(mailPickup.getBody());
+                view.overrideFilename.setValue(mailPickup.getOverrideFilename());
                 view.mailRecordLimit.setText(mailPickup.getRecordLimit() != null ? Integer.toString(mailPickup.getRecordLimit()) : "");
                 view.mailSection.setVisible(true);
+                view.overrideFilename.setVisible(true);
                 view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.MAIL.name());
             } else if (config.getContent().getPickup() instanceof FtpPickup) {
                 final FtpPickup ftpPickup = (FtpPickup) config.getContent().getPickup();

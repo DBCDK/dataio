@@ -137,7 +137,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
                         .withSubmitterNumber("111111")
                         .withTimeOfLastHarvest(new Date())
                         .withPickup(getPickup()
-                                .withOverrideFilename("testMyNewFileName.data")
+                                .withOverrideFilename("testMyNewFileName${__WEEKCODE_EMO__}.data")
                                 .withContentHeader("Ugekorrektur uge ${__WEEKCODE_EMO__}\n")
                                 .withContentFooter("\nslut uge ${__WEEKCODE_EMO__}"))));
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
@@ -146,7 +146,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
                 periodicJobsSFtpFinalizerBean.deliver(chunk, delivery));
 
         String dataSentUsingSFtp = fakeSFtpServer.getFileContent(
-                String.format("%s/%s", testDir, "testMyNewFileName.data"), StandardCharsets.UTF_8);
+                String.format("%s/%s", testDir, "testMyNewFileName202041.data"), StandardCharsets.UTF_8);
         assertThat("Content received", dataSentUsingSFtp, is("Ugekorrektur uge 202041\ngroupA\n0\n1\ngroupB\n2\nslut uge 202041"));
     }
 

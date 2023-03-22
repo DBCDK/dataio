@@ -60,7 +60,10 @@ public abstract class PeriodicJobsPickupFinalizer {
         // timestamp is carried through the entire dataIO
         // infrastructure for each job.
         return new MacroSubstitutor(delivery.getConfig().getContent().getTimeOfLastHarvest().toInstant(),
-                this::getWeekcode);
+                this::getWeekcode)
+                .add("__JOBID__", delivery.getJobId().toString())
+                .add("__TODAY__", LocalDate.now().toString())
+                .add("__JOBNAME__", delivery.getConfig().getContent().getName());
     }
 
     private boolean isIgnoredJob(long jobId) throws SinkException {
@@ -75,6 +78,7 @@ public abstract class PeriodicJobsPickupFinalizer {
     }
 
     String getRemoteFilename(PeriodicJobsDelivery delivery) {
+        final MacroSubstitutor macroSubstitutor = getMacroSubstitutor(delivery);
         String overideFilename = delivery.getConfig().getContent().getPickup().getOverrideFilename();
 
         if (overideFilename != null && !overideFilename.isEmpty()) {
@@ -84,7 +88,7 @@ public abstract class PeriodicJobsPickupFinalizer {
                 // remote filename value.
                 return overideFilename + "." + getDefaultRemoteFilename(delivery);
             }
-            return overideFilename;
+            return macroSubstitutor.replace(overideFilename);
         }
         return getDefaultRemoteFilename(delivery);
     }

@@ -234,7 +234,7 @@
                                         <targetDir>/work</targetDir>
                                     </assembly>
                                 </assemblies>
-                                <cmd>java -jar /work/${build.finalName}.jar</cmd>
+                                <cmd>java -jar -Xmx256m /work/${build.finalName}.jar</cmd>
                             </build>
                         </image>
                     </images>

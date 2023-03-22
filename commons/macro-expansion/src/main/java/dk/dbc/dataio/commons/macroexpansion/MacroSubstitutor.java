@@ -8,6 +8,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.IsoFields;
 import java.util.ArrayList;
@@ -28,6 +29,8 @@ public class MacroSubstitutor {
     private static final Pattern WEEKCODE_PATTERN = Pattern.compile("\\$\\{__WEEKCODE_([^_]+?)__\\}");
     private static final Pattern WEEKCODE_PATTERN_MINUS = Pattern.compile("\\$\\{__WEEKCODE_(.+?)_MINUS_(.+?)__\\}");
     private static final Pattern WEEKCODE_PATTERN_PLUS = Pattern.compile("\\$\\{__WEEKCODE_(.+?)_PLUS_(.+?)__\\}");
+    private static final Pattern WEEK_PATTERN_MINUS = Pattern.compile("\\$\\{__WEEK_MINUS_(.+?)__\\}");
+    private static final Pattern WEEK_PATTERN_PLUS = Pattern.compile("\\$\\{__WEEK_PLUS_(.+?)__\\}");
     private static final Pattern NOW_PATTERN_MINUS = Pattern.compile("\\$\\{__NOW_MINUS_(.+?)__\\}");
     private static final Pattern NOW_PATTERN_MINUS_TO_TODAY = Pattern.compile("\\$\\{__NOW_BACK_MINUS_(.+?)__\\}");
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSSX");
@@ -159,6 +162,7 @@ public class MacroSubstitutor {
     public String replace(String str) {
         setVariablesForCatalogueCodes(str);
         setVariablesForModifiedDateStamps(str);
+        setVariablesForWeeks(str);
         return new StringSubstitutor(substitutions).replace(str);
     }
 
@@ -182,6 +186,17 @@ public class MacroSubstitutor {
         getDateStampsToResolve(str, NOW_PATTERN_MINUS_TO_TODAY).forEach(dateStamp -> substitutions.computeIfAbsent(
                 String.format("__NOW_BACK_MINUS_%s__", dateStamp),
                 key -> String.format("%s", getDateInterval(nowUTC.minusDays(parseLong(dateStamp)), nowUTC))));
+    }
+
+    private void setVariablesForWeeks(String str) {
+        final ZonedDateTime nowUTC = convertToUtc(now);
+        substitutions.put("__WEEK__", getYearAndWeek(nowUTC));
+        getDateStampsToResolve(str, WEEK_PATTERN_MINUS).forEach(dateStamp -> substitutions.computeIfAbsent(
+                String.format("__WEEK_MINUS_%s__", dateStamp),
+                key -> String.format("%s", getYearAndWeek(nowUTC.minusWeeks(parseLong(dateStamp))))));
+        getDateStampsToResolve(str, WEEK_PATTERN_PLUS).forEach(dateStamp -> substitutions.computeIfAbsent(
+                String.format("__WEEK_PLUS_%s__", dateStamp),
+                key -> String.format("%s", getYearAndWeek(nowUTC.plusWeeks(parseLong(dateStamp))))));
     }
 
     private List<String> getDateStampsToResolve(String str, Pattern pattern) {
@@ -258,6 +273,10 @@ public class MacroSubstitutor {
         final String dateString = String.format("%d-%02d-%02d",
                 date.getYear(), date.getMonth().getValue(), date.getDayOfMonth());
         return String.format("%sT00:00:00Z", dateString);
+    }
+    private String getYearAndWeek(ZonedDateTime date) {
+        return String.format("%d%02d",
+                date.getYear(), date.get(ChronoField.ALIGNED_WEEK_OF_YEAR));
     }
 
     private String getDateInterval(ZonedDateTime date, ZonedDateTime toDate) {

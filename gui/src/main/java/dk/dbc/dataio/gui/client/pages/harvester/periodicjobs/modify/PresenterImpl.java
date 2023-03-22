@@ -252,10 +252,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void overrideFilenameChanged(String overrideFilename) throws UnsupportedOperationException {
-        if (config != null && !(config.getContent().getPickup() instanceof MailPickup)) {
+        if (config != null) {
             final Pickup pickup = config.getContent().getPickup();
             pickup.withOverrideFilename(overrideFilename);
-
         }
     }
 

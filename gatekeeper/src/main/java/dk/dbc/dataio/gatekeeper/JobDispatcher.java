@@ -16,14 +16,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -131,14 +128,13 @@ public class JobDispatcher {
                         throw new IllegalStateException("Directory monitoring overflowed");
                     } else {
                         final Path file = dir.resolve((Path) watchEvent.context());
-                        if (processIfCompleteTransfile(file)) {
-                            // Do occasional check for stalled transfiles
-                            processStalledTransfiles();
-                        }
+                        processIfCompleteTransfile(file);
                     }
                 }
                 key.reset();
             }
+            // Do occasional check for stalled transfiles
+            processStalledTransfiles();
             LIVENESS_COUNTER.incrementAndGet();
         }
     }
@@ -209,7 +205,7 @@ public class JobDispatcher {
      */
     List<TransFile> getStalledIncompleteTransfiles() throws UncheckedIOException, IOException {
         return FileFinder.findFilesWithExtension(dir, TRANSFILE_EXTENSIONS).stream()
-                .filter(this::isStalled)
+                .filter(TransFile::isStalled)
                 .map(TransFile::new)
                 .filter(transfile -> !transfile.isComplete())
                 .collect(Collectors.toList());
@@ -291,17 +287,5 @@ public class JobDispatcher {
                 throw new IllegalStateException(String.format("Unhandled opcode '%s'", modification.getOpcode()));
         }
         return op;
-    }
-
-    /* Returns true if file pointed to by given path has not been modified in
-       STALLED_TRANSFILE_THRESHOLD_IN_MS milliseconds or more, otherwise false */
-    private boolean isStalled(Path path) {
-        try {
-            final BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);
-            final FileTime lastModifiedTime = attributes.lastModifiedTime();
-            return System.currentTimeMillis() - lastModifiedTime.toMillis() >= STALLED_TRANSFILE_THRESHOLD_IN_MS;
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e);
-        }
     }
 }

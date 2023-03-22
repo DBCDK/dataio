@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +30,7 @@ public class TransFile {
     private static final Pattern WHITESPACE = Pattern.compile("\\s+");
     private static final Pattern DATAFILE_NAME = Pattern.compile("^[-\\p{L}0-9._%]*$");
     private static final Logger LOGGER = LoggerFactory.getLogger(TransFile.class);
+    private static final Duration WAIT_FOR_TRANSFILE = Duration.ofMinutes(5);
 
     private final Path path;
     private boolean isComplete = false;
@@ -91,6 +94,19 @@ public class TransFile {
         return isValid;
     }
 
+    public boolean isStalled() {
+        return isStalled(path);
+    }
+
+    public static boolean isStalled(Path transfile) {
+        try {
+            Duration elapsed = Duration.between(Files.getLastModifiedTime(transfile).toInstant(), Instant.now());
+            return elapsed.compareTo(WAIT_FOR_TRANSFILE) > 0;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     /**
      * @return Transfile lines as unmodifiable list
      */
@@ -126,14 +142,17 @@ public class TransFile {
 
     private void verify() {
         if (isValid) { // only verify if transfile has not already been invalidated
-            if (!isComplete) {
-                invalidate("Transfil mangler slut-linje");
-                return;
-            }
-
             final String transfileName = path.getFileName().toString();
             if (WHITESPACE.matcher(transfileName).find()) {
                 invalidate("Transfilnavn indeholder blanktegn");
+                return;
+            }
+            if(lines.isEmpty()) {
+                invalidate("Transfil har intet indhold");
+                return;
+            }
+            if (!isComplete) {
+                invalidate("Transfil mangler slut-linje");
                 return;
             }
 

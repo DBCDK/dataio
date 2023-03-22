@@ -74,7 +74,7 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dataio-job-processor</artifactId>
+            <artifactId>dataio-job-processor2</artifactId>
             <version>${project.version}</version>
             <classifier>classes</classifier>
         </dependency>

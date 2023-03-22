@@ -15,13 +15,13 @@ import javax.jms.Queue;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static dk.dbc.dataio.jobprocessor2.Config.ARTEMIS_HOST;
 import static dk.dbc.dataio.jobprocessor2.Config.ARTEMIS_JMS_PORT;
+import static dk.dbc.dataio.jobprocessor2.Config.ARTEMIS_MQ_HOST;
 
 public class Jobprocessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(Jobprocessor.class);
     private static final AtomicBoolean keepRunning = new AtomicBoolean(true);
-    private String brokerUrl = "tcp://" + ARTEMIS_HOST + ":" + ARTEMIS_JMS_PORT;
+    private String brokerUrl = "tcp://" + ARTEMIS_MQ_HOST + ":" + ARTEMIS_JMS_PORT;
     private static final Duration RECONNECT_DELAY = Duration.parse(Config.RECONNECT_DELAY.toString());
     ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
     MessageListener listener;

@@ -49,6 +49,7 @@ public class MetricsService {
         metricRegistry.gauge("base_memory_maxNonHeap_bytes", nonHeap::getMax);
     }
 
+    @SuppressWarnings("PMD")
     private void makePrometheusPage(HttpServletRequest request, HttpServletResponse response) throws IOException {
         PrintWriter writer = response.getWriter();
         metricRegistry.getMetrics().entrySet().stream()

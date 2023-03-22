@@ -47,18 +47,8 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dbc-jslib</artifactId>
-            <version>1.4-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.postgresql</groupId>
-                    <artifactId>postgresql</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>oracle</groupId>
-                    <artifactId>ojdbc7</artifactId>
-                </exclusion>
-            </exclusions>
+            <artifactId>dataio-javascript</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>

@@ -74,9 +74,8 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dataio-job-processor2</artifactId>
+            <artifactId>dataio-javascript</artifactId>
             <version>${project.version}</version>
-            <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>

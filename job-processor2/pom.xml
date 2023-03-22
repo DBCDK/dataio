@@ -225,7 +225,7 @@
                     <tagName>devel</tagName>
                     <images>
                         <image>
-                            <name>docker-metascrum.artifacts.dbccloud.dk/dataio-%a:${tag}</name>
+                            <name>docker-metascrum.artifacts.dbccloud.dk/%a:${tag}</name>
                             <build>
                                 <from>docker-dbc.artifacts.dbccloud.dk/dbc-java11:master</from>
                                 <assemblies>

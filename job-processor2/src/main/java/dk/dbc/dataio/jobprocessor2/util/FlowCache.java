@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.jobprocessor2.Metric;
 import dk.dbc.dataio.jobprocessor2.javascript.Script;
 import dk.dbc.dataio.jobprocessor2.javascript.StringSourceSchemeHandler;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * This class implements a LRU Flow cache with a simple get(key), put(key, flow) and containsKey(key)
@@ -26,6 +28,8 @@ public class FlowCache {
 
     // A LRU cache using a LinkedHashMap with access-ordering
     private final LinkedHashMap<String, FlowCacheEntry> flowCache;
+    private static final AtomicLong CACHE_HITS = new AtomicLong(0);
+    private static final AtomicLong CACHE_MISS = new AtomicLong(0);
 
     public FlowCache() {
         flowCache = new LinkedHashMap<>(CACHE_MAX_ENTRIES + 1, .75F, true) {
@@ -34,6 +38,14 @@ public class FlowCache {
                 return size() > CACHE_MAX_ENTRIES;
             }
         };
+        Metric.dataio_flow_cache_hit_rate.gauge(this::getHitRatePercentage);
+    }
+
+    private double getHitRatePercentage() {
+        long hits = CACHE_HITS.get();
+        long total = hits + CACHE_MISS.get();
+        if(total == 0) return -1;
+        return 100.0 * hits / total;
     }
 
     /**
@@ -49,7 +61,10 @@ public class FlowCache {
      * @return the value to which the specified key is mapped, or null if this cache contains no mapping for the key
      */
     public FlowCacheEntry get(String key) {
-        return flowCache.get(key);
+        FlowCacheEntry entry = flowCache.get(key);
+        if(entry == null) CACHE_MISS.incrementAndGet();
+        else CACHE_HITS.incrementAndGet();
+        return entry;
     }
 
     /**
@@ -76,10 +91,10 @@ public class FlowCache {
     }
 
     private static Script createScript(FlowComponentContent componentContent) throws Exception {
-        final StopWatch stopWatch = new StopWatch();
+        StopWatch stopWatch = new StopWatch();
         try {
-            final List<JavaScript> javaScriptsBase64 = componentContent.getJavascripts();
-            final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>(javaScriptsBase64.size());
+            List<JavaScript> javaScriptsBase64 = componentContent.getJavascripts();
+            List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>(javaScriptsBase64.size());
             for (JavaScript javascriptBase64 : javaScriptsBase64) {
                 javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(),
                         StringUtil.base64decode(javascriptBase64.getJavascript())));

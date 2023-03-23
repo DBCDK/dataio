@@ -241,7 +241,7 @@
                                         <targetDir>/work</targetDir>
                                     </assembly>
                                 </assemblies>
-                                <cmd>java -jar -Xmx${MAX_HEAP:-256m} /work/${build.finalName}.jar</cmd>
+                                <cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-256m} -jar /work/${build.finalName}.jar</cmd>
                             </build>
                         </image>
                     </images>

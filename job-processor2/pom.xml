@@ -234,13 +234,14 @@
                             <name>docker-metascrum.artifacts.dbccloud.dk/%a:${tag}</name>
                             <build>
                                 <from>docker-dbc.artifacts.dbccloud.dk/dbc-java11:master</from>
+                                <user>gfish</user>
                                 <assemblies>
                                     <assembly>
                                         <descriptorRef>artifact</descriptorRef>
                                         <targetDir>/work</targetDir>
                                     </assembly>
                                 </assemblies>
-                                <cmd>java -jar -Xmx256m /work/${build.finalName}.jar</cmd>
+                                <cmd>java -jar -Xmx${MAX_HEAP:-256m} /work/${build.finalName}.jar</cmd>
                             </build>
                         </image>
                     </images>

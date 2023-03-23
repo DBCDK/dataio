@@ -11,7 +11,7 @@ public enum Config {
     QUEUE("jmsDataioProcessor"),
     RECONNECT_DELAY("PT10s"),
     MESSAGE_FILTER,
-    JOB_STORE_URL;
+    JOBSTORE_URL;
 
     private final String defaultValue;
 

@@ -17,15 +17,19 @@ import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.weekresolver.WeekResolverConnector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.concurrent.ManagedExecutorService;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Specialized harvest operation for only records which doesn't have holdings
  */
 public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
     private final HoldingsItemsConnector holdingsItemsConnector;
+    private final static Logger LOGGER = LoggerFactory.getLogger(RecordsWithoutHoldingsHarvestOperation.class);
 
     public RecordsWithoutHoldingsHarvestOperation(PeriodicJobsHarvesterConfig config,
                                                   BinaryFileStore binaryFileStore,
@@ -33,7 +37,7 @@ public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
                                                   FlowStoreServiceConnector flowStoreServiceConnector,
                                                   JobStoreServiceConnector jobStoreServiceConnector,
                                                   WeekResolverConnector weekResolverConnector,
-                                                  ManagedExecutorService executor) {
+                                                  ExecutorService executor) {
         this(config, binaryFileStore, fileStoreServiceConnector, flowStoreServiceConnector, jobStoreServiceConnector,
                 weekResolverConnector, executor, null, null);
     }
@@ -44,7 +48,7 @@ public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
                                            FlowStoreServiceConnector flowStoreServiceConnector,
                                            JobStoreServiceConnector jobStoreServiceConnector,
                                            WeekResolverConnector weekResolverConnector,
-                                           ManagedExecutorService executor,
+                                           ExecutorService executor,
                                            RawRepoConnector rawRepoConnector,
                                            HoldingsItemsConnector holdingsItemsConnector) {
         super(config, binaryFileStore, fileStoreServiceConnector, flowStoreServiceConnector, jobStoreServiceConnector,
@@ -56,7 +60,7 @@ public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
     }
 
     private HoldingsItemsConnector createHoldingsItemsConnector(PeriodicJobsHarvesterConfig config) {
-        return new HoldingsItemsConnector(config.getContent().getResource());
+        return new HoldingsItemsConnector(config.getContent().getHoldingsSolrUrl());
     }
 
     @Override
@@ -82,14 +86,16 @@ public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
             final AddiMetaData addiMetaData = new AddiMetaData()
                     .withBibliographicRecordId(recordId.getBibliographicRecordId());
             try {
-                final Set<Integer> agenciesWithHoldings = holdingsItemsConnector.hasHoldings(recordId.getBibliographicRecordId(), null);
+                final Set<Integer> agenciesWithHoldings = holdingsItemsConnector
+                        .hasHoldings(recordId.getBibliographicRecordId(), Set.of(870970));
 
-                // If null is returned no job is created
+                // If zero is returned and WITH_HOLDINGS is specified no job is created
                 if (config.getContent().getHoldingsFilter() == PeriodicJobsHarvesterConfig.HoldingsFilter.WITH_HOLDINGS &&
                         agenciesWithHoldings.isEmpty()) {
                     return null;
                 }
 
+                // If zero is returned and WITHOUT_HOLDINGS is specified job is created
                 if (config.getContent().getHoldingsFilter() == PeriodicJobsHarvesterConfig.HoldingsFilter.WITHOUT_HOLDINGS &&
                         !agenciesWithHoldings.isEmpty()) {
                     return null;

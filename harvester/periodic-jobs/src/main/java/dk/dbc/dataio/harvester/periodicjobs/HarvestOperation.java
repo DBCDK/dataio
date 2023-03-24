@@ -28,7 +28,6 @@ import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.ws.rs.ProcessingException;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -42,6 +41,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 public class HarvestOperation {
@@ -55,7 +55,7 @@ public class HarvestOperation {
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final WeekResolverConnector weekResolverConnector;
-    private final ManagedExecutorService executor;
+    private final ExecutorService executor;
     private final RawRepoConnector rawRepoConnector;
     Date timeOfSearch;
 
@@ -65,7 +65,7 @@ public class HarvestOperation {
                             FlowStoreServiceConnector flowStoreServiceConnector,
                             JobStoreServiceConnector jobStoreServiceConnector,
                             WeekResolverConnector weekResolverConnector,
-                            ManagedExecutorService executor) {
+                            ExecutorService executor) {
         this(config,
                 binaryFileStore,
                 fileStoreServiceConnector,
@@ -82,7 +82,7 @@ public class HarvestOperation {
                      FlowStoreServiceConnector flowStoreServiceConnector,
                      JobStoreServiceConnector jobStoreServiceConnector,
                      WeekResolverConnector weekResolverConnector,
-                     ManagedExecutorService executor,
+                     ExecutorService executor,
                      RawRepoConnector rawRepoConnector) {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
@@ -228,6 +228,7 @@ public class HarvestOperation {
 
             return jobBuilder.getRecordsAdded();
         } catch (InterruptedException | ExecutionException | JobStoreServiceConnectorException e) {
+            LOGGER.error("Harvest operation exception:", e);
             throw new HarvesterException("Unable to complete harvest operation", e);
         } finally {
             recordIds.delete();

@@ -61,7 +61,7 @@ public class MetricsService {
         String name = idToName(id);
         MetricType metricType = MetricType.from(metric);
         if(metricType == null) return Stream.empty();
-        String type = "# TYPE " + name + " " + metricType.name;
+        String type = "# TYPE " + id.getName() + " " + metricType.name;
         String val = name + " " + metricType.value(metric);
         return Stream.of(type, val);
     }

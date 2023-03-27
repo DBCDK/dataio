@@ -17,10 +17,7 @@ import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.weekresolver.WeekResolverConnector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.enterprise.concurrent.ManagedExecutorService;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -29,7 +26,6 @@ import java.util.concurrent.ExecutorService;
  */
 public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
     private final HoldingsItemsConnector holdingsItemsConnector;
-    private final static Logger LOGGER = LoggerFactory.getLogger(RecordsWithoutHoldingsHarvestOperation.class);
 
     public RecordsWithoutHoldingsHarvestOperation(PeriodicJobsHarvesterConfig config,
                                                   BinaryFileStore binaryFileStore,

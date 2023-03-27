@@ -22,7 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -63,7 +63,7 @@ public class RecordsWithoutHoldingsHarvestOperationTest extends HarvestOperation
                 recordIdWithHoldings, recordServiceConnector, holdingsItemsConnector, configWithoutHoldings)
                 .call();
 
-        assertThat(addiRecord, nullValue());
+        assertThat(new String(addiRecord.getMetaData()), containsString("id1"));
     }
 
     @Test

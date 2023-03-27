@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.jobprocessor2.Config;
 import dk.dbc.dataio.jobprocessor2.Metric;
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,11 @@ public interface MessageValidator extends MessageListener {
     String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
     AtomicInteger RUNNING_TRANSACTIONS = new AtomicInteger(0);
     AtomicLong LAST_MESSAGE_TS = new AtomicLong(System.currentTimeMillis());
+
+    default void initMetrics(MetricRegistry metricRegistry) {
+        metricRegistry.gauge("dataio_running_transactions", RUNNING_TRANSACTIONS::get);
+        metricRegistry.gauge("dataio_time_since_last_message_ms",this::getTimeSinceLastMessage);
+    }
 
     default ConsumedMessage validateMessage(Message message) throws InvalidMessageException {
         if (message == null) {

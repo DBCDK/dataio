@@ -19,6 +19,7 @@ import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
 import dk.dbc.dataio.jobprocessor2.service.HealthFlag;
 import dk.dbc.dataio.jobprocessor2.service.HealthService;
 import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.dataio.registry.PrometheusMetricRegistry;
 import dk.dbc.jms.artemis.AdminClient;
 import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
@@ -64,6 +65,7 @@ public class JobStoreMessageConsumer implements MessageValidator {
                 .map(port -> new AdminClient("http://" + ARTEMIS_MQ_HOST + ":" + port, ARTEMIS_USER.toString(), ARTEMIS_PASSWORD.toString()))
                 .orElse(null);
         Metric.dataio_jobprocessor_chunk_duration_ms.gauge(this::getLongestRunningChunkDuration);
+        initMetrics(PrometheusMetricRegistry.create());
     }
 
     private Thread makeWatchThread(Runnable runnable) {

@@ -13,11 +13,14 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 
 public class HttpService implements AutoCloseable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpService.class);
     private final Server server = new Server();
     private final ServerConnector sc;
     private final ServletContextHandler context;
@@ -34,8 +37,7 @@ public class HttpService implements AutoCloseable {
             context = new ServletContextHandler();
             server.setHandler(context);
             server.start();
-        } catch (RuntimeException ex) {
-            throw ex;
+            LOGGER.info("Webserver started on port {}", sc.getLocalPort());
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

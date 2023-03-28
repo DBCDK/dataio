@@ -9,13 +9,15 @@ import org.eclipse.microprofile.metrics.Metric;
 import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.SimpleTimer;
+import org.eclipse.microprofile.metrics.Tag;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -36,17 +38,20 @@ public class MetricsService {
         metricRegistry.gauge("base_cpu_process_loadAverage", osBean::getProcessCpuLoad);
         metricRegistry.gauge("base_memory_freePhysicalMemorySize", osBean::getFreePhysicalMemorySize);
         metricRegistry.gauge("base_memory_freeSwapSpaceSize", osBean::getFreeSwapSpaceSize);
-        MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
-        MemoryUsage heap = memBean.getHeapMemoryUsage();
-        metricRegistry.gauge("base_memory_initHeap_bytes", heap::getInit);
-        metricRegistry.gauge("base_memory_usedHeap_bytes", heap::getUsed);
-        metricRegistry.gauge("base_memory_committedHeap_bytes", heap::getCommitted);
-        metricRegistry.gauge("base_memory_maxHeap_bytes", heap::getMax);
-        MemoryUsage nonHeap = memBean.getNonHeapMemoryUsage();
-        metricRegistry.gauge("base_memory_initNonHeap_bytes", nonHeap::getInit);
-        metricRegistry.gauge("base_memory_usedNonHeap_bytes", nonHeap::getUsed);
-        metricRegistry.gauge("base_memory_committedNonHeap_bytes", nonHeap::getCommitted);
-        metricRegistry.gauge("base_memory_maxNonHeap_bytes", nonHeap::getMax);
+        List<MemoryPoolMXBean> memoryPoolMXBeans = ManagementFactory.getMemoryPoolMXBeans();
+        memoryPoolMXBeans.forEach(this::addPool);
+    }
+
+    private void addPool(MemoryPoolMXBean pool) {
+        String type = pool.getType().name().toLowerCase();
+        addUsage(pool.getName(), type, pool.getUsage());
+    }
+
+    private void addUsage(String name, String type, MemoryUsage mu) {
+        metricRegistry.gauge("base_memory_init", mu::getInit, new Tag("area", type), new Tag("id", name));
+        metricRegistry.gauge("base_memory_used", mu::getUsed, new Tag("area", type), new Tag("id", name));
+        metricRegistry.gauge("base_memory_comitted", mu::getCommitted, new Tag("area", type), new Tag("id", name));
+        metricRegistry.gauge("base_memory_max", mu::getMax, new Tag("area", type), new Tag("id", name));
     }
 
     @SuppressWarnings("PMD")

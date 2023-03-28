@@ -149,6 +149,20 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         commonInjector.getFileStoreProxyAsync().removeFile(fileId, new FileStoreFileAsyncCallback());
     }
 
+    @Override
+    public void holdingsSolrUrlChanged(String url) {
+        if (config != null) {
+            config.getContent().withHoldingsSolrUrl(url);
+        }
+    }
+
+    @Override
+    public void holdingsTypeSelectionChanged(PeriodicJobsHarvesterConfig.HoldingsFilter holdingsFilter) {
+        if (config != null) {
+            config.getContent().withHoldingsFilter(holdingsFilter);
+        }
+    }
+
     class FileStoreFileAsyncCallback implements AsyncCallback<Void> {
         @Override
         public void onFailure(Throwable e) {
@@ -524,7 +538,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 || isUndefined(config.getContent().getDestination())
                 || isUndefined(config.getContent().getFormat())
                 || isUndefined(config.getContent().getContact())
-                || isInputFieldMissingFromPickup();
+                || isInputFieldMissingFromPickup()
+                || config.getContent().getHarvesterType() == PeriodicJobsHarvesterConfig.HarvesterType.STANDARD_WITH_HOLDINGS && (
+                isUndefined(config.getContent().getHoldingsSolrUrl()) || config.getContent().getHoldingsFilter() == null);
     }
 
     private boolean isInputFieldMissingFromPickup() {

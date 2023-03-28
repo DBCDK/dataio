@@ -58,12 +58,12 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
 
     private static final LocalDateTime oldJobDateTime = LocalDateTime.now()
-            .minus(JOB_EXPIRATION_AGE_IN_DAYS + 1, ChronoUnit.DAYS);
+            .minus(JOB_EXPIRATION_AGE_IN_DAYS + 2, ChronoUnit.DAYS);
 
     private static final LocalDateTime aLittleYoungerJobDateTime = LocalDateTime.now()
             .minus(JOB_EXPIRATION_AGE_IN_DAYS - 1, ChronoUnit.DAYS);
-    private static final LocalDateTime jobFromTheDayBeforeYesterday = LocalDateTime.now()
-            .minus(2, ChronoUnit.DAYS);
+    private static final LocalDateTime jobFromTheDayBeforeThedayBeforeYesterday = LocalDateTime.now()
+            .minus(3, ChronoUnit.DAYS);
     private static final LocalDateTime jobFromToday = LocalDateTime.now()
             .minus(2, ChronoUnit.HOURS);
 
@@ -212,7 +212,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
             final String sql = Files.readString(Paths.get("src/test/resources/sql/jobstore.sql"))
                     .replaceAll("__DATE_1__", oldJobDateTime.format(formatter))
                     .replaceAll("__DATE_2__", aLittleYoungerJobDateTime.format(formatter))
-                    .replaceAll("__DATE_3__", jobFromTheDayBeforeYesterday.format(formatter))
+                    .replaceAll("__DATE_3__", jobFromTheDayBeforeThedayBeforeYesterday.format(formatter))
                     .replaceAll("__DATE_4__", jobFromToday.format(formatter));
             final PreparedStatement statement = connection.prepareStatement(sql);
             statement.executeUpdate();
@@ -227,7 +227,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
             final String sql = Files.readString(Paths.get("src/test/resources/sql/logstore.sql"))
                     .replaceAll("__DATE_1__", oldJobDateTime.format(formatter))
                     .replaceAll("__DATE_2__", aLittleYoungerJobDateTime.format(formatter))
-                    .replaceAll("__DATE_3__", jobFromTheDayBeforeYesterday.format(formatter))
+                    .replaceAll("__DATE_3__", jobFromTheDayBeforeThedayBeforeYesterday.format(formatter))
                     .replaceAll("__DATE_4__", jobFromToday.format(formatter));
             final PreparedStatement statement = connection.prepareStatement(sql);
             statement.executeUpdate();

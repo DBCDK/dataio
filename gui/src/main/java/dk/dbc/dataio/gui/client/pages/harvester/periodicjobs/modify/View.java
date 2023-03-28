@@ -39,6 +39,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         final Texts texts = getTexts();
         contact.setTitle(texts.help_Contact());
         collection.setTitle(texts.help_Collection());
+        holdingsSolrUrl.setTitle(texts.help_HoldingsSolrUrl());
+        holdingsTypeSelection.setTitle(texts.help_HoldingsTypeSelection());
         description.setTitle(texts.help_Description());
         query.setTitle(texts.help_Query());
         queryFileId.setTitle(texts.help_QueryFileId());
@@ -72,7 +74,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     HTMLPanel ftpSection;
     @UiField
     HTMLPanel sftpSection;
-
+    @UiField
+    HTMLPanel holdingsSection;
     @UiField
     PromptedList pickupTypeSelection;
     @UiField
@@ -93,6 +96,10 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     PromptedFileStoreUpload fileStoreUpload;
     @UiField
     PromptedTextBox collection;
+    @UiField
+    PromptedList holdingsTypeSelection;
+    @UiField
+    PromptedTextBox holdingsSolrUrl;
     @UiField
     PromptedTextBox destination;
     @UiField
@@ -139,8 +146,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     PromptedTextArea contentFooter;
     @UiField
     PromptedTextArea contentHeader;
-
-
     @UiField
     Button saveButton;
     @UiField
@@ -205,12 +210,14 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("queryFileId")
     void queryFileIdClicked(ValueChangeEvent<String> event) {
         presenter.queryFileIdClicked(event.getValue());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("fileStoreUpload")
     void queryFileIdSubmitCompleted(FormPanel.SubmitCompleteEvent event) {
         String fileId = event.getResults();
@@ -234,6 +241,21 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("collection")
     void collectionChanged(ValueChangeEvent<String> event) {
         presenter.collectionChanged(collection.getText());
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("holdingsTypeSelection")
+    void holdingsTypeSelectionChanged(ValueChangeEvent<String> event) {
+        presenter.holdingsTypeSelectionChanged(PeriodicJobsHarvesterConfig.HoldingsFilter.valueOf(
+                holdingsTypeSelection.getSelectedKey()));
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("holdingsSolrUrl")
+    void holdingsSolrUrlChanged(ValueChangeEvent<String> event) {
+        presenter.holdingsSolrUrlChanged(holdingsSolrUrl.getText());
         presenter.keyPressed();
     }
 
@@ -272,18 +294,21 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("overrideFilename")
     void overrideFilenameChanged(ValueChangeEvent<String> event) throws UnsupportedOperationException {
         presenter.overrideFilenameChanged(overrideFilename.getValue());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("contentHeader")
     void contentHeaderChanged(ValueChangeEvent<String> event) throws UnsupportedOperationException {
         presenter.contentHeaderChanged(contentHeader.getValue());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("contentFooter")
     void contentFooterChanged(ValueChangeEvent<String> event) throws UnsupportedOperationException {
         presenter.contentFooterChanged(contentFooter.getValue());
@@ -305,78 +330,90 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("mailRecipient")
     void mailRecipientsChanged(ValueChangeEvent<String> event) {
         presenter.mailRecipientsChanged(mailRecipient.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("mailSubject")
     void mailSubjectChanged(ValueChangeEvent<String> event) {
         presenter.mailSubjectChanged(mailSubject.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("mailMimetype")
     void mailMimetypeChanged(ValueChangeEvent<String> event) {
         presenter.mailMimetypeChanged(mailMimetype.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("mailBody")
     void mailBodyChanged(ValueChangeEvent<String> event) {
         presenter.mailBodyChanged(mailBody.getValue());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("mailRecordLimit")
     void maxMailRecordLimit(ValueChangeEvent<String> event) {
         presenter.mailRecordLimitChanged(mailRecordLimit.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("ftpAddress")
     void ftpAddressChanged(ValueChangeEvent<String> event) {
         presenter.ftpAddressChanged(ftpAddress.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("ftpUser")
     void ftpUserChanged(ValueChangeEvent<String> event) {
         presenter.ftpUserChanged(ftpUser.getText());
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("ftpPassword")
     void ftpPasswordChanged(ValueChangeEvent<String> event) {
         presenter.ftpPasswordChanged(ftpPassword.getText());
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("ftpSubdir")
     void ftpSubdirChanged(ValueChangeEvent<String> event) {
         presenter.ftpSubdirChanged(ftpSubdir.getText());
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("sftpAddress")
     void sftpAddressChanged(ValueChangeEvent<String> event) {
         presenter.sftpAddressChanged(sftpAddress.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("sFtpUser")
     void sFtpUserChanged(ValueChangeEvent<String> event) {
         presenter.sFtpUserChanged(sFtpUser.getText());
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("sftpPassword")
     void sftpPasswordChanged(ValueChangeEvent<String> event) {
         presenter.sftpPasswordChanged(sftpPassword.getText());
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("sftpSubdir")
     void sftpSubdirChanged(ValueChangeEvent<String> event) {
         presenter.sftpSubdirChanged(sftpSubdir.getText());
     }
-
 
     @SuppressWarnings("unused")
     @UiHandler("saveButton")
@@ -402,6 +439,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.validateSolrButtonPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("confirmation")
     void confirmationButtonClicked(DialogEvent event) {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {

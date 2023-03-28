@@ -17,11 +17,13 @@ import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.inject.Inject;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Singleton
 public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PeriodicJobsHarvesterConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
-
     @EJB
     BinaryFileStoreBean binaryFileStoreBean;
     @EJB
@@ -35,7 +37,10 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
 
     @Resource(lookup = "java:comp/DefaultManagedExecutorService")
     private ManagedExecutorService executor;
-
+    final static AtomicInteger THREAD_ID = new AtomicInteger();
+    static final ExecutorService WITH_HOLDINGS_EXECUTOR = Executors.
+                newFixedThreadPool(5, runnable -> new Thread(runnable,
+                        "standard-with-holdings"+THREAD_ID.getAndIncrement()));
     @Override
     public int executeFor(PeriodicJobsHarvesterConfig config) throws HarvesterException {
         HarvestOperation harvestOperation = getHarvesterOperation(config);
@@ -51,6 +56,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
 
     private HarvestOperation getHarvesterOperation(PeriodicJobsHarvesterConfig config) {
         final HarvestOperation harvestOperation;
+        LOGGER.info("Starting {} harvest", config.getContent().getHarvesterType());
         switch (config.getContent().getHarvesterType()) {
             case DAILY_PROOFING:
                 harvestOperation = new DailyProofingHarvestOperation(config,
@@ -69,6 +75,15 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
                         jobStoreServiceConnectorBean.getConnector(),
                         weekresolverConnector,
                         executor);
+                break;
+            case STANDARD_WITH_HOLDINGS:
+                harvestOperation = new RecordsWithoutHoldingsHarvestOperation(config,
+                        binaryFileStoreBean,
+                        fileStoreServiceConnectorBean.getConnector(),
+                        flowStoreServiceConnectorBean.getConnector(),
+                        jobStoreServiceConnectorBean.getConnector(),
+                        weekresolverConnector,
+                        WITH_HOLDINGS_EXECUTOR);
                 break;
             default:
                 harvestOperation = new HarvestOperation(config,

@@ -9,15 +9,20 @@ import org.eclipse.microprofile.metrics.Metric;
 import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.SimpleTimer;
+import org.eclipse.microprofile.metrics.Tag;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class MetricsService {
@@ -36,34 +41,43 @@ public class MetricsService {
         metricRegistry.gauge("base_cpu_process_loadAverage", osBean::getProcessCpuLoad);
         metricRegistry.gauge("base_memory_freePhysicalMemorySize", osBean::getFreePhysicalMemorySize);
         metricRegistry.gauge("base_memory_freeSwapSpaceSize", osBean::getFreeSwapSpaceSize);
-        MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
-        MemoryUsage heap = memBean.getHeapMemoryUsage();
-        metricRegistry.gauge("base_memory_initHeap_bytes", heap::getInit);
-        metricRegistry.gauge("base_memory_usedHeap_bytes", heap::getUsed);
-        metricRegistry.gauge("base_memory_committedHeap_bytes", heap::getCommitted);
-        metricRegistry.gauge("base_memory_maxHeap_bytes", heap::getMax);
-        MemoryUsage nonHeap = memBean.getNonHeapMemoryUsage();
-        metricRegistry.gauge("base_memory_initNonHeap_bytes", nonHeap::getInit);
-        metricRegistry.gauge("base_memory_usedNonHeap_bytes", nonHeap::getUsed);
-        metricRegistry.gauge("base_memory_committedNonHeap_bytes", nonHeap::getCommitted);
-        metricRegistry.gauge("base_memory_maxNonHeap_bytes", nonHeap::getMax);
+        addUsage("base_memory", "heap", "heap", ManagementFactory.getMemoryMXBean()::getHeapMemoryUsage);
+        addUsage("base_memory", "non-heap", "non-heap", ManagementFactory.getMemoryMXBean()::getNonHeapMemoryUsage);
+        List<MemoryPoolMXBean> memoryPoolMXBeans = ManagementFactory.getMemoryPoolMXBeans();
+        memoryPoolMXBeans.forEach(this::addPool);
+    }
+
+    private void addPool(MemoryPoolMXBean pool) {
+        String type = pool.getType().name().toLowerCase();
+        addUsage("base_memory_pool", pool.getName(), type, pool::getUsage);
+    }
+
+    private void addUsage(String prefix, String name, String type, Supplier<MemoryUsage> mu) {
+        metricRegistry.gauge(prefix + "_init", () -> mu.get().getInit(), new Tag("area", type), new Tag("id", name));
+        metricRegistry.gauge(prefix + "_used", () -> mu.get().getUsed(), new Tag("area", type), new Tag("id", name));
+        metricRegistry.gauge(prefix + "_comitted", () -> mu.get().getCommitted(), new Tag("area", type), new Tag("id", name));
+        metricRegistry.gauge(prefix + "_max", () -> mu.get().getMax(), new Tag("area", type), new Tag("id", name));
     }
 
     @SuppressWarnings("PMD")
     private void makePrometheusPage(HttpServletRequest request, HttpServletResponse response) throws IOException {
         PrintWriter writer = response.getWriter();
+        Set<String> types = new HashSet<>();
         metricRegistry.getMetrics().entrySet().stream()
-                .flatMap(e -> mapMetric(e.getKey(), e.getValue()))
+                .flatMap(e -> mapMetric(e.getKey(), e.getValue(), types))
                 .forEach(writer::println);
     }
 
-    private Stream<String> mapMetric(MetricID id, Metric metric) {
+    private Stream<String> mapMetric(MetricID id, Metric metric, Set<String> types) {
         String name = idToName(id);
         MetricType metricType = MetricType.from(metric);
         if(metricType == null) return Stream.empty();
-        String type = "# TYPE " + id.getName() + " " + metricType.name;
         String val = name + " " + metricType.value(metric);
-        return Stream.of(type, val);
+        if(types.add(id.getName())) {
+            String type = "# TYPE " + id.getName() + " " + metricType.name;
+            return Stream.of(type, val);
+        }
+        return Stream.of(val);
     }
 
     private String idToName(MetricID id) {

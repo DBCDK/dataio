@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
+import dk.dbc.dataio.gui.client.model.FlowBinderUsage;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -126,6 +127,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public List<FlowBinderModel> findAllFlowBinders() throws ProxyException {
         return flowStoreProxy.findAllFlowBinders();
+    }
+
+    @Override
+    public List<FlowBinderUsage> getFlowBindersUsage() throws ProxyException {
+        return flowStoreProxy.getFlowBindersUsage();
     }
 
     @Override

@@ -83,6 +83,8 @@ public class NavigationPanel extends DockLayoutPanel {
     @UiField
     TreeItem jobPurge;
     @UiField
+    TreeItem flowBinderStatus;
+    @UiField
     Label debugInfo;
 
 
@@ -116,6 +118,7 @@ public class NavigationPanel extends DockLayoutPanel {
         submitters.setUserObject(dk.dbc.dataio.gui.client.pages.submitter.show.Place.class);
         sinks.setUserObject(dk.dbc.dataio.gui.client.pages.sink.show.Place.class);
         sinkStatus.setUserObject(dk.dbc.dataio.gui.client.pages.sink.status.Place.class);
+        flowBinderStatus.setUserObject(dk.dbc.dataio.gui.client.pages.flowbinder.status.Place.class);
         gatekeeper.setUserObject(ioTraffic);
         ioTraffic.setUserObject(dk.dbc.dataio.gui.client.pages.iotraffic.Place.class);
         failedFtps.setUserObject(dk.dbc.dataio.gui.client.pages.failedftps.show.Place.class);
@@ -221,6 +224,9 @@ public class NavigationPanel extends DockLayoutPanel {
         }
         if (object == dk.dbc.dataio.gui.client.pages.sink.status.Place.class) {
             return new dk.dbc.dataio.gui.client.pages.sink.status.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.flowbinder.status.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.flowbinder.status.Place();
         }
         if (object == dk.dbc.dataio.gui.client.pages.iotraffic.Place.class) {
             return new dk.dbc.dataio.gui.client.pages.iotraffic.Place();

@@ -3,7 +3,9 @@ package dk.dbc.dataio.gui.client.proxies;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
+import dk.dbc.dataio.gui.client.model.FlowBinderUsage;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -55,7 +57,7 @@ public interface FlowStoreProxyAsync {
     void queryFlowBinders(List<GwtQueryClause> clauses, AsyncCallback<List<FlowBinderModel>> async);
 
     void findAllFlowBinders(AsyncCallback<List<FlowBinderModel>> async);
-
+    void getFlowBindersUsage(AsyncCallback<List<FlowBinderUsage>> arg1);
     void getFlowBinder(long id, AsyncCallback<FlowBinderModel> async);
 
     // Submitters

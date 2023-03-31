@@ -2,8 +2,8 @@ package dk.dbc.dataio.gui.client.exceptions;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+    import java.util.logging.Level;
+    import java.util.logging.Logger;
 
 /**
  * This class is a specialization of the generic AsyncCallback class

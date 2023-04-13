@@ -7,7 +7,6 @@ import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class Place extends AbstractBasePlace {
-
     public Place() {
     }
 

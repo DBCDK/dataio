@@ -8,31 +8,33 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowBinderUsage;
-import dk.dbc.dataio.gui.client.pages.flowbinder.show.ShowFlowBindersPlace;
+import dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
-import java.util.logging.Level;
+
 import java.util.logging.Logger;
 
 
 import java.util.List;
 
 public class PresenterImpl extends AbstractActivity implements Presenter {
-        private final Logger logger = Logger.getLogger(PresenterImpl.class.getName());
-        ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
-        CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
-        private PlaceController placeController;
-        private String header;
+    private final Logger logger = Logger.getLogger(PresenterImpl.class.getName());
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+    private PlaceController placeController;
+    private String header;
 
-        /**
-         * Default constructor
-         *
-         * @param placeController The Placecontroller
-         * @param header          breadcrumb Header text
-         */
-        public PresenterImpl(PlaceController placeController, String header) {
-            this.placeController = placeController;
-            this.header = header;
-        }
+    /**
+     * Default constructor
+     *
+     * @param placeController The Placecontroller
+     * @param header          breadcrumb Header text
+     */
+    public PresenterImpl(PlaceController placeController, String header) {
+        logger.info("Presenter:"+header);
+        this.placeController = placeController;
+        this.header = header;
+    }
+
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         getView().setHeader(this.header);
@@ -43,11 +45,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     @Override
     public void showFlowBinder(long id) {
-        logger.info("halløj!");
-            ShowFlowBindersPlace showFlowBindersPlace = new ShowFlowBindersPlace(
-            "#EditFlowBinder:"+id);
-        logger.info("Binder url:"+"#EditFlowBinder:"+id);
-        placeController.goTo(showFlowBindersPlace);
+        EditPlace editPlace = new EditPlace(Long.toString(id));
+        placeController.goTo(editPlace);
     }
 
     @Override

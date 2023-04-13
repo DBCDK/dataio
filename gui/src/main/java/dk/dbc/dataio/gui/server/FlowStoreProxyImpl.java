@@ -466,6 +466,12 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                             .withActiveJobs(-1)
                             .withFlowBinderId(flowBinder.getId())
                             .withLastUsed(dateFormat.format(jobInfoSnapshots.get(0).getTimeOfCreation())));
+                } else {
+                    usages.add(new FlowBinderUsage()
+                            .withName(flowBinder.getContent().getName())
+                            .withActiveJobs(-1)
+                            .withFlowBinderId(flowBinder.getId())
+                            .withLastUsed("-"));
                 }
 
             }

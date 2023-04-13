@@ -22,6 +22,7 @@ public class FlowBinderStatusTable extends CellTable {
     SingleSelectionModel<FlowBinderUsage> selectionModel = new SingleSelectionModel<>();
 
     public FlowBinderStatusTable() {
+        logger.info("Creatng FlowBinderStatusTable");
         dataProvider = new ListDataProvider<>();
         dataProvider.addDataDisplay(this);
         addColumn(constructNameColumn(), texts.columnHeader_Name());
@@ -35,11 +36,7 @@ public class FlowBinderStatusTable extends CellTable {
         return doubleClickEvent -> {
             FlowBinderUsage selected = selectionModel.getSelectedObject();
             if (selected != null) {
-                logger.info("Yes! Selected object will be returned.");
-                logger.info("  => presenter is:"+presenter);
                 presenter.showFlowBinder(selected.getFlowBinderId());
-            } else {
-                logger.info("no selected object returned.");
             }
         };
     }

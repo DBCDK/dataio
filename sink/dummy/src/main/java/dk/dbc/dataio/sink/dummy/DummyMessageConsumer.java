@@ -21,8 +21,7 @@ public class DummyMessageConsumer extends MessageConsumerAdapter {
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         Chunk processedChunk = unmarshallPayload(consumedMessage);
         Chunk deliveredChunk = processPayload(processedChunk);
-        if(true) throw new RuntimeException("test");
-//        sendResultToJobStore(deliveredChunk);
+        sendResultToJobStore(deliveredChunk);
     }
 
     @Override

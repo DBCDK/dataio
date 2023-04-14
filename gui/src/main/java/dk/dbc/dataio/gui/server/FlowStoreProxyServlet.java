@@ -135,6 +135,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public List<FlowBinderUsage> getFlowBindersUsageCached() throws ProxyException {
+        return flowStoreProxy.getFlowBindersUsageCached();
+    }
+
+    @Override
     public FlowBinderModel getFlowBinder(long id) throws ProxyException {
         return flowStoreProxy.getFlowBinder(id);
     }

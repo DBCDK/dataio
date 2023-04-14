@@ -58,6 +58,7 @@ public interface FlowStoreProxyAsync {
 
     void findAllFlowBinders(AsyncCallback<List<FlowBinderModel>> async);
     void getFlowBindersUsage(AsyncCallback<List<FlowBinderUsage>> arg1);
+    void getFlowBindersUsageCached(AsyncCallback<List<FlowBinderUsage>> arg1);
     void getFlowBinder(long id, AsyncCallback<FlowBinderModel> async);
 
     // Submitters

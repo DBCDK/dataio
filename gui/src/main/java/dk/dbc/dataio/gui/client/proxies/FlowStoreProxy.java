@@ -62,6 +62,7 @@ public interface FlowStoreProxy extends RemoteService {
     List<FlowBinderModel> findAllFlowBinders() throws ProxyException;
 
     List<FlowBinderUsage> getFlowBindersUsage() throws ProxyException;
+    List<FlowBinderUsage> getFlowBindersUsageCached() throws ProxyException;
 
     FlowBinderModel getFlowBinder(long id) throws ProxyException;
 

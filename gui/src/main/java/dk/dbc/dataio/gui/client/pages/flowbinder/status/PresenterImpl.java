@@ -40,7 +40,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         getView().setHeader(this.header);
         getView().setPresenter(this);
         containerWidget.setWidget(getView().asWidget());
-        getFlowBindersUsage();
+        getFlowBindersUsageCached();
     }
 
     @Override
@@ -53,6 +53,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     public void getFlowBindersUsage() {
         commonInjector.getFlowStoreProxyAsync().getFlowBindersUsage(new GetFlowBindersUsageListFilteredAsyncCallback());
     }
+    @Override
+    public void getFlowBindersUsageCached() {
+        commonInjector.getFlowStoreProxyAsync().getFlowBindersUsageCached(new GetFlowBindersUsageListFilteredAsyncCallback());
+    }
+
 
     class GetFlowBindersUsageListFilteredAsyncCallback extends FilteredAsyncCallback<List<FlowBinderUsage>> {
 

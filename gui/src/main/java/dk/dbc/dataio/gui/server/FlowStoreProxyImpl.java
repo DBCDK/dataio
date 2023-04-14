@@ -68,6 +68,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
     private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
@@ -348,6 +349,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     private Cache<Long, SubmitterModel> cachedSubmitterMap = CacheManager.createUnboundCache(SubmitterModel::getId, rethrowSupplier(this::findAllSubmitters));
     private Cache<Long, SinkModel> cachedSinkMap = CacheManager.createUnboundCache(SinkModel::getId, rethrowSupplier(this::findAllSinks));
     private Cache<Long, FlowModel> cachedFlowMap = CacheManager.createUnboundCache(FlowModel::getId, rethrowSupplier(this::findAllFlows));
+    private Cache<Long, FlowBinderUsage> cachedFlowBinderUsage = CacheManager.createUnboundCache(FlowBinderUsage::getFlowBinderId, rethrowSupplier(this::getFlowBindersUsage));
 
     @Override
     public List<FlowBinderModel> queryFlowBinders(List<GwtQueryClause> clauses) throws ProxyException {
@@ -440,6 +442,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public List<FlowBinderUsage> getFlowBindersUsage() throws ProxyException {
         List<FlowBinderUsage> usages = new ArrayList<>();
+        cachedFlowBinderUsage.clear();
         try {
             List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
             for (FlowBinder flowBinder : flowBinders) {
@@ -460,25 +463,35 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                         ).and(
                                 new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, sinkId)
                         ).orderBy(new ListOrderBy<>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.DESC)).limit(1));
+                FlowBinderUsage flowBinderUsage = new FlowBinderUsage()
+                        .withName(flowBinder.getContent().getName())
+                        .withActiveJobs(-1)
+                        .withFlowBinderId(flowBinder.getId());
                 if (!jobInfoSnapshots.isEmpty()) {
-                    usages.add(new FlowBinderUsage()
-                            .withName(flowBinder.getContent().getName())
-                            .withActiveJobs(-1)
-                            .withFlowBinderId(flowBinder.getId())
-                            .withLastUsed(dateFormat.format(jobInfoSnapshots.get(0).getTimeOfCreation())));
+                    flowBinderUsage.withLastUsed(dateFormat.format(jobInfoSnapshots.get(0).getTimeOfCreation()));
                 } else {
-                    usages.add(new FlowBinderUsage()
-                            .withName(flowBinder.getContent().getName())
-                            .withActiveJobs(-1)
-                            .withFlowBinderId(flowBinder.getId())
-                            .withLastUsed("-"));
+                    flowBinderUsage.withLastUsed("-");
                 }
-
+                usages.add(flowBinderUsage);
+                cachedFlowBinderUsage.put(flowBinderUsage.getFlowBinderId(), flowBinderUsage);
             }
             return usages;
         } catch (FlowStoreServiceConnectorException | JobStoreServiceConnectorException e) {
             log.error("getFlowBindersUsage:", e);
             handleExceptions(e, "getFlowBindersUsage");
+        }
+        return List.of();
+    }
+
+    @Override
+    public List<FlowBinderUsage> getFlowBindersUsageCached() throws ProxyException {
+        try {
+            List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
+            return flowBinders.stream().map(flowBinder -> cachedFlowBinderUsage.get(flowBinder.getId())).collect(Collectors.toList());
+
+        } catch (FlowStoreServiceConnectorException e) {
+            log.error("getFlowBindersUsageCached:", e);
+            handleExceptions(e, "getFlowBindersUsageCached");
         }
         return List.of();
     }

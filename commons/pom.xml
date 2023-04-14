@@ -27,6 +27,7 @@
     <module>artemis-jms-base-image</module>
     <module>jmx-metric-registry</module>
     <module>javascript</module>
+    <module>artemis-jse-app</module>
   </modules>
 
 </project>

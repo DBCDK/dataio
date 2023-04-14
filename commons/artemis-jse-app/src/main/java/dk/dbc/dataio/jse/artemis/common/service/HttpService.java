@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobprocessor2.service;
+package dk.dbc.dataio.jse.artemis.common.service;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -16,7 +16,6 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 
 public class HttpService implements AutoCloseable {
@@ -47,7 +46,7 @@ public class HttpService implements AutoCloseable {
         context.addServlet(new ServletHolder(new HttpServlet() {
             @Override
             protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-                resp.setContentType(MediaType.TEXT_PLAIN);
+                resp.setContentType("text/plain");
                 servlet.doGet(req, resp);
             }
         }), path);

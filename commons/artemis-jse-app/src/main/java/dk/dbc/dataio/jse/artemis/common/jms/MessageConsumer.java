@@ -1,12 +1,14 @@
-package dk.dbc.dataio.jobprocessor2.jms;
+package dk.dbc.dataio.jse.artemis.common.jms;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.jobprocessor2.Config;
-import dk.dbc.dataio.jobprocessor2.Metric;
+import dk.dbc.dataio.jse.artemis.common.Metric;
+import dk.dbc.dataio.jse.artemis.common.service.ZombieWatch;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
@@ -26,14 +28,15 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static dk.dbc.dataio.jobprocessor2.Metric.ATag.rejected;
-import static dk.dbc.dataio.jobprocessor2.Metric.ATag.rollback;
+import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.rejected;
+import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.rollback;
 
-public interface MessageValidator extends MessageListener {
-    Logger LOGGER = LoggerFactory.getLogger(MessageValidator.class);
+public interface MessageConsumer extends MessageListener {
+    Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
     String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
     AtomicInteger RUNNING_TRANSACTIONS = new AtomicInteger(0);
     AtomicLong LAST_MESSAGE_TS = new AtomicLong(System.currentTimeMillis());
+    ObjectMapper MAPPER = new ObjectMapper();
 
     default void initMetrics(MetricRegistry metricRegistry) {
         metricRegistry.gauge("dataio_running_transactions", RUNNING_TRANSACTIONS::get);
@@ -59,7 +62,7 @@ public interface MessageValidator extends MessageListener {
             }
             String payloadType = message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME);
             if (payloadType == null || payloadType.trim().isEmpty()) {
-                throw new InvalidMessageException(String.format("Message<%s> has no %s property", messageId, JmsConstants.PAYLOAD_PROPERTY_NAME));
+                throw new InvalidMessageException(String.format("Message <%s> has no %s property", messageId, JmsConstants.PAYLOAD_PROPERTY_NAME));
             }
             return new ConsumedMessage(messageId, getHeaders(message), messagePayload, Priority.of(message.getJMSPriority()));
         } catch (JMSException e) {
@@ -71,17 +74,18 @@ public interface MessageValidator extends MessageListener {
         RUNNING_TRANSACTIONS.incrementAndGet();
         Instant startTime = Instant.now();
         LAST_MESSAGE_TS.set(startTime.toEpochMilli());
+        getZombieWatch().update(getQueue(), getFilter());
         String messageId = null;
         List<Tag> tags = new ArrayList<>();
         try {
             messageId = message.getJMSMessageID();
-            tags.add(new Tag("destination", Config.QUEUE.toString()));
+            tags.add(new Tag("destination", getQueue()));
             tags.add(new Tag("redelivery", Boolean.toString(message.getJMSRedelivered())));
             ConsumedMessage consumedMessage = validateMessage(message);
             handleConsumedMessage(consumedMessage);
         } catch (InvalidMessageException e) {
             tags.add(rejected.is("true"));
-            LOGGER.warn("Message {} discarded, reason: {}", messageId, e.getMessage());
+            LOGGER.warn("Message {} discarded", messageId, e);
         } catch (RuntimeException | JMSException re) {
             tags.add(rollback.is("true"));
             throw new IllegalStateException("Caught exception while handling message " + messageId + " rolling back", re);
@@ -107,6 +111,24 @@ public interface MessageValidator extends MessageListener {
         }
     }
 
+    default Chunk unmarshallPayload(ConsumedMessage consumedMessage) throws NullPointerException, InvalidMessageException {
+        String payloadType = consumedMessage.getHeaderValue(JmsConstants.PAYLOAD_PROPERTY_NAME, String.class);
+        if (!JmsConstants.CHUNK_PAYLOAD_TYPE.equals(payloadType)) {
+            throw new InvalidMessageException(String.format("Message.headers<%s> payload type %s != %s", consumedMessage.getMessageId(), payloadType, JmsConstants.CHUNK_PAYLOAD_TYPE));
+        }
+        Chunk processedChunk;
+        try {
+            processedChunk = MAPPER.readValue(consumedMessage.getMessagePayload(), Chunk.class);
+        } catch (JsonProcessingException e) {
+            throw new InvalidMessageException(String.format("Message<%s> payload was not valid Chunk type", consumedMessage.getMessageId()), e);
+        }
+        if (processedChunk.isEmpty()) {
+            throw new InvalidMessageException(String.format("Message<%s> processed chunk payload contains no results", consumedMessage.getMessageId()));
+        }
+        confirmLegalChunkTypeOrThrow(processedChunk, Chunk.Type.PROCESSED);
+        return processedChunk;
+    }
+
     void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException;
 
     private Map<String, Object> getHeaders(Message message) throws JMSException {
@@ -122,4 +144,12 @@ public interface MessageValidator extends MessageListener {
     default long getTimeSinceLastMessage() {
         return System.currentTimeMillis() - LAST_MESSAGE_TS.get();
     }
+
+    String getQueue();
+
+    default String getFilter() {
+        return null;
+    }
+
+    ZombieWatch getZombieWatch();
 }

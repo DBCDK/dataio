@@ -9,7 +9,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public enum Config implements EnvConfig {
-    WEB_PORT("0"),
+    WEB_PORT("8080"),
     ARTEMIS_MQ_HOST,
     ARTEMIS_JMS_PORT("61616"),
     ARTEMIS_ADMIN_PORT,

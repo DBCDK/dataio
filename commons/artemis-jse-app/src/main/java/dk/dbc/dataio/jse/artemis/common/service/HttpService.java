@@ -25,20 +25,23 @@ public class HttpService implements AutoCloseable {
     private final ServletContextHandler context;
 
     public HttpService(int port) {
+        HttpConfiguration conf = new HttpConfiguration();
+        conf.setHttpCompliance(HttpCompliance.LEGACY);
+        conf.setUriCompliance(UriCompliance.LEGACY);
+        HttpConnectionFactory cf = new HttpConnectionFactory(conf);
+        sc = new ServerConnector(server, cf);
+        sc.setPort(port);
+        server.setConnectors(new Connector[] {sc});
+        context = new ServletContextHandler();
+        server.setHandler(context);
+    }
+
+    public void start() {
         try {
-            HttpConfiguration conf = new HttpConfiguration();
-            conf.setHttpCompliance(HttpCompliance.LEGACY);
-            conf.setUriCompliance(UriCompliance.LEGACY);
-            HttpConnectionFactory cf = new HttpConnectionFactory(conf);
-            sc = new ServerConnector(server, cf);
-            sc.setPort(port);
-            server.setConnectors(new Connector[] {sc});
-            context = new ServletContextHandler();
-            server.setHandler(context);
             server.start();
             LOGGER.info("Webserver started on port {}", sc.getLocalPort());
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

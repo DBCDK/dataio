@@ -31,6 +31,7 @@ public abstract class MessageConsumerApp {
     protected void go(ServiceHub serviceHub, MessageConsumer messageConsumer) {
         int threads = Config.CONSUMER_THREADS.asInteger();
         httpService = serviceHub.httpService;
+        httpService.start();
         this.messageConsumer = messageConsumer;
         for (int i = 0; i < threads; i++) {
             startConsumers();

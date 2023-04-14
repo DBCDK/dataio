@@ -465,7 +465,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                         ).orderBy(new ListOrderBy<>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.DESC)).limit(1));
                 FlowBinderUsage flowBinderUsage = new FlowBinderUsage()
                         .withName(flowBinder.getContent().getName())
-                        .withActiveJobs(-1)
                         .withFlowBinderId(flowBinder.getId());
                 if (!jobInfoSnapshots.isEmpty()) {
                     flowBinderUsage.withLastUsed(dateFormat.format(jobInfoSnapshots.get(0).getTimeOfCreation()));

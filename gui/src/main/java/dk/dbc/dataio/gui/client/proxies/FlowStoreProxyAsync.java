@@ -3,7 +3,6 @@ package dk.dbc.dataio.gui.client.proxies;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
-import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowBinderUsage;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;

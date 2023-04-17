@@ -25,6 +25,7 @@ pipeline {
             artifactNumToKeepStr: "", daysToKeepStr: "30", numToKeepStr: "30"))
         timestamps()
         timeout(time: 1, unit: "HOURS")
+        disableConcurrentBuilds()
     }
     stages {
         stage('clean and checkout') {

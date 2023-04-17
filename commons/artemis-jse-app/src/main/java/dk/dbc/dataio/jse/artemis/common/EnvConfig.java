@@ -42,5 +42,5 @@ public interface EnvConfig {
         return name();
     }
 
-    public String getDefaultValue();
+    String getDefaultValue();
 }

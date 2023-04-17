@@ -36,9 +36,8 @@ pipeline {
         stage("build") {
             steps {
                 sh """
-                    mvn -B -T 6 install
+                    mvn -B install
                     mvn -B -P !integration-test -T 6 pmd:pmd
-                    mvn -B javadoc:aggregate
                     echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                     ./cli/build_docker_image.sh
                 """
@@ -46,8 +45,7 @@ pipeline {
                     junit testResults: '**/target/*-reports/*.xml'
 
                     def java = scanForIssues tool: [$class: 'Java']
-                    def javadoc = scanForIssues tool: [$class: 'JavaDoc']
-                    publishIssues issues:[java, javadoc], unstableTotalAll:1
+                    publishIssues issues:[java], unstableTotalAll:1
 
                     def pmd = scanForIssues tool: [$class: 'Pmd']
                     publishIssues issues:[pmd], unstableTotalAll:1

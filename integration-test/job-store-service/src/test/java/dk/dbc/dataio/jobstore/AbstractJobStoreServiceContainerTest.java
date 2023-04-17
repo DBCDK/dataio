@@ -114,20 +114,19 @@ public abstract class AbstractJobStoreServiceContainerTest {
     }
 
 
-    private static GenericContainer<?> startLogstoreServiceContainer(Network network, DBCPostgreSQLContainer logstoreDBContainer) {
+    private static GenericContainer<?> startLogstoreServiceContainer(Network network, DBCPostgreSQLContainer logStoreDBContainer) {
         final GenericContainer<?> container = Containers.LOG_STORE.makeContainer()
                 .withNetwork(network)
                 .withNetworkAliases(LOGSTORE)
                 .withLogConsumer(new Slf4jLogConsumer(LOGGER))
-                .withEnv("LOGSTORE_DB_URL", logstoreDBContainer.getPayaraDockerJdbcUrl())
+                .withEnv("LOGSTORE_DB_URL", logStoreDBContainer.getPayaraDockerJdbcUrl())
                 .withEnv("LOG_FORMAT", "text")
                 .withEnv("JAVA_MAX_HEAP_SIZE", "2G")
                 .waitingFor(Wait.forHttp("/dataio/log-store-service/status"))
                 .withExposedPorts(8080);
         container.start();
-        Connection logstoreDbConnection = connectToLogstoreDB(logstoreDBContainer);
+        Connection logstoreDbConnection = connectToLogstoreDB(logStoreDBContainer);
         populateLogstoreDB(logstoreDbConnection);
-
         return container;
     }
 

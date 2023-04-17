@@ -7,8 +7,6 @@ import com.google.gwt.place.shared.Prefix;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
-import java.util.logging.Logger;
-
 public class Place extends AbstractBasePlace {
 
     public Place() { super();}

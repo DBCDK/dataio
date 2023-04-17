@@ -36,7 +36,7 @@ pipeline {
         stage("build") {
             steps {
                 sh """
-                    mvn -B install
+                    mvn -B -T 6 install
                     mvn -B -P !integration-test -T 6 pmd:pmd
                     echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                     ./cli/build_docker_image.sh
@@ -82,7 +82,7 @@ pipeline {
             }
             steps {
                 sh """
-                    mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -am -pl commons/utils/flow-store-service-connector -pl commons/utils/tickle-harvester-service-connector -pl gatekeeper -pl job-processor2
+                    mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -am -pl "commons/utils/flow-store-service-connector, commons/utils/tickle-harvester-service-connector, gatekeeper, job-processor2, sink/dummy"
                 """
             }
         }

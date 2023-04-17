@@ -36,100 +36,71 @@ import java.time.temporal.ChronoUnit;
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
 import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN_DAYS;
 
+@SuppressWarnings({"SameParameterValue", "resource"})
 public abstract class AbstractJobStoreServiceContainerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobStoreServiceContainerTest.class);
-    static final Connection logstoreDbConnection;
-    static final JobStoreServiceConnector jobStoreServiceConnector;
-    static final LogStoreServiceConnector logStoreServiceConnector;
-    static final JmsQueueServiceConnector jmsQueueServiceConnector;
+    private static final Network network = Network.newNetwork();
 
     private static final String ARTEMIS_ALIAS = "dataio-artemis";
     private static final String LOGSTORE = "dataio-logstore";
     private static final String JMS_QUEUE_SERVICE_ALIAS = "dataio-jms-queue-service";
     private static final String JOBSTORE_SERVICE_ALIAS = "dataio-jobstore-service";
-
-    private static WireMockServer wireMockServer;
-    static GenericContainer<?> artemisContainer;
-    private static GenericContainer<?> jmsQueueServiceContainer;
-    private static GenericContainer<?> jobStoreServiceContainer;
-    private static DBCPostgreSQLContainer logstoreDBContainer;
-    private static DBCPostgreSQLContainer jobstoreDBContainer;
-    private static GenericContainer<?> logstoreContainer;
-
-
-    private static final LocalDateTime oldJobDateTime = LocalDateTime.now()
-            .minus(JOB_EXPIRATION_AGE_IN_DAYS + 2, ChronoUnit.DAYS);
-
-    private static final LocalDateTime aLittleYoungerJobDateTime = LocalDateTime.now()
-            .minus(JOB_EXPIRATION_AGE_IN_DAYS - 1, ChronoUnit.DAYS);
-    private static final LocalDateTime jobFromTheDayBeforeThedayBeforeYesterday = LocalDateTime.now()
-            .minus(3, ChronoUnit.DAYS);
-    private static final LocalDateTime jobFromToday = LocalDateTime.now()
-            .minus(2, ChronoUnit.HOURS);
-
+    private static final LocalDateTime oldJobDateTime = LocalDateTime.now().minus(JOB_EXPIRATION_AGE_IN_DAYS + 2, ChronoUnit.DAYS);
+    private static final LocalDateTime aLittleYoungerJobDateTime = LocalDateTime.now().minus(JOB_EXPIRATION_AGE_IN_DAYS - 1, ChronoUnit.DAYS);
+    private static final LocalDateTime jobFromTheDayBeforeThedayBeforeYesterday = LocalDateTime.now().minus(3, ChronoUnit.DAYS);
+    private static final LocalDateTime jobFromToday = LocalDateTime.now().minus(2, ChronoUnit.HOURS);
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    static {
-        wireMockServer = startWireMockServer();
+    private static final WireMockServer wireMockServer = startWireMockServer();
+    private static final DBCPostgreSQLContainer logStoreDBContainer = startLogStoreDB(network);
+    private static final GenericContainer<?> logStoreContainer = startLogstoreServiceContainer(network, logStoreDBContainer);
+    static final LogStoreServiceConnector logstoreServiceConnector = makeLogstoreConnector(logStoreContainer);
+    private static final GenericContainer<?> artemisContainer = startArtemisContainer(network);
+    private static final GenericContainer<?> jmsQueueServiceContainer = startJmsQueueServiceContainer(network);
+    static final JmsQueueServiceConnector jmsQueueServiceConnector = makeJmsServiceConnector(jmsQueueServiceContainer);
+    private static final DBCPostgreSQLContainer jobstoreDBContainer = startJobstoreDB(network);
+    private static final GenericContainer<?> jobStoreServiceContainer = startJobStoreServiceContainer(network);
+    static final JobStoreServiceConnector jobStoreServiceConnector = makeJobStoreConnector(jobStoreServiceContainer);
 
-        final Network network = Network.newNetwork();
-        artemisContainer = startArtemisContainer(network);
-        jmsQueueServiceContainer = startJmsQueueServiceContainer(network);
-
-        jobstoreDBContainer = new DBCPostgreSQLContainer()
-                .withNetwork(network).withReuse(false);
-        jobstoreDBContainer.start();
-        jobstoreDBContainer.exposeHostPort();
-        new DatabaseMigrator()
-                .withDataSource(jobstoreDBContainer.datasource())
-                .onStartup();
-        populateJobstoreDB(connectToJobstoreDB());
-
-
-        logstoreDBContainer = new DBCPostgreSQLContainer().withNetwork(network).withReuse(false);
-        logstoreDBContainer.start();
-        logstoreDBContainer.exposeHostPort();
-
-
-        logstoreContainer = startLogstoreServiceContainer(network);
-        logstoreDbConnection = connectToLogstoreDB();
-        populateLogstoreDB(logstoreDbConnection);
-
-        jobStoreServiceContainer = startJobStoreServiceContainer(network);
-
-        final String jobStoreServiceBaseurl = "http://" + jobStoreServiceContainer.getContainerIpAddress() +
-                ":" + jobStoreServiceContainer.getMappedPort(8080) +
+    private static JobStoreServiceConnector makeJobStoreConnector(GenericContainer<?> jobStoreContainer) {
+        String url = "http://" + jobStoreContainer.getHost() + ":" + jobStoreContainer.getMappedPort(8080) +
                 System.getProperty("jobstore.it.service.context");
-        jobStoreServiceConnector = new JobStoreServiceConnector(
-                HttpClient.newClient(new ClientConfig().register(new JacksonFeature())),
-                jobStoreServiceBaseurl);
+        return new JobStoreServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), url);
+    }
 
-        final String jmsQueueServiceBaseurl = "http://" + jmsQueueServiceContainer.getContainerIpAddress() +
-                ":" + jmsQueueServiceContainer.getMappedPort(8080);
-        jmsQueueServiceConnector = new JmsQueueServiceConnector(
-                HttpClient.newClient(new ClientConfig().register(new JacksonFeature())),
-                jmsQueueServiceBaseurl);
+    private static JmsQueueServiceConnector makeJmsServiceConnector(GenericContainer<?> jmsQueueServiceContainer) {
+        String jmsQueueServiceBaseurl = "http://" + jmsQueueServiceContainer.getHost() + ":" + jmsQueueServiceContainer.getMappedPort(8080);
+        return new JmsQueueServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), jmsQueueServiceBaseurl);
+    }
 
-        final String logstoreServiceBaseurl = "http://" + logstoreContainer.getContainerIpAddress() +
-                ":" + logstoreContainer.getMappedPort(8080) + "/dataio/log-store-service/";
-        logStoreServiceConnector = new LogStoreServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())),
-                logstoreServiceBaseurl);
+    private static LogStoreServiceConnector makeLogstoreConnector(GenericContainer<?> logstoreContainer) {
+        String url = "http://" + logstoreContainer.getHost() + ":" + logstoreContainer.getMappedPort(8080) + "/dataio/log-store-service/";
+        return new LogStoreServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), url);
+    }
+
+    private static DBCPostgreSQLContainer startLogStoreDB(Network network) {
+        DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withNetwork(network).withReuse(false);
+        container.start();
+        container.exposeHostPort();
+        return container;
+    }
+
+    private static DBCPostgreSQLContainer startJobstoreDB(Network network) {
+        DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withNetwork(network).withReuse(false);
+        container.start();
+        container.exposeHostPort();
+        new DatabaseMigrator().withDataSource(container.datasource()).onStartup();
+        populateJobstoreDB(connectToJobstoreDB(container));
+        return container;
     }
 
     private static WireMockServer startWireMockServer() {
-        wireMockServer = new WireMockServer(new WireMockConfiguration().dynamicPort());
-        wireMockServer.start();
-        configureFor("localhost", wireMockServer.port());
-        Testcontainers.exposeHostPorts(wireMockServer.port());
-        LOGGER.info("Wiremock server at port:{}", wireMockServer.port());
-//        URL sinks = AbstractJobStoreServiceContainerTest.class.getClassLoader().getResource("flowstore/sinks.json");
-//        try {
-//            String sinksResponse = Files.readString(Path.of(sinks.toURI()));
-//            wireMockServer.stubFor(get("/dataio/flow-store-service/sinks").willReturn(ResponseDefinitionBuilder.okForJson(sinksResponse)));
-//        } catch (IOException | URISyntaxException e) {
-//            throw new RuntimeException(e);
-//        }
-        return wireMockServer;
+        WireMockServer server = new WireMockServer(new WireMockConfiguration().dynamicPort());
+        server.start();
+        configureFor("localhost", server.port());
+        Testcontainers.exposeHostPorts(server.port());
+        LOGGER.info("Wiremock server at port:{}", server.port());
+        return server;
     }
 
     private static GenericContainer<?> startArtemisContainer(Network network) {
@@ -143,7 +114,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
     }
 
 
-    private static GenericContainer<?> startLogstoreServiceContainer(Network network) {
+    private static GenericContainer<?> startLogstoreServiceContainer(Network network, DBCPostgreSQLContainer logstoreDBContainer) {
         final GenericContainer<?> container = Containers.LOG_STORE.makeContainer()
                 .withNetwork(network)
                 .withNetworkAliases(LOGSTORE)
@@ -154,6 +125,9 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .waitingFor(Wait.forHttp("/dataio/log-store-service/status"))
                 .withExposedPorts(8080);
         container.start();
+        Connection logstoreDbConnection = connectToLogstoreDB(logstoreDBContainer);
+        populateLogstoreDB(logstoreDbConnection);
+
         return container;
     }
 
@@ -238,17 +212,17 @@ public abstract class AbstractJobStoreServiceContainerTest {
     }
 
 
-    static Connection connectToLogstoreDB() {
+    static Connection connectToLogstoreDB(DBCPostgreSQLContainer container) {
         try {
-            return logstoreDBContainer.createConnection();
+            return container.createConnection();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    static Connection connectToJobstoreDB() {
+    static Connection connectToJobstoreDB(DBCPostgreSQLContainer container) {
         try {
-            return jobstoreDBContainer.createConnection();
+            return container.createConnection();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

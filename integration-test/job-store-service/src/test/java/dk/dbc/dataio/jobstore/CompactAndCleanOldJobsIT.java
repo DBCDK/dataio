@@ -78,14 +78,14 @@ public class CompactAndCleanOldJobsIT extends AbstractJobStoreServiceContainerTe
         //
         for (int itemNum = 0; itemNum < numberOfItems; itemNum++) {
             assertThat(String.format("Log jobid/chunk/item:%s/0/%d", jobId, itemNum),
-                    logStoreServiceConnector.getItemLog(jobId, 0, itemNum), is(notNullValue()));
+                    logstoreServiceConnector.getItemLog(jobId, 0, itemNum), is(notNullValue()));
         }
     }
 
     private void assertNoLogs(String jobId) {
         for (int itemNum = 0; itemNum < 10; itemNum++) {
             try {
-                logStoreServiceConnector.getItemLog(jobId, 0, itemNum);
+                logstoreServiceConnector.getItemLog(jobId, 0, itemNum);
                 fail(String.format("Logs for jobid/chunk/item: %s/0/%d still exists", jobId, itemNum));
             } catch (LogStoreServiceConnectorException ignored) {
 

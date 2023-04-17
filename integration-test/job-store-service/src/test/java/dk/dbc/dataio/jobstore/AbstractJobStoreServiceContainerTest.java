@@ -90,7 +90,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
         container.start();
         container.exposeHostPort();
         new DatabaseMigrator().withDataSource(container.datasource()).onStartup();
-        populateJobstoreDB(connectToJobstoreDB(container));
+        populateJobstoreDB(connectToDB(container));
         return container;
     }
 
@@ -125,7 +125,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .waitingFor(Wait.forHttp("/dataio/log-store-service/status"))
                 .withExposedPorts(8080);
         container.start();
-        Connection logstoreDbConnection = connectToLogstoreDB(logStoreDBContainer);
+        Connection logstoreDbConnection = connectToDB(logStoreDBContainer);
         populateLogstoreDB(logstoreDbConnection);
         return container;
     }
@@ -211,15 +211,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
     }
 
 
-    static Connection connectToLogstoreDB(DBCPostgreSQLContainer container) {
-        try {
-            return container.createConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    static Connection connectToJobstoreDB(DBCPostgreSQLContainer container) {
+    static Connection connectToDB(DBCPostgreSQLContainer container) {
         try {
             return container.createConnection();
         } catch (SQLException e) {

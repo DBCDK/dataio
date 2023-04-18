@@ -1,10 +1,7 @@
-package dk.dbc.dataio.jobprocessor2;
+package dk.dbc.dataio.jse.artemis.common.service;
 
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
-import dk.dbc.dataio.jobprocessor2.service.HealthService;
-import dk.dbc.dataio.jobprocessor2.service.HttpService;
-import dk.dbc.dataio.jobprocessor2.service.MetricsService;
+import dk.dbc.dataio.jse.artemis.common.Config;
 import dk.dbc.dataio.registry.PrometheusMetricRegistry;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 
@@ -16,17 +13,20 @@ public class ServiceHub implements AutoCloseable {
     public final HttpService httpService;
     public final HealthService healthService;
     public final MetricsService metricsService;
-    public final ChunkProcessor chunkProcessor;
+    public final ZombieWatch zombieWatch;
     public final JobStoreServiceConnector jobStoreServiceConnector;
 
-    private ServiceHub(MetricRegistry metricRegistry, HttpService httpService, HealthService healthService, MetricsService metricsService, ChunkProcessor chunkProcessor,
-                       JobStoreServiceConnector jobStoreServiceConnector) {
+    private ServiceHub(MetricRegistry metricRegistry, HttpService httpService, HealthService healthService, MetricsService metricsService, ZombieWatch zombieWatch, JobStoreServiceConnector jobStoreServiceConnector) {
         this.metricRegistry = metricRegistry;
         this.httpService = httpService;
         this.healthService = healthService;
         this.metricsService = metricsService;
-        this.chunkProcessor = chunkProcessor;
+        this.zombieWatch = zombieWatch;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
+    }
+
+    public static ServiceHub defaultHub() {
+        return new ServiceHub.Builder().build();
     }
 
     @Override
@@ -39,11 +39,11 @@ public class ServiceHub implements AutoCloseable {
         private HttpService httpService = new HttpService(Config.WEB_PORT.asInteger());
         private HealthService healthService = new HealthService(httpService);
         private MetricsService metricsService = new MetricsService(httpService, metricRegistry);
-        private ChunkProcessor chunkProcessor = new ChunkProcessor(healthService);
-        private JobStoreServiceConnector jobStoreServiceConnector = Config.JOBSTORE_URL.asOptionalString().map(js -> new JobStoreServiceConnector(ClientBuilder.newClient(), js)).orElse(null);
+        private ZombieWatch zombieWatch = new ZombieWatch(healthService);
+        private JobStoreServiceConnector jobStoreServiceConnector = Config.JOBSTORE_URL.asOptionalString().map(js -> new JobStoreServiceConnector(ClientBuilder.newClient(), js)).orElse(null);;
 
         public ServiceHub build() {
-            return new ServiceHub(metricRegistry, httpService, healthService, metricsService, chunkProcessor, jobStoreServiceConnector);
+            return new ServiceHub(metricRegistry, httpService, healthService, metricsService, zombieWatch, jobStoreServiceConnector);
         }
 
         public Builder withMetricRegistry(MetricRegistry metricRegistry) {
@@ -66,8 +66,8 @@ public class ServiceHub implements AutoCloseable {
             return this;
         }
 
-        public Builder withChunkProcessor(ChunkProcessor chunkProcessor) {
-            this.chunkProcessor = chunkProcessor;
+        public Builder withZombieWatch(ZombieWatch zombieWatch) {
+            this.zombieWatch = zombieWatch;
             return this;
         }
 

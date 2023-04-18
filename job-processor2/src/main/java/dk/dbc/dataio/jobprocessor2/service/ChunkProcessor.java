@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessor2.util.ChunkItemProcessor;
 import dk.dbc.dataio.jobprocessor2.util.FlowCache;
+import dk.dbc.dataio.jse.artemis.common.service.HealthService;
 import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

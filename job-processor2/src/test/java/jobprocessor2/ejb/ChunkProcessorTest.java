@@ -21,7 +21,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
-import dk.dbc.dataio.jobprocessor2.service.HealthService;
+import dk.dbc.dataio.jse.artemis.common.service.HealthService;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;

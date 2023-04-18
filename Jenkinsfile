@@ -25,6 +25,7 @@ pipeline {
             artifactNumToKeepStr: "", daysToKeepStr: "30", numToKeepStr: "30"))
         timestamps()
         timeout(time: 1, unit: "HOURS")
+        disableConcurrentBuilds(abortPrevious: true)
     }
     stages {
         stage('clean and checkout') {
@@ -38,7 +39,6 @@ pipeline {
                 sh """
                     mvn -B -T 6 install
                     mvn -B -P !integration-test -T 6 pmd:pmd
-                    mvn -B javadoc:aggregate
                     echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                     ./cli/build_docker_image.sh
                 """
@@ -46,8 +46,7 @@ pipeline {
                     junit testResults: '**/target/*-reports/*.xml'
 
                     def java = scanForIssues tool: [$class: 'Java']
-                    def javadoc = scanForIssues tool: [$class: 'JavaDoc']
-                    publishIssues issues:[java, javadoc], unstableTotalAll:1
+                    publishIssues issues:[java], unstableTotalAll:1
 
                     def pmd = scanForIssues tool: [$class: 'Pmd']
                     publishIssues issues:[pmd], unstableTotalAll:1
@@ -84,7 +83,7 @@ pipeline {
             }
             steps {
                 sh """
-                    mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -am -pl commons/utils/flow-store-service-connector -pl commons/utils/tickle-harvester-service-connector -pl gatekeeper -pl job-processor2
+                    mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -am -pl "commons/utils/flow-store-service-connector, commons/utils/tickle-harvester-service-connector, gatekeeper, job-processor2, sink/dummy"
                 """
             }
         }

@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobprocessor2.service;
+package dk.dbc.dataio.jse.artemis.common.service;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -16,7 +16,6 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 
 public class HttpService implements AutoCloseable {
@@ -26,20 +25,23 @@ public class HttpService implements AutoCloseable {
     private final ServletContextHandler context;
 
     public HttpService(int port) {
+        HttpConfiguration conf = new HttpConfiguration();
+        conf.setHttpCompliance(HttpCompliance.LEGACY);
+        conf.setUriCompliance(UriCompliance.LEGACY);
+        HttpConnectionFactory cf = new HttpConnectionFactory(conf);
+        sc = new ServerConnector(server, cf);
+        sc.setPort(port);
+        server.setConnectors(new Connector[] {sc});
+        context = new ServletContextHandler();
+        server.setHandler(context);
+    }
+
+    public void start() {
         try {
-            HttpConfiguration conf = new HttpConfiguration();
-            conf.setHttpCompliance(HttpCompliance.LEGACY);
-            conf.setUriCompliance(UriCompliance.LEGACY);
-            HttpConnectionFactory cf = new HttpConnectionFactory(conf);
-            sc = new ServerConnector(server, cf);
-            sc.setPort(port);
-            server.setConnectors(new Connector[] {sc});
-            context = new ServletContextHandler();
-            server.setHandler(context);
             server.start();
             LOGGER.info("Webserver started on port {}", sc.getLocalPort());
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -47,7 +49,7 @@ public class HttpService implements AutoCloseable {
         context.addServlet(new ServletHolder(new HttpServlet() {
             @Override
             protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-                resp.setContentType(MediaType.TEXT_PLAIN);
+                resp.setContentType("text/plain");
                 servlet.doGet(req, resp);
             }
         }), path);

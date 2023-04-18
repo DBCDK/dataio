@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobprocessor2.exception;
+package dk.dbc.dataio.jse.artemis.common;
 
 public class JobProcessorException extends RuntimeException {
     /**

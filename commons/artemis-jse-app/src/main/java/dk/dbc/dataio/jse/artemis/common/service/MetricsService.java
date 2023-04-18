@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobprocessor2.service;
+package dk.dbc.dataio.jse.artemis.common.service;
 
 import com.sun.management.OperatingSystemMXBean;
 import jakarta.servlet.http.HttpServletRequest;

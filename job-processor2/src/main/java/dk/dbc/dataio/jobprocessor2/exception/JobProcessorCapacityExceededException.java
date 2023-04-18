@@ -1,5 +1,7 @@
 package dk.dbc.dataio.jobprocessor2.exception;
 
+import dk.dbc.dataio.jse.artemis.common.JobProcessorException;
+
 public class JobProcessorCapacityExceededException extends JobProcessorException {
     /**
      * Constructs a new exception with the specified detail message

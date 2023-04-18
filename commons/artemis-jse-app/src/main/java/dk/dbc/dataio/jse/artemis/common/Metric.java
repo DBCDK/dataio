@@ -1,13 +1,11 @@
-package dk.dbc.dataio.jobprocessor2;
+package dk.dbc.dataio.jse.artemis.common;
 
 import dk.dbc.dataio.registry.PrometheusMetricMixin;
 import org.eclipse.microprofile.metrics.Tag;
 
 public enum Metric implements PrometheusMetricMixin {
-    dataio_jobprocessor_chunk_duration_ms,
-    dataio_jobprocessor_slow_jobs,
-    dataio_flow_cache_hit_rate,
-    dataio_flow_cache_get;
+    dataio_message_count,
+    dataio_message_time;
 
     public enum ATag {
         rollback, rejected;

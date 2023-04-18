@@ -6,14 +6,12 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import org.junit.Before;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -28,21 +26,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-public class DummyMessageProcessorBeanTest {
-    private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
-    private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
-    private Map<String, Object> headers = Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
+public class DummyMessageProcessorTest {
+    private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    private final Map<String, Object> headers = Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
     private final String trackingId = "rr:1223io:12534";
 
-    @Before
-    public void setupMocks() {
-        when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
-    }
-
     @Test
-    public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws ServiceException, InvalidMessageException, JSONBException, JobStoreServiceConnectorException {
+    public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws InvalidMessageException, JSONBException, JobStoreServiceConnectorException {
         final String messageId = "id";
         final Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(0L).setChunkId(0L).build();
         final String payload = new JSONBContext().marshall(processedChunk);
@@ -81,9 +72,7 @@ public class DummyMessageProcessorBeanTest {
         assertThat(iterator.hasNext(), is(false));
     }
 
-    private DummyMessageProcessorBean getDummyMessageProcessorBean() {
-        final DummyMessageProcessorBean dummyMessageProcessorBean = new DummyMessageProcessorBean();
-        dummyMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
-        return dummyMessageProcessorBean;
+    private DummyMessageConsumer getDummyMessageProcessorBean() {
+        return new DummyMessageConsumer(new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build());
     }
 }

@@ -1,31 +1,33 @@
-package dk.dbc.dataio.jobprocessor2.service;
+package dk.dbc.dataio.jse.artemis.common.service;
 
+import dk.dbc.dataio.jse.artemis.common.Health;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 public class HealthService {
     public final static Duration MAXIMUM_TIME_TO_PROCESS = Duration.ofMinutes(3);
-    private final EnumSet<HealthFlag> signals = EnumSet.noneOf(HealthFlag.class);
+    private final Set<Health> signals = new HashSet<>();
     public HealthService(HttpService httpService) {
         httpService.addServlet(this::doGet, "/health/*");
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        Optional<HealthFlag> flag = signals.stream().findFirst();
-        resp.setStatus(flag.map(s -> s.statusCode).orElse(200));
-        resp.getWriter().println(flag.map(f -> f.message).orElse("I'm not quite dead yet"));
+        Optional<Health> flag = signals.stream().findFirst();
+        resp.setStatus(flag.map(Health::getStatusCode).orElse(200));
+        resp.getWriter().println(flag.map(Health::getMessage).orElse("I'm not quite dead yet"));
     }
 
     public boolean isUp() {
         return signals.isEmpty();
     }
 
-    public void signal(HealthFlag flag) {
+    public void signal(Health flag) {
         signals.add(flag);
     }
 

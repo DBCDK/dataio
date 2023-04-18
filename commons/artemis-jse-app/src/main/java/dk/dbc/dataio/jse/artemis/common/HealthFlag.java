@@ -1,11 +1,6 @@
-package dk.dbc.dataio.jobprocessor2.service;
-
-
-import dk.dbc.dataio.jse.artemis.common.Health;
+package dk.dbc.dataio.jse.artemis.common;
 
 public enum HealthFlag implements Health {
-    OUT_OF_MEMORY(400, "Out of memory"),
-    TIMEOUT(401, "JavaScript exceeded its execution time"),
     STALE(402, "Timed out waiting for a message");
 
     public final int statusCode;

@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobprocessor2.jms;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
@@ -10,17 +9,15 @@ import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.jobprocessor2.Config;
 import dk.dbc.dataio.jobprocessor2.Metric;
-import dk.dbc.dataio.jobprocessor2.ServiceHub;
-import dk.dbc.dataio.jobprocessor2.exception.JobProcessorException;
+import dk.dbc.dataio.jobprocessor2.ProcessorConfig;
 import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
 import dk.dbc.dataio.jobprocessor2.service.HealthFlag;
-import dk.dbc.dataio.jobprocessor2.service.HealthService;
-import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.dataio.jse.artemis.common.JobProcessorException;
+import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
+import dk.dbc.dataio.jse.artemis.common.service.HealthService;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.registry.PrometheusMetricRegistry;
-import dk.dbc.jms.artemis.AdminClient;
 import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,48 +27,29 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import static dk.dbc.dataio.jobprocessor2.Config.ARTEMIS_ADMIN_PORT;
-import static dk.dbc.dataio.jobprocessor2.Config.ARTEMIS_MQ_HOST;
-import static dk.dbc.dataio.jobprocessor2.Config.ARTEMIS_PASSWORD;
-import static dk.dbc.dataio.jobprocessor2.Config.ARTEMIS_USER;
 
 /**
  * Handles Chunk messages received from the job-store
  */
-public class JobStoreMessageConsumer implements MessageValidator {
+public class JobStoreMessageConsumer extends MessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreMessageConsumer.class);
     private static final Duration SLOW_THRESHOLD_MS = Duration.ofMinutes(2);
-    private static final Duration STALE_JMS_PROVIDER = Duration.ofMinutes(1);
-    private static final int STALE_THRESHOLD = 20;
-    private final AdminClient adminClient;
 
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final ChunkProcessor chunkProcessor;
     private final HealthService healthService;
-    private final ObjectMapper mapper = new ObjectMapper();
     private final Map<WatchKey, Instant> scriptStartTimes = new ConcurrentHashMap<>();
+    private static final String QUEUE = ProcessorConfig.QUEUE.toString();
+    private static final String FILTER = ProcessorConfig.MESSAGE_FILTER.asOptionalString().orElse(null);
 
     public JobStoreMessageConsumer(ServiceHub serviceHub) {
+        super(serviceHub);
         healthService = serviceHub.healthService;
-        chunkProcessor = serviceHub.chunkProcessor;
+        chunkProcessor = new ChunkProcessor(healthService);
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
-        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1, this::makeWatchThread);
-        scheduledExecutorService.scheduleAtFixedRate(this::zombieWatch, 1, 1, TimeUnit.MINUTES);
-        adminClient = ARTEMIS_ADMIN_PORT.asOptionalInteger()
-                .map(port -> new AdminClient("http://" + ARTEMIS_MQ_HOST + ":" + port, ARTEMIS_USER.toString(), ARTEMIS_PASSWORD.toString()))
-                .orElse(null);
         Metric.dataio_jobprocessor_chunk_duration_ms.gauge(this::getLongestRunningChunkDuration);
         initMetrics(PrometheusMetricRegistry.create());
-    }
-
-    private Thread makeWatchThread(Runnable runnable) {
-        Thread thread = new Thread(runnable, "zombie-watch");
-        thread.setDaemon(true);
-        return thread;
+        zombieWatch.addCheck(this::scriptRuntimeCheck);
     }
 
     /**
@@ -92,34 +70,25 @@ public class JobStoreMessageConsumer implements MessageValidator {
         sendResultToJobStore(processChunk(chunk, flow, additionalArgs));
     }
 
+    @Override
+    public String getQueue() {
+        return QUEUE;
+    }
+
+    @Override
+    public String getFilter() {
+        return FILTER;
+    }
+
     @SuppressWarnings("unused")
-    public void zombieWatch() {
+    public void scriptRuntimeCheck() {
         Instant now = Instant.now();
         scriptStartTimes.entrySet().stream()
                 .filter(e -> Duration.between(e.getValue(), now).compareTo(HealthService.MAXIMUM_TIME_TO_PROCESS) > 0)
                 .findFirst()
                 .map(Map.Entry::getKey)
                 .ifPresent(this::timeoutChunk);
-        Duration sinceLastRun = Duration.ofMillis(getTimeSinceLastMessage());
-        LOGGER.info("Time since last message: {}", sinceLastRun);
-        if(adminClient != null && sinceLastRun.compareTo(STALE_JMS_PROVIDER) >= 0) {
-            int count = getMessageCount();
-            LOGGER.info("Messages on queue: {}, with filter: {}", count, Config.MESSAGE_FILTER.asOptionalString().orElse("<none>"));
-            if(count > STALE_THRESHOLD) {
-                LOGGER.error("MessageBean has gone stale, marking the server down");
-                healthService.signal(HealthFlag.STALE);
-            }
-        }
-    }
 
-    private int getMessageCount() {
-        String queue = Config.QUEUE.toString();
-        try {
-            return Config.MESSAGE_FILTER.asOptionalString().map(ms -> adminClient.countMessages(queue, queue, ms)).orElse(adminClient.getQueueAttribute(queue, queue, "Message count"));
-        } catch (Exception e) {
-            LOGGER.warn("Unable to retrieve message count for queue {}", queue, e);
-            return 0;
-        }
     }
 
     private long getLongestRunningChunkDuration() {
@@ -134,7 +103,7 @@ public class JobStoreMessageConsumer implements MessageValidator {
 
     private Chunk extractChunkFromConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         try {
-            Chunk chunk = mapper.readValue(consumedMessage.getMessagePayload(), Chunk.class);
+            Chunk chunk = MAPPER.readValue(consumedMessage.getMessagePayload(), Chunk.class);
             confirmLegalChunkTypeOrThrow(chunk, Chunk.Type.PARTITIONED);
             return chunk;
         } catch (JsonProcessingException e) {
@@ -172,24 +141,6 @@ public class JobStoreMessageConsumer implements MessageValidator {
                     "Exception caught while fetching flow for job %s", chunk.getJobId()), e);
         } finally {
             LOGGER.debug("Fetching flow took {} milliseconds", stopWatch.getElapsedTime());
-        }
-    }
-
-    @SuppressWarnings("Duplicates")
-    private void sendResultToJobStore(Chunk chunk) throws JobProcessorException {
-        StopWatch stopWatch = new StopWatch();
-        try {
-            jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
-        } catch (RuntimeException | JobStoreServiceConnectorException e) {
-            if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
-                JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
-                if (jobError != null) {
-                    LOGGER.error("job-store returned error: {}", jobError.getDescription());
-                }
-            }
-            throw new JobProcessorException("Error while sending result to job-store", e);
-        } finally {
-            LOGGER.debug("Sending result took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

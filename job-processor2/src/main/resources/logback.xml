@@ -16,7 +16,7 @@
       <onMismatch>DENY</onMismatch>
     </filter>
 
-    <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+    <connectionSource class="ch.qos.logback.core.db.DataSourceConnectionSource">
       <driverClass>org.postgresql.Driver</driverClass>
       <url>jdbc:postgresql://${LOGSTORE_DB_URL}</url>
       <user>${LOGSTORE_DB_USER}</user>

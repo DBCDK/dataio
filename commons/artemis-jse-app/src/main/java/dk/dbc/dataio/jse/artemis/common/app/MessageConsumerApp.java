@@ -27,6 +27,7 @@ public abstract class MessageConsumerApp {
     private final ExecutorService executorService = Executors.newFixedThreadPool(Config.CONSUMER_THREADS.asInteger(), Config.threadFactory("message-consumer", false));
     private HttpService httpService = null;
     private MessageConsumer messageConsumer = null;
+    private static final int CONSUMER_IDLE_MAX = Config.CONSUMER_IDLE_MAX.asInteger();
 
     protected void go(ServiceHub serviceHub, MessageConsumer messageConsumer) {
         int threads = Config.CONSUMER_THREADS.asInteger();
@@ -69,9 +70,11 @@ public abstract class MessageConsumerApp {
     private void receiveMessages(MessageConsumer listener, JMSConsumer consumer, JMSContext context) {
         String messageId = null;
         try {
-            while(keepRunning.get()) {
+            int noMsgCount = 0;
+            while(keepRunning.get() && noMsgCount < CONSUMER_IDLE_MAX) {
                 Message message = consumer.receive(1000);
                 if(message != null) {
+                    noMsgCount = 0;
                     messageId = message.getJMSMessageID();
                     try {
                         listener.onMessage(message);
@@ -80,7 +83,7 @@ public abstract class MessageConsumerApp {
                         LOGGER.warn("Rolling back message {}", messageId, re);
                         context.rollback();
                     }
-                }
+                } else noMsgCount++;
             }
         } catch (IllegalStateRuntimeException ie) {
             LOGGER.info("Artemis connection broke, reconnecting", ie);

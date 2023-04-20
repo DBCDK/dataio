@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 public abstract class MessageConsumerApp {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerApp.class);
@@ -26,13 +27,13 @@ public abstract class MessageConsumerApp {
     private final ConnectionFactory connectionFactory = Config.getConnectionFactory();
     private final ExecutorService executorService = Executors.newFixedThreadPool(Config.CONSUMER_THREADS.asInteger(), Config.threadFactory("message-consumer", false));
     private HttpService httpService = null;
-    private MessageConsumer messageConsumer = null;
+    private Supplier<? extends MessageConsumer> messageConsumerSupplier = null;
 
-    protected void go(ServiceHub serviceHub, MessageConsumer messageConsumer) {
+    protected void go(ServiceHub serviceHub, Supplier<? extends MessageConsumer> messageConsumerSupplier) {
         int threads = Config.CONSUMER_THREADS.asInteger();
         httpService = serviceHub.httpService;
         httpService.start();
-        this.messageConsumer = messageConsumer;
+        this.messageConsumerSupplier = messageConsumerSupplier;
         for (int i = 0; i < threads; i++) {
             startConsumers();
         }
@@ -55,6 +56,7 @@ public abstract class MessageConsumerApp {
     private void listen() {
         while (keepRunning.get()) {
             try (JMSContext context = connectionFactory.createContext(JMSContext.SESSION_TRANSACTED)) {
+                MessageConsumer messageConsumer = messageConsumerSupplier.get();
                 Queue queue = context.createQueue(messageConsumer.getQueue());
                 try(JMSConsumer consumer = context.createConsumer(queue, messageConsumer.getFilter())) {
                     receiveMessages(messageConsumer, consumer, context);

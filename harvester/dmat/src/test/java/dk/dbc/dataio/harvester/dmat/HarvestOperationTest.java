@@ -63,7 +63,6 @@ public class HarvestOperationTest {
     private final DMatServiceConnector dmatServiceConnector = mock(DMatServiceConnector.class);
     private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperationTest.class);
-    private final String PUBLISHER_DATASET_NAME = "150015-forlag";
 
     @TempDir
     Path tempDir;
@@ -468,7 +467,6 @@ public class HarvestOperationTest {
                         .withCreationDate(accession.toLocalDate())
                         .withRecords(Arrays.asList(
                                 mockRecord(5, accession, UpdateCode.UPDATE, Selection.CREATE, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST)
-                                // Todo: Add test for failing records with UpdateCode.PUBLISHER when we implement the ticklefetcher
                         )));
 
         when(recordServiceConnector.getRecordContentCollection(191919, RECORD_FAUST, fetchParameters()))

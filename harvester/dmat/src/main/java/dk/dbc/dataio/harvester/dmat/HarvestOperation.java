@@ -53,7 +53,6 @@ public class HarvestOperation {
     private final DMatServiceConnector dmatServiceConnector;
     private final RecordServiceConnector recordServiceConnector;
     private final String dmatDownloadUrl;
-    protected JobBuilder publisherJobBuilder;
 
     public HarvestOperation(DMatHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
@@ -71,9 +70,6 @@ public class HarvestOperation {
         this.dmatServiceConnector = dmatServiceConnector;
         this.recordServiceConnector = recordServiceConnector;
         this.dmatDownloadUrl = dmatDownloadUrl;
-        this.publisherJobBuilder = new JobBuilder(
-                binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
-                JobSpecificationTemplate.create(config, JobSpecificationTemplate.JobSpecificationType.PUBLISHER));
     }
 
     public int execute() throws HarvesterException {
@@ -86,7 +82,7 @@ public class HarvestOperation {
         try {
             JobBuilder rrJobBuilder = new JobBuilder(
                     binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
-                    JobSpecificationTemplate.create(config, JobSpecificationTemplate.JobSpecificationType.RR));
+                    JobSpecificationTemplate.create(config));
 
             final ResultSet dmatRecords = new ResultSet(dmatServiceConnector);
             for (DMatRecord dmatRecord : dmatRecords) {
@@ -128,11 +124,6 @@ public class HarvestOperation {
             // if job creation fails
             rrJobBuilder.build();
             statusAfterExportRr.forEach(this::updateStatus);
-
-            // After the job for publisher records has been successfully build, update the status of the
-            // harvested dmat records to ensure that no record is marked as exported
-            // if job creation fails
-            publisherJobBuilder.build();
 
             updateConfig(config);
 
@@ -236,7 +227,7 @@ public class HarvestOperation {
         return ((ExtendedAddiMetaData) new ExtendedAddiMetaData()
                 .withTrackingId(String.join(".", "dmat", config.getLogId(),
                         String.valueOf(dmatRecord.getId())))
-                .withSubmitterNumber(JobSpecificationTemplate.getSubmitterNumberFor(JobSpecificationTemplate.JobSpecificationType.RR))
+                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER_RR)
                 .withFormat(config.getContent().getFormat())
                 .withCreationDate(Date.from(creationDate.atStartOfDay(TIMEZONE).plusHours(12).toInstant()))
                 .withBibliographicRecordId(dmatRecord.getIsbn()))

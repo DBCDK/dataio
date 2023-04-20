@@ -7,12 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +27,7 @@ public class ZombieWatch {
     private final AdminClient adminClient;
     private final HealthService healthService;
     private Map<QueueKey, AtomicLong> monitors = new HashMap<>();
-    private List<Runnable> checks = new ArrayList<>();
+    private Map<String, Runnable> checks = new ConcurrentHashMap<>();
 
     public ZombieWatch(HealthService healthService) {
         this.healthService = healthService;
@@ -40,8 +39,8 @@ public class ZombieWatch {
 
     }
 
-    public void addCheck(Runnable runnable) {
-        checks.add(runnable);
+    public void addCheck(String name, Runnable runnable) {
+        checks.putIfAbsent(name, runnable);
     }
 
     public void update(String queue, String filter) {
@@ -52,7 +51,7 @@ public class ZombieWatch {
 
     private void zombieWatch() {
         monitors.forEach(this::checkMonitor);
-        checks.forEach(Runnable::run);
+        checks.values().forEach(Runnable::run);
     }
 
     private void checkMonitor(QueueKey queueKey, AtomicLong timestamp) {

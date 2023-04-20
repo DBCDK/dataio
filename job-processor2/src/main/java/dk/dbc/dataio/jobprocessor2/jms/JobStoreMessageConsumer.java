@@ -49,7 +49,7 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
         Metric.dataio_jobprocessor_chunk_duration_ms.gauge(this::getLongestRunningChunkDuration);
         initMetrics(PrometheusMetricRegistry.create());
-        zombieWatch.addCheck(this::scriptRuntimeCheck);
+        zombieWatch.addCheck("script-check" , this::scriptRuntimeCheck);
     }
 
     /**

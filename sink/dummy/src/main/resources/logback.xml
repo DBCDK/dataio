@@ -21,6 +21,7 @@
       <url>jdbc:postgresql://${LOGSTORE_DB_URL}</url>
       <user>${LOGSTORE_DB_USER}</user>
       <password>${LOGSTORE_DB_PASSWORD}</password>
+      <sqlDialect class="ch.qos.logback.core.db.dialect.PostgreSQLDialect"/>
     </connectionSource>
   </appender>
 

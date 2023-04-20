@@ -25,4 +25,9 @@ public enum ProcessorConfig implements EnvConfig {
     public String getDefaultValue() {
         return defaultValue;
     }
+
+    @Override
+    public String toString() {
+        return asString();
+    }
 }

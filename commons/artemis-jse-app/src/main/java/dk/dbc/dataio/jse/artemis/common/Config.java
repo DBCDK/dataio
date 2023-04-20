@@ -20,7 +20,8 @@ public enum Config implements EnvConfig {
     JOBSTORE_URL,
     STALE_JMS_PROVIDER("PT1m"),
     STALE_THRESHOLD("20"),
-    CONSUMER_THREADS("1");
+    CONSUMER_THREADS("1"),
+    CONSUMER_IDLE_MAX("30");
 
     private final String defaultValue;
     private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);

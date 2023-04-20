@@ -38,7 +38,7 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final ChunkProcessor chunkProcessor;
     private final HealthService healthService;
-    private final Map<WatchKey, Instant> scriptStartTimes = new ConcurrentHashMap<>();
+    private static final Map<WatchKey, Instant> scriptStartTimes = new ConcurrentHashMap<>();
     private static final String QUEUE = ProcessorConfig.QUEUE.toString();
     private static final String FILTER = ProcessorConfig.MESSAGE_FILTER.asOptionalString().orElse(null);
 

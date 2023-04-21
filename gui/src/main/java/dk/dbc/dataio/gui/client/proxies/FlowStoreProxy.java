@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
+import dk.dbc.dataio.gui.client.model.FlowBinderUsage;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -59,6 +60,9 @@ public interface FlowStoreProxy extends RemoteService {
     List<FlowBinderModel> queryFlowBinders(List<GwtQueryClause> clauses) throws ProxyException;
 
     List<FlowBinderModel> findAllFlowBinders() throws ProxyException;
+
+    List<FlowBinderUsage> getFlowBindersUsage() throws ProxyException;
+    List<FlowBinderUsage> getFlowBindersUsageCached() throws ProxyException;
 
     FlowBinderModel getFlowBinder(long id) throws ProxyException;
 

@@ -35,6 +35,7 @@ public class SinkContent implements Serializable {
     private static final SinkConfig NULL_CONFIG = null;
 
     private final String name;
+    private final String queue;
     private final String resource;
     private final String description;
     private final SinkType sinkType;
@@ -55,6 +56,7 @@ public class SinkContent implements Serializable {
      */
     @JsonCreator
     public SinkContent(@JsonProperty("name") String name,
+                       @JsonProperty(value = "queue", defaultValue = "jmsDataioSinks") String queue,
                        @JsonProperty("resource") String resource,
                        @JsonProperty("description") String description,
                        @JsonProperty("sinkType") SinkType sinkType,
@@ -62,6 +64,7 @@ public class SinkContent implements Serializable {
                        @JsonProperty("sequenceAnalysisOption") SequenceAnalysisOption sequenceAnalysisOption) {
 
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
+        this.queue = queue;
         this.resource = InvariantUtil.checkNotNullNotEmptyOrThrow(resource, "resource");
         this.description = description;
         this.sinkType = sinkType;
@@ -70,15 +73,19 @@ public class SinkContent implements Serializable {
     }
 
     public SinkContent(String name, String resource, String description, SinkType sinkType, SequenceAnalysisOption sequenceAnalysisOption) {
-        this(name, resource, description, sinkType, NULL_CONFIG, sequenceAnalysisOption);
+        this(name, "jmsDataioSinks", resource, description, sinkType, NULL_CONFIG, sequenceAnalysisOption);
     }
 
     public SinkContent(String name, String resource, String description, SequenceAnalysisOption sequenceAnalysisOption) {
-        this(name, resource, description, NULL_TYPE, NULL_CONFIG, sequenceAnalysisOption);
+        this(name, "jmsDataioSinks", resource, description, NULL_TYPE, NULL_CONFIG, sequenceAnalysisOption);
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getQueue() {
+        return queue;
     }
 
     public String getResource() {
@@ -109,6 +116,7 @@ public class SinkContent implements Serializable {
         SinkContent that = (SinkContent) o;
 
         if (!name.equals(that.name)) return false;
+        if(!queue.equals(that.queue)) return false;
         if (!resource.equals(that.resource)) return false;
         if (!description.equals(that.description)) return false;
         if (sinkType != that.sinkType) return false;
@@ -120,6 +128,7 @@ public class SinkContent implements Serializable {
     @Override
     public int hashCode() {
         int result = name.hashCode();
+        result = 31 * result + queue.hashCode();
         result = 31 * result + resource.hashCode();
         result = 31 * result + description.hashCode();
         result = 31 * result + (sinkType != null ? sinkType.hashCode() : 0);

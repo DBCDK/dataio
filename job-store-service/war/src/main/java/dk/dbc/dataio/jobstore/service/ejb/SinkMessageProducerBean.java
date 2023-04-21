@@ -21,6 +21,8 @@ import javax.jms.JMSException;
 import javax.jms.JMSProducer;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This Enterprise Java Bean (EJB) functions as JMS message producer for
@@ -34,10 +36,8 @@ public class SinkMessageProducerBean {
     @Resource(lookup = "jms/artemisConnectionFactory")
     ConnectionFactory sinksQueueConnectionFactory;
 
-    @Resource(lookup = "jms/dataio/sinks")
-    Queue sinksQueue;
-
     JSONBContext jsonbContext = new JSONBContext();
+    private final Map<String, Queue> queues = new HashMap<>();
 
     /**
      * Sends given processed chunk as JMS message with JSON payload to sink queue destination
@@ -56,10 +56,11 @@ public class SinkMessageProducerBean {
                 destination.getContent().getName());
 
         try (JMSContext context = sinksQueueConnectionFactory.createContext()) {
+            Queue queue = queues.computeIfAbsent(destination.getContent().getQueue(), context::createQueue);
             final TextMessage message = createMessage(context, chunk, destination, flowStoreReferences);
             final JMSProducer producer = context.createProducer();
             producer.setPriority(priority);
-            producer.send(sinksQueue, message);
+            producer.send(queue, message);
         } catch (JSONBException | JMSException e) {
             final String errorMessage = String.format(
                     "Exception caught while sending processed chunk %d in job %s",

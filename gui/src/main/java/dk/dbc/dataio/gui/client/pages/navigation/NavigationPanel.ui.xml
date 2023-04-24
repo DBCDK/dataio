@@ -16,7 +16,9 @@
                 <g:TreeItem text="{txt.menu_PeriodicJobs}" ui:field="periodicJobs"/>
                 <g:TreeItem text="{txt.menu_TestJobs}" ui:field="testJobs"/>
                 <g:TreeItem text="{txt.menu_AcctestJobs}" ui:field="acctestJobs"/>
-                <g:TreeItem text="{txt.menu_FlowBinders}" ui:field="flowBinders"/>
+                <g:TreeItem text="{txt.menu_FlowBinders}" ui:field="flowBinders">
+                    <g:TreeItem text="{txt.menu_FlowBinderStatus}" ui:field="flowBinderStatus"/>
+                </g:TreeItem>
                 <g:TreeItem text="{txt.menu_Flows}" ui:field="flows"/>
                 <g:TreeItem text="{txt.menu_FlowComponents}" ui:field="flowComponents"/>
                 <g:TreeItem text="{txt.menu_Harvesters}" ui:field="harvesters">

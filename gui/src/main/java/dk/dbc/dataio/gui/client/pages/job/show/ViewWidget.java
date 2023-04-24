@@ -92,7 +92,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     @UiFactory
     PopupSelectBox getPopupBox() {
-        // Actual values are defined in ViewWidget.ui.xml
+        // Actual values are defined in View.ui.xml
         return new PopupSelectBox();
     }
 

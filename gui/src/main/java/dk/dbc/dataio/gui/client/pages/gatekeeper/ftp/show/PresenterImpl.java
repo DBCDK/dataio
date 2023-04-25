@@ -17,6 +17,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     private final Logger logger = Logger.getLogger(PresenterImpl.class.getName());
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+    @SuppressWarnings("unused")
     private PlaceController placeController;
     private String header;
 

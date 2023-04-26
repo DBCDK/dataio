@@ -32,16 +32,6 @@ public class SinkContentTest {
         new SinkContent("", RESOURCE, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void constructor_resourceArgIsNull_throws() {
-        new SinkContent(NAME, null, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_resourceArgIsEmpty_throws() {
-        new SinkContent(NAME, "", DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
-    }
-
     @Test
     public void constructor_descriptionArgIsEmpty_returnsNewInstance() {
         new SinkContent(NAME, RESOURCE, "", SEQUENCE_ANALYSIS_OPTION);

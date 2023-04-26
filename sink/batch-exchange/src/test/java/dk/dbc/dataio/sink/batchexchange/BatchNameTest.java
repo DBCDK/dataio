@@ -4,8 +4,6 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import org.junit.Test;
 
-import static dk.dbc.commons.testutil.Assert.assertThat;
-import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -27,14 +25,14 @@ public class BatchNameTest {
         assertThat("chunkId", batchName.getChunkId(), is(chunk.getChunkId()));
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void fromString_invalidNumberOfTokens_throws() {
-        assertThat(() -> BatchName.fromString("1-2-3"), isThrowing(IllegalArgumentException.class));
+        BatchName.fromString("1-2-3");
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void fromString_invalidTokenTypes_throws() {
-        assertThat(() -> BatchName.fromString("one-two"), isThrowing(IllegalArgumentException.class));
+        BatchName.fromString("one-two");
     }
 
     @Test

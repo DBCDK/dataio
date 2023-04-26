@@ -32,7 +32,7 @@ public class MockedJobStoreServiceConnector extends JobStoreServiceConnector {
     }
 
     @Override
-    public JobInfoSnapshot addChunk(Chunk chunk, long jobId, long chunkId) {
+    public JobInfoSnapshot addChunk(Chunk chunk, int jobId, long chunkId) {
         chunks.add(chunk);
         return jobInfoSnapshots.remove();
     }

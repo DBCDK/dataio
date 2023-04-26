@@ -8,8 +8,6 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Priority;
-import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.testutil.ObjectFactory;
@@ -43,7 +41,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
      *  Then: a batch with seven entries is created in the batch exchange
      */
     @Test
-    public void handleConsumedMessage() throws ServiceException, InvalidMessageException, IOException {
+    public void handleConsumedMessage() throws IOException {
         // Given...
 
         final AddiRecord addiRecordX = new AddiRecord(

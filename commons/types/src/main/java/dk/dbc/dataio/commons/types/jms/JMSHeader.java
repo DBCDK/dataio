@@ -1,5 +1,7 @@
 package dk.dbc.dataio.commons.types.jms;
 
+import dk.dbc.dataio.commons.types.ConsumedMessage;
+
 import javax.jms.JMSException;
 import javax.jms.Message;
 
@@ -42,6 +44,10 @@ public enum JMSHeader {
     public <T> T getHeader(Message message) throws JMSException {
         //noinspection unchecked
         return (T)message.getObjectProperty(name);
+    }
+
+    public <T> T getHeader(ConsumedMessage message, Class<T> clazz) throws JMSException {
+        return message.getHeaderValue(name, clazz);
     }
 
     public <T> T getHeader(Message message, Class<T> clazz) throws JMSException {

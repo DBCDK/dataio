@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobprocessor2.jms;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
@@ -117,7 +118,12 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
         Instant start = Instant.now();
         scriptStartTimes.put(key, start);
         try {
-            return chunkProcessor.process(chunk, flow, additionalArgs);
+            Chunk process = chunkProcessor.process(chunk, flow, additionalArgs);
+            Metric.dataio_jobprocessor_chunk_failed.counter().inc(process.getItems().stream()
+                    .map(ChunkItem::getStatus)
+                    .filter(ChunkItem.Status.FAILURE::equals)
+                    .count());
+            return process;
         } finally {
             scriptStartTimes.remove(key);
             Duration duration = Duration.between(start, Instant.now());

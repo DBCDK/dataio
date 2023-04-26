@@ -17,6 +17,7 @@ public class SinkModel extends GenericBackendModel {
 
     private SinkContent.SinkType sinkType;
     private String sinkName;
+    private String queue;
     private String resource;
     private String description;
     private SinkContent.SequenceAnalysisOption sequenceAnalysisOption;
@@ -27,7 +28,7 @@ public class SinkModel extends GenericBackendModel {
      * Empty constructor
      */
     public SinkModel() {
-        this(0L, 0L, SinkContent.SinkType.ES, "", "", "", SinkContent.SequenceAnalysisOption.ALL, null);
+        this(0L, 0L, SinkContent.SinkType.ES, "", "", "", "", SinkContent.SequenceAnalysisOption.ALL, null);
     }
 
     /**
@@ -46,13 +47,15 @@ public class SinkModel extends GenericBackendModel {
                      long version,
                      SinkContent.SinkType sinkType,
                      String name,
+                     String queue,
                      String resource,
                      String description,
                      SinkContent.SequenceAnalysisOption sequenceAnalysisOption,
                      SinkConfig sinkConfig) {
         super(id, version);
         this.sinkType = sinkType;
-        this.sinkName = name;
+        sinkName = name;
+        this.queue = queue;
         this.resource = resource;
         this.description = description == null ? "" : description;
         this.sequenceAnalysisOption = sequenceAnalysisOption;
@@ -75,6 +78,14 @@ public class SinkModel extends GenericBackendModel {
      */
     public void setSinkType(SinkContent.SinkType sinkType) {
         this.sinkType = sinkType;
+    }
+
+    public String getQueue() {
+        return queue;
+    }
+
+    public void setQueue(String queue) {
+        this.queue = queue;
     }
 
     /**

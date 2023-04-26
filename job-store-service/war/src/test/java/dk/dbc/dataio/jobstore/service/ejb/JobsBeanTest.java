@@ -274,7 +274,7 @@ public class JobsBeanTest {
 
         final JobInfoSnapshot returnedJobInfoSnapshot = jsonbContext.unmarshall((String) response.getEntity(), JobInfoSnapshot.class);
         assertThat(returnedJobInfoSnapshot, is(notNullValue()));
-        assertThat((long) returnedJobInfoSnapshot.getJobId(), is(chunk.getJobId()));
+        assertThat(returnedJobInfoSnapshot.getJobId(), is(chunk.getJobId()));
     }
 
     @Test

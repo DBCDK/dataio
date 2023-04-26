@@ -4,7 +4,9 @@ import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
+import dk.dbc.dataio.commons.types.jms.MessageIdentifiers;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -12,7 +14,6 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -22,8 +23,7 @@ import javax.jms.JMSException;
 import javax.jms.JMSProducer;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 
 /**
  * This Enterprise Java Bean (EJB) functions as JMS message producer for
@@ -31,7 +31,7 @@ import java.util.Map;
  */
 @LocalBean
 @Stateless
-public class SinkMessageProducerBean {
+public class SinkMessageProducerBean implements MessageIdentifiers {
     private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageProducerBean.class);
 
     @Inject
@@ -39,7 +39,6 @@ public class SinkMessageProducerBean {
     JMSContext context;
 
     JSONBContext jsonbContext = new JSONBContext();
-    private final Map<String, Queue> queues = new HashMap<>();
 
     /**
      * Sends given processed chunk as JMS message with JSON payload to sink queue destination
@@ -51,23 +50,24 @@ public class SinkMessageProducerBean {
      * @throws JobStoreException    when unable to send chunk to destination
      */
     public void send(Chunk chunk, JobEntity job, int priority) throws NullPointerException, JobStoreException {
-        final Sink destination = job.getCachedSink().getSink();
-        final FlowStoreReferences flowStoreReferences = job.getFlowStoreReferences();
+        Sink destination = job.getCachedSink().getSink();
+        FlowStoreReferences flowStoreReferences = job.getFlowStoreReferences();
+        String trackerId = UUID.randomUUID().toString();
 
-        LOGGER.info("Sending chunk {}/{} to sink {}", chunk.getJobId(), chunk.getChunkId(),
-                destination.getContent().getName());
+        LOGGER.info("Sending chunk {}/{} to sink {} with unique id {}", chunk.getJobId(), chunk.getChunkId(), destination.getContent().getName(), trackerId);
 
         try {
-            Queue queue = queues.computeIfAbsent(destination.getContent().getQueue(), context::createQueue);
-            final TextMessage message = createMessage(context, chunk, destination, flowStoreReferences);
-            final JMSProducer producer = context.createProducer();
+            Queue queue = context.createQueue(destination.getContent().getQueue());
+            TextMessage message = createMessage(context, chunk, destination, flowStoreReferences, trackerId);
+            JMSProducer producer = context.createProducer();
             producer.setPriority(priority);
             producer.send(queue, message);
         } catch (JSONBException | JMSException e) {
-            final String errorMessage = String.format(
-                    "Exception caught while sending processed chunk %d in job %s",
+            String errorMessage = String.format(
+                    "Exception caught while sending processed chunk %d in job %s with unique id %s",
                     chunk.getChunkId(),
-                    chunk.getJobId());
+                    chunk.getJobId(),
+                    trackerId);
             throw new JobStoreException(errorMessage, e);
         }
     }
@@ -92,19 +92,20 @@ public class SinkMessageProducerBean {
      * @throws JSONBException when unable to marshall processor result instance to JSON
      * @throws JMSException   when unable to create JMS message
      */
-    public TextMessage createMessage(JMSContext context, Chunk chunk, Sink destination, FlowStoreReferences flowStoreReferences)
-            throws JMSException, JSONBException {
-        final FlowStoreReference sinkReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK);
-        final FlowStoreReference flowBinderReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER);
-        final TextMessage message = context.createTextMessage(jsonbContext.marshall(chunk));
-        message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
-        message.setStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME, destination.getContent().getResource());
-        message.setLongProperty(JmsConstants.SINK_ID_PROPERTY_NAME, sinkReference.getId());
-        message.setLongProperty(JmsConstants.SINK_VERSION_PROPERTY_NAME, sinkReference.getVersion());
+    public TextMessage createMessage(JMSContext context, Chunk chunk, Sink destination, FlowStoreReferences flowStoreReferences, String trackerId) throws JMSException, JSONBException {
+        FlowStoreReference sinkReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK);
+        FlowStoreReference flowBinderReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER);
+        TextMessage message = context.createTextMessage(jsonbContext.marshall(chunk));
+        JMSHeader.payload.addHeader(message, JMSHeader.CHUNK_PAYLOAD_TYPE);
+        String resource = destination.getContent().getResource();
+        if(resource != null) JMSHeader.resource.addHeader(message, resource);
+        JMSHeader.sinkId.addHeader(message, sinkReference.getId());
+        JMSHeader.sinkVersion.addHeader(message, sinkReference.getVersion());
+        addIdentifiers(message, chunk, trackerId);
         // if the execution is towards the diff sink during an acceptance test run
         if (flowBinderReference != null) {
-            message.setLongProperty(JmsConstants.FLOW_BINDER_ID_PROPERTY_NAME, flowBinderReference.getId());
-            message.setLongProperty(JmsConstants.FLOW_BINDER_VERSION_PROPERTY_NAME, flowBinderReference.getVersion());
+            JMSHeader.flowBinderId.addHeader(message, flowBinderReference.getId());
+            JMSHeader.flowBinderVersion.addHeader(message, flowBinderReference.getVersion());
         }
         return message;
     }

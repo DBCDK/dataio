@@ -17,7 +17,7 @@ public class SinkResult {
 
     final ChunkItem[] chunkItems; //package scoped due to unit tests
     private final List<MarcXchangeRecord> marcXchangeRecords;
-    private final long jobId;
+    private final int jobId;
     private final long chunkId;
 
     public SinkResult(Chunk chunk, MarcXchangeRecordUnmarshaller marcXchangeRecordUnmarshaller) {

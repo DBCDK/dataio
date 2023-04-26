@@ -56,7 +56,7 @@ public class SinkContent implements Serializable {
      */
     @JsonCreator
     public SinkContent(@JsonProperty("name") String name,
-                       @JsonProperty(value = "queue", defaultValue = "jmsDataioSinks") String queue,
+                       @JsonProperty(value = "queue") String queue,
                        @JsonProperty("resource") String resource,
                        @JsonProperty("description") String description,
                        @JsonProperty("sinkType") SinkType sinkType,
@@ -65,7 +65,7 @@ public class SinkContent implements Serializable {
 
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.queue = queue;
-        this.resource = InvariantUtil.checkNotNullNotEmptyOrThrow(resource, "resource");
+        this.resource = resource;
         this.description = description;
         this.sinkType = sinkType;
         this.sinkConfig = sinkConfig;
@@ -85,7 +85,7 @@ public class SinkContent implements Serializable {
     }
 
     public String getQueue() {
-        return queue;
+        return queue == null ? "jmsDataioSinks" : queue;
     }
 
     public String getResource() {

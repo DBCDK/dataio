@@ -12,7 +12,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class BatchNameTest {
     @Test
     public void constructor() {
-        final long jobId = 4242;
+        final int jobId = 4242;
         final long chunkId = 2424;
         final BatchName batchName = new BatchName(jobId, chunkId);
         assertThat("jobId", batchName.getJobId(), is(jobId));
@@ -39,7 +39,7 @@ public class BatchNameTest {
 
     @Test
     public void fromString() {
-        final long jobId = 4242;
+        final int jobId = 4242;
         final long chunkId = 2424;
         final BatchName batchName = BatchName.fromString(String.format("%d-%d", jobId, chunkId));
         assertThat("jobId", batchName.getJobId(), is(jobId));

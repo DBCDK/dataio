@@ -2,7 +2,9 @@ package dk.dbc.dataio.commons.types.jms;
 
 /**
  * Constant values used be the dataIO JMS messaging protocol.
+ * Deprecated: Please use JMSHeaders instead
  */
+@Deprecated
 public class JmsConstants {
     public static final String PAYLOAD_PROPERTY_NAME = "payload";
     public static final String RESOURCE_PROPERTY_NAME = "resource";

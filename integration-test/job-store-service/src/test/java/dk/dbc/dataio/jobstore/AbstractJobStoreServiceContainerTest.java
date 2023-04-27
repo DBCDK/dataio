@@ -166,7 +166,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
 //                .withEnv("REMOTE_DEBUGGING_HOST", getDebuggingHost())
                 .withExposedPorts(4848, 8080)
                 .waitingFor(Wait.forHttp(System.getProperty("jobstore.it.service.context") + "/status"))
-                .withStartupTimeout(Duration.ofMinutes(4));
+                .withStartupTimeout(Duration.ofMinutes(10));
         container.start();
         return container;
     }

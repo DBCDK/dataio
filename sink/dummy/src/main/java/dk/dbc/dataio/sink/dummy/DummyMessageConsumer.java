@@ -28,12 +28,12 @@ public class DummyMessageConsumer extends MessageConsumerAdapter {
 
     @Override
     public String getQueue() {
-        return SinkConfig.QUEUE.fqnAsQueue();
+        return QUEUE;
     }
 
     @Override
     public String getAddress() {
-        return SinkConfig.QUEUE.fqnAsAddress();
+        return ADDRESS;
     }
 
     @Override

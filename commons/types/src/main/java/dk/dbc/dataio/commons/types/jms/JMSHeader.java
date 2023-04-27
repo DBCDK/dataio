@@ -46,7 +46,7 @@ public enum JMSHeader {
         return (T)message.getObjectProperty(name);
     }
 
-    public <T> T getHeader(ConsumedMessage message, Class<T> clazz) throws JMSException {
+    public <T> T getHeader(ConsumedMessage message, Class<T> clazz) {
         return message.getHeaderValue(name, clazz);
     }
 

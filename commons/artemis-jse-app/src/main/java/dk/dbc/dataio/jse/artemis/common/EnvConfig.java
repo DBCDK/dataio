@@ -28,6 +28,16 @@ public interface EnvConfig {
         return asOptionalDuration().orElseThrow(this::missingConf);
     }
 
+    default String fqnAsQueue() {
+        String[] fqn = asString().split("::", 2);
+        return fqn[fqn.length - 1];
+    }
+
+    default String fqnAsAddress() {
+        String[] fqn = asString().split("::", 2);
+        return fqn[0];
+    }
+
     private static Optional<String> getProperty(String key) {
         return Optional.ofNullable(System.getenv(key));
     }

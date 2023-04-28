@@ -94,6 +94,7 @@ public class FlowStoreProxyImplTest {
     @Test
     public void constructor() {
         environmentVariables.set("FLOWSTORE_URL", "http://dataio/flow-store");
+        environmentVariables.set("JOBSTORE_URL", "http://dataio/flow-store");
         environmentVariables.set("SUBVERSION_URL", "http://subversion");
         new FlowStoreProxyImpl();
     }

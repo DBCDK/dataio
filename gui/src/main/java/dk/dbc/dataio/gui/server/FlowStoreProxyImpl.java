@@ -17,12 +17,15 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.cache.Cache;
 import dk.dbc.dataio.commons.utils.cache.CacheManager;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
+import dk.dbc.dataio.gui.client.model.FlowBinderUsage;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -45,6 +48,10 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.dataio.querylanguage.Ordering;
 import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
@@ -53,22 +60,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
     private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
     final Client client;
+    private Client jobstoreClient;
     private final String baseUrl;
+    private String jobstoreBaseUrl;
     private final String subversionScmEndpoint;
     private FlowStoreServiceConnector flowStoreServiceConnector;
+    private JobStoreServiceConnector jobStoreServiceConnector;
     private JavaScriptSubversionProject javaScriptSubversionProject;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
     FlowStoreProxyImpl() {
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
+        jobstoreClient = HttpClient.newClient(clientConfig);
         baseUrl = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("FLOWSTORE_URL");
+        jobstoreBaseUrl = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("JOBSTORE_URL");
+        jobStoreServiceConnector = new JobStoreServiceConnector(jobstoreClient, jobstoreBaseUrl);
         log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
         subversionScmEndpoint = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("SUBVERSION_URL");
         flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
@@ -90,6 +106,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         this.javaScriptSubversionProject = javaScriptSubversionProject;
         this.subversionScmEndpoint = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("SUBVERSION_URL");
         client = flowStoreServiceConnector.getClient();
+        jobstoreClient = HttpClient.newClient();
         baseUrl = flowStoreServiceConnector.getBaseUrl();
         log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
     }
@@ -328,6 +345,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     private Cache<Long, SubmitterModel> cachedSubmitterMap = CacheManager.createUnboundCache(SubmitterModel::getId, rethrowSupplier(this::findAllSubmitters));
     private Cache<Long, SinkModel> cachedSinkMap = CacheManager.createUnboundCache(SinkModel::getId, rethrowSupplier(this::findAllSinks));
     private Cache<Long, FlowModel> cachedFlowMap = CacheManager.createUnboundCache(FlowModel::getId, rethrowSupplier(this::findAllFlows));
+    private Cache<Long, FlowBinderUsage> cachedFlowBinderUsage = CacheManager.createUnboundCache(FlowBinderUsage::getFlowBinderId, rethrowSupplier(this::getFlowBindersUsage));
 
     @Override
     public List<FlowBinderModel> queryFlowBinders(List<GwtQueryClause> clauses) throws ProxyException {
@@ -416,6 +434,63 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         }
         return flowBinderModels;
     }
+
+    @Override
+    public List<FlowBinderUsage> getFlowBindersUsage() throws ProxyException {
+        List<FlowBinderUsage> usages = new ArrayList<>();
+        cachedFlowBinderUsage.clear();
+        try {
+            List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
+            for (FlowBinder flowBinder : flowBinders) {
+                String format = String.format("{\"format\": \"%s\"}", flowBinder.getContent().getFormat());
+                String charset = String.format("{\"charset\": \"%s\"}", flowBinder.getContent().getCharset());
+                String packaging = String.format("{\"packaging\": \"%s\"}", flowBinder.getContent().getPackaging());
+                String destination = String.format("{\"destination\": \"%s\"}", flowBinder.getContent().getDestination());
+                long sinkId = flowBinder.getContent().getSinkId();
+                List<JobInfoSnapshot> jobInfoSnapshots = jobStoreServiceConnector.listJobs(
+                        new JobListCriteria().where(
+                                new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, format)
+                        ).and(
+                                new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, charset)
+                        ).and(
+                                new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, packaging)
+                        ).and(
+                                new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, destination)
+                        ).and(
+                                new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, sinkId)
+                        ).orderBy(new ListOrderBy<>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.DESC)).limit(1));
+                FlowBinderUsage flowBinderUsage = new FlowBinderUsage()
+                        .withName(flowBinder.getContent().getName())
+                        .withFlowBinderId(flowBinder.getId());
+                if (!jobInfoSnapshots.isEmpty()) {
+                    flowBinderUsage.withLastUsed(dateFormat.format(jobInfoSnapshots.get(0).getTimeOfCreation()));
+                } else {
+                    flowBinderUsage.withLastUsed("-");
+                }
+                usages.add(flowBinderUsage);
+                cachedFlowBinderUsage.put(flowBinderUsage.getFlowBinderId(), flowBinderUsage);
+            }
+            return usages;
+        } catch (FlowStoreServiceConnectorException | JobStoreServiceConnectorException e) {
+            log.error("getFlowBindersUsage:", e);
+            handleExceptions(e, "getFlowBindersUsage");
+        }
+        return List.of();
+    }
+
+    @Override
+    public List<FlowBinderUsage> getFlowBindersUsageCached() throws ProxyException {
+        try {
+            List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
+            return flowBinders.stream().map(flowBinder -> cachedFlowBinderUsage.get(flowBinder.getId())).collect(Collectors.toList());
+
+        } catch (FlowStoreServiceConnectorException e) {
+            log.error("getFlowBindersUsageCached:", e);
+            handleExceptions(e, "getFlowBindersUsageCached");
+        }
+        return List.of();
+    }
+
 
     @Override
     public FlowBinderModel getFlowBinder(long id) throws ProxyException {

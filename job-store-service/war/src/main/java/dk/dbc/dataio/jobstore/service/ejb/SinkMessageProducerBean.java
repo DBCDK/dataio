@@ -15,7 +15,8 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
-import javax.jms.ConnectionFactory;
+import javax.inject.Inject;
+import javax.jms.JMSConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
@@ -31,8 +32,9 @@ import javax.jms.TextMessage;
 public class SinkMessageProducerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageProducerBean.class);
 
-    @Resource(lookup = "jms/artemisConnectionFactory")
-    ConnectionFactory sinksQueueConnectionFactory;
+    @Inject
+    @JMSConnectionFactory("jms/artemisConnectionFactory")
+    JMSContext context;
 
     @Resource(lookup = "jms/dataio/sinks")
     Queue sinksQueue;
@@ -55,7 +57,7 @@ public class SinkMessageProducerBean {
         LOGGER.info("Sending chunk {}/{} to sink {}", chunk.getJobId(), chunk.getChunkId(),
                 destination.getContent().getName());
 
-        try (JMSContext context = sinksQueueConnectionFactory.createContext()) {
+        try {
             final TextMessage message = createMessage(context, chunk, destination, flowStoreReferences);
             final JMSProducer producer = context.createProducer();
             producer.setPriority(priority);

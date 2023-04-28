@@ -28,6 +28,7 @@ public class BootstrapBean {
     public void initialize() {
         resetJobsInterruptedDuringPartitioning();
         resetInterruptedRerunTasks();
+        jobSchedulerBean.registerMetrics();
         jobSchedulerBean.loadSinkStatusOnBootstrap();
     }
 

@@ -18,7 +18,8 @@ import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.jms.ConnectionFactory;
+import javax.inject.Inject;
+import javax.jms.JMSConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
@@ -30,8 +31,9 @@ import javax.jms.TextMessage;
 public class JobProcessorMessageProducerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobProcessorMessageProducerBean.class);
 
-    @Resource(lookup = "jms/artemisConnectionFactory")
-    ConnectionFactory processorQueueConnectionFactory;
+    @Inject
+    @JMSConnectionFactory("jms/artemisConnectionFactory")
+    JMSContext context;
 
     @Resource(lookup = "jms/dataio/processor")
     Queue processorQueue;
@@ -50,7 +52,7 @@ public class JobProcessorMessageProducerBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void send(Chunk chunk, JobEntity jobEntity, int priority) throws NullPointerException, JobStoreException {
         LOGGER.info("Sending chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
-        try (JMSContext context = processorQueueConnectionFactory.createContext()) {
+        try {
             final TextMessage message = createMessage(context, chunk, jobEntity);
             final JMSProducer producer = context.createProducer();
             producer.setPriority(priority);

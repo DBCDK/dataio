@@ -12,6 +12,7 @@ import com.google.gwt.place.shared.WithTokenizers;
         dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flowbinder.show.Place.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.flowbinder.status.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place.Tokenizer.class,
@@ -35,6 +36,7 @@ import com.google.gwt.place.shared.WithTokenizers;
         dk.dbc.dataio.gui.client.pages.harvester.dmat.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.harvester.dmat.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.iotraffic.Place.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.gatekeeper.ftp.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.item.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.job.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.job.purge.Place.Tokenizer.class,
@@ -49,6 +51,7 @@ import com.google.gwt.place.shared.WithTokenizers;
         dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.submitter.show.Place.Tokenizer.class,
+
 })
 
 public interface AppPlaceHistoryMapper extends PlaceHistoryMapper {

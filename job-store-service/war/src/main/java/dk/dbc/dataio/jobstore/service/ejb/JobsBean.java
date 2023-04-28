@@ -363,6 +363,7 @@ public class JobsBean {
     @Consumes({MediaType.TEXT_PLAIN})
     @Produces({MediaType.APPLICATION_JSON})
     public Response listJobsByPost(String query) throws JSONBException {
+        LOGGER.debug("listJobsByPost query:{}", query);
         return listJobsByIOQL(query);
     }
 
@@ -370,10 +371,12 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_COLLECTION_QUERIES)
     @Produces({MediaType.APPLICATION_JSON})
     public Response listJobsByGet(@QueryParam("q") String query) throws JSONBException {
+        LOGGER.debug("listJobsByGet query:{}", query);
         return listJobsByIOQL(query);
     }
 
     private Response listJobsByIOQL(String query) throws JSONBException {
+        LOGGER.debug("Query:{}", query);
         try {
             final List<JobInfoSnapshot> jobInfoSnapshots = jobStoreRepository.listJobs(query);
             return Response.ok().entity(jsonbContext.marshall(jobInfoSnapshots)).build();
@@ -541,6 +544,7 @@ public class JobsBean {
     @Stopwatch
     public Response countJobs(String jobListCriteriaData) throws JSONBException {
         try {
+            LOGGER.debug("countjobs - jobListCriteriaData: {}", jobListCriteriaData);
             final JobListCriteria jobListCriteria = jsonbContext.unmarshall(jobListCriteriaData, JobListCriteria.class);
             final long count = jobStoreRepository.countJobs(jobListCriteria);
             LOGGER.debug("count Response {}", count);

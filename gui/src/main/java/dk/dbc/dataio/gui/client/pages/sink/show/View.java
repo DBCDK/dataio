@@ -57,6 +57,7 @@ public class View extends ViewWidget {
         sinksTable.addColumn(constructTypeColumn(), getTexts().columnHeader_Type());
         sinksTable.addColumn(constructNameColumn(), getTexts().columnHeader_Name());
         sinksTable.addColumn(constructDescriptionColumn(), getTexts().columnHeader_Description());
+        sinksTable.addColumn(constructQueueNameColumn(), getTexts().columnHeader_QueueName());
         sinksTable.addColumn(constructResourceNameColumn(), getTexts().columnHeader_ResourceName());
         sinksTable.addColumn(constructActionColumn(), getTexts().columnHeader_Action());
         sinksTable.setSelectionModel(selectionModel);
@@ -104,6 +105,15 @@ public class View extends ViewWidget {
             @Override
             public String getValue(SinkModel model) {
                 return model.getDescription();
+            }
+        };
+    }
+
+    Column constructQueueNameColumn() {
+        return new TextColumn<SinkModel>() {
+            @Override
+            public String getValue(SinkModel model) {
+                return model.getQueue();
             }
         };
     }

@@ -178,4 +178,9 @@ public class Chunk implements Iterable<ChunkItem> {
         }
         collection.add(item);
     }
+
+    @Override
+    public String toString() {
+        return "Chunk{" + "jobId=" + jobId + ", chunkId=" + chunkId + '}';
+    }
 }

@@ -41,9 +41,11 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -120,7 +122,37 @@ public class JobSchedulerBean {
     MetricRegistry metricRegistry;
     @EJB
     FlowStoreServiceConnectorBean flowStore;
+
     private static final Map<String, Integer> blockedCounts = new ConcurrentHashMap<>();
+    private static final Map<WatchKey, Instant> deliveryStartTimes = new ConcurrentHashMap<>();
+    private static final Map<Long, MetricID> sinkDeliveryMetricIDs = new ConcurrentHashMap<>();
+
+
+    public void registerMetrics() {
+        try {
+            for (Sink sink : flowStore.getConnector().findAllSinks()) {
+                MetricID metricID = new MetricID("longest_running_delivery_in_ms",
+                        new Tag("sink_name", sink.getContent().getName()));
+                sinkDeliveryMetricIDs.put(sink.getId(), metricID);
+                Gauge<?> gauge = metricRegistry.getGauge(metricID);
+                if (gauge == null) metricRegistry.gauge(metricID, () -> getLongestRunningChunkDuration(sink.getId()));
+                LOGGER.info("Registered gauge for longest_running_delivery_in_ms -> {}", metricID);
+            }
+        } catch (FlowStoreServiceConnectorException e) {
+            LOGGER.error("Unable to get sinks list from flowstore:", e);
+        }
+    }
+
+    private long getLongestRunningChunkDuration(long sinkId) {
+        long now = System.currentTimeMillis();
+        return deliveryStartTimes.keySet()
+                .stream()
+                .filter(watchKey -> watchKey.sinkId == sinkId)
+                .map(deliveryStartTimes::get)
+                .mapToLong(t -> now - t.toEpochMilli())
+                .max()
+                .orElse(0);
+    }
 
     public JobSchedulerBean withEntityManager(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -374,8 +406,10 @@ public class JobSchedulerBean {
             return;
         }
 
-        // Decrement early to make space for in queue -- most important when queue size is 1 when unit testing
+        WatchKey timingKey = new WatchKey(chunk, chunkDone.getSinkid());
+        deliveryStartTimes.put(timingKey, Instant.now());
 
+        // Decrement early to make space for in queue -- most important when queue size is 1 when unit testing
         final long chunkDoneSinkId = chunkDone.getSinkid();
         entityManager.remove(chunkDone);
 
@@ -403,6 +437,8 @@ public class JobSchedulerBean {
             LOGGER.info("chunkDeliveringDone: removing {} took {} ms on average",
                     chunkDone.getKey(), removeFromWaitingOnStopWatch.getElapsedTime() / chunksWaitingForMe.size());
         }
+
+        deliveryStartTimes.remove(timingKey);
     }
 
     @Asynchronous
@@ -540,4 +576,30 @@ public class JobSchedulerBean {
     static void resetAllSinkStatuses() {
         sinkStatusMap.replaceAll((k, v) -> new JobSchedulerSinkStatus());
     }
+
+    public static class WatchKey {
+        public final long sinkId;
+        public final long jobId;
+        public final long chunkId;
+
+        public WatchKey(Chunk chunk, long sinkId) {
+            this.sinkId = sinkId;
+            jobId = chunk.getJobId();
+            chunkId = chunk.getChunkId();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            WatchKey watchKey = (WatchKey) o;
+            return sinkId == watchKey.sinkId && jobId == watchKey.jobId && chunkId == watchKey.chunkId;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(sinkId, jobId, chunkId);
+        }
+    }
+
 }

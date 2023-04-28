@@ -23,7 +23,7 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     // Please do note, that this list of sequential numbers are maintained manually
-    // They must follow the order, given in the UI Binder file ViewWidget.ui.xml
+    // They must follow the order, given in the UI Binder file View.ui.xml
     static final int ALL_ITEMS_TAB_INDEX = 0;
     static final int FAILED_ITEMS_TAB_INDEX = 1;
     static final int IGNORED_ITEMS_TAB_INDEX = 2;

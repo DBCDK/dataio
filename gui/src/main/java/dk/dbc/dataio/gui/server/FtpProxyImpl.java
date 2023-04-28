@@ -3,16 +3,22 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.model.FtpFileModel;
 import dk.dbc.dataio.gui.client.proxies.FtpProxy;
 import dk.dbc.ftp.FtpClient;
 import dk.dbc.ftp.FtpClientException;
+import org.apache.commons.net.ftp.FTPFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class FtpProxyImpl implements FtpProxy {
+    Logger LOGGER = LoggerFactory.getLogger(FtpProxy.class.getName());
     private static final String FTP_USER = "anonymous";
     private static final String FTP_PASS = "dataio-gui";  // Any password will do
     static final String FTP_DATAIO_DIRECTORY = "datain";
@@ -70,6 +76,31 @@ public class FtpProxyImpl implements FtpProxy {
         } finally {
             ftpClient.close();
         }
+    }
+
+    @Override
+    public List<FtpFileModel> ftpFiles() throws ProxyException{
+        SimpleDateFormat format = new SimpleDateFormat("MMM dd HH:mm");
+        if (ftpUrl == null) {
+            handleException(new NamingException("No FTP hostname or credentials for it was found."), "list");
+        }
+        try {
+            ftpClient.withHost(ftpUrl).withUsername(FTP_USER).withPassword(FTP_PASS);
+            ftpClient.connect();
+            ftpClient.cd(FTP_DATAIO_DIRECTORY);
+            List<FTPFile>  files = ftpClient.ls();
+            LOGGER.info("Files in ftp:{}", files);
+            return files.stream().map(s -> new FtpFileModel()
+                            .withFileDate(format.format(s.getTimestamp().getTime()))
+                            .withName(s.getName())
+                            .withFtpSize(String.valueOf(s.getSize())))
+                    .collect(Collectors.toList());
+        } catch (FtpClientException e) {
+            handleException(e, "ftpFiles");
+        } finally {
+            ftpClient.close();
+        }
+        return List.of();
     }
 
 

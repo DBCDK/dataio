@@ -31,6 +31,7 @@ import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -82,7 +83,6 @@ public class HarvestOperation {
         int recordsProcessed = 0;
         int recordsSkipped = 0;
         AtomicInteger recordsFailed = new AtomicInteger(0);
-        boolean hasRecords = false;
 
         try(JobBuilder rrJobBuilder = new JobBuilder(
                 binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
@@ -92,16 +92,15 @@ public class HarvestOperation {
             // exported again in case of catastrophic errors in dmat or the harvester
             final ResultSet dmatRecords = new ResultSet(dmatServiceConnector);
             for (DMatRecord dmatRecord : dmatRecords) {
+                recordsHarvested++;
                 LOGGER.info("Fetched dmat record {}", dmatRecord.getId());
-                hasRecords = true;
 
                 // Move record to status PROCESSING to prevent reexport, skip record if we can not set new status
                 if (!updateStatus(dmatRecord.getId(), Status.PROCESSING)) {
                     LOGGER.error("Unable to set status PROCESSING on DMat record {}. Harvesting aborted for this record", dmatRecord.getId());
+                    recordsSkipped++;
                     continue;
                 }
-
-                recordsHarvested++;
 
                 // Process record
                 try {
@@ -139,16 +138,15 @@ public class HarvestOperation {
             }
 
             // Create job
-            if (rrJobBuilder.getRecordsAdded() > 0 && hasRecords) {
+            if (rrJobBuilder.getRecordsAdded() > 0) {
                 Optional<JobInfoSnapshot> jobInfo = rrJobBuilder.build();
                 jobInfo.ifPresent(jobInfoSnapshot -> LOGGER.info("Created job {} with {} items in {} chunks", jobInfoSnapshot.getJobId(),
                         jobInfoSnapshot.getNumberOfItems(), jobInfoSnapshot.getNumberOfChunks()));
-            } else if (!hasRecords) {
+            } else if (recordsHarvested == 0) {
                 LOGGER.info("No new records harvested from DMat");
             } else {
                 LOGGER.error("Did not create job for DMat harvest since 0 records was added to the job during processing");
             }
-
 
             // After the job for RR records has been successfully build, update the status of the
             // harvested dmat records to ensure that no record is marked as exported
@@ -362,6 +360,7 @@ public class HarvestOperation {
         }
 
         @Override
+        @Nonnull
         public Iterator<DMatRecord> iterator() {
             return new Iterator<>() {
                 @Override

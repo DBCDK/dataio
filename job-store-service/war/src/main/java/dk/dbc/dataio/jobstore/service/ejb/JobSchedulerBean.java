@@ -143,7 +143,7 @@ public class JobSchedulerBean {
     }
 
     private long getLongestRunningChunkDuration(long sinkId) {
-        long maxDuration = maxDeliveryDurations.get(sinkId);
+        long maxDuration = maxDeliveryDurations.computeIfAbsent(sinkId, k -> 0L);
         maxDeliveryDurations.put(sinkId, 0L);
         return maxDuration;
     }
@@ -433,7 +433,7 @@ public class JobSchedulerBean {
 
         long thisDuration = System.currentTimeMillis() - startTime;
         maxDeliveryDurations.put(chunkDoneSinkId,
-                Math.max(thisDuration, maxDeliveryDurations.get(chunkDoneSinkId)));
+                Math.max(thisDuration,  maxDeliveryDurations.computeIfAbsent(chunkDoneSinkId, k -> 0L)));
     }
 
     @Asynchronous

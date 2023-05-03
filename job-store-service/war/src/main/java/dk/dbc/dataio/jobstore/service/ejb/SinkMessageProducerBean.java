@@ -98,7 +98,7 @@ public class SinkMessageProducerBean implements MessageIdentifiers {
         TextMessage message = context.createTextMessage(jsonbContext.marshall(chunk));
         JMSHeader.payload.addHeader(message, JMSHeader.CHUNK_PAYLOAD_TYPE);
         String resource = destination.getContent().getResource();
-        if(resource != null) JMSHeader.resource.addHeader(message, resource);
+        if(resource != null && !resource.isEmpty()) JMSHeader.resource.addHeader(message, resource);
         JMSHeader.sinkId.addHeader(message, sinkReference.getId());
         JMSHeader.sinkVersion.addHeader(message, sinkReference.getVersion());
         addIdentifiers(message, chunk, trackingId);

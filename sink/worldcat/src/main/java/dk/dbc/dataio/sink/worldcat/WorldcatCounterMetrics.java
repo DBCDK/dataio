@@ -11,7 +11,11 @@ enum WorldcatCounterMetrics implements CounterMetric {
             .withDescription("Number of update to wciru")
             .withType(MetricType.COUNTER)
             .withUnit("chunkitems").build()),
-
+    WCIRU_CHUNK_UPDATE(Metadata.builder()
+            .withName("dataio_sink_worldcat_handle_chunk_counter")
+            .withDescription("Number of chunks sent to wciru")
+            .withType(MetricType.COUNTER)
+            .withUnit("chunk").build()),
     UNHANDLED_EXCEPTIONS(Metadata.builder()
             .withName("dataio_sink_worldcat_unhandled_exceptions_counter")
             .withDescription("Number of unhandled exceptions caught")

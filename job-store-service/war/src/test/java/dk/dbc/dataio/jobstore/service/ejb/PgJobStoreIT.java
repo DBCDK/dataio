@@ -1263,7 +1263,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         }
     }
 
-    private Chunk buildChunk(long jobId, long chunkId, int numberOfItems, Chunk.Type type, ChunkItem.Status status) {
+    private Chunk buildChunk(int jobId, long chunkId, int numberOfItems, Chunk.Type type, ChunkItem.Status status) {
         List<ChunkItem> items = new ArrayList<>();
         for (long i = 0; i < numberOfItems; i++) {
             items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(status).build());
@@ -1272,7 +1272,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     }
 
 
-    private Chunk buildChunkWithNextItems(long jobId, long chunkId, int numberOfItems, Chunk.Type type, ChunkItem.Status status) {
+    private Chunk buildChunkWithNextItems(int jobId, long chunkId, int numberOfItems, Chunk.Type type, ChunkItem.Status status) {
         List<ChunkItem> items = new ArrayList<>();
         List<ChunkItem> nextItems = new ArrayList<>();
 

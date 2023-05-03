@@ -48,6 +48,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.doNothing;
@@ -358,7 +359,7 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         final MessageConsumerBean bean = newMessageConsumerBean();
         jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleConsumedMessage(message));
 
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
+        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong());
     }
 
     /**
@@ -378,7 +379,7 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleConsumedMessage(message));
 
         final ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyLong(), anyLong());
+        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyInt(), anyLong());
 
         assertThat(chunkArgumentCaptor.getValue().getType(), is(Chunk.Type.DELIVERED));
         assertThat(chunkArgumentCaptor.getValue().getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
@@ -401,7 +402,7 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleConsumedMessage(message));
 
         final ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyLong(), anyLong());
+        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyInt(), anyLong());
 
         assertThat(chunkArgumentCaptor.getValue().getType(), is(Chunk.Type.DELIVERED));
         assertThat(chunkArgumentCaptor.getValue().getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));

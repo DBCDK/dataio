@@ -4,16 +4,18 @@ import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.jms.JmsConstants;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
+import dk.dbc.dataio.commons.types.jms.MessageIdentifiers;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.util.ProcessorShard;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -25,18 +27,17 @@ import javax.jms.JMSException;
 import javax.jms.JMSProducer;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
+import java.util.Optional;
+import java.util.UUID;
 
 @LocalBean
 @Stateless
-public class JobProcessorMessageProducerBean {
+public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobProcessorMessageProducerBean.class);
 
     @Inject
     @JMSConnectionFactory("jms/artemisConnectionFactory")
     JMSContext context;
-
-    @Resource(lookup = "jms/dataio/processor")
-    Queue processorQueue;
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -51,57 +52,45 @@ public class JobProcessorMessageProducerBean {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void send(Chunk chunk, JobEntity jobEntity, int priority) throws NullPointerException, JobStoreException {
-        LOGGER.info("Sending chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
+        String uuid = UUID.randomUUID().toString();
+        LOGGER.info("Sending chunk {}/{} with uuid {}", chunk.getJobId(), chunk.getChunkId(), uuid);
         try {
-            final TextMessage message = createMessage(context, chunk, jobEntity);
-            final JMSProducer producer = context.createProducer();
+            TextMessage message = createMessage(context, chunk, jobEntity, uuid);
+            JMSProducer producer = context.createProducer();
             producer.setPriority(priority);
-            producer.send(processorQueue, message);
+            String queueName = jobEntity.getSpecification().getType().processorQueue;
+            Queue queue = context.createQueue(queueName);
+            producer.send(queue, message);
         } catch (JSONBException | JMSException e) {
-            final String errorMessage = String.format("Exception caught while queueing chunk %s for job %s", chunk.getChunkId(), chunk.getJobId());
+            String errorMessage = String.format("Exception caught while queueing chunk %s for job %s with uuid %s", chunk.getChunkId(), chunk.getJobId(), uuid);
             throw new JobStoreException(errorMessage, e);
         }
     }
 
     /**
      * Creates new TextMessage with given chunk instance as JSON payload
-     * with '{@value JmsConstants#PAYLOAD_PROPERTY_NAME}'
-     * set to '{@value JmsConstants#JOB_STORE_SOURCE_VALUE}'
-     * and '{@value JmsConstants#CHUNK_PAYLOAD_TYPE}' respectively.
      *
      * @param context   active JMS context
      * @param chunk     chunk instance to be added as payload
      * @param jobEntity to where the chunk instance belongs
+     * @param uuid Unique identifier to ease message tracking across our servers
      * @return TextMessage instance
      * @throws JSONBException when unable to marshall chunk instance to JSON
      * @throws JMSException   when unable to create JMS message
      */
-    public TextMessage createMessage(JMSContext context, Chunk chunk, JobEntity jobEntity) throws JMSException, JSONBException {
-        final TextMessage message = context.createTextMessage(jsonbContext.marshall(chunk));
-        message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
-        message.setStringProperty(JmsConstants.PROCESSOR_SHARD_PROPERTY_NAME, resolveProcessorShard(jobEntity).toString());
+    public TextMessage createMessage(JMSContext context, Chunk chunk, JobEntity jobEntity, String uuid) throws JMSException, JSONBException {
+        TextMessage message = context.createTextMessage(jsonbContext.marshall(chunk));
+        JMSHeader.payload.addHeader(message, JMSHeader.CHUNK_PAYLOAD_TYPE);
+        String sink = Optional.ofNullable(jobEntity.getCachedSink()).map(SinkCacheEntity::getSink).map(Sink::getContent).map(SinkContent::getName).orElse(null);
+        if(sink != null) JMSHeader.sink.addHeader(message, sink);
 
-        final FlowStoreReference flowReference = jobEntity.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW);
-        message.setLongProperty(JmsConstants.FLOW_ID_PROPERTY_NAME, flowReference.getId());
-        message.setLongProperty(JmsConstants.FLOW_VERSION_PROPERTY_NAME, flowReference.getVersion());
+        FlowStoreReference flowReference = jobEntity.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW);
+        addIdentifiers(message, chunk, uuid);
+        JMSHeader.flowId.addHeader(message, flowReference.getId());
+        JMSHeader.flowVersion.addHeader(message, flowReference.getVersion());
+        JMSHeader.additionalArgs.addHeader(message, resolveAdditionalArgs(jobEntity));
 
-        message.setStringProperty(JmsConstants.ADDITIONAL_ARGS, resolveAdditionalArgs(jobEntity));
         return message;
-    }
-
-
-    /**
-     * Deciphers whether the given jobEntity is of type acceptance test or business
-     *
-     * @param jobEntity current jobEntity
-     * @return ProcessorShard for the given jobEntity
-     */
-    private ProcessorShard resolveProcessorShard(JobEntity jobEntity) {
-        if (jobEntity.getSpecification().getType() == JobSpecification.Type.ACCTEST) {
-            return new ProcessorShard(ProcessorShard.Type.ACCTEST);
-        } else {
-            return new ProcessorShard(ProcessorShard.Type.BUSINESS);
-        }
     }
 
     /**
@@ -111,7 +100,7 @@ public class JobProcessorMessageProducerBean {
      * @return jsonString
      */
     private String resolveAdditionalArgs(JobEntity jobEntity) {
-        final JobSpecification jobSpecification = jobEntity.getSpecification();
+        JobSpecification jobSpecification = jobEntity.getSpecification();
         return String.format("{\"format\":\"%s\",\"submitter\":%s}", jobSpecification.getFormat(), jobSpecification.getSubmitterId());
     }
 }

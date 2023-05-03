@@ -213,7 +213,7 @@ public class MockedJmsMessage implements Message {
 
     @Override
     public int getIntProperty(String s) throws JMSException {
-        return 0;
+        return (Integer)properties.get(s);
     }
 
     @Override
@@ -240,6 +240,7 @@ public class MockedJmsMessage implements Message {
 
     @Override
     public void setIntProperty(String s, int i) throws JMSException {
+        properties.put(s, i);
     }
 
     @Override

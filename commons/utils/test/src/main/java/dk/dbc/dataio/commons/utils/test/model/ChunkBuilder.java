@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class ChunkBuilder {
-    private long jobId = 3;
+    private int jobId = 3;
     private long chunkId = 1;
     private final Chunk.Type type;
     private List<ChunkItem> items = new ArrayList<>(Collections.singletonList(new ChunkItemBuilder().build()));
@@ -18,7 +18,7 @@ public class ChunkBuilder {
         this.type = type;
     }
 
-    public ChunkBuilder setJobId(long jobId) {
+    public ChunkBuilder setJobId(int jobId) {
         this.jobId = jobId;
         return this;
     }

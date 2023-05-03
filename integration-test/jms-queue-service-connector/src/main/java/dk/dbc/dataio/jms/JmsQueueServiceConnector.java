@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -24,7 +23,10 @@ public class JmsQueueServiceConnector {
 
     public enum Queue {
         PROCESSING("jms/dataio/processor"),
-        SINK("jms/dataio/sinks");
+        PROCESSING_BUSINESS("processor::business"),
+        PROCESSING_ACCTEST("processor::acctest"),
+        SINK("jms/dataio/sinks"),
+        SINK_PERIODIC_JOBS("sink::periodic-jobs");
 
         private final String queueName;
 
@@ -37,11 +39,7 @@ public class JmsQueueServiceConnector {
         }
 
         public String getUrlEncodedQueueName() {
-            try {
-                return URLEncoder.encode(queueName, StandardCharsets.UTF_8.name());
-            } catch (UnsupportedEncodingException e) {
-                throw new IllegalStateException(e);
-            }
+            return URLEncoder.encode(queueName, StandardCharsets.UTF_8);
         }
     }
 

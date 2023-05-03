@@ -29,6 +29,7 @@ import java.util.Map;
 import static dk.dbc.dataio.jobprocessor2.Metric.ATag.rollback;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -102,10 +103,10 @@ public class JobStoreMessageConsumerBeanTest {
         ChunkProcessorTest jsFactory = new ChunkProcessorTest();
         Flow flow = jsFactory.getFlow(new ChunkProcessorTest.ScriptWrapper(ChunkProcessorTest.javaScriptReturnUpperCase, ChunkProcessorTest.getJavaScript(ChunkProcessorTest.getJavaScriptReturnUpperCaseFunction())));
 
-        when(SERVICE_HUB.jobStoreServiceConnector.getCachedFlow((int) (long) headers.get(JmsConstants.FLOW_ID_PROPERTY_NAME))).thenReturn(flow);
+        when(SERVICE_HUB.jobStoreServiceConnector.getCachedFlow(((Long)headers.get(JmsConstants.FLOW_ID_PROPERTY_NAME)).intValue())).thenReturn(flow);
 
         ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("data")).setStatus(ChunkItem.Status.SUCCESS).build();
-        Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId((long) headers.get(JmsConstants.FLOW_ID_PROPERTY_NAME)).setItems(Collections.singletonList(item)).build();
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(((Long)headers.get(JmsConstants.FLOW_ID_PROPERTY_NAME)).intValue()).setItems(Collections.singletonList(item)).build();
         String jsonChunk = new JSONBContext().marshall(chunk);
 
         JobStoreMessageConsumer jobStoreMessageConsumer = new JobStoreMessageConsumer(SERVICE_HUB);
@@ -113,7 +114,7 @@ public class JobStoreMessageConsumerBeanTest {
         jobStoreMessageConsumer.handleConsumedMessage(message);  // Flow is fetched from job-store
         jobStoreMessageConsumer.handleConsumedMessage(message);  // cached flow is used
         verify(SERVICE_HUB.jobStoreServiceConnector, times(1)).getCachedFlow((int) chunk.getJobId());
-        verify(SERVICE_HUB.jobStoreServiceConnector, times(2)).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
+        verify(SERVICE_HUB.jobStoreServiceConnector, times(2)).addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong());
     }
 }
 

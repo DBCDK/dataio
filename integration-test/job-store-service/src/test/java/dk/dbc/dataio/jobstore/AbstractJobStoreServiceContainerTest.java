@@ -32,6 +32,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
 import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN_DAYS;
@@ -221,7 +222,6 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
     @Before
     public void emptyQueues() {
-        jmsQueueServiceConnector.emptyQueue(JmsQueueServiceConnector.Queue.PROCESSING);
-        jmsQueueServiceConnector.emptyQueue(JmsQueueServiceConnector.Queue.SINK);
+        Arrays.stream(JmsQueueServiceConnector.Queue.values()).forEach(jmsQueueServiceConnector::emptyQueue);
     }
 }

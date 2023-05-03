@@ -25,23 +25,23 @@ public class ChunkTest {
 
     @Before
     public void newChunk() {
-        chunk = new Chunk(1L, 1L, Chunk.Type.PARTITIONED);
+        chunk = new Chunk(1, 1L, Chunk.Type.PARTITIONED);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_negativeJobId_throws() {
-        new Chunk(-1L, 1L, Chunk.Type.PARTITIONED);
+        new Chunk(-1, 1L, Chunk.Type.PARTITIONED);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_negativeChunkId_throws() {
-        new Chunk(1L, -1L, Chunk.Type.PARTITIONED);
+        new Chunk(1, -1L, Chunk.Type.PARTITIONED);
     }
 
     @Test
     public void constructor_lowestLegalArguments_success() {
-        Chunk chunk = new Chunk(0L, 0L, Chunk.Type.PARTITIONED);
-        assertThat("job id", chunk.getJobId(), is(0L));
+        Chunk chunk = new Chunk(0, 0L, Chunk.Type.PARTITIONED);
+        assertThat("job id", chunk.getJobId(), is(0));
         assertThat("chunk id", chunk.getChunkId(), is(0L));
         assertThat("type", chunk.getType(), is(Chunk.Type.PARTITIONED));
     }

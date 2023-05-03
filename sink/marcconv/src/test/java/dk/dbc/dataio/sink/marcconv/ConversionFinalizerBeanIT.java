@@ -114,7 +114,7 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
         assertThat("result chunk size", result.getItems().size(),
                 is(1));
         assertThat("result chunk job", result.getJobId(),
-                is((long) jobInfoSnapshot.getJobId()));
+                is(jobInfoSnapshot.getJobId()));
         assertThat("result chunk id", result.getChunkId(),
                 is(3L));
         assertThat("result chunk status", result.getItems().get(0).getStatus(),

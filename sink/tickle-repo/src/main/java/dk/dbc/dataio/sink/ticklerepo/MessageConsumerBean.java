@@ -74,7 +74,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     MetricsHandlerBean metricsHandler;
 
     // cached mappings of job-ID to Batch
-    Cache<Long, Batch> batchCache = CacheManager.createLRUCache(50);
+    Cache<Integer, Batch> batchCache = CacheManager.createLRUCache(50);
 
     @Override
     @Stopwatch
@@ -119,7 +119,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             return batchCache.get(chunk.getJobId());
         }
 
-        final Optional<Batch> batch = tickleRepo.lookupBatch(new Batch().withBatchKey((int) chunk.getJobId()));
+        final Optional<Batch> batch = tickleRepo.lookupBatch(new Batch().withBatchKey(chunk.getJobId()));
         if (batch.isPresent()) {
             // batch is not in cache but already exists in tickle repo
             batchCache.put(chunk.getJobId(), batch.get());
@@ -136,7 +136,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     .orElseGet(() -> tickleRepo.createDataSet(searchValue));
             // create new batch and cache it
             final Batch createdBatch = tickleRepo.createBatch(new Batch()
-                    .withBatchKey((int) chunk.getJobId())
+                    .withBatchKey(chunk.getJobId())
                     .withDataset(dataset.getId())
                     .withType(tickleBehaviour)
                     .withMetadata(getBatchMetadata(chunk.getJobId())));

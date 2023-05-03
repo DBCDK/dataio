@@ -5,10 +5,10 @@ import dk.dbc.commons.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
-import javax.jms.ConnectionFactory;
+import javax.inject.Inject;
+import javax.jms.JMSConnectionFactory;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
@@ -38,8 +38,9 @@ public class JmsQueueBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JmsQueueBean.class);
 
     JSONBContext jsonbContext = new JSONBContext();
-    @Resource(lookup = "jms/artemisConnectionFactory")
-    private ConnectionFactory messageQueueConnectionFactory;
+    @Inject
+    @JMSConnectionFactory("jms/artemisConnectionFactory")
+    JMSContext context;
 
     @GET
     @Path("{queueName}")
@@ -48,10 +49,10 @@ public class JmsQueueBean {
         LOGGER.info("Listing messages on queue {}", queueName);
 
         String listOfMessagesAsJson;
-        try (JMSContext context = messageQueueConnectionFactory.createContext()) {
+        try {
             try (QueueBrowser browser = context.createBrowser(getQueueResource(queueName))) {
                 final List<MockedJmsTextMessage> messages = new ArrayList<>();
-                final Enumeration queue = browser.getEnumeration();
+                final Enumeration<?> queue = browser.getEnumeration();
                 while (queue.hasMoreElements()) {
                     messages.add(toMockedJmsTextMessage((Message) queue.nextElement()));
                 }
@@ -71,7 +72,7 @@ public class JmsQueueBean {
     public Response putOnQueue(@PathParam("queueName") String queueName, String message) {
         LOGGER.info("Putting message on queue {} <{}>", queueName, message);
 
-        try (JMSContext context = messageQueueConnectionFactory.createContext()) {
+        try {
             MockedJmsTextMessage mockedJmsTextMessage = jsonbContext.unmarshall(message, MockedJmsTextMessage.class);
             context.createProducer().send(getQueueResource(queueName), toTextMessage(mockedJmsTextMessage, context));
         } catch (JMSException | JSONBException | NamingException e) {
@@ -96,16 +97,14 @@ public class JmsQueueBean {
 
     public int emptyQueue(Queue queue) {
         int numDeleted = 0;
-        try (JMSContext context = messageQueueConnectionFactory.createContext()) {
-            try (JMSConsumer consumer = context.createConsumer(queue)) {
-                Message message;
-                do {
-                    message = consumer.receive(1000);
-                    if (message != null) {
-                        numDeleted++;
-                    }
-                } while (message != null);
-            }
+        try (JMSConsumer consumer = context.createConsumer(queue)) {
+            Message message;
+            do {
+                message = consumer.receive(1000);
+                if (message != null) {
+                    numDeleted++;
+                }
+            } while (message != null);
         }
         return numDeleted;
     }
@@ -117,9 +116,9 @@ public class JmsQueueBean {
         LOGGER.info("Getting size of queue {}", queueName);
 
         int queueSize = 0;
-        try (JMSContext context = messageQueueConnectionFactory.createContext()) {
+        try {
             try (QueueBrowser browser = context.createBrowser(getQueueResource(queueName))) {
-                final Enumeration messages = browser.getEnumeration();
+                final Enumeration<?> messages = browser.getEnumeration();
                 while (messages.hasMoreElements()) {
                     queueSize++;
                     messages.nextElement();
@@ -136,7 +135,7 @@ public class JmsQueueBean {
         final MockedJmsTextMessage mockedTextMessage = new MockedJmsTextMessage();
         mockedTextMessage.setJMSMessageID(textMessage.getJMSMessageID());
         mockedTextMessage.setText(textMessage.getText());
-        final Enumeration properties = message.getPropertyNames();
+        final Enumeration<?> properties = message.getPropertyNames();
         while (properties.hasMoreElements()) {
             final String key = (String) properties.nextElement();
             mockedTextMessage.setStringProperty(key, message.getStringProperty(key));
@@ -153,16 +152,17 @@ public class JmsQueueBean {
     }
 
     @SuppressWarnings("PMD.UnusedPrivateMethod")
-    private static Queue getQueueResource(String resourceName) throws NamingException {
-        Queue resourceValue;
+    private Queue getQueueResource(String resourceName) throws NamingException {
+        if(resourceName.contains("::")) {
+            return context.createQueue(resourceName);
+        }
         InitialContext initialContext = null;
         try {
             initialContext = new InitialContext();
-            resourceValue = (Queue) initialContext.lookup(resourceName);
+            return  (Queue) initialContext.lookup(resourceName);
         } finally {
             closeInitialContext(initialContext);
         }
-        return resourceValue;
     }
 
     private static void closeInitialContext(InitialContext initialContext) {

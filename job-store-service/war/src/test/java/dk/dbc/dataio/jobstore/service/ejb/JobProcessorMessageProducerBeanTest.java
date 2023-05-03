@@ -5,11 +5,10 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Priority;
-import dk.dbc.dataio.commons.types.jms.JmsConstants;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.util.ProcessorShard;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferenceBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -21,11 +20,13 @@ import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
 import javax.jms.TextMessage;
+import java.util.UUID;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -64,22 +65,24 @@ public class JobProcessorMessageProducerBeanTest {
     @Test
     public void createMessage_chunkArgIsValid_returnsMessageWithHeaderProperties() throws JSONBException, JMSException {
         final JobEntity jobEntity = buildJobEntity();
-        final ProcessorShard expectedProcessorShard = new ProcessorShard(ProcessorShard.Type.ACCTEST);
 
         // Subject under test
-        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new ChunkBuilder(Chunk.Type.PARTITIONED).build(), jobEntity);
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobEntity.getId()).build();
+        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, chunk, jobEntity, UUID.randomUUID().toString());
 
         // Verification
-        assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
-        assertThat(message.getStringProperty(JmsConstants.PROCESSOR_SHARD_PROPERTY_NAME), is(expectedProcessorShard.toString()));
+        assertThat(JMSHeader.payload.getHeader(message), is(JMSHeader.CHUNK_PAYLOAD_TYPE));
 
         final FlowStoreReference flowReference = jobEntity.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW);
-        assertThat(message.getLongProperty(JmsConstants.FLOW_ID_PROPERTY_NAME), is(flowReference.getId()));
-        assertThat(message.getLongProperty(JmsConstants.FLOW_VERSION_PROPERTY_NAME), is(flowReference.getVersion()));
+        assertThat(JMSHeader.flowId.getHeader(message), is(flowReference.getId()));
+        assertThat(JMSHeader.flowVersion.getHeader(message), is(flowReference.getVersion()));
+        assertThat(JMSHeader.jobId.getHeader(message), is(jobEntity.getId()));
+        assertThat(JMSHeader.chunkId.getHeader(message), is(chunk.getChunkId()));
+        assertThat(JMSHeader.trackingId.getHeader(message), notNullValue());
 
         final JobSpecification jobSpecification = jobEntity.getSpecification();
-        assertThat(message.getStringProperty(JmsConstants.ADDITIONAL_ARGS).contains(String.valueOf(jobSpecification.getSubmitterId())), is(true));
-        assertThat(message.getStringProperty(JmsConstants.ADDITIONAL_ARGS).contains(String.valueOf(jobSpecification.getFormat())), is(true));
+        assertThat(JMSHeader.additionalArgs.getHeader(message, String.class).contains(String.valueOf(jobSpecification.getSubmitterId())), is(true));
+        assertThat(JMSHeader.additionalArgs.getHeader(message, String.class).contains(String.valueOf(jobSpecification.getFormat())), is(true));
     }
 
     private JobProcessorMessageProducerBean getInitializedBean() {

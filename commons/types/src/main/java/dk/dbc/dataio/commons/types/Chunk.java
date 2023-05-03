@@ -30,7 +30,7 @@ public class Chunk implements Iterable<ChunkItem> {
     }
 
     private final Type type;
-    private final long jobId;
+    private final int jobId;
     private final long chunkId;
     @JsonProperty
     private final List<ChunkItem> items;
@@ -44,7 +44,7 @@ public class Chunk implements Iterable<ChunkItem> {
      * @param chunkId cannot be negative.
      * @param type    of job (PARTITIONED, PROCESSED, DELIVERED)
      */
-    public Chunk(long jobId, long chunkId, Type type) {
+    public Chunk(int jobId, long chunkId, Type type) {
         if (jobId < 0 || chunkId < 0) {
             throw new IllegalArgumentException(String.format("Neither job ID nor chunk ID can be negative: [%d/%d]",
                     jobId, chunkId));
@@ -60,7 +60,7 @@ public class Chunk implements Iterable<ChunkItem> {
     // Private constructor for JsonUtil.fromJson().
     // This constructor uses insertItem to ensure that the invariant for the object is upheld.
     @JsonCreator
-    private Chunk(@JsonProperty("jobId") long jobId,
+    private Chunk(@JsonProperty("jobId") int jobId,
                   @JsonProperty("chunkId") long chunkId,
                   @JsonProperty("type") Type type,
                   @JsonProperty("items") List<ChunkItem> items,
@@ -70,7 +70,7 @@ public class Chunk implements Iterable<ChunkItem> {
         addAllItems(items, next);
     }
 
-    public long getJobId() {
+    public int getJobId() {
         return jobId;
     }
 
@@ -177,5 +177,10 @@ public class Chunk implements Iterable<ChunkItem> {
                     collection.size(), item.getId()));
         }
         collection.add(item);
+    }
+
+    @Override
+    public String toString() {
+        return "Chunk{" + "jobId=" + jobId + ", chunkId=" + chunkId + '}';
     }
 }

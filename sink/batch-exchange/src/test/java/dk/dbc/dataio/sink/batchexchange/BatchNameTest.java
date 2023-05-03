@@ -4,15 +4,13 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import org.junit.Test;
 
-import static dk.dbc.commons.testutil.Assert.assertThat;
-import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class BatchNameTest {
     @Test
     public void constructor() {
-        final long jobId = 4242;
+        final int jobId = 4242;
         final long chunkId = 2424;
         final BatchName batchName = new BatchName(jobId, chunkId);
         assertThat("jobId", batchName.getJobId(), is(jobId));
@@ -27,19 +25,19 @@ public class BatchNameTest {
         assertThat("chunkId", batchName.getChunkId(), is(chunk.getChunkId()));
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void fromString_invalidNumberOfTokens_throws() {
-        assertThat(() -> BatchName.fromString("1-2-3"), isThrowing(IllegalArgumentException.class));
+        BatchName.fromString("1-2-3");
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void fromString_invalidTokenTypes_throws() {
-        assertThat(() -> BatchName.fromString("one-two"), isThrowing(IllegalArgumentException.class));
+        BatchName.fromString("one-two");
     }
 
     @Test
     public void fromString() {
-        final long jobId = 4242;
+        final int jobId = 4242;
         final long chunkId = 2424;
         final BatchName batchName = BatchName.fromString(String.format("%d-%d", jobId, chunkId));
         assertThat("jobId", batchName.getJobId(), is(jobId));

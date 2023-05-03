@@ -15,6 +15,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 public class SinkContentTest {
     private static final String NAME = "name";
+    private static final String QUEUE = "queue";
     private static final String RESOURCE = "resource";
     private static final String DESCRIPTION = "description";
     private static final SinkContent.SinkType SINK_TYPE = SinkContent.SinkType.OPENUPDATE;
@@ -29,16 +30,6 @@ public class SinkContentTest {
     @Test(expected = IllegalArgumentException.class)
     public void constructor_nameArgIsEmpty_throws() {
         new SinkContent("", RESOURCE, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_resourceArgIsNull_throws() {
-        new SinkContent(NAME, null, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_resourceArgIsEmpty_throws() {
-        new SinkContent(NAME, "", DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
     }
 
     @Test
@@ -58,7 +49,7 @@ public class SinkContentTest {
 
     @Test
     public void constructor_sinkConfigArgIsNull_returnsNewInstance() {
-        new SinkContent(NAME, RESOURCE, DESCRIPTION, SINK_TYPE, null, SEQUENCE_ANALYSIS_OPTION);
+        new SinkContent(NAME, QUEUE, RESOURCE, DESCRIPTION, SINK_TYPE, null, SEQUENCE_ANALYSIS_OPTION);
     }
 
     @Test(expected = NullPointerException.class)
@@ -68,7 +59,7 @@ public class SinkContentTest {
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final SinkContent instance = new SinkContent(NAME, RESOURCE, DESCRIPTION, SINK_TYPE, SINK_CONFIG, SEQUENCE_ANALYSIS_OPTION);
+        final SinkContent instance = new SinkContent(NAME, QUEUE, RESOURCE, DESCRIPTION, SINK_TYPE, SINK_CONFIG, SEQUENCE_ANALYSIS_OPTION);
         assertThat(instance, is(notNullValue()));
     }
 
@@ -81,6 +72,6 @@ public class SinkContentTest {
     }
 
     public static SinkContent newSinkContentWithTypeAndConfigInstance() {
-        return new SinkContent(NAME, RESOURCE, DESCRIPTION, SINK_TYPE, SINK_CONFIG, SEQUENCE_ANALYSIS_OPTION);
+        return new SinkContent(NAME, QUEUE, RESOURCE, DESCRIPTION, SINK_TYPE, SINK_CONFIG, SEQUENCE_ANALYSIS_OPTION);
     }
 }

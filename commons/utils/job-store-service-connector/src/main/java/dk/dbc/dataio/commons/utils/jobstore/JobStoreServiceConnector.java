@@ -160,7 +160,7 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to update job
      * @throws IllegalArgumentException          on invalid chunk type
      */
-    public JobInfoSnapshot addChunkIgnoreDuplicates(Chunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
+    public JobInfoSnapshot addChunkIgnoreDuplicates(Chunk chunk, int jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         log.trace("JobStoreServiceConnector: addChunkIgnoreDuplicates({}, {});", jobId, chunkId);
         JobInfoSnapshot jobInfoSnapshot;
@@ -192,7 +192,7 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to update job
      * @throws IllegalArgumentException          on invalid chunk type
      */
-    public JobInfoSnapshot addChunk(Chunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
+    public JobInfoSnapshot addChunk(Chunk chunk, int jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
         log.trace("JobStoreServiceConnector: addChunk({}, {});", jobId, chunkId);
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         final PathBuilder path = new PathBuilder(chunkTypeToJobStorePath(chunk.getType()))

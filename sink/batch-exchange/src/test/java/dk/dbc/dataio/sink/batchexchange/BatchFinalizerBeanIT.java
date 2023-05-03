@@ -25,6 +25,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -64,7 +65,7 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
     public void finalizeNextCompletedBatch_jobStoreUploadThrows() throws JobStoreServiceConnectorException {
         executeScriptResource("/completed_batch.sql");
 
-        when(jobStoreServiceConnector.addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong()))
+        when(jobStoreServiceConnector.addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong()))
                 .thenThrow(new JobStoreServiceConnectorException("Died"));
         final BatchFinalizerBean batchFinalizerBean = createBatchFinalizerBean();
         assertThat(batchFinalizerBean::finalizeNextCompletedBatch, isThrowing(SinkException.class));
@@ -93,10 +94,10 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
         assertThat("batch was finalized", batchFinalizerBean.finalizeNextCompletedBatch(), is(true));
 
         final ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyLong(), anyLong());
+        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyInt(), anyLong());
 
         final Chunk chunk = chunkArgumentCaptor.getValue();
-        assertThat("chunk job ID", chunk.getJobId(), is(42L));
+        assertThat("chunk job ID", chunk.getJobId(), is(42));
         assertThat("chunk ID", chunk.getChunkId(), is(0L));
         assertThat("chunk size", chunk.size(), is(5));
 

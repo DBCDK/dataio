@@ -16,7 +16,7 @@ enum WorldcatTimerMetrics implements SimpleTimerMetric {
     WCIRU_CHUNK_UPDATE(Metadata.builder()
             .withName("dataio_sink_worldcat_handle_chunk_timer")
             .withDescription("Elapsed time of chunks sent to wciru")
-            .withType(MetricType.COUNTER)
+            .withType(MetricType.SIMPLE_TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build());
 
     private final Metadata metadata;

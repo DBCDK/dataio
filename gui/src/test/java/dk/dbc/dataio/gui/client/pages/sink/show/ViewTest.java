@@ -49,8 +49,8 @@ public class ViewTest {
 
 
     // Test Data
-    private SinkModel testModel1 = new SinkModelBuilder().setName("SinkNam1").setResource("SinkRes1").setDescription("SinkDescription1").setSinkType(SinkContent.SinkType.DUMMY).build();
-    private SinkModel testModel2 = new SinkModelBuilder().setName("SinkNam2").setResource("SinkRes2").setDescription("SinkDescription2").build();
+    private SinkModel testModel1 = new SinkModelBuilder().setName("SinkNam1").setQueue("SinkQueue1").setResource("SinkRes1").setDescription("SinkDescription1").setSinkType(SinkContent.SinkType.DUMMY).build();
+    private SinkModel testModel2 = new SinkModelBuilder().setName("SinkNam2").setQueue("SinkQueue2").setResource("SinkRes2").setDescription("SinkDescription2").build();
     private List<SinkModel> testModels = Arrays.asList(testModel1, testModel2);
 
 
@@ -66,6 +66,7 @@ public class ViewTest {
     final static String MOCKED_COLUMNHEADER_NAME = "Mocked Text: columnHeader_Name";
     final static String MOCKED_COLUMNHEADER_DESCRIPTION = "Mocked Text: columnHeader_Description";
     final static String MOCKED_COLUMNHEADER_RESOURCENAME = "Mocked Text: columnHeader_ResourceName";
+    final static String MOCKED_COLUMNHEADER_QUEUENAME = "Mocked Text: columnHeader_QueueName";
     final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: columnHeader_Action";
     final static String MOCKED_ESSINK = "Mocked Text: MOCKED_ESSINK";
     final static String MOCKED_UPDATESINK = "Mocked Text: MOCKED_UPDATESINK";
@@ -92,6 +93,7 @@ public class ViewTest {
         when(mockedTexts.columnHeader_Name()).thenReturn(MOCKED_COLUMNHEADER_NAME);
         when(mockedTexts.columnHeader_Description()).thenReturn(MOCKED_COLUMNHEADER_DESCRIPTION);
         when(mockedTexts.columnHeader_ResourceName()).thenReturn(MOCKED_COLUMNHEADER_RESOURCENAME);
+        when(mockedTexts.columnHeader_QueueName()).thenReturn(MOCKED_COLUMNHEADER_QUEUENAME);
         when(mockedTexts.columnHeader_Action()).thenReturn(MOCKED_COLUMNHEADER_ACTION);
         when(mockedTexts.selection_ESSink()).thenReturn(MOCKED_ESSINK);
         when(mockedTexts.selection_UpdateSink()).thenReturn(MOCKED_UPDATESINK);
@@ -117,6 +119,7 @@ public class ViewTest {
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_DESCRIPTION));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_RESOURCENAME));
+        verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_QUEUENAME));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_ACTION));
         verify(view.sinksTable).setSelectionModel(any(SelectionModel.class));
         verify(view.sinksTable).addDomHandler(any(DoubleClickHandler.class), any(DomEvent.Type.class));

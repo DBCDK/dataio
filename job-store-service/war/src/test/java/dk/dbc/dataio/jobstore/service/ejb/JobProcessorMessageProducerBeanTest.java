@@ -78,7 +78,7 @@ public class JobProcessorMessageProducerBeanTest {
         assertThat(JMSHeader.flowVersion.getHeader(message), is(flowReference.getVersion()));
         assertThat(JMSHeader.jobId.getHeader(message), is(jobEntity.getId()));
         assertThat(JMSHeader.chunkId.getHeader(message), is(chunk.getChunkId()));
-        assertThat(JMSHeader.trackerId.getHeader(message), notNullValue());
+        assertThat(JMSHeader.trackingId.getHeader(message), notNullValue());
 
         final JobSpecification jobSpecification = jobEntity.getSpecification();
         assertThat(JMSHeader.additionalArgs.getHeader(message, String.class).contains(String.valueOf(jobSpecification.getSubmitterId())), is(true));

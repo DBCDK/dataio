@@ -6,9 +6,9 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 
 public interface MessageIdentifiers {
-    default void addIdentifiers(Message message, Chunk chunk, String trackerId) throws JMSException {
+    default void addIdentifiers(Message message, Chunk chunk, String trackingId) throws JMSException {
         JMSHeader.jobId.addHeader(message, chunk.getJobId());
         JMSHeader.chunkId.addHeader(message, chunk.getChunkId());
-        JMSHeader.trackerId.addHeader(message, trackerId);
+        JMSHeader.trackingId.addHeader(message, trackingId);
     }
 }

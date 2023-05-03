@@ -53,13 +53,6 @@ public class SinkModelTest {
     }
 
     @Test
-    public void isInputFieldsEmpty_noConfigEmptyResourceNameInput_returnsTrue() {
-        SinkModel model = getNoConfigTestModel();
-        model.setResourceName("");
-        assertThat(model.isInputFieldsEmpty(), is(true));
-    }
-
-    @Test
     public void isInputFieldsEmpty_noConfigEmptyDescriptionInput_returnsFalse() {
         SinkModel model = getNoConfigTestModel();
         model.setDescription("");

@@ -38,7 +38,7 @@ public class DummyMessageConsumer extends MessageConsumerAdapter {
 
     @Override
     public String getFilter() {
-        return SinkConfig.MESSAGE_FILTER.asString();
+        return SinkConfig.MESSAGE_FILTER.asOptionalString().orElse(null);
     }
 
     Chunk processPayload(Chunk processedChunk) {

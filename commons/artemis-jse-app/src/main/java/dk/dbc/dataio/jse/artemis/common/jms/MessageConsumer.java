@@ -149,6 +149,10 @@ public interface MessageConsumer extends MessageListener {
 
     String getAddress();
 
+    default String getFQN() {
+        return getAddress() + "::" + getQueue();
+    }
+
     default String getFilter() {
         return null;
     }

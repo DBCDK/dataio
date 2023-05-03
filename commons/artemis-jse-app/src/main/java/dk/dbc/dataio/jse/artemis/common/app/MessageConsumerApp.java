@@ -29,6 +29,7 @@ public abstract class MessageConsumerApp {
     private HttpService httpService = null;
     private Supplier<? extends MessageConsumer> messageConsumerSupplier = null;
     private static final int CONSUMER_IDLE_MAX = Config.CONSUMER_IDLE_MAX.asInteger();
+    private static final AtomicBoolean LOG_QUEUE_CONFIG = new AtomicBoolean(true);
 
     protected void go(ServiceHub serviceHub, Supplier<? extends MessageConsumer> messageConsumerSupplier) {
         int threads = Config.CONSUMER_THREADS.asInteger();
@@ -58,7 +59,11 @@ public abstract class MessageConsumerApp {
         while (keepRunning.get()) {
             try (JMSContext context = connectionFactory.createContext(JMSContext.SESSION_TRANSACTED)) {
                 MessageConsumer messageConsumer = messageConsumerSupplier.get();
-                Queue queue = context.createQueue(messageConsumer.getQueue());
+                Queue queue = context.createQueue(messageConsumer.getFQN());
+                if(LOG_QUEUE_CONFIG.get()) {
+                    LOGGER.info("Setting up queue listener for {} with filter '{}'", queue, messageConsumer.getFilter());
+                    LOG_QUEUE_CONFIG.set(false);
+                }
                 try(JMSConsumer consumer = context.createConsumer(queue, messageConsumer.getFilter())) {
                     receiveMessages(messageConsumer, consumer, context);
                 }

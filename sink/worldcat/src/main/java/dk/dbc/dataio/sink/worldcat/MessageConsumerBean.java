@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -25,6 +26,7 @@ import javax.ejb.MessageDriven;
 import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 
@@ -71,6 +73,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
             final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
             try {
+                Instant chunkStart = Instant.now();
                 for (ChunkItem chunkItem : chunk.getItems()) {
                     DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                     switch (chunkItem.getStatus()) {
@@ -94,13 +97,18 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                             result.insertItem(handleChunkItem(chunkItem));
                     }
                 }
+                Duration duration = Duration.between(chunkStart, Instant.now());
+                metricsHandler.update(WorldcatTimerMetrics.WCIRU_CHUNK_UPDATE, duration);
+                metricsHandler.increment(WorldcatCounterMetrics.WCIRU_CHUNK_UPDATE);
+                LOGGER.info("{} upload to worldcat took {}", chunk, duration);
             } finally {
                 DBCTrackedLogContext.remove();
             }
-
+            Instant start = Instant.now();
             uploadChunk(result);
+            LOGGER.info("Upload {} to jobstore took {}", result, Duration.between(start, Instant.now()));
         } catch (Exception e) {
-            LOGGER.error("Caught unhandled exception {}", e);
+            LOGGER.error("Caught unhandled exception while processing jobId: {}, chunkId: {}", JMSHeader.jobId.getHeader(consumedMessage, Integer.class), JMSHeader.chunkId.getHeader(consumedMessage, Long.class), e);
             metricsHandler.increment(WorldcatCounterMetrics.UNHANDLED_EXCEPTIONS);
             throw e;
         }

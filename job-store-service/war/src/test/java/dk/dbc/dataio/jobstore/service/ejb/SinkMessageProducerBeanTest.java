@@ -20,6 +20,7 @@ import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
 import javax.jms.TextMessage;
+import java.util.UUID;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -83,11 +84,11 @@ public class SinkMessageProducerBeanTest {
     @Test
     public void createMessage_chunkArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JSONBException {
         // Subject Under Test
-        final TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, chunk, sink, flowStoreReferences);
+        TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, chunk, sink, flowStoreReferences, UUID.randomUUID().toString());
 
         // Verifications
-        final FlowStoreReference sinkReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK);
-        final FlowStoreReference flowBinderReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER);
+        FlowStoreReference sinkReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK);
+        FlowStoreReference flowBinderReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER);
         assertThat("Message payload property", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
         assertThat("Message resource property", message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(sink.getContent().getResource()));
         assertThat("Message id property", message.getLongProperty(JmsConstants.SINK_ID_PROPERTY_NAME), is(sinkReference.getId()));

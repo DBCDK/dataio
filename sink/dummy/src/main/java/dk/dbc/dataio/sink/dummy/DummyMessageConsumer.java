@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 public class DummyMessageConsumer extends MessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DummyMessageConsumer.class);
+    private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
+    private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
 
     public DummyMessageConsumer(ServiceHub serviceHub) {
         super(serviceHub);
@@ -26,7 +28,12 @@ public class DummyMessageConsumer extends MessageConsumerAdapter {
 
     @Override
     public String getQueue() {
-        return SinkConfig.QUEUE.asString();
+        return QUEUE;
+    }
+
+    @Override
+    public String getAddress() {
+        return ADDRESS;
     }
 
     @Override

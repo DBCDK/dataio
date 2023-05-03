@@ -11,6 +11,8 @@ public interface Presenter extends GenericPresenter {
 
     void nameChanged(String name);
 
+    void queueChanged(String name);
+
     void resourceChanged(String resource);
 
     void descriptionChanged(String description);

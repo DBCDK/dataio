@@ -26,8 +26,8 @@ public class ZombieWatch {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZombieWatch.class);
     private final AdminClient adminClient;
     private final HealthService healthService;
-    private Map<QueueKey, AtomicLong> monitors = new HashMap<>();
-    private Map<String, Runnable> checks = new ConcurrentHashMap<>();
+    private final Map<QueueKey, AtomicLong> monitors = new HashMap<>();
+    private final Map<String, Runnable> checks = new ConcurrentHashMap<>();
 
     public ZombieWatch(HealthService healthService) {
         this.healthService = healthService;
@@ -43,8 +43,8 @@ public class ZombieWatch {
         checks.putIfAbsent(name, runnable);
     }
 
-    public void update(String queue, String filter) {
-        QueueKey queueKey = new QueueKey(queue, filter);
+    public void update(String address, String queue, String filter) {
+        QueueKey queueKey = new QueueKey(address, queue, filter);
         AtomicLong ts = monitors.computeIfAbsent(queueKey, qk -> new AtomicLong());
         ts.set(System.currentTimeMillis());
     }
@@ -68,11 +68,10 @@ public class ZombieWatch {
     }
 
     private int getMessageCount(QueueKey queueKey) {
-        String queue = queueKey.queue;
         try {
-            return queueKey.getFilter().map(ms -> adminClient.countMessages(queue, queue, ms)).orElse(adminClient.getQueueAttribute(queue, queue, "Message count"));
+            return queueKey.getFilter().map(ms -> adminClient.countMessages(queueKey.queue, queueKey.address, ms)).orElse(adminClient.getQueueAttribute(queueKey.queue, queueKey.address, "MessageCount"));
         } catch (Exception e) {
-            LOGGER.warn("Unable to retrieve message count for queue {}", queue, e);
+            LOGGER.warn("Unable to retrieve message count for queue {}", queueKey, e);
             return 0;
         }
     }
@@ -82,10 +81,12 @@ public class ZombieWatch {
     }
 
     public static class QueueKey {
+        public final String address;
         public final String queue;
         private final String filter;
 
-        public QueueKey(String queue, String filter) {
+        public QueueKey(String address, String queue, String filter) {
+            this.address = address;
             this.queue = queue;
             this.filter = filter;
         }
@@ -98,13 +99,18 @@ public class ZombieWatch {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            QueueKey that = (QueueKey) o;
-            return queue.equals(that.queue) && Objects.equals(filter, that.filter);
+            QueueKey queueKey = (QueueKey) o;
+            return address.equals(queueKey.address) && queue.equals(queueKey.queue) && Objects.equals(filter, queueKey.filter);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(queue, filter);
+            return Objects.hash(address, queue, filter);
+        }
+
+        @Override
+        public String toString() {
+            return "QueueKey{" + "address='" + address + '\'' + ", queue='" + queue + '\'' + ", filter='" + filter + '\'' + '}';
         }
     }
 }

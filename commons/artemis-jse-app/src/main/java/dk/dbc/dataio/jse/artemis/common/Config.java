@@ -40,7 +40,9 @@ public enum Config implements EnvConfig {
     }
 
     public static ConnectionFactory getConnectionFactory() {
-        return new ActiveMQConnectionFactory(getBrokerUrl());
+        ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(getBrokerUrl());
+        factory.setCacheDestinations(false);
+        return factory;
     }
 
     public static ThreadFactory threadFactory(String name, boolean daemon) {

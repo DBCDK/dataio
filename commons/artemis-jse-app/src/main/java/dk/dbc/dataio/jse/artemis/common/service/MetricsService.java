@@ -55,7 +55,7 @@ public class MetricsService {
     private void addUsage(String prefix, String name, String type, Supplier<MemoryUsage> mu) {
         metricRegistry.gauge(prefix + "_init", () -> mu.get().getInit(), new Tag("area", type), new Tag("id", name));
         metricRegistry.gauge(prefix + "_used", () -> mu.get().getUsed(), new Tag("area", type), new Tag("id", name));
-        metricRegistry.gauge(prefix + "_comitted", () -> mu.get().getCommitted(), new Tag("area", type), new Tag("id", name));
+        metricRegistry.gauge(prefix + "_committed", () -> mu.get().getCommitted(), new Tag("area", type), new Tag("id", name));
         metricRegistry.gauge(prefix + "_max", () -> mu.get().getMax(), new Tag("area", type), new Tag("id", name));
     }
 

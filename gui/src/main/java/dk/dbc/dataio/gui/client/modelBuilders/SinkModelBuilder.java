@@ -12,6 +12,7 @@ public class SinkModelBuilder {
     private long version = 1L;
     private SinkContent.SinkType sinkType = SinkContent.SinkType.DUMMY;
     private String name = "name";
+    private String queue = "queue";
     private String resource = "resource";
     private String description = "description";
     private SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
@@ -58,6 +59,11 @@ public class SinkModelBuilder {
      */
     public SinkModelBuilder setName(String name) {
         this.name = name;
+        return this;
+    }
+
+    public SinkModelBuilder setQueue(String queue) {
+        this.queue = queue;
         return this;
     }
 
@@ -111,6 +117,6 @@ public class SinkModelBuilder {
      * @return The SinkModel object
      */
     public SinkModel build() {
-        return new SinkModel(id, version, sinkType, name, resource, description, sequenceAnalysisOption, sinkConfig);
+        return new SinkModel(id, version, sinkType, name, queue, resource, description, sequenceAnalysisOption, sinkConfig);
     }
 }

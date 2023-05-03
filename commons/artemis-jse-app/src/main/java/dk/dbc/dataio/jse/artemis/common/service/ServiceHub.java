@@ -34,13 +34,14 @@ public class ServiceHub implements AutoCloseable {
         httpService.close();
     }
 
+    @SuppressWarnings("unused")
     public static class Builder {
         private MetricRegistry metricRegistry = PrometheusMetricRegistry.create();
         private HttpService httpService = new HttpService(Config.WEB_PORT.asInteger());
         private HealthService healthService = new HealthService(httpService);
         private MetricsService metricsService = new MetricsService(httpService, metricRegistry);
         private ZombieWatch zombieWatch = new ZombieWatch(healthService);
-        private JobStoreServiceConnector jobStoreServiceConnector = Config.JOBSTORE_URL.asOptionalString().map(js -> new JobStoreServiceConnector(ClientBuilder.newClient(), js)).orElse(null);;
+        private JobStoreServiceConnector jobStoreServiceConnector = Config.JOBSTORE_URL.asOptionalString().map(js -> new JobStoreServiceConnector(ClientBuilder.newClient(), js)).orElse(null);
 
         public ServiceHub build() {
             return new ServiceHub(metricRegistry, httpService, healthService, metricsService, zombieWatch, jobStoreServiceConnector);

@@ -25,6 +25,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -46,7 +47,7 @@ public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
         final ConsumedMessage message = ObjectFactory.createConsumedMessage(new ChunkBuilder(Chunk.Type.PROCESSED).build());
         newMessageConsumerBean().handleConsumedMessage(message);
 
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
+        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong());
     }
 
     @Test

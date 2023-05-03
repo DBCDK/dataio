@@ -92,11 +92,11 @@ public class EmptyJobsIT extends AbstractJobStoreServiceContainerTest {
         assertThat("job is not complete", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
         // And...
         final List<MockedJmsTextMessage> jmsMessages = jmsQueueServiceConnector.awaitQueueSizeAndList(
-                JmsQueueServiceConnector.Queue.SINK, 1, 10000);
+                JmsQueueServiceConnector.Queue.SINK_PERIODIC_JOBS, 1, 10000);
         final MockedJmsTextMessage jmsMessage = jmsMessages.get(0);
         final Chunk endChunk = jsonbContext.unmarshall(jmsMessage.getText(), Chunk.class);
         assertThat("chunk ID", endChunk.getChunkId(), is(0L));
-        assertThat("chunk belongs to job", endChunk.getJobId(), is((long) jobInfoSnapshot.getJobId()));
+        assertThat("chunk belongs to job", endChunk.getJobId(), is(jobInfoSnapshot.getJobId()));
         assertThat("number of items in chunk", endChunk.getItems().size(), is(1));
         assertThat("chunk is termination chunk", endChunk.getItems().get(0).getType().get(0),
                 is(ChunkItem.Type.JOB_END));

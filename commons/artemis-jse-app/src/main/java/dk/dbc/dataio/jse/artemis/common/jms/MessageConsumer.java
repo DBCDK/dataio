@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.types.jms.JmsConstants;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.jse.artemis.common.Metric;
 import dk.dbc.dataio.jse.artemis.common.service.ZombieWatch;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -60,9 +60,9 @@ public interface MessageConsumer extends MessageListener {
             if (messagePayload.isEmpty()) {
                 throw new InvalidMessageException(String.format("Message<%s> payload is empty string", messageId));
             }
-            String payloadType = message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME);
+            String payloadType = JMSHeader.payload.getHeader(message);
             if (payloadType == null || payloadType.trim().isEmpty()) {
-                throw new InvalidMessageException(String.format("Message <%s> has no %s property", messageId, JmsConstants.PAYLOAD_PROPERTY_NAME));
+                throw new InvalidMessageException(String.format("Message <%s> has no %s property", messageId, payloadType));
             }
             return new ConsumedMessage(messageId, getHeaders(message), messagePayload, Priority.of(message.getJMSPriority()));
         } catch (JMSException e) {
@@ -74,12 +74,12 @@ public interface MessageConsumer extends MessageListener {
         RUNNING_TRANSACTIONS.incrementAndGet();
         Instant startTime = Instant.now();
         LAST_MESSAGE_TS.set(startTime.toEpochMilli());
-        getZombieWatch().update(getQueue(), getFilter());
+        getZombieWatch().update(getAddress(), getQueue(), getFilter());
         String messageId = null;
         List<Tag> tags = new ArrayList<>();
         try {
             messageId = message.getJMSMessageID();
-            tags.add(new Tag("destination", getQueue()));
+            tags.add(new Tag("destination", getAddress() + "::" + getQueue()));
             tags.add(new Tag("redelivery", Boolean.toString(message.getJMSRedelivered())));
             ConsumedMessage consumedMessage = validateMessage(message);
             handleConsumedMessage(consumedMessage);
@@ -112,9 +112,9 @@ public interface MessageConsumer extends MessageListener {
     }
 
     default Chunk unmarshallPayload(ConsumedMessage consumedMessage) throws NullPointerException, InvalidMessageException {
-        String payloadType = consumedMessage.getHeaderValue(JmsConstants.PAYLOAD_PROPERTY_NAME, String.class);
-        if (!JmsConstants.CHUNK_PAYLOAD_TYPE.equals(payloadType)) {
-            throw new InvalidMessageException(String.format("Message.headers<%s> payload type %s != %s", consumedMessage.getMessageId(), payloadType, JmsConstants.CHUNK_PAYLOAD_TYPE));
+        String payloadType = JMSHeader.payload.getHeader(consumedMessage, String.class);
+        if (!JMSHeader.CHUNK_PAYLOAD_TYPE.equals(payloadType)) {
+            throw new InvalidMessageException(String.format("Message.headers<%s> payload type %s != %s", consumedMessage.getMessageId(), payloadType, JMSHeader.CHUNK_PAYLOAD_TYPE));
         }
         Chunk processedChunk;
         try {
@@ -146,6 +146,8 @@ public interface MessageConsumer extends MessageListener {
     }
 
     String getQueue();
+
+    String getAddress();
 
     default String getFilter() {
         return null;

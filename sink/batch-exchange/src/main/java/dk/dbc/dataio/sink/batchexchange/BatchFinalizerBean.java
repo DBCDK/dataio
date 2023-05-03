@@ -122,7 +122,7 @@ public class BatchFinalizerBean {
                 .getResultList();
     }
 
-    private Chunk createChunkFromBatchEntries(long jobId, long chunkId, List<BatchEntry> batchEntries) {
+    private Chunk createChunkFromBatchEntries(int jobId, long chunkId, List<BatchEntry> batchEntries) {
         final Chunk chunk = new Chunk(jobId, chunkId, Chunk.Type.DELIVERED);
         long chunkItemId = 0;
         ChunkItemDataBuffer dataBuffer = new ChunkItemDataBuffer();

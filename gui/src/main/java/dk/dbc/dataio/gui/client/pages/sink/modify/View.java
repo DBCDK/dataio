@@ -55,6 +55,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField
     PromptedTextBox name;
     @UiField
+    PromptedTextBox queue;
+    @UiField
     PromptedTextBox resource;
     @UiField
     PromptedTextArea description;
@@ -132,6 +134,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("name")
     void nameChanged(ValueChangeEvent<String> event) {
         presenter.nameChanged(name.getText());
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("queue")
+    void queueChanged(ValueChangeEvent<String> event) {
+        presenter.queueChanged(queue.getText());
         presenter.keyPressed();
     }
 

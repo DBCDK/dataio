@@ -8,15 +8,15 @@ import java.util.StringTokenizer;
  * Simple batch-exchange batch name abstraction
  */
 public class BatchName {
-    private final long jobId;
+    private final int jobId;
     private final long chunkId;
 
-    BatchName(long jobId, long chunkId) {
+    BatchName(int jobId, long chunkId) {
         this.jobId = jobId;
         this.chunkId = chunkId;
     }
 
-    public long getJobId() {
+    public int getJobId() {
         return jobId;
     }
 
@@ -53,7 +53,7 @@ public class BatchName {
         }
         try {
             return new BatchName(
-                    Long.parseLong(tokenizer.nextToken()),
+                    Integer.parseInt(tokenizer.nextToken()),
                     Long.parseLong(tokenizer.nextToken()));
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid batch name: " + name, e);

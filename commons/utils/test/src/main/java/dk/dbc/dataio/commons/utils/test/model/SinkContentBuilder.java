@@ -37,6 +37,6 @@ public class SinkContentBuilder {
     }
 
     public SinkContent build() {
-        return new SinkContent(name, resource, description, sinkType, sinkConfig, sequenceAnalysisOption);
+        return new SinkContent(name, "jmsDataioSinks", resource, description, sinkType, sinkConfig, sequenceAnalysisOption);
     }
 }

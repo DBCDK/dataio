@@ -23,6 +23,7 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -35,12 +36,12 @@ public class DummyMessageProcessorTest {
     @Test
     public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws InvalidMessageException, JSONBException, JobStoreServiceConnectorException {
         final String messageId = "id";
-        final Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(0L).setChunkId(0L).build();
+        final Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(0).setChunkId(0L).build();
         final String payload = new JSONBContext().marshall(processedChunk);
         final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, headers, payload);
         getDummyMessageProcessorBean().handleConsumedMessage(consumedMessage);
 
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
+        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong());
     }
 
     @Test

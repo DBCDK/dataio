@@ -45,7 +45,7 @@ public class ChunkProcessorTest {
     static final String javaScriptThrowException = "throwException";
     static final String javaScriptThrowIllegalOperationOnControlFieldException = "throwIOOCFException";
     static final String trackingId = "trackingId_";
-    private final long jobId = 42;
+    private final int jobId = 42;
     private final long submitter = 123;
     private final String format = "DasFormat";
     private final String additionalArgs = String.format("{\"format\":\"%s\",\"submitter\":%s}", format, submitter);
@@ -395,7 +395,7 @@ public class ChunkProcessorTest {
         assertThat(chunkProcessor.getCachedFlow(flow.getId(), flow.getVersion()).isPresent(), is(true));
     }
 
-    private void assertProcessedChunk(Chunk chunk, long jobID, long chunkId, int chunkSize) {
+    private void assertProcessedChunk(Chunk chunk, int jobID, long chunkId, int chunkSize) {
         assertThat("Chunk", chunk, is(notNullValue()));
         assertThat("Chunk job ID", chunk.getJobId(), is(jobID));
         assertThat("Chunk ID", chunk.getChunkId(), is(chunkId));

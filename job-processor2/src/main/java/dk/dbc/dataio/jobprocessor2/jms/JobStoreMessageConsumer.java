@@ -3,10 +3,11 @@ package dk.dbc.dataio.jobprocessor2.jms;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.types.jms.JmsConstants;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.jobprocessor2.Metric;
@@ -39,7 +40,8 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
     private final ChunkProcessor chunkProcessor;
     private final HealthService healthService;
     private static final Map<WatchKey, Instant> scriptStartTimes = new ConcurrentHashMap<>();
-    private static final String QUEUE = ProcessorConfig.QUEUE.toString();
+    private static final String QUEUE = ProcessorConfig.QUEUE.fqnAsQueue();
+    private static final String ADDRESS = ProcessorConfig.QUEUE.fqnAsAddress();
     private static final String FILTER = ProcessorConfig.MESSAGE_FILTER.asOptionalString().orElse(null);
 
     public JobStoreMessageConsumer(ServiceHub serviceHub) {
@@ -63,9 +65,9 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         Chunk chunk = extractChunkFromConsumedMessage(consumedMessage);
         LOGGER.info("Received chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
-        long flowId = consumedMessage.getHeaderValue(JmsConstants.FLOW_ID_PROPERTY_NAME, Long.class);
-        long flowVersion = consumedMessage.getHeaderValue(JmsConstants.FLOW_VERSION_PROPERTY_NAME, Long.class);
-        String additionalArgs = consumedMessage.getHeaderValue(JmsConstants.ADDITIONAL_ARGS, String.class);
+        long flowId = JMSHeader.flowId.getHeader(consumedMessage, Long.class);
+        long flowVersion = JMSHeader.flowVersion.getHeader(consumedMessage, Long.class);
+        String additionalArgs = JMSHeader.additionalArgs.getHeader(consumedMessage, String.class);
         Flow flow = getFlow(chunk, flowId, flowVersion);
         sendResultToJobStore(processChunk(chunk, flow, additionalArgs));
     }
@@ -73,6 +75,11 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
     @Override
     public String getQueue() {
         return QUEUE;
+    }
+
+    @Override
+    public String getAddress() {
+        return ADDRESS;
     }
 
     @Override
@@ -108,7 +115,7 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
             return chunk;
         } catch (JsonProcessingException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid Chunk type %s",
-                    consumedMessage.getMessageId(), consumedMessage.getHeaderValue(JmsConstants.CHUNK_PAYLOAD_TYPE, String.class)), e);
+                    consumedMessage.getMessageId(), JMSHeader.payload.getHeader(consumedMessage, String.class)), e);
         }
     }
 
@@ -117,7 +124,12 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
         Instant start = Instant.now();
         scriptStartTimes.put(key, start);
         try {
-            return chunkProcessor.process(chunk, flow, additionalArgs);
+            Chunk process = chunkProcessor.process(chunk, flow, additionalArgs);
+            Metric.dataio_jobprocessor_chunk_failed.counter().inc(process.getItems().stream()
+                    .map(ChunkItem::getStatus)
+                    .filter(ChunkItem.Status.FAILURE::equals)
+                    .count());
+            return process;
         } finally {
             scriptStartTimes.remove(key);
             Duration duration = Duration.between(start, Instant.now());
@@ -135,7 +147,7 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
     private Flow flowFromJobStore(Chunk chunk) throws JobProcessorException {
         StopWatch stopWatch = new StopWatch();
         try {
-            return jobStoreServiceConnector.getCachedFlow((int) chunk.getJobId());
+            return jobStoreServiceConnector.getCachedFlow(chunk.getJobId());
         } catch (JobStoreServiceConnectorException e) {
             throw new JobProcessorException(String.format(
                     "Exception caught while fetching flow for job %s", chunk.getJobId()), e);

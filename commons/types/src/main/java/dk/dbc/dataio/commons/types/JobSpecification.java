@@ -19,7 +19,26 @@ public class JobSpecification implements Serializable {
     public static final String EMPTY_RESULT_MAIL_INITIALS = "";
     public static int JOB_EXPIRATION_AGE_IN_DAYS = 365;
 
-    public enum Type {TRANSIENT, PERSISTENT, TEST, ACCTEST, INFOMEDIA, PERIODIC, COMPACTED, SUPER_TRANSIENT}
+    public enum Type {
+        TRANSIENT,
+        PERSISTENT,
+        TEST,
+        ACCTEST("processor::acctest"),
+        INFOMEDIA,
+        PERIODIC,
+        COMPACTED,
+        SUPER_TRANSIENT;
+
+        public final String processorQueue;
+
+        Type(String processorQueue) {
+            this.processorQueue = processorQueue;
+        }
+
+        Type() {
+            this.processorQueue = "processor::business";
+        }
+    }
 
     private String packaging;
     private String format;

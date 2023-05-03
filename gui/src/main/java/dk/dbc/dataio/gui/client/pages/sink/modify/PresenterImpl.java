@@ -85,6 +85,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         model.setDescription(description);
     }
 
+    @Override
+    public void queueChanged(String name) {
+        model.setQueue(name);
+    }
+
     /**
      * A signal to the presenter, saying that the resource field has been changed
      *
@@ -413,6 +418,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         View view = getView();
         view.name.clearText();
         view.name.setEnabled(false);
+        view.queue.clearText();
+        view.queue.setEnabled(false);
         view.resource.clearText();
         view.resource.setEnabled(false);
         view.description.clearText();
@@ -471,6 +478,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.name.setText(model.getSinkName());
         view.name.setEnabled(true);
         view.name.setFocus(true);
+        view.queue.setText(model.getQueue());
+        view.queue.setEnabled(true);
         view.resource.setText(model.getResourceName());
         view.resource.setEnabled(true);
         view.description.setText(model.getDescription());

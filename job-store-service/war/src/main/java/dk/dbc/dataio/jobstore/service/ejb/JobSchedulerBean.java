@@ -20,13 +20,13 @@ import dk.dbc.dataio.jobstore.service.entity.SinkIdStatusCountResult;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.invariant.InvariantUtil;
+import dk.dbc.jms.artemis.AdminClient;
+import dk.dbc.jms.artemis.AdminClientFactory;
 import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.annotation.Timed;
-import dk.dbc.jms.artemis.AdminClientFactory;
-import dk.dbc.jms.artemis.AdminClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,9 +143,7 @@ public class JobSchedulerBean {
     }
 
     private long getLongestRunningChunkDuration(long sinkId) {
-        long maxDuration = maxDeliveryDurations.computeIfAbsent(sinkId, k -> 0L);
-        maxDeliveryDurations.put(sinkId, 0L);
-        return maxDuration;
+        return maxDeliveryDurations.computeIfAbsent(sinkId, k -> 0L);
     }
 
     public JobSchedulerBean withEntityManager(EntityManager entityManager) {

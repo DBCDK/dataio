@@ -432,7 +432,7 @@ public class SinkModel extends GenericBackendModel {
      * @return true if no null or empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
-        if (sinkName.isEmpty() || resource.isEmpty() || description.isEmpty()) {
+        if (sinkName.isEmpty() || description.isEmpty()) {
             return true;
         } else {
             switch (sinkType) {

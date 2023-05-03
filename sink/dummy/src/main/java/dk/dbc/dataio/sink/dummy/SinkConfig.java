@@ -4,7 +4,7 @@ import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 
 public enum SinkConfig implements EnvConfig {
     QUEUE("jmsDataioSinks"),
-    MESSAGE_FILTER("resource = 'dummy'");
+    MESSAGE_FILTER;
 
     private final String defaultValue;
 

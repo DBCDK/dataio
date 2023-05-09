@@ -123,6 +123,7 @@
     <module>sink</module>
     <module>commons/utils/openupdate-service-connector</module>
     <module>job-processor2</module>
+      <module>commons/utils/endchunker</module>
   </modules>
 
 

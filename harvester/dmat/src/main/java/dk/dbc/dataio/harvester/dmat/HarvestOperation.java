@@ -144,11 +144,11 @@ public class HarvestOperation {
 
             // Create job
             if (rrJobBuilder.getRecordsAdded() > 0) {
+                int recordsAdded = rrJobBuilder.getRecordsAdded();
                 Optional<JobInfoSnapshot> jobInfo = rrJobBuilder.build();
                 jobInfo.ifPresent(jobInfoSnapshot -> {
-                    LOGGER.info("Created job {} with {} items in {} chunks", jobInfoSnapshot.getJobId(),
-                            jobInfoSnapshot.getNumberOfItems(), jobInfoSnapshot.getNumberOfChunks());
-                    metricsHandler.increment(DmatHarvesterMetrics.RECORDS_ADDED, rrJobBuilder.getRecordsAdded());
+                    LOGGER.info("Created job {} with {} items", jobInfoSnapshot.getJobId(), recordsAdded);
+                    metricsHandler.increment(DmatHarvesterMetrics.RECORDS_ADDED, recordsAdded);
                 });
             } else if (recordsHarvested == 0) {
                 LOGGER.info("No new records harvested from DMat");

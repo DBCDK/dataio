@@ -3,6 +3,9 @@ package dk.dbc.dataio.harvester.dmat;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.metricshandler.CounterMetric;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
+import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -27,6 +30,7 @@ import dk.dbc.dmat.service.persistence.enums.Status;
 import dk.dbc.dmat.service.persistence.enums.UpdateCode;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -47,8 +51,14 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -62,8 +72,8 @@ public class HarvestOperationTest {
     private HarvestOperation harvestOperation;
     private final DMatServiceConnector dmatServiceConnector = mock(DMatServiceConnector.class);
     private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
+    private final MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperationTest.class);
-    private final String PUBLISHER_DATASET_NAME = "150015-forlag";
 
     @TempDir
     Path tempDir;
@@ -84,6 +94,9 @@ public class HarvestOperationTest {
 
         final DMatHarvesterConfig config = newConfig();
         harvestOperation = spy(newHarvestOperation(config));
+
+        doNothing().when(metricsHandlerBean).increment(any(CounterMetric.class), any());
+        harvestOperation.metricsHandler = metricsHandlerBean;
     }
 
     @Test
@@ -99,6 +112,10 @@ public class HarvestOperationTest {
         verify(dmatServiceConnector, never()).upsertRecord(any(RecordData.class));
         verify(jobStoreServiceConnector, never()).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 0L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 0L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 0L);
     }
 
     @Test
@@ -119,9 +136,15 @@ public class HarvestOperationTest {
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 0L);
 
         // Check that the dmat url is constructed correctly
         FileInputStream is = new FileInputStream(harvesterTmpFile.toString());
@@ -136,8 +159,6 @@ public class HarvestOperationTest {
         } else {
             throw new AssertionError("Expecting addi record");
         }
-
-
     }
 
     @Test
@@ -164,13 +185,21 @@ public class HarvestOperationTest {
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(3));
 
-        verify(dmatServiceConnector, times(3)).updateRecordStatus(any(Integer.class), any(Status.class));
+        verify(dmatServiceConnector, times(6)).updateRecordStatus(any(Integer.class), any(Status.class));
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
+        verify(dmatServiceConnector).updateRecordStatus(2, Status.PROCESSING);
+        verify(dmatServiceConnector).updateRecordStatus(3, Status.PROCESSING);
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(dmatServiceConnector).updateRecordStatus(2, Status.EXPORTED);
         verify(dmatServiceConnector).updateRecordStatus(3, Status.EXPORTED);
 
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 3L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 3L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 3L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 0L);
     }
 
     @Test
@@ -188,6 +217,10 @@ public class HarvestOperationTest {
                 .thenThrow(new RecordServiceConnectorException("No content"));
 
         executeExpectSkipped(harvestOperation, 1, UpdateCode.NEW, Selection.CLONE);
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 0L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 1L);
     }
 
     @Test
@@ -208,11 +241,17 @@ public class HarvestOperationTest {
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(recordServiceConnector, times(0)).getRecordContent(any(Integer.class),
                 any(String.class), any(RecordServiceConnector.Params.class));
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 0L);
     }
 
     @Test
@@ -233,10 +272,16 @@ public class HarvestOperationTest {
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, MATCH_FAUST, fetchParameters());
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 0L);
     }
 
     @Test
@@ -257,11 +302,17 @@ public class HarvestOperationTest {
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(recordServiceConnector, times(0)).getRecordContent(any(Integer.class),
                 any(String.class), any(RecordServiceConnector.Params.class));
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 0L);
     }
 
     @Test
@@ -282,10 +333,16 @@ public class HarvestOperationTest {
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, MATCH_FAUST, fetchParameters());
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 0L);
     }
 
     @Test
@@ -303,9 +360,15 @@ public class HarvestOperationTest {
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 0L);
     }
 
     @Test
@@ -323,9 +386,15 @@ public class HarvestOperationTest {
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 0L);
     }
 
     @Test
@@ -343,9 +412,15 @@ public class HarvestOperationTest {
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 0L);
     }
 
     @Test
@@ -366,10 +441,16 @@ public class HarvestOperationTest {
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, REVIEW_FAUST, fetchParameters());
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 0L);
     }
 
     @Test
@@ -390,10 +471,16 @@ public class HarvestOperationTest {
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, RECORD_FAUST, fetchParameters());
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 0L);
     }
 
     @Test
@@ -442,8 +529,49 @@ public class HarvestOperationTest {
                         )));
 
         HarvesterException harvesterException = assertThrows(HarvesterException.class, harvestOperation::execute);
+        LOGGER.info("message: {}", harvesterException.getMessage());
         assertThat("exception message", harvesterException.getMessage()
                 .equals("DMat returned more than the requested number of records: wanted 2 got 5"));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 0L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 0L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 0L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.EXCEPTIONS);
+    }
+
+    @Test
+    public void harvestOneFailingRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.UPDATE, Selection.CREATE, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST)
+                        )));
+
+        when(recordServiceConnector.getRecordContentCollection(191919, RECORD_FAUST, fetchParameters()))
+                .thenReturn(mockMarcXchange(RECORD_FAUST, RECORD_AGENCY));
+        when(recordServiceConnector.getRecordContentCollection(191919, RECORD_FAUST, fetchParameters()))
+                .thenThrow(new RecordServiceConnectorException("No content"));
+
+        final int casesHarvested = harvestOperation.execute();
+        assertThat("Number of cases harvested", casesHarvested, is(0));
+
+        verify(dmatServiceConnector, times(2)).updateRecordStatus(any(Integer.class), any(Status.class));
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PENDING_EXPORT);
+
+        verify(recordServiceConnector, times(1)).getRecordContentCollection(any(Integer.class), any(String.class), any());
+        verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, RECORD_FAUST, fetchParameters());
+
+        verify(jobStoreServiceConnector, never()).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 0L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 1L);
     }
 
     @Test
@@ -468,7 +596,6 @@ public class HarvestOperationTest {
                         .withCreationDate(accession.toLocalDate())
                         .withRecords(Arrays.asList(
                                 mockRecord(5, accession, UpdateCode.UPDATE, Selection.CREATE, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST)
-                                // Todo: Add test for failing records with UpdateCode.PUBLISHER when we implement the ticklefetcher
                         )));
 
         when(recordServiceConnector.getRecordContentCollection(191919, RECORD_FAUST, fetchParameters()))
@@ -479,8 +606,16 @@ public class HarvestOperationTest {
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(2));
 
-        verify(dmatServiceConnector, times(2)).updateRecordStatus(any(Integer.class), any(Status.class));
+        verify(dmatServiceConnector, times(10)).updateRecordStatus(any(Integer.class), any(Status.class));
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
+        verify(dmatServiceConnector).updateRecordStatus(2, Status.PROCESSING);
+        verify(dmatServiceConnector).updateRecordStatus(3, Status.PROCESSING);
+        verify(dmatServiceConnector).updateRecordStatus(4, Status.PROCESSING);
+        verify(dmatServiceConnector).updateRecordStatus(5, Status.PROCESSING);
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(dmatServiceConnector).updateRecordStatus(2, Status.PENDING_EXPORT);
+        verify(dmatServiceConnector).updateRecordStatus(3, Status.PENDING_EXPORT);
+        verify(dmatServiceConnector).updateRecordStatus(4, Status.PENDING_EXPORT);
         verify(dmatServiceConnector).updateRecordStatus(5, Status.EXPORTED);
 
         verify(recordServiceConnector, times(3)).getRecordContentCollection(any(Integer.class), any(String.class), any());
@@ -489,6 +624,102 @@ public class HarvestOperationTest {
 
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 5L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 2L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 2L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 3L);
+    }
+
+    @Test
+    public void harvestAllRecordsWithOneFailingOnStatusProcessing() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE),
+                                mockRecord(2, accession, UpdateCode.NEW, Selection.CREATE)
+                        )))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(3, accession, UpdateCode.NEW, Selection.CREATE)
+                        )));
+
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
+                .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
+
+        // Throw an error when the second case is set to PROCESSING. This should not make the
+        // harvester throw an exception, but instead leave one record in its PENDING_EXPORT state
+        when(dmatServiceConnector.updateRecordStatus(2, Status.PROCESSING))
+                .thenThrow(new DMatServiceConnectorException("Sorry, not today!"));
+
+        final int casesHarvested = harvestOperation.execute();
+        assertThat("Number of cases harvested", casesHarvested, is(2));
+
+        verify(dmatServiceConnector, times(5)).updateRecordStatus(any(Integer.class), any(Status.class));
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
+        verify(dmatServiceConnector).updateRecordStatus(2, Status.PROCESSING);
+        verify(dmatServiceConnector).updateRecordStatus(3, Status.PROCESSING);
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(dmatServiceConnector).updateRecordStatus(3, Status.EXPORTED);
+
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 3L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 2L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 2);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 1L);
+    }
+
+    @Test
+    public void harvestAllRecordsWithOneFailingOnStatusExported() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE),
+                                mockRecord(2, accession, UpdateCode.NEW, Selection.CREATE)
+                        )))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(3, accession, UpdateCode.NEW, Selection.CREATE)
+                        )));
+
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
+                .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
+
+        // Throw an error when the first case is updated. This should not make the
+        // harvester throw an exception, but instead leave one record in its PROCESSING state
+        when(dmatServiceConnector.updateRecordStatus(1, Status.EXPORTED))
+              .thenThrow(new DMatServiceConnectorException("Dont do that to me!!!"));
+
+        final int casesHarvested = harvestOperation.execute();
+        assertThat("Number of cases harvested", casesHarvested, is(3));
+
+        verify(dmatServiceConnector, times(6)).updateRecordStatus(any(Integer.class), any(Status.class));
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.PROCESSING);
+        verify(dmatServiceConnector).updateRecordStatus(2, Status.PROCESSING);
+        verify(dmatServiceConnector).updateRecordStatus(3, Status.PROCESSING);
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(dmatServiceConnector).updateRecordStatus(2, Status.EXPORTED);
+        verify(dmatServiceConnector).updateRecordStatus(3, Status.EXPORTED);
+
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 3L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 3L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_ADDED, 3);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 1L);
     }
 
     private HarvestOperation newHarvestOperation(DMatHarvesterConfig config) throws HarvesterException {
@@ -595,13 +826,22 @@ public class HarvestOperationTest {
                                       Selection selection, Status status) throws DMatServiceConnectorException, JSONBException, JobStoreServiceConnectorException, HarvesterException {
         LocalDateTime accession = LocalDateTime.now();
 
+        reset(dmatServiceConnector);
+        reset(metricsHandlerBean);
+
         when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
                 .thenReturn((ExportedRecordList) new ExportedRecordList()
                         .withCreationDate(accession.toLocalDate())
                         .withRecords(Arrays.asList(
-                                mockRecord(1, accession, updateCode, selection, status, null, null, null))));
+                                mockRecord(id, accession, updateCode, selection, status, null, null, null))));
         harvestOperation.execute();
-        verify(dmatServiceConnector, times(0)).updateRecordStatus(any(Integer.class), any(Status.class));
+        verify(dmatServiceConnector, times(1)).updateRecordStatus(anyInt(), eq(Status.PROCESSING));
+        verify(dmatServiceConnector, times(0)).updateRecordStatus(anyInt(), eq(Status.EXPORTED));
+        verify(dmatServiceConnector, atLeastOnce()).updateRecordStatus(anyInt(), eq(Status.PENDING_EXPORT));
         verify(jobStoreServiceConnector, times(0)).addJob(any(JobInputStream.class));
+
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_HARVESTED, 1L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_PROCESSED, 0L);
+        verify(metricsHandlerBean).increment(DmatHarvesterMetrics.RECORDS_FAILED, 1L);
     }
 }

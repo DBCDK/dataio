@@ -6,16 +6,8 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 
 class JobSpecificationTemplate {
     public static final int SUBMITTER_NUMBER_RR = 190015;
-    public static final int SUBMITTER_NUMBER_PUBLIZON = 150015;
 
-    public enum JobSpecificationType {RR, PUBLISHER}
-
-    public static int getSubmitterNumberFor(JobSpecificationType type) {
-        return type == JobSpecificationType.PUBLISHER
-                ? SUBMITTER_NUMBER_PUBLIZON : SUBMITTER_NUMBER_RR;
-    }
-
-    static JobSpecification create(DMatHarvesterConfig config, JobSpecificationType type) throws HarvesterException {
+    static JobSpecification create(DMatHarvesterConfig config) throws HarvesterException {
         try {
             final DMatHarvesterConfig.Content configFields = config.getContent();
             return new JobSpecification()
@@ -23,7 +15,7 @@ class JobSpecificationTemplate {
                     .withFormat(configFields.getFormat())
                     .withCharset("utf8")
                     .withDestination(configFields.getDestination())
-                    .withSubmitterId(getSubmitterNumberFor(type))
+                    .withSubmitterId(SUBMITTER_NUMBER_RR)
                     .withMailForNotificationAboutVerification("placeholder")
                     .withMailForNotificationAboutProcessing("placeholder")
                     .withResultmailInitials("placeholder")

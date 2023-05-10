@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -16,6 +17,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.UncheckedHarvesterException;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.dmat.service.connector.DMatServiceConnectorException;
 import dk.dbc.dmat.service.dto.ExportedRecordList;
@@ -30,6 +32,8 @@ import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -37,6 +41,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
@@ -53,7 +59,9 @@ public class HarvestOperation {
     private final DMatServiceConnector dmatServiceConnector;
     private final RecordServiceConnector recordServiceConnector;
     private final String dmatDownloadUrl;
-    protected JobBuilder publisherJobBuilder;
+
+    @Inject
+    MetricsHandlerBean metricsHandler;
 
     public HarvestOperation(DMatHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
@@ -71,9 +79,6 @@ public class HarvestOperation {
         this.dmatServiceConnector = dmatServiceConnector;
         this.recordServiceConnector = recordServiceConnector;
         this.dmatDownloadUrl = dmatDownloadUrl;
-        this.publisherJobBuilder = new JobBuilder(
-                binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
-                JobSpecificationTemplate.create(config, JobSpecificationTemplate.JobSpecificationType.PUBLISHER));
     }
 
     public int execute() throws HarvesterException {
@@ -82,17 +87,27 @@ public class HarvestOperation {
         int recordsHarvested = 0;
         int recordsProcessed = 0;
         int recordsSkipped = 0;
+        AtomicInteger recordsFailed = new AtomicInteger(0);
 
-        try {
-            JobBuilder rrJobBuilder = new JobBuilder(
-                    binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
-                    JobSpecificationTemplate.create(config, JobSpecificationTemplate.JobSpecificationType.RR));
+        try(JobBuilder rrJobBuilder = new JobBuilder(
+                binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
+                JobSpecificationTemplate.create(config))) {
 
+            // Set all received records to status PROCESSING to prevent them from being
+            // exported again in case of catastrophic errors in dmat or the harvester
             final ResultSet dmatRecords = new ResultSet(dmatServiceConnector);
             for (DMatRecord dmatRecord : dmatRecords) {
-                LOGGER.info("Fetched dmat record {}", dmatRecord.getId());
                 recordsHarvested++;
+                LOGGER.info("Fetched dmat record {}", dmatRecord.getId());
 
+                // Move record to status PROCESSING to prevent reexport, skip record if we can not set new status
+                if (!updateStatus(dmatRecord.getId(), Status.PROCESSING)) {
+                    LOGGER.error("Unable to set status PROCESSING on DMat record {}. Harvesting aborted for this record", dmatRecord.getId());
+                    recordsSkipped++;
+                    continue;
+                }
+
+                // Process record
                 try {
 
                     // Check validity of the received record
@@ -106,43 +121,73 @@ public class HarvestOperation {
                         rrJobBuilder.addRecord(addiRecord);
                         statusAfterExportRr.put(dmatRecord.getId(), Status.EXPORTED);
                         recordsProcessed++;
+                        LOGGER.info("Added processed DMat record {} to job", dmatRecord.getId());
                     } finally {
                         DBCTrackedLogContext.remove();
                     }
                 } catch (RecordServiceConnectorException | HarvesterException e) {
                     LOGGER.error("Caught RecordServiceConnectorException|HarvesterException for dmatrecord {}: {}",
                             dmatRecord.getId(), e.getMessage());
+                    statusAfterExportRr.put(dmatRecord.getId(), Status.PENDING_EXPORT);
                     recordsSkipped++;
                 } catch (JsonProcessingException e) {
                     LOGGER.error("Caught JsonProcessingException for dmatrecord {}: {}",
                             dmatRecord.getId(), e.getMessage());
+                    statusAfterExportRr.put(dmatRecord.getId(), Status.PENDING_EXPORT);
                     recordsSkipped++;
                 } catch (Exception e) {
                     LOGGER.error("Caught unexpected Exception for dmatrecord {}", dmatRecord.getId(), e);
+                    statusAfterExportRr.put(dmatRecord.getId(), Status.PENDING_EXPORT);
                     recordsSkipped++;
                 }
+            }
+
+            // Create job
+            if (rrJobBuilder.getRecordsAdded() > 0) {
+                Optional<JobInfoSnapshot> jobInfo = rrJobBuilder.build();
+                jobInfo.ifPresent(jobInfoSnapshot -> {
+                    LOGGER.info("Created job {} with {} items in {} chunks", jobInfoSnapshot.getJobId(),
+                            jobInfoSnapshot.getNumberOfItems(), jobInfoSnapshot.getNumberOfChunks());
+                    metricsHandler.increment(DmatHarvesterMetrics.RECORDS_ADDED, rrJobBuilder.getRecordsAdded());
+                });
+            } else if (recordsHarvested == 0) {
+                LOGGER.info("No new records harvested from DMat");
+            } else {
+                LOGGER.error("Did not create job for DMat harvest since 0 records was added to the job during processing");
             }
 
             // After the job for RR records has been successfully build, update the status of the
             // harvested dmat records to ensure that no record is marked as exported
             // if job creation fails
-            rrJobBuilder.build();
-            statusAfterExportRr.forEach(this::updateStatus);
-
-            // After the job for publisher records has been successfully build, update the status of the
-            // harvested dmat records to ensure that no record is marked as exported
-            // if job creation fails
-            publisherJobBuilder.build();
-
+            statusAfterExportRr.forEach((caseId, status) -> {
+                if (!updateStatus(caseId, status)) {
+                    recordsFailed.incrementAndGet();
+                }
+            });
             updateConfig(config);
 
             return recordsProcessed;
         } catch (DMatServiceConnectorException e) {
-            LOGGER.error("Caught DMatServiceConnectorException: {}", e.getMessage());
+            LOGGER.error(String.format("Caught unexpected DMatServiceConnectorException: %s", e.getMessage()), e);
+            LOGGER.error("DMat may now have stale records in status PROCESSING");
+            metricsHandler.increment(DmatHarvesterMetrics.EXCEPTIONS);
             throw new HarvesterException("Caught DMatServiceConnectorException", e);
+        } catch (HarvesterException e) {
+            LOGGER.error(String.format("Caught HarvesterException: %s", e.getMessage()), e);
+            LOGGER.error("DMat may now have stale records in status PROCESSING");
+            metricsHandler.increment(DmatHarvesterMetrics.EXCEPTIONS);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error(String.format("Caught unexpected Exception: %s", e.getMessage()), e);
+            LOGGER.error("DMat may now have stale records in status PROCESSING");
+            metricsHandler.increment(DmatHarvesterMetrics.UNHANDLED_EXCEPTIONS);
+            throw new HarvesterException("Caught Exception", e);
         } finally {
-            LOGGER.info("Harvested {} dmat cases. {} was processed, {} was skipped in {} ms", recordsHarvested,
-                    recordsProcessed, recordsSkipped, stopwatch.getElapsedTime());
+            LOGGER.info("Harvested {} dmat cases. {} was processed, {} was skipped, {} failed in {} ms", recordsHarvested,
+                    recordsProcessed, recordsSkipped, recordsFailed.get(), stopwatch.getElapsedTime());
+            metricsHandler.increment(DmatHarvesterMetrics.RECORDS_HARVESTED, recordsHarvested);
+            metricsHandler.increment(DmatHarvesterMetrics.RECORDS_PROCESSED, recordsProcessed);
+            metricsHandler.increment(DmatHarvesterMetrics.RECORDS_FAILED, recordsFailed.get() + recordsSkipped);
         }
     }
 
@@ -236,7 +281,7 @@ public class HarvestOperation {
         return ((ExtendedAddiMetaData) new ExtendedAddiMetaData()
                 .withTrackingId(String.join(".", "dmat", config.getLogId(),
                         String.valueOf(dmatRecord.getId())))
-                .withSubmitterNumber(JobSpecificationTemplate.getSubmitterNumberFor(JobSpecificationTemplate.JobSpecificationType.RR))
+                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER_RR)
                 .withFormat(config.getContent().getFormat())
                 .withCreationDate(Date.from(creationDate.atStartOfDay(TIMEZONE).plusHours(12).toInstant()))
                 .withBibliographicRecordId(dmatRecord.getIsbn()))
@@ -269,15 +314,17 @@ public class HarvestOperation {
                 content);
     }
 
-    private void updateStatus(Integer caseId, Status status) throws UncheckedHarvesterException {
+    private Boolean updateStatus(Integer caseId, Status status) throws UncheckedHarvesterException {
         try {
             dmatServiceConnector.updateRecordStatus(caseId, status);
-        } catch (DMatServiceConnectorException e) {
-            LOGGER.error("Unable to update status for dmat record {}: {}", caseId, e);
-            throw new UncheckedHarvesterException("Unable to update status for dmat record " + caseId, e);
-        } catch (JSONBException e) {
-            LOGGER.error("Caught JSONBException when updating status for dmat record {}: {}", caseId, e);
-            throw new UncheckedHarvesterException("Caught JSONBException when updating status for dmat record " + caseId, e);
+            LOGGER.info("dmat record {} set to status {}", caseId, status);
+            return true;
+        } catch (DMatServiceConnectorException|JSONBException e) {
+            LOGGER.error(String.format("Unable to update status to %s for dmat record %d due to DMatServiceConnectorException|JSONBException", status, caseId), e);
+            return false;
+        } catch (Exception e) {
+            LOGGER.error(String.format("Caught unexpected exception when updating status to %s for dmat record %d", status, caseId), e);
+            return false;
         }
     }
 
@@ -327,6 +374,7 @@ public class HarvestOperation {
         }
 
         @Override
+        @Nonnull
         public Iterator<DMatRecord> iterator() {
             return new Iterator<>() {
                 @Override

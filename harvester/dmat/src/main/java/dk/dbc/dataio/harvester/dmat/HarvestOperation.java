@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -32,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -57,6 +59,9 @@ public class HarvestOperation {
     private final DMatServiceConnector dmatServiceConnector;
     private final RecordServiceConnector recordServiceConnector;
     private final String dmatDownloadUrl;
+
+    @Inject
+    MetricsHandlerBean metricsHandler;
 
     public HarvestOperation(DMatHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
@@ -140,8 +145,11 @@ public class HarvestOperation {
             // Create job
             if (rrJobBuilder.getRecordsAdded() > 0) {
                 Optional<JobInfoSnapshot> jobInfo = rrJobBuilder.build();
-                jobInfo.ifPresent(jobInfoSnapshot -> LOGGER.info("Created job {} with {} items in {} chunks", jobInfoSnapshot.getJobId(),
-                        jobInfoSnapshot.getNumberOfItems(), jobInfoSnapshot.getNumberOfChunks()));
+                jobInfo.ifPresent(jobInfoSnapshot -> {
+                    LOGGER.info("Created job {} with {} items in {} chunks", jobInfoSnapshot.getJobId(),
+                            jobInfoSnapshot.getNumberOfItems(), jobInfoSnapshot.getNumberOfChunks());
+                    metricsHandler.increment(DmatHarvesterMetrics.RECORDS_ADDED, rrJobBuilder.getRecordsAdded());
+                });
             } else if (recordsHarvested == 0) {
                 LOGGER.info("No new records harvested from DMat");
             } else {
@@ -162,18 +170,24 @@ public class HarvestOperation {
         } catch (DMatServiceConnectorException e) {
             LOGGER.error(String.format("Caught unexpected DMatServiceConnectorException: %s", e.getMessage()), e);
             LOGGER.error("DMat may now have stale records in status PROCESSING");
+            metricsHandler.increment(DmatHarvesterMetrics.EXCEPTIONS);
             throw new HarvesterException("Caught DMatServiceConnectorException", e);
         } catch (HarvesterException e) {
             LOGGER.error(String.format("Caught HarvesterException: %s", e.getMessage()), e);
             LOGGER.error("DMat may now have stale records in status PROCESSING");
+            metricsHandler.increment(DmatHarvesterMetrics.EXCEPTIONS);
             throw e;
         } catch (Exception e) {
             LOGGER.error(String.format("Caught unexpected Exception: %s", e.getMessage()), e);
             LOGGER.error("DMat may now have stale records in status PROCESSING");
+            metricsHandler.increment(DmatHarvesterMetrics.UNHANDLED_EXCEPTIONS);
             throw new HarvesterException("Caught Exception", e);
         } finally {
             LOGGER.info("Harvested {} dmat cases. {} was processed, {} was skipped, {} failed in {} ms", recordsHarvested,
                     recordsProcessed, recordsSkipped, recordsFailed.get(), stopwatch.getElapsedTime());
+            metricsHandler.increment(DmatHarvesterMetrics.RECORDS_HARVESTED, recordsHarvested);
+            metricsHandler.increment(DmatHarvesterMetrics.RECORDS_PROCESSED, recordsProcessed);
+            metricsHandler.increment(DmatHarvesterMetrics.RECORDS_FAILED, recordsFailed.get() + recordsSkipped);
         }
     }
 

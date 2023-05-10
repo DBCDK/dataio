@@ -11,10 +11,6 @@ import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.MetricType;
-import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

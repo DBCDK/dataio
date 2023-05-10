@@ -60,8 +60,7 @@ public class HarvestOperation {
     private final RecordServiceConnector recordServiceConnector;
     private final String dmatDownloadUrl;
 
-    @Inject
-    MetricsHandlerBean metricsHandler;
+    private final MetricsHandlerBean metricsHandler;
 
     public HarvestOperation(DMatHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
@@ -70,7 +69,8 @@ public class HarvestOperation {
                             JobStoreServiceConnector jobStoreServiceConnector,
                             DMatServiceConnector dmatServiceConnector,
                             RecordServiceConnector recordServiceConnector,
-                            String dmatDownloadUrl) throws HarvesterException {
+                            String dmatDownloadUrl,
+                            MetricsHandlerBean metricsHandler) throws HarvesterException {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
@@ -79,6 +79,7 @@ public class HarvestOperation {
         this.dmatServiceConnector = dmatServiceConnector;
         this.recordServiceConnector = recordServiceConnector;
         this.dmatDownloadUrl = dmatDownloadUrl;
+        this.metricsHandler = metricsHandler;
     }
 
     public int execute() throws HarvesterException {

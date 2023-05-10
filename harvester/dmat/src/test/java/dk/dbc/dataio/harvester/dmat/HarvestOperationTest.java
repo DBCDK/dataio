@@ -96,7 +96,6 @@ public class HarvestOperationTest {
         harvestOperation = spy(newHarvestOperation(config));
 
         doNothing().when(metricsHandlerBean).increment(any(CounterMetric.class), any());
-        harvestOperation.metricsHandler = metricsHandlerBean;
     }
 
     @Test
@@ -731,7 +730,8 @@ public class HarvestOperationTest {
                 jobStoreServiceConnector,
                 dmatServiceConnector,
                 recordServiceConnector,
-                "http://some.dmat.service/api/v1/content/faust/%s");
+                "http://some.dmat.service/api/v1/content/faust/%s",
+                metricsHandlerBean);
     }
 
     private DMatHarvesterConfig newConfig() {

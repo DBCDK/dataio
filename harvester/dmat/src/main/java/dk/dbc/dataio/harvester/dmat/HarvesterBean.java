@@ -7,6 +7,7 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -24,19 +25,6 @@ import javax.inject.Inject;
 @Singleton
 public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarvesterConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
-
-    static final Metadata recordCounterMetadata = Metadata.builder()
-            .withName("dataio_harvester_dmat_record_counter")
-            .withDescription("Number of records harvested")
-            .withType(MetricType.COUNTER)
-            .withUnit("record")
-            .build();
-    static final Metadata exceptionCounterMetadata = Metadata.builder()
-            .withName("dataio_harvester_dmat_exception_counter")
-            .withDescription("Number of unhandled exceptions caught")
-            .withType(MetricType.COUNTER)
-            .withUnit("exception")
-            .build();
 
     @EJB
     BinaryFileStoreBean binaryFileStoreBean;
@@ -58,8 +46,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarv
     RecordServiceConnector recordServiceConnector;
 
     @Inject
-    @RegistryType(type = MetricRegistry.Type.APPLICATION)
-    MetricRegistry metricRegistry;
+    MetricsHandlerBean metricsHandler;
 
     @Override
     public int executeFor(DMatHarvesterConfig config) throws HarvesterException {
@@ -70,12 +57,19 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarv
                     flowStoreServiceConnectorBean.getConnector(),
                     jobStoreServiceConnectorBean.getConnector(),
                     dMatServiceConnector, recordServiceConnector,
-                    dmatDownloadBaseUrl);
-            final int numberOfRecordsHarvested = harvestOperation.execute();
-            metricRegistry.counter(recordCounterMetadata).inc(numberOfRecordsHarvested);
-            return numberOfRecordsHarvested;
-        } catch (HarvesterException | RuntimeException e) {
-            metricRegistry.counter(exceptionCounterMetadata).inc();
+                    dmatDownloadBaseUrl,
+                    metricsHandler);
+            return harvestOperation.execute();
+        } catch (HarvesterException e) {
+            LOGGER.error("HarvestOperation resulted in HarvesterException {}", e.getMessage());
+            throw e;
+        } catch (RuntimeException e) {
+            LOGGER.error(String.format("HarvestOperation resulted in RuntimeException %s", e.getMessage()), e);
+            metricsHandler.increment(DmatHarvesterMetrics.UNHANDLED_EXCEPTIONS);
+            throw e;
+        } catch(Exception e) {
+            LOGGER.error(String.format("HarvestOperation resulted in unhandled exception %s", e.getMessage()), e);
+            metricsHandler.increment(DmatHarvesterMetrics.UNHANDLED_EXCEPTIONS);
             throw e;
         }
     }

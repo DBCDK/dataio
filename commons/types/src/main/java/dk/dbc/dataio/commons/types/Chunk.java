@@ -162,6 +162,11 @@ public class Chunk implements Iterable<ChunkItem> {
         return next;
     }
 
+    @JsonIgnore
+    public String getTrackingId() {
+        return jobId + "/" + chunkId;
+    }
+
     @Override
     public Iterator<ChunkItem> iterator() {
         return items.iterator();
@@ -181,6 +186,6 @@ public class Chunk implements Iterable<ChunkItem> {
 
     @Override
     public String toString() {
-        return "Chunk{" + "jobId=" + jobId + ", chunkId=" + chunkId + '}';
+        return "Chunk " + getTrackingId();
     }
 }

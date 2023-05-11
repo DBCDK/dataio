@@ -193,7 +193,7 @@ public class JobStoreServiceConnector {
      * @throws IllegalArgumentException          on invalid chunk type
      */
     public JobInfoSnapshot addChunk(Chunk chunk, int jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: addChunk({}, {});", jobId, chunkId);
+        log.info("JobStoreServiceConnector: addChunk({}/{});", jobId, chunkId);
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         final PathBuilder path = new PathBuilder(chunkTypeToJobStorePath(chunk.getType()))
                 .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)

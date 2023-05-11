@@ -20,7 +20,6 @@ import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
 import javax.jms.TextMessage;
-import java.util.UUID;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -68,7 +67,7 @@ public class JobProcessorMessageProducerBeanTest {
 
         // Subject under test
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobEntity.getId()).build();
-        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, chunk, jobEntity, UUID.randomUUID().toString());
+        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, chunk, jobEntity);
 
         // Verification
         assertThat(JMSHeader.payload.getHeader(message), is(JMSHeader.CHUNK_PAYLOAD_TYPE));

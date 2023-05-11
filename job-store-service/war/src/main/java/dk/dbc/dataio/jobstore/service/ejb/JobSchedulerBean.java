@@ -41,6 +41,8 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -205,8 +207,8 @@ public class JobSchedulerBean {
     @Schedule(second = "0", minute = "5", hour = "*", persistent = false)
     public void cleanStaleJMSConnections() {
         LOGGER.info("Cleaning stale artemis connections");
-        adminClient.resetStaleConnections("jmsDataioProcessor", null);
-        adminClient.resetStaleConnections("jmsDataioSinks", null);
+        Instant i = Instant.now().minus(Duration.ofMinutes(15));
+        adminClient.closeConsumerConnections(c -> i.isAfter(c.getLastAcknowledgedTime()));
     }
 
     /**

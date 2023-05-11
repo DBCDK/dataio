@@ -23,7 +23,6 @@ import javax.jms.JMSException;
 import javax.jms.JMSProducer;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
-import java.util.UUID;
 
 /**
  * This Enterprise Java Bean (EJB) functions as JMS message producer for
@@ -31,7 +30,8 @@ import java.util.UUID;
  */
 @LocalBean
 @Stateless
-public class SinkMessageProducerBean implements MessageIdentifiers {
+public class
+SinkMessageProducerBean implements MessageIdentifiers {
     private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageProducerBean.class);
 
     @Inject
@@ -52,22 +52,21 @@ public class SinkMessageProducerBean implements MessageIdentifiers {
     public void send(Chunk chunk, JobEntity job, int priority) throws NullPointerException, JobStoreException {
         Sink destination = job.getCachedSink().getSink();
         FlowStoreReferences flowStoreReferences = job.getFlowStoreReferences();
-        String trackingId = UUID.randomUUID().toString();
 
-        LOGGER.info("Sending chunk {}/{} to sink {} with unique id {}", chunk.getJobId(), chunk.getChunkId(), destination.getContent().getName(), trackingId);
+        LOGGER.info("Sending chunk {}/{} to sink {} with unique id {}", chunk.getJobId(), chunk.getChunkId(), destination.getContent().getName(), chunk.getTrackingId());
 
         try {
             Queue queue = context.createQueue(destination.getContent().getQueue());
-            TextMessage message = createMessage(context, chunk, destination, flowStoreReferences, trackingId);
+            TextMessage message = createMessage(context, chunk, destination, flowStoreReferences);
             JMSProducer producer = context.createProducer();
             producer.setPriority(priority);
             producer.send(queue, message);
         } catch (JSONBException | JMSException e) {
             String errorMessage = String.format(
-                    "Exception caught while sending processed chunk %d in job %s with unique id %s",
+                    "Exception caught while sending processed chunk %d in job %s with trackingId %s",
                     chunk.getChunkId(),
                     chunk.getJobId(),
-                    trackingId);
+                    chunk.getTrackingId());
             throw new JobStoreException(errorMessage, e);
         }
     }
@@ -92,7 +91,7 @@ public class SinkMessageProducerBean implements MessageIdentifiers {
      * @throws JSONBException when unable to marshall processor result instance to JSON
      * @throws JMSException   when unable to create JMS message
      */
-    public TextMessage createMessage(JMSContext context, Chunk chunk, Sink destination, FlowStoreReferences flowStoreReferences, String trackingId) throws JMSException, JSONBException {
+    public TextMessage createMessage(JMSContext context, Chunk chunk, Sink destination, FlowStoreReferences flowStoreReferences) throws JMSException, JSONBException {
         FlowStoreReference sinkReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK);
         FlowStoreReference flowBinderReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER);
         TextMessage message = context.createTextMessage(jsonbContext.marshall(chunk));
@@ -101,7 +100,7 @@ public class SinkMessageProducerBean implements MessageIdentifiers {
         if(resource != null && !resource.isEmpty()) JMSHeader.resource.addHeader(message, resource);
         JMSHeader.sinkId.addHeader(message, sinkReference.getId());
         JMSHeader.sinkVersion.addHeader(message, sinkReference.getVersion());
-        addIdentifiers(message, chunk, trackingId);
+        addIdentifiers(message, chunk);
         // if the execution is towards the diff sink during an acceptance test run
         if (flowBinderReference != null) {
             JMSHeader.flowBinderId.addHeader(message, flowBinderReference.getId());

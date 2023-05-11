@@ -79,7 +79,6 @@ public interface MessageConsumer extends MessageListener {
         List<Tag> tags = new ArrayList<>();
         try {
             messageId = message.getJMSMessageID();
-            LOGGER.info("Received chunk {}/{} with uid: {}", JMSHeader.jobId.getHeader(message), JMSHeader.chunkId.getHeader(message), JMSHeader.trackingId.getHeader(message));
             tags.add(new Tag("destination", getAddress() + "::" + getQueue()));
             tags.add(new Tag("redelivery", Boolean.toString(message.getJMSRedelivered())));
             ConsumedMessage consumedMessage = validateMessage(message);

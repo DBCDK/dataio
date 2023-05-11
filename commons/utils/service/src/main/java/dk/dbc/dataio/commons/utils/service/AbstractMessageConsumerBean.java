@@ -30,10 +30,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static dk.dbc.dataio.commons.types.jms.JMSHeader.chunkId;
-import static dk.dbc.dataio.commons.types.jms.JMSHeader.jobId;
-import static dk.dbc.dataio.commons.types.jms.JMSHeader.trackingId;
-
 @LocalBean
 public abstract class AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMessageConsumerBean.class);
@@ -123,7 +119,6 @@ public abstract class AbstractMessageConsumerBean {
             tags.add(new Tag("redelivery", Boolean.toString(message.getJMSRedelivered())));
             final ConsumedMessage consumedMessage = validateMessage(message);
             messageId = consumedMessage.getMessageId();
-            LOGGER.info("Received chunk {}/{} with uid: {}", jobId.getHeader(message), chunkId.getHeader(message), trackingId.getHeader(message));
             message.getIntProperty(DELIVERY_COUNT_PROPERTY);
             handleConsumedMessage(consumedMessage);
             if (messageDrivenContext.getRollbackOnly()) {

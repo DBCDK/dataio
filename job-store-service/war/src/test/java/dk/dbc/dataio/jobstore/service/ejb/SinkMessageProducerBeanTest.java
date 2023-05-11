@@ -20,7 +20,6 @@ import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
 import javax.jms.TextMessage;
-import java.util.UUID;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -84,7 +83,7 @@ public class SinkMessageProducerBeanTest {
     @Test
     public void createMessage_chunkArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JSONBException {
         // Subject Under Test
-        TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, chunk, sink, flowStoreReferences, UUID.randomUUID().toString());
+        TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, chunk, sink, flowStoreReferences);
 
         // Verifications
         FlowStoreReference sinkReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK);

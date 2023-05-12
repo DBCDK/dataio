@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jse.artemis.common;
 
-import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public enum Config implements EnvConfig {
     WEB_PORT("8080"),
     ARTEMIS_MQ_HOST,
+    ARTEMIS_CONNECTION_FACTORY(artemisCF()),
+    ARTEMIS_BROKER_PROTOCOL("tcp"),
     ARTEMIS_JMS_PORT("61616"),
     ARTEMIS_ADMIN_PORT,
     ARTEMIS_USER,
@@ -36,13 +37,24 @@ public enum Config implements EnvConfig {
     }
 
     public static String getBrokerUrl() {
-        return "tcp://" + ARTEMIS_MQ_HOST + ":" + ARTEMIS_JMS_PORT;
+        return ARTEMIS_BROKER_PROTOCOL + "://" + ARTEMIS_MQ_HOST + ":" + ARTEMIS_JMS_PORT;
+    }
+
+    public static String artemisCF() {
+        return "org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory";
+    }
+
+    public static String qpidCF() {
+        return "org.apache.qpid.jms.JmsConnectionFactory";
     }
 
     public static ConnectionFactory getConnectionFactory() {
-        ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(getBrokerUrl());
-        factory.setCacheDestinations(false);
-        return factory;
+        try {
+            Class<?> cfClass = Class.forName(ARTEMIS_CONNECTION_FACTORY.asString());
+            return (ConnectionFactory) cfClass.getConstructor(String.class).newInstance(getBrokerUrl());
+        } catch (Exception e) {
+            throw new Error("Unable to create connection factory using class: " + ARTEMIS_CONNECTION_FACTORY.asString() + ", and broker url: " + getBrokerUrl(), e);
+        }
     }
 
     public static ThreadFactory threadFactory(String name, boolean daemon) {

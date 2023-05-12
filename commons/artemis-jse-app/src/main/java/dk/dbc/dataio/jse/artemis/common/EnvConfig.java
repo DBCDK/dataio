@@ -9,7 +9,11 @@ public interface EnvConfig {
     }
 
     default Optional<Integer> asOptionalInteger() {
-        return asOptionalString().map(Integer::parseInt);
+        try {
+            return asOptionalString().map(Integer::parseInt);
+        } catch (NumberFormatException nfe) {
+            throw new NumberFormatException("Unable to parse key + " + name() + ", with value: " + asOptionalString().orElse("<empty>"));
+        }
     }
 
     default Optional<Duration> asOptionalDuration() {
@@ -39,7 +43,7 @@ public interface EnvConfig {
     }
 
     private static Optional<String> getProperty(String key) {
-        return Optional.ofNullable(System.getenv(key));
+        return Optional.ofNullable(System.getenv(key)).map(String::trim);
     }
 
     private IllegalStateException missingConf() {

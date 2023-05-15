@@ -78,9 +78,9 @@ pipeline {
             }
         }
         stage("deploy to mavenrepo.dbc.dk") {
-//            when {
-//                branch "master"
-//            }
+            when {
+                branch "master"
+            }
             steps {
                 sh """
                     mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -am -pl "commons/utils/flow-store-service-connector, commons/utils/tickle-harvester-service-connector, gatekeeper, job-processor2, sink/dummy"

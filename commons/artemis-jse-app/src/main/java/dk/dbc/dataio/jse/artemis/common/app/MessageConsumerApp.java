@@ -71,7 +71,7 @@ public abstract class MessageConsumerApp {
                 MessageConsumer messageConsumer = messageConsumerSupplier.get();
                 Queue queue = context.createQueue(messageConsumer.getFQN());
                 if(LOG_QUEUE_CONFIG.get()) {
-                    LOGGER.info("Setting up queue listener for {} with filter '{}'", queue, messageConsumer.getFilter());
+                    LOGGER.info("Setting up queue listener for {} with filter '{}' using connection factory {}", queue, messageConsumer.getFilter(), connectionFactory.getClass().getName());
                     LOG_QUEUE_CONFIG.set(false);
                 }
                 try(JMSConsumer consumer = context.createConsumer(queue, messageConsumer.getFilter())) {

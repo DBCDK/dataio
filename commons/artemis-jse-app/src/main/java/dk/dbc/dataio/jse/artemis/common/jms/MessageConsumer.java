@@ -91,10 +91,10 @@ public interface MessageConsumer extends MessageListener {
             tags.add(rollback.is("true"));
             throw new IllegalStateException("Caught exception while handling message " + messageId + " rolling back", re);
         } finally {
+            RUNNING_TRANSACTIONS.decrementAndGet();
             Tag[] tagArray = tags.toArray(Tag[]::new);
             Metric.dataio_message_count.counter(tagArray).inc();
             Metric.dataio_message_time.simpleTimer(tagArray).update(Duration.between(startTime, Instant.now()));
-            RUNNING_TRANSACTIONS.decrementAndGet();
         }
     }
 

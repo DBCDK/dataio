@@ -11,7 +11,6 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
@@ -402,35 +401,6 @@ public class JobsBean {
     @Produces({MediaType.APPLICATION_JSON})
     public Response countJobsByGet(@QueryParam("q") String query) throws JSONBException {
         return countJobsByIOQL(query);
-    }
-
-    @POST
-    @Path(JobStoreServiceConstants.FORCE_DEPENDENCY_TRACKING_RETRANSMIT)
-    public Response reTransmitAll() {
-        return reTransmitAllJobs();
-    }
-
-    private Response reTransmitAllJobs() {
-        long numberOfChunksInProcessing = jobStoreRepository
-                .getChunksToBeResetForState(DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
-        LOGGER.info("Resetting depedencytracking states. Sets status = 1 for status = 2 for {} entities",
-                numberOfChunksInProcessing);
-
-        jobStoreRepository.resetStatus(
-                DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING,
-                DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING
-                );
-        long numberOfChunksInDelivering = jobStoreRepository
-                .getChunksToBeResetForState(DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
-        LOGGER.info("Resetting depedencytracking states. Sets status = 4 for status = 5 for {} entities",
-                numberOfChunksInDelivering);
-
-        jobStoreRepository.resetStatus(
-                DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY,
-                DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_DELIVERY
-        );
-        jobSchedulerBean.loadSinkStatusOnBootstrap();
-        return Response.ok().build();
     }
 
     private Response countJobsByIOQL(String query) throws JSONBException {

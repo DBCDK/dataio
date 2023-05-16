@@ -121,18 +121,22 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     public long getChunksToBeResetForState(DependencyTrackingEntity.ChunkSchedulingStatus status) {
-        TypedQuery<Long> q = entityManager
-                .createNamedQuery(DependencyTrackingEntity.CHUNKS_IN_STATE, Long.class);
+        TypedQuery<Long> q = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_IN_STATE, Long.class);
         q.setParameter("status", status);
         return q.getSingleResult();
     }
 
-    public void resetStatus(DependencyTrackingEntity.ChunkSchedulingStatus fromStatus,
-                            DependencyTrackingEntity.ChunkSchedulingStatus toStatus) {
-        Query q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING);
+    public int resetStatus(List<Integer> jobIds, DependencyTrackingEntity.ChunkSchedulingStatus fromStatus,
+                           DependencyTrackingEntity.ChunkSchedulingStatus toStatus) {
+        Query q;
+        if(jobIds.isEmpty()) q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING);
+        else {
+            q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_LIST_STATE_IN_DEPENDENCYTRACKING);
+            q.setParameter("jobIds", jobIds);
+        }
         q.setParameter("fromStatus", fromStatus);
         q.setParameter("toStatus", toStatus);
-        q.executeUpdate();
+        return q.executeUpdate();
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)

@@ -72,7 +72,9 @@ import java.util.Set;
         @NamedQuery(name = DependencyTrackingEntity.CHUNKS_IN_STATE,
                 query = "SELECT count(e) FROM DependencyTrackingEntity e WHERE e.status = :status"),
         @NamedQuery(name = DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING,
-                query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus")
+                query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus"),
+        @NamedQuery(name = DependencyTrackingEntity.RESET_LIST_STATE_IN_DEPENDENCYTRACKING,
+                query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus AND e.key.jobId in :jobIds")
 })
 public class DependencyTrackingEntity {
     static final String SINKID_STATUS_COUNT_RESULT = "SinkIdStatusCountResult";
@@ -85,6 +87,7 @@ public class DependencyTrackingEntity {
     public static final String BLOCKED_GROUPED_BY_SINK = "DependencyTrackingEntity.blockedGroupedBySink";
     public static final String CHUNKS_IN_STATE = "DependencyTrackingEntity.inState";
     public static final String RESET_STATE_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetState";
+    public static final String RESET_LIST_STATE_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetList";
 
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
         this.key = new Key(chunk.getKey());

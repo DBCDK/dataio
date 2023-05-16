@@ -48,6 +48,7 @@ public class JobStoreServiceConstants {
 
     public static final String SINK_STATUS = "status/sinks/{sinkId}";
     public static final String SINKS_STATUS = "status/sinks";
+    public static final String CLEAR_CACHE = "cache/clear";
 
     private JobStoreServiceConstants() {
     }

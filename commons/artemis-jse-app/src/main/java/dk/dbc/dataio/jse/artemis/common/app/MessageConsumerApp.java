@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jse.artemis.common.app;
 
 import dk.dbc.dataio.jse.artemis.common.Config;
+import dk.dbc.dataio.jse.artemis.common.Metric;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumer;
 import dk.dbc.dataio.jse.artemis.common.service.HttpService;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
@@ -15,6 +16,8 @@ import javax.jms.JMSRuntimeException;
 import javax.jms.Message;
 import javax.jms.Queue;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,6 +33,7 @@ public abstract class MessageConsumerApp {
     private Supplier<? extends MessageConsumer> messageConsumerSupplier = null;
     private static final int CONSUMER_IDLE_MAX = Config.CONSUMER_IDLE_MAX.asInteger();
     private static final AtomicBoolean LOG_QUEUE_CONFIG = new AtomicBoolean(true);
+    private static final ConcurrentHashMap<String, Instant> TX_ELAPSED = new ConcurrentHashMap<>();
 
     protected void go(ServiceHub serviceHub, Supplier<? extends MessageConsumer> messageConsumerSupplier) {
         int threads = Config.CONSUMER_THREADS.asInteger();
@@ -39,7 +43,13 @@ public abstract class MessageConsumerApp {
         for (int i = 0; i < threads; i++) {
             startConsumers();
         }
+        Metric.dataio_tx_elapsed.gauge(this::getLongestRunningTX);
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
+    }
+
+    private long getLongestRunningTX() {
+        Instant now = Instant.now();
+        return TX_ELAPSED.values().stream().map(i -> Duration.between(i, now)).mapToLong(Duration::toMillis).max().orElse(0);
     }
 
     public void startConsumers() {
@@ -61,7 +71,7 @@ public abstract class MessageConsumerApp {
                 MessageConsumer messageConsumer = messageConsumerSupplier.get();
                 Queue queue = context.createQueue(messageConsumer.getFQN());
                 if(LOG_QUEUE_CONFIG.get()) {
-                    LOGGER.info("Setting up queue listener for {} with filter '{}'", queue, messageConsumer.getFilter());
+                    LOGGER.info("Setting up queue listener for {} with filter '{}' using connection factory {}", queue, messageConsumer.getFilter(), connectionFactory.getClass().getName());
                     LOG_QUEUE_CONFIG.set(false);
                 }
                 try(JMSConsumer consumer = context.createConsumer(queue, messageConsumer.getFilter())) {
@@ -83,12 +93,15 @@ public abstract class MessageConsumerApp {
                 if(message != null) {
                     noMsgCount = 0;
                     messageId = message.getJMSMessageID();
+                    TX_ELAPSED.put(messageId, Instant.now());
                     try {
                         listener.onMessage(message);
                         context.commit();
                     } catch (RuntimeException re) {
                         LOGGER.warn("Rolling back message {}", messageId, re);
                         context.rollback();
+                    } finally {
+                        TX_ELAPSED.remove(messageId);
                     }
                 } else noMsgCount++;
             }

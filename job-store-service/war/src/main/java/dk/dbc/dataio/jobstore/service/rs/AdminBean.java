@@ -1,10 +1,6 @@
 package dk.dbc.dataio.jobstore.service.rs;
 
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
@@ -17,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
+import javax.ejb.Schedule;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.Cache;
@@ -29,10 +26,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
@@ -57,6 +55,13 @@ public class AdminBean {
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
 
+    @Schedule(second = "0", minute = "5", hour = "*", persistent = false)
+    public void cleanStaleJMSConnections() {
+        LOGGER.info("Cleaning stale artemis connections");
+        Instant i = Instant.now().minus(Duration.ofMinutes(15));
+        adminClient.closeConsumerConnections(c -> i.isAfter(c.getLastAcknowledgedTime()));
+    }
+
     @GET
     @Path(JobStoreServiceConstants.CLEAR_CACHE)
     @Produces({MediaType.TEXT_PLAIN})
@@ -65,33 +70,6 @@ public class AdminBean {
         cache.evictAll();
         LOGGER.info("Evicted jpa cache");
         return Response.ok("ok").build();
-    }
-
-    public Response abortJob(int jobId) throws FlowStoreServiceConnectorException {
-        LOGGER.warn("Aborting job {}", jobId);
-
-        removeFromDependencyTracking(jobId);
-        removeFromAllQueues(jobId);
-        return Response.ok("ok").build();
-    }
-
-    private void removeFromDependencyTracking(int jobId) {
-
-    }
-
-    private void removeFromAllQueues(int jobId) throws FlowStoreServiceConnectorException {
-        Stream<String> processQueues = Arrays.stream(JobSpecification.Type.values()).map(t -> t.processorQueue);
-        Stream<String> sinkQueues = flowStoreService.getConnector().findAllSinks().stream().map(Sink::getContent).map(SinkContent::getQueue);
-        List<String> queues = Stream.concat(processQueues, sinkQueues).distinct().collect(Collectors.toList());
-        LOGGER.info("Removing job {} from queues: {}", jobId, queues);
-        queues.forEach(q -> removeFromQueue(q, jobId));
-    }
-
-    private void removeFromQueue(String fqn, int jobId) {
-        String[] sa = fqn.split("::", 2);
-        String address = sa[0];
-        String queue = sa[sa.length - 1];
-        adminClient.removeMessages(queue, address, "jobId = '" + jobId + "'");
     }
 
     @POST

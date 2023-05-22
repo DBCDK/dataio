@@ -57,7 +57,7 @@ public class View extends ViewWidget {
 
     // Enums
     enum JobStatus {
-        NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR, PREVIEW
+        NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR, PREVIEW, ABORTED;
     }
 
     public View() {
@@ -539,6 +539,31 @@ public class View extends ViewWidget {
             }
         });
         return rerunButtonColumn;
+    }
+
+    Column constructAbortColumn() {
+        ButtonCell abortButtonCell = new ButtonCell();
+        Column<JobModel, String> abortButtonColumn = new Column<>(abortButtonCell) {
+            public String getValue(JobModel object) {
+                return getTexts().button_AbortJob();
+            }
+
+            @Override
+            public String getCellStyleNames(Cell.Context context, JobModel model) {
+                return workFlowColumnsVisible ? "visible" : "invisible";
+            }
+        };
+        abortButtonColumn.setFieldUpdater((index, selectedRowModel, value) -> {
+            if (selectedRowModel != null) {
+                if (selectedRowModel.getJobCompletionTime().isEmpty()) {
+                    presenter.setIsMultipleRerun(false);
+                    presenter.getJobRerunScheme(selectedRowModel);
+                } else {
+                    setErrorText(getTexts().error_JobNotFinishedError());
+                }
+            }
+        });
+        return abortButtonColumn;
     }
 
     /*

@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response;
 import java.time.Duration;
 import java.util.List;
 
+import static dk.dbc.dataio.commons.utils.jobstore.Metric.ABORT_JOB;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_ACC_TEST_JOB;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_CHUNK;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_EMPTY_JOB;
@@ -93,6 +94,15 @@ public class JobStoreServiceConnector {
         this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "httpClient");
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
         this.metricRegistry = metricRegistry;
+    }
+
+    public JobInfoSnapshot abortJob(int jobId) throws JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: abortJob({})", jobId);
+        try {
+            return post(null, Response.Status.OK, JobInfoSnapshot.class, ABORT_JOB, JobStoreServiceConstants.JOB_ABORT, Integer.toString(jobId));
+        } catch (ProcessingException e) {
+            throw new JobStoreServiceConnectorException("job-store communication error", e);
+        }
     }
 
     /**

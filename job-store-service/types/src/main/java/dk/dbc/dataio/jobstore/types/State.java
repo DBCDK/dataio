@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,11 +21,11 @@ public class State {
     @JsonProperty
     private final List<Diagnostic> diagnostics;
 
-    public enum Phase {PARTITIONING, PROCESSING, DELIVERING}
+    public enum Phase {PARTITIONING, PROCESSING, DELIVERING, ABORTED}
 
     public State() {
         diagnostics = new ArrayList<>();
-        states = new HashMap<>(Phase.values().length);
+        states = new EnumMap<>(Phase.class);
         for (Phase phase : Phase.values()) {
             states.put(phase, new StateElement());
         }

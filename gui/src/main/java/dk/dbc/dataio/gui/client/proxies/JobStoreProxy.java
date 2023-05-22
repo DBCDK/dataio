@@ -36,6 +36,8 @@ public interface JobStoreProxy extends RemoteService {
 
     List<JobModel> reSubmitJobs(List<JobModel> jobModels) throws ProxyException;
 
+    JobModel abortJob(JobModel jobModel) throws ProxyException;
+
     List<Notification> listInvalidTransfileNotifications() throws ProxyException;
 
     JobModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId) throws ProxyException;

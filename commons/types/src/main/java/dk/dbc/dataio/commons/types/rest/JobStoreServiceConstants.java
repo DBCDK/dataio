@@ -9,6 +9,7 @@ public class JobStoreServiceConstants {
 
     public static final String JOB_COLLECTION = "jobs";
     public static final String JOB_COLLECTION_ACCTESTS = "jobs/acctests";
+    public static final String JOB_ABORT = "jobs/abort";
     public static final String JOB_COLLECTION_EMPTY = "jobs/empty";
     public static final String JOB_COLLECTION_QUERIES = "jobs/queries";
     public static final String JOB_COLLECTION_COUNT = "jobs/count";

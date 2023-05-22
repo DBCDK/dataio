@@ -30,6 +30,8 @@ public interface JobStoreProxyAsync {
 
     void reSubmitJob(JobModel jobModel, AsyncCallback<JobModel> async);
 
+    void abortJob(JobModel jobModel, AsyncCallback<JobModel> async);
+
     void reSubmitJobs(List<JobModel> jobModels, AsyncCallback<List<JobModel>> async);
 
     void listInvalidTransfileNotifications(AsyncCallback<List<Notification>> async);

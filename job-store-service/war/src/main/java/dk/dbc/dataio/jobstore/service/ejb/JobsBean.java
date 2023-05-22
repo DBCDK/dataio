@@ -2,11 +2,14 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -44,7 +47,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static javax.ws.rs.core.Response.Status.ACCEPTED;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -76,6 +82,38 @@ public class JobsBean {
 
     @EJB
     JobPurgeBean jobPurgeBean;
+
+    @POST
+    @Path(JobStoreServiceConstants.JOB_ABORT + "/{jobId}")
+    public Response abortJob(@PathParam("jobId") int jobId) throws FlowStoreServiceConnectorException {
+        LOGGER.warn("Aborting job {}", jobId);
+        removeFromDependencyTracking(jobId);
+        removeFromAllQueues(jobId);
+        setAbortState(jobId);
+        return Response.ok("ok").build();
+    }
+
+    private void setAbortState(int jobId) {
+    }
+
+    private void removeFromDependencyTracking(int jobId) {
+
+    }
+
+    private void removeFromAllQueues(int jobId) throws FlowStoreServiceConnectorException {
+        Stream<String> processQueues = Arrays.stream(JobSpecification.Type.values()).map(t -> t.processorQueue);
+        Stream<String> sinkQueues = flowStoreService.getConnector().findAllSinks().stream().map(Sink::getContent).map(SinkContent::getQueue);
+        List<String> queues = Stream.concat(processQueues, sinkQueues).distinct().collect(Collectors.toList());
+        LOGGER.info("Removing job {} from queues: {}", jobId, queues);
+        queues.forEach(q -> removeFromQueue(q, jobId));
+    }
+
+    private void removeFromQueue(String fqn, int jobId) {
+        String[] sa = fqn.split("::", 2);
+        String address = sa[0];
+        String queue = sa[sa.length - 1];
+        adminClient.removeMessages(queue, address, "jobId = '" + jobId + "'");
+    }
 
     /**
      * Adds new job based on POSTed job input stream, and persists it in the underlying data store

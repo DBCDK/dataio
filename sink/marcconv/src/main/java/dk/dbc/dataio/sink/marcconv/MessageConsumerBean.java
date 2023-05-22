@@ -36,8 +36,8 @@ import java.nio.charset.StandardCharsets;
         // Please see the following url for a explanation of the available settings.
         // The message selector variable is defined in the dataio-secrets project
         // https://activemq.apache.org/activation-spec-properties
-        @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/dataio/sinks"),
-        @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "true"),
+        @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "false"),
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = "sink::marcconv"),
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
         @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis"),
         @ActivationConfigProperty(propertyName = "messageSelector", propertyValue = "resource = '${ENV=MESSAGE_NAME_FILTER}'"),

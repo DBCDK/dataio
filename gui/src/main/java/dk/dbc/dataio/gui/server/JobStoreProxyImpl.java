@@ -346,6 +346,19 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     }
 
     @Override
+    public JobModel abortJob(JobModel jobModel) throws ProxyException {
+        final String callerMethodName = "abortJob";
+        JobInfoSnapshot jobInfoSnapshot = null;
+        log.trace("JobStoreProxy: " + callerMethodName + "(\"{}\");", jobModel.getJobId());
+        try {
+            jobInfoSnapshot = jobStoreServiceConnector.abortJob(Integer.parseInt(jobModel.getJobId()));
+        } catch (Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return JobModelMapper.toModel(jobInfoSnapshot);
+    }
+
+    @Override
     public List<Notification> listInvalidTransfileNotifications() throws ProxyException {
         final String callerMethodName = "listInvalidTransfileNotifications";
         final List<Notification> notifications;

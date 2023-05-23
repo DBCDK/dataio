@@ -21,6 +21,7 @@ import com.google.gwt.user.cellview.client.Header;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.view.client.ProvidesKey;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
@@ -221,6 +222,7 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructIsFixedColumn(), new HidableColumnHeader(getTexts().columnHeader_Fixed()));
         jobsTable.addColumn(constructAssigneeColumn(), new HidableColumnHeader(getTexts().columnHeader_Assignee()));
         jobsTable.addColumn(constructRerunColumn(), new HidableColumnHeader(getTexts().columnHeader_Action()));
+        jobsTable.addColumn(constructAbortColumn(), new HidableColumnHeader(getTexts().columnHeader_Action()));
         jobsTable.addColumn(constructJobCreationTimeColumn(), getTexts().columnHeader_JobCreationTime());
         jobsTable.addColumn(constructJobIdColumn(), getTexts().columnHeader_JobId());
         jobsTable.addColumn(constructSubmitterColumn(), getTexts().columnHeader_Submitter());
@@ -553,13 +555,14 @@ public class View extends ViewWidget {
                 return workFlowColumnsVisible ? "visible" : "invisible";
             }
         };
+        abortButtonColumn.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
         abortButtonColumn.setFieldUpdater((index, selectedRowModel, value) -> {
             if (selectedRowModel != null) {
                 if (selectedRowModel.getJobCompletionTime().isEmpty()) {
                     presenter.setIsMultipleRerun(false);
-                    presenter.getJobRerunScheme(selectedRowModel);
+                    presenter.abortJob(selectedRowModel);
                 } else {
-                    setErrorText(getTexts().error_JobNotFinishedError());
+                    setErrorText(getTexts().error_JobFinishedError());
                 }
             }
         });

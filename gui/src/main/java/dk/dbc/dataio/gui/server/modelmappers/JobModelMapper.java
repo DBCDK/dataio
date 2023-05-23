@@ -214,7 +214,6 @@ public class JobModelMapper {
                 .withPartitioning(state.getPhase(State.Phase.PARTITIONING))
                 .withProcessing(state.getPhase(State.Phase.PROCESSING))
                 .withDelivering(state.getPhase(State.Phase.DELIVERING))
-                .withAborted(state.getPhase(State.Phase.ABORTED).getBeginDate());
-
+                .withAborted(state.isAborted());
     }
 }

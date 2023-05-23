@@ -9,6 +9,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Class representing the current state of a job.
@@ -21,7 +22,7 @@ public class State {
     @JsonProperty
     private final List<Diagnostic> diagnostics;
 
-    public enum Phase {PARTITIONING, PROCESSING, DELIVERING, ABORTED}
+    public enum Phase {PARTITIONING, PROCESSING, DELIVERING}
 
     public State() {
         diagnostics = new ArrayList<>();
@@ -82,12 +83,9 @@ public class State {
      * @return true if all phases have completed, otherwise false
      */
     public boolean allPhasesAreDone() {
-        for (Map.Entry<Phase, StateElement> entry : states.entrySet()) {
-            if (entry.getValue().getEndDate() == null) {
-                return false;
-            }
-        }
-        return true;
+        return states.values().stream()
+                .map(StateElement::getEndDate)
+                .noneMatch(Objects::isNull);
     }
 
     /**
@@ -112,6 +110,10 @@ public class State {
             }
         }
         return false;
+    }
+
+    public boolean isAborted() {
+        return diagnostics.stream().map(Diagnostic::getLevel).anyMatch(Diagnostic.Level.ABORTED::equals);
     }
 
     /*

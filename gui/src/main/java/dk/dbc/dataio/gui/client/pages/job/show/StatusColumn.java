@@ -59,11 +59,11 @@ class StatusColumn extends Column<JobModel, ImageResource> {
             return View.JobStatus.NOT_DONE;
         }
 
-        if (model.getStateModel().getAborted() != null) {
+        if (model.getStateModel().isAborted()) {
             return View.JobStatus.ABORTED;
         }
         // Check if the job has failed before partitioning
-        if (model.getDiagnosticModels().size() != 0){
+        if (!model.getDiagnosticModels().isEmpty()){
             return View.JobStatus.DONE_WITH_ERROR;
         }
         // Check if the job is completely done

@@ -87,6 +87,18 @@ public class PgJobStore {
     @Resource
     SessionContext sessionContext;
 
+    public JobInfoSnapshot abortJob(int jobId) {
+        JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+        removeFromDependencyTracking(jobEntity);
+        List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
+        abortJob(jobEntity, diagnostics);
+        return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
+    }
+
+    private void removeFromDependencyTracking(JobEntity jobEntity) {
+
+    }
+
     /**
      * Adds new job in the underlying data store from given job input stream, after attempting to retrieve
      * required referenced objects through addJobParam.

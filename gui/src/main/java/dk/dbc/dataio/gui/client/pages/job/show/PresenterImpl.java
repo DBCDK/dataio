@@ -267,6 +267,21 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         commonInjector.getJobRerunProxyAsync().parse(jobModel, new GetJobRerunSchemeFilteredAsyncCallback(jobModel));
     }
 
+    @Override
+    public void abortJob(JobModel jobModel) {
+        commonInjector.getJobStoreProxyAsync().abortJob(jobModel, new AsyncCallback<JobModel>() {
+            @Override
+            public void onFailure(Throwable throwable) {
+                System.out.println("ARGHHHH");
+            }
+
+            @Override
+            public void onSuccess(JobModel jobModel) {
+                System.out.println("WEEEEEE");
+            }
+        });
+    }
+
     /**
      * Re runs a series of jobs, based on the input list job models
      *

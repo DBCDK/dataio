@@ -3,7 +3,6 @@ package dk.dbc.dataio.gui.client.model;
 import dk.dbc.dataio.jobstore.types.StateElement;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * Created by sma on 26/06/2017.
@@ -14,13 +13,13 @@ public class StateModel implements Serializable {
     private StateElement partitioning = new StateElement();
     private StateElement processing = new StateElement();
     private StateElement delivering = new StateElement();
-    private Date aborted = null;
+    private boolean aborted = false;
 
-    public Date getAborted() {
+    public boolean isAborted() {
         return aborted;
     }
 
-    public StateModel withAborted(Date aborted) {
+    public StateModel withAborted(boolean aborted) {
         this.aborted = aborted;
         return this;
     }

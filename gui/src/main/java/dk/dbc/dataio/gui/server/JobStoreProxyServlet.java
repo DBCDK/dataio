@@ -77,6 +77,11 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     }
 
     @Override
+    public JobModel abortJob(JobModel jobModel) throws ProxyException {
+        return jobStoreProxy.abortJob(jobModel);
+    }
+
+    @Override
     public List<Notification> listInvalidTransfileNotifications() throws ProxyException {
         return jobStoreProxy.listInvalidTransfileNotifications();
     }

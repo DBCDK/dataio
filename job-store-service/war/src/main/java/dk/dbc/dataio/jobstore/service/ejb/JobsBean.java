@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
@@ -28,11 +29,14 @@ import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.jms.artemis.AdminClient;
+import dk.dbc.jms.artemis.AdminClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -82,22 +86,18 @@ public class JobsBean {
 
     @EJB
     JobPurgeBean jobPurgeBean;
+    @Inject
+    FlowStoreServiceConnectorBean flowStoreService;
+
+    AdminClient adminClient = AdminClientFactory.getAdminClient();
 
     @POST
     @Path(JobStoreServiceConstants.JOB_ABORT + "/{jobId}")
-    public Response abortJob(@PathParam("jobId") int jobId) throws FlowStoreServiceConnectorException {
+    public Response abortJob(@PathParam("jobId") int jobId) throws FlowStoreServiceConnectorException, JSONBException {
         LOGGER.warn("Aborting job {}", jobId);
-        removeFromDependencyTracking(jobId);
         removeFromAllQueues(jobId);
-        setAbortState(jobId);
-        return Response.ok("ok").build();
-    }
-
-    private void setAbortState(int jobId) {
-    }
-
-    private void removeFromDependencyTracking(int jobId) {
-
+        JobInfoSnapshot snapshot = jobStore.abortJob(jobId);
+        return Response.ok(jsonbContext.marshall(snapshot)).build();
     }
 
     private void removeFromAllQueues(int jobId) throws FlowStoreServiceConnectorException {

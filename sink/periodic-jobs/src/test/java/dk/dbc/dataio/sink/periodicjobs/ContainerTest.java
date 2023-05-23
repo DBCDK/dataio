@@ -22,7 +22,13 @@ public abstract class ContainerTest extends IntegrationTest {
     static {
         try {
             Network network = Network.newNetwork();
-            socks5Proxy = new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/socks5proxy:latest").withNetwork(network).withNetworkAliases("proxy").withExposedPorts(1080).withEnv("USERNAME", PROXY_USER).withEnv("PASSWORD", PROXY_PASSWORD).waitingFor(Wait.forListeningPort());
+            socks5Proxy = new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/socks5proxy:latest")
+                    .withNetwork(network)
+                    .withNetworkAliases("proxy")
+                    .withExposedPorts(1080)
+                    .withEnv("USERNAME", PROXY_USER)
+                    .withEnv("PASSWORD", PROXY_PASSWORD)
+                    .waitingFor(Wait.forListeningPort());
 
             socks5Proxy.start();
 

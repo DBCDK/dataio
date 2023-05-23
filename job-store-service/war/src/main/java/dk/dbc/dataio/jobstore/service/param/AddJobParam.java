@@ -212,7 +212,7 @@ public class AddJobParam {
         return flowStoreReferences;
     }
 
-    static Sink createDiffSink() {k
+    static Sink createDiffSink() {
         return new Sink(1, 1, new SinkContent("DiffSink", "sink::diff", null,
                 "Internal sink used for acceptance test diff functionality", null, null,SinkContent.SequenceAnalysisOption.ID_ONLY));
     }

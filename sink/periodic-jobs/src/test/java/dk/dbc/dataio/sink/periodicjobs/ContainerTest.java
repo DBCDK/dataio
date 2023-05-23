@@ -22,7 +22,7 @@ public abstract class ContainerTest extends IntegrationTest {
 
     static {
         Network network = Network.newNetwork();
-        socks5Proxy = new GenericContainer("docker.dbc.dk/socks5proxy:latest")
+        socks5Proxy = new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/socks5proxy:latest")
                 .withNetwork(network)
                 .withNetworkAliases("proxy")
                 .withExposedPorts(1080)

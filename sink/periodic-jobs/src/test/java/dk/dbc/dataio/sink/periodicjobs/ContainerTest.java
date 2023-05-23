@@ -10,7 +10,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.time.Duration;
 
 public abstract class ContainerTest extends IntegrationTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ContainerTest.class);
@@ -23,7 +22,7 @@ public abstract class ContainerTest extends IntegrationTest {
     static {
         try {
             Network network = Network.newNetwork();
-            socks5Proxy = new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/socks5proxy:latest").withNetwork(network).withNetworkAliases("proxy").withExposedPorts(1080).withEnv("USERNAME", PROXY_USER).withEnv("PASSWORD", PROXY_PASSWORD).waitingFor(Wait.forLogMessage("^.*v\\d+(\\.\\d+)+ running.*$", 5)).withStartupTimeout(Duration.ofMinutes(1));
+            socks5Proxy = new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/socks5proxy:latest").withNetwork(network).withNetworkAliases("proxy").withExposedPorts(1080).withEnv("USERNAME", PROXY_USER).withEnv("PASSWORD", PROXY_PASSWORD).waitingFor(Wait.forListeningPort());
 
             socks5Proxy.start();
 

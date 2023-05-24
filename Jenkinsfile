@@ -37,9 +37,9 @@ pipeline {
         stage("build") {
             steps {
                 sh """
-                    mvn -B -P !integration-test -T 6 pre-integration-test
+                    mvn -B -P '!integration-test' -T 6 pre-integration-test
                     mvn -B -P integration-test install
-                    mvn -B -P !integration-test -T 6 pmd:pmd
+                    mvn -B -P '!integration-test' -T 6 pmd:pmd
                     echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                     ./cli/build_docker_image.sh
                 """

@@ -87,7 +87,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void queueChanged(String name) {
-        model.setQueue(name);
+        if(name.contains("::")) {
+            model.setQueue(name);
+        } else {
+            getView().setErrorText(getTexts().error_QueueNameValidationError());
+        }
     }
 
     /**

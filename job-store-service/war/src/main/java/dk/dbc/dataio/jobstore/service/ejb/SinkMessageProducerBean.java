@@ -56,7 +56,8 @@ SinkMessageProducerBean implements MessageIdentifiers {
         LOGGER.info("Sending chunk {}/{} to sink {} with unique id {}", chunk.getJobId(), chunk.getChunkId(), destination.getContent().getName(), chunk.getTrackingId());
 
         try {
-            Queue queue = context.createQueue(destination.getContent().getQueue());
+            String qname = destination.getContent().getQueue();
+            Queue queue = context.createQueue(qname.contains("::") ? qname : qname + "::" + qname);
             TextMessage message = createMessage(context, chunk, destination, flowStoreReferences);
             JMSProducer producer = context.createProducer();
             producer.setPriority(priority);

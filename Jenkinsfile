@@ -37,12 +37,8 @@ pipeline {
         stage("build") {
             steps {
                 sh """
-                    echo "********** PACKAGE **********"
-                    mvn -B -Dmaven.test.skip=true -T 6 package
-                    echo "********** VERIFY **********"
-                    mvn -T 2 -B -P '!integration-test' verify
-                    echo "********** PMD **********"
-                    mvn -B -P '!integration-test' -T 6 pmd:pmd
+                    mvn -B -P !integration-test -T 6 install
+                    mvn -B -P !integration-test -T 6 pmd:pmd
                     echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                     ./cli/build_docker_image.sh
                 """

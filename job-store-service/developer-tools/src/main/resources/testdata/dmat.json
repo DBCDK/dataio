@@ -1,0 +1,16 @@
+{
+  "jobSpecification": {
+    "type": "TRANSIENT",
+    "format": "dmat",
+    "charset": "utf8",
+    "dataFile": "urn:dataio-fs:8011305",
+    "packaging": "ADDI_MARC_XML",
+    "destination": "basismig",
+    "submitterId": 190015,
+    "resultmailInitials": "__MISSING__",
+    "mailForNotificationAboutProcessing": "__MISSING__",
+    "mailForNotificationAboutVerification": "jbr@dbc.dk"
+  },
+  "isEndOfJob" : true,
+  "partNumber" : 0
+}

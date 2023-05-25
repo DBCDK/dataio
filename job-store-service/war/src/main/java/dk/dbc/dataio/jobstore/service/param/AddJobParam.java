@@ -32,15 +32,20 @@ import java.util.List;
  * </p>
  */
 public class AddJobParam {
-    private final FlowStoreServiceConnector flowStoreServiceConnector;
-    final JobInputStream jobInputStream;
+    protected FlowStoreServiceConnector flowStoreServiceConnector;
+    protected JobInputStream jobInputStream;
     protected List<Diagnostic> diagnostics;
     protected Submitter submitter;
-    private FlowBinder flowBinder;
+    protected FlowBinder flowBinder;
     protected RecordSplitterConstants.RecordSplitter typeOfDataPartitioner;
     protected Flow flow;
     protected Sink sink;
     protected FlowStoreReferences flowStoreReferences;
+
+    public AddJobParam(JobInputStream jobInputStream) {
+        this.jobInputStream = jobInputStream;
+
+    }
 
     public AddJobParam(JobInputStream jobInputStream, FlowStoreServiceConnector flowStoreServiceConnector) throws NullPointerException {
         this.jobInputStream = InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
@@ -121,7 +126,7 @@ public class AddJobParam {
         return isJobSpecificationValid;
     }
 
-    private FlowBinder lookupFlowBinder() {
+    protected FlowBinder lookupFlowBinder() {
         final JobSpecification jobSpec = jobInputStream.getJobSpecification();
         try {
             return flowStoreServiceConnector.getFlowBinder(
@@ -150,7 +155,7 @@ public class AddJobParam {
         return null;
     }
 
-    private Submitter lookupSubmitter() {
+    protected Submitter lookupSubmitter() {
         final long submitterNumber = jobInputStream.getJobSpecification().getSubmitterId();
         try {
             return flowStoreServiceConnector.getSubmitterBySubmitterNumber(submitterNumber);
@@ -176,7 +181,7 @@ public class AddJobParam {
         return null;
     }
 
-    private Sink lookupSink() {
+    protected Sink lookupSink() {
         if (jobInputStream.getJobSpecification().getType() == JobSpecification.Type.ACCTEST) {
             return createDiffSink();
         } else if (flowBinder != null) {

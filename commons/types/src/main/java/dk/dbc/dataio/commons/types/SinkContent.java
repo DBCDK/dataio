@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.invariant.InvariantUtil;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * SinkContent DTO class.
@@ -111,18 +112,15 @@ public class SinkContent implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof SinkContent)) return false;
-
+        if (o == null || getClass() != o.getClass()) return false;
         SinkContent that = (SinkContent) o;
-
-        if (!name.equals(that.name)) return false;
-        if(!queue.equals(that.queue)) return false;
-        if (!resource.equals(that.resource)) return false;
-        if (!description.equals(that.description)) return false;
-        if (sinkType != that.sinkType) return false;
-        if (sinkConfig != null ? !sinkConfig.equals(that.sinkConfig) : that.sinkConfig != null) return false;
-        return sequenceAnalysisOption == that.sequenceAnalysisOption;
-
+        return name.equals(that.name)
+                && queue.equals(that.queue)
+                && Objects.equals(resource, that.resource)
+                && description.equals(that.description)
+                && sinkType == that.sinkType
+                && Objects.equals(sinkConfig, that.sinkConfig)
+                && sequenceAnalysisOption == that.sequenceAnalysisOption;
     }
 
     @Override

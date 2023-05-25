@@ -28,7 +28,6 @@ import javax.jms.JMSProducer;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
 import java.util.Optional;
-import java.util.UUID;
 
 @LocalBean
 @Stateless
@@ -52,17 +51,16 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void send(Chunk chunk, JobEntity jobEntity, int priority) throws NullPointerException, JobStoreException {
-        String uuid = UUID.randomUUID().toString();
-        LOGGER.info("Sending chunk {}/{} with uuid {}", chunk.getJobId(), chunk.getChunkId(), uuid);
+        LOGGER.info("Sending chunk {}/{} with trackingId {}", chunk.getJobId(), chunk.getChunkId(), chunk.getTrackingId());
         try {
-            TextMessage message = createMessage(context, chunk, jobEntity, uuid);
+            TextMessage message = createMessage(context, chunk, jobEntity);
             JMSProducer producer = context.createProducer();
             producer.setPriority(priority);
             String queueName = jobEntity.getSpecification().getType().processorQueue;
             Queue queue = context.createQueue(queueName);
             producer.send(queue, message);
         } catch (JSONBException | JMSException e) {
-            String errorMessage = String.format("Exception caught while queueing chunk %s for job %s with uuid %s", chunk.getChunkId(), chunk.getJobId(), uuid);
+            String errorMessage = String.format("Exception caught while queueing chunk %s for job %s with trackingId %s", chunk.getChunkId(), chunk.getJobId(), chunk.getTrackingId());
             throw new JobStoreException(errorMessage, e);
         }
     }
@@ -78,14 +76,14 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
      * @throws JSONBException when unable to marshall chunk instance to JSON
      * @throws JMSException   when unable to create JMS message
      */
-    public TextMessage createMessage(JMSContext context, Chunk chunk, JobEntity jobEntity, String uuid) throws JMSException, JSONBException {
+    public TextMessage createMessage(JMSContext context, Chunk chunk, JobEntity jobEntity) throws JMSException, JSONBException {
         TextMessage message = context.createTextMessage(jsonbContext.marshall(chunk));
         JMSHeader.payload.addHeader(message, JMSHeader.CHUNK_PAYLOAD_TYPE);
         String sink = Optional.ofNullable(jobEntity.getCachedSink()).map(SinkCacheEntity::getSink).map(Sink::getContent).map(SinkContent::getName).orElse(null);
         if(sink != null) JMSHeader.sink.addHeader(message, sink);
 
         FlowStoreReference flowReference = jobEntity.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW);
-        addIdentifiers(message, chunk, uuid);
+        addIdentifiers(message, chunk);
         JMSHeader.flowId.addHeader(message, flowReference.getId());
         JMSHeader.flowVersion.addHeader(message, flowReference.getVersion());
         JMSHeader.additionalArgs.addHeader(message, resolveAdditionalArgs(jobEntity));

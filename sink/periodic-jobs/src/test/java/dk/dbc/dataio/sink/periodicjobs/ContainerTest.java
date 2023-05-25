@@ -10,7 +10,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.time.Duration;
 
 public abstract class ContainerTest extends IntegrationTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ContainerTest.class);
@@ -21,26 +20,27 @@ public abstract class ContainerTest extends IntegrationTest {
     protected static final String PROXY_PASSWORD = "sockspassword";
 
     static {
-        Network network = Network.newNetwork();
-        socks5Proxy = new GenericContainer("docker.dbc.dk/socks5proxy:latest")
-                .withNetwork(network)
-                .withNetworkAliases("proxy")
-                .withExposedPorts(1080)
-                .withEnv("USERNAME", PROXY_USER)
-                .withEnv("PASSWORD", PROXY_PASSWORD)
-                .waitingFor(Wait.forLogMessage("^.*v\\d+(\\.\\d+)+ running.*$", 5))
-                .withStartupTimeout(Duration.ofMinutes(1));
+        try {
+            Network network = Network.newNetwork();
+            socks5Proxy = new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/socks5proxy:latest")
+                    .withNetwork(network)
+                    .withNetworkAliases("proxy")
+                    .withExposedPorts(1080)
+                    .withEnv("USERNAME", PROXY_USER)
+                    .withEnv("PASSWORD", PROXY_PASSWORD)
+                    .waitingFor(Wait.forListeningPort());
 
-        socks5Proxy.start();
+            socks5Proxy.start();
 
 
-        PROXY_HOST = socks5Proxy.getContainerIpAddress();
-        PROXY_PORT = socks5Proxy.getMappedPort(1080);
+            PROXY_HOST = socks5Proxy.getContainerIpAddress();
+            PROXY_PORT = socks5Proxy.getMappedPort(1080);
 
-        LOGGER.info(
-                "Started suite.\n" +
-                        "   PROXY: {} at port {} {}/{}",
-                PROXY_HOST, PROXY_PORT, PROXY_USER, PROXY_PASSWORD);
+            LOGGER.info("Started suite.\n" + "   PROXY: {} at port {} {}/{}", PROXY_HOST, PROXY_PORT, PROXY_USER, PROXY_PASSWORD);
+        } catch (Error e) {
+            LOGGER.error("Failed to start periodic jobs test container", e);
+            throw e;
+        }
     }
 
     protected String getLocalIPAddress() {

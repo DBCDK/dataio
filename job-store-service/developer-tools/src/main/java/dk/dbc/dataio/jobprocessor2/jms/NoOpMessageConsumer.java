@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JMSHeader;
+import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +18,16 @@ public class NoOpMessageConsumer extends  JobStoreMessageConsumer {
     Logger LOGGER = LoggerFactory.getLogger(NoOpMessageConsumer.class);
     public NoOpMessageConsumer(ServiceHub serviceHub) {
         super(serviceHub);
-        LOGGER.info("Starting consumer.\nConsuming from '{}'", System.getenv()
-                .getOrDefault("QUEUE", ""));
+        LOGGER.info("Starting consumer.\nConsuming from '{}'", getFQN());
+    }
+
+    enum Config implements EnvConfig {
+        STAGE;
+
+        @Override
+        public String getDefaultValue() {
+            return "PROCESSED";
+        }
     }
 
     @Override
@@ -29,7 +38,7 @@ public class NoOpMessageConsumer extends  JobStoreMessageConsumer {
             List<ChunkItem> items = chunk.getItems().stream()
                     .map(chunkItem -> chunkItem.withData("(no data: just testing)".getBytes()))
                     .collect(Collectors.toList());
-            Chunk.Type stage = Chunk.Type.valueOf(System.getenv().getOrDefault("STAGE", "PROCESSED"));
+            Chunk.Type stage = Chunk.Type.valueOf(Config.STAGE.asString());
             Chunk done = new Chunk(chunk.getJobId(), chunk.getChunkId(), stage);
             done.addAllItems(items, items);
             sendResultToJobStore(done);

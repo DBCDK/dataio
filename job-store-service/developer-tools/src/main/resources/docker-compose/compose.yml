@@ -37,7 +37,7 @@ services:
     ports:
       - 5432
   artemis:
-    image: "docker-metascrum.artifacts.dbccloud.dk/artemis:2_24_0-15"
+    image: "docker-metascrum.artifacts.dbccloud.dk/artemis:2_28_0-2"
     ports:
       - 8161
       - 61616:61616

@@ -108,7 +108,7 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
         healthService.signal(HealthFlag.TIMEOUT);
     }
 
-    private Chunk extractChunkFromConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
+    protected Chunk extractChunkFromConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         try {
             Chunk chunk = MAPPER.readValue(consumedMessage.getMessagePayload(), Chunk.class);
             confirmLegalChunkTypeOrThrow(chunk, Chunk.Type.PARTITIONED);

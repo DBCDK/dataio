@@ -87,20 +87,21 @@ pipeline {
                 """
             }
         }
-        stage("promote to DIT") {
-            when {
-                branch "master"
-            }
-            steps {
-                dir("docker") {
-                    unstash docker_images_log_stash_tag
-                    sh """
-                        cat docker-images.log | parallel -j 3 docker tag {}:master-${env.BUILD_NUMBER} {}:DIT-${env.BUILD_NUMBER}
-                        cat docker-images.log | parallel -j 3 docker push {}:DIT-${env.BUILD_NUMBER}
-                    """
-                }
-            }
-        }
+//        Disabled while chaging queues
+//        stage("promote to DIT") {
+//            when {
+//                branch "master"
+//            }
+//            steps {
+//                dir("docker") {
+//                    unstash docker_images_log_stash_tag
+//                    sh """
+//                        cat docker-images.log | parallel -j 3 docker tag {}:master-${env.BUILD_NUMBER} {}:DIT-${env.BUILD_NUMBER}
+//                        cat docker-images.log | parallel -j 3 docker push {}:DIT-${env.BUILD_NUMBER}
+//                    """
+//                }
+//            }
+//        }
         stage("Clean up docker images") {
             when {
                 branch "master"

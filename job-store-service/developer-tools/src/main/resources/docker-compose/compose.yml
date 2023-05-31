@@ -1,0 +1,43 @@
+services:
+  jobstore:
+    image: "docker-metascrum.artifacts.dbccloud.dk/dbc-payara-jobstore:devel"
+    depends_on:
+      - jobstoredb
+      - artemis
+    environment:
+      - JAVA_MAX_HEAP_SIZE=8G
+      - FLOWSTORE_URL=http://dataio-flowstore-service.metascrum-staging.svc.cloud.dbc.dk/dataio/flow-store-service
+      - FILESTORE_URL=http://dataio-filestore-service.metascrum-staging.svc.cloud.dbc.dk/dataio/file-store-service
+      - LOGSTORE_URL=none
+      - RAWREPO_HARVESTER_URL=none
+      - TICKLE_REPO_HARVESTER_URL=none
+      - VIPCORE_ENDPOINT=none
+      - JOBSTORE_DB_URL=jobstore:jobstore@jobstoredb:5432/jobstore
+      - ARTEMIS_MQ_HOST=artemis
+      - ARTEMIS_ADMIN_PORT=8161
+      - ARTEMIS_CREDENTIALS=admin:GoFish
+      - MAIL_HOST=webmail.dbc.dk
+      - MAIL_USER=mailuser
+      - MAIL_FROM=danbib@kiska.dbc.dk
+      - MAIL_TO_FALLBACK=bruges-ikke@dbc.dk
+      - DEVELOPER=on
+      - ENABLE_REMOTE_DEBUGGING=yes
+      - TZ=Europe/Copenhagen
+      - LOG_FORMAT=text
+    ports:
+      - 4848
+      - 8080
+      - 9009
+  jobstoredb:
+    image: "docker-dbc.artifacts.dbccloud.dk/dbc-postgres-14:latest"
+    environment:
+      - POSTGRES_USER=jobstore
+      - POSTGRES_PASSWORD=jobstore
+      - POSTGRES_DB=jobstore
+    ports:
+      - 5432
+  artemis:
+    image: "docker-metascrum.artifacts.dbccloud.dk/artemis:2_28_0-2"
+    ports:
+      - 8161
+      - 61616:61616

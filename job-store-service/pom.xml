@@ -19,6 +19,7 @@
     <module>test</module>
     <module>types</module>
     <module>war</module>
+    <module>developer-tools</module>
   </modules>
 
 </project>

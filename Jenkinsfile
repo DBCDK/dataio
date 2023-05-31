@@ -87,21 +87,20 @@ pipeline {
                 """
             }
         }
-//        Disabled while chaging queues
-//        stage("promote to DIT") {
-//            when {
-//                branch "master"
-//            }
-//            steps {
-//                dir("docker") {
-//                    unstash docker_images_log_stash_tag
-//                    sh """
-//                        cat docker-images.log | parallel -j 3 docker tag {}:master-${env.BUILD_NUMBER} {}:DIT-${env.BUILD_NUMBER}
-//                        cat docker-images.log | parallel -j 3 docker push {}:DIT-${env.BUILD_NUMBER}
-//                    """
-//                }
-//            }
-//        }
+        stage("promote to DIT") {
+            when {
+                branch "master"
+            }
+            steps {
+                dir("docker") {
+                    unstash docker_images_log_stash_tag
+                    sh """
+                        cat docker-images.log | parallel -j 3 docker tag {}:master-${env.BUILD_NUMBER} {}:DIT-${env.BUILD_NUMBER}
+                        cat docker-images.log | parallel -j 3 docker push {}:DIT-${env.BUILD_NUMBER}
+                    """
+                }
+            }
+        }
         stage("Clean up docker images") {
             when {
                 branch "master"
@@ -131,25 +130,26 @@ pipeline {
                 }
             }
         }
-        stage("bump docker tags in dit-gitops-secrets") {
-            agent {
-                docker {
-                    label workerNode
-                    image "docker-dbc.artifacts.dbccloud.dk/build-env:latest"
-                    alwaysPull true
-                }
-            }
-            when {
-                branch "master"
-            }
-            steps {
-                script {
-                    sh """
-                        set-new-version services/dataio-project ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets DIT-${env.BUILD_NUMBER} -b master
-                    """
-                }
-            }
-        }
+//      Disabled while chaging queues
+//        stage("bump docker tags in dit-gitops-secrets") {
+//            agent {
+//                docker {
+//                    label workerNode
+//                    image "docker-dbc.artifacts.dbccloud.dk/build-env:latest"
+//                    alwaysPull true
+//                }
+//            }
+//            when {
+//                branch "master"
+//            }
+//            steps {
+//                script {
+//                    sh """
+//                        set-new-version services/dataio-project ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets DIT-${env.BUILD_NUMBER} -b master
+//                    """
+//                }
+//            }
+//        }
         stage("clean up successful build") {
             steps {
                 cleanWs()

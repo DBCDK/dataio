@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+function getExposedPort() {
+    local name=$1
+    local container_port=$2
+    local PORTS=$(docker ps --format '{{json .}}' --filter "name=$name" | jq '.Ports')
+    local REGEX_PORT="([0-9]{5})->$container_port"
+    [[ $PORTS =~ $REGEX_PORT ]]
+    echo "${BASH_REMATCH[1]}"
+}
+
+if [ $# -lt 3 ]
+  then
+    echo "Usage:"
+    echo "src/main/scripts/start-queue-eater <queue> <PROCESSED|DELIVERED> <port>"
+    echo ""
+    echo "Ex:"
+    echo "src/main/scripts/start-queue-eater "processor::business" PROCESSED 8081 "
+    echo
+    exit -1
+fi
+
+JOBSTORE_8080=$(getExposedPort "docker-compose-jobstore-1" "8080")
+export ARTEMIS_MQ_HOST=localhost
+export ARTEMIS_ADMIN_PORT=$(getExposedPort "docker-compose-artemis-1" "8161")
+export ARTEMIS_USER=admin
+export ARTEMIS_PASSWORD=hej
+export ARTEMIS_CONNECTION_FACTORY=org.apache.qpid.jms.JmsConnectionFactory
+export ARTEMIS_BROKER_PROTOCOL=amqp
+export QUEUE=$1
+export WEB_PORT=$3
+export LOG_FORMAT=text
+export LOG_LEVEL=INFO
+export LOGSTORE_DB_USER=none
+export LOGSTORE_DB_PASSWORD=none
+export LOGSTORE_DB_URL=none
+export JOBSTORE_URL="http://localhost:$JOBSTORE_8080/dataio/job-store-service"
+export INIT_HEAP=128m
+export MAX_HEAP=1g
+export TZ=Europe/Copenhagen
+export STAGE=$2
+
+java -Xms127m -Xmx256m -jar target/dataio-job-store-developer.jar

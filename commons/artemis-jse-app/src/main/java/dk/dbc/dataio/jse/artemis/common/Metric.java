@@ -5,7 +5,8 @@ import org.eclipse.microprofile.metrics.Tag;
 
 public enum Metric implements PrometheusMetricMixin {
     dataio_message_count,
-    dataio_message_time;
+    dataio_message_time,
+    dataio_tx_elapsed;
 
     public enum ATag {
         rollback, rejected;

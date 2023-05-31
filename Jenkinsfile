@@ -115,7 +115,7 @@ pipeline {
             agent {
                 docker {
                     label workerNode
-                    image "docker.dbc.dk/build-env:latest"
+                    image "docker-dbc.artifacts.dbccloud.dk/build-env:latest"
                     alwaysPull true
                 }
             }
@@ -130,25 +130,26 @@ pipeline {
                 }
             }
         }
-        stage("bump docker tags in dit-gitops-secrets") {
-            agent {
-                docker {
-                    label workerNode
-                    image "docker.dbc.dk/build-env:latest"
-                    alwaysPull true
-                }
-            }
-            when {
-                branch "master"
-            }
-            steps {
-                script {
-                    sh """
-                        set-new-version services/dataio-project ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets DIT-${env.BUILD_NUMBER} -b master
-                    """
-                }
-            }
-        }
+//      Disabled while chaging queues
+//        stage("bump docker tags in dit-gitops-secrets") {
+//            agent {
+//                docker {
+//                    label workerNode
+//                    image "docker-dbc.artifacts.dbccloud.dk/build-env:latest"
+//                    alwaysPull true
+//                }
+//            }
+//            when {
+//                branch "master"
+//            }
+//            steps {
+//                script {
+//                    sh """
+//                        set-new-version services/dataio-project ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets DIT-${env.BUILD_NUMBER} -b master
+//                    """
+//                }
+//            }
+//        }
         stage("clean up successful build") {
             steps {
                 cleanWs()

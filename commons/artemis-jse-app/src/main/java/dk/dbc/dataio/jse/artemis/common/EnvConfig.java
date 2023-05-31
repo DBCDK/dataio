@@ -1,7 +1,9 @@
 package dk.dbc.dataio.jse.artemis.common;
 
+import java.time.DateTimeException;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.function.Function;
 
 public interface EnvConfig {
     default Optional<String> asOptionalString() {
@@ -9,11 +11,15 @@ public interface EnvConfig {
     }
 
     default Optional<Integer> asOptionalInteger() {
-        return asOptionalString().map(Integer::parseInt);
+        return asOptionalString().map(s -> parseNumber(s, Integer::valueOf));
     }
 
     default Optional<Duration> asOptionalDuration() {
-        return asOptionalString().map(Duration::parse);
+        try {
+            return asOptionalString().map(Duration::parse);
+        } catch (DateTimeException dte) {
+            throw new DateTimeException("Unable to parse key + " + name() + ", with value: " + asOptionalString().orElse("<empty>"));
+        }
     }
 
     default Integer asInteger() {
@@ -39,7 +45,7 @@ public interface EnvConfig {
     }
 
     private static Optional<String> getProperty(String key) {
-        return Optional.ofNullable(System.getenv(key));
+        return Optional.ofNullable(System.getenv(key)).map(String::trim);
     }
 
     private IllegalStateException missingConf() {
@@ -50,6 +56,14 @@ public interface EnvConfig {
 
     default String getName() {
         return name();
+    }
+
+    private <T extends Number> T parseNumber(String s, Function<String, T> parser) {
+        try {
+            return parser.apply(s);
+        } catch (NumberFormatException nfe) {
+            throw new NumberFormatException("Unable to parse key + " + name() + ", with value: " + asOptionalString().orElse("<empty>"));
+        }
     }
 
     String getDefaultValue();

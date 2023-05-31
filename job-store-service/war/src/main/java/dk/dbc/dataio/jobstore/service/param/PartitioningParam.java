@@ -156,6 +156,12 @@ public class PartitioningParam {
     private boolean isSubmitterDisabled() {
         final Submitter submitter;
         final long submitterId = jobEntity.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SUBMITTER).getId();
+
+        // BAAAD IDEA!
+        if ("on".equals(System.getenv("DEVELOPER"))) {
+            return false;
+        }
+        /// END
         try {
             submitter = flowStoreServiceConnector.getSubmitter(submitterId);
             return !submitter.getContent().isEnabled();

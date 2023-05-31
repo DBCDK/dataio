@@ -152,8 +152,10 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String error_NameFormatValidationError();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String error_NumericEsUserValidationError();
+    String error_QueueNameValidationError();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_NumericEsUserValidationError();
 
     // Status messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

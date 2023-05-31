@@ -139,6 +139,8 @@ public class JobSchedulerBean {
             }
         } catch (FlowStoreServiceConnectorException e) {
             LOGGER.error("Unable to get sinks list from flowstore:", e);
+        } catch (javax.ws.rs.ProcessingException e1) {
+            LOGGER.error("Flowstore unavailable:", e1);
         }
     }
 
@@ -199,7 +201,9 @@ public class JobSchedulerBean {
             }
         } catch (FlowStoreServiceConnectorException e) {
             throw new RuntimeException(e);
-        }
+        } catch (javax.ws.rs.ProcessingException e1) {
+        LOGGER.error("Flowstore unavailable:", e1);
+    }
     }
 
     /**

@@ -1,0 +1,23 @@
+{
+  "jobSpecification": {
+    "type": "TRANSIENT",
+    "format": "dmat",
+    "charset": "utf8",
+    "ancestry": {
+      "batchId": "products",
+      "details": "Yj10aWNrbGVyZXBvLHQ9eG1sLG89ZG1hdCxjPXV0ZjgsbT10YmlAZGJjLmRrLGo9VFJBTlNJRU5ULGY9MTUwMDE1LnByb2R1Y3RzLnhtbC5wcm9kdWN0cy5negpzbHV0",
+      "datafile": "150015.products.xml.products.gz",
+      "transfile": "150015.products.xml.saturn.trans",
+      "previousJobId": 0
+    },
+    "dataFile": "urn:dataio-fs:8011353",
+    "packaging": "XML",
+    "destination": "ticklerepo",
+    "submitterId": 150015,
+    "resultmailInitials": "__MISSING__",
+    "mailForNotificationAboutProcessing": "__MISSING__",
+    "mailForNotificationAboutVerification": "__MISSING__"
+  },
+  "isEndOfJob" : true,
+  "partNumber" : 0
+}

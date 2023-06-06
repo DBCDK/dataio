@@ -573,7 +573,7 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
-      <version>6.2.3.Final</version>
+      <version>5.4.33</version>
       <exclusions>
         <exclusion>
           <groupId>com.sun.istack</groupId>

@@ -189,11 +189,9 @@ public class TracerBullet {
     }
 
     private Sink createSink() throws FlowStoreServiceConnectorException {
-        final String sinkName = "tracer-bullet-sink";
-        final String resource = "jdbc/dataio/dummy";
         final SinkContent sinkContent = new SinkContentBuilder()
-                .setName(sinkName)
-                .setResource(resource)
+                .setName("tracer-bullet-sink")
+                .setQueue("sink::dummy")
                 .build();
         try {
             return flowStoreServiceConnector.createSink(sinkContent);

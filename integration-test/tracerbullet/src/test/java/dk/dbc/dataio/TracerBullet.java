@@ -192,6 +192,7 @@ public class TracerBullet {
         final SinkContent sinkContent = new SinkContentBuilder()
                 .setName("tracer-bullet-sink")
                 .setQueue("sink::dummy")
+                .setResource("dummy")
                 .build();
         try {
             return flowStoreServiceConnector.createSink(sinkContent);

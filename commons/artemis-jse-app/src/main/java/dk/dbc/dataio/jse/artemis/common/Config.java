@@ -10,8 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public enum Config implements EnvConfig {
     WEB_PORT("8080"),
     ARTEMIS_MQ_HOST,
-    ARTEMIS_CONNECTION_FACTORY(artemisCF()),
-    ARTEMIS_BROKER_PROTOCOL("tcp"),
+    ARTEMIS_CONNECTION_FACTORY(qpidCF()),
+    ARTEMIS_BROKER_PROTOCOL("amqp"),
     ARTEMIS_JMS_PORT("61616"),
     ARTEMIS_ADMIN_PORT,
     ARTEMIS_USER,

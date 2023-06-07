@@ -66,5 +66,7 @@ public interface EnvConfig {
         }
     }
 
-    String getDefaultValue();
+    default String getDefaultValue() {
+        return null;
+    }
 }

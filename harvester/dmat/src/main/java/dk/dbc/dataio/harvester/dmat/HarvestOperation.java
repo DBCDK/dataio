@@ -153,14 +153,14 @@ public class HarvestOperation {
             } else if (recordsHarvested == 0) {
                 LOGGER.info("No new records harvested from DMat");
             } else {
-                LOGGER.error("Did not create job for DMat harvest since 0 records was added to the job during processing");
+                LOGGER.error("Did not create job for DMat harvester since 0 records was added to the job during processing");
             }
 
             // After the job for RR records has been successfully build, update the status of the
             // harvested dmat records to ensure that no record is marked as exported
             // if job creation fails
-            statusAfterExportRr.forEach((caseId, status) -> {
-                if (!updateStatus(caseId, status)) {
+            statusAfterExportRr.forEach((recordId, status) -> {
+                if (!updateStatus(recordId, status)) {
                     recordsFailed.incrementAndGet();
                 }
             });

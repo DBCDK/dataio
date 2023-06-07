@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.promat;
 
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -50,6 +51,7 @@ class HarvestOperationTest {
     private MockedFileStoreServiceConnector fileStoreServiceConnector;
     private FlowStoreServiceConnector flowStoreServiceConnector;
     private PromatServiceConnector promatServiceConnector;
+    private final MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
     private Path harvesterTmpFile;
 
     @TempDir
@@ -244,7 +246,7 @@ class HarvestOperationTest {
     }
 
     @Test
-    void briefTaskWithoutRecordId() throws PromatServiceConnectorException {
+    void briefTaskWithoutRecordId() throws PromatServiceConnectorException, HarvesterException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
         final LocalDate creationDate = LocalDate.of(2021, 1, 20);
 
         final List<PromatCase> cases = new ArrayList<>();
@@ -274,9 +276,12 @@ class HarvestOperationTest {
         final PromatHarvesterConfig config = newConfig();
         final HarvestOperation harvestOperation = newHarvestOperation(config);
 
-        final HarvesterException harvesterException = assertThrows(HarvesterException.class, harvestOperation::execute);
-        assertThat("Exception message", harvesterException.getMessage(),
-                is("Case 1001 contains BRIEF tasks without record ID"));
+        final int casesProcessed = harvestOperation.execute();
+        assertThat("Number of cases processed", casesProcessed, is(0));
+
+        verify(promatServiceConnector).updateCase(1001, new CaseRequest().withStatus(CaseStatus.PENDING_EXPORT));
+        verify(jobStoreServiceConnector, never()).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(PromatHarvesterConfig.class));
     }
 
     @Test
@@ -306,7 +311,8 @@ class HarvestOperationTest {
                 fileStoreServiceConnector,
                 flowStoreServiceConnector,
                 jobStoreServiceConnector,
-                promatServiceConnector);
+                promatServiceConnector,
+                metricsHandlerBean);
     }
 
     private PromatHarvesterConfig newConfig() {

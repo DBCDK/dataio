@@ -56,7 +56,6 @@ pipeline {
 
                     archiveArtifacts artifacts: "docker-images.log,cli/acceptance-test/target/dataio-cli-acctest.jar,gatekeeper/target/dataio-gatekeeper*.jar,cli/dataio-cli",
                         fingerprint: true
-                    stash includes: "docker-images.log", name: docker_images_log_stash_tag
                 }
             }
         }
@@ -158,17 +157,15 @@ pipeline {
                 }
             }
             steps {
-                dir("docker") {
-                    unstash docker_images_log_stash_tag
-                    script {
-                        def deployBranchToStaging = input(message: 'Vil du deploye dette byg til staging DataIO?', ok: 'Yes',
-                                parameters: [booleanParam(defaultValue: true,
-                                        description: 'Dette byg bliver deployet til staging', name: 'Jep')])
-                    }
-                    sh """
-                    cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
-                """
+                script {
+                    def deployBranchToStaging = input(message: 'Vil du deploye dette byg til staging DataIO?', ok: 'Yes',
+                            parameters: [booleanParam(defaultValue: true,
+                                    description: 'Dette byg bliver deployet til staging', name: 'Jep')])
                 }
+                sh """
+                mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "commons/utils/flow-store-service-connector, commons/utils/tickle-harvester-service-connector, gatekeeper, job-processor2, sink/dummy"
+                cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
+            """
             }
         }
         stage("bump docker tags in dataio-secrets for non-master branches") {
@@ -192,10 +189,11 @@ pipeline {
                 }
             }
         }
-        stage("clean up successful build") {
-            steps {
-                cleanWs()
-            }
+    }
+    post {
+        always {
+            echo 'Cleaning up'
+            cleanWs()
         }
     }
 }

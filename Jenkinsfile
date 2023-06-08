@@ -56,6 +56,7 @@ pipeline {
 
                     archiveArtifacts artifacts: "docker-images.log,cli/acceptance-test/target/dataio-cli-acctest.jar,gatekeeper/target/dataio-gatekeeper*.jar,cli/dataio-cli",
                         fingerprint: true
+                    stash includes: "docker-images.log", name: docker_images_log_stash_tag
                 }
             }
         }
@@ -125,27 +126,9 @@ pipeline {
             steps {
                 script {
                     sh """
-                        
+                        set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets DIT-${env.BUILD_NUMBER} -b staging
                     """
                 }
-            }
-        }
-        stage("deploy this branch to staging?") {
-            when {
-                not {
-                    branch "master"
-                }
-            }
-            steps {
-                script {
-                    def deployBranchToStaging = input(message: 'Vil du deploye dette byg til staging DataIO?', ok: 'Yes',
-                            parameters: [booleanParam(defaultValue: true,
-                                    description: 'Dette byg bliver deployet til staging',name: 'Jep')])
-                }
-                sh """
-                    cat docker-images.log | parallel -j 3 docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
-                    set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets ${env.BRANCH_NAME}-${env.BUILD_NUMBER} -b staging    
-                """
             }
         }
 //      Disabled while chaging queues
@@ -168,7 +151,47 @@ pipeline {
 //                }
 //            }
 //        }
-
+        stage("deploy this branch to staging?") {
+            when {
+                not {
+                    branch "master"
+                }
+            }
+            steps {
+                dir("docker") {
+                    unstash docker_images_log_stash_tag
+                    script {
+                        def deployBranchToStaging = input(message: 'Vil du deploye dette byg til staging DataIO?', ok: 'Yes',
+                                parameters: [booleanParam(defaultValue: true,
+                                        description: 'Dette byg bliver deployet til staging', name: 'Jep')])
+                    }
+                    sh """
+                    cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
+                """
+                }
+            }
+        }
+        stage("bump docker tags in dataio-secrets for non-master branches") {
+            agent {
+                docker {
+                    label workerNode
+                    image "docker-dbc.artifacts.dbccloud.dk/build-env:latest"
+                    alwaysPull true
+                }
+            }
+            when {
+                not {
+                    branch "master"
+                }
+            }
+            steps {
+                script {
+                    sh """
+                        set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets ${env.BRANCH_NAME}-${env.BUILD_NUMBER} -b staging
+                    """
+                }
+            }
+        }
         stage("clean up successful build") {
             steps {
                 cleanWs()

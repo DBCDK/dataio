@@ -46,7 +46,7 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
 
     @PostConstruct
     public void init() {
-        connectionFactory = new ActiveMQXAConnectionFactory("tcp://" + artemisHost + "61616");
+        connectionFactory = new ActiveMQXAConnectionFactory("tcp://" + artemisHost + ":61616");
     }
 
     /**

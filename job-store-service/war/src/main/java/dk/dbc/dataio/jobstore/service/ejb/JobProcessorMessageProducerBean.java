@@ -42,7 +42,7 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     @Inject
     @ConfigProperty(name = "ARTEMIS_MQ_HOST")
     private String artemisHost;
-    private ConnectionFactory connectionFactory;
+    ConnectionFactory connectionFactory;
 
     @PostConstruct
     public void init() {
@@ -61,7 +61,7 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void send(Chunk chunk, JobEntity jobEntity, int priority) throws NullPointerException, JobStoreException {
         LOGGER.info("Sending chunk {}/{} with trackingId {}", chunk.getJobId(), chunk.getChunkId(), chunk.getTrackingId());
-        try(JMSContext context = connectionFactory.createContext(JMSContext.SESSION_TRANSACTED)) {
+        try(JMSContext context = connectionFactory.createContext()) {
             TextMessage message = createMessage(context, chunk, jobEntity);
             JMSProducer producer = context.createProducer();
             producer.setPriority(priority);

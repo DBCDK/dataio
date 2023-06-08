@@ -1,4 +1,4 @@
-package jobprocessor2.ejb;
+package dk.dbc.dataio.jobprocessor2;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -54,7 +55,7 @@ public class JobStoreMessageConsumerBeanTest {
     public void onMessage_messageArgPayloadIsInvalidNewJob_noTransactionRollback() throws JMSException {
         JobStoreMessageConsumer jobStoreMessageConsumer = new JobStoreMessageConsumer(SERVICE_HUB);
         MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
-        textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
+        JMSHeader.payload.addHeader(textMessage, JMSHeader.CHUNK_PAYLOAD_TYPE);
         textMessage.setText("{'invalid': 'instance'}");
         jobStoreMessageConsumer.onMessage(textMessage);
         Assert.assertEquals(0, Metric.dataio_message_count.counter(rollback.is("true")).getCount());

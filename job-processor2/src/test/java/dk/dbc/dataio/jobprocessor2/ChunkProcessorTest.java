@@ -1,4 +1,4 @@
-package jobprocessor2.ejb;
+package dk.dbc.dataio.jobprocessor2;
 
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;

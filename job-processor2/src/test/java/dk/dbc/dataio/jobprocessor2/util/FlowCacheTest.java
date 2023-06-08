@@ -1,12 +1,11 @@
-package jobprocessor2.util;
+package dk.dbc.dataio.jobprocessor2.util;
 
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
-import dk.dbc.dataio.jobprocessor2.util.FlowCache;
-import jobprocessor2.ejb.ChunkProcessorTest;
+import dk.dbc.dataio.jobprocessor2.ChunkProcessorTest;
 import org.junit.Before;
 import org.junit.Test;
 

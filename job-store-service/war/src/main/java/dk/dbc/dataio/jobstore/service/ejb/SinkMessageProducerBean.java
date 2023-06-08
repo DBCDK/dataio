@@ -40,7 +40,7 @@ SinkMessageProducerBean implements MessageIdentifiers {
     @Inject
     @ConfigProperty(name = "ARTEMIS_MQ_HOST")
     private String artemisHost;
-    private ConnectionFactory connectionFactory;
+    ConnectionFactory connectionFactory;
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -62,7 +62,7 @@ SinkMessageProducerBean implements MessageIdentifiers {
         Sink destination = job.getCachedSink().getSink();
         FlowStoreReferences flowStoreReferences = job.getFlowStoreReferences();
         LOGGER.info("Sending chunk {}/{} to sink {} with unique id {}", chunk.getJobId(), chunk.getChunkId(), destination.getContent().getName(), chunk.getTrackingId());
-        try(JMSContext context = connectionFactory.createContext(JMSContext.SESSION_TRANSACTED)) {
+        try(JMSContext context = connectionFactory.createContext()) {
             String qname = destination.getContent().getQueue();
             Queue queue = context.createQueue(qname.contains("::") ? qname : qname + "::" + qname);
             TextMessage message = createMessage(context, chunk, destination, flowStoreReferences);

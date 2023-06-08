@@ -150,10 +150,50 @@ pipeline {
 //                }
 //            }
 //        }
-        stage("clean up successful build") {
-            steps {
-                cleanWs()
+        stage("deploy this branch to staging?") {
+            when {
+                not {
+                    branch "master"
+                }
             }
+            steps {
+                script {
+                    def deployBranchToStaging = input(message: 'Vil du deploye dette byg til staging DataIO?', ok: 'Yes',
+                            parameters: [booleanParam(defaultValue: true,
+                                    description: 'Dette byg bliver deployet til staging', name: 'Jep')])
+                }
+                sh """
+                mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "commons/utils/flow-store-service-connector, commons/utils/tickle-harvester-service-connector, gatekeeper, job-processor2, sink/dummy"
+                cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
+            """
+            }
+        }
+        stage("bump docker tags in dataio-secrets for non-master branches") {
+            agent {
+                docker {
+                    label workerNode
+                    image "docker-dbc.artifacts.dbccloud.dk/build-env:latest"
+                    alwaysPull true
+                }
+            }
+            when {
+                not {
+                    branch "master"
+                }
+            }
+            steps {
+                script {
+                    sh """
+                        set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets ${env.BRANCH_NAME}-${env.BUILD_NUMBER} -b staging
+                    """
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Cleaning up'
+            cleanWs()
         }
     }
 }

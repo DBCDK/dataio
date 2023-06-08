@@ -128,11 +128,11 @@ public class HarvestOperation {
                 } catch (HarvesterException e) {
                     LOGGER.error("Caught HarvesterException for promat record {}: {}",
                             promatCase.getId(), e.getMessage());
-                    statusAfterExport.put(promatCase.getId(), CaseStatus.PENDING_EXPORT);
+                    statusAfterExport.put(promatCase.getId(), promatCase.getStatus());
                     recordsSkipped++;
                 } catch (Exception e) {
                     LOGGER.error("Caught unexpected Exception for dmatrecord {}", promatCase.getId(), e);
-                    statusAfterExport.put(promatCase.getId(), CaseStatus.PENDING_EXPORT);
+                    statusAfterExport.put(promatCase.getId(), promatCase.getStatus());
                     recordsSkipped++;
                 }
             }

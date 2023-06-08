@@ -33,7 +33,7 @@ public class ZombieWatch {
         this.healthService = healthService;
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1, Config.threadFactory("zombie-watch", true));
         scheduledExecutorService.scheduleAtFixedRate(this::zombieWatch, 1, 1, TimeUnit.MINUTES);
-        adminClient = ARTEMIS_MQ_HOST.asOptionalInteger().flatMap(host -> ARTEMIS_ADMIN_PORT.asOptionalInteger()
+        adminClient = ARTEMIS_MQ_HOST.asOptionalString().flatMap(host -> ARTEMIS_ADMIN_PORT.asOptionalInteger()
                 .map(port -> new AdminClient("http://" + host + ":" + port, ARTEMIS_USER.toString(), ARTEMIS_PASSWORD.toString()))).orElse(null);
     }
 

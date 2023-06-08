@@ -74,6 +74,6 @@ public class DummyMessageProcessorTest {
     }
 
     private DummyMessageConsumer getDummyMessageProcessorBean() {
-        return new DummyMessageConsumer(new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build());
+        return new DummyMessageConsumer(new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).withHealthService(null).build());
     }
 }

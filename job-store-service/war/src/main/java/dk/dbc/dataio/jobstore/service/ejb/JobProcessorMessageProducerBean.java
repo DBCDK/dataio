@@ -13,15 +13,18 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import org.apache.activemq.artemis.jms.client.ActiveMQXAConnectionFactory;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
-import javax.jms.JMSConnectionFactory;
+import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
@@ -34,11 +37,17 @@ import java.util.Optional;
 public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobProcessorMessageProducerBean.class);
 
-    @Inject
-    @JMSConnectionFactory("jms/artemisConnectionFactory")
-    JMSContext context;
-
     JSONBContext jsonbContext = new JSONBContext();
+
+    @Inject
+    @ConfigProperty(name = "ARTEMIS_MQ_HOST")
+    private String artemisHost;
+    private ConnectionFactory connectionFactory;
+
+    @PostConstruct
+    public void init() {
+        connectionFactory = new ActiveMQXAConnectionFactory("tcp://" + artemisHost + "61616");
+    }
 
     /**
      * Sends given Chunk instance as JMS message with JSON payload to processor queue destination
@@ -52,7 +61,7 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void send(Chunk chunk, JobEntity jobEntity, int priority) throws NullPointerException, JobStoreException {
         LOGGER.info("Sending chunk {}/{} with trackingId {}", chunk.getJobId(), chunk.getChunkId(), chunk.getTrackingId());
-        try {
+        try(JMSContext context = connectionFactory.createContext(JMSContext.SESSION_TRANSACTED)) {
             TextMessage message = createMessage(context, chunk, jobEntity);
             JMSProducer producer = context.createProducer();
             producer.setPriority(priority);

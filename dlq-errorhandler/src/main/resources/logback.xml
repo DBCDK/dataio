@@ -9,22 +9,6 @@
         <resetJUL>true</resetJUL>
     </contextListener>
 
-    <appender name="LOGSTORE" class="dk.dbc.dataio.logstore.logback.LogStoreMergingJdbcAppender">
-        <filter class="dk.dbc.dataio.logstore.logback.MdcKeyExistsFilter">
-            <MDCKey>logStoreTrackingId</MDCKey>
-            <OnMatch>ACCEPT</OnMatch>
-            <onMismatch>DENY</onMismatch>
-        </filter>
-
-        <connectionSource class="ch.qos.logback.core.db.DataSourceConnectionSource">
-            <dataSource class="org.postgresql.ds.PGPoolingDataSource">
-                <url>jdbc:postgresql://${LOGSTORE_DB_URL}</url>
-                <user>${LOGSTORE_DB_USER}</user>
-                <password>${LOGSTORE_DB_PASSWORD}</password>
-            </dataSource>
-        </connectionSource>
-    </appender>
-
     <appender name="STDOUT-json" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <fieldNames>
@@ -114,7 +98,6 @@
 
     <root level="${LOG_LEVEL}">
         <appender-ref ref="ASYNC-${LOG_FORMAT}"/>
-        <appender-ref ref="LOGSTORE"/>
     </root>
 
 </configuration>

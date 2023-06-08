@@ -11,13 +11,16 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import org.apache.activemq.artemis.jms.client.ActiveMQXAConnectionFactory;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.jms.JMSConnectionFactory;
+import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
@@ -35,10 +38,16 @@ SinkMessageProducerBean implements MessageIdentifiers {
     private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageProducerBean.class);
 
     @Inject
-    @JMSConnectionFactory("jms/artemisConnectionFactory")
-    JMSContext context;
+    @ConfigProperty(name = "ARTEMIS_MQ_HOST")
+    private String artemisHost;
+    private ConnectionFactory connectionFactory;
 
     JSONBContext jsonbContext = new JSONBContext();
+
+    @PostConstruct
+    public void init() {
+        connectionFactory = new ActiveMQXAConnectionFactory("tcp://" + artemisHost + ":61616");
+    }
 
     /**
      * Sends given processed chunk as JMS message with JSON payload to sink queue destination
@@ -52,10 +61,8 @@ SinkMessageProducerBean implements MessageIdentifiers {
     public void send(Chunk chunk, JobEntity job, int priority) throws NullPointerException, JobStoreException {
         Sink destination = job.getCachedSink().getSink();
         FlowStoreReferences flowStoreReferences = job.getFlowStoreReferences();
-
         LOGGER.info("Sending chunk {}/{} to sink {} with unique id {}", chunk.getJobId(), chunk.getChunkId(), destination.getContent().getName(), chunk.getTrackingId());
-
-        try {
+        try(JMSContext context = connectionFactory.createContext(JMSContext.SESSION_TRANSACTED)) {
             String qname = destination.getContent().getQueue();
             Queue queue = context.createQueue(qname.contains("::") ? qname : qname + "::" + qname);
             TextMessage message = createMessage(context, chunk, destination, flowStoreReferences);

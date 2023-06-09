@@ -152,9 +152,15 @@ pipeline {
 //        }
         stage("deploy this branch to staging?") {
             when {
-                not {
-                    branch "master"
+                allOf {
+                    not {
+                        branch "master"
+                    }
+                    not {
+                        branch "PR-*"
+                    }
                 }
+
             }
             steps {
                 script {

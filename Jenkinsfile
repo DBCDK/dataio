@@ -192,7 +192,7 @@ pipeline {
                     }
                 }
 
-            }Fixing
+            }
             steps {
                 script {
                     sh """

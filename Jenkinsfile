@@ -183,10 +183,16 @@ pipeline {
                 }
             }
             when {
-                not {
-                    branch "master"
+                allOf {
+                    not {
+                        branch "master"
+                    }
+                    not {
+                        branch "PR-*"
+                    }
                 }
-            }
+
+            }Fixing
             steps {
                 script {
                     sh """

@@ -16,6 +16,7 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
@@ -32,12 +33,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JobProcessorMessageProducerBeanTest {
+    private ConnectionFactory jmsConnectionFactory = mock(ConnectionFactory.class);
     private final JMSContext jmsContext = mock(JMSContext.class);
     private final JMSProducer jmsProducer = mock(JMSProducer.class);
     private final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
 
     @Before
     public void setupMocks() {
+        when(jmsConnectionFactory.createContext()).thenReturn(jmsContext);
         when(jmsContext.createProducer()).thenReturn(jmsProducer);
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
     }
@@ -86,7 +89,7 @@ public class JobProcessorMessageProducerBeanTest {
 
     private JobProcessorMessageProducerBean getInitializedBean() {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = new JobProcessorMessageProducerBean();
-        jobProcessorMessageProducerBean.context = jmsContext;
+        jobProcessorMessageProducerBean.connectionFactory = jmsConnectionFactory;
         jobProcessorMessageProducerBean.jsonbContext = new JSONBContext();
         return jobProcessorMessageProducerBean;
     }

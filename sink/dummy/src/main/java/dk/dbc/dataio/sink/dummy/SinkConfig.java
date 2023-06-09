@@ -3,8 +3,8 @@ package dk.dbc.dataio.sink.dummy;
 import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 
 public enum SinkConfig implements EnvConfig {
-    QUEUE("jmsDataioSinks"),
-    MESSAGE_FILTER;
+    QUEUE("sink::dummy"),
+    MESSAGE_FILTER(null);
 
     private final String defaultValue;
 

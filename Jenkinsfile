@@ -83,7 +83,7 @@ pipeline {
             }
             steps {
                 sh """
-                    mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -am -pl "commons/utils/flow-store-service-connector, commons/utils/tickle-harvester-service-connector, gatekeeper, job-processor2, sink/dummy"
+                    mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -am -pl "commons/utils/flow-store-service-connector, commons/utils/tickle-harvester-service-connector, gatekeeper, job-processor2, sink/dummy, dlq-errorhandler"
                 """
             }
         }
@@ -152,9 +152,15 @@ pipeline {
 //        }
         stage("deploy this branch to staging?") {
             when {
-                not {
-                    branch "master"
+                allOf {
+                    not {
+                        branch "master"
+                    }
+                    not {
+                        branch "PR-*"
+                    }
                 }
+
             }
             steps {
                 script {
@@ -163,7 +169,7 @@ pipeline {
                                     description: 'Dette byg bliver deployet til staging', name: 'Jep')])
                 }
                 sh """
-                mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "commons/utils/flow-store-service-connector, commons/utils/tickle-harvester-service-connector, gatekeeper, job-processor2, sink/dummy"
+                mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "commons/utils/flow-store-service-connector, commons/utils/tickle-harvester-service-connector, gatekeeper, job-processor2, sink/dummy, dlq-errorhandler"
                 cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
             """
             }

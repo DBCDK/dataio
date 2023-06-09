@@ -21,16 +21,6 @@
             <artifactId>artemis-jse-app</artifactId>
             <version>${project.version}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>dk.dbc</groupId>-->
-<!--            <artifactId>dataio-commons-utils-stopwatch</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>dk.dbc</groupId>-->
-<!--            <artifactId>dataio-log-store-service-types</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-service</artifactId>
@@ -41,11 +31,6 @@
             <artifactId>dataio-commons-types</artifactId>
             <version>${project.version}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.postgresql</groupId>-->
-<!--            <artifactId>postgresql</artifactId>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>org.eclipse.microprofile.metrics</groupId>
             <artifactId>microprofile-metrics-api</artifactId>

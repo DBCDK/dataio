@@ -6,8 +6,8 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
@@ -43,8 +43,12 @@ public class DLQMessageConsumer extends MessageConsumerAdapter {
             LOGGER.info("Received dead message for chunk {} of type {} in job {}", chunk.getChunkId(), chunk.getType(), chunk.getJobId());
             Chunk deadChunk = createDeadChunk(chunk);
             jobStoreServiceConnector.addChunk(deadChunk, chunk.getJobId(), chunk.getChunkId());
-        } catch (JobStoreServiceConnectorException | JSONBException e) {
-            throw new InvalidMessageException(String.format("Message<%s> payload was not valid %s type", consumedMessage.getMessageId(), consumedMessage.getMessagePayload()), e);
+        } catch (JSONBException je) {
+            throw new InvalidMessageException(String.format("Message<%s> payload was not valid %s type", consumedMessage.getMessageId(), consumedMessage.getMessagePayload()), je);
+        } catch (Exception e) {
+            throw new InvalidMessageException("Message<" + consumedMessage.getMessageId() +
+                    "> with jobId/chunkId<" + JMSHeader.jobId.getHeader(consumedMessage, Integer.class) +
+                    "/" + JMSHeader.chunkId.getHeader(consumedMessage, Long.class) + "> could not be updated in jobstore", e);
         }
     }
 

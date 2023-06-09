@@ -16,6 +16,7 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
@@ -31,7 +32,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class SinkMessageProducerBeanTest {
-    private final JMSContext jmsContext = mock(JMSContext.class);
+    private ConnectionFactory jmsConnectionFactory = mock(ConnectionFactory.class);
+    private JMSContext jmsContext = mock(JMSContext.class);
     private final JMSProducer jmsProducer = mock(JMSProducer.class);
     private final SinkCacheEntity sinkCacheEntity = mock(SinkCacheEntity.class);
 
@@ -57,6 +59,7 @@ public class SinkMessageProducerBeanTest {
 
     @Before
     public void setupExpectations() {
+        when(jmsConnectionFactory.createContext()).thenReturn(jmsContext);
         when(jmsContext.createProducer()).thenReturn(jmsProducer);
         when(sinkCacheEntity.getSink()).thenReturn(sink);
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
@@ -97,8 +100,8 @@ public class SinkMessageProducerBeanTest {
     }
 
     private SinkMessageProducerBean getInitializedBean() {
-        final SinkMessageProducerBean sinkMessageProducerBean = new SinkMessageProducerBean();
-        sinkMessageProducerBean.context = jmsContext;
+        SinkMessageProducerBean sinkMessageProducerBean = new SinkMessageProducerBean();
+        sinkMessageProducerBean.connectionFactory = jmsConnectionFactory;
         return sinkMessageProducerBean;
     }
 }

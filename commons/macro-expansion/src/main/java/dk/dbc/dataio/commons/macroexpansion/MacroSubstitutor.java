@@ -12,6 +12,7 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.IsoFields;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,11 @@ public class MacroSubstitutor {
     private final WeekcodeSupplier weekcodeSupplier;
 
     private final ZoneId tz = ZoneId.of(System.getenv("TZ"));
+
+    static {
+        Calendar.getInstance().setFirstDayOfWeek(Calendar.MONDAY);
+        Calendar.getInstance().setMinimalDaysInFirstWeek(7);
+    }
 
     public MacroSubstitutor(WeekcodeSupplier weekcodeSupplier) {
         this(Instant.now(), weekcodeSupplier);

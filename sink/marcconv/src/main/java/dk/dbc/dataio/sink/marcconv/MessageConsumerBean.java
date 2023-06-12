@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.Persistence;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,11 +33,13 @@ import java.time.Duration;
 
 public class MessageConsumerBean extends MessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
+    private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
+    private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     private final JSONBContext jsonbContext = new JSONBContext();
     private final ConversionFactory conversionFactory = new ConversionFactory();
     private final Cache<Integer, Conversion> conversionCache = CacheBuilder.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(10).build();
     //    @PersistenceContext(unitName = "marcconv_PU")
-    EntityManager entityManager;
+    EntityManager entityManager = Persistence.createEntityManagerFactory("marcconv_PU").createEntityManager();
     ConversionFinalizerBean conversionFinalizerBean;
 
     public MessageConsumerBean(ServiceHub serviceHub) {
@@ -48,6 +52,8 @@ public class MessageConsumerBean extends MessageConsumerAdapter {
         LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
         Chunk result;
+        EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
         if (chunk.isTerminationChunk()) {
             try {
                 // Give the before-last message enough time to commit
@@ -65,17 +71,18 @@ public class MessageConsumerBean extends MessageConsumerAdapter {
         } else {
             result = handleChunk(chunk);
         }
+        transaction.commit();
         sendResultToJobStore(result);
     }
 
     @Override
     public String getQueue() {
-        return null;
+        return QUEUE;
     }
 
     @Override
     public String getAddress() {
-        return null;
+        return ADDRESS;
     }
 
     Chunk handleChunk(Chunk chunk) {

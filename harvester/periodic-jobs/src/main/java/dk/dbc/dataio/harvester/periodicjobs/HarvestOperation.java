@@ -307,9 +307,9 @@ public class HarvestOperation {
         ConfigUpdater.create(flowStoreServiceConnector).push(config);
     }
 
-    private String catalogueCodeToWeekCode(String catalogueCode, LocalDate localDate) {
+    public String catalogueCodeToWeekCode(String catalogueCode, LocalDate localDate) {
         try {
-            return weekResolverConnector.getWeekCode(catalogueCode, localDate).getWeekCode();
+            return weekResolverConnector.getCurrentWeekCode(catalogueCode, localDate).getWeekCode();
         } catch (WeekResolverConnectorException e) {
             throw new ProcessingException(e);
         }

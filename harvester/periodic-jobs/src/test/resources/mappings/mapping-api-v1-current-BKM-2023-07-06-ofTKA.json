@@ -1,0 +1,17 @@
+{
+  "id" : "c7477e41-9364-3b19-bcfd-bef2fccecdce",
+  "request" : {
+    "url" : "/api/v1/current/BKM/2023-07-06",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-api-v1-current-BKM-2023-07-06-ofTKA.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/json",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "c7477e41-9364-3b19-bcfd-bef2fccecdce"
+}

@@ -162,6 +162,19 @@ public class MacroSubstitutor {
      * := VPT query
      * </p>
      *
+     * Note that when using any of the __WEEKCODE_**__ patterns, the result is in relation to the
+     * local date and therefore also to the day of the week. For example __WEEKCODE_BKM__
+     * would return 202324 for june 12.-15. of 2023 (monday to thursday) and 202325 for
+     * june 16. (friday) since friday is shiftday for BKM and we are therefore already in
+     * the next week.
+     *
+     * Usually, if a given cataloguecode has a shiftday, then it will be friday, but there
+     * are difference when it comes to handling of closing days. DPF shifts friday, but do not
+     * leap over Christmas, BKM shifts on friday and leaps over Christmas and New Years eve.
+     *
+     * Check your friendly week-resolver service configuration if in doubt.
+     * http://weekresolver.metascrum-prod.svc.cloud.dbc.dk/api/v1/codes
+     *
      * @param str string on which to do variable substitution
      * @return result of the replace operation with all occurrences of known variables replaced
      */

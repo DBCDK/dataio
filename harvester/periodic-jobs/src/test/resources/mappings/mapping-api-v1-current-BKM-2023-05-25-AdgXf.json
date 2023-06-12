@@ -1,0 +1,17 @@
+{
+  "id" : "d1136a8c-6845-3881-99bd-f2151ce332ff",
+  "request" : {
+    "url" : "/api/v1/current/BKM/2023-05-25",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-api-v1-current-BKM-2023-05-25-AdgXf.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/json",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "d1136a8c-6845-3881-99bd-f2151ce332ff"
+}

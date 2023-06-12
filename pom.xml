@@ -574,6 +574,7 @@
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
       <version>5.4.33</version>
+      <scope>test</scope>
       <exclusions>
         <exclusion>
           <groupId>com.sun.istack</groupId>

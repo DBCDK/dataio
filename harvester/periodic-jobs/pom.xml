@@ -118,6 +118,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>weekresolver-connector</artifactId>
+      <version>${week-resolver.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.promat;
 
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -51,6 +52,9 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHa
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
     MetricRegistry metricRegistry;
 
+    @Inject
+    MetricsHandlerBean metricsHandler;
+
     @Override
     public int executeFor(PromatHarvesterConfig config) throws HarvesterException {
         try {
@@ -59,7 +63,8 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHa
                     fileStoreServiceConnectorBean.getConnector(),
                     flowStoreServiceConnectorBean.getConnector(),
                     jobStoreServiceConnectorBean.getConnector(),
-                    promatServiceConnector);
+                    promatServiceConnector,
+                    metricsHandler);
             final int numberOfCasesHarvested = harvestOperation.execute();
             metricRegistry.counter(caseCounterMetadata).inc(numberOfCasesHarvested);
             return numberOfCasesHarvested;

@@ -32,7 +32,6 @@ import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -374,7 +373,6 @@ public class HarvestOperation {
         }
 
         @Override
-        @Nonnull
         public Iterator<DMatRecord> iterator() {
             return new Iterator<>() {
                 @Override

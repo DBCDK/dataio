@@ -30,7 +30,6 @@ import dk.dbc.promat.service.persistence.TaskFieldType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -309,7 +308,6 @@ public class HarvestOperation {
         }
 
         @Override
-        @Nonnull
         public Iterator<PromatCase> iterator() {
             return new Iterator<PromatCase>() {
                 @Override

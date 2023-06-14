@@ -24,26 +24,25 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-public class MessageConsumerBean extends MessageConsumerAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
+public class MessageConsumer extends MessageConsumerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     private final JSONBContext jsonbContext = new JSONBContext();
     private final ConversionFactory conversionFactory = new ConversionFactory();
     private final Cache<Integer, Conversion> conversionCache = CacheBuilder.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(10).build();
-    //    @PersistenceContext(unitName = "marcconv_PU")
-    EntityManager entityManager = Persistence.createEntityManagerFactory("marcconv_PU").createEntityManager();
-    ConversionFinalizerBean conversionFinalizerBean;
+    private final EntityManager entityManager;
+    ConversionFinalizer conversionFinalizer;
 
-    public MessageConsumerBean(ServiceHub serviceHub) {
+    public MessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
         super(serviceHub);
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -67,7 +66,7 @@ public class MessageConsumerBean extends MessageConsumerAdapter {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            result = conversionFinalizerBean.handleTerminationChunk(chunk);
+            result = conversionFinalizer.handleTerminationChunk(chunk);
         } else {
             result = handleChunk(chunk);
         }

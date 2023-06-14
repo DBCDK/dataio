@@ -13,7 +13,6 @@
 
   <artifactId>dataio-sink-marcconv</artifactId>
   <name>dataio-sink-marcconv</name>
-  <packaging>war</packaging>
 
   <dependencies>
     <dependency>
@@ -25,6 +24,12 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>32.0.1-jre</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-testcontainers-postgres</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <scope>test</scope>
     </dependency>
 
     <!--    <dependency>-->
@@ -169,11 +174,11 @@
       <artifactId>dbc-commons-addi</artifactId>
       <version>1.3-SNAPSHOT</version>
     </dependency>
-<!--    <dependency>-->
-<!--      <groupId>dk.dbc</groupId>-->
-<!--      <artifactId>dbc-commons-jpa-resultset</artifactId>-->
-<!--      <version>1.3-SNAPSHOT</version>-->
-<!--    </dependency>-->
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-jpa-resultset</artifactId>
+      <version>1.3-SNAPSHOT</version>
+    </dependency>
 <!--    <dependency>-->
 <!--      <groupId>dk.dbc</groupId>-->
 <!--      <artifactId>dbc-commons-log</artifactId>-->
@@ -184,10 +189,10 @@
 <!--      <artifactId>stopwatch</artifactId>-->
 <!--      <version>1.0-SNAPSHOT</version>-->
 <!--    </dependency>-->
-<!--    <dependency>-->
-<!--      <groupId>org.flywaydb</groupId>-->
-<!--      <artifactId>flyway-core</artifactId>-->
-<!--    </dependency>-->
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+    </dependency>
 <!--    <dependency>-->
 <!--      <groupId>dk.dbc</groupId>-->
 <!--      <artifactId>dataio-commons-utils-test</artifactId>-->
@@ -206,19 +211,20 @@
 <!--      <version>1.3-SNAPSHOT</version>-->
 <!--      <scope>test</scope>-->
 <!--    </dependency>-->
-<!--    <dependency>-->
-<!--      <groupId>dk.dbc</groupId>-->
-<!--      <artifactId>dbc-commons-testutil-jpa</artifactId>-->
-<!--      <version>1.3-SNAPSHOT</version>-->
-<!--      <scope>test</scope>-->
-<!--    </dependency>-->
-<!--    <dependency>-->
-<!--      <groupId>org.eclipse.persistence</groupId>-->
-<!--      <artifactId>eclipselink</artifactId>-->
-<!--      <version>${eclipselink.version}</version>-->
-<!--      <scope>test</scope>-->
-<!--    </dependency>-->
-<!--    <dependency>-->
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-testutil-jpa</artifactId>
+      <version>1.3-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>eclipselink</artifactId>
+      <version>${eclipselink.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <!--    <dependency>-->
 <!--      <groupId>org.glassfish.jersey.core</groupId>-->
 <!--      <artifactId>jersey-client</artifactId>-->
 <!--      <version>${jersey.version}</version>-->
@@ -239,111 +245,95 @@
   </dependencies>
 
   <build>
+    <finalName>${project.name}</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>${maven-resources-plugin.version}</version>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.1.1</version>
         <executions>
           <execution>
-            <id>process config</id>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <version>${exec-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>prepare-build-docker-image</id>
-            <configuration>
-              <arguments combine.children="append">
-                <argument>dbc-payara-marcconv-sink</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>${maven.war.plugin.version}</version>
-        <configuration>
-          <failOnMissingWebXml>false</failOnMissingWebXml>
-          <attachClasses>false</attachClasses>
-          <webResources>
-            <resource>
-              <directory>${basedir}/src/main/webapp/WEB-INF</directory>
-              <filtering>true</filtering>
-              <targetPath>WEB-INF</targetPath>
-            </resource>
-          </webResources>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>reserve-network-port</id>
+            <id>jar-with-dependencies</id>
+            <phase>package</phase>
             <goals>
-              <goal>reserve-network-port</goal>
+              <goal>single</goal>
             </goals>
-            <phase>initialize</phase>
             <configuration>
-              <portNames>
-                <portName>marcconv.postgresql.port</portName>
-              </portNames>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+              <appendAssemblyId>false</appendAssemblyId>
+              <archive>
+                <manifest>
+                  <mainClass>dk.dbc.dataio.sink.marcconv.rest.MarcConvSinkApp</mainClass>
+                </manifest>
+                <manifestEntries>
+                  <pom-version>${project.version}</pom-version>
+                </manifestEntries>
+              </archive>
             </configuration>
           </execution>
         </executions>
       </plugin>
       <plugin>
-        <groupId>dk.dbc</groupId>
-        <artifactId>postgresql-maven-plugin</artifactId>
-        <version>${postgresql-maven-plugin.version}</version>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.42.0</version>
         <executions>
           <execution>
-            <id>start-postgresql</id>
+            <id>build</id>
             <phase>pre-integration-test</phase>
             <goals>
-              <goal>start</goal>
-            </goals>
-            <configuration>
-              <pgPort>${marcconv.postgresql.port}</pgPort>
-              <pgDbName>marcconv</pgDbName>
-              <pgDbScripts>
-              </pgDbScripts>
-            </configuration>
-          </execution>
-          <execution>
-            <id>stop-postgresql</id>
-            <phase>post-integration-test</phase>
-            <goals>
-              <goal>shutdown</goal>
+              <goal>build</goal>
             </goals>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
-          <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <systemPropertyVariables>
-            <postgresql.port>${marcconv.postgresql.port}</postgresql.port>
-          </systemPropertyVariables>
+          <tagName>devel</tagName>
+          <images>
+            <image>
+              <name>docker-metascrum.artifacts.dbccloud.dk/%a:${tag}</name>
+              <build>
+                <from>docker-dbc.artifacts.dbccloud.dk/dbc-java11:master</from>
+                <user>gfish</user>
+                <assemblies>
+                  <assembly>
+                    <descriptorRef>artifact</descriptorRef>
+                    <targetDir>/work</targetDir>
+                  </assembly>
+                </assemblies>
+                <cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-256m} -jar /work/${project.build.finalName}.jar</cmd>
+              </build>
+            </image>
+          </images>
         </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>docker-push</id>
+      <properties>
+        <tag>DIT-${BUILD_NUMBER}</tag>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <version>0.42.0</version>
+            <executions>
+              <execution>
+                <id>push</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>push</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

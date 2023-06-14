@@ -10,23 +10,20 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
-import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJB;
 import javax.persistence.EntityManager;
-import javax.persistence.Persistence;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
-import javax.ws.rs.client.ClientBuilder;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
@@ -39,31 +36,33 @@ import static java.lang.String.format;
 /**
  * It is the responsibility of this class to expose the conversion result
  */
-public class ConversionFinalizerBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConversionFinalizerBean.class);
-    public static String ORIGIN = "dataio/sink/marcconv";
-    public FileStoreServiceConnector fileStoreServiceConnector = new FileStoreServiceConnector(ClientBuilder.newClient(), );
-    @EJB
-    public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-    EntityManager entityManager = Persistence.createEntityManagerFactory("marcconv_PU").createEntityManager();
+public class ConversionFinalizer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConversionFinalizer.class);
+    public static final String ORIGIN = "dataio/sink/marcconv";
+    FileStoreServiceConnector fileStoreServiceConnector;
+    JobStoreServiceConnector jobStoreServiceConnector;
+    private final EntityManager entityManager;// = Persistence.createEntityManagerFactory("marcconv_PU").createEntityManager();
 
+    public ConversionFinalizer(ServiceHub serviceHub, FileStoreServiceConnector fileStoreServiceConnector, EntityManager entityManager) {
+        this.fileStoreServiceConnector = fileStoreServiceConnector;
+        jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
+        this.entityManager = entityManager;
+    }
 
-
-    public Chunk handleTerminationChunk(Chunk chunk) throws SinkException {
+    public Chunk handleTerminationChunk(Chunk chunk) {
         Integer jobId = Math.toIntExact(chunk.getJobId());
         LOGGER.info("Finalizing conversion job {}", jobId);
         JobListCriteria findJobCriteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
         JobInfoSnapshot jobInfoSnapshot;
 
         try {
-            jobInfoSnapshot = jobStoreServiceConnectorBean.getConnector().listJobs(findJobCriteria).get(0);
+            jobInfoSnapshot = jobStoreServiceConnector.listJobs(findJobCriteria).get(0);
         } catch (JobStoreServiceConnectorException e) {
-            throw new SinkException(format("Failed to find job %d", jobId), e);
+            throw new RuntimeException(format("Failed to find job %d", jobId), e);
         }
         int agencyId = getConversionParam(jobId).getSubmitter().orElse(Math.toIntExact(jobInfoSnapshot.getSpecification().getSubmitterId()));
         ConversionMetadata conversionMetadata = new ConversionMetadata(ORIGIN).withJobId(jobInfoSnapshot.getJobId()).withAgencyId(agencyId).withFilename(getConversionFilename(jobInfoSnapshot));
 
-        FileStoreServiceConnector fileStoreServiceConnector = fileStoreServiceConnectorBean.getConnector();
         Optional<ExistingFile> existingFile = fileAlreadyExists(fileStoreServiceConnector, jobId, conversionMetadata);
         String fileId;
         if (existingFile.isPresent()) {
@@ -80,7 +79,7 @@ public class ConversionFinalizerBean {
         return newResultChunk(fileStoreServiceConnector, chunk, fileId);
     }
 
-    private Optional<ExistingFile> fileAlreadyExists(FileStoreServiceConnector fileStoreServiceConnector, Integer jobId, ConversionMetadata metadata) throws SinkException {
+    private Optional<ExistingFile> fileAlreadyExists(FileStoreServiceConnector fileStoreServiceConnector, Integer jobId, ConversionMetadata metadata) {
         // A file may already exist if something exploded after the call to the
         // ConversionFinalizerBean.handleTerminationChunk() method. If so we must
         // use this existing file since it has already been exposed to the end
@@ -92,11 +91,11 @@ public class ConversionFinalizerBean {
             }
             return Optional.of(files.get(0));
         } catch (FileStoreServiceConnectorException | RuntimeException e) {
-            throw new SinkException(format("Failed check for existing file for job %d", jobId), e);
+            throw new RuntimeException(format("Failed check for existing file for job %d", jobId), e);
         }
     }
 
-    private String uploadFile(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk) throws SinkException {
+    private String uploadFile(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk) {
         Integer jobId = Math.toIntExact(chunk.getJobId());
         Query getConversionBlocksQuery = entityManager.createNamedQuery(ConversionBlock.GET_CONVERSION_BLOCKS_QUERY_NAME).setParameter(1, jobId);
 
@@ -115,18 +114,18 @@ public class ConversionFinalizerBean {
             LOGGER.info("Uploaded conversion file {} for job {}", fileId, jobId);
         } catch (FileStoreServiceConnectorException | RuntimeException e) {
             deleteFile(fileStoreServiceConnector, fileId);
-            throw new SinkException(e);
+            throw new RuntimeException(e);
         }
         return fileId;
     }
 
-    private void uploadMetadata(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk, String fileId, ConversionMetadata conversionMetadata) throws SinkException {
+    private void uploadMetadata(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk, String fileId, ConversionMetadata conversionMetadata) {
         try {
             fileStoreServiceConnector.addMetadata(fileId, conversionMetadata);
             LOGGER.info("Uploaded conversion metadata {} for job {}", conversionMetadata, chunk.getJobId());
         } catch (FileStoreServiceConnectorException | RuntimeException e) {
             deleteFile(fileStoreServiceConnector, fileId);
-            throw new SinkException(e);
+            throw new RuntimeException(e);
         }
     }
 

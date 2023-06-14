@@ -14,6 +14,10 @@
   <artifactId>dataio-sink-marcconv</artifactId>
   <name>dataio-sink-marcconv</name>
 
+  <properties>
+    <tag>devel</tag>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -265,7 +269,7 @@
               <appendAssemblyId>false</appendAssemblyId>
               <archive>
                 <manifest>
-                  <mainClass>dk.dbc.dataio.sink.marcconv.rest.MarcConvSinkApp</mainClass>
+                  <mainClass>dk.dbc.dataio.sink.marcconv.MarcConvSinkApp</mainClass>
                 </manifest>
                 <manifestEntries>
                   <pom-version>${project.version}</pom-version>

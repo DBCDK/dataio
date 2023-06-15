@@ -119,7 +119,6 @@
     <module>integration-test</module>
     <module>job-store-service</module>
     <module>log-store-service</module>
-    <module>performance-benchmarks</module>
     <module>sink</module>
     <module>commons/utils/openupdate-service-connector</module>
     <module>job-processor2</module>

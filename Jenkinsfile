@@ -83,7 +83,7 @@ pipeline {
             }
             steps {
                 sh """
-                    mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -am -pl "commons/utils/flow-store-service-connector, commons/utils/tickle-harvester-service-connector, gatekeeper, job-processor2, sink/dummy, dlq-errorhandler, sink/marcconv"
+                    mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -am -pl "commons/utils/flow-store-service-connector, commons/utils/tickle-harvester-service-connector, gatekeeper, job-processor2, sink/dummy, dlq-errorhandler, sink/marcconv, sink/dmat"
                 """
             }
         }

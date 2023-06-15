@@ -16,7 +16,7 @@
   <name>dataio-sink-marcconv</name>
 
   <properties>
-    <tag>devel</tag>
+    <main-class>dk.dbc.dataio.sink.marcconv.MarcConvSinkApp</main-class>
   </properties>
 
   <dependencies>
@@ -39,7 +39,6 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -69,8 +68,6 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>eclipselink</artifactId>
-      <version>${eclipselink.version}</version>
-      <scope>compile</scope>
     </dependency>
   </dependencies>
 
@@ -80,90 +77,11 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.1.1</version>
-        <executions>
-          <execution>
-            <id>jar-with-dependencies</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <appendAssemblyId>false</appendAssemblyId>
-              <archive>
-                <manifest>
-                  <mainClass>dk.dbc.dataio.sink.marcconv.MarcConvSinkApp</mainClass>
-                </manifest>
-                <manifestEntries>
-                  <pom-version>${project.version}</pom-version>
-                </manifestEntries>
-              </archive>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>io.fabric8</groupId>
         <artifactId>docker-maven-plugin</artifactId>
-        <version>0.42.0</version>
-        <executions>
-          <execution>
-            <id>build</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>build</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <tagName>devel</tagName>
-          <images>
-            <image>
-              <name>docker-metascrum.artifacts.dbccloud.dk/%a:${tag}</name>
-              <build>
-                <from>docker-dbc.artifacts.dbccloud.dk/dbc-java11:master</from>
-                <user>gfish</user>
-                <assemblies>
-                  <assembly>
-                    <descriptorRef>artifact</descriptorRef>
-                    <targetDir>/work</targetDir>
-                  </assembly>
-                </assemblies>
-                <cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-256m} -jar /work/${project.build.finalName}.jar</cmd>
-              </build>
-            </image>
-          </images>
-        </configuration>
       </plugin>
     </plugins>
   </build>
-  <profiles>
-    <profile>
-      <id>docker-push</id>
-      <properties>
-        <tag>DIT-${BUILD_NUMBER}</tag>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>io.fabric8</groupId>
-            <artifactId>docker-maven-plugin</artifactId>
-            <version>0.42.0</version>
-            <executions>
-              <execution>
-                <id>push</id>
-                <phase>deploy</phase>
-                <goals>
-                  <goal>push</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>

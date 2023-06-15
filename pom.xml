@@ -124,6 +124,7 @@
     <module>commons/utils/openupdate-service-connector</module>
     <module>job-processor2</module>
     <module>dlq-errorhandler</module>
+    <module>jse-app</module>
   </modules>
 
 

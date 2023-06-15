@@ -2,6 +2,7 @@ package dk.dbc.dataio.jse.artemis.common;
 
 import java.time.DateTimeException;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -64,6 +65,15 @@ public interface EnvConfig {
         } catch (NumberFormatException nfe) {
             throw new NumberFormatException("Unable to parse key + " + name() + ", with value: " + asOptionalString().orElse("<empty>"));
         }
+    }
+
+    default Map<DBProperty, String> asDBProperties() {
+        return DBProperty.from(asString());
+    }
+
+    default String asPGJDBCUrl() {
+        Map<DBProperty, String> map = asDBProperties();
+        return "jdbc:postgresql://" + map.get(DBProperty.HOST) + ":" + map.get(DBProperty.PORT) + "/" + map.get(DBProperty.DATABASE);
     }
 
     default String getDefaultValue() {

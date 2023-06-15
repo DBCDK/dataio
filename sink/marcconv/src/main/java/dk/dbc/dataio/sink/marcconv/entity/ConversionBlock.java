@@ -51,6 +51,7 @@ public class ConversionBlock {
 
     @Embeddable
     public static class Key implements Serializable {
+        @SuppressWarnings("PMD.UnusedLocalVariable")
         private static final long SerialVersionUID = 1;
         @Column(name = "jobid")
         private int jobId;

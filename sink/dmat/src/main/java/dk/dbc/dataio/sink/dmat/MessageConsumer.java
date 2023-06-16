@@ -31,14 +31,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MessageConsumerBean extends MessageConsumerAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
+public class MessageConsumer extends MessageConsumerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
     private final JobStoreServiceConnector jobStore;
     private final DMatServiceConnector connector;
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
 
-    public MessageConsumerBean(ServiceHub serviceHub, DMatServiceConnector connector) {
+    public MessageConsumer(ServiceHub serviceHub, DMatServiceConnector connector) {
         super(serviceHub);
         jobStore = serviceHub.jobStoreServiceConnector;
         this.connector = connector;

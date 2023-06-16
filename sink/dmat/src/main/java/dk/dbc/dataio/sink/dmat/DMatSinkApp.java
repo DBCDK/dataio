@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 public class DMatSinkApp extends MessageConsumerApp {
     private static final ServiceHub serviceHub = ServiceHub.defaultHub();
     private static final DMatServiceConnector DMAT_SERVICE_CONNECTOR = new DMatServiceConnector(ClientBuilder.newClient(), SinkConfig.DMAT_SERVICE_URL.asString());
-    private static final Supplier<MessageConsumerBean> messageConsumer = () -> new MessageConsumerBean(serviceHub, DMAT_SERVICE_CONNECTOR);
+    private static final Supplier<MessageConsumer> messageConsumer = () -> new MessageConsumer(serviceHub, DMAT_SERVICE_CONNECTOR);
 
     public static void main(String[] args) {
         new DMatSinkApp().go(serviceHub, messageConsumer);

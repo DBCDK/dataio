@@ -35,10 +35,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class MessageConsumerBeanTest {
+public class MessageConsumerTest {
     private final DMatServiceConnector dMatServiceConnector = mock(DMatServiceConnector.class);
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
-    private final MessageConsumerBean messageConsumerBean = new MessageConsumerBean(
+    private final MessageConsumer messageConsumer = new MessageConsumer(
             new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build(),
             dMatServiceConnector);
 
@@ -48,7 +48,7 @@ public class MessageConsumerBeanTest {
     }
 
     private byte[] readLocalFile(String name) throws IOException {
-        Path path = Paths.get(MessageConsumerBeanTest.class.getResource("/__files/" + name).getPath());
+        Path path = Paths.get(MessageConsumerTest.class.getResource("/__files/" + name).getPath());
         return Files.readAllBytes(path);
     }
 
@@ -71,7 +71,7 @@ public class MessageConsumerBeanTest {
                 .setItems(chunkItems)
                 .build();
 
-        final Chunk result = messageConsumerBean.handleChunk(chunk);
+        final Chunk result = messageConsumer.handleChunk(chunk);
 
         MatcherAssert.assertThat("number of chunk items", result.size(), is(4));
         MatcherAssert.assertThat("1st chunk item", result.getItems().get(0).getStatus(),
@@ -102,7 +102,7 @@ public class MessageConsumerBeanTest {
                 .setItems(chunkItems)
                 .build();
 
-        final Chunk result = messageConsumerBean.handleChunk(chunk);
+        final Chunk result = messageConsumer.handleChunk(chunk);
 
         MatcherAssert.assertThat("number of chunk items", result.size(), is(2));
         MatcherAssert.assertThat("1st chunk item", result.getItems().get(0).getStatus(),

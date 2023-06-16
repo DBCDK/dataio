@@ -14,13 +14,11 @@
 
     <artifactId>dataio-sink-dmat</artifactId>
 
+    <properties>
+        <main-class>dk.dbc.dataio.sink.dmat.DMatSinkApp</main-class>
+    </properties>
+
     <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>dk.dbc</groupId>-->
-<!--            <artifactId>dataio-commons-utils-test</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dmat-connector</artifactId>

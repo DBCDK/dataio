@@ -1,7 +1,6 @@
 package dk.dbc.dataio.sink.marcconv;
 
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
-import dk.dbc.dataio.jse.artemis.common.DBProperty;
 import dk.dbc.dataio.jse.artemis.common.app.MessageConsumerApp;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.marcconv.jms.MessageConsumer;
@@ -25,7 +24,6 @@ public class MarcConvSinkApp extends MessageConsumerApp {
     }
 
     private static EntityManager makeEntityManager() {
-        Map<DBProperty, String> dbProperties = SinkConfig.MARCCONV_DB_URL.asDBProperties();
         Map<String, String> config = Map.of(
                 "javax.persistence.transactionType", "RESOURCE_LOCAL",
                 "provider", "org.eclipse.persistence.jpa.PersistenceProvider",

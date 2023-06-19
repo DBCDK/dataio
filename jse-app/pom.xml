@@ -18,7 +18,6 @@
         <tag>devel</tag>
         <main-class>Dummy</main-class>
         <java.image>docker-dbc.artifacts.dbccloud.dk/dbc-java11:master</java.image>
-        <BUILD_NUMBER>${BUILD_NUMBER:-0}</BUILD_NUMBER>
     </properties>
 
     <dependencies>

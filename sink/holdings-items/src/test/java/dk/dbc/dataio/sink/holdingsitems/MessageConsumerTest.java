@@ -3,13 +3,13 @@ package dk.dbc.dataio.sink.holdingsitems;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.solrdocstore.connector.SolrDocStoreConnector;
 import dk.dbc.solrdocstore.connector.SolrDocStoreConnectorException;
 import dk.dbc.solrdocstore.connector.SolrDocStoreConnectorUnexpectedStatusCodeException;
@@ -31,12 +31,11 @@ import static org.mockito.Mockito.when;
 
 class MessageConsumerTest {
     private final SolrDocStoreConnector solrDocStoreConnector = mock(SolrDocStoreConnector.class);
-    private final MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
     private final MessageConsumer messageConsumer = newMessageConsumerBean();
     private final JSONBContext jsonbContext = new JSONBContext();
 
     @Test
-    void handleChunk() throws SinkException, JSONBException, SolrDocStoreConnectorException {
+    void handleChunk() throws JSONBException, SolrDocStoreConnectorException {
         final IndexKeys indexKeys = new IndexKeys();
         indexKeys.put("k1", Collections.singletonList("v1"));
         final List<IndexKeys> indexKeysList = new ArrayList<>();
@@ -116,13 +115,8 @@ class MessageConsumerTest {
     }
 
     private MessageConsumer newMessageConsumerBean() {
-        final HoldingsItemsUnmarshaller holdingsItemsUnmarshaller = new HoldingsItemsUnmarshaller();
-        holdingsItemsUnmarshaller.solrDocStoreConnector = solrDocStoreConnector;
-        holdingsItemsUnmarshaller.metricsHandler = metricsHandlerBean;
-        final MessageConsumer messageConsumer = new MessageConsumer();
-        messageConsumer.solrDocStoreConnector = solrDocStoreConnector;
-        messageConsumer.metricsHandler = metricsHandlerBean;
-        messageConsumer.holdingsItemsUnmarshaller = holdingsItemsUnmarshaller;
-        return messageConsumer;
+        HoldingsItemsUnmarshaller holdingsItemsUnmarshaller = new HoldingsItemsUnmarshaller(solrDocStoreConnector);
+        ServiceHub hub = new ServiceHub.Builder().withJobStoreServiceConnector(mock(JobStoreServiceConnector.class)).build();
+        return new MessageConsumer(hub, solrDocStoreConnector, holdingsItemsUnmarshaller);
     }
 }

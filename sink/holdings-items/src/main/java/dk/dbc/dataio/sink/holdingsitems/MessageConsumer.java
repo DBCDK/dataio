@@ -16,8 +16,7 @@ import dk.dbc.solrdocstore.connector.SolrDocStoreConnectorException;
 import dk.dbc.solrdocstore.connector.SolrDocStoreConnectorUnexpectedStatusCodeException;
 import dk.dbc.solrdocstore.connector.model.HoldingsItems;
 import dk.dbc.solrdocstore.connector.model.Status;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.eclipse.microprofile.metrics.Tag;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -27,7 +26,6 @@ import java.time.Instant;
 import java.util.List;
 
 public class MessageConsumer extends MessageConsumerAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
     private final SolrDocStoreConnector solrDocStoreConnector;
     private final HoldingsItemsUnmarshaller holdingsItemsUnmarshaller;
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
@@ -141,8 +139,10 @@ public class MessageConsumer extends MessageConsumerAdapter {
         Status status = null;
         try {
             status = solrDocStoreConnector.setHoldings(holdingsItems);
+            return status;
         } finally {
-            Metric.SET_HOLDINGS_REQUESTS.simpleTimer("success", status == null ? false : status.getOk()).update(Duration.between(start, Instant.now()));
+            Tag success = new Tag("success", status == null ? "false" : status.getOk().toString());
+            Metric.SET_HOLDINGS_REQUESTS.simpleTimer(success).update(Duration.between(start, Instant.now()));
         }
     }
 }

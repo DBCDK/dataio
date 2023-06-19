@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+display_help() {
+    echo "Usage: jsondiff JSON_DOC1 JSON_DOC2 [DIFF_OPTION]..." >&2
+    echo "Compare normalized versions of JSON documents JSON_DOC1 and JSON_DOC2"
+    echo "   -h                         Show this help"
+    echo "   [DIFF_OPTION]              Any option supported by the diff command"
+}
+
+if [[ "$#" -lt 2 ]] || [[ "$1" == "-h" ]]; then
+    display_help
+    exit 0
+fi
+
+DIFF_TOOL="${DIFF_TOOL:-diff}"
+
+OPTIONS=${@:3}
+if grep -vq -e '\-\-side-by-side' -e '\-U ' -e '\-\-unified' -e '\-C ' -e '\-\-context' <<<${OPTIONS}; then
+    OPTIONS+=' -U 10000'
+fi
+
+${DIFF_TOOL} <(jq -S . $1) <(jq -S . $2) \
+          ${OPTIONS}

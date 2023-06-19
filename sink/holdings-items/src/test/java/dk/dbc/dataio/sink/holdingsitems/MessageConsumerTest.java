@@ -29,10 +29,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class MessageConsumerBeanTest {
+class MessageConsumerTest {
     private final SolrDocStoreConnector solrDocStoreConnector = mock(SolrDocStoreConnector.class);
     private final MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
-    private final MessageConsumerBean messageConsumerBean = newMessageConsumerBean();
+    private final MessageConsumer messageConsumer = newMessageConsumerBean();
     private final JSONBContext jsonbContext = new JSONBContext();
 
     @Test
@@ -95,7 +95,7 @@ class MessageConsumerBeanTest {
                 .setItems(chunkItems)
                 .build();
 
-        final Chunk result = messageConsumerBean.handleChunk(chunk);
+        final Chunk result = messageConsumer.handleChunk(chunk);
 
         assertThat("number of chunk items", result.size(), is(5));
         assertThat("1st chunk item",
@@ -115,14 +115,14 @@ class MessageConsumerBeanTest {
                 is("id1__1:123456 consumer service response - ok\nid1__2:123456 consumer service response - error\nid1__3:123456 consumer service response - ok\n"));
     }
 
-    private MessageConsumerBean newMessageConsumerBean() {
+    private MessageConsumer newMessageConsumerBean() {
         final HoldingsItemsUnmarshaller holdingsItemsUnmarshaller = new HoldingsItemsUnmarshaller();
         holdingsItemsUnmarshaller.solrDocStoreConnector = solrDocStoreConnector;
         holdingsItemsUnmarshaller.metricsHandler = metricsHandlerBean;
-        final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
-        messageConsumerBean.solrDocStoreConnector = solrDocStoreConnector;
-        messageConsumerBean.metricsHandler = metricsHandlerBean;
-        messageConsumerBean.holdingsItemsUnmarshaller = holdingsItemsUnmarshaller;
-        return messageConsumerBean;
+        final MessageConsumer messageConsumer = new MessageConsumer();
+        messageConsumer.solrDocStoreConnector = solrDocStoreConnector;
+        messageConsumer.metricsHandler = metricsHandlerBean;
+        messageConsumer.holdingsItemsUnmarshaller = holdingsItemsUnmarshaller;
+        return messageConsumer;
     }
 }

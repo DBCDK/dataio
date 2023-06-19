@@ -1,0 +1,17 @@
+{
+  "id" : "5430d965-b588-3d62-a089-da0aa49126f9",
+  "request" : {
+    "url" : "/api/v1/current/ACC/2023-06-16",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-api-v1-current-ACC-2023-06-16-iczTW.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/json",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "5430d965-b588-3d62-a089-da0aa49126f9"
+}

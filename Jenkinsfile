@@ -14,6 +14,14 @@ pipeline {
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BUILD_NUMBER="${env.BUILD_NUMBER}"
+        DEPLOY_ARTIFACTS="commons/utils/flow-store-service-connector, \
+            commons/utils/tickle-harvester-service-connector, \
+            gatekeeper, \
+            job-processor2, \
+            dlq-errorhandler, \
+            sink/dummy, \
+            sink/marcconv, \
+            sink/dmat"
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara5-bump-trigger",
@@ -83,7 +91,7 @@ pipeline {
             }
             steps {
                 sh """
-                    mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -am -pl "commons/utils/flow-store-service-connector, commons/utils/tickle-harvester-service-connector, gatekeeper, job-processor2, sink/dummy, dlq-errorhandler, sink/marcconv, sink/dmat"
+                    mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -am -pl "${DEPLOY_ARTIFACTS}"
                 """
             }
         }
@@ -168,7 +176,7 @@ pipeline {
                                     description: 'Dette byg bliver deployet til staging', name: 'Jep')])
                 }
                 sh """
-                mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "commons/utils/flow-store-service-connector, commons/utils/tickle-harvester-service-connector, gatekeeper, job-processor2, sink/dummy, dlq-errorhandler, sink/marcconv, sink/dmat"
+                mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "${DEPLOY_ARTIFACTS}"
                 cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
             """
             }

@@ -11,11 +11,9 @@
     </parent>
 
     <artifactId>dataio-sink-holdings-items</artifactId>
-    <name>dataio-sink-holdings-times</name>
-    <packaging>war</packaging>
 
     <properties>
-        <main-class>dk.dbc.dataio.sink.dummy.DummySinkApp</main-class>
+        <main-class>dk.dbc.dataio.sink.holdingsitems.HoldingItemsSinkApp</main-class>
     </properties>
 
     <dependencies>

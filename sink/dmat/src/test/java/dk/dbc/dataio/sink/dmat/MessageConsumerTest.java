@@ -3,12 +3,11 @@ package dk.dbc.dataio.sink.dmat;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.commons.metricshandler.CounterMetric;
-import dk.dbc.commons.metricshandler.MetricsHandlerBean;
-import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.dmat.service.connector.DMatServiceConnectorException;
 import dk.dbc.dmat.service.dto.RecordData;
@@ -19,8 +18,6 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.Is;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -35,27 +32,23 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class MessageConsumerBeanTest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBeanTest.class);
-    private MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
+public class MessageConsumerTest {
+    private final DMatServiceConnector dMatServiceConnector = mock(DMatServiceConnector.class);
+    private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    private final MessageConsumer messageConsumer = new MessageConsumer(
+            new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build(),
+            dMatServiceConnector);
 
     @Before
     public void setupMocks() throws DMatServiceConnectorException, JSONBException {
-        messageConsumerBean.connector = mock(DMatServiceConnector.class);
-        when(messageConsumerBean.connector.upsertRecord(any(RecordData.class))).thenReturn(
-                new DMatRecord().withId(1).withStatus(Status.NEW));
-
-        messageConsumerBean.metricsHandler = mock(MetricsHandlerBean.class);
-        doNothing().when(messageConsumerBean.metricsHandler).increment(any(CounterMetric.class));
-        doNothing().when(messageConsumerBean.metricsHandler).update(any(SimpleTimerMetric.class), any());
+        when(dMatServiceConnector.upsertRecord(any(RecordData.class))).thenReturn(new DMatRecord().withId(1).withStatus(Status.NEW));
     }
 
     private byte[] readLocalFile(String name) throws IOException {
-        Path path = Paths.get(MessageConsumerBeanTest.class.getResource("/__files/" + name).getPath());
+        Path path = Paths.get(MessageConsumerTest.class.getResource("/__files/" + name).getPath());
         return Files.readAllBytes(path);
     }
 
@@ -78,7 +71,7 @@ public class MessageConsumerBeanTest {
                 .setItems(chunkItems)
                 .build();
 
-        final Chunk result = messageConsumerBean.handleChunk(chunk);
+        final Chunk result = messageConsumer.handleChunk(chunk);
 
         MatcherAssert.assertThat("number of chunk items", result.size(), is(4));
         MatcherAssert.assertThat("1st chunk item", result.getItems().get(0).getStatus(),
@@ -109,7 +102,7 @@ public class MessageConsumerBeanTest {
                 .setItems(chunkItems)
                 .build();
 
-        final Chunk result = messageConsumerBean.handleChunk(chunk);
+        final Chunk result = messageConsumer.handleChunk(chunk);
 
         MatcherAssert.assertThat("number of chunk items", result.size(), is(2));
         MatcherAssert.assertThat("1st chunk item", result.getItems().get(0).getStatus(),

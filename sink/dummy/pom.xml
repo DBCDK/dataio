@@ -13,8 +13,6 @@
     </parent>
 
     <artifactId>dataio-sink-dummy</artifactId>
-    <name>dataio-sink-dummy</name>
-    <packaging>jar</packaging>
 
     <properties>
         <main-class>dk.dbc.dataio.sink.dummy.DummySinkApp</main-class>

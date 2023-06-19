@@ -73,7 +73,8 @@ public interface EnvConfig {
 
     default String asPGJDBCUrl() {
         Map<DBProperty, String> map = asDBProperties();
-        return "jdbc:postgresql://" + map.get(DBProperty.HOST) + ":" + map.get(DBProperty.PORT) + "/" + map.get(DBProperty.DATABASE);
+        return "jdbc:postgresql://" + map.get(DBProperty.HOST) + ":" + map.get(DBProperty.PORT) + "/" + map.get(DBProperty.DATABASE)
+                + "?user=" + map.get(DBProperty.USER) + "&password=" + map.get(DBProperty.PASSWORD);
     }
 
     default String getDefaultValue() {

@@ -11,9 +11,9 @@ public class HoldingItemsSinkApp extends MessageConsumerApp {
     private static final ServiceHub SERVICE_HUB = ServiceHub.defaultHub();
     private static final SolrDocStoreConnector SOLR_DOC_STORE = new SolrDocStoreConnector(ClientBuilder.newClient(), SinkConfig.SOLR_DOC_STORE_SERVICE_URL.asPGJDBCUrl());
     private static final HoldingsItemsUnmarshaller HOLDINGS_ITEMS_UNMARSHALLER = new HoldingsItemsUnmarshaller(SOLR_DOC_STORE);
-    private static final Supplier<MessageConsumer> messageConsumer = () -> new MessageConsumer(SERVICE_HUB, SOLR_DOC_STORE, HOLDINGS_ITEMS_UNMARSHALLER);
+    private static final Supplier<MessageConsumer> MESSAGE_CONSUMER = () -> new MessageConsumer(SERVICE_HUB, SOLR_DOC_STORE, HOLDINGS_ITEMS_UNMARSHALLER);
 
     public static void main(String[] args) {
-        new HoldingItemsSinkApp().go(SERVICE_HUB, messageConsumer);
+        new HoldingItemsSinkApp().go(SERVICE_HUB, MESSAGE_CONSUMER);
     }
 }

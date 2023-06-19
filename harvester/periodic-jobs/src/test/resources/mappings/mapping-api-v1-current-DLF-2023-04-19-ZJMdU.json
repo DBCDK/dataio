@@ -1,0 +1,17 @@
+{
+  "id" : "06e631ec-1341-3097-a892-d8800862a535",
+  "request" : {
+    "url" : "/api/v1/current/DLF/2023-04-19",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-api-v1-current-DLF-2023-04-19-ZJMdU.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/json",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "06e631ec-1341-3097-a892-d8800862a535"
+}

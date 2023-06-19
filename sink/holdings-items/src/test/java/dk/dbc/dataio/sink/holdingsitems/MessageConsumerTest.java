@@ -55,10 +55,12 @@ class MessageConsumerTest {
         holdingsItemsOK2.setIndexKeys(indexKeysList);
 
         final Status statusOk = new Status();
+        statusOk.setOk(true);
         statusOk.setText("ok");
         when(solrDocStoreConnector.setHoldings(eq(holdingsItemsOK1))).thenReturn(statusOk);
         when(solrDocStoreConnector.setHoldings(eq(holdingsItemsOK2))).thenReturn(statusOk);
         final Status statusFail = new Status();
+        statusFail.setOk(false);
         statusFail.setText("error");
         final SolrDocStoreConnectorUnexpectedStatusCodeException internalServerError =
                 new SolrDocStoreConnectorUnexpectedStatusCodeException("internal server error", 500);
@@ -93,6 +95,7 @@ class MessageConsumerTest {
                 .setChunkId(0L)
                 .setItems(chunkItems)
                 .build();
+//        when(solrDocStoreConnector.setHoldings(any())).thenReturn(statusOk);
 
         final Chunk result = messageConsumer.handleChunk(chunk);
 

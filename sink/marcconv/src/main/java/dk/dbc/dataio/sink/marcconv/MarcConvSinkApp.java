@@ -5,6 +5,7 @@ import dk.dbc.dataio.jse.artemis.common.DBProperty;
 import dk.dbc.dataio.jse.artemis.common.app.MessageConsumerApp;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.marcconv.jms.MessageConsumer;
+import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Persistence;
@@ -17,6 +18,12 @@ public class MarcConvSinkApp extends MessageConsumerApp {
     private static final FileStoreServiceConnector fileStore = new FileStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FILESTORE_URL.asString());
     private static final Supplier<MessageConsumer> messageConsumer = () -> new MessageConsumer(serviceHub, fileStore, makeEntityManager());
 
+    public MarcConvSinkApp() {
+        PGSimpleDataSource dataSource = new PGSimpleDataSource();
+        dataSource.setURL(SinkConfig.MARCCONV_DB_URL.asPGJDBCUrl());
+        new DatabaseMigrator(dataSource).migrate();
+    }
+
     private static EntityManager makeEntityManager() {
         Map<DBProperty, String> dbProperties = SinkConfig.MARCCONV_DB_URL.asDBProperties();
         Map<String, String> config = Map.of(
@@ -24,9 +31,7 @@ public class MarcConvSinkApp extends MessageConsumerApp {
                 "provider", "org.eclipse.persistence.jpa.PersistenceProvider",
                 "javax.persistence.schema-generation.database.action", "none",
                 "javax.persistence.jdbc.driver", "org.postgresql.Driver",
-                "javax.persistence.jdbc.url", SinkConfig.MARCCONV_DB_URL.asPGJDBCUrl(),
-                "javax.persistence.jdbc.user", dbProperties.get(DBProperty.USER),
-                "javax.persistence.jdbc.password", dbProperties.get(DBProperty.PASSWORD));
+                "javax.persistence.jdbc.url", SinkConfig.MARCCONV_DB_URL.asPGJDBCUrl());
         return Persistence.createEntityManagerFactory("marcconv_PU", config).createEntityManager();
     }
 

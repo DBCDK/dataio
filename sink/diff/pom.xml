@@ -109,6 +109,52 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>build</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <tagName>devel</tagName>
+                    <verbose>true</verbose>
+                    <images>
+                        <image>
+                            <name>docker-metascrum.artifacts.dbccloud.dk/%a:${tag}</name>
+                            <build>
+                                <from>${java.image}</from>
+                                <user>gfish</user>
+                                <assemblies>
+                                    <assembly>
+                                        <mode>dir</mode>
+                                        <inline>
+                                            <fileSets>
+                                                <fileSet>
+                                                    <directory>script</directory>
+                                                    <outputDirectory>.</outputDirectory>
+                                                    <includes>
+                                                        <include>xmldiff</include>
+                                                        <include>plaintextdiff</include>
+                                                        <include>jsondiff</include>
+                                                    </includes>
+                                                </fileSet>
+                                            </fileSets>
+                                        </inline>
+                                    </assembly>
+                                    <assembly>
+                                        <name>jar</name>
+                                        <descriptorRef>artifact</descriptorRef>
+                                        <targetDir>/work</targetDir>
+                                    </assembly>
+                                </assemblies>
+                                <cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-256m} -jar /work/${project.build.finalName}.jar</cmd>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
             </plugin>
         </plugins>
     </build>

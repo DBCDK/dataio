@@ -25,17 +25,16 @@ import java.util.List;
 import java.util.Objects;
 
 class DpfRecordProcessor {
-    private final ServiceBroker serviceBroker;
-    private final String queueProvider;
-    private List<DpfRecord> dpfRecords;
-    private List<Event> eventLog;
-
     static final List<String> PROTECTED_FIELDS = Arrays.asList("504", "530", "600", "610", "631", "666");
     static final List<String> DBC_PROTECTED_FIELDS = Arrays.asList("002", "d08");
     static final String RECORD_NOT_FOUND = "Posten (%s:%s) findes ikke i rawrepo";
     static final String CHANGED_PERIODICA = "Fejlet pga periodika skift. Periodica er %s i rawrepo men %s i denne post";
     static final String REFERENCE_MISMATCH = "Post %s:%s refererer i 035 *a til denne post, men denne post refererer i 018 *a til %s:%s";
     static final String FAILED_BECAUSE_OF_OTHER = "Sendt til lobby pga anden fejlet post";
+    private final ServiceBroker serviceBroker;
+    private final String queueProvider;
+    private List<DpfRecord> dpfRecords;
+    private List<Event> eventLog;
 
     DpfRecordProcessor(ServiceBroker serviceBroker, String queueProvider) {
         this.serviceBroker = serviceBroker;
@@ -53,7 +52,7 @@ class DpfRecordProcessor {
         }
 
         // All DpfRecords have same recordState so we just look at the first one
-        final DpfRecord.State recordState = dpfRecords.get(0).getProcessingInstructions().getRecordState();
+        DpfRecord.State recordState = dpfRecords.get(0).getProcessingInstructions().getRecordState();
         if (recordState == DpfRecord.State.NEW) {
             processAsNew();
         } else if (recordState == DpfRecord.State.MODIFIED) {
@@ -74,7 +73,7 @@ class DpfRecordProcessor {
 
     private void reset(List<DpfRecord> dpfRecords) {
         this.dpfRecords = dpfRecords;
-        this.eventLog = new ArrayList<>();
+        eventLog = new ArrayList<>();
     }
 
     private void sendToLobby() throws DpfRecordProcessorException {
@@ -97,7 +96,7 @@ class DpfRecordProcessor {
     }
 
     private void processAsNew() throws DpfRecordProcessorException {
-        final DpfRecord dpfRecord = dpfRecords.get(0);
+        DpfRecord dpfRecord = dpfRecords.get(0);
         DpfRecord dpfHead = null;
         eventLog.add(new Event(dpfRecord.getId(), Event.Type.PROCESS_AS_NEW));
 
@@ -106,7 +105,7 @@ class DpfRecordProcessor {
             return;
         }
 
-        final String bibliographicRecordId = getNewBibliographicRecordId(dpfRecord);
+        String bibliographicRecordId = getNewBibliographicRecordId(dpfRecord);
         dpfRecord.setBibliographicRecordId(bibliographicRecordId);
         dpfRecord.addSystemControlNumber("(DK-870970)" + bibliographicRecordId);
 
@@ -116,7 +115,7 @@ class DpfRecordProcessor {
             dpfHead = dpfRecords.get(1);
             eventLog.add(new Event(dpfHead.getId(), Event.Type.PROCESS_HEAD));
 
-            final String bibliographicRecordIdHead = getNewBibliographicRecordId(dpfHead);
+            String bibliographicRecordIdHead = getNewBibliographicRecordId(dpfHead);
             dpfHead.setBibliographicRecordId(bibliographicRecordIdHead);
 
             // Head volume should have a reference to the bind volume (not a parent/child relation!)
@@ -132,10 +131,10 @@ class DpfRecordProcessor {
     }
 
     private void processAsModified(boolean closed) throws DpfRecordProcessorException {
-        final DpfRecord dpfRecord = dpfRecords.get(0);
+        DpfRecord dpfRecord = dpfRecords.get(0);
         DpfRecord dpfHead = null;
-        final RawrepoRecord rawrepoRecord;
-        final RawrepoRecord rawrepoHeadRecord;
+        RawrepoRecord rawrepoRecord;
+        RawrepoRecord rawrepoHeadRecord;
         eventLog.add(new Event(dpfRecord.getId(), Event.Type.PROCESS_AS_MODIFIED));
 
         rawrepoRecord = getRawrepoRecord(dpfRecord, dpfRecord.getBibliographicRecordId(), 870970);
@@ -195,7 +194,7 @@ class DpfRecordProcessor {
 
             if (result.getUpdateStatusEnumDTO() != UpdateStatusEnumDTO.OK) {
                 eventLog.add(new Event(dpfRecord.getId(), Event.Type.IS_DOUBLE_RECORD));
-                final List<DoubleRecordFrontendDTO> doubleRecordEntries = result.getDoubleRecordFrontendDTOS();
+                List<DoubleRecordFrontendDTO> doubleRecordEntries = result.getDoubleRecordFrontendDTOS();
                 for (DoubleRecordFrontendDTO entry : doubleRecordEntries) {
                     dpfRecord.addError(entry.getMessage());
                 }
@@ -208,7 +207,7 @@ class DpfRecordProcessor {
 
     private String getCatalogueCodeWithWeekNumber(DpfRecord dpfRecord, String catalogueCode) throws DpfRecordProcessorException {
         try {
-            final String result = serviceBroker.getCatalogueCode(catalogueCode);
+            String result = serviceBroker.getCatalogueCode(catalogueCode);
 
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.NEW_CATALOGUE_CODE, result));
 
@@ -254,9 +253,9 @@ class DpfRecordProcessor {
     private void handleCatalogueCodeClosed(DpfRecord dpfRecord, RawrepoRecord rawrepoRecord) throws DpfRecordProcessorException {
         handleCatalogueCodeNew(dpfRecord);
 
-        final DataField dpfCatalogueFields = dpfRecord.getCatalogueCodeField();
-        final DataField rawrepoCatalogueFields = rawrepoRecord.getCatalogueCodeField();
-        final DataField newCatalogueField = new DataField("032", "00");
+        DataField dpfCatalogueFields = dpfRecord.getCatalogueCodeField();
+        DataField rawrepoCatalogueFields = rawrepoRecord.getCatalogueCodeField();
+        DataField newCatalogueField = new DataField("032", "00");
 
         newCatalogueField.getSubFields().addAll(dpfCatalogueFields.getSubFields());
         newCatalogueField.getSubFields().addAll(rawrepoCatalogueFields.getSubFields());
@@ -285,16 +284,13 @@ class DpfRecordProcessor {
         }
     }
 
-    private String getNewBibliographicRecordId(DpfRecord dpfRecord) throws DpfRecordProcessorException {
+    private String getNewBibliographicRecordId(DpfRecord dpfRecord) {
         try {
-            final String newFaust = serviceBroker.getNewFaust();
-
+            String newFaust = serviceBroker.getNewFaust();
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.NEW_FAUST, newFaust));
-
             return newFaust;
         } catch (OpennumberRollConnectorException e) {
-            throw new DpfRecordProcessorException(
-                    "Unable to get faust for DPF record " + dpfRecord.getId(), e);
+            throw new RuntimeException("Unable to get faust for DPF record " + dpfRecord.getId(), e);
         }
     }
 
@@ -302,17 +298,14 @@ class DpfRecordProcessor {
         try {
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.SENT_TO_UPDATESERVICE));
 
-            UpdateRecordResult result = serviceBroker.sendToUpdate(
-                    "010100", dpfRecord.getProcessingInstructions().getUpdateTemplate(),
+            UpdateRecordResult result = serviceBroker.sendToUpdate("010100", dpfRecord.getProcessingInstructions().getUpdateTemplate(),
                     dpfRecord, dpfRecord.getId(), queueProvider);
             if (result.getUpdateStatus() != UpdateStatusEnum.OK) {
                 eventLog.add(new Event(dpfRecord.getId(), Event.Type.UPDATE_VALIDATION_ERROR));
-                serviceBroker.getUpdateErrors("e01", result, dpfRecord)
-                        .forEach(field -> dpfRecord.addError(field));
+                serviceBroker.getUpdateErrors("e01", result, dpfRecord).forEach(dpfRecord::addError);
             }
         } catch (BibliographicRecordFactoryException e) {
-            throw new DpfRecordProcessorException(
-                    "Unexpected exception during update request " + dpfRecord.getId(), e);
+            throw new DpfRecordProcessorException("Unexpected exception during update request " + dpfRecord.getId(), e);
         }
     }
 
@@ -321,35 +314,9 @@ class DpfRecordProcessor {
         private final String suffix;
         private final Type type;
 
-        public enum Type {
-            SENT_TO_DOUBLE_RECORD_CHECK("Sent to double record check"),
-            NEW_CATALOGUE_CODE("Got new catalogue code"),
-            NEW_FAUST("Got new faust from opennumberroll"),
-            PROCESS_AS_NEW("New DPF record"),
-            PROCESS_AS_MODIFIED("Modified DPF record"),
-            PROCESS_HEAD("Processing DPF head record"),
-            IS_DOUBLE_RECORD("Is a double record"),
-            SENT_TO_LOBBY("Sent to lobby"),
-            DIFFERENT_PERIODICA_TYPE("Periodica type is changed"),
-            NOT_FOUND("Record was not found"),
-            DPF_REFERENCE_MISMATCH("The DPF record reference (035 *a) in DPF head doesn't match referencing (018 *a) DPF record"),
-            SENT_TO_UPDATESERVICE("Send record to updateservice"),
-            UPDATE_VALIDATION_ERROR("Validation error from updateservice");
-
-            private final String displayMessage;
-
-            Type(String displayMessage) {
-                this.displayMessage = displayMessage;
-            }
-
-            public String getDisplayMessage() {
-                return displayMessage;
-            }
-        }
-
         Event(String dpfRecordId, Event.Type type) {
             this.dpfRecordId = dpfRecordId;
-            this.suffix = null;
+            suffix = null;
             this.type = type;
         }
 
@@ -390,6 +357,32 @@ class DpfRecordProcessor {
             result = 31 * result + (suffix != null ? suffix.hashCode() : 0);
             result = 31 * result + (type != null ? type.hashCode() : 0);
             return result;
+        }
+
+        public enum Type {
+            SENT_TO_DOUBLE_RECORD_CHECK("Sent to double record check"),
+            NEW_CATALOGUE_CODE("Got new catalogue code"),
+            NEW_FAUST("Got new faust from opennumberroll"),
+            PROCESS_AS_NEW("New DPF record"),
+            PROCESS_AS_MODIFIED("Modified DPF record"),
+            PROCESS_HEAD("Processing DPF head record"),
+            IS_DOUBLE_RECORD("Is a double record"),
+            SENT_TO_LOBBY("Sent to lobby"),
+            DIFFERENT_PERIODICA_TYPE("Periodica type is changed"),
+            NOT_FOUND("Record was not found"),
+            DPF_REFERENCE_MISMATCH("The DPF record reference (035 *a) in DPF head doesn't match referencing (018 *a) DPF record"),
+            SENT_TO_UPDATESERVICE("Send record to updateservice"),
+            UPDATE_VALIDATION_ERROR("Validation error from updateservice");
+
+            private final String displayMessage;
+
+            Type(String displayMessage) {
+                this.displayMessage = displayMessage;
+            }
+
+            public String getDisplayMessage() {
+                return displayMessage;
+            }
         }
     }
 }

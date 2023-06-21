@@ -14,52 +14,42 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 
 public class BibliographicRecordFactory extends DocumentTransformer {
-    private final BibliographicRecordExtraDataMarshaller bibliographicRecordExtraDataMarshaller =
-            new BibliographicRecordExtraDataMarshaller();
+    private final BibliographicRecordExtraDataMarshaller bibliographicRecordExtraDataMarshaller = new BibliographicRecordExtraDataMarshaller();
 
-    public BibliographicRecord toBibliographicRecord(MarcRecord marcRecord) throws BibliographicRecordFactoryException {
-        return toBibliographicRecord(MarcRecordFactory.toMarcXchange(marcRecord));
-    }
-
-    public BibliographicRecord toBibliographicRecord(MarcRecord marcRecord, String queueProvider)
-            throws BibliographicRecordFactoryException {
+    public BibliographicRecord toBibliographicRecord(MarcRecord marcRecord, String queueProvider) throws BibliographicRecordFactoryException {
         return toBibliographicRecord(MarcRecordFactory.toMarcXchange(marcRecord), queueProvider);
     }
 
     public BibliographicRecord toBibliographicRecord(byte[] bytes)
             throws BibliographicRecordFactoryException {
         try {
-            final Document document = byteArrayToDocument(bytes);
-            final BibliographicRecord bibliographicRecord = new BibliographicRecord();
+            Document document = byteArrayToDocument(bytes);
+            BibliographicRecord bibliographicRecord = new BibliographicRecord();
             bibliographicRecord.setRecordSchema("info:lc/xmlns/marcxchange-v1");
             bibliographicRecord.setRecordPacking("xml");
 
-            final RecordData recordData = new RecordData();
+            RecordData recordData = new RecordData();
             recordData.getContent().add(document.getDocumentElement());
 
             bibliographicRecord.setRecordData(recordData);
             return bibliographicRecord;
         } catch (IOException | SAXException e) {
-            throw new BibliographicRecordFactoryException(
-                    "Unable to create double record check bibliographic record", e);
+            throw new BibliographicRecordFactoryException("Unable to create double record check bibliographic record", e);
         }
     }
 
-    public BibliographicRecord toBibliographicRecord(byte[] bytes, String queueProvider)
-            throws BibliographicRecordFactoryException {
-        final BibliographicRecord bibliographicRecord = toBibliographicRecord(bytes);
-        final ExtraRecordData extraRecordData = new ExtraRecordData();
+    public BibliographicRecord toBibliographicRecord(byte[] bytes, String queueProvider) throws BibliographicRecordFactoryException {
+        BibliographicRecord bibliographicRecord = toBibliographicRecord(bytes);
+        ExtraRecordData extraRecordData = new ExtraRecordData();
         if (queueProvider != null && !queueProvider.trim().isEmpty()) {
-            final BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
+            BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
             bibliographicRecordExtraData.setProviderName(queueProvider);
             bibliographicRecordExtraData.setPriority(1000);  // hardcoded default priority
 
             try {
-                extraRecordData.getContent().add(bibliographicRecordExtraDataMarshaller
-                        .toXmlDocument(bibliographicRecordExtraData).getDocumentElement());
+                extraRecordData.getContent().add(bibliographicRecordExtraDataMarshaller.toXmlDocument(bibliographicRecordExtraData).getDocumentElement());
             } catch (JAXBException e) {
-                throw new BibliographicRecordFactoryException(
-                        "Unable to add extra data to bibliographic record", e);
+                throw new BibliographicRecordFactoryException("Unable to add extra data to bibliographic record", e);
             }
         }
         bibliographicRecord.setExtraRecordData(extraRecordData);

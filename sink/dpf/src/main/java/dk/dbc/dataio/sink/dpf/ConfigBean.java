@@ -1,50 +1,48 @@
 package dk.dbc.dataio.sink.dpf;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
-import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.DpfSinkConfig;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.commons.utils.cache.Cache;
-import dk.dbc.dataio.commons.utils.cache.CacheManager;
-import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJB;
-import javax.ejb.Lock;
-import javax.ejb.LockType;
-import javax.ejb.Singleton;
+import javax.ws.rs.client.ClientBuilder;
+import java.time.Duration;
 
 /**
  * This Enterprise Java Bean (EJB) singleton is used as a config container for the DPF sink
  */
-@Singleton
 public class ConfigBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigBean.class);
-
-    @EJB
-    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-
-    Cache<Long, FlowBinder> cachedFlowBinders = CacheManager.createLRUCache(10);
-
+    private final FlowStoreServiceConnector flowStoreServiceConnector;
+    private final Cache<Long, FlowBinder> cachedFlowBinders = CacheBuilder.newBuilder().maximumSize(10).expireAfterAccess(Duration.ofHours(1)).build();
     private long highestVersionSeen = 0;
     private DpfSinkConfig config;
     private String queueProvider;
 
-    @Lock(LockType.READ)
-    public DpfSinkConfig getConfig() {
+    public ConfigBean() {
+        flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FLOWSTORE_URL.asString());
+    }
+
+    public ConfigBean(FlowStoreServiceConnector flowStoreServiceConnector) {
+        this.flowStoreServiceConnector = flowStoreServiceConnector;
+    }
+
+    public synchronized DpfSinkConfig getConfig() {
         return config;
     }
 
-    @Lock(LockType.READ)
-    public String getQueueProvider() {
+    public synchronized String getQueueProvider() {
         return queueProvider;
     }
 
-    public void refresh(ConsumedMessage consumedMessage) throws SinkException {
+    public void refresh(ConsumedMessage consumedMessage) {
         refreshSinkConfig(consumedMessage);
         refreshQueueProvider(consumedMessage);
     }
@@ -54,37 +52,38 @@ public class ConfigBean {
      * @param consumedMessage consumed message containing the version and the id of the sink
      * @throws SinkException on error to retrieve property for id or version or on error on fetching sink
      */
-    private void refreshSinkConfig(ConsumedMessage consumedMessage) throws SinkException {
+    private void refreshSinkConfig(ConsumedMessage consumedMessage) {
         try {
-            final long sinkId = consumedMessage.getHeaderValue(JmsConstants.SINK_ID_PROPERTY_NAME, Long.class);
-            final long sinkVersion = consumedMessage.getHeaderValue(JmsConstants.SINK_VERSION_PROPERTY_NAME, Long.class);
-            if (sinkVersion > highestVersionSeen) {
-                final Sink sink = flowStoreServiceConnectorBean.getConnector().getSink(sinkId);
-                config = (DpfSinkConfig) sink.getContent().getSinkConfig();
-                LOGGER.info("Current sink config: {}", config);
-                highestVersionSeen = sink.getVersion();
+            long sinkId = JMSHeader.sinkId.getHeader(consumedMessage, Long.class);
+            long sinkVersion = JMSHeader.sinkVersion.getHeader(consumedMessage, Long.class);
+            synchronized (this) {
+                if (sinkVersion > highestVersionSeen) {
+                    Sink sink = flowStoreServiceConnector.getSink(sinkId);
+                    config = (DpfSinkConfig) sink.getContent().getSinkConfig();
+                    LOGGER.info("Current sink config: {}", config);
+                    highestVersionSeen = sink.getVersion();
+                }
             }
         } catch (FlowStoreServiceConnectorException e) {
-            throw new SinkException(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    private void refreshQueueProvider(ConsumedMessage message) throws SinkException {
+    private void refreshQueueProvider(ConsumedMessage message) {
         try {
-            final long flowBinderIdFromMessage = message.getHeaderValue(
-                    JmsConstants.FLOW_BINDER_ID_PROPERTY_NAME, Long.class);
-            final long flowBinderVersionFromMessage = message.getHeaderValue(
-                    JmsConstants.FLOW_BINDER_VERSION_PROPERTY_NAME, Long.class);
-            FlowBinder flowBinder = cachedFlowBinders.get(flowBinderIdFromMessage);
-            if (flowBinder == null || flowBinder.getVersion() < flowBinderVersionFromMessage) {
-                flowBinder = flowStoreServiceConnectorBean.getConnector().getFlowBinder(flowBinderIdFromMessage);
-                LOGGER.info("Caching version {} of flow-binder {}",
-                        flowBinder.getVersion(), flowBinder.getContent().getName());
-                cachedFlowBinders.put(flowBinderIdFromMessage, flowBinder);
-                queueProvider = flowBinder.getContent().getQueueProvider();
+            long flowBinderIdFromMessage = JMSHeader.flowBinderId.getHeader(message, Long.class);
+            long flowBinderVersionFromMessage = JMSHeader.flowBinderVersion.getHeader(message, Long.class);
+            FlowBinder flowBinder = cachedFlowBinders.getIfPresent(flowBinderIdFromMessage);
+            synchronized (this) {
+                if (flowBinder == null || flowBinder.getVersion() < flowBinderVersionFromMessage) {
+                    flowBinder = flowStoreServiceConnector.getFlowBinder(flowBinderIdFromMessage);
+                    LOGGER.info("Caching version {} of flow-binder {}", flowBinder.getVersion(), flowBinder.getContent().getName());
+                    cachedFlowBinders.put(flowBinderIdFromMessage, flowBinder);
+                    queueProvider = flowBinder.getContent().getQueueProvider();
+                }
             }
         } catch (FlowStoreServiceConnectorException e) {
-            throw new SinkException(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 }

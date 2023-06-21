@@ -1,4 +1,4 @@
-package dk.dbc.dataio.sink.dpf;
+package dk.dbc.dataio.sink.dpf.transform;
 
 import dk.dbc.dataio.sink.openupdate.bindings.BibliographicRecordExtraData;
 import dk.dbc.dataio.sink.openupdate.bindings.BibliographicRecordExtraDataMarshaller;

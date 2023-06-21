@@ -3,6 +3,9 @@ package dk.dbc.dataio.sink.dpf;
 import dk.dbc.dataio.commons.types.DpfSinkConfig;
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
+import dk.dbc.dataio.sink.dpf.transform.BibliographicRecordFactory;
+import dk.dbc.dataio.sink.dpf.transform.BibliographicRecordFactoryException;
+import dk.dbc.dataio.sink.dpf.transform.MarcRecordFactory;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.LobbyConnector;
@@ -32,7 +35,11 @@ import javax.ws.rs.client.ClientBuilder;
 import java.util.Collections;
 import java.util.List;
 
-import static dk.dbc.dataio.sink.dpf.SinkConfig.*;
+import static dk.dbc.dataio.sink.dpf.SinkConfig.LOBBY_SERVICE_URL;
+import static dk.dbc.dataio.sink.dpf.SinkConfig.OPENNUMBERROLL_SERVICE_URL;
+import static dk.dbc.dataio.sink.dpf.SinkConfig.RAWREPO_RECORD_SERVICE_URL;
+import static dk.dbc.dataio.sink.dpf.SinkConfig.UPDATE_SERVICE_WS_URL;
+import static dk.dbc.dataio.sink.dpf.SinkConfig.WEEKRESOLVER_SERVICE_URL;
 
 public class ServiceBroker {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);

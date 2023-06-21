@@ -17,85 +17,26 @@
     </properties>
 
     <dependencies>
-        <!--    <dependency>-->
-        <!--      <groupId>dk.dbc</groupId>-->
-        <!--      <artifactId>artemis-jms-base-image</artifactId>-->
-        <!--      <version>java11-SNAPSHOT</version>-->
-        <!--    </dependency>-->
-        <!--    <dependency>-->
-        <!--      <groupId>javax</groupId>-->
-        <!--      <artifactId>javaee-api</artifactId>-->
-        <!--      <version>${javaee.version}</version>-->
-        <!--      <scope>provided</scope>-->
-        <!--    </dependency>-->
-        <!--    <dependency>-->
-        <!--      <groupId>com.fasterxml.jackson.core</groupId>-->
-        <!--      <artifactId>jackson-databind</artifactId>-->
-        <!--      <version>${jackson.version}</version>-->
-        <!--      <scope>provided</scope>-->
-        <!--    </dependency>-->
-        <!--    <dependency>-->
-        <!--      <groupId>com.fasterxml.jackson.core</groupId>-->
-        <!--      <artifactId>jackson-annotations</artifactId>-->
-        <!--      <version>${jackson.version}</version>-->
-        <!--      <scope>provided</scope>-->
-        <!--    </dependency>-->
-        <!--    <dependency>-->
-        <!--      <groupId>dk.dbc</groupId>-->
-        <!--      <artifactId>dataio-commons-utils-cache</artifactId>-->
-        <!--      <version>${project.version}</version>-->
-        <!--    </dependency>-->
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--    <dependency>-->
-        <!--      <groupId>dk.dbc</groupId>-->
-        <!--      <artifactId>dbc-commons-json-binding</artifactId>-->
-        <!--      <version>${dbc-commons-json-binding.version}</version>-->
-        <!--    </dependency>-->
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-openupdate-service-connector</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--    <dependency>-->
-        <!--      <groupId>dk.dbc</groupId>-->
-        <!--      <artifactId>dataio-commons-utils-test</artifactId>-->
-        <!--      <version>${project.version}</version>-->
-        <!--      <scope>test</scope>-->
-        <!--    </dependency>-->
-        <!--    <dependency>-->
-        <!--      <groupId>dk.dbc</groupId>-->
-        <!--      <artifactId>dataio-sink-types</artifactId>-->
-        <!--      <version>${project.version}</version>-->
-        <!--    </dependency>-->
-        <!--    <dependency>-->
-        <!--      <groupId>dk.dbc</groupId>-->
-        <!--      <artifactId>dbc-commons-addi</artifactId>-->
-        <!--      <version>${dbc-commons.version}</version>-->
-        <!--    </dependency>-->
-        <!--    <dependency>-->
-        <!--      <groupId>dk.dbc</groupId>-->
-        <!--      <artifactId>dbc-commons-log</artifactId>-->
-        <!--      <version>${dbc-commons.version}</version>-->
-        <!--    </dependency>-->
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>lobby-connector</artifactId>
             <version>1.1-SNAPSHOT</version>
         </dependency>
-        <!--    <dependency>-->
-        <!--      <groupId>dk.dbc</groupId>-->
-        <!--      <artifactId>stopwatch</artifactId>-->
-        <!--      <version>1.0-SNAPSHOT</version>-->
-        <!--    </dependency>-->
-            <dependency>
-              <groupId>dk.dbc</groupId>
-              <artifactId>dataio-sink-util</artifactId>
-              <version>1.0-SNAPSHOT</version>
-            </dependency>
+        <dependency>
+          <groupId>dk.dbc</groupId>
+          <artifactId>dataio-sink-util</artifactId>
+          <version>1.0-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>updateservice-rest-connector</artifactId>
@@ -119,43 +60,12 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
-        <!--    <dependency>-->
-        <!--      <groupId>org.apache.commons</groupId>-->
-        <!--      <artifactId>commons-lang3</artifactId>-->
-        <!--      <version>3.9</version>-->
-        <!--    </dependency>-->
-        <!--     <dependency>-->
-        <!--      <groupId>org.eclipse.microprofile</groupId>-->
-        <!--      <artifactId>microprofile</artifactId>-->
-        <!--       <version>${microprofile.version}</version>-->
-        <!--      <type>pom</type>-->
-        <!--    </dependency>-->
-            <dependency>
-              <groupId>org.xmlunit</groupId>
-              <artifactId>xmlunit-matchers</artifactId>
-              <version>2.6.3</version>
-              <scope>test</scope>
-            </dependency>
-        <!--    <dependency>-->
-        <!--      <groupId>dk.dbc</groupId>-->
-        <!--      <artifactId>rawrepo-record-service-dto</artifactId>-->
-        <!--      <version>${rawrepo-record-service-dto.version}</version>-->
-        <!--    </dependency>-->
-        <!--    <dependency>-->
-        <!--      <groupId>dk.dbc</groupId>-->
-        <!--      <artifactId>json-binding</artifactId>-->
-        <!--      <version>${json-binding.version}</version>-->
-        <!--      <exclusions>-->
-        <!--        <exclusion>-->
-        <!--          <groupId>com.fasterxml.jackson.core</groupId>-->
-        <!--          <artifactId>jackson-annotations</artifactId>-->
-        <!--        </exclusion>-->
-        <!--        <exclusion>-->
-        <!--          <groupId>com.fasterxml.jackson.core</groupId>-->
-        <!--          <artifactId>jackson-databind</artifactId>-->
-        <!--        </exclusion>-->
-        <!--      </exclusions>-->
-        <!--    </dependency>-->
+        <dependency>
+          <groupId>org.xmlunit</groupId>
+          <artifactId>xmlunit-matchers</artifactId>
+          <version>2.6.3</version>
+          <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -169,47 +79,6 @@
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
             </plugin>
-            <!--      <plugin>-->
-            <!--        <groupId>org.apache.maven.plugins</groupId>-->
-            <!--        <artifactId>maven-resources-plugin</artifactId>-->
-            <!--        <version>${maven-resources-plugin.version}</version>-->
-            <!--        <executions>-->
-            <!--          <execution>-->
-            <!--            <id>process config</id>-->
-            <!--          </execution>-->
-            <!--        </executions>-->
-            <!--      </plugin>-->
-            <!--      <plugin>-->
-            <!--        <artifactId>exec-maven-plugin</artifactId>-->
-            <!--        <groupId>org.codehaus.mojo</groupId>-->
-            <!--        <version>${exec-maven-plugin.version}</version>-->
-            <!--        <executions>-->
-            <!--          <execution>-->
-            <!--            <id>prepare-build-docker-image</id>-->
-            <!--            <configuration>-->
-            <!--              <arguments combine.children="append">-->
-            <!--                <argument>dbc-payara-dpf-sink</argument>-->
-            <!--              </arguments>-->
-            <!--            </configuration>-->
-            <!--          </execution>-->
-            <!--        </executions>-->
-            <!--      </plugin>-->
-            <!--      <plugin>-->
-            <!--        <groupId>org.apache.maven.plugins</groupId>-->
-            <!--        <artifactId>maven-war-plugin</artifactId>-->
-            <!--        <version>${maven.war.plugin.version}</version>-->
-            <!--        <configuration>-->
-            <!--          <failOnMissingWebXml>false</failOnMissingWebXml>-->
-            <!--          <attachClasses>false</attachClasses>-->
-            <!--          <webResources>-->
-            <!--            <resource>-->
-            <!--              <directory>${basedir}/src/main/webapp/WEB-INF</directory>-->
-            <!--              <filtering>true</filtering>-->
-            <!--              <targetPath>WEB-INF</targetPath>-->
-            <!--            </resource>-->
-            <!--          </webResources>-->
-            <!--        </configuration>-->
-            <!--      </plugin>-->
         </plugins>
     </build>
 </project>

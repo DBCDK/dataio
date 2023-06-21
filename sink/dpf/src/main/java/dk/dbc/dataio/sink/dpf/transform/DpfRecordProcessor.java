@@ -1,5 +1,6 @@
-package dk.dbc.dataio.sink.dpf;
+package dk.dbc.dataio.sink.dpf.transform;
 
+import dk.dbc.dataio.sink.dpf.ServiceBroker;
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
 import dk.dbc.jsonb.JSONBException;
@@ -24,7 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-class DpfRecordProcessor {
+public class DpfRecordProcessor {
     static final List<String> PROTECTED_FIELDS = Arrays.asList("504", "530", "600", "610", "631", "666");
     static final List<String> DBC_PROTECTED_FIELDS = Arrays.asList("002", "d08");
     static final String RECORD_NOT_FOUND = "Posten (%s:%s) findes ikke i rawrepo";
@@ -36,12 +37,12 @@ class DpfRecordProcessor {
     private List<DpfRecord> dpfRecords;
     private List<Event> eventLog;
 
-    DpfRecordProcessor(ServiceBroker serviceBroker, String queueProvider) {
+    public DpfRecordProcessor(ServiceBroker serviceBroker, String queueProvider) {
         this.serviceBroker = serviceBroker;
         this.queueProvider = queueProvider;
     }
 
-    List<Event> process(List<DpfRecord> dpfRecords) throws DpfRecordProcessorException {
+    public List<Event> process(List<DpfRecord> dpfRecords) throws DpfRecordProcessorException {
         reset(dpfRecords);
 
         for (DpfRecord dpfRecord : dpfRecords) {
@@ -309,7 +310,7 @@ class DpfRecordProcessor {
         }
     }
 
-    static class Event {
+    public static class Event {
         private final String dpfRecordId;
         private final String suffix;
         private final Type type;

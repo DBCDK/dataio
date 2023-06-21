@@ -34,6 +34,7 @@ pipeline {
         timestamps()
         timeout(time: 1, unit: "HOURS")
         disableConcurrentBuilds(abortPrevious: true)
+        lock('dataio-build')
     }
     stages {
         stage('clean and checkout') {

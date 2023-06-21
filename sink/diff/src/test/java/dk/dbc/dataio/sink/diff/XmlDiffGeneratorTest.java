@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.diff;
 
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -16,7 +17,7 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     // xmllint + diff cannot handle default >< explicit namespaces
     @Ignore
     @Test
-    public void testGetDiff_semanticEqual_returnsEmptyString() throws DiffGeneratorException {
+    public void testGetDiff_semanticEqual_returnsEmptyString() throws DiffGeneratorException, InvalidMessageException {
         ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
         String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
                 getXml(), getXmlSemanticEquals());
@@ -24,7 +25,7 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void testGetDiff_different_returnsDiffString() throws DiffGeneratorException {
+    public void testGetDiff_different_returnsDiffString() throws DiffGeneratorException, InvalidMessageException {
         if (canXmlDiff()) {
             final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
             final String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, getXml(), getXmlNext());
@@ -33,7 +34,7 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void testGetDiff_bug18965() throws DiffGeneratorException, IOException, URISyntaxException {
+    public void testGetDiff_bug18965() throws DiffGeneratorException, IOException, URISyntaxException, InvalidMessageException {
         if (canXmlDiff()) {
             final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
             final String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
@@ -45,7 +46,7 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
 
 
     @Test
-    public void testGetDiff_output() throws DiffGeneratorException, IOException, URISyntaxException {
+    public void testGetDiff_output() throws DiffGeneratorException, IOException, URISyntaxException, InvalidMessageException {
         if (canXmlDiff()) {
             final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
             final String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
@@ -56,7 +57,7 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void testGetDiff_contentEquals_returnsEmptyString() throws DiffGeneratorException {
+    public void testGetDiff_contentEquals_returnsEmptyString() throws DiffGeneratorException, InvalidMessageException {
         if (canXmlDiff()) {
             final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
             final String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, getXml(), getXml());
@@ -65,7 +66,7 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void testGetDiff_failureComparingInput_throws() {
+    public void testGetDiff_failureComparingInput_throws() throws InvalidMessageException {
         if (canXmlDiff()) {
             try {
                 final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();

@@ -2,7 +2,12 @@ package dk.dbc.dataio.sink.diff;
 
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -47,10 +52,8 @@ public class ExternalToolDiffGenerator {
             StreamHandler errHandler = new StreamHandler(p.getErrorStream(),
                     (line) -> err.append(line).append("\n"), () -> stderrDone.set(true));
 
-            //Thread outputThread = threadFactory.newThread(outHandler);
             Thread outputThread = new Thread(outHandler);
             outputThread.start();
-            //Thread errorThread = threadFactory.newThread(errHandler);
             Thread errorThread = new Thread(errHandler);
             errorThread.start();
 

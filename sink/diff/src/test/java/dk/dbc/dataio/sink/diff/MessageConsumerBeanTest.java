@@ -5,15 +5,12 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.testutil.ObjectFactory;
-import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.javascript.recordprocessing.FailRecord;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -24,35 +21,25 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
     private final static String DBC_TRACKING_ID = "dataio_";
-
-    private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
 
-    @Before
-    public void setupMocks() {
-        when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
-    }
-
     @Test
-    public void sendsResultToJobStore() throws ServiceException, InvalidMessageException, JobStoreServiceConnectorException {
-        final ConsumedMessage message = ObjectFactory.createConsumedMessage(new ChunkBuilder(Chunk.Type.PROCESSED).build());
+    public void sendsResultToJobStore() throws InvalidMessageException, JobStoreServiceConnectorException {
+        ConsumedMessage message = ObjectFactory.createConsumedMessage(new ChunkBuilder(Chunk.Type.PROCESSED).build());
         newMessageConsumerBean().handleConsumedMessage(message);
 
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong());
     }
 
     @Test
-    public void failOnMissingNextItems() throws SinkException {
-        final List<ChunkItem> chunkItems = Arrays.asList(
+    public void failOnMissingNextItems() throws InvalidMessageException {
+        List<ChunkItem> chunkItems = Arrays.asList(
                 ChunkItem.failedChunkItem()
                         .withId(0L)
                         .withTrackingId(DBC_TRACKING_ID + 0),
@@ -62,14 +49,14 @@ public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
                 ChunkItem.ignoredChunkItem()
                         .withId(2L)
                         .withTrackingId(DBC_TRACKING_ID + 2));
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(chunkItems)
                 .build();
 
-        final Chunk result = newMessageConsumerBean().handleChunk(chunk);
+        Chunk result = newMessageConsumerBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(chunkItems.size()));
 
-        final Iterator<ChunkItem> iterator = result.iterator();
+        Iterator<ChunkItem> iterator = result.iterator();
 
         ChunkItem item = iterator.next();
         assertThat("1st item status", item.getStatus(), is(ChunkItem.Status.FAILURE));
@@ -89,8 +76,8 @@ public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void failOnXmlDiff() throws SinkException {
-        final List<ChunkItem> currentItems = Arrays.asList(
+    public void failOnXmlDiff() throws InvalidMessageException {
+        List<ChunkItem> currentItems = Arrays.asList(
                 ChunkItem.failedChunkItem()
                         .withId(0L)
                         .withTrackingId(DBC_TRACKING_ID + 0)
@@ -108,7 +95,7 @@ public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
                         .withId(3L)
                         .withTrackingId(DBC_TRACKING_ID + 3)
                         .withData("<data>3</data>"));
-        final List<ChunkItem> nextItems = Arrays.asList(
+        List<ChunkItem> nextItems = Arrays.asList(
                 ChunkItem.failedChunkItem()
                         .withId(0L)
                         .withTrackingId(DBC_TRACKING_ID + 0)
@@ -126,15 +113,15 @@ public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
                         .withId(3L)
                         .withTrackingId(DBC_TRACKING_ID + 3)
                         .withData("<data>3</data>"));
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(currentItems)
                 .setNextItems(nextItems)
                 .build();
 
-        final Chunk result = newMessageConsumerBean().handleChunk(chunk);
+        Chunk result = newMessageConsumerBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(currentItems.size()));
 
-        final Iterator<ChunkItem> iterator = result.iterator();
+        Iterator<ChunkItem> iterator = result.iterator();
 
         ChunkItem item = iterator.next();
         assertThat("1st item status", item.getStatus(), is(ChunkItem.Status.IGNORE));
@@ -160,8 +147,8 @@ public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void failOnAddiDiff() throws SinkException {
-        final List<ChunkItem> currentItems = Arrays.asList(
+    public void failOnAddiDiff() throws InvalidMessageException {
+        List<ChunkItem> currentItems = Arrays.asList(
                 ChunkItem.successfulChunkItem()
                         .withId(0L)
                         .withTrackingId(DBC_TRACKING_ID + 0)
@@ -174,7 +161,7 @@ public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
                         .withId(2L)
                         .withTrackingId(DBC_TRACKING_ID + 2)
                         .withData("9\nmetadata2\n8\ncontent2\n"));
-        final List<ChunkItem> nextItems = Arrays.asList(
+        List<ChunkItem> nextItems = Arrays.asList(
                 ChunkItem.successfulChunkItem()
                         .withId(0L)
                         .withTrackingId(DBC_TRACKING_ID + 0)
@@ -188,15 +175,15 @@ public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
                         .withTrackingId(DBC_TRACKING_ID + 2)
                         .withData("9\nmetadata2\n8\ncontent2\n"));
 
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(currentItems)
                 .setNextItems(nextItems)
                 .build();
 
-        final Chunk result = newMessageConsumerBean().handleChunk(chunk);
+        Chunk result = newMessageConsumerBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(currentItems.size()));
 
-        final Iterator<ChunkItem> iterator = result.iterator();
+        Iterator<ChunkItem> iterator = result.iterator();
 
         ChunkItem item = iterator.next();
         assertThat("1st item status", item.getStatus(), is(ChunkItem.Status.SUCCESS));
@@ -215,8 +202,8 @@ public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void failOnStatusDiff() throws SinkException {
-        final List<ChunkItem> currentItems = Arrays.asList(
+    public void failOnStatusDiff() throws InvalidMessageException {
+        List<ChunkItem> currentItems = Arrays.asList(
                 ChunkItem.failedChunkItem()
                         .withId(0L)
                         .withTrackingId(DBC_TRACKING_ID + 0)
@@ -225,7 +212,7 @@ public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
                         .withId(1L)
                         .withTrackingId(DBC_TRACKING_ID + 1)
                         .withData("data1"));
-        final List<ChunkItem> nextItems = Arrays.asList(
+        List<ChunkItem> nextItems = Arrays.asList(
                 ChunkItem.successfulChunkItem()
                         .withId(0L)
                         .withTrackingId(DBC_TRACKING_ID + 0)
@@ -234,15 +221,15 @@ public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
                         .withId(1L)
                         .withTrackingId(DBC_TRACKING_ID + 1)
                         .withData("data1"));
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(currentItems)
                 .setNextItems(nextItems)
                 .build();
 
-        final Chunk result = newMessageConsumerBean().handleChunk(chunk);
+        Chunk result = newMessageConsumerBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(currentItems.size()));
 
-        final Iterator<ChunkItem> iterator = result.iterator();
+        Iterator<ChunkItem> iterator = result.iterator();
 
         ChunkItem item = iterator.next();
         assertThat("1st item status", item.getStatus(), is(ChunkItem.Status.FAILURE));
@@ -257,36 +244,33 @@ public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void diffExpectedFailures() throws SinkException {
-        final ChunkItem currentItem = ChunkItem.failedChunkItem()
+    public void diffExpectedFailures() throws InvalidMessageException {
+        ChunkItem currentItem = ChunkItem.failedChunkItem()
                 .withId(0L)
                 .withTrackingId(DBC_TRACKING_ID + 0)
                 .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "expected failure")
                         .withTag(FailRecord.class.getName()));
-        final ChunkItem nextItem = ChunkItem.failedChunkItem()
+        ChunkItem nextItem = ChunkItem.failedChunkItem()
                 .withId(0L)
                 .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "expected failure")
                         .withTag(FailRecord.class.getName()));
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(Collections.singletonList(currentItem))
                 .setNextItems(Collections.singletonList(nextItem))
                 .build();
 
-        final Chunk result = newMessageConsumerBean().handleChunk(chunk);
+        Chunk result = newMessageConsumerBean().handleChunk(chunk);
         assertThat("number of chunk items", result.size(), is(1));
 
-        final ChunkItem item = result.iterator().next();
+        ChunkItem item = result.iterator().next();
         assertThat("status", item.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("diagnostics", item.getDiagnostics(), is(nullValue()));
         assertThat("trackingId", item.getTrackingId(), is(DBC_TRACKING_ID + 0));
     }
 
     private MessageConsumerBean newMessageConsumerBean() {
-        final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
-        messageConsumerBean.externalToolDiffGenerator = newExternalToolDiffGenerator();
-        messageConsumerBean.addiDiffGenerator =
-                new AddiDiffGenerator(messageConsumerBean.externalToolDiffGenerator);
-        messageConsumerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
-        return messageConsumerBean;
+        ServiceHub hub = new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build();
+        ExternalToolDiffGenerator externalToolDiffGenerator = newExternalToolDiffGenerator();
+        return new MessageConsumerBean(hub, externalToolDiffGenerator, new AddiDiffGenerator(externalToolDiffGenerator));
     }
 }

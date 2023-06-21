@@ -2,6 +2,7 @@ package dk.dbc.dataio.sink.diff;
 
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -26,7 +27,7 @@ public class AddiDiffGenerator {
      * @return the diff string
      * @throws DiffGeneratorException on failure to create diff
      */
-    public String getDiff(byte[] current, byte[] next) throws DiffGeneratorException {
+    public String getDiff(byte[] current, byte[] next) throws DiffGeneratorException, InvalidMessageException {
         final AddiReader currentAddiReader = new AddiReader(new ByteArrayInputStream(current));
         final AddiReader nextAddiReader = new AddiReader(new ByteArrayInputStream(next));
 
@@ -58,7 +59,7 @@ public class AddiDiffGenerator {
         private final String metaDiff;
         private final String contentDiff;
 
-        private AddiRecordDiff(AddiRecord current, AddiRecord next) throws DiffGeneratorException {
+        private AddiRecordDiff(AddiRecord current, AddiRecord next) throws DiffGeneratorException, InvalidMessageException {
             metaDiff = getDiff(current.getMetaData(), next.getMetaData());
             contentDiff = getDiff(current.getContentData(), next.getContentData());
         }
@@ -68,7 +69,7 @@ public class AddiDiffGenerator {
             return metaDiff + contentDiff;
         }
 
-        private String getDiff(byte[] current, byte[] next) throws DiffGeneratorException {
+        private String getDiff(byte[] current, byte[] next) throws DiffGeneratorException, InvalidMessageException {
             if (!Arrays.equals(current, next)) {
                 final ExternalToolDiffGenerator.Kind currentKind =
                         DiffKindDetector.getKind(current);

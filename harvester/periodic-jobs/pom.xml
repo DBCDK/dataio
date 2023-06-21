@@ -16,9 +16,9 @@
   <packaging>war</packaging>
 
   <properties>
-    <jetty.server.version>9.2.28.v20190418</jetty.server.version>
-    <jetty.http.version>9.2.28.v20190418</jetty.http.version>
-    <jetty.util.version>9.2.28.v20190418</jetty.util.version>
+    <jetty.server.version>9.4.44.v20210927</jetty.server.version>
+    <jetty.http.version>9.4.44.v20210927</jetty.http.version>
+    <jetty.util.version>9.4.44.v20210927</jetty.util.version>
   </properties>
 
   <dependencies>
@@ -173,19 +173,16 @@
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
       <version>${jetty.server.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-http</artifactId>
       <version>${jetty.http.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-util</artifactId>
       <version>${jetty.util.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>

@@ -11,7 +11,7 @@ public class AbstractDiffGeneratorTest {
     private final boolean testEnvironmentHasXmllint = Boolean.parseBoolean(System.getProperty("testenv.xmllint"));
 
     ExternalToolDiffGenerator newExternalToolDiffGenerator() {
-        ExternalToolDiffGenerator.path = "src/main/docker/script/";
+        ExternalToolDiffGenerator.path = "script/";
         final ExternalToolDiffGenerator externalToolDiffGenerator = new ExternalToolDiffGenerator();
         return externalToolDiffGenerator;
     }

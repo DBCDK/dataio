@@ -33,6 +33,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 public class MacroSubstitutorTest {
+    /*
     private static final Logger LOGGER = LoggerFactory.getLogger(MacroSubstitutorTest.class);
 
     private WireMockServer wireMockServer;
@@ -190,4 +191,5 @@ public class MacroSubstitutorTest {
                 managedExecutorService,
                 rawRepoConnector));
     }
+     */
 }

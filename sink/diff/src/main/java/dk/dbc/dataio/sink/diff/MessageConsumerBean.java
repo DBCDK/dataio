@@ -5,48 +5,66 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
-import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.javascript.recordprocessing.FailRecord;
 import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.MessageDriven;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@MessageDriven(name = "diffListener", activationConfig = {
-        // Please see the following url for a explanation of the available settings.
-        // The message selector variable is defined in the dataio-secrets project
-        // https://activemq.apache.org/activation-spec-properties
-        @ActivationConfigProperty(propertyName = "destination", propertyValue = "${ENV=QUEUE}"),
-        @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "false"),
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-        @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis"),
-        @ActivationConfigProperty(propertyName = "initialRedeliveryDelay", propertyValue = "5000"),
-        @ActivationConfigProperty(propertyName = "redeliveryBackOffMultiplier", propertyValue = "4"),
-        @ActivationConfigProperty(propertyName = "maximumRedeliveries", propertyValue = "3"),
-        @ActivationConfigProperty(propertyName = "redeliveryUseExponentialBackOff", propertyValue = "true"),
-        @ActivationConfigProperty(propertyName = "MaxSession", propertyValue = "4")
-})
-public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
+public class MessageConsumerBean extends MessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
+    private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
+    private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
 
-    ExternalToolDiffGenerator externalToolDiffGenerator = new ExternalToolDiffGenerator();
-    AddiDiffGenerator addiDiffGenerator = new AddiDiffGenerator(externalToolDiffGenerator);
+    private final ExternalToolDiffGenerator externalToolDiffGenerator;
+    private final AddiDiffGenerator addiDiffGenerator;
+
+    public MessageConsumerBean(ServiceHub serviceHub) {
+        super(serviceHub);
+        externalToolDiffGenerator = new ExternalToolDiffGenerator();
+        addiDiffGenerator = new AddiDiffGenerator(externalToolDiffGenerator);
+    }
+
+    public MessageConsumerBean(ServiceHub serviceHub, ExternalToolDiffGenerator externalToolDiffGenerator, AddiDiffGenerator addiDiffGenerator) {
+        super(serviceHub);
+        this.externalToolDiffGenerator = externalToolDiffGenerator;
+        this.addiDiffGenerator = addiDiffGenerator;
+    }
+
+    private static String statusToString(ChunkItem.Status status) {
+        switch (status) {
+            case FAILURE:
+                return "Failure";
+            case SUCCESS:
+                return "Success";
+            case IGNORE:
+                return "Ignore";
+            default:
+                return "Internal Error: Unknown Status";
+        }
+    }
 
     @Override
-    public void handleConsumedMessage(ConsumedMessage consumedMessage)
-            throws ServiceException, InvalidMessageException {
-        final Chunk chunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
-        final Chunk result = handleChunk(chunk);
-        uploadChunk(result);
+    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
+        Chunk chunk = unmarshallPayload(consumedMessage);
+        Chunk result = handleChunk(chunk);
+        sendResultToJobStore(result);
+    }
+
+    @Override
+    public String getQueue() {
+        return QUEUE;
+    }
+
+    @Override
+    public String getAddress() {
+        return ADDRESS;
     }
 
     /**
@@ -62,21 +80,21 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
      *
      * @param chunk processed chunk
      * @return result of diff
-     * @throws SinkException on failure to produce diff
+     * @throws InvalidMessageException on failure to produce diff
      */
-    Chunk handleChunk(Chunk chunk) throws SinkException {
+    Chunk handleChunk(Chunk chunk) throws InvalidMessageException {
         if (!chunk.hasNextItems()) {
             return failWithMissingNextItem(chunk);
         }
 
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         try {
-            for (final ChunkItemPair item : getChunkItemPairs(chunk)) {
+            for (ChunkItemPair item : getChunkItemPairs(chunk)) {
                 DBCTrackedLogContext.setTrackingId(item.current.getTrackingId());
                 LOGGER.info("Handling item {}/{}/{}",
                         chunk.getJobId(), chunk.getChunkId(), item.current.getId());
                 if (item.current.getStatus() != item.next.getStatus()) {
-                    final String message = String.format("Different status %s -> %s\n%s",
+                    String message = String.format("Different status %s -> %s\n%s",
                             statusToString(item.current.getStatus()),
                             statusToString(item.next.getStatus()),
                             StringUtil.asString(item.next.getData())
@@ -104,8 +122,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                                 .withTrackingId(item.current.getTrackingId()));
                         break;
                     default:
-                        throw new SinkException("Unknown chunk item state: " +
-                                item.current.getStatus().name());
+                        throw new InvalidMessageException("Unknown chunk item state: " + item.current.getStatus().name());
                 }
             }
         } finally {
@@ -118,8 +135,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         // We are only interested in chunk items with a single diagnostic
         if (item.current.getDiagnostics().size() == 1
                 && item.next.getDiagnostics().size() == 1) {
-            final Diagnostic currentDiagnostic = item.current.getDiagnostics().get(0);
-            final Diagnostic nextDiagnostic = item.next.getDiagnostics().get(0);
+            Diagnostic currentDiagnostic = item.current.getDiagnostics().get(0);
+            Diagnostic nextDiagnostic = item.next.getDiagnostics().get(0);
 
             // PMD wants all these checks inside a single if even though readability suffers
             if (currentDiagnostic.getTag() != null
@@ -142,9 +159,9 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     }
 
     private Chunk failWithMissingNextItem(Chunk chunk) {
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
 
-        for (final ChunkItem item : chunk) {
+        for (ChunkItem item : chunk) {
             result.insertItem(ChunkItem.failedChunkItem()
                     .withId(item.getId())
                     .withData("Missing next item")
@@ -162,7 +179,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
      * If the diff produces an empty string the resulting item has status SUCCESS.
      * If the diff produces a non-empty string the resulting item has status FAILURE.
      */
-    private ChunkItem getChunkItemWithDiffResult(ChunkItemPair pair) {
+    private ChunkItem getChunkItemWithDiffResult(ChunkItemPair pair) throws InvalidMessageException {
         if (Arrays.equals(pair.current.getData(), pair.next.getData())) {
             return ChunkItem.successfulChunkItem()
                     .withId(pair.current.getId())
@@ -176,8 +193,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             try {
                 diff = addiDiffGenerator.getDiff(pair.current.getData(), pair.next.getData());
             } catch (IllegalArgumentException e) {
-                final ExternalToolDiffGenerator.Kind currentKind = DiffKindDetector.getKind(pair.current.getData());
-                final ExternalToolDiffGenerator.Kind nextKind = DiffKindDetector.getKind(pair.next.getData());
+                ExternalToolDiffGenerator.Kind currentKind = DiffKindDetector.getKind(pair.current.getData());
+                ExternalToolDiffGenerator.Kind nextKind = DiffKindDetector.getKind(pair.next.getData());
                 if (currentKind == nextKind) {
                     diff = externalToolDiffGenerator.getDiff(currentKind, pair.current.getData(), pair.next.getData());
                 } else {
@@ -210,39 +227,26 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         }
     }
 
-    private static String statusToString(ChunkItem.Status status) {
-        switch (status) {
-            case FAILURE:
-                return "Failure";
-            case SUCCESS:
-                return "Success";
-            case IGNORE:
-                return "Ignore";
-            default:
-                return "Internal Error: Unknown Status";
-        }
-    }
-
-    private static class ChunkItemPair {
-        public ChunkItemPair(ChunkItem current, ChunkItem next) {
-            this.current = current;
-            this.next = next;
-        }
-
-        public ChunkItem current;
-        public ChunkItem next;
-    }
-
     private List<ChunkItemPair> getChunkItemPairs(Chunk chunk) {
-        final List<ChunkItem> items = chunk.getItems();
-        final List<ChunkItem> next = chunk.getNext();
+        List<ChunkItem> items = chunk.getItems();
+        List<ChunkItem> next = chunk.getNext();
         if (items.size() != next.size()) {
             throw new IllegalArgumentException("Current and next size differ");
         }
-        final List<ChunkItemPair> result = new ArrayList<>();
+        List<ChunkItemPair> result = new ArrayList<>();
         for (int i = 0; i < items.size(); i++) {
             result.add(new ChunkItemPair(items.get(i), next.get(i)));
         }
         return result;
+    }
+
+    private static class ChunkItemPair {
+        public ChunkItem current;
+        public ChunkItem next;
+
+        public ChunkItemPair(ChunkItem current, ChunkItem next) {
+            this.current = current;
+            this.next = next;
+        }
     }
 }

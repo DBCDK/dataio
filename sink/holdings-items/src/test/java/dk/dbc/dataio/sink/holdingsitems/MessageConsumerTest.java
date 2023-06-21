@@ -36,45 +36,45 @@ class MessageConsumerTest {
 
     @Test
     void handleChunk() throws JSONBException, SolrDocStoreConnectorException {
-        final IndexKeys indexKeys = new IndexKeys();
+        IndexKeys indexKeys = new IndexKeys();
         indexKeys.put("k1", Collections.singletonList("v1"));
-        final List<IndexKeys> indexKeysList = new ArrayList<>();
+        List<IndexKeys> indexKeysList = new ArrayList<>();
         indexKeysList.add(indexKeys);
 
-        final HoldingsItems holdingsItemsOK1 = new HoldingsItems();
+        HoldingsItems holdingsItemsOK1 = new HoldingsItems();
         holdingsItemsOK1.setAgencyId(123456);
         holdingsItemsOK1.setBibliographicRecordId("id1__1");
         holdingsItemsOK1.setIndexKeys(indexKeysList);
-        final HoldingsItems holdingsItemsFail = new HoldingsItems();
+        HoldingsItems holdingsItemsFail = new HoldingsItems();
         holdingsItemsFail.setAgencyId(123456);
         holdingsItemsFail.setBibliographicRecordId("id1__2");
         holdingsItemsFail.setIndexKeys(indexKeysList);
-        final HoldingsItems holdingsItemsOK2 = new HoldingsItems();
+        HoldingsItems holdingsItemsOK2 = new HoldingsItems();
         holdingsItemsOK2.setAgencyId(123456);
         holdingsItemsOK2.setBibliographicRecordId("id1__3");
         holdingsItemsOK2.setIndexKeys(indexKeysList);
 
-        final Status statusOk = new Status();
+        Status statusOk = new Status();
         statusOk.setOk(true);
         statusOk.setText("ok");
         when(solrDocStoreConnector.setHoldings(eq(holdingsItemsOK1))).thenReturn(statusOk);
         when(solrDocStoreConnector.setHoldings(eq(holdingsItemsOK2))).thenReturn(statusOk);
-        final Status statusFail = new Status();
+        Status statusFail = new Status();
         statusFail.setOk(false);
         statusFail.setText("error");
-        final SolrDocStoreConnectorUnexpectedStatusCodeException internalServerError =
+        SolrDocStoreConnectorUnexpectedStatusCodeException internalServerError =
                 new SolrDocStoreConnectorUnexpectedStatusCodeException("internal server error", 500);
         internalServerError.setStatus(statusFail);
         when(solrDocStoreConnector.setHoldings(eq(holdingsItemsFail))).thenThrow(internalServerError);
 
-        final AddiRecord addiRecordInvalid = new AddiRecord(new byte[0],
+        AddiRecord addiRecordInvalid = new AddiRecord(new byte[0],
                 StringUtil.asBytes("not json"));
-        final AddiRecord addiRecordFail = new AddiRecord(new byte[0],
+        AddiRecord addiRecordFail = new AddiRecord(new byte[0],
                 StringUtil.asBytes(jsonbContext.marshall(Arrays.asList(holdingsItemsOK1, holdingsItemsFail, holdingsItemsOK2))));
-        final AddiRecord addiRecordOk = new AddiRecord(new byte[0],
+        AddiRecord addiRecordOk = new AddiRecord(new byte[0],
                 StringUtil.asBytes(jsonbContext.marshall(Collections.singletonList(holdingsItemsOK1))));
 
-        final List<ChunkItem> chunkItems = Arrays.asList(
+        List<ChunkItem> chunkItems = Arrays.asList(
                 new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.FAILURE)
                         .build(),
                 new ChunkItemBuilder().setId(1L).setStatus(ChunkItem.Status.SUCCESS)
@@ -90,14 +90,13 @@ class MessageConsumerTest {
                         .build());
 
         final int jobId = 42;
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setJobId(jobId)
                 .setChunkId(0L)
                 .setItems(chunkItems)
                 .build();
-//        when(solrDocStoreConnector.setHoldings(any())).thenReturn(statusOk);
 
-        final Chunk result = messageConsumer.handleChunk(chunk);
+        Chunk result = messageConsumer.handleChunk(chunk);
 
         assertThat("number of chunk items", result.size(), is(5));
         assertThat("1st chunk item",

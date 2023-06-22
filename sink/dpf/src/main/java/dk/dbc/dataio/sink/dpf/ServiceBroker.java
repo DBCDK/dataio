@@ -41,6 +41,7 @@ import static dk.dbc.dataio.sink.dpf.SinkConfig.RAWREPO_RECORD_SERVICE_URL;
 import static dk.dbc.dataio.sink.dpf.SinkConfig.UPDATE_SERVICE_WS_URL;
 import static dk.dbc.dataio.sink.dpf.SinkConfig.WEEKRESOLVER_SERVICE_URL;
 
+@SuppressWarnings("PMD")
 public class ServiceBroker {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
     private static final String UPDATE_SERVICE_WS = UPDATE_SERVICE_WS_URL.asString();

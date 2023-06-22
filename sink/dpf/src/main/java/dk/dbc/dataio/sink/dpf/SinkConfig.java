@@ -3,7 +3,7 @@ package dk.dbc.dataio.sink.dpf;
 import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 
 public enum SinkConfig implements EnvConfig {
-    QUEUE("sink::dpf"),
+    QUEUE,
     MESSAGE_FILTER(null),
     FLOWSTORE_URL,
     LOBBY_SERVICE_URL,

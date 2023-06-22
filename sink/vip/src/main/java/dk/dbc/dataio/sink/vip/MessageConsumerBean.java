@@ -11,10 +11,8 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.VipSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
-import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.sink.vip.connector.VipCoreConnector;
 import dk.dbc.dataio.sink.vip.connector.VipCoreConnectorException;
 import dk.dbc.dataio.sink.vip.connector.VipCoreConnectorUnexpectedStatusCodeException;
@@ -25,48 +23,23 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.EJB;
-import javax.ejb.MessageDriven;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-@MessageDriven(name = "vipListener", activationConfig = {
-        // Please see the following url for a explanation of the available settings.
-        // The message selector variable is defined in the dataio-secrets project
-        // https://activemq.apache.org/activation-spec-properties
-        @ActivationConfigProperty(propertyName = "destination", propertyValue = "${ENV=QUEUE}"),
-        @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "false"),
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-        @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis"),
-        @ActivationConfigProperty(propertyName = "initialRedeliveryDelay", propertyValue = "5000"),
-        @ActivationConfigProperty(propertyName = "redeliveryBackOffMultiplier", propertyValue = "4"),
-        @ActivationConfigProperty(propertyName = "maximumRedeliveries", propertyValue = "3"),
-        @ActivationConfigProperty(propertyName = "redeliveryUseExponentialBackOff", propertyValue = "true"),
-        @ActivationConfigProperty(propertyName = "MaxSession", propertyValue = "4")
-})
-public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
+public class MessageConsumerBean extends MessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
-
-    @EJB
-    ConfigBean configBean;
-
+    private ConfigBean configBean;
     private VipSinkConfig config;
     private VipCoreConnector vipCoreConnector;
     private JSONBContext jsonbContext = new JSONBContext();
 
     @Override
-    @Stopwatch
-    public void handleConsumedMessage(ConsumedMessage consumedMessage)
-            throws InvalidMessageException, SinkException {
+    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         final Chunk chunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
-
         refreshState(configBean.getConfig(consumedMessage));
-
-        uploadChunk(handleChunk(chunk));
+        sendResultToJobStore(handleChunk(chunk));
     }
 
     Chunk handleChunk(Chunk chunk) {

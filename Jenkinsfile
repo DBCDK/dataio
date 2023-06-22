@@ -23,7 +23,7 @@ pipeline {
             sink/marcconv, \
             sink/dmat, \
             sink/diff, \
-            sink/holdings-items \
+            sink/holdings-items, \
             sink/dpf \
         "
     }

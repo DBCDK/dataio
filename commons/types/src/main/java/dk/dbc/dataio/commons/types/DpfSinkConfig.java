@@ -19,8 +19,7 @@ public class DpfSinkConfig implements SinkConfig, Serializable {
     }
 
     public DpfSinkConfig withUpdateServiceUserId(String updateServiceUserId) {
-        this.updateServiceUserId = InvariantUtil.checkNotNullNotEmptyOrThrow(
-                updateServiceUserId, "updateServiceUserId");
+        this.updateServiceUserId = InvariantUtil.checkNotNullNotEmptyOrThrow(updateServiceUserId, "updateServiceUserId");
         return this;
     }
 
@@ -29,8 +28,7 @@ public class DpfSinkConfig implements SinkConfig, Serializable {
     }
 
     public DpfSinkConfig withUpdateServicePassword(String updateServicePassword) {
-        this.updateServicePassword = InvariantUtil.checkNotNullNotEmptyOrThrow(
-                updateServicePassword, "updateServicePassword");
+        this.updateServicePassword = InvariantUtil.checkNotNullNotEmptyOrThrow(updateServicePassword, "updateServicePassword");
         return this;
     }
 

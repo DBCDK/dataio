@@ -3,6 +3,9 @@ package dk.dbc.dataio.sink.dpf;
 import dk.dbc.dataio.commons.types.DpfSinkConfig;
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
+import dk.dbc.dataio.sink.dpf.transform.BibliographicRecordFactory;
+import dk.dbc.dataio.sink.dpf.transform.BibliographicRecordFactoryException;
+import dk.dbc.dataio.sink.dpf.transform.MarcRecordFactory;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.LobbyConnector;
@@ -25,42 +28,50 @@ import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
+import javax.ws.rs.client.ClientBuilder;
 import java.util.Collections;
 import java.util.List;
 
-@Stateless
-public class
-ServiceBroker {
-    @Inject
-    LobbyConnector lobbyConnector;
-    @Inject
-    UpdateServiceDoubleRecordCheckConnector doubleRecordCheckConnector;
-    @Inject
-    RecordServiceConnector recordServiceConnector;
-    @Inject
-    WeekResolverConnector weekResolverConnector;
-    @Inject
-    private OpennumberRollConnector opennumberRollConnector;
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
+import static dk.dbc.dataio.sink.dpf.SinkConfig.LOBBY_SERVICE_URL;
+import static dk.dbc.dataio.sink.dpf.SinkConfig.OPENNUMBERROLL_SERVICE_URL;
+import static dk.dbc.dataio.sink.dpf.SinkConfig.RAWREPO_RECORD_SERVICE_URL;
+import static dk.dbc.dataio.sink.dpf.SinkConfig.UPDATE_SERVICE_WS_URL;
+import static dk.dbc.dataio.sink.dpf.SinkConfig.WEEKRESOLVER_SERVICE_URL;
 
-    @Inject
-    @ConfigProperty(name = "UPDATE_SERVICE_WS_URL")
-    private String updateServiceWsUrl;
+@SuppressWarnings("PMD")
+public class ServiceBroker {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
+    private static final String UPDATE_SERVICE_WS = UPDATE_SERVICE_WS_URL.asString();
+    private final BibliographicRecordFactory bibliographicRecordFactory = new BibliographicRecordFactory();
+    private final LobbyConnector lobbyConnector;
+    private final UpdateServiceDoubleRecordCheckConnector doubleRecordCheckConnector;
+    private final RecordServiceConnector recordServiceConnector;
+    private final WeekResolverConnector weekResolverConnector;
+    private final OpennumberRollConnector opennumberRollConnector;
+    private OpenUpdateServiceConnector openUpdateConnector;
+    public final ConfigBean configBean;
+    private DpfSinkConfig config;
 
-    OpenUpdateServiceConnector openUpdateServiceConnector;
+    public ServiceBroker() {
+        configBean = new ConfigBean();
+        lobbyConnector = new LobbyConnector(ClientBuilder.newClient(), LOBBY_SERVICE_URL.asString());
+        doubleRecordCheckConnector = new UpdateServiceDoubleRecordCheckConnector(ClientBuilder.newClient(), UPDATE_SERVICE_WS_URL.asString());
+        recordServiceConnector = new RecordServiceConnector(ClientBuilder.newClient(), RAWREPO_RECORD_SERVICE_URL.asString());
+        weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient(), WEEKRESOLVER_SERVICE_URL.asString());
+        opennumberRollConnector = new OpennumberRollConnector(ClientBuilder.newClient(), OPENNUMBERROLL_SERVICE_URL.asString());
+    }
 
-    @EJB
-    ConfigBean configBean;
-    DpfSinkConfig config;
-
-    private BibliographicRecordFactory bibliographicRecordFactory = new BibliographicRecordFactory();
+    public ServiceBroker(WeekResolverConnector weekResolverConnector) {
+        this.weekResolverConnector = weekResolverConnector;
+        configBean = null;
+        lobbyConnector = null;
+        doubleRecordCheckConnector = null;
+        recordServiceConnector = null;
+        opennumberRollConnector = null;
+    }
 
     public void sendToLobby(DpfRecord dpfRecord) throws LobbyConnectorException, JSONBException {
         lobbyConnector.createOrReplaceApplicant(dpfRecord.toLobbyApplicant());
@@ -68,11 +79,11 @@ ServiceBroker {
 
     public UpdateRecordResponseDTO isDoubleRecord(DpfRecord dpfRecord)
             throws UpdateServiceDoubleRecordCheckConnectorException, JSONBException {
-        final byte[] content = MarcRecordFactory.toMarcXchange(dpfRecord.getBody());
-        final RecordDataDTO recordDataDTO = new RecordDataDTO();
+        byte[] content = MarcRecordFactory.toMarcXchange(dpfRecord.getBody());
+        RecordDataDTO recordDataDTO = new RecordDataDTO();
         recordDataDTO.setContent(Collections.singletonList(new String(content)));
 
-        final BibliographicRecordDTO bibliographicRecordDTO = new BibliographicRecordDTO();
+        BibliographicRecordDTO bibliographicRecordDTO = new BibliographicRecordDTO();
         bibliographicRecordDTO.setRecordSchema("info:lc/xmlns/marcxchange-v1</recordSchema");
         bibliographicRecordDTO.setRecordPacking("xml");
         bibliographicRecordDTO.setRecordDataDTO(recordDataDTO);
@@ -80,8 +91,8 @@ ServiceBroker {
     }
 
     public RawrepoRecord getRawrepoRecord(String bibliographicRecordId, int agencyId) throws RecordServiceConnectorException, MarcReaderException {
-        final RecordDTO recordData = recordServiceConnector.getRecordData(agencyId, bibliographicRecordId);
-        final MarcRecord marcRecord = MarcRecordFactory.fromMarcXchange(recordData.getContent());
+        RecordDTO recordData = recordServiceConnector.getRecordData(agencyId, bibliographicRecordId);
+        MarcRecord marcRecord = MarcRecordFactory.fromMarcXchange(recordData.getContent());
         return new RawrepoRecord(marcRecord);
     }
 
@@ -90,8 +101,8 @@ ServiceBroker {
     }
 
     public String getCatalogueCode(String catalogueCode) throws WeekResolverConnectorException {
-        final WeekResolverResult weekResolverResult = weekResolverConnector.getWeekCode(catalogueCode);
-        final String weekCode = weekResolverResult.getWeekCode();
+        WeekResolverResult weekResolverResult = weekResolverConnector.getWeekCode(catalogueCode);
+        String weekCode = weekResolverResult.getWeekCode();
 
         if (weekCode == null || !catalogueCode.equals(weekCode.substring(0, 3))) {
             throw new WeekResolverConnectorException("Mismatch between incoming catalogue code (" + catalogueCode + ") and resulting week code (" + weekCode + ")");
@@ -106,20 +117,17 @@ ServiceBroker {
         return opennumberRollConnector.getId(params);
     }
 
-    public UpdateRecordResult sendToUpdate(String groupId, String updateTemplate, DpfRecord dpfRecord,
-                                           String trackingId, String queueProvider)
-            throws BibliographicRecordFactoryException {
-        final BibliographicRecord bibliographicRecord =
-                bibliographicRecordFactory.toBibliographicRecord(dpfRecord.getBody(), queueProvider);
-        return getOpenUpdateServiceConnector().updateRecord(groupId, updateTemplate, bibliographicRecord, trackingId);
+    public UpdateRecordResult sendToUpdate(String groupId, String updateTemplate, DpfRecord dpfRecord, String trackingId, String queueProvider) throws BibliographicRecordFactoryException {
+        BibliographicRecord bibliographicRecord = bibliographicRecordFactory.toBibliographicRecord(dpfRecord.getBody(), queueProvider);
+        return getOpenUpdateConnector().updateRecord(groupId, updateTemplate, bibliographicRecord, trackingId);
     }
 
     public List<DataField> getUpdateErrors(String errorFieldTag, UpdateRecordResult result, DpfRecord dpfRecord) {
-        return openUpdateServiceConnector.toErrorFields(errorFieldTag, result, dpfRecord.getBody());
+        return openUpdateConnector.toErrorFields(errorFieldTag, result, dpfRecord.getBody());
     }
 
     private boolean isConfigUpdated() {
-        final DpfSinkConfig latestConfig = configBean.getConfig();
+        DpfSinkConfig latestConfig = configBean.getConfig();
         if (!latestConfig.equals(config)) {
             config = latestConfig;
             return true;
@@ -127,15 +135,12 @@ ServiceBroker {
         return false;
     }
 
-    private OpenUpdateServiceConnector getOpenUpdateServiceConnector() {
+    private OpenUpdateServiceConnector getOpenUpdateConnector() {
         if (isConfigUpdated()) {
             LOGGER.debug("Updating update service connector");
-            openUpdateServiceConnector = new OpenUpdateServiceConnector(
-                    updateServiceWsUrl,
-                    config.getUpdateServiceUserId(),
-                    config.getUpdateServicePassword());
+            openUpdateConnector = new OpenUpdateServiceConnector(UPDATE_SERVICE_WS, config.getUpdateServiceUserId(), config.getUpdateServicePassword());
         }
-        return openUpdateServiceConnector;
+        return openUpdateConnector;
     }
 
 }

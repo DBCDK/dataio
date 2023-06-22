@@ -1,6 +1,6 @@
 package dk.dbc.dataio.sink.dpf.model;
 
-import dk.dbc.dataio.sink.dpf.MarcRecordFactory;
+import dk.dbc.dataio.sink.dpf.transform.MarcRecordFactory;
 import dk.dbc.jsonb.JSONBContext;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.Applicant;

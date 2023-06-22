@@ -10,19 +10,18 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.dataio.sink.dpf.model.ProcessingInstructions;
-import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
-import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.sink.dpf.transform.DpfRecordProcessor;
+import dk.dbc.dataio.sink.dpf.transform.DpfRecordProcessorException;
+import dk.dbc.dataio.sink.dpf.transform.MarcRecordFactory;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.marc.reader.MarcReaderException;
-import dk.dbc.util.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.EJB;
-import javax.ejb.MessageDriven;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -30,48 +29,48 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@MessageDriven(name = "dpfListener", activationConfig = {
-        // Please see the following url for a explanation of the available settings.
-        // The message selector variable is defined in the dataio-secrets project
-        // https://activemq.apache.org/activation-spec-properties
-        @ActivationConfigProperty(propertyName = "destination", propertyValue = "${ENV=QUEUE}"),
-        @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "false"),
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-        @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis"),
-        @ActivationConfigProperty(propertyName = "initialRedeliveryDelay", propertyValue = "5000"),
-        @ActivationConfigProperty(propertyName = "redeliveryBackOffMultiplier", propertyValue = "4"),
-        @ActivationConfigProperty(propertyName = "maximumRedeliveries", propertyValue = "3"),
-        @ActivationConfigProperty(propertyName = "redeliveryUseExponentialBackOff", propertyValue = "true"),
-        @ActivationConfigProperty(propertyName = "MaxSession", propertyValue = "4")
-})
-public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
+public class MessageConsumer extends MessageConsumerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
 
     private final JSONBContext jsonbContext = new JSONBContext();
+    private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
+    private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
 
-    @EJB
-    ConfigBean configBean;
-    @EJB
-    ServiceBroker serviceBroker;
+    private final ConfigBean configBean;
+    private final ServiceBroker serviceBroker;
 
-    @Timed
+
+    public MessageConsumer(ServiceHub serviceHub, ServiceBroker serviceBroker) {
+        super(serviceHub);
+        this.serviceBroker = serviceBroker;
+        configBean = serviceBroker.configBean;
+    }
+
     @Override
-    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, SinkException {
-        final Chunk chunk = unmarshallPayload(consumedMessage);
+    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
+        Chunk chunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
-
         configBean.refresh(consumedMessage);
+        sendResultToJobStore(handleChunk(chunk));
+    }
 
-        uploadChunk(handleChunk(chunk));
+    @Override
+    public String getQueue() {
+        return QUEUE;
+    }
+
+    @Override
+    public String getAddress() {
+        return ADDRESS;
     }
 
     Chunk handleChunk(Chunk chunk) {
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         try {
             for (ChunkItem chunkItem : chunk.getItems()) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                final String id = String.join(".",
-                        Long.toString(chunk.getJobId()),
+                String id = String.join(".",
+                        Integer.toString(chunk.getJobId()),
                         Long.toString(chunk.getChunkId()),
                         Long.toString(chunkItem.getId()));
                 result.insertItem(handleChunkItem(chunkItem, id));
@@ -83,7 +82,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     }
 
     private ChunkItem handleChunkItem(ChunkItem chunkItem, String id) {
-        final ChunkItem result = new ChunkItem()
+        ChunkItem result = new ChunkItem()
                 .withId(chunkItem.getId())
                 .withTrackingId(chunkItem.getTrackingId())
                 .withType(ChunkItem.Type.STRING)
@@ -117,12 +116,12 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     private List<DpfRecord> getDpfRecords(ChunkItem chunkItem, String id)
             throws IOException, JSONBException, MarcReaderException {
-        final List<DpfRecord> dpfRecords = new ArrayList<>();
-        final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
+        List<DpfRecord> dpfRecords = new ArrayList<>();
+        AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
         int idx = 1;
         while (addiReader.hasNext()) {
-            final AddiRecord addiRecord = addiReader.next();
-            final ProcessingInstructions processingInstructions = jsonbContext.unmarshall(
+            AddiRecord addiRecord = addiReader.next();
+            ProcessingInstructions processingInstructions = jsonbContext.unmarshall(
                             StringUtil.asString(addiRecord.getMetaData()), ProcessingInstructions.class)
                     .withId(id + "-" + idx);
             dpfRecords.add(new DpfRecord(processingInstructions,

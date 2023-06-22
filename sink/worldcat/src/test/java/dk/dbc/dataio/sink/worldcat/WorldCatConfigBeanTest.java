@@ -5,7 +5,6 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Sink;
@@ -22,12 +21,13 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -50,7 +50,7 @@ public class WorldCatConfigBeanTest {
     }
 
     @Test
-    public void getConfig_sinkNotFound_throws() throws FlowStoreServiceConnectorException {
+    public void getConfig_sinkNotFound_throws() throws SinkException, FlowStoreServiceConnectorException {
         final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
         final String message = "Error message from flowStore";
         when(flowStoreServiceConnector.getSink(anyLong())).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException(message, 404));
@@ -59,7 +59,7 @@ public class WorldCatConfigBeanTest {
             worldCatConfigBean.getConfig(consumedMessage);
             fail();
         } catch (SinkException e) {
-            assertThat(e.getMessage(), is(message));
+            assertThat(e.getMessage(), containsString(message));
         }
     }
 
@@ -96,8 +96,7 @@ public class WorldCatConfigBeanTest {
 
     private WorldCatConfigBean newWorldCatConfigBean() {
         final WorldCatConfigBean worldCatConfigBean = new WorldCatConfigBean();
-        worldCatConfigBean.flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
-        when(worldCatConfigBean.flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
+        worldCatConfigBean.flowStoreServiceConnector = flowStoreServiceConnector;
         return worldCatConfigBean;
     }
 

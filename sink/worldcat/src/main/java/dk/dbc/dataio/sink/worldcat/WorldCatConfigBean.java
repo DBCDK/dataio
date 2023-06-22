@@ -10,6 +10,7 @@ import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class WorldCatConfigBean {
@@ -33,6 +34,19 @@ public class WorldCatConfigBean {
         }
         public Long getId() {
             return this.id;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            VersionedSink that = (VersionedSink) o;
+            return Objects.equals(id, that.id) && Objects.equals(version, that.version);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, version);
         }
     }
     ConcurrentHashMap<VersionedSink, Sink> cache = new ConcurrentHashMap<>();

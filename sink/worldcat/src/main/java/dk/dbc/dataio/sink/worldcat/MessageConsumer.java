@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import javax.ws.rs.client.ClientBuilder;
 
 
@@ -154,6 +155,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
     }
 
     ChunkItem handleChunkItem(ChunkItem chunkItem) {
+        EntityTransaction transaction = ocnRepo.getEntityManager().getTransaction();
         try {
             final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
                     ChunkItemWithWorldCatAttributes.of(chunkItem);
@@ -195,6 +197,8 @@ public class MessageConsumer extends MessageConsumerAdapter {
             return FormattedOutput.of(e)
                     .withId(chunkItem.getId())
                     .withTrackingId(chunkItem.getTrackingId());
+        } finally {
+            if (transaction.isActive()) transaction.rollback();
         }
     }
 

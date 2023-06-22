@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -106,7 +107,7 @@ public class MessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final MessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+        final ChunkItem result = bean.handleChunkItem(chunkItem);
 
         verifyPush();
 
@@ -135,7 +136,7 @@ public class MessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final MessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+        final ChunkItem result =  bean.handleChunkItem(chunkItem);
 
         verifyNoPush();
 
@@ -168,7 +169,7 @@ public class MessageConsumerIT extends IntegrationTest {
                 .find(WorldCatEntity.class, pid.toString()).getChecksum();
 
         final MessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+        final ChunkItem result = bean.handleChunkItem(chunkItem);
 
         verifyPush();
 
@@ -201,7 +202,7 @@ public class MessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final MessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+        final ChunkItem result =  bean.handleChunkItem(chunkItem);
 
         verifyPush();
 
@@ -232,7 +233,7 @@ public class MessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final MessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+        final ChunkItem result = bean.handleChunkItem(chunkItem);
 
         verifyPush();
 
@@ -258,7 +259,7 @@ public class MessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final MessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+        final ChunkItem result = bean.handleChunkItem(chunkItem);
 
         verifyPush();
 
@@ -288,7 +289,7 @@ public class MessageConsumerIT extends IntegrationTest {
                         .withAction(Holding.Action.INSERT))));
 
         final MessageConsumer bean = newMessageConsumerBean();
-        jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+         bean.handleChunkItem(chunkItem);
 
         final ArgumentCaptor<ChunkItemWithWorldCatAttributes> chunkItemArgumentCaptor =
                 ArgumentCaptor.forClass(ChunkItemWithWorldCatAttributes.class);
@@ -326,7 +327,7 @@ public class MessageConsumerIT extends IntegrationTest {
                         .withAction(Holding.Action.INSERT))));
 
         final MessageConsumer bean = newMessageConsumerBean();
-        jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+        bean.handleChunkItem(chunkItem);
 
         verifyPush();
 
@@ -339,7 +340,7 @@ public class MessageConsumerIT extends IntegrationTest {
      * Then: it is uploaded to the job-store
      */
     @Test
-    public void uploadsResult() throws JobStoreServiceConnectorException {
+    public void uploadsResult() throws JobStoreServiceConnectorException, InvalidMessageException {
         whenPush().thenReturn(new WciruServiceBroker(wciruServiceConnector).new Result()
                 .withOcn("42")
                 .withEvents(new WciruServiceBroker.Event()
@@ -353,7 +354,7 @@ public class MessageConsumerIT extends IntegrationTest {
         final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
 
         final MessageConsumer bean = newMessageConsumerBean();
-        jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleConsumedMessage(message));
+        bean.handleConsumedMessage(message);
 
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong());
     }

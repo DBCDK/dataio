@@ -170,7 +170,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(31);
-        when(weekResolverConnector.getWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
+        when(weekResolverConnector.getCurrentWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
 
         final int jobId = 42;
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
@@ -197,7 +197,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(41);
-        when(weekResolverConnector.getWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
+        when(weekResolverConnector.getCurrentWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
@@ -248,7 +248,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(41);
-        when(weekResolverConnector.getWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
+        when(weekResolverConnector.getCurrentWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
@@ -309,7 +309,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(41);
-        when(weekResolverConnector.getWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
+        when(weekResolverConnector.getCurrentWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));

@@ -2,6 +2,7 @@ package dk.dbc.dataio.jse.artemis.common;
 
 import java.time.DateTimeException;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -9,6 +10,11 @@ import java.util.function.Function;
 public interface EnvConfig {
     default Optional<String> asOptionalString() {
         return getProperty(getName()).or(() -> Optional.ofNullable(getDefaultValue()));
+    }
+
+    default Optional<Boolean> asOptionalBoolean() {
+       return getProperty(getName()).or(() -> Optional.of("false"))
+               .map(s -> List.of("TRUE", "ON", "1").contains(s.toUpperCase()));
     }
 
     default Optional<Integer> asOptionalInteger() {
@@ -30,6 +36,7 @@ public interface EnvConfig {
     default String asString() {
         return asOptionalString().orElseThrow(this::missingConf);
     }
+    default Boolean asBoolean() { return asOptionalBoolean().orElse(false); }
 
     default Duration asDuration() {
         return asOptionalDuration().orElseThrow(this::missingConf);

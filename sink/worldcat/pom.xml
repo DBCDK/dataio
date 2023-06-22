@@ -6,26 +6,25 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-sink</artifactId>
+    <artifactId>jse-app</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
+    <relativePath>../../jse-app</relativePath>
   </parent>
 
   <artifactId>dataio-sink-worldcat</artifactId>
   <name>dataio-sink-worldcat</name>
-  <packaging>war</packaging>
+  <packaging>jar</packaging>
+
+  <properties>
+    <main-class>dk.dbc.dataio.sink.worldcat.WorldCatSinkApp</main-class>
+  </properties>
 
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>artemis-jms-base-image</artifactId>
-      <version>java11-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
-      <version>${javaee.version}</version>
-      <scope>provided</scope>
+      <artifactId>artemis-jse-app</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -83,9 +82,24 @@
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dbc-commons-log</artifactId>
-      <version>1.3-SNAPSHOT</version>
+      <groupId>com.sun.org.apache.xml.internal</groupId>
+      <artifactId>resolver</artifactId>
+      <version>20050927</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -94,22 +108,35 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${jackson.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-jaxb-annotations</artifactId>
+      <version>${jackson.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>eclipselink</artifactId>
       <version>${eclipselink.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>${postgresql-driver.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.microprofile</groupId>
-      <artifactId>microprofile</artifactId>
-      <version>${microprofile.version}</version>
-      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -126,104 +153,28 @@
       <artifactId>jakarta.xml.ws-api</artifactId>
       <version>2.3.3</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-testcontainers-postgres</artifactId>
+      <version>${dbc-commons-testcontainers-postgres-version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
+    <finalName>${project.name}</finalName>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>${maven-resources-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>process config</id>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <version>${exec-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>prepare-build-docker-image</id>
-            <configuration>
-              <arguments combine.children="append">
-                <argument>dbc-payara-worldcat-sink</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>${maven.war.plugin.version}</version>
-        <configuration>
-          <failOnMissingWebXml>false</failOnMissingWebXml>
-          <attachClasses>false</attachClasses>
-          <webResources>
-            <resource>
-              <directory>${basedir}/src/main/webapp/WEB-INF</directory>
-              <filtering>true</filtering>
-              <targetPath>WEB-INF</targetPath>
-            </resource>
-          </webResources>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>reserve-network-port</id>
-            <goals>
-              <goal>reserve-network-port</goal>
-            </goals>
-            <phase>initialize</phase>
-            <configuration>
-              <portNames>
-                <portName>ocnrepo.postgresql.port</portName>
-              </portNames>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>dk.dbc</groupId>
-        <artifactId>postgresql-maven-plugin</artifactId>
-        <version>${postgresql-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>start-postgresql</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>start</goal>
-            </goals>
-            <configuration>
-              <pgPort>${ocnrepo.postgresql.port}</pgPort>
-              <pgDbName>ocnrepo</pgDbName>
-              <pgDbScripts>
-              </pgDbScripts>
-            </configuration>
-          </execution>
-          <execution>
-            <id>stop-postgresql</id>
-            <phase>post-integration-test</phase>
-            <goals>
-              <goal>shutdown</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <systemPropertyVariables>
-            <postgresql.port>${ocnrepo.postgresql.port}</postgresql.port>
-          </systemPropertyVariables>
         </configuration>
         <executions>
           <execution>
@@ -234,6 +185,39 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+      </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>docker-push</id>
+      <properties>
+        <tag>DIT-${BUILD_NUMBER}</tag>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>push</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>push</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

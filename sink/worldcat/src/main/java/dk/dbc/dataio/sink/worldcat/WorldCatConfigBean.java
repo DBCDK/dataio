@@ -1,7 +1,7 @@
 package dk.dbc.dataio.sink.worldcat;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
-import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
@@ -10,25 +10,45 @@ import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJB;
-import javax.ejb.Singleton;
+import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * This Enterprise Java Bean (EJB) singleton is used as a config container for the WorldCat sink
- */
-@Singleton
 public class WorldCatConfigBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorldCatConfigBean.class);
 
-    @EJB
-    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    FlowStoreServiceConnector flowStoreServiceConnector;
 
     private long highestVersionSeen = 0;
     private WorldCatSinkConfig config;
 
+    static class VersionedSink {
+        private final Long id;
+        private final Long version;
+        public  VersionedSink(Long id, Long version) {
+            this.id = id;
+            this.version = version;
+        }
+
+        public Long getVersion() {
+            return version;
+        }
+        public Long getId() {
+            return this.id;
+        }
+    }
+    ConcurrentHashMap<VersionedSink, Sink> cache = new ConcurrentHashMap<>();
+    public WorldCatConfigBean(FlowStoreServiceConnector flowStoreServiceConnector) {
+        this.flowStoreServiceConnector = flowStoreServiceConnector;
+    }
+    public WorldCatConfigBean() {}
     public WorldCatSinkConfig getConfig(ConsumedMessage consumedMessage) throws SinkException {
         refreshConfig(consumedMessage);
         return config;
+    }
+
+    static class FlowstoreConnectorConnectionException extends RuntimeException {
+        FlowstoreConnectorConnectionException(Exception e) {
+            super(e);
+        }
     }
 
     /**
@@ -42,12 +62,18 @@ public class WorldCatConfigBean {
             final long sinkId = consumedMessage.getHeaderValue(JmsConstants.SINK_ID_PROPERTY_NAME, Long.class);
             final long sinkVersion = consumedMessage.getHeaderValue(JmsConstants.SINK_VERSION_PROPERTY_NAME, Long.class);
             if (sinkVersion > highestVersionSeen) {
-                final Sink sink = flowStoreServiceConnectorBean.getConnector().getSink(sinkId);
+                Sink sink = cache.computeIfAbsent(new VersionedSink(sinkId, sinkVersion), versionedSink -> {
+                    try {
+                        return flowStoreServiceConnector.getSink(versionedSink.getId());
+                    } catch (FlowStoreServiceConnectorException e) {
+                        throw new FlowstoreConnectorConnectionException(e);
+                    }
+                });
                 config = (WorldCatSinkConfig) sink.getContent().getSinkConfig();
                 LOGGER.info("Current sink config: {}", config);
                 highestVersionSeen = sink.getVersion();
             }
-        } catch (FlowStoreServiceConnectorException e) {
+        } catch (FlowstoreConnectorConnectionException e) {
             throw new SinkException(e.getMessage(), e);
         }
     }

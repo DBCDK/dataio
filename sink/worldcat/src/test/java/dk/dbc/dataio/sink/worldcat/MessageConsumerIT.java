@@ -3,10 +3,6 @@ package dk.dbc.dataio.sink.worldcat;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.commons.metricshandler.CounterMetric;
-import dk.dbc.commons.metricshandler.MetricsHandlerBean;
-import dk.dbc.commons.metricshandler.SimpleTimerMetric;
-import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -19,12 +15,13 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.testutil.ObjectFactory;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
-import dk.dbc.ocnrepo.OcnRepo;
-import dk.dbc.ocnrepo.OcnRepoDatabaseMigrator;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
+import org.eclipse.microprofile.metrics.Counter;
+import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -34,6 +31,7 @@ import org.postgresql.ds.PGSimpleDataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,27 +46,26 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class MessageConsumerBeanIT extends JpaIntegrationTest {
+public class MessageConsumerBeanIT extends IntegrationTest {
     private final WciruServiceBroker wciruServiceBroker = mock(WciruServiceBroker.class);
     private final WciruServiceConnector wciruServiceConnector = mock(WciruServiceConnector.class);
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final WorldCatConfigBean worldCatConfigBean = mock(WorldCatConfigBean.class);
     private final WorldCatSinkConfig config = new WorldCatSinkConfig();
-    private final MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
 
     @Override
     public JpaTestEnvironment setup() {
-        final PGSimpleDataSource dataSource = getDataSource();
+        final PGSimpleDataSource dataSource = (PGSimpleDataSource) dbContainer.datasource();
         migrateDatabase(dataSource);
         jpaTestEnvironment = new JpaTestEnvironment(dataSource, "ocnRepoIT",
                 getEntityManagerFactoryProperties(dataSource));
@@ -87,8 +84,7 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     public void setupMocks() throws SinkException {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
         when(worldCatConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(config);
-        doNothing().when(metricsHandlerBean).increment(any(CounterMetric.class), any());
-        doNothing().when(metricsHandlerBean).update(any(SimpleTimerMetric.class), any());
+
     }
 
     /**
@@ -408,15 +404,6 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         assertThat(chunkArgumentCaptor.getValue().getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
     }
 
-    private PGSimpleDataSource getDataSource() {
-        final PGSimpleDataSource datasource = new PGSimpleDataSource();
-        datasource.setDatabaseName("ocnrepo");
-        datasource.setServerName("localhost");
-        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port", "5432")));
-        datasource.setUser(System.getProperty("user.name"));
-        datasource.setPassword(System.getProperty("user.name"));
-        return datasource;
-    }
 
     private Map<String, String> getEntityManagerFactoryProperties(PGSimpleDataSource datasource) {
         final Map<String, String> properties = new HashMap<>();
@@ -428,19 +415,28 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         return properties;
     }
 
-    private void migrateDatabase(PGSimpleDataSource datasource) {
-        final OcnRepoDatabaseMigrator dbMigrator = new OcnRepoDatabaseMigrator(datasource);
-        dbMigrator.migrate();
-    }
 
     private MessageConsumerBean newMessageConsumerBean() {
-        final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
-        messageConsumerBean.ocnRepo = new OcnRepo(jpaTestEnvironment.getEntityManager());
+        final MessageConsumerBean messageConsumerBean = new MessageConsumerBean(
+                new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build(), jpaTestEnvironment.getEntityManager());
         messageConsumerBean.wciruServiceBroker = wciruServiceBroker;
-        messageConsumerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         messageConsumerBean.worldCatConfigBean = worldCatConfigBean;
         messageConsumerBean.config = config;
-        messageConsumerBean.metricsHandler = metricsHandlerBean;
+
+        messageConsumerBean.UNHANDLED_EXCEPTIONS = mock(Metric.class);
+        messageConsumerBean.WCIRU_CHUNK_UPDATE = mock(Metric.class);
+        messageConsumerBean.WCIRU_SERVICE_REQUESTS = mock(Metric.class);
+        messageConsumerBean.WCIRU_UPDATE = mock(Metric.class);
+        Counter counter = mock(Counter.class);
+        SimpleTimer simpleTimer = mock(SimpleTimer.class);
+        when(messageConsumerBean.UNHANDLED_EXCEPTIONS.counter()).thenReturn(counter);
+        when(messageConsumerBean.WCIRU_SERVICE_REQUESTS.simpleTimer()).thenReturn(simpleTimer);
+        doNothing().when(simpleTimer).update(any(Duration.class));
+        when(messageConsumerBean.WCIRU_SERVICE_REQUESTS.simpleTimer()).thenReturn(simpleTimer);
+        when(messageConsumerBean.WCIRU_CHUNK_UPDATE.simpleTimer()).thenReturn(simpleTimer);
+        when(messageConsumerBean.WCIRU_CHUNK_UPDATE.counter()).thenReturn(counter);
+        when(messageConsumerBean.WCIRU_UPDATE.counter(any())).thenReturn(counter);
+        doNothing().when(counter).inc();
         return messageConsumerBean;
     }
 

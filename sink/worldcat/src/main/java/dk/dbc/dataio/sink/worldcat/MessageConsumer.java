@@ -1,16 +1,16 @@
 package dk.dbc.dataio.sink.worldcat;
 
-import dk.dbc.commons.metricshandler.MetricsHandlerBean;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jms.JMSHeader;
-import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
+import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
@@ -20,50 +20,51 @@ import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.EJB;
-import javax.ejb.MessageDriven;
-import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import javax.persistence.EntityManager;
+import javax.ws.rs.client.ClientBuilder;
 
-@MessageDriven(name = "worldcatListener", activationConfig = {
-        // Please see the following url for a explanation of the available settings.
-        // The message selector variable is defined in the dataio-secrets project
-        // https://activemq.apache.org/activation-spec-properties
-        @ActivationConfigProperty(propertyName = "destination", propertyValue = "${ENV=QUEUE}"),
-        @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "false"),
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-        @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis"),
-        @ActivationConfigProperty(propertyName = "initialRedeliveryDelay", propertyValue = "5000"),
-        @ActivationConfigProperty(propertyName = "redeliveryBackOffMultiplier", propertyValue = "2"),
-        @ActivationConfigProperty(propertyName = "initialRedeliveryDelay", propertyValue = "5000"),
-        @ActivationConfigProperty(propertyName = "redeliveryBackOffMultiplier", propertyValue = "4"),
-        @ActivationConfigProperty(propertyName = "maximumRedeliveries", propertyValue = "3"),
-        @ActivationConfigProperty(propertyName = "redeliveryUseExponentialBackOff", propertyValue = "true"),
-        @ActivationConfigProperty(propertyName = "MaxSession", propertyValue = "6")
-})
-public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
-    @EJB
+public class MessageConsumer extends MessageConsumerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
+    private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
+    private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
+    FlowStoreServiceConnector flowStoreServiceConnector;
+    EntityManager entityManager;
+
+
+    public MessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
+        super(serviceHub);
+        this.entityManager = entityManager;
+        ocnRepo = new OcnRepo(entityManager);
+        flowStoreServiceConnector = SinkConfig.FLOWSTORE_URL
+                .asOptionalString()
+                .map(js -> new FlowStoreServiceConnector(ClientBuilder.newClient(), js)).orElse(null);
+        worldCatConfigBean = new WorldCatConfigBean(flowStoreServiceConnector);
+    }
+
     WorldCatConfigBean worldCatConfigBean;
-    @EJB
+
     OcnRepo ocnRepo;
 
     WorldCatSinkConfig config;
     WciruServiceConnector connector;
     WciruServiceBroker wciruServiceBroker;
 
-    @Inject
-    MetricsHandlerBean metricsHandler;
+    Metric WCIRU_CHUNK_UPDATE = Metric.WCIRU_CHUNK_UPDATE;
+    Metric WCIRU_UPDATE = Metric.WCIRU_UPDATE;
+    Metric UNHANDLED_EXCEPTIONS = Metric.UNHANDLED_EXCEPTIONS;
+    Metric WCIRU_SERVICE_REQUESTS = Metric.WCIRU_SERVICE_REQUESTS;
+
+
 
     @Stopwatch
     @Override
-    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, NullPointerException, ServiceException {
+    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, NullPointerException {
         try {
             final Chunk chunk = unmarshallPayload(consumedMessage);
             LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
@@ -97,21 +98,36 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     }
                 }
                 Duration duration = Duration.between(chunkStart, Instant.now());
-                metricsHandler.update(WorldcatTimerMetrics.WCIRU_CHUNK_UPDATE, duration);
-                metricsHandler.increment(WorldcatCounterMetrics.WCIRU_CHUNK_UPDATE);
+                WCIRU_CHUNK_UPDATE.simpleTimer().update(duration);
                 LOGGER.info("{} upload to worldcat took {}", chunk, duration);
             } finally {
                 DBCTrackedLogContext.remove();
             }
             Instant start = Instant.now();
-            uploadChunk(result);
+            sendResultToJobStore(result);
             LOGGER.info("Upload {} to jobstore took {}", result, Duration.between(start, Instant.now()));
         } catch (Exception e) {
             LOGGER.error("Caught unhandled exception while processing jobId: {}, chunkId: {}", JMSHeader.jobId.getHeader(consumedMessage, Integer.class), JMSHeader.chunkId.getHeader(consumedMessage, Long.class), e);
-            metricsHandler.increment(WorldcatCounterMetrics.UNHANDLED_EXCEPTIONS);
-            throw e;
+            UNHANDLED_EXCEPTIONS.counter().inc();
+            throw new InvalidMessageException(String.format("Uncaught exception: %s", e.getMessage()), e);
         }
     }
+
+    @Override
+    public String getQueue() {
+        return QUEUE;
+    }
+
+    @Override
+    public String getAddress() {
+        return ADDRESS;
+    }
+
+    @Override
+    public String getFilter() {
+        return SinkConfig.MESSAGE_FILTER.asOptionalString().orElse(null);
+    }
+
 
     private void refreshConfigIfOutdated(ConsumedMessage consumedMessage) throws SinkException {
         final WorldCatSinkConfig latestConfig = worldCatConfigBean.getConfig(consumedMessage);
@@ -156,7 +172,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                         .withData("Checksum indicated no change");
             }
 
-            long handleChunkItemStartTime = System.currentTimeMillis();
+            Instant handleChunkItemStartTime = Instant.now();
             WciruServiceBroker.Result brokerResult = null;
             try {
                 brokerResult = wciruServiceBroker.push(chunkItemWithWorldCatAttributes, worldCatEntity);
@@ -172,8 +188,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 return FormattedOutput.of(pid, brokerResult).withId(chunkItem.getId()).withTrackingId(chunkItem.getTrackingId());
             } finally {
                 Tag tag = new Tag("status", brokerResult == null ? "timeout" : brokerResult.isFailed() ? "failed" : "success");
-                metricsHandler.increment(WorldcatCounterMetrics.WCIRU_UPDATE, tag);
-                metricsHandler.update(WorldcatTimerMetrics.WCIRU_SERVICE_REQUESTS, Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime), tag);
+                WCIRU_UPDATE.counter(tag).inc();
+                WCIRU_SERVICE_REQUESTS.simpleTimer().update(Duration.between(handleChunkItemStartTime, Instant.now()));
             }
         } catch (IllegalArgumentException e) {
             return FormattedOutput.of(e)
@@ -199,4 +215,5 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         }
         return worldCatEntities.get(0);
     }
+
 }

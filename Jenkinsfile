@@ -21,7 +21,8 @@ pipeline {
             dlq-errorhandler, \
             sink/dummy, \
             sink/marcconv, \
-            sink/dmat"
+            sink/dmat, \
+            sink/worldcat"
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara5-bump-trigger",

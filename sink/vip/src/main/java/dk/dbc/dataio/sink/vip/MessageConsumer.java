@@ -13,37 +13,50 @@ import dk.dbc.dataio.commons.types.VipSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.vip.connector.VipCoreConnector;
 import dk.dbc.dataio.sink.vip.connector.VipCoreConnectorException;
 import dk.dbc.dataio.sink.vip.connector.VipCoreConnectorUnexpectedStatusCodeException;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.log.DBCTrackedLogContext;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.client.ClientBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-public class MessageConsumerBean extends MessageConsumerAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
-    private ConfigBean configBean;
+public class MessageConsumer extends MessageConsumerAdapter {
+    private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
+    private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
+    private final ConfigBean configBean;
     private VipSinkConfig config;
     private VipCoreConnector vipCoreConnector;
-    private JSONBContext jsonbContext = new JSONBContext();
+    private final JSONBContext jsonbContext = new JSONBContext();
+
+    public MessageConsumer(ServiceHub serviceHub, ConfigBean configBean) {
+        super(serviceHub);
+        this.configBean = configBean;
+    }
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
-        final Chunk chunk = unmarshallPayload(consumedMessage);
+        Chunk chunk = unmarshallPayload(consumedMessage);
         refreshState(configBean.getConfig(consumedMessage));
         sendResultToJobStore(handleChunk(chunk));
     }
 
+    @Override
+    public String getQueue() {
+        return QUEUE;
+    }
+
+    @Override
+    public String getAddress() {
+        return ADDRESS;
+    }
+
     Chunk handleChunk(Chunk chunk) {
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         try {
             for (ChunkItem chunkItem : chunk.getItems()) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
@@ -56,7 +69,7 @@ public class MessageConsumerBean extends MessageConsumerAdapter {
     }
 
     private ChunkItem handleChunkItem(ChunkItem chunkItem) {
-        final ChunkItem result = new ChunkItem()
+        ChunkItem result = new ChunkItem()
                 .withId(chunkItem.getId())
                 .withTrackingId(chunkItem.getTrackingId())
                 .withType(ChunkItem.Type.STRING)
@@ -72,17 +85,17 @@ public class MessageConsumerBean extends MessageConsumerAdapter {
                             .withStatus(ChunkItem.Status.IGNORE)
                             .withData("Ignored by processor");
                 default:
-                    vipload(chunkItem);
+                    vipLoad(chunkItem);
                     return result
                             .withStatus(ChunkItem.Status.SUCCESS)
                             .withData("Loaded");
             }
         } catch (Exception e) {
             if (e instanceof VipCoreConnectorUnexpectedStatusCodeException) {
-                final Optional<VipCoreConnector.Error> error =
+                Optional<VipCoreConnector.Error> error =
                         ((VipCoreConnectorUnexpectedStatusCodeException) e).getError();
                 if (error.isPresent()) {
-                    final String errorMessage = e.getMessage() + " - " + error.get().toString();
+                    String errorMessage = e.getMessage() + " - " + error.get();
                     return result
                             .withStatus(ChunkItem.Status.FAILURE)
                             .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, errorMessage, e))
@@ -97,18 +110,16 @@ public class MessageConsumerBean extends MessageConsumerAdapter {
         }
     }
 
-    private void vipload(ChunkItem chunkItem) throws VipCoreConnectorException, IOException, JSONBException {
-        final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
+    private void vipLoad(ChunkItem chunkItem) throws VipCoreConnectorException, IOException, JSONBException {
+        AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
         while (addiReader.hasNext()) {
-            final AddiRecord addiRecord = addiReader.next();
-            final AddiMetaData addiMetaData = jsonbContext.unmarshall(
-                    StringUtil.asString(addiRecord.getMetaData()), AddiMetaData.class);
-            vipCoreConnector.vipload(addiMetaData.format(),
-                    StringUtil.asString(addiRecord.getContentData()));
+            AddiRecord addiRecord = addiReader.next();
+            AddiMetaData addiMetaData = jsonbContext.unmarshall(StringUtil.asString(addiRecord.getMetaData()), AddiMetaData.class);
+            vipCoreConnector.vipload(addiMetaData.format(), StringUtil.asString(addiRecord.getContentData()));
         }
     }
 
-    private void refreshState(VipSinkConfig latestConfig) {
+    private synchronized void refreshState(VipSinkConfig latestConfig) {
         if (!latestConfig.equals(config)) {
             config = latestConfig;
             vipCoreConnector = createVipCoreConnector(config);
@@ -119,10 +130,6 @@ public class MessageConsumerBean extends MessageConsumerAdapter {
         if (vipCoreConnector != null) {
             vipCoreConnector.close();
         }
-        return new VipCoreConnector(
-                HttpClient.newClient(
-                        new ClientConfig()
-                                .register(new JacksonFeature())),
-                config.getEndpoint());
+        return new VipCoreConnector(ClientBuilder.newClient(), config.getEndpoint());
     }
 }

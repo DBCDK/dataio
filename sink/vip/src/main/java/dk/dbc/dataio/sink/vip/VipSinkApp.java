@@ -1,37 +1,20 @@
 package dk.dbc.dataio.sink.vip;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.jse.artemis.common.app.MessageConsumerApp;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
-import org.postgresql.ds.PGSimpleDataSource;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Persistence;
 import javax.ws.rs.client.ClientBuilder;
-import java.util.Map;
 import java.util.function.Supplier;
 
 public class VipSinkApp extends MessageConsumerApp {
     private static final ServiceHub serviceHub = ServiceHub.defaultHub();
-    private static final FileStoreServiceConnector fileStore = new FileStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FILESTORE_URL.asString());
-    private static final Supplier<MessageConsumer> messageConsumer = () -> new MessageConsumer(serviceHub, fileStore, makeEntityManager());
-
-    public MarcConvSinkApp() {
-        PGSimpleDataSource dataSource = new PGSimpleDataSource();
-        dataSource.setURL(SinkConfig.MARCCONV_DB_URL.asPGJDBCUrl());
-        new DatabaseMigrator(dataSource).migrate();
-    }
-
-    private static EntityManager makeEntityManager() {
-        Map<String, String> config = Map.of(
-                "javax.persistence.transactionType", "RESOURCE_LOCAL",
-                "provider", "org.eclipse.persistence.jpa.PersistenceProvider",
-                "javax.persistence.schema-generation.database.action", "none",
-                "javax.persistence.jdbc.driver", "org.postgresql.Driver",
-                "javax.persistence.jdbc.url", SinkConfig.MARCCONV_DB_URL.asPGJDBCUrl());
-        return Persistence.createEntityManagerFactory("marcconv_PU", config).createEntityManager();
-    }
+    private static final  FlowStoreServiceConnector FLOW_STORE = new FlowStoreServiceConnector(ClientBuilder.newClient(),
+            SinkConfig.FLOWSTORE_URL.asString());
+    private static final ConfigBean CONFIG_BEAN = new ConfigBean(FLOW_STORE);
+    private static final Supplier<MessageConsumer> messageConsumer = () -> new MessageConsumer(serviceHub, CONFIG_BEAN);
 
     public static void main(String[] args) {
-        new MarcConvSinkApp().go(serviceHub, messageConsumer);
+        new VipSinkApp().go(serviceHub, messageConsumer);
     }
 }

@@ -8,7 +8,7 @@ import java.util.function.Function;
 
 public interface EnvConfig {
     default Optional<String> asOptionalString() {
-        return getProperty(getName()).or(() -> Optional.ofNullable(getDefaultValue()));
+        return getProperty(getName()).or(() -> Optional.ofNullable(getDefaultValue())).map(String::trim).filter(s -> !s.isEmpty());
     }
 
     default Optional<Integer> asOptionalInteger() {

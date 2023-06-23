@@ -24,6 +24,7 @@ pipeline {
             sink/dmat, \
             sink/diff, \
             sink/holdings-items, \
+            sink/vip, \
             sink/dpf \
         "
     }

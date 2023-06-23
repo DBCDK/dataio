@@ -423,21 +423,6 @@ public class MessageConsumerIT extends IntegrationTest {
         messageConsumer.wciruServiceBroker = wciruServiceBroker;
         messageConsumer.worldCatConfigBean = worldCatConfigBean;
         messageConsumer.config = config;
-
-        messageConsumer.UNHANDLED_EXCEPTIONS = mock(Metric.class);
-        messageConsumer.WCIRU_CHUNK_UPDATE = mock(Metric.class);
-        messageConsumer.WCIRU_SERVICE_REQUESTS = mock(Metric.class);
-        messageConsumer.WCIRU_UPDATE = mock(Metric.class);
-        Counter counter = mock(Counter.class);
-        SimpleTimer simpleTimer = mock(SimpleTimer.class);
-        when(messageConsumer.UNHANDLED_EXCEPTIONS.counter()).thenReturn(counter);
-        when(messageConsumer.WCIRU_SERVICE_REQUESTS.simpleTimer()).thenReturn(simpleTimer);
-        doNothing().when(simpleTimer).update(any(Duration.class));
-        when(messageConsumer.WCIRU_SERVICE_REQUESTS.simpleTimer()).thenReturn(simpleTimer);
-        when(messageConsumer.WCIRU_CHUNK_UPDATE.simpleTimer()).thenReturn(simpleTimer);
-        when(messageConsumer.WCIRU_CHUNK_UPDATE.counter()).thenReturn(counter);
-        when(messageConsumer.WCIRU_UPDATE.counter(any())).thenReturn(counter);
-        doNothing().when(counter).inc();
         return messageConsumer;
     }
 

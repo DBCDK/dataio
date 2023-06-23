@@ -42,9 +42,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
         super(serviceHub);
         this.entityManager = entityManager;
         ocnRepo = new OcnRepo(entityManager);
-        flowStoreServiceConnector = SinkConfig.FLOWSTORE_URL
-                .asOptionalString()
-                .map(js -> new FlowStoreServiceConnector(ClientBuilder.newClient(), js)).orElse(null);
+        flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FLOWSTORE_URL.asString());
         worldCatConfigBean = new WorldCatConfigBean(flowStoreServiceConnector);
     }
 
@@ -124,11 +122,6 @@ public class MessageConsumer extends MessageConsumerAdapter {
         return ADDRESS;
     }
 
-    @Override
-    public String getFilter() {
-        return SinkConfig.MESSAGE_FILTER.asOptionalString().orElse(null);
-    }
-
 
     private void refreshConfigIfOutdated(ConsumedMessage consumedMessage) throws SinkException {
         final WorldCatSinkConfig latestConfig = worldCatConfigBean.getConfig(consumedMessage);
@@ -157,6 +150,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
     ChunkItem handleChunkItem(ChunkItem chunkItem) {
         EntityTransaction transaction = ocnRepo.getEntityManager().getTransaction();
         try {
+            transaction.begin();
             final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
                     ChunkItemWithWorldCatAttributes.of(chunkItem);
             final Pid pid = Pid.of(chunkItemWithWorldCatAttributes.getWorldCatAttributes().getPid());
@@ -186,9 +180,9 @@ public class MessageConsumer extends MessageConsumerAdapter {
                         worldCatEntity.withOcn(brokerResult.getOcn()).withChecksum(checksum).withActiveHoldingSymbols(chunkItemWithWorldCatAttributes.getActiveHoldingSymbols()).setHasLHR(chunkItemWithWorldCatAttributes.getWorldCatAttributes().hasLhr());
                     }
                 }
-
                 return FormattedOutput.of(pid, brokerResult).withId(chunkItem.getId()).withTrackingId(chunkItem.getTrackingId());
             } finally {
+                transaction.commit();
                 Tag tag = new Tag("status", brokerResult == null ? "timeout" : brokerResult.isFailed() ? "failed" : "success");
                 WCIRU_UPDATE.counter(tag).inc();
                 WCIRU_SERVICE_REQUESTS.simpleTimer().update(Duration.between(handleChunkItemStartTime, Instant.now()));

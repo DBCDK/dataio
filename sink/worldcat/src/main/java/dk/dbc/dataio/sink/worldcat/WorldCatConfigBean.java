@@ -71,7 +71,7 @@ public class WorldCatConfigBean {
      * @param consumedMessage consumed message containing the version and the id of the sink
      * @throws SinkException on error to retrieve property for id or version or on error on fetching sink
      */
-    private void refreshConfig(ConsumedMessage consumedMessage) throws SinkException {
+    private synchronized void refreshConfig(ConsumedMessage consumedMessage) throws SinkException {
         try {
             final long sinkId = consumedMessage.getHeaderValue(JmsConstants.SINK_ID_PROPERTY_NAME, Long.class);
             final long sinkVersion = consumedMessage.getHeaderValue(JmsConstants.SINK_VERSION_PROPERTY_NAME, Long.class);

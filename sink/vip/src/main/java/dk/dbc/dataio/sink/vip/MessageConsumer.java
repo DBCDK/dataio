@@ -104,8 +104,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
             }
             return result
                     .withStatus(ChunkItem.Status.FAILURE)
-                    .withDiagnostics(new Diagnostic(
-                            Diagnostic.Level.FATAL, e.getMessage(), e))
+                    .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, e.getMessage(), e))
                     .withData(e.getMessage());
         }
     }

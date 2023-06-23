@@ -1,4 +1,4 @@
-package dk.dbc.dataio.sink.dpf;
+package dk.dbc.dataio.sink.dpf.transform;
 
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
@@ -13,13 +13,12 @@ public class MarcRecordFactory {
     }
 
     public static MarcRecord fromMarcXchange(byte[] bytes) throws MarcReaderException {
-        final MarcXchangeV1Reader reader = new MarcXchangeV1Reader(
-                new ByteArrayInputStream(bytes), StandardCharsets.UTF_8);
+        MarcXchangeV1Reader reader = new MarcXchangeV1Reader(new ByteArrayInputStream(bytes), StandardCharsets.UTF_8);
         return reader.read();
     }
 
     public static byte[] toMarcXchange(MarcRecord marcRecord) {
-        final MarcXchangeV1Writer writer = new MarcXchangeV1Writer();
+        MarcXchangeV1Writer writer = new MarcXchangeV1Writer();
         return writer.write(marcRecord, StandardCharsets.UTF_8);
     }
 }

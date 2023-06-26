@@ -6,7 +6,6 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +53,7 @@ public class WorldCatConfigBean {
         this.flowStoreServiceConnector = flowStoreServiceConnector;
     }
     public WorldCatConfigBean() {}
-    public WorldCatSinkConfig getConfig(ConsumedMessage consumedMessage) throws SinkException {
+    public WorldCatSinkConfig getConfig(ConsumedMessage consumedMessage) {
         refreshConfig(consumedMessage);
         return config;
     }
@@ -69,9 +68,8 @@ public class WorldCatConfigBean {
      * Refreshes the sink config contained in this bean by flow-store lookup if it is outdated
      *
      * @param consumedMessage consumed message containing the version and the id of the sink
-     * @throws SinkException on error to retrieve property for id or version or on error on fetching sink
      */
-    private synchronized void refreshConfig(ConsumedMessage consumedMessage) throws SinkException {
+    private synchronized void refreshConfig(ConsumedMessage consumedMessage) {
         try {
             final long sinkId = consumedMessage.getHeaderValue(JmsConstants.SINK_ID_PROPERTY_NAME, Long.class);
             final long sinkVersion = consumedMessage.getHeaderValue(JmsConstants.SINK_VERSION_PROPERTY_NAME, Long.class);
@@ -88,7 +86,7 @@ public class WorldCatConfigBean {
                 highestVersionSeen = sink.getVersion();
             }
         } catch (FlowstoreConnectorConnectionException e) {
-            throw new SinkException(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 }

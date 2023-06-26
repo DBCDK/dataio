@@ -18,11 +18,8 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.testutil.ObjectFactory;
-import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
-import org.eclipse.microprofile.metrics.Counter;
-import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -32,7 +29,6 @@ import org.postgresql.ds.PGSimpleDataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,7 +46,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -82,7 +77,7 @@ public class MessageConsumerIT extends IntegrationTest {
     }
 
     @Before
-    public void setupMocks() throws SinkException {
+    public void setupMocks() {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
         when(worldCatConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(config);
 

@@ -14,7 +14,6 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,12 +44,12 @@ public class WorldCatConfigBeanTest {
     private WorldCatConfigBean worldCatConfigBean;
 
     @Before
-    public void setup() throws JSONBException {
+    public void setup() {
         worldCatConfigBean = newWorldCatConfigBean();
     }
 
     @Test
-    public void getConfig_sinkNotFound_throws() throws SinkException, FlowStoreServiceConnectorException {
+    public void getConfig_sinkNotFound_throws() throws FlowStoreServiceConnectorException {
         final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
         final String message = "Error message from flowStore";
         when(flowStoreServiceConnector.getSink(anyLong())).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException(message, 404));
@@ -58,13 +57,13 @@ public class WorldCatConfigBeanTest {
         try {
             worldCatConfigBean.getConfig(consumedMessage);
             fail();
-        } catch (SinkException e) {
+        } catch (RuntimeException e) {
             assertThat(e.getMessage(), containsString(message));
         }
     }
 
     @Test
-    public void getConfig() throws FlowStoreServiceConnectorException, SinkException {
+    public void getConfig() throws FlowStoreServiceConnectorException {
         final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
         when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(sink);
 
@@ -74,7 +73,7 @@ public class WorldCatConfigBeanTest {
     }
 
     @Test
-    public void getConfig_configRefreshesOnlyWhenVersionChanges() throws SinkException, FlowStoreServiceConnectorException {
+    public void getConfig_configRefreshesOnlyWhenVersionChanges() throws FlowStoreServiceConnectorException {
         when(flowStoreServiceConnector.getSink(10L)).thenReturn(sink);
 
         final WorldCatSinkConfig config = worldCatConfigBean.getConfig(newConsumedMessage(10, 1));

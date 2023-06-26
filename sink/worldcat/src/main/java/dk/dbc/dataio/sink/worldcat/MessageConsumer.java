@@ -11,7 +11,6 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
-import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.ocnrepo.OcnRepo;
@@ -20,14 +19,14 @@ import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.ws.rs.client.ClientBuilder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.ws.rs.client.ClientBuilder;
 
 
 public class MessageConsumer extends MessageConsumerAdapter {
@@ -123,7 +122,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
     }
 
 
-    private void refreshConfigIfOutdated(ConsumedMessage consumedMessage) throws SinkException {
+    private void refreshConfigIfOutdated(ConsumedMessage consumedMessage) {
         final WorldCatSinkConfig latestConfig = worldCatConfigBean.getConfig(consumedMessage);
         if (!latestConfig.equals(config)) {
             LOGGER.debug("Updating WCIRU connector");

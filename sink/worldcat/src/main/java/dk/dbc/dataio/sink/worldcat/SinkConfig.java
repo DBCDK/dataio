@@ -20,11 +20,6 @@ public enum SinkConfig implements EnvConfig {
     }
 
     @Override
-    public String getName() {
-        return name();
-    }
-
-    @Override
     public String getDefaultValue() {
         return defaultValue;
     }

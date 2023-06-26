@@ -22,6 +22,8 @@ import dk.dbc.ticklerepo.dto.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -34,37 +36,46 @@ public class MessageConsumer extends MessageConsumerAdapter {
     private final Batch.Type tickleBehaviour = Batch.Type.valueOf(SinkConfig.TICKLE_BEHAVIOUR.asString());
     final Cache<Integer, Batch> batchCache = CacheBuilder.newBuilder().maximumSize(50).expireAfterAccess(Duration.ofHours(1)).build();
     final TickleRepo tickleRepo;
+    private final EntityManager entityManager;
 
 
-    public MessageConsumer(ServiceHub serviceHub, TickleRepo tickleRepo) {
+    public MessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
         super(serviceHub);
-        this.tickleRepo = tickleRepo;
+        this.entityManager = entityManager;
+        this.tickleRepo = new TickleRepo(entityManager);
     }
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         Chunk chunk = unmarshallPayload(consumedMessage);
-        Batch batch = getBatch(chunk);
-        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        if (chunk.isTerminationChunk()) {
-            try {
-                // Give the before-last message enough time to commit
-                // its records to the tickle-repo before initiating
-                // the finalization process.
-                // (The result is uploaded to the job-store before the
-                // implicit commit, so without the sleep pause, there was a
-                // small risk that the end-chunk would reach this bean
-                // before all data was available.)
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+            Batch batch = getBatch(chunk);
+            Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+            if (chunk.isTerminationChunk()) {
+                try {
+                    // Give the before-last message enough time to commit
+                    // its records to the tickle-repo before initiating
+                    // the finalization process.
+                    // (The result is uploaded to the job-store before the
+                    // implicit commit, so without the sleep pause, there was a
+                    // small risk that the end-chunk would reach this bean
+                    // before all data was available.)
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                result.insertItem(handleJobEnd(chunk.getItems().get(0), batch));
+            } else {
+                chunk.getItems().forEach(chunkItem -> result.insertItem(handleChunkItem(chunkItem, batch)));
             }
-            result.insertItem(handleJobEnd(chunk.getItems().get(0), batch));
-        } else {
-            chunk.getItems().forEach(chunkItem -> result.insertItem(handleChunkItem(chunkItem, batch)));
-        }
 
-        sendResultToJobStore(result);
+            sendResultToJobStore(result);
+            transaction.commit();
+        } finally {
+            if(transaction.isActive()) transaction.rollback();
+        }
     }
 
     @Override

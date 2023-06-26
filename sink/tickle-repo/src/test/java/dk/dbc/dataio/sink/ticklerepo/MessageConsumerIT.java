@@ -40,7 +40,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -346,9 +345,8 @@ public class MessageConsumerIT extends IntegrationTest {
     }
 
     private MessageConsumer createMessageConsumerBean() {
-        TickleRepo tickleRepo = spy(new TickleRepo(entityManager));
         ServiceHub hub = new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build();
-        return new MessageConsumer(hub, tickleRepo);
+        return new MessageConsumer(hub, entityManager);
     }
 
     private Chunk createChunk() {

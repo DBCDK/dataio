@@ -46,6 +46,12 @@
           <version>1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>eclipselink</artifactId>
         </dependency>

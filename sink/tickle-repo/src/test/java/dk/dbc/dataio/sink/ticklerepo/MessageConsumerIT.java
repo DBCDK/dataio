@@ -159,7 +159,7 @@ public class MessageConsumerIT extends IntegrationTest {
 
         persistenceContext.run(() -> messageConsumer.handleConsumedMessage(message));
 
-        messageConsumer.batchCache.clear();
+        messageConsumer.batchCache.invalidateAll();
 
         persistenceContext.run(() -> messageConsumer.handleConsumedMessage(message));
 
@@ -237,7 +237,7 @@ public class MessageConsumerIT extends IntegrationTest {
 
         persistenceContext.run(() -> messageConsumer.handleConsumedMessage(message));
 
-        Batch batch = messageConsumer.batchCache.get(chunk.getJobId());
+        Batch batch = messageConsumer.batchCache.getIfPresent(chunk.getJobId());
 
         Record notUpdated = messageConsumer.tickleRepo.lookupRecord(new Record().withId(1)).orElse(null);
         assertThat("record not updated batch", notUpdated.getBatch(), is(not(batch.getId())));
@@ -271,7 +271,7 @@ public class MessageConsumerIT extends IntegrationTest {
         persistenceContext.run(() -> messageConsumer.handleConsumedMessage(
                 ObjectFactory.createConsumedMessage(endJobChunk)));
 
-        Batch batch = messageConsumer.batchCache.get(chunk.getJobId());
+        Batch batch = messageConsumer.batchCache.getIfPresent(chunk.getJobId());
         verify(messageConsumer.tickleRepo).closeBatch(batch);
     }
 
@@ -290,7 +290,7 @@ public class MessageConsumerIT extends IntegrationTest {
         persistenceContext.run(() -> messageConsumer.handleConsumedMessage(
                 ObjectFactory.createConsumedMessage(endJobChunk)));
 
-        Batch batch = messageConsumer.batchCache.get(chunk.getJobId());
+        Batch batch = messageConsumer.batchCache.getIfPresent(chunk.getJobId());
         verify(messageConsumer.tickleRepo).abortBatch(batch);
         verify(messageConsumer.tickleRepo).closeBatch(batch);
     }

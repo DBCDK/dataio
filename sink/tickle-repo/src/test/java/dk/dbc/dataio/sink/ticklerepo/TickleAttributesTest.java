@@ -12,7 +12,7 @@ public class TickleAttributesTest {
 
     @Test
     public void unknownFieldsIgnoredDuringUnmarshalling() throws JSONBException {
-        final TickleAttributes tickleAttributes = jsonbContext.unmarshall(
+        TickleAttributes tickleAttributes = jsonbContext.unmarshall(
                 "{\"submitter\":42, \"deleted\": true, \"unknownKey\": \"value\"}", TickleAttributes.class);
         assertThat("agencyId", tickleAttributes.getAgencyId(), is(42));
         assertThat("is deleted", tickleAttributes.isDeleted(), is(true));

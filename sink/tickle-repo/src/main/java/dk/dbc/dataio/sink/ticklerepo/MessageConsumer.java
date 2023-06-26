@@ -22,7 +22,6 @@ import dk.dbc.ticklerepo.dto.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -41,12 +40,6 @@ public class MessageConsumer extends MessageConsumerAdapter {
         super(serviceHub);
         this.tickleRepo = tickleRepo;
     }
-
-    @PostConstruct
-    public void setTickleBehaviour() {
-        LOGGER.info("Sink running with {} tickle behaviour", tickleBehaviour);
-    }
-
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {

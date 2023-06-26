@@ -1,8 +1,0 @@
-{
-  "appName": "TickleSink",
-  "jdbc": {
-    "jdbc/tickle-repo": {
-      "url": "${TICKLE_REPO_DB_URL}"
-    }
-  }
-}

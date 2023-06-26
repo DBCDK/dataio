@@ -33,8 +33,8 @@ import java.util.Optional;
 public class MessageConsumer extends MessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
     private final Batch.Type tickleBehaviour = Batch.Type.valueOf(SinkConfig.TICKLE_BEHAVIOUR.asString());
-    Cache<Integer, Batch> batchCache = CacheBuilder.newBuilder().maximumSize(50).expireAfterAccess(Duration.ofHours(1)).build();
-    private final TickleRepo tickleRepo;
+    final Cache<Integer, Batch> batchCache = CacheBuilder.newBuilder().maximumSize(50).expireAfterAccess(Duration.ofHours(1)).build();
+    final TickleRepo tickleRepo;
 
 
     public MessageConsumer(ServiceHub serviceHub, TickleRepo tickleRepo) {

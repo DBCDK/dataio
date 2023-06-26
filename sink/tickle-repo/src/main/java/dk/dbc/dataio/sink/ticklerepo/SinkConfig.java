@@ -5,7 +5,8 @@ import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 public enum SinkConfig implements EnvConfig {
     QUEUE,
     MESSAGE_FILTER(null),
-    TICKLE_BEHAVIOUR("INCREMENTAL");
+    TICKLE_BEHAVIOUR("INCREMENTAL"),
+    TICKLE_REPO_DB_URL;
     private final String defaultValue;
 
     SinkConfig() {

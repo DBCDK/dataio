@@ -18,7 +18,6 @@ import dk.dbc.dataio.jse.artemis.common.JobProcessorException;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.HealthService;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
-import dk.dbc.dataio.registry.PrometheusMetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +49,6 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
         chunkProcessor = new ChunkProcessor(healthService);
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
         Metric.dataio_jobprocessor_chunk_duration_ms.gauge(this::getLongestRunningChunkDuration);
-        initMetrics(PrometheusMetricRegistry.create());
         zombieWatch.addCheck("script-check" , this::scriptRuntimeCheck);
     }
 

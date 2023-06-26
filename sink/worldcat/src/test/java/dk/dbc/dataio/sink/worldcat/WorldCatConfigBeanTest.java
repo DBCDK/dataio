@@ -5,7 +5,6 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Sink;
@@ -15,19 +14,19 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -45,7 +44,7 @@ public class WorldCatConfigBeanTest {
     private WorldCatConfigBean worldCatConfigBean;
 
     @Before
-    public void setup() throws JSONBException {
+    public void setup() {
         worldCatConfigBean = newWorldCatConfigBean();
     }
 
@@ -58,13 +57,13 @@ public class WorldCatConfigBeanTest {
         try {
             worldCatConfigBean.getConfig(consumedMessage);
             fail();
-        } catch (SinkException e) {
-            assertThat(e.getMessage(), is(message));
+        } catch (RuntimeException e) {
+            assertThat(e.getMessage(), containsString(message));
         }
     }
 
     @Test
-    public void getConfig() throws FlowStoreServiceConnectorException, SinkException {
+    public void getConfig() throws FlowStoreServiceConnectorException {
         final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
         when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(sink);
 
@@ -74,7 +73,7 @@ public class WorldCatConfigBeanTest {
     }
 
     @Test
-    public void getConfig_configRefreshesOnlyWhenVersionChanges() throws SinkException, FlowStoreServiceConnectorException {
+    public void getConfig_configRefreshesOnlyWhenVersionChanges() throws FlowStoreServiceConnectorException {
         when(flowStoreServiceConnector.getSink(10L)).thenReturn(sink);
 
         final WorldCatSinkConfig config = worldCatConfigBean.getConfig(newConsumedMessage(10, 1));
@@ -96,8 +95,7 @@ public class WorldCatConfigBeanTest {
 
     private WorldCatConfigBean newWorldCatConfigBean() {
         final WorldCatConfigBean worldCatConfigBean = new WorldCatConfigBean();
-        worldCatConfigBean.flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
-        when(worldCatConfigBean.flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
+        worldCatConfigBean.flowStoreServiceConnector = flowStoreServiceConnector;
         return worldCatConfigBean;
     }
 

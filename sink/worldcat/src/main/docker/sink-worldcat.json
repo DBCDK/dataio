@@ -1,9 +1,0 @@
-{
-  "appName": "WorldcatSink",
-  "profiles": ["dmz-proxy"],
-  "jdbc": {
-    "jdbc/ocn-repo": {
-      "url": "${OCN_REPO_DB_URL}"
-    }
-  }
-}

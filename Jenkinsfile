@@ -22,6 +22,7 @@ pipeline {
             sink/dummy, \
             sink/marcconv, \
             sink/dmat, \
+            sink/worldcat, \
             sink/diff, \
             sink/holdings-items, \
             sink/tickle-repo, \

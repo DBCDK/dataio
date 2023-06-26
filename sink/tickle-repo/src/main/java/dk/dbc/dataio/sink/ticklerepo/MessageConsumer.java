@@ -33,10 +33,12 @@ import java.util.Optional;
 
 public class MessageConsumer extends MessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
-    private final Batch.Type tickleBehaviour = Batch.Type.valueOf(SinkConfig.TICKLE_BEHAVIOUR.asString());
+    private final Batch.Type tickleBehaviour = Batch.Type.valueOf(SinkConfig.TICKLE_BEHAVIOUR.asString().toUpperCase());
     final Cache<Integer, Batch> batchCache = CacheBuilder.newBuilder().maximumSize(50).expireAfterAccess(Duration.ofHours(1)).build();
     final TickleRepo tickleRepo;
     private final EntityManager entityManager;
+    private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
+    private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
 
 
     public MessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
@@ -80,12 +82,12 @@ public class MessageConsumer extends MessageConsumerAdapter {
 
     @Override
     public String getQueue() {
-        return null;
+        return QUEUE;
     }
 
     @Override
     public String getAddress() {
-        return null;
+        return ADDRESS;
     }
 
     private Batch getBatch(Chunk chunk) {

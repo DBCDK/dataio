@@ -78,7 +78,7 @@ public abstract class MessageConsumerApp {
                     receiveMessages(messageConsumer, consumer, context);
                 }
             } catch (JMSRuntimeException e) {
-                LOGGER.error("Failed to connect to artemis on {} retrying in {}s, cause: {}", Config.getBrokerUrl(), RECONNECT_DELAY.toSeconds(), e.getCause().getMessage());
+                LOGGER.error("Failed to connect to artemis on {} retrying in {}s", Config.getBrokerUrl(), RECONNECT_DELAY.toSeconds(), e);
                 sleep(RECONNECT_DELAY);
             }
         }

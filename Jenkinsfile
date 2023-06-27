@@ -25,6 +25,7 @@ pipeline {
             sink/worldcat, \
             sink/diff, \
             sink/holdings-items, \
+            sink/vip, \
             sink/tickle-repo, \
             sink/dpf \
         "

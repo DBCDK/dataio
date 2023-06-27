@@ -66,6 +66,11 @@
           <version>2.6.3</version>
           <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.sun.org.apache.xml.internal</groupId>
+            <artifactId>resolver</artifactId>
+            <version>20050927</version>
+        </dependency>
     </dependencies>
 
     <build>

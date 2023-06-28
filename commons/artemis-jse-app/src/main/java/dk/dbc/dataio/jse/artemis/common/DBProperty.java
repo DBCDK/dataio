@@ -17,7 +17,7 @@ public enum DBProperty {
 
     public static Map<DBProperty, String> from(String s) {
         Matcher matcher = pattern.matcher(s);
-        if(!matcher.matches()) return Map.of();
+        if(!matcher.matches()) throw new IllegalArgumentException("Database property did not match the expected format: " + s);
         return Arrays.stream(values()).collect(Collectors.toMap(e -> e, e -> matcher.group(e.name())));
     }
 }

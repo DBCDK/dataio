@@ -21,6 +21,11 @@
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>artemis-jse-db-app</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-sink-testutil</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
@@ -50,14 +55,6 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-testutil-jpa</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.persistence</groupId>
-      <artifactId>eclipselink</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sun.xml.ws</groupId>

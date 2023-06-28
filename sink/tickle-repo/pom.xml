@@ -21,6 +21,11 @@
     <dependencies>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>artemis-jse-db-app</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-cache</artifactId>
             <version>${project.version}</version>
         </dependency>

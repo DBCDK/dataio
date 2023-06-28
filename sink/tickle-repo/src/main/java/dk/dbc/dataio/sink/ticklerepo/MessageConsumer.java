@@ -258,7 +258,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
                                     " in dataset " + tickleRecord.getDataset(), "OK"));
                 }
 
-                LOGGER.info("Handled record {} in dataset {}", tickleRecord.getLocalId(), tickleRecord.getDataset());
+                LOGGER.debug("Handled record {} in dataset {}", tickleRecord.getLocalId(), tickleRecord.getDataset());
             }
             recordNo++;
         }

@@ -93,7 +93,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
     private Batch getBatch(Chunk chunk) {
         Batch batch = batchCache.getIfPresent(chunk.getJobId());
         if(batch != null) return batch;
-        batch = tickleRepo.lookupBatch(new Batch().withBatchKey(chunk.getJobId())).orElse(createBatch(chunk));
+        batch = tickleRepo.lookupBatch(new Batch().withBatchKey(chunk.getJobId())).orElseGet(() -> createBatch(chunk));
         if(batch != null) batchCache.put(chunk.getJobId(), batch);
         return batch;
     }

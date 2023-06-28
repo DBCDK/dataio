@@ -11,11 +11,6 @@
 
     <artifactId>artemis-jse-db-app</artifactId>
 
-    <properties>
-        <micrometer.version>1.9.4</micrometer.version>
-        <jetty.version>11.0.14</jetty.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>dk.dbc</groupId>

@@ -3,6 +3,7 @@ package dk.dbc.dataio.sink.marcconv;
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
+import dk.dbc.dataio.jse.artemis.common.db.JPAHelper;
 import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ public abstract class IntegrationTest extends JpaIntegrationTest {
     @Override
     public JpaTestEnvironment setup() {
         DataSource dataSource = getDataSource();
-        migrateDatabase(dataSource);
+        JPAHelper.migrate(dataSource);
 
         jpaTestEnvironment = new JpaTestEnvironment(dataSource, "marcconvIT_PU", getEntityManagerFactoryProperties());
         return jpaTestEnvironment;
@@ -47,10 +48,5 @@ public abstract class IntegrationTest extends JpaIntegrationTest {
 
     private Map<String, String> getEntityManagerFactoryProperties() {
         return dbContainer.entityManagerProperties();
-    }
-
-    private void migrateDatabase(DataSource datasource) {
-        DatabaseMigrator databaseMigrator = new DatabaseMigrator(datasource);
-        databaseMigrator.migrate();
     }
 }

@@ -21,6 +21,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>artemis-jse-db-app</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
@@ -35,10 +40,6 @@
             <artifactId>dataio-commons-utils-test</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -56,18 +57,10 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-testutil-jpa</artifactId>
             <version>1.3-SNAPSHOT</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.persistence</groupId>
-            <artifactId>eclipselink</artifactId>
         </dependency>
     </dependencies>
 

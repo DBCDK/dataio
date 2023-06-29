@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 public class ExternalToolDiffGenerator {
     private static final String EMPTY = "";
-    static String path = "";
+    static String path = SinkConfig.TOOL_PATH.asString();
 
     /**
      * Creates diff string through external tool, returning
@@ -98,7 +98,7 @@ public class ExternalToolDiffGenerator {
         }
 
         public String getTool() {
-            return path + tool;
+            return path + '/' + tool;
         }
     }
 

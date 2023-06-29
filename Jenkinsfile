@@ -27,6 +27,7 @@ pipeline {
             sink/holdings-items, \
             sink/vip, \
             sink/ims, \
+            sink/tickle-repo, \
             sink/dpf \
         "
     }

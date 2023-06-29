@@ -25,6 +25,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -153,7 +154,7 @@ public interface MessageConsumer extends MessageListener {
     String getAddress();
 
     default String getFQN() {
-        return getAddress() + "::" + getQueue();
+        return Objects.requireNonNull(getAddress()) + "::" + Objects.requireNonNull(getQueue());
     }
 
     default String getFilter() {

@@ -1,12 +1,12 @@
-package dk.dbc.dataio.sink.diff;
+package dk.dbc.dataio.sink.ticklerepo;
 
 import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 
 public enum SinkConfig implements EnvConfig {
-    QUEUE("sink::diff"),
+    QUEUE,
     MESSAGE_FILTER(null),
-    TOOL_PATH("/work");
-
+    TICKLE_BEHAVIOUR("INCREMENTAL"),
+    TICKLE_REPO_DB_URL;
     private final String defaultValue;
 
     SinkConfig() {
@@ -15,11 +15,6 @@ public enum SinkConfig implements EnvConfig {
 
     SinkConfig(String defaultValue) {
         this.defaultValue = defaultValue;
-    }
-
-    @Override
-    public String getName() {
-        return name();
     }
 
     @Override

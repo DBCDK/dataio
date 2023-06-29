@@ -26,6 +26,7 @@ pipeline {
             sink/diff, \
             sink/holdings-items, \
             sink/vip, \
+            sink/ims, \
             sink/dpf \
         "
     }

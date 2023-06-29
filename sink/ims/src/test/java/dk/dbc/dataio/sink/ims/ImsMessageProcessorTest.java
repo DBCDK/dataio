@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 public class ImsMessageProcessorTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final ImsConfig imsConfig = mock(ImsConfig.class);
-    private final ImsMessageProcessor imsMessageProcessor = new ImsMessageProcessor(new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build(), imsConfig);
+    private final ImsMessageProcessor imsMessageProcessor = new ImsMessageProcessor(new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).test(), imsConfig);
     private final JSONBContext jsonbContext = new JSONBContext();
     @Rule  // Port 0 lets wiremock find a random port
     public WireMockRule wireMockRule = new WireMockRule(0);

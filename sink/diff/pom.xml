@@ -129,6 +129,7 @@
                                 <runCmds>
                                     <run>apt-get update</run>
                                     <run>apt-get install libxml2-utils</run>
+                                    <run>apt-get -y install jq</run>
                                 </runCmds>
                                 <user>gfish</user>
                                 <assemblies>

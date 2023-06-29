@@ -126,6 +126,10 @@
                             <name>docker-metascrum.artifacts.dbccloud.dk/%a:${tag}</name>
                             <build>
                                 <from>${java.image}</from>
+                                <runCmds>
+                                    <run>apt-get update</run>
+                                    <run>apt-get install libxml2-utils</run>
+                                </runCmds>
                                 <user>gfish</user>
                                 <assemblies>
                                     <assembly>

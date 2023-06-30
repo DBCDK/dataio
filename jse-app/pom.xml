@@ -198,7 +198,7 @@
                         <tagName>devel</tagName>
                         <images>
                             <image>
-                                <name>docker-metascrum.artifacts.dbccloud.dk/%a:${tag}</name>
+                                <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
                                 <build>
                                     <from>${java.image}</from>
                                     <user>gfish</user>

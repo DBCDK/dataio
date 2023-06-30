@@ -58,7 +58,7 @@ public class OpenUpdateMessageProcessorTest {
     private final String queueProvider = "queue";
     private final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().setQueueProvider(queueProvider).build();
     private final FlowBinder flowBinder = new FlowBinderBuilder().setId(42).setVersion(10).setContent(flowBinderContent).build();
-    private final ServiceHub serviceHub = new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build();
+    private final ServiceHub serviceHub = new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).test();
     private final OpenUpdateMessageProcessor openUpdateMessageProcessor = new OpenUpdateMessageProcessor(serviceHub, flowStoreServiceConnector, openUpdateConfig, addiRecordPreprocessor);
 
     public static byte[] getValidAddi(String... content) {

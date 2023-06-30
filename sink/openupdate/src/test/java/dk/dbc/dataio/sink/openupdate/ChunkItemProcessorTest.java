@@ -8,7 +8,7 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.junit.Before;
 import org.junit.Rule;

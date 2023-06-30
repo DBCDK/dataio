@@ -5,7 +5,6 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ImsSinkConfig;
@@ -15,7 +14,6 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,79 +31,75 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ImsConfigBeanTest {
+public class ImsConfigTest {
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
 
     private final String payload = newPayload(new ChunkBuilder(Chunk.Type.PROCESSED).build());
-    private final Sink sink = newSink(new ImsSinkConfig()
-            .withEndpoint("endpoint"));
+    private final Sink sink = newSink(new ImsSinkConfig().withEndpoint("endpoint"));
 
-    private ImsConfigBean imsConfigBean;
+    private ImsConfig imsConfig;
 
     @Before
     public void setup() {
-        imsConfigBean = newImsConfigBean();
+        imsConfig = newImsConfigBean();
     }
 
     @Test
     public void getConfig_sinkNotFound_throws() throws FlowStoreServiceConnectorException {
-        final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
-        final String message = "Error message from flowStore";
+        ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
+        String message = "Error message from flowStore";
         when(flowStoreServiceConnector.getSink(anyLong())).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException(message, 404));
 
         try {
-            imsConfigBean.getConfig(consumedMessage);
+            imsConfig.getConfig(consumedMessage);
             fail();
-        } catch (SinkException e) {
+        } catch (RuntimeException e) {
             assertThat(e.getMessage(), is(message));
         }
     }
 
     @Test
-    public void getConfig() throws FlowStoreServiceConnectorException, SinkException {
-        final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
+    public void getConfig() throws FlowStoreServiceConnectorException {
+        ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
         when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(sink);
 
-        final ImsSinkConfig config = imsConfigBean.getConfig(consumedMessage);
+        ImsSinkConfig config = imsConfig.getConfig(consumedMessage);
         assertThat(config, is(notNullValue()));
         verify(flowStoreServiceConnector, times(1)).getSink(sink.getId());
     }
 
     @Test
-    public void getConfig_configRefreshedOnlyWhenVersionChanges() throws SinkException, FlowStoreServiceConnectorException {
+    public void getConfig_configRefreshedOnlyWhenVersionChanges() throws FlowStoreServiceConnectorException {
         when(flowStoreServiceConnector.getSink(10L)).thenReturn(sink);
 
-        final ImsSinkConfig config = imsConfigBean.getConfig(newConsumedMessage(10, 1));
+        ImsSinkConfig config = imsConfig.getConfig(newConsumedMessage(10, 1));
         assertThat("1st refresh", config, is(notNullValue()));
 
-        final ImsSinkConfig configUnchanged = imsConfigBean.getConfig(newConsumedMessage(10, 1));
+        ImsSinkConfig configUnchanged = imsConfig.getConfig(newConsumedMessage(10, 1));
         assertThat("no refresh", config, is(configUnchanged));
 
         when(flowStoreServiceConnector.getSink(10L)).thenReturn(newSink(new ImsSinkConfig()
                 .withEndpoint("newEndpoint")));
 
-        final ImsSinkConfig configChanged = imsConfigBean.getConfig(newConsumedMessage(10, 2));
+        ImsSinkConfig configChanged = imsConfig.getConfig(newConsumedMessage(10, 2));
         assertThat("2nd refresh", configChanged, is(not(config)));
 
         verify(flowStoreServiceConnector, times(2)).getSink(10L);
     }
 
-    private ImsConfigBean newImsConfigBean() {
-        final ImsConfigBean configBean = new ImsConfigBean();
-        configBean.flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
-        when(configBean.flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
-        return configBean;
+    private ImsConfig newImsConfigBean() {
+        return new ImsConfig(flowStoreServiceConnector);
     }
 
     private ConsumedMessage newConsumedMessage(long sinkId, long sinkVersion) {
-        final Map<String, Object> headers = new HashMap<>();
+        Map<String, Object> headers = new HashMap<>();
         headers.put(JmsConstants.SINK_ID_PROPERTY_NAME, sinkId);
         headers.put(JmsConstants.SINK_VERSION_PROPERTY_NAME, sinkVersion);
         return new ConsumedMessage("messageId", headers, payload);
     }
 
     private Sink newSink(ImsSinkConfig config) {
-        final SinkContent sinkContent = new SinkContentBuilder()
+        SinkContent sinkContent = new SinkContentBuilder()
                 .setSinkType(SinkContent.SinkType.IMS)
                 .setSinkConfig(config)
                 .build();

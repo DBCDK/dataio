@@ -17,7 +17,7 @@ public class MarcXchangeRecordUnmarshaller {
 
     public MarcXchangeRecordUnmarshaller() throws IllegalStateException {
         try {
-            final JAXBContext jaxbContext = JAXBContext.newInstance(CollectionType.class);
+            JAXBContext jaxbContext = JAXBContext.newInstance(CollectionType.class);
             unmarshaller = jaxbContext.createUnmarshaller();
         } catch (JAXBException e) {
             throw new IllegalStateException("Exception caught while instantiating JaxbContext", e);
@@ -29,8 +29,8 @@ public class MarcXchangeRecordUnmarshaller {
     */
     public MarcXchangeRecord toMarcXchangeRecord(ChunkItem chunkItem) throws JAXBException {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(chunkItem.getData());
-        final JAXBElement<CollectionType> jaxbCollection = unmarshaller.unmarshal(new StreamSource(byteArrayInputStream), CollectionType.class);
-        final MarcXchangeRecord marcXchangeRecord = new MarcXchangeRecord();
+        JAXBElement<CollectionType> jaxbCollection = unmarshaller.unmarshal(new StreamSource(byteArrayInputStream), CollectionType.class);
+        MarcXchangeRecord marcXchangeRecord = new MarcXchangeRecord();
         marcXchangeRecord.setCollection(jaxbCollection.getValue());
         marcXchangeRecord.setMarcXchangeRecordId(String.valueOf(chunkItem.getId()));
         return marcXchangeRecord;

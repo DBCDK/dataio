@@ -21,13 +21,13 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
     private final BibliographicRecordExtraDataMarshaller bibliographicRecordExtraDataMarshaller =
             new BibliographicRecordExtraDataMarshaller();
 
-    public Result preprocess(AddiRecord addiRecord, String queueProvider) throws NullPointerException {
+    public Result preprocess(AddiRecord addiRecord, String queueProvider) {
         InvariantUtil.checkNotNullOrThrow(addiRecord, "addiRecord");
         try {
-            final Document metaDataDocument = byteArrayToDocument(addiRecord.getMetaData());
-            final String submitter = extractAttributeValue(metaDataDocument, ES_NAMESPACE_URI, ES_INFO_ELEMENT, "submitter");
-            final String template = extractAttributeValue(metaDataDocument, DATAIO_PROCESSING_NAMESPACE_URI, UPDATE_TEMPLATE_ELEMENT, "updateTemplate");
-            final BibliographicRecord bibliographicRecord = getBibliographicRecord(byteArrayToDocument(addiRecord.getContentData()));
+            Document metaDataDocument = byteArrayToDocument(addiRecord.getMetaData());
+            String submitter = extractAttributeValue(metaDataDocument, ES_NAMESPACE_URI, ES_INFO_ELEMENT, "submitter");
+            String template = extractAttributeValue(metaDataDocument, DATAIO_PROCESSING_NAMESPACE_URI, UPDATE_TEMPLATE_ELEMENT, "updateTemplate");
+            BibliographicRecord bibliographicRecord = getBibliographicRecord(byteArrayToDocument(addiRecord.getContentData()));
             setExtraRecordData(bibliographicRecord, queueProvider);
             return new Result(submitter, template, bibliographicRecord);
         } catch (IOException | SAXException | JAXBException e) {
@@ -36,11 +36,11 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
     }
 
     private BibliographicRecord getBibliographicRecord(Document document) {
-        final BibliographicRecord bibliographicRecord = new BibliographicRecord();
+        BibliographicRecord bibliographicRecord = new BibliographicRecord();
         bibliographicRecord.setRecordSchema(RECORD_SCHEMA);
         bibliographicRecord.setRecordPacking(RECORD_PACKAGING);
 
-        final RecordData recordData = new RecordData();
+        RecordData recordData = new RecordData();
         recordData.getContent().add(document.getDocumentElement());
 
         bibliographicRecord.setRecordData(recordData);
@@ -48,9 +48,9 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
     }
 
     private void setExtraRecordData(BibliographicRecord bibliographicRecord, String queueProvider) throws JAXBException {
-        final ExtraRecordData extraRecordData = new ExtraRecordData();
+        ExtraRecordData extraRecordData = new ExtraRecordData();
         if (queueProvider != null) {
-            final BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
+            BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
             bibliographicRecordExtraData.setProviderName(queueProvider);
             bibliographicRecordExtraData.setPriority(1000);  // hardcoded default priority
 

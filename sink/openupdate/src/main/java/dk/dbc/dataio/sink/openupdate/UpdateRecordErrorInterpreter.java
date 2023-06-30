@@ -47,14 +47,14 @@ class UpdateRecordErrorInterpreter {
      * @return list of Diagnostics
      */
     List<Diagnostic> getDiagnostics(UpdateRecordResult updateRecordResult, AddiRecord addiRecord) {
-        final List<Diagnostic> diagnostics = new ArrayList<>();
+        List<Diagnostic> diagnostics = new ArrayList<>();
         if (updateRecordResult != null && updateRecordResult.getMessages() != null) {
-            final List<MessageEntry> messages = updateRecordResult.getMessages().getMessageEntry();
+            List<MessageEntry> messages = updateRecordResult.getMessages().getMessageEntry();
             if (messages != null && !messages.isEmpty()) {
-                final MarcRecord marcRecord = toMarcRecord(addiRecord);
+                MarcRecord marcRecord = toMarcRecord(addiRecord);
 
                 for (MessageEntry message : messages) {
-                    final Diagnostic diagnostic = toDiagnostic(message, marcRecord);
+                    Diagnostic diagnostic = toDiagnostic(message, marcRecord);
                     if (NON_FATAL_ERROR_MESSAGE.equals(diagnostic.getMessage())) {
                         LOGGER.debug("Update service result contains non-fatal '{}' message", diagnostic.getMessage());
                         // Empty diagnostics will cause ChunkItemProcessor to
@@ -79,7 +79,7 @@ class UpdateRecordErrorInterpreter {
      */
     private MarcRecord toMarcRecord(AddiRecord addiRecord) {
         try {
-            final BufferedInputStream inputStream = new BufferedInputStream(
+            BufferedInputStream inputStream = new BufferedInputStream(
                     new ByteArrayInputStream(addiRecord.getContentData()));
             return new MarcXchangeV1Reader(inputStream, StandardCharsets.UTF_8).read();
         } catch (Exception e) {
@@ -95,21 +95,21 @@ class UpdateRecordErrorInterpreter {
      * @return Diagnostic object
      */
     private Diagnostic toDiagnostic(MessageEntry message, MarcRecord marcRecord) {
-        String datafieldTag = null;
-        String subfieldCode = null;
+        String dataFieldTag = null;
+        String subFieldCode = null;
         try {
             if (marcRecord != null) {
-                final Optional<DataField> datafield = getDatafield(message, marcRecord);
-                if (datafield.isPresent()) {
-                    datafieldTag = datafield.get().getTag();
-                    final Optional<SubField> subfield = getSubfield(message, datafield.get());
+                Optional<DataField> dataField = getDataField(message, marcRecord);
+                if (dataField.isPresent()) {
+                    dataFieldTag = dataField.get().getTag();
+                    Optional<SubField> subfield = getSubfield(message, dataField.get());
                     if (subfield.isPresent()) {
-                        subfieldCode = String.valueOf(subfield.get().getCode());
+                        subFieldCode = String.valueOf(subfield.get().getCode());
                     }
                 }
             }
         } catch (RuntimeException e) {
-            final String errorMsg = "Exception caught during extraction of datafield tag and/or subfield code";
+            final String errorMsg = "Exception caught during extraction of dataField tag and/or subfield code";
             LOGGER.error(errorMsg, e);
             return new Diagnostic(Diagnostic.Level.FATAL, errorMsg, e);
         }
@@ -118,44 +118,43 @@ class UpdateRecordErrorInterpreter {
             messageText = "No message from update service";
         }
         return new Diagnostic(getDiagnosticLevel(message), messageText, NO_STACK_TRACE,
-                datafieldTag != null ? FIELD_PREPEND + datafieldTag : null,
-                subfieldCode != null ? SUBFIELD_PREPEND + subfieldCode : null);
+                dataFieldTag != null ? FIELD_PREPEND + dataFieldTag : null,
+                subFieldCode != null ? SUBFIELD_PREPEND + subFieldCode : null);
     }
 
     /**
-     * Extracts datafield if identified by given message entry from given MARC record
+     * Extracts dataField if identified by given message entry from given MARC record
      *
      * @param message    message entry
-     * @param marcRecord MARC record containing identified datafield
+     * @param marcRecord MARC record containing identified dataField
      * @return DataField or empty
      */
-    private Optional<DataField> getDatafield(MessageEntry message, MarcRecord marcRecord) {
-        final Integer fieldno = message.getOrdinalPositionOfField();
-        if (fieldno != null) {
+    private Optional<DataField> getDataField(MessageEntry message, MarcRecord marcRecord) {
+        Integer fieldNo = message.getOrdinalPositionOfField();
+        if (fieldNo != null) {
             try {
-                return Optional.of((DataField) marcRecord.getFields().get(fieldno));
+                return Optional.of((DataField) marcRecord.getFields().get(fieldNo));
             } catch (RuntimeException e) {
-                LOGGER.error("Caught exception while extracting datafield no %d from MARC record", fieldno, e);
+                LOGGER.error("Caught exception while extracting dataField no {} from MARC record", fieldNo, e);
             }
         }
         return Optional.empty();
     }
 
     /**
-     * Extracts subfield if identified by given message entry from given datafield
+     * Extracts subfield if identified by given message entry from given dataField
      *
      * @param message   message entry
-     * @param datafield datafield containing identified subfield
+     * @param dataField dataField containing identified subfield
      * @return SubField or empty
      */
-    private Optional<SubField> getSubfield(MessageEntry message, DataField datafield) {
-        final Integer subfieldno = message.getOrdinalPositionOfSubfield();
-        if (subfieldno != null) {
+    private Optional<SubField> getSubfield(MessageEntry message, DataField dataField) {
+        Integer subfieldNo = message.getOrdinalPositionOfSubfield();
+        if (subfieldNo != null) {
             try {
-                return Optional.of(datafield.getSubfields().get(subfieldno));
+                return Optional.of(dataField.getSubfields().get(subfieldNo));
             } catch (RuntimeException e) {
-                LOGGER.error("Caught exception while extracting subfield no %d from datafield %s",
-                        subfieldno, datafield, e);
+                LOGGER.error("Caught exception while extracting subfield no {} from dataField {}", subfieldNo, dataField, e);
             }
         }
         return Optional.empty();

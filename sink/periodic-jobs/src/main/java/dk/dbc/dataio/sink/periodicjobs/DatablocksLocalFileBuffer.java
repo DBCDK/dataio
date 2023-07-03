@@ -3,7 +3,7 @@ package dk.dbc.dataio.sink.periodicjobs;
 import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.common.utils.io.UncheckedFileOutputStream;
 import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
-import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -36,7 +36,7 @@ public class DatablocksLocalFileBuffer {
         return this;
     }
 
-    public void createLocalFile() throws SinkException {
+    public void createLocalFile()  throws InvalidMessageException {
         String contentHeader = delivery.getConfig().getContent().getPickup().getContentHeader();
         String contentFooter = delivery.getConfig().getContent().getPickup().getContentFooter();
 
@@ -69,7 +69,7 @@ public class DatablocksLocalFileBuffer {
             datablocksOutputStream.write(contentFooter.getBytes());
             datablocksOutputStream.flush();
         } catch (IOException e) {
-            throw new SinkException(e);
+            throw new RuntimeException(e);
         }
     }
 }

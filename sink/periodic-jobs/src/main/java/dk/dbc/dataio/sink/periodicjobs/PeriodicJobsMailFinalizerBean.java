@@ -5,41 +5,38 @@ import dk.dbc.dataio.common.utils.io.UncheckedByteArrayOutputStream;
 import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.MailPickup;
-import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.util.Timed;
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Multipart;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.annotation.Resource;
-import javax.ejb.Stateless;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
+
 import javax.persistence.Query;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-@Stateless
 public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsMailFinalizerBean.class);
 
-    @Resource(lookup = "mail/dataio/periodicjobs/delivery")
     Session mailSession;
 
     @Timed
     @Override
-    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
+    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws InvalidMessageException {
         final MacroSubstitutor macroSubstitutor = getMacroSubstitutor(delivery);
         final MailPickup mailPickup = (MailPickup) delivery.getConfig().getContent().getPickup();
 
@@ -68,7 +65,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         return newResultChunk(chunk, mailPickup);
     }
 
-    private String datablocksMailBody(PeriodicJobsDelivery delivery, MacroSubstitutor macroSubstitutor) throws SinkException {
+    private String datablocksMailBody(PeriodicJobsDelivery delivery, MacroSubstitutor macroSubstitutor) throws InvalidMessageException {
         final GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
         final MailPickup mailPickup = (MailPickup) delivery.getConfig().getContent().getPickup();
         String contentHeader = delivery.getConfig().getContent().getPickup().getContentHeader();
@@ -114,11 +111,11 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
             return StringUtil.asString(datablocksOutputStream.toByteArray(), StandardCharsets.UTF_8);
 
         } catch (IOException e) {
-            throw new SinkException(e);
+            throw new InvalidMessageException(String.format("Unable to make mailbody. Jobid:%s", delivery.getJobId()), e);
         }
     }
 
-    private void sendMail(MailPickup mailPickup, String content, MacroSubstitutor macroSubstitutor) throws SinkException {
+    private void sendMail(MailPickup mailPickup, String content, MacroSubstitutor macroSubstitutor) throws InvalidMessageException {
         final MimeMessage message = new MimeMessage(mailSession);
         final String mimeType = mailPickup.getMimetype();
 
@@ -157,9 +154,14 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
                 message.setText(content);
             }
             Transport.send(message);
-        } catch (MessagingException | IOException e) {
-            throw new SinkException(e);
+        } catch (IOException | MessagingException e) {
+            throw new InvalidMessageException(String.format("Unable to send mail bound for %s", mailPickup.getRecipients()), e);
         }
+    }
+
+    public PeriodicJobsMailFinalizerBean withSession(Session session) {
+        this.mailSession = session;
+        return this;
     }
 
     private Chunk newResultChunk(Chunk chunk, MailPickup mailPickup) {

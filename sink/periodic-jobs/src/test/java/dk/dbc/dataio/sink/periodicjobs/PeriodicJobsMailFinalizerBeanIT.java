@@ -10,15 +10,17 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMultipart;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMultipart;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -54,7 +56,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
     }
 
     @Test
-    public void deliver_onNonEmptyJobNoDatablocks() throws MessagingException {
+    public void deliver_onNonEmptyJobNoDatablocks() throws AddressException {
         final int jobId = 42;
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
@@ -69,12 +71,12 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsMailFinalizerBean.deliver(chunk, delivery));
-        List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
+        Mailbox inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat("Inbox size", inbox.size(), is(0));
     }
 
     @Test
-    public void deliver_onNonEmptyJob() throws MessagingException, IOException {
+    public void deliver_onNonEmptyJob() throws IOException, MessagingException, AddressException {
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
@@ -111,7 +113,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsMailFinalizerBean.deliver(chunk, delivery));
-        List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
+        Mailbox inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat("Inbox size", inbox.size(), is(1));
         Message receivedMail = inbox.get(0);
         assertThat("Recipients is ok", receivedMail.getAllRecipients(),
@@ -120,7 +122,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
     }
 
     @Test
-    public void deliver_onEmptyJob() throws MessagingException, IOException {
+    public void deliver_onEmptyJob() throws MessagingException, IOException, MessagingException {
         final int jobId = 42;
 
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
@@ -136,7 +138,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsMailFinalizerBean.deliver(chunk, delivery));
-        List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
+        Mailbox inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat("Inbox size", inbox.size(), is(1));
         Message receivedMail = inbox.get(0);
         assertThat("mail recipients", receivedMail.getAllRecipients(),
@@ -356,9 +358,8 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.from", mailFrom);
         periodicJobsMailFinalizerBean.mailSession = Session.getDefaultInstance(mailSessionProperties);
-        periodicJobsMailFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        periodicJobsMailFinalizerBean.jobStoreServiceConnector = jobStoreServiceConnector;
         periodicJobsMailFinalizerBean.weekResolverConnector = weekResolverConnector;
-        periodicJobsMailFinalizerBean.initialize();
         return periodicJobsMailFinalizerBean;
     }
 
@@ -366,7 +367,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
      */
 
     @Test
-    public void deliver_recordCountExceedsLimit() throws MessagingException {
+    public void deliver_recordCountExceedsLimit() throws AddressException {
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));

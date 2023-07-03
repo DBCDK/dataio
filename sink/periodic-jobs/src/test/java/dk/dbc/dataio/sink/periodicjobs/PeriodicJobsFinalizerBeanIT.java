@@ -2,10 +2,10 @@ package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
-import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Test;
 
 import java.sql.Connection;
@@ -24,7 +24,7 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
             mock(PeriodicJobsHttpFinalizerBean.class);
 
     @Test
-    public void deletesDataBlocks() throws SinkException, SQLException {
+    public void deletesDataBlocks() throws InvalidMessageException, SQLException {
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
@@ -75,7 +75,7 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
     }
 
     @Test
-    public void deletesDelivery() throws SinkException, SQLException {
+    public void deletesDelivery() throws InvalidMessageException, SQLException {
         final int jobId = 42;
         final PeriodicJobsDelivery delivery1 = new PeriodicJobsDelivery(jobId);
         delivery1.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
@@ -111,7 +111,7 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
     }
 
     @Test
-    public void returnsResultOfDelivery() throws SinkException {
+    public void returnsResultOfDelivery() throws InvalidMessageException {
         final int jobId = 42;
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,

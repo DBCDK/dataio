@@ -36,7 +36,6 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
     static final FakeFtpServer fakeFtpServer = new FakeFtpServer();
 
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
-    private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
 
     @Before
     public void setUp() {
@@ -49,9 +48,6 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
         fileSystem.add(putDir);
         fakeFtpServer.setFileSystem(fileSystem);
         fakeFtpServer.start();
-
-        when(jobStoreServiceConnectorBean.getConnector())
-                .thenReturn(jobStoreServiceConnector);
     }
 
     @Test
@@ -186,8 +182,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
     private PeriodicJobsFtpFinalizerBean newPeriodicJobsFtpFinalizerBean() {
         final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = new PeriodicJobsFtpFinalizerBean();
         periodicJobsFtpFinalizerBean.entityManager = env().getEntityManager();
-        periodicJobsFtpFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
-        periodicJobsFtpFinalizerBean.initialize();
+        periodicJobsFtpFinalizerBean.jobStoreServiceConnector = jobStoreServiceConnector;
         return periodicJobsFtpFinalizerBean;
     }
 }

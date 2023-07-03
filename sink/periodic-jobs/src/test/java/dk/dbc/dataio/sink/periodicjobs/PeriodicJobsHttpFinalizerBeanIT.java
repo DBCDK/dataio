@@ -38,21 +38,15 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
     private static final String FILE_STORE_URL = "http://filestore";
     private static final String FILE_ID = "123456789";
 
-    private final FileStoreServiceConnectorBean fileStoreServiceConnectorBean =
-            mock(FileStoreServiceConnectorBean.class);
     private final FileStoreServiceConnector fileStoreServiceConnector =
             mock(FileStoreServiceConnector.class);
     private final JobStoreServiceConnector jobStoreServiceConnector =
             mock(JobStoreServiceConnector.class);
-    private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean =
-            mock(JobStoreServiceConnectorBean.class);
     private final WeekResolverConnector weekResolverConnector =
             mock(WeekResolverConnector.class);
 
     @Before
     public void setupMocks() throws FileStoreServiceConnectorException {
-        when(fileStoreServiceConnectorBean.getConnector())
-                .thenReturn(fileStoreServiceConnector);
         when(fileStoreServiceConnector.addFile(any(InputStream.class)))
                 .thenReturn(FILE_ID);
         when(fileStoreServiceConnector.getBaseUrl())
@@ -60,9 +54,6 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         when(fileStoreServiceConnector.searchByMetadata(
                 any(ConversionMetadata.class), eq(PeriodicJobsHttpFinalizerBean.ExistingFile.class)))
                 .thenReturn(Collections.emptyList());
-
-        when(jobStoreServiceConnectorBean.getConnector())
-                .thenReturn(jobStoreServiceConnector);
     }
 
     @Test
@@ -244,10 +235,9 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
     private PeriodicJobsHttpFinalizerBean newPeriodicJobsHttpFinalizerBean() {
         final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = new PeriodicJobsHttpFinalizerBean();
         periodicJobsHttpFinalizerBean.entityManager = env().getEntityManager();
-        periodicJobsHttpFinalizerBean.fileStoreServiceConnectorBean = fileStoreServiceConnectorBean;
-        periodicJobsHttpFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        periodicJobsHttpFinalizerBean.fileStoreServiceConnector = fileStoreServiceConnector;
+        periodicJobsHttpFinalizerBean.jobStoreServiceConnector = jobStoreServiceConnector;
         periodicJobsHttpFinalizerBean.weekResolverConnector = weekResolverConnector;
-        periodicJobsHttpFinalizerBean.initialize();
         return periodicJobsHttpFinalizerBean;
     }
 }

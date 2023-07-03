@@ -2,16 +2,14 @@ package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.harvester.types.FtpPickup;
-import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.ftp.FtpClient;
 import dk.dbc.proxy.ProxyBean;
 import dk.dbc.util.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,11 +18,9 @@ import java.net.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-@Stateless
 public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsFtpFinalizerBean.class);
 
-    @Inject
     ProxyBean proxyBean;
 
     public PeriodicJobsFtpFinalizerBean() {
@@ -36,7 +32,7 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     @Timed
     @Override
-    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
+    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws InvalidMessageException {
         if (isEmptyJob(chunk)) {
             return deliverEmptyFile(chunk, delivery);
         }
@@ -59,7 +55,7 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
                 String.format("Empty file %s uploaded to ftp host '%s'", remoteFile, ftpPickup.getFtpHost()));
     }
 
-    private Chunk deliverDatablocks(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
+    private Chunk deliverDatablocks(Chunk chunk, PeriodicJobsDelivery delivery) throws InvalidMessageException {
         final String remoteFile = getRemoteFilename(delivery);
         final FtpPickup ftpPickup = (FtpPickup) delivery.getConfig().getContent().getPickup();
         File localFile = null;
@@ -79,7 +75,8 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
                         chunk.getJobId(), ftpPickup.getFtpHost());
             }
         } catch (IOException e) {
-            throw new SinkException(e);
+            throw new InvalidMessageException(String.format("Unable to deliver datablocks for chuk: %d/%d",
+                    chunk.getJobId(), chunk.getChunkId()),e);
         } finally {
             if (localFile != null) {
                 localFile.delete();
@@ -89,13 +86,14 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
                 String.format("File %s uploaded to ftp host '%s'", remoteFile, ftpPickup.getFtpHost()));
     }
 
-    private void uploadLocalFileToFtp(FtpPickup ftpPickup, File local, String remote) throws SinkException {
+    private void uploadLocalFileToFtp(FtpPickup ftpPickup, File local, String remote) throws InvalidMessageException {
         FtpClient ftpClient = null;
         try (BufferedInputStream dataBlockStream = new BufferedInputStream(new FileInputStream(local), 1024)) {
             ftpClient = open(ftpPickup);
             ftpClient.put(remote, dataBlockStream, FtpClient.FileType.BINARY);
         } catch (IOException e) {
-            throw new SinkException(e);
+            throw new InvalidMessageException(String.format("Unable to deliver file to: %s@%s",
+                    ftpPickup.getFtpUser(), ftpPickup.getFtpHost()), e);
         } finally {
             if (ftpClient != null) {
                 ftpClient.close();
@@ -132,5 +130,10 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
             ftpClient.cd(subDir);
         }
         return ftpClient;
+    }
+
+    public PeriodicJobsFtpFinalizerBean withProxyBean(ProxyBean proxyBean) {
+        this.proxyBean = proxyBean;
+        return this;
     }
 }

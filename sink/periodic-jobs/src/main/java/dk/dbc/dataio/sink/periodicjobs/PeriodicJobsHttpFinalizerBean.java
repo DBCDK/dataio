@@ -8,37 +8,29 @@ import dk.dbc.dataio.commons.conversion.ConversionMetadata;
 import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HttpPickup;
-import dk.dbc.dataio.sink.types.SinkException;
-import dk.dbc.util.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
 import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
-@Stateless(name = "periodicJobsHttpFinalizerBean")
 public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsHttpFinalizerBean.class);
 
     public static final String ORIGIN = "dataio/sink/periodic-jobs";
 
-    @EJB
-    public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    public FileStoreServiceConnector fileStoreServiceConnector;
 
-    @Timed
     @Override
-    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
+    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws InvalidMessageException {
         final boolean isEmptyJob = isEmptyJob(chunk);
-        final FileStoreServiceConnector fileStoreServiceConnector = fileStoreServiceConnectorBean.getConnector();
         final HttpPickup httpPickup = (HttpPickup) delivery.getConfig().getContent().getPickup();
         final ConversionMetadata fileMetadata = new ConversionMetadata(ORIGIN)
                 .withJobId(delivery.getJobId())
@@ -70,7 +62,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
     }
 
     private Optional<ExistingFile> fileAlreadyExists(FileStoreServiceConnector fileStoreServiceConnector,
-                                                     Integer jobId, ConversionMetadata metadata) throws SinkException {
+                                                     Integer jobId, ConversionMetadata metadata) throws InvalidMessageException {
         // A file may already exist if something forced a rollback after
         // the PeriodicJobsHttpFinalizerBean.deliver() method returned.
         // If so we must use this existing file since it has already been
@@ -82,12 +74,12 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
             }
             return Optional.of(files.get(0));
         } catch (FileStoreServiceConnectorException | RuntimeException e) {
-            throw new SinkException(String.format("Failed check for existing file for periodic job %d", jobId), e);
+            throw new InvalidMessageException(String.format("Failed check for existing file for periodic job %d", jobId), e);
         }
     }
 
     private String uploadEmptyFile(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery)
-            throws SinkException {
+            throws InvalidMessageException {
         String fileId = null;
         try {
             fileId = fileStoreServiceConnector.addFile(new ByteArrayInputStream(new byte[0]));
@@ -95,12 +87,12 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
             return fileId;
         } catch (RuntimeException | FileStoreServiceConnectorException e) {
             deleteFile(fileStoreServiceConnector, fileId);
-            throw new SinkException(e);
+            throw new InvalidMessageException("Unable to upload empty file.", e);
         }
     }
 
     private String uploadDatablocks(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery)
-            throws SinkException {
+            throws InvalidMessageException {
         final MacroSubstitutor macroSubstitutor = getMacroSubstitutor(delivery);
         String contentHeader = delivery.getConfig().getContent().getPickup().getContentHeader();
         String contentFooter = delivery.getConfig().getContent().getPickup().getContentFooter();
@@ -142,7 +134,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
             return fileId;
         } catch (RuntimeException | FileStoreServiceConnectorException e) {
             deleteFile(fileStoreServiceConnector, fileId);
-            throw new SinkException(e);
+            throw new InvalidMessageException(String.format("Unable to upload file for job:%d", delivery.getJobId()), e);
         }
     }
 
@@ -157,14 +149,19 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     private void uploadMetadata(FileStoreServiceConnector fileStoreServiceConnector, String fileId,
                                 ConversionMetadata fileMetadata, PeriodicJobsDelivery delivery)
-            throws SinkException {
+            throws InvalidMessageException {
         try {
             fileStoreServiceConnector.addMetadata(fileId, fileMetadata);
             LOGGER.info("Uploaded file metadata {} for periodic job {}", fileMetadata, delivery.getJobId());
         } catch (RuntimeException | FileStoreServiceConnectorException e) {
             deleteFile(fileStoreServiceConnector, fileId);
-            throw new SinkException(e);
+            throw new InvalidMessageException(String.format("Unable to upload metadata for job: %d", delivery.getJobId()), e);
         }
+    }
+
+    public PeriodicJobsHttpFinalizerBean withFileStoreServiceConnector(FileStoreServiceConnector fileStoreServiceConnector) {
+        this.fileStoreServiceConnector = fileStoreServiceConnector;
+        return this;
     }
 
     private Chunk newResultChunk(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk,

@@ -11,6 +11,7 @@ import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.util.Timed;
 import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
+import jakarta.mail.Address;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Session;
@@ -129,6 +130,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
                 body = macroSubstitutor.replace(body);
             }
             message.setRecipients(MimeMessage.RecipientType.TO, mailPickup.getRecipients());
+            message.setFrom(SinkConfig.MAIL_FROM.asString());
             message.setSubject(subject);
             if (mimeType != null && !mimeType.isEmpty()) {
                 final Multipart multipart = new MimeMultipart();

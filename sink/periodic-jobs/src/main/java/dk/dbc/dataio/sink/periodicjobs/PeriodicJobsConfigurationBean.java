@@ -4,7 +4,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.HarvesterToken;
-import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.cache.Cache;
 import dk.dbc.dataio.commons.utils.cache.CacheManager;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -29,9 +28,8 @@ public class PeriodicJobsConfigurationBean {
      *
      * @param chunk {@link Chunk} for which get delivery configuration
      * @return delivery configuration as {@link PeriodicJobsDelivery}
-     * @throws InvalidMessageException if unable to resolve delivery configuration for chunk
      */
-    public PeriodicJobsDelivery getDelivery(Chunk chunk) throws InvalidMessageException {
+    public PeriodicJobsDelivery getDelivery(Chunk chunk) {
         Integer jobId = Math.toIntExact(chunk.getJobId());
         PeriodicJobsDelivery periodicJobsDelivery = deliveryCache.get(jobId);
         if (periodicJobsDelivery != null) {

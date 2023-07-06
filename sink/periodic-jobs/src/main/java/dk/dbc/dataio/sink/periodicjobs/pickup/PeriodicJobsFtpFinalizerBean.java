@@ -28,10 +28,6 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     public PeriodicJobsFtpFinalizerBean() {
     }
 
-    public PeriodicJobsFtpFinalizerBean(ProxyBean proxyBean) {
-        this.proxyBean = proxyBean;
-    }
-
     @Timed
     @Override
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws InvalidMessageException {
@@ -42,8 +38,8 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     }
 
     private Chunk deliverEmptyFile(Chunk chunk, PeriodicJobsDelivery delivery) {
-        final String remoteFile = getRemoteFilename(delivery) + ".EMPTY";
-        final FtpPickup ftpPickup = (FtpPickup) delivery.getConfig().getContent().getPickup();
+        String remoteFile = getRemoteFilename(delivery) + ".EMPTY";
+        FtpPickup ftpPickup = (FtpPickup) delivery.getConfig().getContent().getPickup();
         FtpClient ftpClient = null;
         try {
             ftpClient = open(ftpPickup);
@@ -58,8 +54,8 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     }
 
     private Chunk deliverDatablocks(Chunk chunk, PeriodicJobsDelivery delivery) throws InvalidMessageException {
-        final String remoteFile = getRemoteFilename(delivery);
-        final FtpPickup ftpPickup = (FtpPickup) delivery.getConfig().getContent().getPickup();
+        String remoteFile = getRemoteFilename(delivery);
+        FtpPickup ftpPickup = (FtpPickup) delivery.getConfig().getContent().getPickup();
         File localFile = null;
         try {
             localFile = File.createTempFile("dataBlocks", ".tmp.file");
@@ -104,8 +100,8 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     }
 
     private Chunk newResultChunk(Chunk chunk, String data) {
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        final ChunkItem chunkItem = ChunkItem.successfulChunkItem()
+        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+        ChunkItem chunkItem = ChunkItem.successfulChunkItem()
                 .withId(0)
                 .withType(ChunkItem.Type.JOB_END)
                 .withData(data)
@@ -116,13 +112,13 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     FtpClient open(FtpPickup ftpPickup) {
         String host = ftpPickup.getFtpHost();
-        final String subDir = ftpPickup.getFtpSubdirectory();
+        String subDir = ftpPickup.getFtpSubdirectory();
         Proxy proxy = Optional.ofNullable(proxyBean)
                 .filter(p -> p.useProxy(host))
                 .map(ProxyBean::getJavaProxy)
                 .orElse(Proxy.NO_PROXY);
         LOGGER.info("Opening ftp connection to: {}, using proxy: {}", ftpPickup, proxy);
-        final FtpClient ftpClient = new FtpClient()
+        FtpClient ftpClient = new FtpClient()
                 .withHost(host)
                 .withPort(Integer.valueOf(ftpPickup.getFtpPort()))
                 .withUsername(ftpPickup.getFtpUser())

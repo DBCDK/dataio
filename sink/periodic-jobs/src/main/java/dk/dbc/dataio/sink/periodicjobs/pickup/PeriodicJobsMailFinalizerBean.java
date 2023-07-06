@@ -1,4 +1,4 @@
-package dk.dbc.dataio.sink.periodicjobs;
+package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.common.utils.io.UncheckedByteArrayOutputStream;
@@ -8,10 +8,15 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.MailPickup;
+import dk.dbc.dataio.sink.periodicjobs.GroupHeaderIncludePredicate;
+import dk.dbc.dataio.sink.periodicjobs.I18n;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlock;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlockResultSetMapping;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
+import dk.dbc.dataio.sink.periodicjobs.SinkConfig;
 import dk.dbc.util.Timed;
 import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
-import jakarta.mail.Address;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Session;

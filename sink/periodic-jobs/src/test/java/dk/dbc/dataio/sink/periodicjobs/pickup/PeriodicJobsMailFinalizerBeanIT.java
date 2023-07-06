@@ -1,4 +1,4 @@
-package dk.dbc.dataio.sink.periodicjobs;
+package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -7,6 +7,9 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+import dk.dbc.dataio.sink.periodicjobs.IntegrationTest;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlock;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;

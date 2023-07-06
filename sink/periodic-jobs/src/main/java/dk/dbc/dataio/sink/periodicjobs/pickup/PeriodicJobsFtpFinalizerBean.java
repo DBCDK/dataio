@@ -1,9 +1,11 @@
-package dk.dbc.dataio.sink.periodicjobs;
+package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.harvester.types.FtpPickup;
+import dk.dbc.dataio.sink.periodicjobs.DatablocksLocalFileBuffer;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
 import dk.dbc.ftp.FtpClient;
 import dk.dbc.proxy.ProxyBean;
 import dk.dbc.util.Timed;

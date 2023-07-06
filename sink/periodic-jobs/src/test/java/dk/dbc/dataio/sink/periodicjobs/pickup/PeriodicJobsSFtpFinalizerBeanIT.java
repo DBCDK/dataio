@@ -1,12 +1,14 @@
-package dk.dbc.dataio.sink.periodicjobs;
+package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import com.github.stefanbirkner.fakesftpserver.rule.FakeSftpServerRule;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.SFtpPickup;
+import dk.dbc.dataio.sink.periodicjobs.ContainerTest;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlock;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
 import dk.dbc.proxy.ProxyBean;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;

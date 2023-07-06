@@ -3,7 +3,6 @@ package dk.dbc.dataio.sink.periodicjobs;
 import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.common.utils.io.UncheckedFileOutputStream;
 import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
-import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -36,7 +35,7 @@ public class DatablocksLocalFileBuffer {
         return this;
     }
 
-    public void createLocalFile()  throws InvalidMessageException {
+    public void createLocalFile() {
         String contentHeader = delivery.getConfig().getContent().getPickup().getContentHeader();
         String contentFooter = delivery.getConfig().getContent().getPickup().getContentFooter();
 
@@ -52,8 +51,8 @@ public class DatablocksLocalFileBuffer {
             contentFooter = "";
         }
 
-        final GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
-        final Query getDataBlocksQuery = entityManager
+        GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
+        Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
         try (UncheckedFileOutputStream datablocksOutputStream = new UncheckedFileOutputStream(tmpFile);

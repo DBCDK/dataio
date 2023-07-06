@@ -29,7 +29,7 @@ public class PeriodicJobsConfigurationBean {
      *
      * @param chunk {@link Chunk} for which get delivery configuration
      * @return delivery configuration as {@link PeriodicJobsDelivery}
-     * @throws dk.dbc.dataio.commons.types.exceptions.InvalidMessageException if unable to resolve delivery configuration for chunk
+     * @throws InvalidMessageException if unable to resolve delivery configuration for chunk
      */
     public PeriodicJobsDelivery getDelivery(Chunk chunk) throws InvalidMessageException {
         Integer jobId = Math.toIntExact(chunk.getJobId());
@@ -42,7 +42,7 @@ public class PeriodicJobsConfigurationBean {
         if (periodicJobsDelivery == null) {
             // Retrieve harvester config from flow-store and create new
             // delivery entity.
-            final PeriodicJobsHarvesterConfig periodicJobsHarvesterConfig = getHarvesterConfig(chunk);
+            PeriodicJobsHarvesterConfig periodicJobsHarvesterConfig = getHarvesterConfig(chunk);
             periodicJobsDelivery = new PeriodicJobsDelivery(Math.toIntExact(chunk.getJobId()));
             periodicJobsDelivery.setConfig(periodicJobsHarvesterConfig);
         }
@@ -55,18 +55,18 @@ public class PeriodicJobsConfigurationBean {
         return periodicJobsDelivery;
     }
 
-    private PeriodicJobsHarvesterConfig getHarvesterConfig(Chunk chunk) throws InvalidMessageException {
+    private PeriodicJobsHarvesterConfig getHarvesterConfig(Chunk chunk) {
         HarvesterToken harvesterToken = getHarvesterToken(chunk);
         try {
             return flowStoreServiceConnector
                     .getHarvesterConfig(harvesterToken.getId(), PeriodicJobsHarvesterConfig.class);
         } catch (RuntimeException | FlowStoreServiceConnectorException e) {
-            throw new InvalidMessageException(
+            throw new RuntimeException(
                     String.format("Failed to find harvester config for token %s", harvesterToken), e);
         }
     }
 
-    private HarvesterToken getHarvesterToken(Chunk chunk) throws InvalidMessageException {
+    private HarvesterToken getHarvesterToken(Chunk chunk)  {
         try {
             JobListCriteria findJobCriteria = new JobListCriteria()
                     .where(new ListFilter<>(JobListCriteria.Field.JOB_ID,
@@ -74,7 +74,7 @@ public class PeriodicJobsConfigurationBean {
             JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.listJobs(findJobCriteria).get(0);
             return HarvesterToken.of(jobInfoSnapshot.getSpecification().getAncestry().getHarvesterToken());
         } catch (RuntimeException | JobStoreServiceConnectorException e) {
-            throw new InvalidMessageException(
+            throw new RuntimeException(
                     String.format("Failed to find job %d", chunk.getJobId()), e);
         }
     }

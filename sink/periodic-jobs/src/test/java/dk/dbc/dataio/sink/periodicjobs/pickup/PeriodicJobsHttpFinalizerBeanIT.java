@@ -1,16 +1,17 @@
-package dk.dbc.dataio.sink.periodicjobs;
+package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import dk.dbc.dataio.commons.conversion.ConversionMetadata;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+import dk.dbc.dataio.sink.periodicjobs.IntegrationTest;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlock;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;

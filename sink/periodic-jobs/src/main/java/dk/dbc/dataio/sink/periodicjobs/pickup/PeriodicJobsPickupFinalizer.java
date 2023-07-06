@@ -1,4 +1,4 @@
-package dk.dbc.dataio.sink.periodicjobs;
+package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
 import dk.dbc.dataio.commons.types.Chunk;
@@ -10,6 +10,7 @@ import dk.dbc.dataio.harvester.types.Pickup;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
@@ -88,14 +89,14 @@ public abstract class PeriodicJobsPickupFinalizer {
                 .replaceAll("\\s+", "_") + "." + delivery.getJobId();
     }
 
-    private JobInfoSnapshot getJobInfoSnapshot(long jobId) throws InvalidMessageException {
+    private JobInfoSnapshot getJobInfoSnapshot(long jobId) {
         try {
             final List<JobInfoSnapshot> jobInfoSnapshots = jobStoreServiceConnector.listJobs("job:id = " + jobId);
             if (!jobInfoSnapshots.isEmpty()) {
                 return jobInfoSnapshots.get(0);
             }
         } catch (RuntimeException | JobStoreServiceConnectorException e) {
-            throw new InvalidMessageException("Unable to get jobinfo.", e);
+            throw new RuntimeException("Unable to get jobinfo.", e);
         }
         return null;
     }

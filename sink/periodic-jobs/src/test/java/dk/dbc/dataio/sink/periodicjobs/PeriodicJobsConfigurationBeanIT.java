@@ -17,7 +17,6 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.EntityManagerFactory;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -55,14 +54,14 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
                 .thenReturn(Collections.emptyList());
 
         final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
-        assertThat(() -> periodicJobsConfigurationBean.getDelivery(chunk), isThrowing(InvalidMessageException.class));
+        assertThat(() -> periodicJobsConfigurationBean.getDelivery(chunk), isThrowing(RuntimeException.class));
     }
 
     @Test
     public void getDelivery_throwsOnFailureToResolveHarvesterConfig()
             throws JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot()
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
+        JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot()
                 .withJobId(chunk.getJobId())
                 .withSpecification(
                         new JobSpecification()
@@ -74,8 +73,8 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
         when(flowStoreServiceConnector.getHarvesterConfig(1, PeriodicJobsHarvesterConfig.class))
                 .thenThrow(new FlowStoreServiceConnectorException("DIED"));
 
-        final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
-        assertThat(() -> periodicJobsConfigurationBean.getDelivery(chunk), isThrowing(InvalidMessageException.class));
+        PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
+        assertThat(() -> periodicJobsConfigurationBean.getDelivery(chunk), isThrowing(RuntimeException.class));
     }
 
     @Test

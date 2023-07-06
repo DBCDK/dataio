@@ -1,4 +1,4 @@
-package dk.dbc.dataio.sink.periodicjobs;
+package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.Chunk;
@@ -6,6 +6,11 @@ import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+import dk.dbc.dataio.sink.periodicjobs.IntegrationTest;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsConfigurationBean;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlock;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsFinalizerBean;
 import org.junit.Test;
 
 import java.sql.Connection;
@@ -134,10 +139,11 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
     }
 
     private PeriodicJobsFinalizerBean newPeriodicJobsFinalizerBean() {
-        final PeriodicJobsFinalizerBean periodicJobsFinalizerBean = new PeriodicJobsFinalizerBean();
-        periodicJobsFinalizerBean.entityManager = env().getEntityManager();
-        periodicJobsFinalizerBean.periodicJobsConfigurationBean = periodicJobsConfigurationBean;
-        periodicJobsFinalizerBean.periodicJobsHttpFinalizerBean = periodicJobsHttpFinalizerBean;
+        PeriodicJobsFinalizerBean periodicJobsFinalizerBean = new PeriodicJobsFinalizerBean();
+        periodicJobsFinalizerBean
+                .withEntityManager(env().getEntityManager())
+                .withPeriodicJobsConfigurationBean(periodicJobsConfigurationBean)
+                .withPeriodicJobsHttpFinalizerBean(periodicJobsHttpFinalizerBean);
         return periodicJobsFinalizerBean;
     }
 }

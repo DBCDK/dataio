@@ -1,4 +1,4 @@
-package dk.dbc.dataio.sink.periodicjobs;
+package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,6 +12,10 @@ import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HttpPickup;
+import dk.dbc.dataio.sink.periodicjobs.GroupHeaderIncludePredicate;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlock;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlockResultSetMapping;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +34,9 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     @Override
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws InvalidMessageException {
-        final boolean isEmptyJob = isEmptyJob(chunk);
-        final HttpPickup httpPickup = (HttpPickup) delivery.getConfig().getContent().getPickup();
-        final ConversionMetadata fileMetadata = new ConversionMetadata(ORIGIN)
+        boolean isEmptyJob = isEmptyJob(chunk);
+        HttpPickup httpPickup = (HttpPickup) delivery.getConfig().getContent().getPickup();
+        ConversionMetadata fileMetadata = new ConversionMetadata(ORIGIN)
                 .withJobId(delivery.getJobId())
                 .withAgencyId(Integer.valueOf(httpPickup.getReceivingAgency()))
                 .withFilename(getRemoteFilename(delivery));
@@ -44,7 +48,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
         }
 
         String fileId;
-        final Optional<ExistingFile> existingFile =
+        Optional<ExistingFile> existingFile =
                 fileAlreadyExists(fileStoreServiceConnector, delivery.getJobId(), fileMetadata);
         if (existingFile.isPresent()) {
             fileId = existingFile.get().getId();
@@ -62,24 +66,23 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
     }
 
     private Optional<ExistingFile> fileAlreadyExists(FileStoreServiceConnector fileStoreServiceConnector,
-                                                     Integer jobId, ConversionMetadata metadata) throws InvalidMessageException {
+                                                     Integer jobId, ConversionMetadata metadata)  {
         // A file may already exist if something forced a rollback after
         // the PeriodicJobsHttpFinalizerBean.deliver() method returned.
         // If so we must use this existing file since it has already been
         // exposed to the end users.
         try {
-            final List<ExistingFile> files = fileStoreServiceConnector.searchByMetadata(metadata, ExistingFile.class);
+            List<ExistingFile> files = fileStoreServiceConnector.searchByMetadata(metadata, ExistingFile.class);
             if (files.isEmpty()) {
                 return Optional.empty();
             }
             return Optional.of(files.get(0));
         } catch (FileStoreServiceConnectorException | RuntimeException e) {
-            throw new InvalidMessageException(String.format("Failed check for existing file for periodic job %d", jobId), e);
+            throw new RuntimeException(String.format("Failed check for existing file for periodic job %d", jobId), e);
         }
     }
 
-    private String uploadEmptyFile(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery)
-            throws InvalidMessageException {
+    private String uploadEmptyFile(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery) {
         String fileId = null;
         try {
             fileId = fileStoreServiceConnector.addFile(new ByteArrayInputStream(new byte[0]));
@@ -87,13 +90,12 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
             return fileId;
         } catch (RuntimeException | FileStoreServiceConnectorException e) {
             deleteFile(fileStoreServiceConnector, fileId);
-            throw new InvalidMessageException("Unable to upload empty file.", e);
+            throw new RuntimeException("Unable to upload empty file.", e);
         }
     }
 
-    private String uploadDatablocks(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery)
-            throws InvalidMessageException {
-        final MacroSubstitutor macroSubstitutor = getMacroSubstitutor(delivery);
+    private String uploadDatablocks(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery) {
+        MacroSubstitutor macroSubstitutor = getMacroSubstitutor(delivery);
         String contentHeader = delivery.getConfig().getContent().getPickup().getContentHeader();
         String contentFooter = delivery.getConfig().getContent().getPickup().getContentFooter();
 
@@ -109,8 +111,8 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
             contentFooter = "";
         }
 
-        final GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
-        final Query getDataBlocksQuery = entityManager
+        GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
+        Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
 
@@ -134,7 +136,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
             return fileId;
         } catch (RuntimeException | FileStoreServiceConnectorException e) {
             deleteFile(fileStoreServiceConnector, fileId);
-            throw new InvalidMessageException(String.format("Unable to upload file for job:%d", delivery.getJobId()), e);
+            throw new RuntimeException(String.format("Unable to upload file for job:%d", delivery.getJobId()), e);
         }
     }
 
@@ -148,14 +150,13 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
     }
 
     private void uploadMetadata(FileStoreServiceConnector fileStoreServiceConnector, String fileId,
-                                ConversionMetadata fileMetadata, PeriodicJobsDelivery delivery)
-            throws InvalidMessageException {
+                                ConversionMetadata fileMetadata, PeriodicJobsDelivery delivery) {
         try {
             fileStoreServiceConnector.addMetadata(fileId, fileMetadata);
             LOGGER.info("Uploaded file metadata {} for periodic job {}", fileMetadata, delivery.getJobId());
         } catch (RuntimeException | FileStoreServiceConnectorException e) {
             deleteFile(fileStoreServiceConnector, fileId);
-            throw new InvalidMessageException(String.format("Unable to upload metadata for job: %d", delivery.getJobId()), e);
+            throw new RuntimeException(String.format("Unable to upload metadata for job: %d", delivery.getJobId()), e);
         }
     }
 
@@ -166,14 +167,14 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     private Chunk newResultChunk(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk,
                                  String fileId, ConversionMetadata fileMetadata) {
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        final ChunkItem chunkItem = ChunkItem.successfulChunkItem()
+        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+        ChunkItem chunkItem = ChunkItem.successfulChunkItem()
                 .withId(0)
                 .withType(ChunkItem.Type.JOB_END)
                 .withEncoding(StandardCharsets.UTF_8);
 
         if (fileId != null) {
-            final String fileUrl = String.join("/", fileStoreServiceConnector.getBaseUrl(), "files", fileId);
+            String fileUrl = String.join("/", fileStoreServiceConnector.getBaseUrl(), "files", fileId);
             chunkItem.withData(String.format("%s exposed as %s", fileUrl, fileMetadata.getFilename()));
         } else {
             chunkItem.withData("No file uploaded");

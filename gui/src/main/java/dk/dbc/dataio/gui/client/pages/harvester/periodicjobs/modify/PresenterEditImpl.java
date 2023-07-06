@@ -161,7 +161,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onSuccess(HarvesterConfig config) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
-            History.back();
+            initializeModel();
         }
     }
 

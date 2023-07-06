@@ -16,6 +16,10 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.periodicjobs.mail.MailSession;
+import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsFtpFinalizerBean;
+import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsHttpFinalizerBean;
+import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsMailFinalizerBean;
+import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsSFtpFinalizerBean;
 import dk.dbc.jsonb.JSONBContext;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -92,7 +96,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
     public void handleConsumedMessage(ConsumedMessage consumedMessage)
             throws InvalidMessageException, NullPointerException {
         Chunk chunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
+        LOGGER.info("Received chunk: {}/{}", chunk.getJobId(), chunk.getChunkId());
         EntityTransaction transaction = entityManager.getTransaction();
         try {
             Chunk result;

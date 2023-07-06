@@ -38,7 +38,7 @@ public abstract class IntegrationTest extends JpaIntegrationTest {
         return container;
     }
 
-    static Connection connectToPeriodicJobsDB() throws SQLException {
+    protected static Connection connectToPeriodicJobsDB() throws SQLException {
         return dbContainer.datasource().getConnection();
     }
 

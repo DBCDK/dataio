@@ -57,6 +57,11 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     }
 
     @Override
+    public void refreshButtonPressed() {
+        initializeModel();
+    }
+
+    @Override
     public void validateSolrButtonPressed() {
         commonInjector.getPeriodicJobsHarvesterProxy().executeSolrValidation(config.getId(),
                 new RunSolrValidationAsyncCallback());

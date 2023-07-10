@@ -7,8 +7,6 @@ import javax.sql.DataSource;
 public class DatabaseMigrator {
     DataSource dataSource;
 
-    public DatabaseMigrator() {
-    }
     public DatabaseMigrator(DataSource dataSource) {
         this.dataSource = dataSource;
     }

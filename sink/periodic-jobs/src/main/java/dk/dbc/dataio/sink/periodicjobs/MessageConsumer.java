@@ -62,9 +62,9 @@ public class MessageConsumer extends MessageConsumerAdapter {
         this.fileStoreServiceConnector = new FileStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FILESTORE_URL.asString());
         this.weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient(), SinkConfig.WEEKRESOLVER_SERVICE_URL.asString());
 
-        SinkConfig.PROXY_HOSTNAME.asOptionalString().ifPresentOrElse(hostname ->
-                proxyBean = new ProxyBean(hostname).withNonProxyHosts(Set.of(SinkConfig.NON_PROXY_HOSTS.asString().split(","))),
-                () -> proxyBean = null);
+        this.proxyBean = SinkConfig.PROXY_HOSTNAME.asOptionalString()
+                .map(s -> new ProxyBean(s).withNonProxyHosts(Set.of(SinkConfig.NON_PROXY_HOSTS.asString().split(","))))
+                .orElse(null);
 
         initializeFinalizers(serviceHub);
     }
@@ -96,7 +96,6 @@ public class MessageConsumer extends MessageConsumerAdapter {
     public void handleConsumedMessage(ConsumedMessage consumedMessage)
             throws InvalidMessageException, NullPointerException {
         Chunk chunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("Received chunk: {}/{}", chunk.getJobId(), chunk.getChunkId());
         EntityTransaction transaction = entityManager.getTransaction();
         try {
             Chunk result;

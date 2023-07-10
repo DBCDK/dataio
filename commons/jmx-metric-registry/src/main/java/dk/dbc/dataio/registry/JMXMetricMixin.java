@@ -10,15 +10,15 @@ import java.util.function.Supplier;
 
 public interface JMXMetricMixin {
     default  <T extends Number> Gauge<T> gauge(Supplier<T> supplier, Tag... tags) {
-        return JMXMetricRegistry.create().gauge(name(), supplier, tags);
+        return JMXMetricRegistry.create().gauge(getName(), supplier, tags);
     }
 
     default SimpleTimer simpleTimer(MetricRegistry metricRegistry, Tag... tags) {
-        return JMXMetricRegistry.create().simpleTimer(name(), tags);
+        return JMXMetricRegistry.create().simpleTimer(getName(), tags);
     }
 
     default Counter counter(MetricRegistry metricRegistry, Tag... tags) {
-        return JMXMetricRegistry.create().counter(name(), tags);
+        return JMXMetricRegistry.create().counter(getName(), tags);
     }
 
     default String getName() {

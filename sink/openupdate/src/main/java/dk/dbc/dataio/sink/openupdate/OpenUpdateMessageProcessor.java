@@ -54,12 +54,7 @@ public class OpenUpdateMessageProcessor extends MessageConsumerAdapter {
         String queueProvider = getQueueProvider(consumedMessage);
         LOGGER.debug("Using queue-provider {}", queueProvider);
         try {
-            OpenUpdateSinkConfig latestConfig = openUpdateConfig.getConfig(consumedMessage);
-            if (!latestConfig.equals(config)) {
-                LOGGER.debug("Updating connector");
-                connector = getOpenUpdateServiceConnector(latestConfig);
-                config = latestConfig;
-            }
+            OpenUpdateSinkConfig sinkConfig = getConfig(consumedMessage);
 
             Chunk outcome = buildOutcomeFromProcessedChunk(chunk);
             try {
@@ -67,7 +62,7 @@ public class OpenUpdateMessageProcessor extends MessageConsumerAdapter {
                     DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                     ChunkItemProcessor chunkItemProcessor = new ChunkItemProcessor(chunkItem,
                             addiRecordPreprocessor, connector, updateRecordResultMarshaller,
-                            new UpdateRecordErrorInterpreter(config.getIgnoredValidationErrors()));
+                            new UpdateRecordErrorInterpreter(sinkConfig.getIgnoredValidationErrors()));
 
                     switch (chunkItem.getStatus()) {
                         case SUCCESS:
@@ -113,6 +108,16 @@ public class OpenUpdateMessageProcessor extends MessageConsumerAdapter {
     @Override
     public String getAddress() {
         return ADDRESS;
+    }
+
+    private synchronized OpenUpdateSinkConfig getConfig(ConsumedMessage consumedMessage) {
+        OpenUpdateSinkConfig latestConfig = openUpdateConfig.getConfig(consumedMessage);
+        if (!latestConfig.equals(config)) {
+            LOGGER.debug("Updating connector");
+            connector = getOpenUpdateServiceConnector(latestConfig);
+            config = latestConfig;
+        }
+        return config;
     }
 
     private OpenUpdateServiceConnector getOpenUpdateServiceConnector(OpenUpdateSinkConfig config) {

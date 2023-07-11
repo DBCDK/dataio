@@ -35,6 +35,12 @@ public class AbstractOpenUpdateSinkTestBase {
                 .ignoreComments();
     }
 
+    protected static UpdateRecordResponse unmarshalUpdateRecordResponse(byte[] xmlResponseToUnmarshal) throws JAXBException {
+        Unmarshaller unmarshaller = JAXBContext.newInstance(UpdateRecordResponse.class).createUnmarshaller();
+        StringReader reader = new StringReader(StringUtil.asString(xmlResponseToUnmarshal));
+        return (UpdateRecordResponse) unmarshaller.unmarshal(reader);
+    }
+
     protected String getMetaXml(String template, String submitter) {
         return "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
                 "<es:info format=\"basis\" language=\"dan\" DBCTrackingId=\"" + DBC_TRACKING_ID + "\" submitter=\"" + submitter + "\"/>" +
@@ -63,7 +69,7 @@ public class AbstractOpenUpdateSinkTestBase {
     }
 
     protected byte[] addiToBytes(AddiRecord... addiRecords) {
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
             for (AddiRecord addiRecord : addiRecords) {
                 baos.write(addiRecord.getBytes());
@@ -84,16 +90,10 @@ public class AbstractOpenUpdateSinkTestBase {
 
     protected byte[] readTestRecord(String resourceName) {
         try {
-            final URL url = AbstractOpenUpdateSinkTestBase.class.getResource(resourceName);
+            URL url = AbstractOpenUpdateSinkTestBase.class.getResource(resourceName);
             return Files.readAllBytes(Paths.get(url.toURI()));
         } catch (IOException | URISyntaxException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    protected static UpdateRecordResponse unmarshalUpdateRecordResponse(byte[] xmlResponseToUnmarshal) throws JAXBException {
-        final Unmarshaller unmarshaller = JAXBContext.newInstance(UpdateRecordResponse.class).createUnmarshaller();
-        final StringReader reader = new StringReader(StringUtil.asString(xmlResponseToUnmarshal));
-        return (UpdateRecordResponse) unmarshaller.unmarshal(reader);
     }
 }

@@ -1,13 +1,12 @@
-package dk.dbc.dataio.sink.worldcat;
+package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 
 public enum SinkConfig implements EnvConfig {
-    QUEUE("sink::worldcat"),
+    QUEUE,
     MESSAGE_FILTER,
-    OCN_REPO_DB_URL,
     FLOWSTORE_URL,
-    USE_PROXY("false");
+    UPDATE_VALIDATE_ONLY_FLAG("false");
 
     private final String defaultValue;
 

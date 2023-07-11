@@ -1,38 +1,29 @@
 package dk.dbc.dataio.sink.openupdate;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
-import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.sink.types.SinkException;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ejb.EJB;
-import javax.ejb.Singleton;
-import javax.inject.Inject;
 
 /**
  * This Enterprise Java Bean (EJB) singleton is used as a config container for the the Update service sink
  */
-@Singleton
-public class OpenUpdateConfigBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateConfigBean.class);
-
-    @Inject
-    @ConfigProperty(name = "UPDATE_VALIDATE_ONLY_FLAG", defaultValue = "false")
-    boolean validateOnly;
-
-    @EJB
-    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-
+public class OpenUpdateConfig {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateConfig.class);
+    boolean validateOnly = SinkConfig.UPDATE_VALIDATE_ONLY_FLAG.asBoolean();
+    private final FlowStoreServiceConnector flowStoreServiceConnector;
     private long highestVersionSeen = 0;
     private OpenUpdateSinkConfig config;
 
-    public OpenUpdateSinkConfig getConfig(ConsumedMessage consumedMessage) throws SinkException {
+    public OpenUpdateConfig(FlowStoreServiceConnector flowStoreServiceConnector) {
+        this.flowStoreServiceConnector = flowStoreServiceConnector;
+    }
+
+    public synchronized OpenUpdateSinkConfig getConfig(ConsumedMessage consumedMessage) {
         refreshConfig(consumedMessage);
         return config;
     }
@@ -43,12 +34,12 @@ public class OpenUpdateConfigBean {
      * @param consumedMessage consumed message containing the version and the id of the sink
      * @throws SinkException on error to retrieve property for id or version or on error on fetching sink
      */
-    private void refreshConfig(ConsumedMessage consumedMessage) throws SinkException {
+    private void refreshConfig(ConsumedMessage consumedMessage) {
         try {
-            final long sinkId = consumedMessage.getHeaderValue(JmsConstants.SINK_ID_PROPERTY_NAME, Long.class);
-            final long sinkVersion = consumedMessage.getHeaderValue(JmsConstants.SINK_VERSION_PROPERTY_NAME, Long.class);
+            long sinkId = JMSHeader.sinkId.getHeader(consumedMessage, Long.class);
+            long sinkVersion = JMSHeader.sinkVersion.getHeader(consumedMessage, Long.class);
             if (sinkVersion > highestVersionSeen) {
-                final Sink sink = flowStoreServiceConnectorBean.getConnector().getSink(sinkId);
+                Sink sink = flowStoreServiceConnector.getSink(sinkId);
                 config = (OpenUpdateSinkConfig) sink.getContent().getSinkConfig();
                 if (!validateOnly) {
                     // Ignoring validation errors is only allowed when sink is running
@@ -59,7 +50,7 @@ public class OpenUpdateConfigBean {
                 highestVersionSeen = sink.getVersion();
             }
         } catch (FlowStoreServiceConnectorException e) {
-            throw new SinkException(e.getMessage(), e);
+            throw new RuntimeException("Unable to retrieve configuration from flowstore", e);
         }
     }
 }

@@ -5,7 +5,6 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
@@ -15,7 +14,6 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,7 +33,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class OpenUpdateConfigBeanTest {
+public class OpenUpdateConfigTest {
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
 
     private final String payload = newPayload(new ChunkBuilder(Chunk.Type.PROCESSED).build());
@@ -44,35 +42,35 @@ public class OpenUpdateConfigBeanTest {
             .withPassword("password")
             .withEndpoint("endpoint"));
 
-    private OpenUpdateConfigBean openUpdateConfigBean;
+    private OpenUpdateConfig openUpdateConfig;
 
     @Before
-    public void setup() throws JSONBException {
-        openUpdateConfigBean = newOpenUpdateConfigBean();
+    public void setup() {
+        openUpdateConfig = newOpenUpdateConfigBean();
     }
 
     @Test
     public void getConfig_sinkNotFound_throws() throws FlowStoreServiceConnectorException {
-        final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
-        final String message = "Error message from flowStore";
+        ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
+        final String message = "Unable to retrieve configuration from flowstore";
         when(flowStoreServiceConnector.getSink(anyLong())).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException(message, 404));
 
         try {
-            openUpdateConfigBean.getConfig(consumedMessage);
+            openUpdateConfig.getConfig(consumedMessage);
             fail();
-        } catch (SinkException e) {
+        } catch (RuntimeException e) {
             assertThat(e.getMessage(), is(message));
         }
     }
 
     @Test
-    public void getConfig() throws FlowStoreServiceConnectorException, SinkException {
-        final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
+    public void getConfig() throws FlowStoreServiceConnectorException {
+        ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
 
         when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(sink);
 
         // Subject under test
-        final OpenUpdateSinkConfig config = openUpdateConfigBean.getConfig(consumedMessage);
+        OpenUpdateSinkConfig config = openUpdateConfig.getConfig(consumedMessage);
 
         // Verification
         assertThat(config, is(notNullValue()));
@@ -80,13 +78,13 @@ public class OpenUpdateConfigBeanTest {
     }
 
     @Test
-    public void getConfig_configRefreshedOnlyWhenVersionChanges() throws SinkException, FlowStoreServiceConnectorException {
+    public void getConfig_configRefreshedOnlyWhenVersionChanges() throws FlowStoreServiceConnectorException {
         when(flowStoreServiceConnector.getSink(10L)).thenReturn(sink);
 
-        final OpenUpdateSinkConfig config = openUpdateConfigBean.getConfig(newConsumedMessage(10, 1));
+        OpenUpdateSinkConfig config = openUpdateConfig.getConfig(newConsumedMessage(10, 1));
         assertThat("1st refresh", config, is(notNullValue()));
 
-        final OpenUpdateSinkConfig configUnchanged = openUpdateConfigBean.getConfig(newConsumedMessage(10, 1));
+        OpenUpdateSinkConfig configUnchanged = openUpdateConfig.getConfig(newConsumedMessage(10, 1));
         assertThat("no refresh", config, is(configUnchanged));
 
         when(flowStoreServiceConnector.getSink(10L)).thenReturn(newSink(new OpenUpdateSinkConfig()
@@ -94,7 +92,7 @@ public class OpenUpdateConfigBeanTest {
                 .withUserId("userId")
                 .withPassword("password")));
 
-        final OpenUpdateSinkConfig configChanged = openUpdateConfigBean.getConfig(newConsumedMessage(10, 2));
+        OpenUpdateSinkConfig configChanged = openUpdateConfig.getConfig(newConsumedMessage(10, 2));
         assertThat("2nd refresh", configChanged, is(not(config)));
 
         verify(flowStoreServiceConnector, times(2)).getSink(10L);
@@ -102,54 +100,50 @@ public class OpenUpdateConfigBeanTest {
 
     @Test
     public void getConfig_validateOnlyFalseDisallowsIgnoredValidationErrors()
-            throws FlowStoreServiceConnectorException, SinkException {
+            throws FlowStoreServiceConnectorException {
 
-        final HashSet<String> ignoredValidationErrors = new HashSet<>();
+        HashSet<String> ignoredValidationErrors = new HashSet<>();
         ignoredValidationErrors.add("some error");
-        final Sink sink = newSink(new OpenUpdateSinkConfig()
+        Sink sink = newSink(new OpenUpdateSinkConfig()
                 .withIgnoredValidationErrors(ignoredValidationErrors));
-        final OpenUpdateConfigBean configBean = newOpenUpdateConfigBean();
+        OpenUpdateConfig configBean = newOpenUpdateConfigBean();
         configBean.validateOnly = false;
 
         when(flowStoreServiceConnector.getSink(1L)).thenReturn(sink);
 
-        final OpenUpdateSinkConfig config = configBean.getConfig(newConsumedMessage(1, 1));
+        OpenUpdateSinkConfig config = configBean.getConfig(newConsumedMessage(1, 1));
         assertThat(config.getIgnoredValidationErrors(), is(nullValue()));
     }
 
     @Test
-    public void getConfig_validateOnlyTrueAllowsIgnoredValidationErrors()
-            throws FlowStoreServiceConnectorException, SinkException {
+    public void getConfig_validateOnlyTrueAllowsIgnoredValidationErrors() throws FlowStoreServiceConnectorException {
 
-        final HashSet<String> ignoredValidationErrors = new HashSet<>();
+        HashSet<String> ignoredValidationErrors = new HashSet<>();
         ignoredValidationErrors.add("some error");
-        final Sink sink = newSink(new OpenUpdateSinkConfig()
+        Sink sink = newSink(new OpenUpdateSinkConfig()
                 .withIgnoredValidationErrors(ignoredValidationErrors));
-        final OpenUpdateConfigBean configBean = newOpenUpdateConfigBean();
+        OpenUpdateConfig configBean = newOpenUpdateConfigBean();
         configBean.validateOnly = true;
 
         when(flowStoreServiceConnector.getSink(1L)).thenReturn(sink);
 
-        final OpenUpdateSinkConfig config = configBean.getConfig(newConsumedMessage(1, 1));
+        OpenUpdateSinkConfig config = configBean.getConfig(newConsumedMessage(1, 1));
         assertThat(config.getIgnoredValidationErrors(), is(ignoredValidationErrors));
     }
 
-    private OpenUpdateConfigBean newOpenUpdateConfigBean() {
-        final OpenUpdateConfigBean openUpdateConfigBean = new OpenUpdateConfigBean();
-        openUpdateConfigBean.flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
-        when(openUpdateConfigBean.flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
-        return openUpdateConfigBean;
+    private OpenUpdateConfig newOpenUpdateConfigBean() {
+        return new OpenUpdateConfig(flowStoreServiceConnector);
     }
 
     private ConsumedMessage newConsumedMessage(long sinkId, long sinkVersion) {
-        final Map<String, Object> headers = new HashMap<>();
+        Map<String, Object> headers = new HashMap<>();
         headers.put(JmsConstants.SINK_ID_PROPERTY_NAME, sinkId);
         headers.put(JmsConstants.SINK_VERSION_PROPERTY_NAME, sinkVersion);
         return new ConsumedMessage("messageId", headers, payload);
     }
 
     private Sink newSink(OpenUpdateSinkConfig config) {
-        final SinkContent sinkContent = new SinkContentBuilder()
+        SinkContent sinkContent = new SinkContentBuilder()
                 .setSinkType(SinkContent.SinkType.OPENUPDATE)
                 .setSinkConfig(config)
                 .build();

@@ -25,7 +25,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>artemis-admin-client</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>1.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>

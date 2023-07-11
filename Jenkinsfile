@@ -28,6 +28,7 @@ pipeline {
             sink/vip, \
             sink/ims, \
             sink/tickle-repo, \
+            sink/openupdate, \
             sink/dpf \
         "
     }

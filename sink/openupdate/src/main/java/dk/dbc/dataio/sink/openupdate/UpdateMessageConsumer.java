@@ -12,7 +12,6 @@ import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
@@ -93,7 +92,7 @@ public class UpdateMessageConsumer extends MessageConsumerAdapter {
             } finally {
                 DBCTrackedLogContext.remove();
             }
-            addOutcomeToJobStore(outcome);
+            sendResultToJobStore(outcome);
         } catch (Exception any) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
             throw any;
@@ -122,14 +121,6 @@ public class UpdateMessageConsumer extends MessageConsumerAdapter {
 
     private OpenUpdateServiceConnector getOpenUpdateServiceConnector(OpenUpdateSinkConfig config) {
         return new OpenUpdateServiceConnector(config.getEndpoint(), config.getUserId(), config.getPassword());
-    }
-
-    private void addOutcomeToJobStore(Chunk outcome) {
-        try {
-            jobStoreServiceConnector.addChunkIgnoreDuplicates(outcome, outcome.getJobId(), outcome.getChunkId());
-        } catch (JobStoreServiceConnectorException e) {
-            throw new RuntimeException("Error in communication with job-store", e);
-        }
     }
 
     private Chunk buildOutcomeFromProcessedChunk(Chunk processedChunk) {

@@ -75,7 +75,7 @@ public class UpdateMessageConsumerTest {
         when(flowStoreServiceConnector.getFlowBinder(flowBinder.getId())).thenReturn(flowBinder);
         when(openUpdateConfig.getConfig(any(ConsumedMessage.class))).thenReturn(config);
         doNothing().when(chunkitemsCounter).inc();
-        updateMessageConsumer.cachedFlowBinders.invalidateAll();
+        UpdateMessageConsumer.cachedFlowBinders.invalidateAll();
     }
 
     @Test
@@ -111,7 +111,7 @@ public class UpdateMessageConsumerTest {
         updateMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
 
         verify(flowStoreServiceConnector, times(1)).getFlowBinder(flowBinder.getId());
-        assertThat(updateMessageConsumer.cachedFlowBinders.getIfPresent(flowBinder.getId()), is(notNullValue()));
+        assertThat(UpdateMessageConsumer.cachedFlowBinders.getIfPresent(flowBinder.getId()), is(notNullValue()));
 
         updateMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
 

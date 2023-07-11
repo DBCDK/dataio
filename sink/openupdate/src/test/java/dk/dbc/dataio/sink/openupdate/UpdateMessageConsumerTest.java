@@ -75,6 +75,7 @@ public class UpdateMessageConsumerTest {
         when(flowStoreServiceConnector.getFlowBinder(flowBinder.getId())).thenReturn(flowBinder);
         when(openUpdateConfig.getConfig(any(ConsumedMessage.class))).thenReturn(config);
         doNothing().when(chunkitemsCounter).inc();
+        updateMessageConsumer.cachedFlowBinders.invalidateAll();
     }
 
     @Test
@@ -93,11 +94,9 @@ public class UpdateMessageConsumerTest {
 
     @Test
     public void handleConsumedMessage_flowStoreCommunicationFails_throws() throws InvalidMessageException, FlowStoreServiceConnectorException {
-        FlowStoreServiceConnectorException flowStoreServiceConnectorException =
-                new FlowStoreServiceConnectorException("Exception from flow-store");
+        FlowStoreServiceConnectorException flowStoreServiceConnectorException = new FlowStoreServiceConnectorException("Exception from flow-store");
 
-        when(flowStoreServiceConnector.getFlowBinder(flowBinder.getId()))
-                .thenThrow(flowStoreServiceConnectorException);
+        when(flowStoreServiceConnector.getFlowBinder(flowBinder.getId())).thenThrow(flowStoreServiceConnectorException);
 
         try {
             updateMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));

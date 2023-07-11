@@ -26,7 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ImsMessageProcessorTest {
+public class ImsMessageConsumerTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final ImsConfig imsConfig = mock(ImsConfig.class);
     private final ImsMessageConsumer imsMessageConsumer = new ImsMessageConsumer(new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).test(), imsConfig);

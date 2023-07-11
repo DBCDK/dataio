@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-public class OpenUpdateMessageProcessor extends MessageConsumerAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateMessageProcessor.class);
+public class UpdateMessageConsumer extends MessageConsumerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UpdateMessageConsumer.class);
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     private final FlowStoreServiceConnector flowStoreServiceConnector;
@@ -32,12 +32,12 @@ public class OpenUpdateMessageProcessor extends MessageConsumerAdapter {
     private final OpenUpdateConfig openUpdateConfig;
     private final AddiRecordPreprocessor addiRecordPreprocessor;
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
-    final Cache<Long, FlowBinder> cachedFlowBinders = CacheBuilder.newBuilder().maximumSize(10).expireAfterAccess(Duration.ofHours(1)).build();
+    static final Cache<Long, FlowBinder> cachedFlowBinders = CacheBuilder.newBuilder().maximumSize(10).expireAfterAccess(Duration.ofHours(1)).build();
 
     OpenUpdateSinkConfig config;
     OpenUpdateServiceConnector connector;
 
-    public OpenUpdateMessageProcessor(ServiceHub serviceHub, FlowStoreServiceConnector flowStoreServiceConnector, OpenUpdateConfig openUpdateConfig, AddiRecordPreprocessor addiRecordPreprocessor) {
+    public UpdateMessageConsumer(ServiceHub serviceHub, FlowStoreServiceConnector flowStoreServiceConnector, OpenUpdateConfig openUpdateConfig, AddiRecordPreprocessor addiRecordPreprocessor) {
         super(serviceHub);
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
@@ -45,7 +45,7 @@ public class OpenUpdateMessageProcessor extends MessageConsumerAdapter {
         this.addiRecordPreprocessor = addiRecordPreprocessor;
     }
 
-    public OpenUpdateMessageProcessor(ServiceHub serviceHub, FlowStoreServiceConnector flowStoreServiceConnector) {
+    public UpdateMessageConsumer(ServiceHub serviceHub, FlowStoreServiceConnector flowStoreServiceConnector) {
         this(serviceHub, flowStoreServiceConnector, new OpenUpdateConfig(flowStoreServiceConnector), new AddiRecordPreprocessor());
     }
 

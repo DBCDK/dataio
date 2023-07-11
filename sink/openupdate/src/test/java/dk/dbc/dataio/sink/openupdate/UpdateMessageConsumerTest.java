@@ -46,7 +46,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class OpenUpdateMessageProcessorTest {
+public class UpdateMessageConsumerTest {
     /* mocks */
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
@@ -59,7 +59,7 @@ public class OpenUpdateMessageProcessorTest {
     private final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().setQueueProvider(queueProvider).build();
     private final FlowBinder flowBinder = new FlowBinderBuilder().setId(42).setVersion(10).setContent(flowBinderContent).build();
     private final ServiceHub serviceHub = new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).test();
-    private final OpenUpdateMessageProcessor openUpdateMessageProcessor = new OpenUpdateMessageProcessor(serviceHub, flowStoreServiceConnector, openUpdateConfig, addiRecordPreprocessor);
+    private final UpdateMessageConsumer updateMessageConsumer = new UpdateMessageConsumer(serviceHub, flowStoreServiceConnector, openUpdateConfig, addiRecordPreprocessor);
 
     public static byte[] getValidAddi(String... content) {
         StringBuilder addi = new StringBuilder();
@@ -84,7 +84,7 @@ public class OpenUpdateMessageProcessorTest {
                 .thenThrow(jobStoreServiceConnectorException);
 
         try {
-            openUpdateMessageProcessor.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+            updateMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
             fail("No RuntimeException thrown");
         } catch (RuntimeException e) {
             assertThat(e.getCause(), is(jobStoreServiceConnectorException));
@@ -100,7 +100,7 @@ public class OpenUpdateMessageProcessorTest {
                 .thenThrow(flowStoreServiceConnectorException);
 
         try {
-            openUpdateMessageProcessor.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+            updateMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
             fail("No SinkException thrown");
         } catch (RuntimeException e) {
             assertThat(e.getCause(), is(flowStoreServiceConnectorException));
@@ -109,12 +109,12 @@ public class OpenUpdateMessageProcessorTest {
 
     @Test
     public void handleConsumedMessage_cachesFlowBinder() throws InvalidMessageException, FlowStoreServiceConnectorException {
-        openUpdateMessageProcessor.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+        updateMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
 
         verify(flowStoreServiceConnector, times(1)).getFlowBinder(flowBinder.getId());
-        assertThat(openUpdateMessageProcessor.cachedFlowBinders.getIfPresent(flowBinder.getId()), is(notNullValue()));
+        assertThat(updateMessageConsumer.cachedFlowBinders.getIfPresent(flowBinder.getId()), is(notNullValue()));
 
-        openUpdateMessageProcessor.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+        updateMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
 
         verify(flowStoreServiceConnector, times(1)).getFlowBinder(flowBinder.getId());
     }
@@ -123,30 +123,30 @@ public class OpenUpdateMessageProcessorTest {
     public void handleConsumedMessage_callsAddiRecordPreprocessorWithQueueProvider() throws InvalidMessageException {
         ChunkItem chunkItem = new ChunkItemBuilder().setData(getValidAddi("addi content")).build();
         Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(List.of(chunkItem)).build();
-        openUpdateMessageProcessor.handleConsumedMessage(getConsumedMessageForChunk(chunk));
+        updateMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(chunk));
 
         verify(addiRecordPreprocessor).preprocess(any(AddiRecord.class), eq(queueProvider));
     }
 
     @Test
     public void handleConsumedMessage_setsConfig() throws InvalidMessageException {
-        openUpdateMessageProcessor.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
-        assertThat(openUpdateMessageProcessor.config, is(config));
+        updateMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+        assertThat(updateMessageConsumer.config, is(config));
     }
 
     @Test
     public void handleConsumedMessage_setsConnector() throws InvalidMessageException {
-        openUpdateMessageProcessor.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
-        OpenUpdateServiceConnector connector = openUpdateMessageProcessor.connector;
+        updateMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+        OpenUpdateServiceConnector connector = updateMessageConsumer.connector;
         assertThat("1st message creates", connector, is(notNullValue()));
-        openUpdateMessageProcessor.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
-        assertThat("2nd message retains", openUpdateMessageProcessor.connector, is(connector));
+        updateMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+        assertThat("2nd message retains", updateMessageConsumer.connector, is(connector));
     }
 
     @Test
     public void handleConsumedMessage_updatesConnector() throws InvalidMessageException {
-        openUpdateMessageProcessor.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
-        OpenUpdateServiceConnector connector = openUpdateMessageProcessor.connector;
+        updateMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+        OpenUpdateServiceConnector connector = updateMessageConsumer.connector;
         assertThat("1st message creates", connector, is(notNullValue()));
 
         OpenUpdateSinkConfig updatedConfig = new OpenUpdateSinkConfig()
@@ -155,8 +155,8 @@ public class OpenUpdateMessageProcessorTest {
                 .withPassword("updatedPass");
         when(openUpdateConfig.getConfig(any(ConsumedMessage.class))).thenReturn(updatedConfig);
 
-        openUpdateMessageProcessor.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
-        assertThat("2nd message updates", openUpdateMessageProcessor.connector, is(not(connector)));
+        updateMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+        assertThat("2nd message updates", updateMessageConsumer.connector, is(not(connector)));
     }
 
     private ConsumedMessage getConsumedMessageForChunk(Chunk chunk) {

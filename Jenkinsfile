@@ -29,6 +29,7 @@ pipeline {
             sink/ims, \
             sink/tickle-repo, \
             sink/openupdate, \
+            sink/periodic-jobs, \
             sink/dpf \
         "
     }

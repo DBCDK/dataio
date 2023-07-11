@@ -4,20 +4,22 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.HarvesterToken;
-import dk.dbc.dataio.commons.utils.cache.Cache;
-import dk.dbc.dataio.commons.utils.cache.CacheManager;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import org.glassfish.jersey.internal.guava.Cache;
+import org.glassfish.jersey.internal.guava.CacheBuilder;
 
 import javax.persistence.EntityManager;
+import java.util.concurrent.TimeUnit;
 
 public class PeriodicJobsConfigurationBean {
-    final Cache<Integer, PeriodicJobsDelivery> deliveryCache = CacheManager.createLRUCache(10);
-
+    final Cache<Integer, PeriodicJobsDelivery> deliveryCache = CacheBuilder.newBuilder()
+            .maximumSize(20)
+            .expireAfterAccess(1, TimeUnit.HOURS).build();
     EntityManager entityManager;
 
     FlowStoreServiceConnector flowStoreServiceConnector;
@@ -31,7 +33,7 @@ public class PeriodicJobsConfigurationBean {
      */
     public PeriodicJobsDelivery getDelivery(Chunk chunk) {
         Integer jobId = Math.toIntExact(chunk.getJobId());
-        PeriodicJobsDelivery periodicJobsDelivery = deliveryCache.get(jobId);
+        PeriodicJobsDelivery periodicJobsDelivery = deliveryCache.getIfPresent(jobId);
         if (periodicJobsDelivery != null) {
             // Return delivery entity from local bean cache.
             return periodicJobsDelivery;

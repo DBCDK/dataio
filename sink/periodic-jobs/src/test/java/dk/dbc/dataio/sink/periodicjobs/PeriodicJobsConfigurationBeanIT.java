@@ -24,6 +24,7 @@ import java.util.Collections;
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -105,7 +106,7 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
         assertThat("delivery.jobId", delivery.getJobId(), is(chunk.getJobId()));
         assertThat("delivery.config", delivery.getConfig(), is(periodicJobsHarvesterConfig));
         assertThat("delivery is cached",
-                periodicJobsConfigurationBean.deliveryCache.containsKey(chunk.getJobId()), is(true));
+                periodicJobsConfigurationBean.deliveryCache.getIfPresent(chunk.getJobId()), is(notNullValue()));
 
         try (Connection conn = connectToPeriodicJobsDB()) {
             assertThat("number of persisted deliveries",
@@ -141,7 +142,7 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
         assertThat("delivery.jobId", delivery.getJobId(), is(chunk.getJobId()));
         assertThat("delivery.config", delivery.getConfig(), is(periodicJobsHarvesterConfig));
         assertThat("delivery is cached",
-                periodicJobsConfigurationBean.deliveryCache.containsKey(chunk.getJobId()), is(true));
+                periodicJobsConfigurationBean.deliveryCache.getIfPresent(chunk.getJobId()), is(notNullValue()));
 
         try (Connection conn = connectToPeriodicJobsDB()) {
             assertThat("number of persisted deliveries",
@@ -182,7 +183,7 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
         final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
         assertThat(periodicJobsConfigurationBean.getDelivery(chunk), is(expectedDelivery));
         assertThat("delivery is cached",
-                periodicJobsConfigurationBean.deliveryCache.containsKey(chunk.getJobId()), is(true));
+                periodicJobsConfigurationBean.deliveryCache.getIfPresent(chunk.getJobId()), is(notNullValue()));
     }
 
     private PeriodicJobsConfigurationBean newPeriodicJobsConfigurationBean() {

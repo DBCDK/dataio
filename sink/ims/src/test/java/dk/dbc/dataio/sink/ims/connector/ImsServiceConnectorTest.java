@@ -27,7 +27,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class ImsServiceConnectorTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(
-            new WireMockConfiguration().dynamicPort(), false);
+            new WireMockConfiguration().dynamicPort().portNumber());
 
     @Test(expected = NullPointerException.class)
     public void constructor_endpointArgIsNull_throws() {

@@ -6,6 +6,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -13,11 +14,9 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
-import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.EntityManagerFactory;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -31,8 +30,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
-    private final EntityManagerFactory entityManagerFactory =
-            mock(EntityManagerFactory.class);
     private final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean =
             mock(FlowStoreServiceConnectorBean.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector =
@@ -44,8 +41,6 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
 
     @Before
     public void setupMocks() {
-        when(entityManagerFactory.createEntityManager())
-                .thenReturn(env().getEntityManager());
         when(flowStoreServiceConnectorBean.getConnector())
                 .thenReturn(flowStoreServiceConnector);
         when(jobStoreServiceConnectorBean.getConnector())
@@ -59,15 +54,15 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
                 .thenReturn(Collections.emptyList());
 
         final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
-        assertThat(() -> periodicJobsConfigurationBean.getDelivery(chunk), isThrowing(SinkException.class));
+        assertThat(() -> periodicJobsConfigurationBean.getDelivery(chunk), isThrowing(RuntimeException.class));
     }
 
     @Test
     public void getDelivery_throwsOnFailureToResolveHarvesterConfig()
             throws JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot()
-                .withJobId((int) chunk.getJobId())
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
+        JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot()
+                .withJobId(chunk.getJobId())
                 .withSpecification(
                         new JobSpecification()
                                 .withAncestry(new JobSpecification.Ancestry()
@@ -78,8 +73,8 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
         when(flowStoreServiceConnector.getHarvesterConfig(1, PeriodicJobsHarvesterConfig.class))
                 .thenThrow(new FlowStoreServiceConnectorException("DIED"));
 
-        final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
-        assertThat(() -> periodicJobsConfigurationBean.getDelivery(chunk), isThrowing(SinkException.class));
+        PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
+        assertThat(() -> periodicJobsConfigurationBean.getDelivery(chunk), isThrowing(RuntimeException.class));
     }
 
     @Test
@@ -90,7 +85,7 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
                 .setChunkId(1)
                 .build();
         final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot()
-                .withJobId((int) chunk.getJobId())
+                .withJobId(chunk.getJobId())
                 .withSpecification(
                         new JobSpecification()
                                 .withAncestry(new JobSpecification.Ancestry()
@@ -107,10 +102,10 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
         PeriodicJobsDelivery delivery = env().getPersistenceContext().run(() ->
                 periodicJobsConfigurationBean.getDelivery(chunk));
 
-        assertThat("delivery.jobId", delivery.getJobId(), is((int) chunk.getJobId()));
+        assertThat("delivery.jobId", delivery.getJobId(), is(chunk.getJobId()));
         assertThat("delivery.config", delivery.getConfig(), is(periodicJobsHarvesterConfig));
         assertThat("delivery is cached",
-                periodicJobsConfigurationBean.deliveryCache.containsKey((int) chunk.getJobId()), is(true));
+                periodicJobsConfigurationBean.deliveryCache.containsKey(chunk.getJobId()), is(true));
 
         try (Connection conn = connectToPeriodicJobsDB()) {
             assertThat("number of persisted deliveries",
@@ -126,7 +121,7 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
                 .setChunkId(0)
                 .build();
         final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot()
-                .withJobId((int) chunk.getJobId())
+                .withJobId(chunk.getJobId())
                 .withSpecification(
                         new JobSpecification()
                                 .withAncestry(new JobSpecification.Ancestry()
@@ -143,10 +138,10 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
         PeriodicJobsDelivery delivery = env().getPersistenceContext().run(() ->
                 periodicJobsConfigurationBean.getDelivery(chunk));
 
-        assertThat("delivery.jobId", delivery.getJobId(), is((int) chunk.getJobId()));
+        assertThat("delivery.jobId", delivery.getJobId(), is(chunk.getJobId()));
         assertThat("delivery.config", delivery.getConfig(), is(periodicJobsHarvesterConfig));
         assertThat("delivery is cached",
-                periodicJobsConfigurationBean.deliveryCache.containsKey((int) chunk.getJobId()), is(true));
+                periodicJobsConfigurationBean.deliveryCache.containsKey(chunk.getJobId()), is(true));
 
         try (Connection conn = connectToPeriodicJobsDB()) {
             assertThat("number of persisted deliveries",
@@ -155,30 +150,30 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
     }
 
     @Test
-    public void getDelivery_servesFromCache() throws SinkException {
+    public void getDelivery_servesFromCache() throws InvalidMessageException {
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setJobId(42)
                 .setChunkId(5)
                 .build();
         final PeriodicJobsHarvesterConfig periodicJobsHarvesterConfig =
                 new PeriodicJobsHarvesterConfig(1, 1, new PeriodicJobsHarvesterConfig.Content());
-        final PeriodicJobsDelivery expectedDelivery = new PeriodicJobsDelivery((int) chunk.getJobId());
+        final PeriodicJobsDelivery expectedDelivery = new PeriodicJobsDelivery(chunk.getJobId());
         expectedDelivery.setConfig(periodicJobsHarvesterConfig);
 
         final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
-        periodicJobsConfigurationBean.deliveryCache.put((int) chunk.getJobId(), expectedDelivery);
+        periodicJobsConfigurationBean.deliveryCache.put(chunk.getJobId(), expectedDelivery);
         assertThat(periodicJobsConfigurationBean.getDelivery(chunk), is(expectedDelivery));
     }
 
     @Test
-    public void getDelivery_servesFromDatabase() throws SinkException {
+    public void getDelivery_servesFromDatabase() throws InvalidMessageException {
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setJobId(42)
                 .setChunkId(5)
                 .build();
         final PeriodicJobsHarvesterConfig periodicJobsHarvesterConfig =
                 new PeriodicJobsHarvesterConfig(1, 1, new PeriodicJobsHarvesterConfig.Content());
-        final PeriodicJobsDelivery expectedDelivery = new PeriodicJobsDelivery((int) chunk.getJobId());
+        final PeriodicJobsDelivery expectedDelivery = new PeriodicJobsDelivery(chunk.getJobId());
         expectedDelivery.setConfig(periodicJobsHarvesterConfig);
 
         env().getPersistenceContext().run(() ->
@@ -187,14 +182,14 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
         final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
         assertThat(periodicJobsConfigurationBean.getDelivery(chunk), is(expectedDelivery));
         assertThat("delivery is cached",
-                periodicJobsConfigurationBean.deliveryCache.containsKey((int) chunk.getJobId()), is(true));
+                periodicJobsConfigurationBean.deliveryCache.containsKey(chunk.getJobId()), is(true));
     }
 
     private PeriodicJobsConfigurationBean newPeriodicJobsConfigurationBean() {
         final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = new PeriodicJobsConfigurationBean();
-        periodicJobsConfigurationBean.entityManagerFactory = entityManagerFactory;
-        periodicJobsConfigurationBean.flowStoreServiceConnectorBean = flowStoreServiceConnectorBean;
-        periodicJobsConfigurationBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        periodicJobsConfigurationBean.entityManager = env().getEntityManager();
+        periodicJobsConfigurationBean.flowStoreServiceConnector = flowStoreServiceConnector;
+        periodicJobsConfigurationBean.jobStoreServiceConnector = jobStoreServiceConnector;
         return periodicJobsConfigurationBean;
     }
 }

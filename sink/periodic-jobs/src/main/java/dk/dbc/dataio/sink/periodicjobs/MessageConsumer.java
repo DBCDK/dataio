@@ -2,6 +2,7 @@ package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.conversion.Conversion;
 import dk.dbc.dataio.commons.conversion.ConversionException;
 import dk.dbc.dataio.commons.conversion.ConversionFactory;
@@ -11,79 +12,130 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
-import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
+import dk.dbc.dataio.sink.periodicjobs.mail.MailSession;
+import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsFtpFinalizerBean;
+import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsHttpFinalizerBean;
+import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsMailFinalizerBean;
+import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsSFtpFinalizerBean;
 import dk.dbc.jsonb.JSONBContext;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.log.DBCTrackedLogContext;
+import dk.dbc.proxy.ProxyBean;
+import dk.dbc.weekresolver.WeekResolverConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.EJB;
-import javax.ejb.MessageDriven;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import javax.persistence.EntityTransaction;
+import javax.ws.rs.client.ClientBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Set;
 
-@MessageDriven(name = "periodicJobsListener", activationConfig = {
-        // Please see the following url for a explanation of the available settings.
-        // The message selector variable is defined in the dataio-secrets project
-        // https://activemq.apache.org/activation-spec-properties
-        @ActivationConfigProperty(propertyName = "destination", propertyValue = "${ENV=QUEUE}"),
-        @ActivationConfigProperty(propertyName = "useJndi", propertyValue = "false"),
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-        @ActivationConfigProperty(propertyName = "resourceAdapter", propertyValue = "artemis"),
-        @ActivationConfigProperty(propertyName = "initialRedeliveryDelay", propertyValue = "5000"),
-        @ActivationConfigProperty(propertyName = "redeliveryBackOffMultiplier", propertyValue = "4"),
-        @ActivationConfigProperty(propertyName = "maximumRedeliveries", propertyValue = "3"),
-        @ActivationConfigProperty(propertyName = "redeliveryUseExponentialBackOff", propertyValue = "true"),
-        @ActivationConfigProperty(propertyName = "MaxSession", propertyValue = "4")
-})
-public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
-
+public class MessageConsumer extends MessageConsumerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
+    private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
+    private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     private final ConversionFactory conversionFactory = new ConversionFactory();
     private final JSONBContext jsonbContext = new JSONBContext();
+    private final FlowStoreServiceConnector flowStoreServiceConnector;
+    private final FileStoreServiceConnector fileStoreServiceConnector;
 
-    @PersistenceContext(unitName = "periodic-jobs_PU")
     EntityManager entityManager;
 
-    @EJB
     PeriodicJobsFinalizerBean periodicJobsFinalizerBean;
+
+    ProxyBean proxyBean;
+
+    WeekResolverConnector weekResolverConnector;
+
+    public MessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
+        super(serviceHub);
+        this.entityManager = entityManager;
+        this.flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FLOWSTORE_URL.asString());
+        this.fileStoreServiceConnector = new FileStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FILESTORE_URL.asString());
+        this.weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient(), SinkConfig.WEEKRESOLVER_SERVICE_URL.asString());
+
+        this.proxyBean = SinkConfig.PROXY_HOSTNAME.asOptionalString()
+                .map(s -> new ProxyBean(s).withNonProxyHosts(Set.of(SinkConfig.NON_PROXY_HOSTS.asString().split(","))))
+                .orElse(null);
+
+        initializeFinalizers(serviceHub);
+    }
+
+    void initializeFinalizers(ServiceHub serviceHub) {
+        periodicJobsFinalizerBean = new PeriodicJobsFinalizerBean()
+                .withEntityManager(entityManager)
+                .withPeriodicJobsHttpFinalizerBean(new PeriodicJobsHttpFinalizerBean()
+                        .withFileStoreServiceConnector(fileStoreServiceConnector))
+                .withPeriodicJobsFtpFinalizerBean(new PeriodicJobsFtpFinalizerBean().withProxyBean(proxyBean))
+                .withPeriodicJobsSFtpFinalizerBean(new PeriodicJobsSFtpFinalizerBean().withProxyBean(proxyBean))
+                .withPeriodicJobsMailFinalizerBean(new PeriodicJobsMailFinalizerBean().withSession(MailSession.make()))
+                .withPeriodicJobsConfigurationBean(new PeriodicJobsConfigurationBean()
+                        .withEntityManager(entityManager)
+                        .withFlowstoreConnector(flowStoreServiceConnector)
+                        .withJobstoreConnector(jobStoreServiceConnector));
+
+        List.of(periodicJobsFinalizerBean.periodicJobsHttpFinalizerBean,
+                periodicJobsFinalizerBean.periodicJobsFtpFinalizerBean,
+                periodicJobsFinalizerBean.periodicJobsSFtpFinalizerBean,
+                periodicJobsFinalizerBean.periodicJobsMailFinalizerBean).forEach(finalizer ->
+                finalizer.withJobStoreServiceConnector(serviceHub.jobStoreServiceConnector)
+                        .withEntityManager(entityManager)
+                        .withWeekResolverConnector(weekResolverConnector));
+    }
+
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage)
-            throws InvalidMessageException, NullPointerException, SinkException {
-        final Chunk chunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
-
-        final Chunk result;
-        if (chunk.isTerminationChunk()) {
-            try {
-                // Give the before-last message enough time to commit
-                // its datablocks to the database before initiating
-                // the finalization process.
-                // (The result is uploaded to the job-store before the
-                // implicit commit, so without the sleep pause, there was a
-                // small risk that the end-chunk would reach this bean
-                // before all data was available.)
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                throw new SinkException(e);
+            throws InvalidMessageException, NullPointerException {
+        Chunk chunk = unmarshallPayload(consumedMessage);
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            Chunk result;
+            transaction.begin();
+            if (chunk.isTerminationChunk()) {
+                try {
+                    // Give the before-last message enough time to commit
+                    // its datablocks to the database before initiating
+                    // the finalization process.
+                    // (The result is uploaded to the job-store before the
+                    // implicit commit, so without the sleep pause, there was a
+                    // small risk that the end-chunk would reach this bean
+                    // before all data was available.)
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                result = periodicJobsFinalizerBean.handleTerminationChunk(chunk);
+            } else {
+                result = handleChunk(chunk);
             }
-            result = periodicJobsFinalizerBean.handleTerminationChunk(chunk);
-        } else {
-            result = handleChunk(chunk);
+            sendResultToJobStore(result);
+            transaction.commit();
+        } finally {
+            if(transaction.isActive()) transaction.rollback();
         }
-        uploadChunk(result);
+    }
+
+    @Override
+    public String getQueue() {
+        return QUEUE;
+    }
+
+    @Override
+    public String getAddress() {
+        return ADDRESS;
     }
 
     Chunk handleChunk(Chunk chunk) {
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         try {
             for (ChunkItem chunkItem : chunk.getItems()) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
@@ -96,7 +148,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     }
 
     private ChunkItem handleChunkItem(ChunkItem chunkItem, Chunk chunk) {
-        final ChunkItem result = new ChunkItem()
+        ChunkItem result = new ChunkItem()
                 .withId(chunkItem.getId())
                 .withTrackingId(chunkItem.getTrackingId())
                 .withType(ChunkItem.Type.STRING)
@@ -131,7 +183,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             byte[] data;
             int recordPart = 0;
             while (addiReader != null && addiReader.hasNext()) {
-                final PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key((int) chunk.getJobId(),
+                PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(chunk.getJobId(),
                         getRecordNumber((int) chunk.getChunkId(), (int) chunkItem.getId()), recordPart);
                 AddiRecord addiRecord;
                 PeriodicJobsConversionParam conversionParam;
@@ -158,7 +210,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 }
 
                 // Persists result of conversion as datablock
-                final PeriodicJobsDataBlock datablock = new PeriodicJobsDataBlock();
+                PeriodicJobsDataBlock datablock = new PeriodicJobsDataBlock();
                 datablock.setKey(key);
                 datablock.setSortkey(sortkey);
                 datablock.setBytes(data);
@@ -177,7 +229,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                                      PeriodicJobsDataBlock.Key key) {
         // Convert the ADDI content data
         // TODO: 16/01/2020 Currently the ConversionFactory only handles ISO2709 conversion - more conversions may be needed.
-        final Conversion conversion = conversionFactory.newConversion(conversionParam);
+        Conversion conversion = conversionFactory.newConversion(conversionParam);
         byte[] data = conversion.apply(addiRecord.getContentData());
 
         if (data == null || data.length == 0) {
@@ -192,10 +244,10 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     }
 
     private byte[] prependRecordHeader(byte[] data, PeriodicJobsConversionParam conversionParam) {
-        final String recordHeader = conversionParam.getRecordHeader().orElse("");
-        final byte[] recordHeaderBytes = recordHeader.getBytes(
+        String recordHeader = conversionParam.getRecordHeader().orElse("");
+        byte[] recordHeaderBytes = recordHeader.getBytes(
                 conversionParam.getEncoding().orElse(StandardCharsets.UTF_8));
-        final byte[] withHeader = new byte[recordHeaderBytes.length + data.length];
+        byte[] withHeader = new byte[recordHeaderBytes.length + data.length];
         System.arraycopy(recordHeaderBytes, 0, withHeader, 0, recordHeaderBytes.length);
         System.arraycopy(data, 0, withHeader, recordHeaderBytes.length, data.length);
         return withHeader;

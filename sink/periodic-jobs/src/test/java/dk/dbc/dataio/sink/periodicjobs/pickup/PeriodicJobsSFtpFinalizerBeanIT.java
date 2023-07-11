@@ -1,12 +1,14 @@
-package dk.dbc.dataio.sink.periodicjobs;
+package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import com.github.stefanbirkner.fakesftpserver.rule.FakeSftpServerRule;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.SFtpPickup;
+import dk.dbc.dataio.sink.periodicjobs.ContainerTest;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlock;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
 import dk.dbc.proxy.ProxyBean;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
@@ -36,7 +38,6 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
     static final String sftPassword = "sftppassword";
 
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
-    private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private final WeekResolverConnector weekResolverConnector =
             mock(WeekResolverConnector.class);
 
@@ -51,9 +52,6 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
     @Before
     public void setUp() throws IOException {
         fakeSFtpServer.createDirectory(testDir);
-
-        when(jobStoreServiceConnectorBean.getConnector())
-                .thenReturn(jobStoreServiceConnector);
     }
 
     @Test
@@ -158,12 +156,11 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
     private PeriodicJobsSFtpFinalizerBean newPeriodicJobsSFtpFinalizerBean() {
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = new PeriodicJobsSFtpFinalizerBean();
         periodicJobsSFtpFinalizerBean.entityManager = env().getEntityManager();
-        periodicJobsSFtpFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        periodicJobsSFtpFinalizerBean.jobStoreServiceConnector = jobStoreServiceConnector;
         periodicJobsSFtpFinalizerBean.proxyBean = new ProxyBean(PROXY_HOST, PROXY_PORT)
                 .withProxyUsername(PROXY_USER)
                 .withProxyPassword(PROXY_PASSWORD);
         periodicJobsSFtpFinalizerBean.weekResolverConnector = weekResolverConnector;
-        periodicJobsSFtpFinalizerBean.initialize();
         return periodicJobsSFtpFinalizerBean;
     }
 

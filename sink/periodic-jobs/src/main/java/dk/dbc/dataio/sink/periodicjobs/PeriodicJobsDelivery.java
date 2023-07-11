@@ -35,7 +35,7 @@ public class PeriodicJobsDelivery {
     public PeriodicJobsDelivery() {
     }
 
-    PeriodicJobsDelivery(Integer jobId) {
+    public PeriodicJobsDelivery(Integer jobId) {
         this.jobId = jobId;
     }
 

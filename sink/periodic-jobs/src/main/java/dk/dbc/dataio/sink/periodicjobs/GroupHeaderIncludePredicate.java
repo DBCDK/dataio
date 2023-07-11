@@ -10,7 +10,7 @@ import java.util.function.Predicate;
  */
 public class GroupHeaderIncludePredicate implements Predicate<PeriodicJobsDataBlock> {
     // If thread safety is needed, use ConcurrentHashMap.newKeySet() instead
-    private Set<ByteArrayWrapper> groupHeaders = new HashSet<>();
+    private final Set<ByteArrayWrapper> groupHeaders = new HashSet<>();
 
     /**
      * Returns true if a group header for a datablock exists, and only if

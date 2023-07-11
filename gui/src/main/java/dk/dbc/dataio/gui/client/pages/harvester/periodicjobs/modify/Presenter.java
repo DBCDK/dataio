@@ -80,5 +80,7 @@ public interface Presenter extends GenericPresenter {
 
     void runButtonPressed();
 
+    void refreshButtonPressed();
+
     void validateSolrButtonPressed();
 }

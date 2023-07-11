@@ -1,46 +1,34 @@
-package dk.dbc.dataio.sink.periodicjobs;
+package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.Pickup;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
-import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
-import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.ws.rs.ProcessingException;
 import java.time.LocalDate;
 import java.util.List;
 
 public abstract class PeriodicJobsPickupFinalizer {
-    @PersistenceContext(unitName = "periodic-jobs_PU")
     EntityManager entityManager;
 
-    @EJB
-    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-    @Inject
     WeekResolverConnector weekResolverConnector;
 
     JobStoreServiceConnector jobStoreServiceConnector;
 
-    @PostConstruct
-    public void initialize() {
-        jobStoreServiceConnector = jobStoreServiceConnectorBean.getConnector();
-    }
 
-    public boolean isEmptyJob(Chunk endChunk) throws SinkException {
+    public boolean isEmptyJob(Chunk endChunk) throws InvalidMessageException  {
         if (endChunk.getChunkId() == 0) {
             // End chunk having ID 0 means job is empty
             return true;
@@ -66,7 +54,7 @@ public abstract class PeriodicJobsPickupFinalizer {
                 .add("__JOBNAME__", delivery.getConfig().getContent().getName());
     }
 
-    private boolean isIgnoredJob(long jobId) throws SinkException {
+    private boolean isIgnoredJob(long jobId) throws InvalidMessageException {
         final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshot(jobId);
         if (jobInfoSnapshot != null) {
             final State state = jobInfoSnapshot.getState();
@@ -101,14 +89,14 @@ public abstract class PeriodicJobsPickupFinalizer {
                 .replaceAll("\\s+", "_") + "." + delivery.getJobId();
     }
 
-    private JobInfoSnapshot getJobInfoSnapshot(long jobId) throws SinkException {
+    private JobInfoSnapshot getJobInfoSnapshot(long jobId) {
         try {
             final List<JobInfoSnapshot> jobInfoSnapshots = jobStoreServiceConnector.listJobs("job:id = " + jobId);
             if (!jobInfoSnapshots.isEmpty()) {
                 return jobInfoSnapshots.get(0);
             }
         } catch (RuntimeException | JobStoreServiceConnectorException e) {
-            throw new SinkException(e);
+            throw new RuntimeException("Unable to get jobinfo.", e);
         }
         return null;
     }
@@ -122,5 +110,21 @@ public abstract class PeriodicJobsPickupFinalizer {
         }
     }
 
-    public abstract Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException;
+    public abstract Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws InvalidMessageException;
+    
+    public PeriodicJobsPickupFinalizer withEntityManager(EntityManager entityManager) {
+        this.entityManager = entityManager;
+        return this;
+    }
+
+    public PeriodicJobsPickupFinalizer withJobStoreServiceConnector(JobStoreServiceConnector jobStoreServiceConnector) {
+        this.jobStoreServiceConnector = jobStoreServiceConnector;
+        return this;
+    }
+
+    public PeriodicJobsPickupFinalizer withWeekResolverConnector(WeekResolverConnector weekResolverConnector) {
+        this. weekResolverConnector = weekResolverConnector;
+        return this;
+    }
+
 }

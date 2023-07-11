@@ -32,7 +32,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class BatchFinalizerBeanIT extends IntegrationTest {
+public class BatchFinalizerIT extends IntegrationTest {
     final private JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     final private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     final private MetricRegistry metricRegistry = mock(MetricRegistry.class);
@@ -53,8 +53,8 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
      */
     @Test
     public void finalizeNextCompletedBatch_noBatchFound() throws SinkException {
-        final BatchFinalizerBean batchFinalizerBean = createBatchFinalizerBean();
-        assertThat(batchFinalizerBean.finalizeNextCompletedBatch(), is(false));
+        final BatchFinalizer batchFinalizer = createBatchFinalizerBean();
+        assertThat(batchFinalizer.finalizeNextCompletedBatch(), is(false));
     }
 
     /*  Given: a completed batch
@@ -67,8 +67,8 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
 
         when(jobStoreServiceConnector.addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong()))
                 .thenThrow(new JobStoreServiceConnectorException("Died"));
-        final BatchFinalizerBean batchFinalizerBean = createBatchFinalizerBean();
-        assertThat(batchFinalizerBean::finalizeNextCompletedBatch, isThrowing(SinkException.class));
+        final BatchFinalizer batchFinalizer = createBatchFinalizerBean();
+        assertThat(batchFinalizer::finalizeNextCompletedBatch, isThrowing(SinkException.class));
     }
 
     /*  Given: a completed batch
@@ -78,8 +78,8 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
     @Test
     public void finalizeNextCompletedBatch_batchIsWronglyNamed() {
         executeScriptResource("/invalid_named_batch.sql");
-        final BatchFinalizerBean batchFinalizerBean = createBatchFinalizerBean();
-        assertThat(batchFinalizerBean::finalizeNextCompletedBatch, isThrowing(IllegalArgumentException.class));
+        final BatchFinalizer batchFinalizer = createBatchFinalizerBean();
+        assertThat(batchFinalizer::finalizeNextCompletedBatch, isThrowing(IllegalArgumentException.class));
     }
 
     /*  Given: a completed batch
@@ -90,8 +90,8 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
     public void finalizeNextCompletedBatch() throws JobStoreServiceConnectorException, SinkException {
         executeScriptResource("/completed_batch.sql");
 
-        final BatchFinalizerBean batchFinalizerBean = createBatchFinalizerBean();
-        assertThat("batch was finalized", batchFinalizerBean.finalizeNextCompletedBatch(), is(true));
+        final BatchFinalizer batchFinalizer = createBatchFinalizerBean();
+        assertThat("batch was finalized", batchFinalizer.finalizeNextCompletedBatch(), is(true));
 
         final ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyInt(), anyLong());
@@ -172,8 +172,8 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
         }
     }
 
-    private BatchFinalizerBean createBatchFinalizerBean() {
-        final BatchFinalizerBean bean = new BatchFinalizerBean();
+    private BatchFinalizer createBatchFinalizerBean() {
+        final BatchFinalizer bean = new BatchFinalizer();
         bean.entityManager = entityManager;
         bean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         bean.metricRegistry = metricRegistry;

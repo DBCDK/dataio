@@ -24,7 +24,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 
-public class MessageConsumerBeanIT extends IntegrationTest {
+public class MessageConsumerIT extends IntegrationTest {
     private final String addiMetadata = "<referenceData><info submitter=\"424242\"/></referenceData>";
 
     private final AddiRecord addiRecordWithInvalidMetadata = new AddiRecord(
@@ -101,8 +101,8 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
         persistenceContext.run(() -> {
             final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk, Priority.HIGH);
-            final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
-            messageConsumerBean.handleConsumedMessage(message);
+            final MessageConsumer messageConsumer = createMessageConsumerBean();
+            messageConsumer.handleConsumedMessage(message);
         });
 
         // Then...
@@ -219,8 +219,8 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
         persistenceContext.run(() -> {
             final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
-            final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
-            messageConsumerBean.handleConsumedMessage(message);
+            final MessageConsumer messageConsumer = createMessageConsumerBean();
+            messageConsumer.handleConsumedMessage(message);
         });
 
         // Then...
@@ -231,8 +231,8 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("batch name", batch.getName(), is(BatchName.fromChunk(chunk).toString()));
     }
 
-    private MessageConsumerBean createMessageConsumerBean() {
-        final MessageConsumerBean bean = new MessageConsumerBean();
+    private MessageConsumer createMessageConsumerBean() {
+        final MessageConsumer bean = new MessageConsumer();
         bean.entityManager = entityManager;
         bean.metricRegistry = metricRegistry;
         return bean;

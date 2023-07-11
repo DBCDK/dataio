@@ -56,7 +56,7 @@ public class ImsMessageConsumer extends MessageConsumerAdapter {
             addChunkToJobStore(sinkResult.toChunk());
         } catch (WebServiceException e) {
             Metric.IMS_FAILURES.counter().inc();
-            throw new RuntimeException("WebServiceException caught when handling chunk " + chunk.getJobId() + "/" + chunk.getChunkId());
+            throw new RuntimeException("WebServiceException caught when handling chunk " + chunk.getJobId() + "/" + chunk.getChunkId(), e);
         }
     }
 

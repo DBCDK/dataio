@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 public class ImsMessageProcessorTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final ImsConfig imsConfig = mock(ImsConfig.class);
-    private final ImsMessageProcessor imsMessageProcessor = new ImsMessageProcessor(new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).test(), imsConfig);
+    private final ImsMessageConsumer imsMessageConsumer = new ImsMessageConsumer(new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).test(), imsConfig);
     private final JSONBContext jsonbContext = new JSONBContext();
     @Rule  // Port 0 lets wiremock find a random port
     public WireMockRule wireMockRule = new WireMockRule(0);
@@ -44,7 +44,7 @@ public class ImsMessageProcessorTest {
         ImsServiceConnectorTest.MarcXchangeRecordsTwoOkOneFail requestResponse = new ImsServiceConnectorTest.MarcXchangeRecordsTwoOkOneFail();
         requestResponse.stub();
         Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(42).setChunkId(0).setItems(requestResponse.getChunkItemsForRequest()).build();
-        imsMessageProcessor.handleConsumedMessage(getConsumedMessageForChunk(chunk));
+        imsMessageConsumer.handleConsumedMessage(getConsumedMessageForChunk(chunk));
     }
 
     private ConsumedMessage getConsumedMessageForChunk(Chunk chunk) {

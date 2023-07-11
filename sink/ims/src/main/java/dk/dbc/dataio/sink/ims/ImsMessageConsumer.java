@@ -17,8 +17,8 @@ import javax.xml.ws.WebServiceException;
 import java.time.Duration;
 import java.util.List;
 
-public class ImsMessageProcessor extends MessageConsumerAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ImsMessageProcessor.class);
+public class ImsMessageConsumer extends MessageConsumerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ImsMessageConsumer.class);
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     private final MarcXchangeRecordUnmarshaller marcXchangeRecordUnmarshaller = new MarcXchangeRecordUnmarshaller();
@@ -27,7 +27,7 @@ public class ImsMessageProcessor extends MessageConsumerAdapter {
     private ImsSinkConfig config;
     private ImsServiceConnector connector;
 
-    public ImsMessageProcessor(ServiceHub serviceHub, ImsConfig imsConfig) {
+    public ImsMessageConsumer(ServiceHub serviceHub, ImsConfig imsConfig) {
         super(serviceHub);
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
         this.imsConfig = imsConfig;

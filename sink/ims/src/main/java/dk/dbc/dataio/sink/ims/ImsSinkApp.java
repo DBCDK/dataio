@@ -12,7 +12,7 @@ import static dk.dbc.dataio.sink.ims.SinkConfig.FLOWSTORE_URL;
 public class ImsSinkApp extends MessageConsumerApp {
     private static final ServiceHub serviceHub = ServiceHub.defaultHub();
     private static final ImsConfig imsConfig = new ImsConfig(new FlowStoreServiceConnector(ClientBuilder.newClient(), FLOWSTORE_URL.asString()));
-    private static final Supplier<ImsMessageProcessor> messageConsumer = () -> new ImsMessageProcessor(serviceHub, imsConfig);
+    private static final Supplier<ImsMessageConsumer> messageConsumer = () -> new ImsMessageConsumer(serviceHub, imsConfig);
 
     public static void main(String[] args) {
         new ImsSinkApp().go(serviceHub, messageConsumer);

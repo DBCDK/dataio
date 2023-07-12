@@ -24,11 +24,11 @@ import java.util.concurrent.atomic.AtomicLong;
  * API.
  */
 public class FlowCache {
-    public static final int CACHE_MAX_ENTRIES = 50;
+    public static final int CACHE_MAX_ENTRIES = 100;
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowCache.class);
 
     // A LRU cache using a LinkedHashMap with access-ordering
-    private final Cache<String, FlowCacheEntry> flowCache = CacheBuilder.newBuilder().maximumSize(100).expireAfterAccess(Duration.ofMinutes(10)).build();
+    private final Cache<String, FlowCacheEntry> flowCache = CacheBuilder.newBuilder().maximumSize(CACHE_MAX_ENTRIES).expireAfterAccess(Duration.ofMinutes(10)).build();
     private final AtomicLong CACHE_HITS = new AtomicLong(0);
     private final AtomicLong CACHE_MISS = new AtomicLong(0);
 

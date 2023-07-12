@@ -5,7 +5,8 @@ import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 public enum SinkConfig implements EnvConfig {
     QUEUE("sink::dummy"),
     MESSAGE_FILTER,
-    FLOWSTORE_URL;
+    FLOWSTORE_URL,
+    PROXY;
 
     private final String defaultValue;
 

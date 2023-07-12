@@ -15,7 +15,6 @@ import dk.dbc.dataio.jobprocessor2.javascript.StringSourceSchemeHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -30,7 +29,7 @@ public class FlowCache {
     // A LRU cache using a LinkedHashMap with access-ordering
     private final Cache<String, FlowCacheEntry> flowCache = CacheBuilder.newBuilder()
             .maximumSize(ProcessorConfig.FLOW_CACHE_SIZE.asInteger())
-            .expireAfterAccess(Duration.ofMinutes(10))
+            .expireAfterAccess(ProcessorConfig.FLOW_CACHE_EXPIRY.asDuration())
             .build();
     private final AtomicLong CACHE_HITS = new AtomicLong(0);
     private final AtomicLong CACHE_MISS = new AtomicLong(0);

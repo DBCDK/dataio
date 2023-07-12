@@ -1,5 +1,7 @@
 package dk.dbc.dataio.jobprocessor2.util;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
@@ -12,10 +14,9 @@ import dk.dbc.dataio.jobprocessor2.javascript.StringSourceSchemeHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -27,18 +28,13 @@ public class FlowCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowCache.class);
 
     // A LRU cache using a LinkedHashMap with access-ordering
-    private final LinkedHashMap<String, FlowCacheEntry> flowCache;
-    private static final AtomicLong CACHE_HITS = new AtomicLong(0);
-    private static final AtomicLong CACHE_MISS = new AtomicLong(0);
+    private final Cache<String, FlowCacheEntry> flowCache = CacheBuilder.newBuilder().maximumSize(100).expireAfterAccess(Duration.ofMinutes(10)).build();
+    private final AtomicLong CACHE_HITS = new AtomicLong(0);
+    private final AtomicLong CACHE_MISS = new AtomicLong(0);
 
     public FlowCache() {
-        flowCache = new LinkedHashMap<>(CACHE_MAX_ENTRIES + 1, .75F, true) {
-            @Override
-            public boolean removeEldestEntry(Map.Entry eldest) {
-                return size() > CACHE_MAX_ENTRIES;
-            }
-        };
         Metric.dataio_flow_cache_hit_rate.gauge(this::getHitRatePercentage);
+        Metric.dataio_flow_cache_size.gauge(flowCache::size);
     }
 
     private double getHitRatePercentage() {
@@ -53,7 +49,7 @@ public class FlowCache {
      * @return true if this cache contains an entry for the specified key, otherwise false
      */
     public boolean containsKey(String key) {
-        return flowCache.containsKey(key);
+        return flowCache.getIfPresent(key) != null;
     }
 
     /**
@@ -61,7 +57,7 @@ public class FlowCache {
      * @return the value to which the specified key is mapped, or null if this cache contains no mapping for the key
      */
     public FlowCacheEntry get(String key) {
-        FlowCacheEntry entry = flowCache.get(key);
+        FlowCacheEntry entry = flowCache.getIfPresent(key);
         if(entry == null) CACHE_MISS.incrementAndGet();
         else CACHE_HITS.incrementAndGet();
         return entry;

@@ -28,7 +28,7 @@ public class ChunkProcessor {
     private final HealthService healthService;
 
     // A per bean instance LRU flow cache
-    private final FlowCache flowCache = new FlowCache();
+    private static final FlowCache flowCache = new FlowCache();
 
     public ChunkProcessor(HealthService healthService) {
         this.healthService = healthService;
@@ -105,7 +105,7 @@ public class ChunkProcessor {
     }
 
     private String getCacheKey(long flowId, long flowVersion) {
-        return String.format("%d.%d", flowId, flowVersion);
+        return flowId + "." + flowVersion;
     }
 
     private List<ChunkItem> processItemsWithCurrentRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, String additionalArgs) {

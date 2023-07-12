@@ -27,6 +27,10 @@
             <artifactId>postgresql</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-test</artifactId>
             <version>${project.version}</version>

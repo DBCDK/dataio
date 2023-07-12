@@ -26,8 +26,6 @@ public class ChunkProcessor {
     private static final String FLOW_NAME_MDC_KEY = "flowName";
     private static final String FLOW_VERSION_MDC_KEY = "flowVersion";
     private final HealthService healthService;
-
-    // A per bean instance LRU flow cache
     private static final FlowCache flowCache = new FlowCache();
 
     public ChunkProcessor(HealthService healthService) {

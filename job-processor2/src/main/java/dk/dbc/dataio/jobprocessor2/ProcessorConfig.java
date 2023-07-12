@@ -4,7 +4,8 @@ import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 
 public enum ProcessorConfig implements EnvConfig {
     QUEUE,
-    MESSAGE_FILTER(null);
+    MESSAGE_FILTER(null),
+    FLOW_CACHE_SIZE("100");
 
     private final String defaultValue;
 

@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessor2.Metric;
+import dk.dbc.dataio.jobprocessor2.ProcessorConfig;
 import dk.dbc.dataio.jobprocessor2.javascript.Script;
 import dk.dbc.dataio.jobprocessor2.javascript.StringSourceSchemeHandler;
 import org.slf4j.Logger;
@@ -24,11 +25,13 @@ import java.util.concurrent.atomic.AtomicLong;
  * API.
  */
 public class FlowCache {
-    public static final int CACHE_MAX_ENTRIES = 100;
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowCache.class);
 
     // A LRU cache using a LinkedHashMap with access-ordering
-    private final Cache<String, FlowCacheEntry> flowCache = CacheBuilder.newBuilder().maximumSize(CACHE_MAX_ENTRIES).expireAfterAccess(Duration.ofMinutes(10)).build();
+    private final Cache<String, FlowCacheEntry> flowCache = CacheBuilder.newBuilder()
+            .maximumSize(ProcessorConfig.FLOW_CACHE_SIZE.asInteger())
+            .expireAfterAccess(Duration.ofMinutes(10))
+            .build();
     private final AtomicLong CACHE_HITS = new AtomicLong(0);
     private final AtomicLong CACHE_MISS = new AtomicLong(0);
 

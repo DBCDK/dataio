@@ -45,18 +45,18 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
 
     @Test
     public void getDiagnostics_producesDiagnosticWithTag() {
-        final MessageEntry messageEntry = new MessageEntry();
+        MessageEntry messageEntry = new MessageEntry();
         messageEntry.setType(Type.ERROR);
         messageEntry.setOrdinalPositionOfField(1);
         messageEntry.setMessage("message text");
 
-        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
+        UpdateRecordResult updateRecordResult = new UpdateRecordResult();
         updateRecordResult.setUpdateStatus(UpdateStatusEnum.FAILED);
         updateRecordResult.setMessages(new Messages());
         updateRecordResult.getMessages().getMessageEntry().add(messageEntry);
 
         // Subject under test
-        final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
+        List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
 
         // Verification
         assertThat("number of diagnostics", diagnostics.size(), is(1));
@@ -67,17 +67,17 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
 
     @Test
     public void getDiagnostics_producesDiagnosticWithoutTagOrAttribute() {
-        final MessageEntry messageEntry = new MessageEntry();
+        MessageEntry messageEntry = new MessageEntry();
         messageEntry.setType(Type.ERROR);
         messageEntry.setMessage("message text");
 
-        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
+        UpdateRecordResult updateRecordResult = new UpdateRecordResult();
         updateRecordResult.setUpdateStatus(UpdateStatusEnum.FAILED);
         updateRecordResult.setMessages(new Messages());
         updateRecordResult.getMessages().getMessageEntry().add(messageEntry);
 
         // Subject under test
-        final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
+        List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
 
         // Verification
         assertThat("number of diagnostics", diagnostics.size(), is(1));
@@ -89,19 +89,19 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
 
     @Test
     public void getDiagnostics_producesDiagnosticWithTagAndAttribute() {
-        final MessageEntry messageEntry = new MessageEntry();
+        MessageEntry messageEntry = new MessageEntry();
         messageEntry.setType(Type.ERROR);
         messageEntry.setOrdinalPositionOfField(1);
         messageEntry.setOrdinalPositionOfSubfield(1);
         messageEntry.setMessage("message text");
 
-        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
+        UpdateRecordResult updateRecordResult = new UpdateRecordResult();
         updateRecordResult.setUpdateStatus(UpdateStatusEnum.FAILED);
         updateRecordResult.setMessages(new Messages());
         updateRecordResult.getMessages().getMessageEntry().add(messageEntry);
 
         // Subject under test
-        final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
+        List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
 
         // Verification
         assertThat("number of diagnostics", diagnostics.size(), is(1));
@@ -112,25 +112,25 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
 
     @Test
     public void getDiagnostics_producesMultipleDiagnostics_ok() {
-        final MessageEntry messageEntry1 = new MessageEntry();
+        MessageEntry messageEntry1 = new MessageEntry();
         messageEntry1.setType(Type.ERROR);
         messageEntry1.setOrdinalPositionOfField(0);
         messageEntry1.setMessage("message1 text");
 
-        final MessageEntry messageEntry2 = new MessageEntry();
+        MessageEntry messageEntry2 = new MessageEntry();
         messageEntry2.setType(Type.FATAL);
         messageEntry2.setOrdinalPositionOfField(1);
         messageEntry2.setOrdinalPositionOfSubfield(1);
         messageEntry2.setMessage("message2 text");
 
-        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
+        UpdateRecordResult updateRecordResult = new UpdateRecordResult();
         updateRecordResult.setUpdateStatus(UpdateStatusEnum.FAILED);
         updateRecordResult.setMessages(new Messages());
         updateRecordResult.getMessages().getMessageEntry().add(messageEntry1);
         updateRecordResult.getMessages().getMessageEntry().add(messageEntry2);
 
         // Subject under test
-        final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
+        List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
 
         // Verification
         assertThat("number of diagnostics", diagnostics.size(), is(2));
@@ -144,79 +144,79 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
 
     @Test
     public void getDiagnostics_messageEntryContainsNonFatalMessage_returnsEmptyList() {
-        final MessageEntry messageEntry1 = new MessageEntry();
+        MessageEntry messageEntry1 = new MessageEntry();
         messageEntry1.setType(Type.ERROR);
         messageEntry1.setOrdinalPositionOfField(0);
         messageEntry1.setMessage("message1 text");
 
-        final MessageEntry messageEntry2 = new MessageEntry();
+        MessageEntry messageEntry2 = new MessageEntry();
         messageEntry2.setType(Type.ERROR);
         messageEntry2.setOrdinalPositionOfField(1);
         messageEntry2.setOrdinalPositionOfSubfield(1);
         messageEntry2.setMessage(UpdateRecordErrorInterpreter.NON_FATAL_ERROR_MESSAGE);
 
-        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
+        UpdateRecordResult updateRecordResult = new UpdateRecordResult();
         updateRecordResult.setUpdateStatus(UpdateStatusEnum.FAILED);
         updateRecordResult.setMessages(new Messages());
         updateRecordResult.getMessages().getMessageEntry().add(messageEntry1);
         updateRecordResult.getMessages().getMessageEntry().add(messageEntry2);
 
         // Subject under test
-        final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
+        List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
 
         assertThat("Number of diagnostics", diagnostics.size(), is(0));
     }
 
     @Test
     public void getDiagnostics_allMessagesAreIgnorable() {
-        final MessageEntry messageEntry1 = new MessageEntry();
+        MessageEntry messageEntry1 = new MessageEntry();
         messageEntry1.setType(Type.ERROR);
         messageEntry1.setOrdinalPositionOfField(0);
         messageEntry1.setMessage("ignorable 1");
 
-        final MessageEntry messageEntry2 = new MessageEntry();
+        MessageEntry messageEntry2 = new MessageEntry();
         messageEntry2.setType(Type.ERROR);
         messageEntry2.setOrdinalPositionOfField(1);
         messageEntry2.setMessage("ignorable 2");
 
-        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
+        UpdateRecordResult updateRecordResult = new UpdateRecordResult();
         updateRecordResult.setUpdateStatus(UpdateStatusEnum.FAILED);
         updateRecordResult.setMessages(new Messages());
         updateRecordResult.getMessages().getMessageEntry().add(messageEntry1);
         updateRecordResult.getMessages().getMessageEntry().add(messageEntry2);
 
-        final HashSet<String> ignoredValidationErrors = new HashSet<>();
+        HashSet<String> ignoredValidationErrors = new HashSet<>();
         ignoredValidationErrors.add("ignorable 1");
         ignoredValidationErrors.add("ignorable 2");
-        final UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter(ignoredValidationErrors);
+        UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter(ignoredValidationErrors);
 
-        final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
+        List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
         assertThat("Number of diagnostics", diagnostics.size(), is(0));
     }
 
     @Test
     public void getDiagnostics_onlySubsetOfMessagesAreIgnorable() {
-        final MessageEntry messageEntry1 = new MessageEntry();
+        MessageEntry messageEntry1 = new MessageEntry();
         messageEntry1.setType(Type.ERROR);
         messageEntry1.setOrdinalPositionOfField(0);
         messageEntry1.setMessage("ignorable 1");
 
-        final MessageEntry messageEntry2 = new MessageEntry();
+        MessageEntry messageEntry2 = new MessageEntry();
         messageEntry2.setType(Type.ERROR);
         messageEntry2.setOrdinalPositionOfField(1);
         messageEntry2.setMessage("non-ignorable 2");
 
-        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
+        UpdateRecordResult updateRecordResult = new UpdateRecordResult();
         updateRecordResult.setUpdateStatus(UpdateStatusEnum.FAILED);
         updateRecordResult.setMessages(new Messages());
         updateRecordResult.getMessages().getMessageEntry().add(messageEntry1);
         updateRecordResult.getMessages().getMessageEntry().add(messageEntry2);
 
-        final HashSet<String> ignoredValidationErrors = new HashSet<>();
+        HashSet<String> ignoredValidationErrors = new HashSet<>();
         ignoredValidationErrors.add("ignorable 1");
-        final UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter(ignoredValidationErrors);
+        UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter(ignoredValidationErrors);
 
-        final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
+        List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
         assertThat("Number of diagnostics", diagnostics.size(), is(1));
     }
 }

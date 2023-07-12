@@ -128,8 +128,8 @@
                                 <from>${java.image}</from>
                                 <runCmds>
                                     <run>apt-get update</run>
-                                    <run>apt-get install libxml2-utils</run>
-                                    <run>apt-get -y install jq</run>
+                                    <run>apt-get install libxml2-utils -y</run>
+                                    <run>apt-get install jq -y</run>
                                 </runCmds>
                                 <user>gfish</user>
                                 <assemblies>

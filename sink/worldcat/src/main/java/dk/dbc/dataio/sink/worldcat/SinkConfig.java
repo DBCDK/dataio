@@ -7,7 +7,7 @@ public enum SinkConfig implements EnvConfig {
     MESSAGE_FILTER,
     OCN_REPO_DB_URL,
     FLOWSTORE_URL,
-    USE_PROXY;
+    USE_PROXY("false");
 
     private final String defaultValue;
 

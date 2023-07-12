@@ -38,6 +38,7 @@ import java.util.List;
 import static dk.dbc.dataio.sink.dpf.SinkConfig.LOBBY_SERVICE_URL;
 import static dk.dbc.dataio.sink.dpf.SinkConfig.OPENNUMBERROLL_SERVICE_URL;
 import static dk.dbc.dataio.sink.dpf.SinkConfig.RAWREPO_RECORD_SERVICE_URL;
+import static dk.dbc.dataio.sink.dpf.SinkConfig.UPDATE_SERVICE_URL;
 import static dk.dbc.dataio.sink.dpf.SinkConfig.UPDATE_SERVICE_WS_URL;
 import static dk.dbc.dataio.sink.dpf.SinkConfig.WEEKRESOLVER_SERVICE_URL;
 
@@ -58,7 +59,7 @@ public class ServiceBroker {
     public ServiceBroker() {
         configBean = new ConfigBean();
         lobbyConnector = new LobbyConnector(ClientBuilder.newClient(), LOBBY_SERVICE_URL.asString());
-        doubleRecordCheckConnector = new UpdateServiceDoubleRecordCheckConnector(ClientBuilder.newClient(), UPDATE_SERVICE_WS_URL.asString());
+        doubleRecordCheckConnector = new UpdateServiceDoubleRecordCheckConnector(ClientBuilder.newClient(), UPDATE_SERVICE_URL.asString());
         recordServiceConnector = new RecordServiceConnector(ClientBuilder.newClient(), RAWREPO_RECORD_SERVICE_URL.asString());
         weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient(), WEEKRESOLVER_SERVICE_URL.asString());
         opennumberRollConnector = new OpennumberRollConnector(ClientBuilder.newClient(), OPENNUMBERROLL_SERVICE_URL.asString());

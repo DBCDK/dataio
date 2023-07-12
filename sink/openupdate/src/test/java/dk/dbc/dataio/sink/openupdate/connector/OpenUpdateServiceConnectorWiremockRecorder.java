@@ -13,7 +13,7 @@ public class OpenUpdateServiceConnectorWiremockRecorder {
      */
 
     public static void main(String[] args) {
-        final OpenUpdateServiceConnectorIT openUpdateServiceConnectorIT = new OpenUpdateServiceConnectorIT();
+        OpenUpdateServiceConnectorIT openUpdateServiceConnectorIT = new OpenUpdateServiceConnectorIT();
         openUpdateServiceConnectorIT.openUpdateServiceConnector = new OpenUpdateServiceConnector("http://localhost:8080/UpdateService/2.0");
         openUpdateServiceConnectorIT.recordUpdateRecordRequests();
     }

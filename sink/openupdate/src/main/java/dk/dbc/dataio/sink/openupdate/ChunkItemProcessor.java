@@ -1,12 +1,10 @@
 package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
-import dk.dbc.dataio.sink.openupdate.metrics.SimpleTimerMetrics;
 import dk.dbc.dataio.sink.util.AddiUtil;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
@@ -25,47 +23,37 @@ import java.util.stream.IntStream;
 public class ChunkItemProcessor {
     // TODO: 3/15/16 This class is a mess and needs to be refactored.
 
-    private enum AddiStatus {OK, FAILED_STACKTRACE, FAILED_VALIDATION}
-
     private final AddiRecordPreprocessor addiRecordPreprocessor;
     private final OpenUpdateServiceConnector openUpdateServiceConnector;
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller;
     private final UpdateRecordErrorInterpreter updateRecordErrorInterpreter;
     private final ChunkItem chunkItem;
-
-    private final MetricsHandlerBean metricsHandler;
-
-    private int addiRecordIndex;
-    private int totalNumberOfAddiRecords;
-    private List<Diagnostic> diagnostics;
-    private StringBuilder crossAddiRecordsMessage;
-
-    private Pattern errorCodePattern = Pattern.compile("HTTP status code (\\d+)");
     // sleep time for webservice call retries
     // set as global to be able to override in tests
     int retrySleepMillis = 3000;
     int maxNumberOfRetries = 6;
-
+    private int addiRecordIndex;
+    private int totalNumberOfAddiRecords;
+    private List<Diagnostic> diagnostics;
+    private StringBuilder crossAddiRecordsMessage;
+    private final Pattern errorCodePattern = Pattern.compile("HTTP status code (\\d+)");
     /**
      * @param chunkItem                    chunk item to be processed
      * @param addiRecordPreprocessor       ADDI record pre-processor
      * @param openUpdateServiceConnector   OpenUpdate webservice connector
      * @param updateRecordResultMarshaller updateRecordResultMarshaller
      * @param updateRecordErrorInterpreter {@link UpdateRecordErrorInterpreter} instance
-     * @param metricsHandler               MetricsHandlerBean object
      * @throws NullPointerException if given null-valued argument
      */
     public ChunkItemProcessor(ChunkItem chunkItem, AddiRecordPreprocessor addiRecordPreprocessor,
                               OpenUpdateServiceConnector openUpdateServiceConnector,
                               UpdateRecordResultMarshaller updateRecordResultMarshaller,
-                              UpdateRecordErrorInterpreter updateRecordErrorInterpreter,
-                              MetricsHandlerBean metricsHandler) throws NullPointerException {
+                              UpdateRecordErrorInterpreter updateRecordErrorInterpreter) throws NullPointerException {
         this.chunkItem = InvariantUtil.checkNotNullOrThrow(chunkItem, "chunkItem");
         this.addiRecordPreprocessor = InvariantUtil.checkNotNullOrThrow(addiRecordPreprocessor, "addiRecordPreprocessor");
         this.openUpdateServiceConnector = InvariantUtil.checkNotNullOrThrow(openUpdateServiceConnector, "openUpdateServiceConnector");
         this.updateRecordResultMarshaller = InvariantUtil.checkNotNullOrThrow(updateRecordResultMarshaller, "updateRecordResultMarshaller");
         this.updateRecordErrorInterpreter = InvariantUtil.checkNotNullOrThrow(updateRecordErrorInterpreter, "updateRecordErrorInterpreter");
-        this.metricsHandler = metricsHandler;
     }
 
     /**
@@ -80,12 +68,12 @@ public class ChunkItemProcessor {
         diagnostics = new ArrayList<>();
         crossAddiRecordsMessage = new StringBuilder();
 
-        final List<AddiRecord> addiRecordsForItem;
+        List<AddiRecord> addiRecordsForItem;
         try {
             addiRecordsForItem = AddiUtil.getAddiRecordsFromChunkItem(chunkItem);
             totalNumberOfAddiRecords = addiRecordsForItem.size();
         } catch (Throwable t) {
-            final String message = "Failed to read Addi record(s) from chunk item: " + t.getMessage();
+            String message = "Failed to read Addi record(s) from chunk item: " + t.getMessage();
             return ChunkItem.failedChunkItem()
                     .withId(chunkItem.getId())
                     .withType(ChunkItem.Type.STRING)
@@ -94,7 +82,7 @@ public class ChunkItemProcessor {
                     .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, message, t));
         }
 
-        final Optional<AddiStatus> failed = addiRecordsForItem.stream()
+        Optional<AddiStatus> failed = addiRecordsForItem.stream()
                 // retrieve the AddiStatus from each call to OpenUpdate
                 .map(addiRecord -> callUpdateService(addiRecord, addiRecordsForItem.indexOf(addiRecord), queueProvider))
                 // only collect the failed status'
@@ -102,7 +90,7 @@ public class ChunkItemProcessor {
                 // retrieve the first -> if a failed status exist the Optional object has a present object associated with it
                 .findFirst();
 
-        final ChunkItem result = ChunkItem.successfulChunkItem()
+        ChunkItem result = ChunkItem.successfulChunkItem()
                 .withId(chunkItem.getId())
                 .withType(ChunkItem.Type.STRING)
                 .withTrackingId(chunkItem.getTrackingId())
@@ -127,21 +115,18 @@ public class ChunkItemProcessor {
     private AddiStatus callUpdateService(AddiRecord addiRecord, int addiRecordIndex, String queueProvider, int currentRetry) {
         this.addiRecordIndex = addiRecordIndex + 1;
         try {
-            final AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
+            AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
 
             long updateServiceRequestStartTime = System.currentTimeMillis();
 
-            final UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
+            UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
                     preprocessorResult.getSubmitter(),
                     preprocessorResult.getTemplate(),
                     preprocessorResult.getBibliographicRecord(),
                     chunkItem.getTrackingId());
 
-            metricsHandler.update(SimpleTimerMetrics.UPDATE_SERVICE_REQUESTS,
-                    Duration.ofMillis(System.currentTimeMillis() - updateServiceRequestStartTime),
-                    new Tag("queueProvider", queueProvider),
-                    new Tag("template", preprocessorResult.getTemplate()));
-
+            Metric.update_service_requests.simpleTimer(new Tag("queueProvider", queueProvider), new Tag("template", preprocessorResult.getTemplate()))
+                    .update(Duration.ofMillis(System.currentTimeMillis() - updateServiceRequestStartTime));
             if (webserviceResult.getUpdateStatus() == UpdateStatusEnum.OK) {
                 crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.OK));
                 return AddiStatus.OK;
@@ -156,10 +141,10 @@ public class ChunkItemProcessor {
 
         } catch (WebServiceException e) {
             // http error codes:
-            final int[] errorCodes = {404, 502, 503};
+            int[] errorCodes = {404, 502, 503};
             if (IntStream.of(errorCodes).anyMatch(n -> n == getStatusCodeFromError(e)) && currentRetry < maxNumberOfRetries) {
                 try {
-                    Thread.sleep((currentRetry + 1) * retrySleepMillis);
+                    Thread.sleep((long) (currentRetry + 1) * retrySleepMillis);
                     return callUpdateService(addiRecord, addiRecordIndex, queueProvider, ++currentRetry);
                 } catch (InterruptedException e2) {
                     return callUpdateService(addiRecord, addiRecordIndex, queueProvider, ++currentRetry);
@@ -177,7 +162,7 @@ public class ChunkItemProcessor {
         // there isn't a method to get the error code like in HTTPException
         Matcher m = errorCodePattern.matcher(e.getMessage());
         if (m.find()) {
-            return Integer.valueOf(m.group(1));
+            return Integer.parseInt(m.group(1));
         }
         return -1;
     }
@@ -217,4 +202,6 @@ public class ChunkItemProcessor {
             crossAddiRecordsMessage.append(System.lineSeparator());
         }
     }
+
+    private enum AddiStatus {OK, FAILED_STACKTRACE, FAILED_VALIDATION}
 }

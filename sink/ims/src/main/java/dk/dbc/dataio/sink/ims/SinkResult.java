@@ -33,7 +33,7 @@ public class SinkResult {
                         marcXchangeRecords.add(marcXchangeRecordUnmarshaller.toMarcXchangeRecord(chunkItem));
                     } catch (JAXBException e) {
                         final String message = "Error occurred while unmarshalling JAXBElement";
-                        final ChunkItem failedChunkItem = ChunkItem.failedChunkItem().withId(chunkItem.getId())
+                        ChunkItem failedChunkItem = ChunkItem.failedChunkItem().withId(chunkItem.getId())
                                 .withData(message).withTrackingId(chunkItem.getTrackingId()).withType(ChunkItem.Type.STRING)
                                 .withDiagnostics(ObjectFactory.buildFatalDiagnostic(message, e));
                         chunkItems[(int) chunkItem.getId()] = failedChunkItem;
@@ -77,7 +77,7 @@ public class SinkResult {
 
     private boolean hasFailedServiceValidation(List<UpdateMarcXchangeResult> updateMarcXchangeResults) {
         if (updateMarcXchangeResults.size() == 1) {
-            final UpdateMarcXchangeResult updateMarcXchangeResult = updateMarcXchangeResults.get(0);
+            UpdateMarcXchangeResult updateMarcXchangeResult = updateMarcXchangeResults.get(0);
             if (updateMarcXchangeResult.getUpdateMarcXchangeStatus() != UpdateMarcXchangeStatusEnum.OK && updateMarcXchangeResult.getMarcXchangeRecordId() == null) {
                 insertFailedChunkItems(updateMarcXchangeResults.get(0),
                         "Item failed due to webservice returning updateMarcXchangeResult with record id null.");
@@ -100,7 +100,7 @@ public class SinkResult {
      * replaces null values in the list of chunk items with failed chunk items
      */
     private void insertFailedChunkItems(UpdateMarcXchangeResult updateMarcXchangeResult, String message) {
-        final String itemData = buildItemData(updateMarcXchangeResult, message);
+        String itemData = buildItemData(updateMarcXchangeResult, message);
         for (int i = 0; i < chunkItems.length; i++) {
             if (chunkItems[i] == null) {
                 chunkItems[i] = ChunkItem.failedChunkItem().withId(i).withData(itemData).withType(ChunkItem.Type.STRING)
@@ -115,7 +115,7 @@ public class SinkResult {
      */
     private void insertChunkItems(List<UpdateMarcXchangeResult> updateMarcXchangeResults) {
         for (UpdateMarcXchangeResult updateMarcXchangeResult : updateMarcXchangeResults) {
-            final String itemData = buildItemData(updateMarcXchangeResult, null);
+            String itemData = buildItemData(updateMarcXchangeResult, null);
             if (updateMarcXchangeResult.getUpdateMarcXchangeStatus() == UpdateMarcXchangeStatusEnum.OK) {
                 chunkItems[Integer.parseInt(updateMarcXchangeResult.getMarcXchangeRecordId())] =
                         ChunkItem.successfulChunkItem().withId(Long.parseLong(updateMarcXchangeResult.getMarcXchangeRecordId()))
@@ -132,12 +132,12 @@ public class SinkResult {
         if (updateMarcXchangeResult == null) {
             return errorMessage == null ? "" : errorMessage;
         } else {
-            final StringBuilder stringBuilder = new StringBuilder();
+            StringBuilder stringBuilder = new StringBuilder();
             if (errorMessage != null) {
                 stringBuilder.append(errorMessage).append(" -> ");
             }
             stringBuilder.append("[Status: ").append(updateMarcXchangeResult.getUpdateMarcXchangeStatus().value()).append("]");
-            final String updateMarcXchangeMessage = updateMarcXchangeResult.getUpdateMarcXchangeMessage();
+            String updateMarcXchangeMessage = updateMarcXchangeResult.getUpdateMarcXchangeMessage();
             if (updateMarcXchangeMessage != null && !updateMarcXchangeMessage.isEmpty()) {
                 stringBuilder.append(", [Message: ").append(updateMarcXchangeMessage).append("]");
             }

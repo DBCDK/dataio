@@ -156,6 +156,10 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String button_Run();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Refresh();
+
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Delete();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

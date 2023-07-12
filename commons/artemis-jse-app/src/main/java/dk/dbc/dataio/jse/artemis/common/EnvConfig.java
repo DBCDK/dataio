@@ -36,7 +36,7 @@ public interface EnvConfig {
     default String asString() {
         return asOptionalString().orElseThrow(this::missingConf);
     }
-    default Boolean asBoolean() { return asOptionalBoolean().orElse(false); }
+    default Boolean asBoolean() { return asOptionalBoolean().orElseThrow(this::missingConf); }
 
     default Duration asDuration() {
         return asOptionalDuration().orElseThrow(this::missingConf);

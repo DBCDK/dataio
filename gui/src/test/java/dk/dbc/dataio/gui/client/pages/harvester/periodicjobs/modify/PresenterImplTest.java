@@ -62,6 +62,11 @@ public class PresenterImplTest {
         }
 
         @Override
+        public void refreshButtonPressed() {
+        }
+
+
+        @Override
         public void validateSolrButtonPressed() {
         }
     }

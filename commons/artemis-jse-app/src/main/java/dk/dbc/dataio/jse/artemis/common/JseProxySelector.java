@@ -18,6 +18,7 @@ public class JseProxySelector extends ProxySelector {
     private final String host;
     private final int port;
     private final Pattern nonProxyHosts;
+    private static final List<Proxy> NO_PROXY = List.of(Proxy.NO_PROXY);
 
     public JseProxySelector(String proxyString) {
         String[] sa = proxyString.split(":", 3);
@@ -39,7 +40,7 @@ public class JseProxySelector extends ProxySelector {
     @Override
     public List<Proxy> select(URI uri) {
         Matcher matcher = nonProxyHosts.matcher(uri.getHost());
-        if(matcher.matches()) return List.of();
+        if(matcher.matches()) return NO_PROXY;
         return List.of(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port)));
     }
 

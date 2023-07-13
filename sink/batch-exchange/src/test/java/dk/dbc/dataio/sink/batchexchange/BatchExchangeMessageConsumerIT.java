@@ -8,10 +8,12 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Priority;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.testutil.ObjectFactory;
-import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -24,13 +26,10 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 
-public class MessageConsumerBeanIT extends IntegrationTest {
+public class BatchExchangeMessageConsumerIT extends IntegrationTest {
     private final String addiMetadata = "<referenceData><info submitter=\"424242\"/></referenceData>";
 
-    private final AddiRecord addiRecordWithInvalidMetadata = new AddiRecord(
-            "Invalid XML metadata".getBytes(), "content".getBytes());
-
-    final private MetricRegistry metricRegistry = mock(MetricRegistry.class);
+    private final AddiRecord addiRecordWithInvalidMetadata = new AddiRecord("Invalid XML metadata".getBytes(), "content".getBytes());
 
     /* Given: a consumed message containing a chunk where the first item is failed by processor
      *   And: the second item is ignored by processor
@@ -41,15 +40,11 @@ public class MessageConsumerBeanIT extends IntegrationTest {
      *  Then: a batch with seven entries is created in the batch exchange
      */
     @Test
-    public void handleConsumedMessage() throws IOException {
+    public void handleConsumedMessage() throws IOException, InvalidMessageException {
         // Given...
-
-        final AddiRecord addiRecordX = new AddiRecord(
-                addiMetadata.getBytes(), "contentX".getBytes());
-        final AddiRecord addiRecordY = new AddiRecord(
-                addiMetadata.getBytes(), "contentY".getBytes());
-
-        final List<ChunkItem> chunkItems = new ArrayList<>();
+        AddiRecord addiRecordX = new AddiRecord(addiMetadata.getBytes(), "contentX".getBytes());
+        AddiRecord addiRecordY = new AddiRecord(addiMetadata.getBytes(), "contentY".getBytes());
+        List<ChunkItem> chunkItems = new ArrayList<>();
 
         // failed item
         chunkItems.add(new ChunkItemBuilder()
@@ -82,7 +77,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                 .build());
 
         // item with three addi records
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         outputStream.write(addiRecordX.getBytes());
         outputStream.write(addiRecordY.getBytes());
         outputStream.write(addiRecordX.getBytes());
@@ -93,26 +88,24 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                 .setTrackingId("four")
                 .build());
 
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(chunkItems)
                 .build();
 
         // When...
 
-        persistenceContext.run(() -> {
-            final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk, Priority.HIGH);
-            final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
-            messageConsumerBean.handleConsumedMessage(message);
-        });
+        ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk, Priority.HIGH);
+        BatchExchangeMessageConsumer batchExchangeMessageConsumer = createMessageConsumerBean();
+        batchExchangeMessageConsumer.handleConsumedMessage(message);
 
         // Then...
 
-        final Batch batch = entityManager.find(Batch.class, 1);
+        Batch batch = entityManager.find(Batch.class, 1);
         assertThat("batch created", batch, is(notNullValue()));
         assertThat("batch status", batch.getStatus(), is(Batch.Status.PENDING));
         assertThat("batch name", batch.getName(), is(BatchName.fromChunk(chunk).toString()));
 
-        @SuppressWarnings("unchecked") final List<BatchEntry> entries = (List<BatchEntry>) entityManager
+        @SuppressWarnings("unchecked") List<BatchEntry> entries = (List<BatchEntry>) entityManager
                 .createNamedQuery(BatchEntry.GET_BATCH_ENTRIES_QUERY_NAME)
                 .setParameter(1, batch.getId())
                 .setHint("eclipselink.refresh", true)
@@ -184,10 +177,10 @@ public class MessageConsumerBeanIT extends IntegrationTest {
      *  Then: a batch with status completed is created since it contains no pending entries
      */
     @Test
-    public void handleConsumedMessage_completesBatchWhenNoIncompleteEntriesExist() {
+    public void handleConsumedMessage_completesBatchWhenNoIncompleteEntriesExist() throws InvalidMessageException {
         // Given...
 
-        final List<ChunkItem> chunkItems = new ArrayList<>();
+        List<ChunkItem> chunkItems = new ArrayList<>();
 
         // failed item
         chunkItems.add(new ChunkItemBuilder()
@@ -211,30 +204,26 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                 .setTrackingId("two")
                 .build());
 
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(chunkItems)
                 .build();
 
         // When...
 
-        persistenceContext.run(() -> {
-            final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
-            final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
-            messageConsumerBean.handleConsumedMessage(message);
-        });
+        ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
+        BatchExchangeMessageConsumer batchExchangeMessageConsumer = createMessageConsumerBean();
+        batchExchangeMessageConsumer.handleConsumedMessage(message);
 
         // Then...
 
-        final Batch batch = entityManager.find(Batch.class, 1);
+        Batch batch = entityManager.find(Batch.class, 1);
         assertThat("batch created", batch, is(notNullValue()));
         assertThat("batch status", batch.getStatus(), is(Batch.Status.COMPLETED));
         assertThat("batch name", batch.getName(), is(BatchName.fromChunk(chunk).toString()));
     }
 
-    private MessageConsumerBean createMessageConsumerBean() {
-        final MessageConsumerBean bean = new MessageConsumerBean();
-        bean.entityManager = entityManager;
-        bean.metricRegistry = metricRegistry;
-        return bean;
+    private BatchExchangeMessageConsumer createMessageConsumerBean() {
+        ServiceHub hub = new ServiceHub.Builder().withJobStoreServiceConnector(mock(JobStoreServiceConnector.class)).test();
+        return new BatchExchangeMessageConsumer(hub, entityManager);
     }
 }

@@ -5,18 +5,12 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.sink.types.SinkException;
-import org.eclipse.microprofile.metrics.Counter;
-import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.SimpleTimer;
-import org.junit.Before;
+import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
+import dk.dbc.dataio.jse.artemis.common.service.ZombieWatch;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.time.Duration;
 import java.time.Instant;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
@@ -27,34 +21,20 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class BatchFinalizerBeanIT extends IntegrationTest {
-    final private JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
+public class BatchFinalizerIT extends IntegrationTest {
     final private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
-    final private MetricRegistry metricRegistry = mock(MetricRegistry.class);
-    final private SimpleTimer batchFinalizerTimer = mock(SimpleTimer.class);
-    final private Counter batchFinalizerCounter = mock(Counter.class);
-
-    @Before
-    public void setupMocks() {
-        when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
-        when(metricRegistry.simpleTimer(any(Metadata.class))).thenReturn(batchFinalizerTimer);
-        doNothing().when(batchFinalizerTimer).update(any(Duration.class));
-        when(metricRegistry.counter(any(Metadata.class))).thenReturn(batchFinalizerCounter);
-        doNothing().when(batchFinalizerCounter).inc();
-    }
 
     /*  When: no completed batch exists in the batch-exchange
      *  Then: finalizer returns false
      */
     @Test
-    public void finalizeNextCompletedBatch_noBatchFound() throws SinkException {
-        final BatchFinalizerBean batchFinalizerBean = createBatchFinalizerBean();
-        assertThat(batchFinalizerBean.finalizeNextCompletedBatch(), is(false));
+    public void finalizeNextCompletedBatch_noBatchFound() {
+        BatchFinalizer batchFinalizer = createBatchFinalizerBean();
+        assertThat(batchFinalizer.finalizeNextCompletedBatch(), is(false));
     }
 
     /*  Given: a completed batch
@@ -67,8 +47,8 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
 
         when(jobStoreServiceConnector.addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong()))
                 .thenThrow(new JobStoreServiceConnectorException("Died"));
-        final BatchFinalizerBean batchFinalizerBean = createBatchFinalizerBean();
-        assertThat(batchFinalizerBean::finalizeNextCompletedBatch, isThrowing(SinkException.class));
+        BatchFinalizer batchFinalizer = createBatchFinalizerBean();
+        assertThat(batchFinalizer::finalizeNextCompletedBatch, isThrowing(RuntimeException.class));
     }
 
     /*  Given: a completed batch
@@ -78,8 +58,8 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
     @Test
     public void finalizeNextCompletedBatch_batchIsWronglyNamed() {
         executeScriptResource("/invalid_named_batch.sql");
-        final BatchFinalizerBean batchFinalizerBean = createBatchFinalizerBean();
-        assertThat(batchFinalizerBean::finalizeNextCompletedBatch, isThrowing(IllegalArgumentException.class));
+        BatchFinalizer batchFinalizer = createBatchFinalizerBean();
+        assertThat(batchFinalizer::finalizeNextCompletedBatch, isThrowing(IllegalArgumentException.class));
     }
 
     /*  Given: a completed batch
@@ -87,16 +67,16 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
      *   Then: the corresponding chunk is uploaded to the job-store
      */
     @Test
-    public void finalizeNextCompletedBatch() throws JobStoreServiceConnectorException, SinkException {
+    public void finalizeNextCompletedBatch() throws JobStoreServiceConnectorException {
         executeScriptResource("/completed_batch.sql");
 
-        final BatchFinalizerBean batchFinalizerBean = createBatchFinalizerBean();
-        assertThat("batch was finalized", batchFinalizerBean.finalizeNextCompletedBatch(), is(true));
+        BatchFinalizer batchFinalizer = createBatchFinalizerBean();
+        assertThat("batch was finalized", batchFinalizer.finalizeNextCompletedBatch(), is(true));
 
-        final ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
+        ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyInt(), anyLong());
 
-        final Chunk chunk = chunkArgumentCaptor.getValue();
+        Chunk chunk = chunkArgumentCaptor.getValue();
         assertThat("chunk job ID", chunk.getJobId(), is(42));
         assertThat("chunk ID", chunk.getChunkId(), is(0L));
         assertThat("chunk size", chunk.size(), is(5));
@@ -149,20 +129,25 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
 
     @Test
     public void isUpTest() {
-        ScheduledBatchFinalizerBean batchFinalizerBean = new MockScheduledBatchFinalizerBean(Instant.now().minusSeconds(299));
+        ScheduledBatchFinalizer batchFinalizerBean = new MockScheduledBatchFinalizer(Instant.now().minusSeconds(299));
         assertThat("Bean should be up", !batchFinalizerBean.isDown());
     }
 
     @Test
     public void isDownTest() {
-        ScheduledBatchFinalizerBean batchFinalizerBean = new MockScheduledBatchFinalizerBean(Instant.now().minusSeconds(301));
+        ScheduledBatchFinalizer batchFinalizerBean = new MockScheduledBatchFinalizer(Instant.now().minusSeconds(301));
         assertThat("Bean should be down", batchFinalizerBean.isDown());
     }
 
-    public static class MockScheduledBatchFinalizerBean extends ScheduledBatchFinalizerBean {
+    private BatchFinalizer createBatchFinalizerBean() {
+        return new BatchFinalizer(entityManager, jobStoreServiceConnector);
+    }
+
+    public static class MockScheduledBatchFinalizer extends ScheduledBatchFinalizer {
         Instant lastRun;
 
-        public MockScheduledBatchFinalizerBean(Instant lastRun) {
+        public MockScheduledBatchFinalizer(Instant lastRun) {
+            super(new ServiceHub.Builder().withJobStoreServiceConnector(mock(JobStoreServiceConnector.class)).withZombieWatch(mock(ZombieWatch.class)).test(), null);
             this.lastRun = lastRun;
         }
 
@@ -170,13 +155,5 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
         protected Instant getLastRun() {
             return lastRun;
         }
-    }
-
-    private BatchFinalizerBean createBatchFinalizerBean() {
-        final BatchFinalizerBean bean = new BatchFinalizerBean();
-        bean.entityManager = entityManager;
-        bean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
-        bean.metricRegistry = metricRegistry;
-        return bean;
     }
 }

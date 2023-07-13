@@ -4,8 +4,7 @@
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_1.xsd"
              version="2.1">
-  <persistence-unit name="batchExchangePU" transaction-type="JTA">
-    <jta-data-source>jdbc/batch-exchange</jta-data-source>
+  <persistence-unit name="batchExchangePU" transaction-type="RESOURCE_LOCAL">
     <class>dk.dbc.batchexchange.dto.BatchStatusConverter</class>
     <class>dk.dbc.batchexchange.dto.Batch</class>
     <class>dk.dbc.batchexchange.dto.BatchEntryDiagnosticsConverter</class>

@@ -63,9 +63,14 @@ public class MessageConsumer extends MessageConsumerAdapter {
         this.weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient(), SinkConfig.WEEKRESOLVER_SERVICE_URL.asString());
 
         this.proxyBean = SinkConfig.PROXY_HOSTNAME.asOptionalString()
-                .map(s -> new ProxyBean(s).withNonProxyHosts(Set.of(SinkConfig.NON_PROXY_HOSTS.asString().split(","))))
+                .map(s -> new ProxyBean(s)
+                        .withProxyUsername(SinkConfig.PROXY_USERNAME.asString())
+                        .withProxyPassword(SinkConfig.PROXY_PASSWORD.asString())
+                        .withNonProxyHosts(Set.of(SinkConfig.NON_PROXY_HOSTS.asString().split(","))))
                 .orElse(null);
-
+        if (proxyBean != null) {
+            proxyBean.init();
+        }
         initializeFinalizers(serviceHub);
     }
 

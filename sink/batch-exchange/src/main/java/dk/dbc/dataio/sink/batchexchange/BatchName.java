@@ -16,19 +16,6 @@ public class BatchName {
         this.chunkId = chunkId;
     }
 
-    public int getJobId() {
-        return jobId;
-    }
-
-    public long getChunkId() {
-        return chunkId;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%d-%d", jobId, chunkId);
-    }
-
     /**
      * Creates new batch name from chunk
      *
@@ -47,7 +34,7 @@ public class BatchName {
      * @throws IllegalArgumentException if given invalid name string
      */
     public static BatchName fromString(String name) throws IllegalArgumentException {
-        final StringTokenizer tokenizer = new StringTokenizer(name, "-");
+        StringTokenizer tokenizer = new StringTokenizer(name, "-");
         if (tokenizer.countTokens() != 2) {
             throw new IllegalArgumentException("Name does not match [JOB_ID]-[CHUNK_ID] pattern: " + name);
         }
@@ -58,5 +45,18 @@ public class BatchName {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid batch name: " + name, e);
         }
+    }
+
+    public int getJobId() {
+        return jobId;
+    }
+
+    public long getChunkId() {
+        return chunkId;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%d-%d", jobId, chunkId);
     }
 }

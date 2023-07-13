@@ -21,6 +21,10 @@ public class JPAHelper {
                 "javax.persistence.schema-generation.database.action", "none",
                 "javax.persistence.jdbc.driver", "org.postgresql.Driver",
                 "javax.persistence.jdbc.url", jdbcUrl);
+        return makeEntityManager(persistenceUnit, config);
+    }
+
+    public static EntityManager makeEntityManager(String persistenceUnit, Map<String, String> config) {
         return Persistence.createEntityManagerFactory(persistenceUnit, config).createEntityManager();
     }
 

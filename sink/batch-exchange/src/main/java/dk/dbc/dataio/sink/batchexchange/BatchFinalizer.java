@@ -6,20 +6,12 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.jobstore.types.JobError;
-import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
-import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.MetricType;
-import org.eclipse.microprofile.metrics.MetricUnits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -29,19 +21,14 @@ import java.util.List;
  * This enterprise Java bean handles completion of batch-exchange batches.
  */
 public class BatchFinalizer {
-    static final Metadata batchEntryTimerMetadata = Metadata.builder()
-            .withName("dataio_sink_batch_exchange_batch_entry_timer")
-            .withDescription("Duration of batch entry completion")
-            .withType(MetricType.SIMPLE_TIMER)
-            .withUnit(MetricUnits.MILLISECONDS).build();
-    static final Metadata batchErrorCounterMetadata = Metadata.builder()
-            .withName("dataio_sink_batch_exchange_batch_error_counter")
-            .withDescription("Number of batch failures")
-            .withType(MetricType.COUNTER)
-            .withUnit("errors").build();
     private static final Logger LOGGER = LoggerFactory.getLogger(BatchFinalizer.class);
     private final EntityManager entityManager;
-    private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    private final JobStoreServiceConnector jobStoreServiceConnector;
+
+    public BatchFinalizer(EntityManager entityManager, JobStoreServiceConnector jobStoreServiceConnector) {
+        this.entityManager = entityManager;
+        this.jobStoreServiceConnector = jobStoreServiceConnector;
+    }
 
     /**
      * Builds and uploads chunk for next completed batch in the
@@ -51,28 +38,33 @@ public class BatchFinalizer {
      * tearing down any controlling timers.
      *
      * @return true if batch was finalized, false if not.
-     * @throws SinkException nn failure to communicate with the job-store
      */
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public boolean finalizeNextCompletedBatch() throws SinkException {
+    public boolean finalizeNextCompletedBatch() {
         Batch batch = findCompletedBatch();
         if (batch == null) {
             return false;
         }
-        BatchName batchName = BatchName.fromString(batch.getName());
-        LOGGER.info("Finalizing batch {} for chunk {}/{}",
-                batch.getId(), batchName.getJobId(), batchName.getChunkId());
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+            BatchName batchName = BatchName.fromString(batch.getName());
+            LOGGER.info("Finalizing batch {} for chunk {}/{}",
+                    batch.getId(), batchName.getJobId(), batchName.getChunkId());
 
-        List<BatchEntry> batchEntries = getBatchEntries(batch);
-        Chunk chunk = createChunkFromBatchEntries(batchName.getJobId(), batchName.getChunkId(), batchEntries);
-        uploadChunk(chunk);
-        entityManager.remove(batch);
+            List<BatchEntry> batchEntries = getBatchEntries(batch);
+            Chunk chunk = createChunkFromBatchEntries(batchName.getJobId(), batchName.getChunkId(), batchEntries);
+            uploadChunk(chunk);
+            entityManager.remove(batch);
 
-        for (BatchEntry batchEntry : batchEntries) {
-            if (batchEntry.getTimeOfCompletion() != null) {
-                Metric.dataio_entry_timer.simpleTimer().update(Duration.ofMillis(
-                        batchEntry.getTimeOfCompletion().getTime() - batchEntry.getTimeOfCreation().getTime()));
+            for (BatchEntry batchEntry : batchEntries) {
+                if (batchEntry.getTimeOfCompletion() != null) {
+                    Metric.dataio_batch_entry_timer.simpleTimer().update(Duration.ofMillis(
+                            batchEntry.getTimeOfCompletion().getTime() - batchEntry.getTimeOfCreation().getTime()));
+                }
             }
+            transaction.commit();
+        } finally {
+            if(transaction.isActive()) transaction.rollback();
         }
 
         return true;
@@ -115,7 +107,7 @@ public class BatchFinalizer {
                 List<Diagnostic> diagnostics = extractBatchEntryData(batchEntry, dataBuffer);
                 chunkItem.appendDiagnostics(diagnostics);
                 if (diagnostics.stream().anyMatch(diagnostic -> diagnostic.getLevel() != Diagnostic.Level.WARNING)) {
-                    metricRegistry.counter(batchErrorCounterMetadata).inc();
+                    Metric.dataio_batch_error_counter.counter().inc();
                 }
 
                 if (!batchEntry.getContinued()) {
@@ -177,25 +169,13 @@ public class BatchFinalizer {
         return String.format("Consumer system responded with %s: %s", entryDiag.getLevel(), entryDiag.getMessage());
     }
 
-    private void uploadChunk(Chunk chunk) throws SinkException {
-        JobStoreServiceConnector jobStoreServiceConnector = jobStoreServiceConnectorBean.getConnector();
+    private void uploadChunk(Chunk chunk) {
         try {
             jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
         } catch (Exception e) {
             String message = String.format("Error in communication with job-store for chunk [%d, %d]",
                     chunk.getJobId(), chunk.getChunkId());
-            logException(message, e);
-            throw new SinkException(message, e);
-        }
-    }
-
-    private void logException(String message, Exception e) {
-        if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
-            JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
-            if (jobError != null) {
-                message += ": job-store returned error '" + jobError.getDescription() + "'";
-                LOGGER.error(message, e);
-            }
+            throw new RuntimeException(message, e);
         }
     }
 

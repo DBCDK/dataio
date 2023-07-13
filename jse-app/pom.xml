@@ -202,6 +202,11 @@
                                 <build>
                                     <from>${java.image}</from>
                                     <user>gfish</user>
+                                    <env>
+                                        <LOG_FORMAT default-value="json"/>
+                                        <LOG_LEVEL default-value="INFO"/>
+                                        <TZ default-value="Europe/Copenhagen"/>
+                                    </env>
                                     <assemblies>
                                         <assembly>
                                             <descriptorRef>artifact</descriptorRef>

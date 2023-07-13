@@ -2,14 +2,14 @@ package dk.dbc.dataio.sink.batchexchange;
 
 import dk.dbc.batchexchange.BatchExchangeDatabaseMigrator;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
+import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
+import dk.dbc.dataio.jse.artemis.common.db.JPAHelper;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.postgresql.ds.PGSimpleDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -18,72 +18,28 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 
 public abstract class IntegrationTest {
-    private static final PGSimpleDataSource datasource;
-    private static Map<String, String> entityManagerProperties = new HashMap<>();
-    private static EntityManagerFactory entityManagerFactory;
+    private static final Logger LOGGER = LoggerFactory.getLogger(IntegrationTest.class);
+    public static final DBCPostgreSQLContainer dbContainer = makeDBContainer();
+    protected final EntityManager entityManager = JPAHelper.makeEntityManager("batchExchangeIT", dbContainer.entityManagerProperties());
 
-    protected EntityManager entityManager;
-    protected TransactionScopedPersistenceContext persistenceContext;
-
-    static {
-        datasource = new PGSimpleDataSource();
-        datasource.setDatabaseName("batch_exchange");
-        datasource.setServerName("localhost");
-        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port", "5432")));
-        datasource.setUser(System.getProperty("user.name"));
-        datasource.setPassword(System.getProperty("user.name"));
+    private static DBCPostgreSQLContainer makeDBContainer() {
+        DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withReuse(false);
+        container.start();
+        container.exposeHostPort();
+        LOGGER.info("Postgres url is:{}", container.getDockerJdbcUrl());
+        return container;
     }
 
     @BeforeClass
-    public static void migrateDatabase() throws Exception {
-        final BatchExchangeDatabaseMigrator dbMigrator = new BatchExchangeDatabaseMigrator(datasource);
+    public static void migrateDatabase() {
+        BatchExchangeDatabaseMigrator dbMigrator = new BatchExchangeDatabaseMigrator(dbContainer.datasource());
         dbMigrator.migrate();
     }
 
-    @BeforeClass
-    public static void createEntityManagerFactory() {
-        entityManagerProperties.put(JDBC_USER, datasource.getUser());
-        entityManagerProperties.put(JDBC_PASSWORD, datasource.getPassword());
-        entityManagerProperties.put(JDBC_URL, datasource.getUrl());
-        entityManagerProperties.put(JDBC_DRIVER, "org.postgresql.Driver");
-        entityManagerProperties.put("eclipselink.logging.level", "FINE");
-        entityManagerFactory = Persistence.createEntityManagerFactory("batchExchangeIT", entityManagerProperties);
-    }
-
-    @Before
-    public void resetDatabase() throws SQLException {
-        try (Connection conn = datasource.getConnection();
-             Statement statement = conn.createStatement()) {
-            statement.executeUpdate("DELETE FROM entry");
-            statement.executeUpdate("DELETE FROM batch");
-            statement.executeUpdate("ALTER SEQUENCE entry_id_seq RESTART");
-            statement.executeUpdate("ALTER SEQUENCE batch_id_seq RESTART");
-        }
-    }
-
-    @Before
-    public void createEntityManager() {
-        entityManager = entityManagerFactory.createEntityManager(entityManagerProperties);
-        persistenceContext = new TransactionScopedPersistenceContext(entityManager);
-    }
-
-    @Before
-    public void clearEntityManagerCache() {
-        entityManager.clear();
-        entityManager.getEntityManagerFactory().getCache().evictAll();
-    }
-
     protected static void executeScriptResource(String resourcePath) {
-        final URL resource = IntegrationTest.class.getResource(resourcePath);
+        URL resource = IntegrationTest.class.getResource(resourcePath);
         try {
             executeScript(new File(resource.toURI()));
         } catch (URISyntaxException e) {
@@ -92,10 +48,26 @@ public abstract class IntegrationTest {
     }
 
     static void executeScript(File scriptFile) {
-        try (Connection conn = datasource.getConnection()) {
+        try (Connection conn = dbContainer.datasource().getConnection()) {
             JDBCUtil.executeScript(conn, scriptFile, StandardCharsets.UTF_8.name());
         } catch (SQLException | IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @Before
+    public void resetDatabase() throws SQLException {
+        try (Connection conn = dbContainer.createConnection(); Statement statement = conn.createStatement()) {
+            statement.executeUpdate("DELETE FROM entry");
+            statement.executeUpdate("DELETE FROM batch");
+            statement.executeUpdate("ALTER SEQUENCE entry_id_seq RESTART");
+            statement.executeUpdate("ALTER SEQUENCE batch_id_seq RESTART");
+        }
+    }
+
+    @Before
+    public void clearEntityManagerCache() {
+        entityManager.clear();
+        entityManager.getEntityManagerFactory().getCache().evictAll();
     }
 }

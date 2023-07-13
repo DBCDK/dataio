@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -26,13 +27,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public class MessageConsumer extends MessageConsumerAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
+public class BatchExchangeMessageConsumer extends MessageConsumerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BatchExchangeMessageConsumer.class);
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     private final EntityManager entityManager;
 
-    public MessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
+    public BatchExchangeMessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
         super(serviceHub);
         this.entityManager = entityManager;
     }
@@ -40,10 +41,11 @@ public class MessageConsumer extends MessageConsumerAdapter {
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         Chunk chunk = unmarshallPayload(consumedMessage);
-        Batch batch = createBatch(chunk);
-        LOGGER.info("Adding chunk {}/{} to batch {}", chunk.getJobId(), chunk.getChunkId(), batch);
-
+        EntityTransaction transaction = entityManager.getTransaction();
         try {
+            transaction.begin();
+            Batch batch = createBatch(chunk);
+            LOGGER.info("Adding chunk {}/{} to batch {}", chunk.getJobId(), chunk.getChunkId(), batch);
             for (ChunkItem chunkItem : chunk) {
                 String trackingId = getTrackingId(chunkItem, batch);
                 DBCTrackedLogContext.setTrackingId(trackingId);
@@ -56,8 +58,10 @@ public class MessageConsumer extends MessageConsumerAdapter {
                 LOGGER.info("Adding chunk item {} to batch {}", chunkItem.getId(), batch.getId());
             }
             completeIfBatchHasNoPendingEntries(batch);
+            transaction.commit();
         } finally {
             DBCTrackedLogContext.remove();
+            if(transaction.isActive()) transaction.rollback();
         }
     }
 

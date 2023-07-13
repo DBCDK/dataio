@@ -4,13 +4,16 @@ import dk.dbc.dataio.jse.artemis.common.app.MessageConsumerApp;
 import dk.dbc.dataio.jse.artemis.common.db.JPAHelper;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 
+import javax.persistence.EntityManager;
 import java.util.function.Supplier;
 
 public class BatchExchangeSinkApp extends MessageConsumerApp {
     private static final ServiceHub serviceHub = ServiceHub.defaultHub();
-    private static final Supplier<MessageConsumer> messageConsumer = BatchExchangeSinkApp::makeConsumer;
+    private static final EntityManager ENTITY_MANAGER = JPAHelper.makeEntityManager("batchExchangePU", SinkConfig.BATCH_EXCHANGE_DB_URL);
+    private static final Supplier<BatchExchangeMessageConsumer> messageConsumer = BatchExchangeSinkApp::makeConsumer;
 
     public BatchExchangeSinkApp() {
+        new ScheduledBatchFinalizer(serviceHub, ENTITY_MANAGER);
         JPAHelper.migrate(SinkConfig.BATCH_EXCHANGE_DB_URL);
     }
 
@@ -18,7 +21,7 @@ public class BatchExchangeSinkApp extends MessageConsumerApp {
         new BatchExchangeSinkApp().go(serviceHub, messageConsumer);
     }
 
-    private static MessageConsumer makeConsumer() {
-        return new MessageConsumer(serviceHub, JPAHelper.makeEntityManager("batchExchangePU", SinkConfig.BATCH_EXCHANGE_DB_URL));
+    private static BatchExchangeMessageConsumer makeConsumer() {
+        return new BatchExchangeMessageConsumer(serviceHub, JPAHelper.makeEntityManager("batchExchangePU", SinkConfig.BATCH_EXCHANGE_DB_URL));
     }
 }

@@ -34,6 +34,7 @@ public class ScheduledBatchFinalizer {
         serviceHub.zombieWatch.addCheck("batch-finalizer", this::healthcheck);
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "batch-finalizer-" + THREAD_ID.getAndIncrement()));
         scheduler.scheduleAtFixedRate(this::run, 30, 5, TimeUnit.SECONDS);
+        Runtime.getRuntime().addShutdownHook(new Thread(scheduler::shutdown));
     }
 
     public void run() {

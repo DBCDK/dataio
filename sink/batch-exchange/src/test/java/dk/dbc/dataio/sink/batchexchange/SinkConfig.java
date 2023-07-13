@@ -4,7 +4,6 @@ import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 
 public enum SinkConfig implements EnvConfig {
     QUEUE("dummy::dummy"),
-    MESSAGE_FILTER,
     BATCH_EXCHANGE_DB_URL;
 
     private final String defaultValue;
@@ -15,11 +14,6 @@ public enum SinkConfig implements EnvConfig {
 
     SinkConfig(String defaultValue) {
         this.defaultValue = defaultValue;
-    }
-
-    @Override
-    public String getName() {
-        return name();
     }
 
     @Override

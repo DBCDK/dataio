@@ -22,6 +22,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
 import dk.dbc.dataio.jse.artemis.common.service.HealthService;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -49,6 +50,11 @@ public class ChunkProcessorTest {
     private final long submitter = 123;
     private final String format = "DasFormat";
     private final String additionalArgs = String.format("{\"format\":\"%s\",\"submitter\":%s}", format, submitter);
+
+    @Before
+    public void initCache() {
+        ChunkProcessor.clearFlowCache();
+    }
 
     public static FlowComponentContent getFlowComponentContent(ScriptWrapper scriptWrapper) {
         List<JavaScript> js = List.of(scriptWrapper.javaScript,

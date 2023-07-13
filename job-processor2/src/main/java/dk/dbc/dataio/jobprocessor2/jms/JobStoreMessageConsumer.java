@@ -41,7 +41,6 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
     private static final Map<WatchKey, Instant> scriptStartTimes = new ConcurrentHashMap<>();
     private static final String QUEUE = ProcessorConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = ProcessorConfig.QUEUE.fqnAsAddress();
-    private static final String FILTER = ProcessorConfig.MESSAGE_FILTER.asOptionalString().orElse(null);
 
     public JobStoreMessageConsumer(ServiceHub serviceHub) {
         super(serviceHub);
@@ -78,11 +77,6 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
     @Override
     public String getAddress() {
         return ADDRESS;
-    }
-
-    @Override
-    public String getFilter() {
-        return FILTER;
     }
 
     @SuppressWarnings("unused")

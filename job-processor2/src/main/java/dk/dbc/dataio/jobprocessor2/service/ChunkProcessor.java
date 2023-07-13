@@ -32,6 +32,10 @@ public class ChunkProcessor {
         this.healthService = healthService;
     }
 
+    public static void clearFlowCache() {
+        flowCache.clear();
+    }
+
     /**
      * Processes given chunk with business logic dictated by given flow
      *

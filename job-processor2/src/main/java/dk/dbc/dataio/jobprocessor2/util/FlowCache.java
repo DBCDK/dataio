@@ -39,6 +39,10 @@ public class FlowCache {
         Metric.dataio_flow_cache_size.gauge(flowCache::size);
     }
 
+    public void clear() {
+        flowCache.invalidateAll();
+    }
+
     private double getHitRatePercentage() {
         long hits = CACHE_HITS.get();
         long total = hits + CACHE_MISS.get();

@@ -15,6 +15,7 @@ import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobprocessor2.jms.JobStoreMessageConsumer;
+import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
 import dk.dbc.dataio.jse.artemis.common.JobProcessorException;
 import dk.dbc.dataio.jse.artemis.common.Metric;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
@@ -49,6 +50,7 @@ public class JobStoreMessageConsumerBeanTest {
     @Before
     public void init() {
         ((PrometheusMetricRegistry)SERVICE_HUB.metricRegistry).resetAll();
+        ChunkProcessor.clearFlowCache();
     }
 
     @Test

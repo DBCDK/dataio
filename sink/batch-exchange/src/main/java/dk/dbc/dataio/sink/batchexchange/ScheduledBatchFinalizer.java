@@ -44,7 +44,7 @@ public class ScheduledBatchFinalizer {
             while (batchFinalizer.finalizeNextCompletedBatch()) {
                 numberOfBatchesCompleted++;
             }
-            LOGGER.info("Finalized {} batches", numberOfBatchesCompleted);
+            if(numberOfBatchesCompleted > 0) LOGGER.info("Finalized {} batches", numberOfBatchesCompleted);
             LAST_RUN.set(Instant.now());
         } catch (Exception e) {
             LOGGER.error("Exception caught during scheduled batch finalization", e);

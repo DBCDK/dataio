@@ -1,11 +1,14 @@
 package dk.dbc.dataio.jse.artemis.common;
 
+import java.net.URLEncoder;
 import java.time.DateTimeException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public interface EnvConfig {
     default Optional<String> asOptionalString() {
@@ -81,7 +84,7 @@ public interface EnvConfig {
     default String asPGJDBCUrl() {
         Map<DBProperty, String> map = asDBProperties();
         return "jdbc:postgresql://" + map.get(DBProperty.HOST) + ":" + map.get(DBProperty.PORT) + "/" + map.get(DBProperty.DATABASE)
-                + "?user=" + map.get(DBProperty.USER) + "&password=" + map.get(DBProperty.PASSWORD);
+                + "?user=" + URLEncoder.encode(map.get(DBProperty.USER), UTF_8) + "&password=" + URLEncoder.encode(map.get(DBProperty.PASSWORD), UTF_8);
     }
 
     default String getDefaultValue() {

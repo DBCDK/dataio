@@ -52,7 +52,7 @@ public interface EnvConfig {
         return fqn[0];
     }
 
-    private static Optional<String> getProperty(String key) {
+    default Optional<String> getProperty(String key) {
         return Optional.ofNullable(System.getenv(key)).map(String::trim);
     }
 

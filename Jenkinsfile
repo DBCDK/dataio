@@ -52,7 +52,7 @@ pipeline {
             steps {
                 cleanWs()
                 sh """
-                    rm -r '/home/isworker/.dataio_repo/dk/dbc'
+                    test -d '/home/isworker/.dataio_repo/dk/dbc' && rm -r '/home/isworker/.dataio_repo/dk/dbc'
                 """
                 checkout scm
             }

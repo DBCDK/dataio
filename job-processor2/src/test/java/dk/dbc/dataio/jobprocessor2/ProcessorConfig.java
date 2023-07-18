@@ -5,7 +5,8 @@ import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 public enum ProcessorConfig implements EnvConfig {
     QUEUE("dummy::dummy"),
     FLOW_CACHE_SIZE("100"),
-    FLOW_CACHE_EXPIRY("PT10m");
+    FLOW_CACHE_EXPIRY("PT10m"),
+    SHARE_FLOWS("false");
 
     private final String defaultValue;
 

@@ -16,23 +16,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
-/**
- * This class implements a LRU Flow cache with a simple get(key), put(key, flow) and containsKey(key)
- * API.
- */
 public class FlowCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowCache.class);
 
-    // A LRU cache using a LinkedHashMap with access-ordering
     private final Cache<String, FlowCacheEntry> flowCache = CacheBuilder.newBuilder()
             .maximumSize(ProcessorConfig.FLOW_CACHE_SIZE.asInteger())
             .expireAfterAccess(ProcessorConfig.FLOW_CACHE_EXPIRY.asDuration())
+            .recordStats()
             .build();
-    private final AtomicLong CACHE_HITS = new AtomicLong(0);
-    private final AtomicLong CACHE_MISS = new AtomicLong(0);
 
     public FlowCache() {
         Metric.dataio_flow_cache_hit_rate.gauge(this::getHitRatePercentage);
@@ -43,53 +41,20 @@ public class FlowCache {
         flowCache.invalidateAll();
     }
 
-    private double getHitRatePercentage() {
-        long hits = CACHE_HITS.get();
-        long total = hits + CACHE_MISS.get();
-        if(total == 0) return -1;
-        return 100.0 * hits / total;
+    public Map<String, FlowCacheEntry> getView() {
+        return Collections.unmodifiableMap(flowCache.asMap());
     }
 
-    /**
-     * @param key key whose presence in this cache is to be tested
-     * @return true if this cache contains an entry for the specified key, otherwise false
-     */
-    public boolean containsKey(String key) {
-        return flowCache.getIfPresent(key) != null;
+    private double getHitRatePercentage() {
+        return flowCache.stats().hitRate();
     }
 
     /**
      * @param key key whose associated value in this cache is to be returned
      * @return the value to which the specified key is mapped, or null if this cache contains no mapping for the key
      */
-    public FlowCacheEntry get(String key) {
-        FlowCacheEntry entry = flowCache.getIfPresent(key);
-        if(entry == null) CACHE_MISS.incrementAndGet();
-        else CACHE_HITS.incrementAndGet();
-        return entry;
-    }
-
-    /**
-     * Creates script environment for the given flow and associates it with the specified key in this cache.
-     * If this cache previously contained a mapping for the key, the old value is replaced by the new entry.
-     *
-     * @param key  key with which the create script environment is to be associated in this cache
-     * @param flow flow from which a scripting environment is created
-     * @return script environment as FlowCacheEntry
-     * @throws IllegalStateException if given flow contains no script
-     * @throws Exception             on general script environment creation failure
-     */
-    public FlowCacheEntry put(String key, Flow flow) throws Exception {
-        LOGGER.info("Setting up javascript environment for flow '{}'", flow.getContent().getName());
-        StopWatch stopWatch = new StopWatch();
-        try {
-            FlowCacheEntry cacheEntry = new FlowCacheEntry(flow);
-            flowCache.put(key, cacheEntry);
-            return cacheEntry;
-        } finally {
-            LOGGER.info("Setting up javascript environment for flow '{}' took {} ms",
-                    flow.getContent().getName(), stopWatch.getElapsedTime());
-        }
+    public FlowCacheEntry get(String key, Callable<Flow> loader) throws ExecutionException {
+        return flowCache.get(key, () -> new FlowCacheEntry(loader.call()));
     }
 
     private static Script createScript(FlowComponentContent componentContent) throws Exception {
@@ -117,11 +82,13 @@ public class FlowCache {
      */
     public static class FlowCacheEntry {
         public final Flow flow;
-        public final List<Script> scripts = new ArrayList<>();
-        public final List<Script> next = new ArrayList<>();
+        public final List<Script> scripts;
+        public final List<Script> next;
 
         public FlowCacheEntry(Flow flow) throws Exception {
-            this.flow = flow;
+            List<Script> scripts = new ArrayList<>();
+            List<Script> next = new ArrayList<>();
+            this.flow = Objects.requireNonNull(flow);
             for (FlowComponent flowComponent : flow.getContent().getComponents()) {
                 scripts.add(createScript(flowComponent.getContent()));
                 FlowComponentContent flowComponentNextContent = flowComponent.getNext();
@@ -129,6 +96,8 @@ public class FlowCache {
                     next.add(createScript(flowComponentNextContent));
                 }
             }
+            this.scripts = Collections.unmodifiableList(scripts);
+            this.next = Collections.unmodifiableList(next);
             if (scripts.isEmpty()) {
                 throw new IllegalStateException(String.format("No javascript found in flow '%s'", flow.getContent().getName()));
             }

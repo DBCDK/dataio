@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.SinkContent;
 public class SinkContentBuilder {
     private String name = "name";
     private String resource = "resource";
+    private String queue = "queue";
     private String description = "description";
     private SinkContent.SinkType sinkType = SinkContent.SinkType.DUMMY;
     private SinkConfig sinkConfig = null;
@@ -36,7 +37,12 @@ public class SinkContentBuilder {
         return this;
     }
 
+    public SinkContentBuilder setQueue(String queue) {
+        this.queue = queue;
+        return this;
+    }
+
     public SinkContent build() {
-        return new SinkContent(name, "jmsDataioSinks", resource, description, sinkType, sinkConfig, sequenceAnalysisOption);
+        return new SinkContent(name, queue, resource, description, sinkType, sinkConfig, sequenceAnalysisOption);
     }
 }

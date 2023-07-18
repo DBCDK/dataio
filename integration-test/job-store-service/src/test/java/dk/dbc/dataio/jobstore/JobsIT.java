@@ -15,7 +15,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.jms.JMSException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -29,16 +31,15 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
      * Given: a valid job request with a datafile containing 15 items
      * When : submitted to job-store
      * Then : a job is created
-     * And : two chunks are sent to the processor queue
      * And : the job is partitioned
+     * And : two chunks are sent to the processor queue
      * When : processor results are received for both chunks
      * Then : two chunks are sent to the sink queue
      * When : sink results are received for both chunks
      * Then : the job is completed
      */
-    @Ignore
     @Test
-    public void jobStates() throws JobStoreServiceConnectorException, JMSException, JSONBException {
+    public void jobStates() throws JobStoreServiceConnectorException {
         // Given...
         final JobInputStream jobInputStream = newJobInputStream();
 
@@ -50,24 +51,22 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
         assertThat("job is not complete", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
 
         // And...
-        List<MockedJmsTextMessage> jmsMessages = jmsQueueServiceConnector.awaitQueueSizeAndList(
-                JmsQueueServiceConnector.Queue.PROCESSING, 2, 10000);
+        // (Since we cannot be certain of sequence of partitioning...)
+        List<Chunk> chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
+                JmsQueueServiceConnector.Queue.PROCESSING_BUSINESS, 2, 10000)
+                .stream().map(this::getChunk)
+                .sorted(Comparator.comparing(chunk1 -> chunk1 != null ? chunk1.getChunkId() : 0))
+                .collect(Collectors.toList());
 
-        MockedJmsTextMessage jmsMessage0 = jmsMessages.get(0);
-        final Chunk processorChunk0 = jsonbContext.unmarshall(jmsMessage0.getText(), Chunk.class);
-        assertThat("1st processor chunk ID", processorChunk0.getChunkId(),
-                is(0L));
-        assertThat("1st processor chunk belongs to job", processorChunk0.getJobId(),
-                is((long) jobInfoSnapshot.getJobId()));
-        assertThat("number of items in 1st processor chunk", processorChunk0.getItems().size(),
+        assertThat("1st processor chunk belongs to job", chunks.get(0).getJobId(),
+                is(jobInfoSnapshot.getJobId()));
+        assertThat("number of items in 1st processor chunk", chunks.get(0).getItems().size(),
                 is(10));
-        MockedJmsTextMessage jmsMessage1 = jmsMessages.get(1);
-        final Chunk processorChunk1 = jsonbContext.unmarshall(jmsMessage1.getText(), Chunk.class);
-        assertThat("2nd processor chunk ID", processorChunk1.getChunkId(),
+        assertThat("2nd processor chunk ID", chunks.get(1).getChunkId(),
                 is(1L));
-        assertThat("2nd processor chunk belongs to job", processorChunk1.getJobId(),
-                is((long) jobInfoSnapshot.getJobId()));
-        assertThat("number of items in 2nd processor chunk", processorChunk1.getItems().size(),
+        assertThat("2nd processor chunk belongs to job", chunks.get(1).getJobId(),
+                is(jobInfoSnapshot.getJobId()));
+        assertThat("number of items in 2nd processor chunk", chunks.get(1).getItems().size(),
                 is(5));
 
         // And...
@@ -80,37 +79,36 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
                 is(15));
 
         // When...
-        jobStoreServiceConnector.addChunk(newChunkOfType(processorChunk0, Chunk.Type.PROCESSED),
-                jobInfoSnapshot.getJobId(), processorChunk0.getChunkId());
-        jobStoreServiceConnector.addChunk(newChunkOfType(processorChunk1, Chunk.Type.PROCESSED),
-                jobInfoSnapshot.getJobId(), processorChunk1.getChunkId());
+        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(0), Chunk.Type.PROCESSED),
+                jobInfoSnapshot.getJobId(), chunks.get(0).getChunkId());
+        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(1), Chunk.Type.PROCESSED),
+                jobInfoSnapshot.getJobId(), chunks.get(1).getChunkId());
 
         // Then...
-        jmsMessages = jmsQueueServiceConnector.awaitQueueSizeAndList(
-                JmsQueueServiceConnector.Queue.SINK, 2, 10000);
+        // (And now taking chunk sequence very serious!)
+        chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
+                        JmsQueueServiceConnector.Queue.SINK, 2, 10000)
+                .stream().map(this::getChunk)
+                .collect(Collectors.toList());
 
-        jmsMessage0 = jmsMessages.get(0);
-        final Chunk sinkChunk0 = jsonbContext.unmarshall(jmsMessage0.getText(), Chunk.class);
-        assertThat("1st sink chunk ID", sinkChunk0.getChunkId(),
+        assertThat("1st sink chunk ID", chunks.get(0).getChunkId(),
                 is(0L));
-        assertThat("1st sink chunk belongs to job", sinkChunk0.getJobId(),
-                is((long) jobInfoSnapshot.getJobId()));
-        assertThat("number of items in 1st sink chunk", sinkChunk0.getItems().size(),
+        assertThat("1st sink chunk belongs to job", chunks.get(0).getJobId(),
+                is(jobInfoSnapshot.getJobId()));
+        assertThat("number of items in 1st sink chunk", chunks.get(0).getItems().size(),
                 is(10));
-        jmsMessage1 = jmsMessages.get(1);
-        final Chunk sinkChunk1 = jsonbContext.unmarshall(jmsMessage1.getText(), Chunk.class);
-        assertThat("2nd sink chunk ID", sinkChunk1.getChunkId(),
+        assertThat("2nd sink chunk ID", chunks.get(1).getChunkId(),
                 is(1L));
-        assertThat("2nd sink chunk belongs to job", sinkChunk1.getJobId(),
-                is((long) jobInfoSnapshot.getJobId()));
-        assertThat("number of items in 2nd sink chunk", sinkChunk1.getItems().size(),
+        assertThat("2nd sink chunk belongs to job", chunks.get(1).getJobId(),
+                is(jobInfoSnapshot.getJobId()));
+        assertThat("number of items in 2nd sink chunk", chunks.get(1).getItems().size(),
                 is(5));
 
         // When...
-        jobStoreServiceConnector.addChunk(newChunkOfType(processorChunk0, Chunk.Type.DELIVERED),
-                jobInfoSnapshot.getJobId(), sinkChunk0.getChunkId());
-        jobStoreServiceConnector.addChunk(newChunkOfType(processorChunk1, Chunk.Type.DELIVERED),
-                jobInfoSnapshot.getJobId(), sinkChunk1.getChunkId());
+        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(0), Chunk.Type.DELIVERED),
+                jobInfoSnapshot.getJobId(), chunks.get(0).getChunkId());
+        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(1), Chunk.Type.DELIVERED),
+                jobInfoSnapshot.getJobId(), chunks.get(1).getChunkId());
 
         // Then...
         jobInfoSnapshot = jobStoreServiceConnector.listJobs("job:id = " + jobInfoSnapshot.getJobId()).get(0);
@@ -133,5 +131,13 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
         final Chunk chunkWithType = new Chunk(chunk.getJobId(), chunk.getChunkId(), type);
         chunkWithType.addAllItems(chunk.getItems());
         return chunkWithType;
+    }
+
+    private Chunk getChunk(MockedJmsTextMessage message) {
+        try {
+            return jsonbContext.unmarshall(message.getText(), Chunk.class);
+        } catch (JMSException | JSONBException e) {
+            return null;
+        }
     }
 }

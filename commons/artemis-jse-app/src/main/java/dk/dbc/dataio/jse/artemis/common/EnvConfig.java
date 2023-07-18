@@ -1,13 +1,23 @@
 package dk.dbc.dataio.jse.artemis.common;
 
+import java.net.URLEncoder;
 import java.time.DateTimeException;
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public interface EnvConfig {
     default Optional<String> asOptionalString() {
-        return getProperty(getName()).or(() -> Optional.ofNullable(getDefaultValue()));
+        return getProperty(getName()).or(() -> Optional.ofNullable(getDefaultValue())).map(String::trim).filter(s -> !s.isEmpty());
+    }
+
+    default Optional<Boolean> asOptionalBoolean() {
+       return getProperty(getName()).or(() -> Optional.of("false"))
+               .map(s -> List.of("TRUE", "ON", "1").contains(s.toUpperCase()));
     }
 
     default Optional<Integer> asOptionalInteger() {
@@ -29,6 +39,7 @@ public interface EnvConfig {
     default String asString() {
         return asOptionalString().orElseThrow(this::missingConf);
     }
+    default Boolean asBoolean() { return asOptionalBoolean().orElseThrow(this::missingConf); }
 
     default Duration asDuration() {
         return asOptionalDuration().orElseThrow(this::missingConf);
@@ -44,7 +55,7 @@ public interface EnvConfig {
         return fqn[0];
     }
 
-    private static Optional<String> getProperty(String key) {
+    default Optional<String> getProperty(String key) {
         return Optional.ofNullable(System.getenv(key)).map(String::trim);
     }
 
@@ -66,5 +77,17 @@ public interface EnvConfig {
         }
     }
 
-    String getDefaultValue();
+    default Map<DBProperty, String> asDBProperties() {
+        return DBProperty.from(asString());
+    }
+
+    default String asPGJDBCUrl() {
+        Map<DBProperty, String> map = asDBProperties();
+        return "jdbc:postgresql://" + map.get(DBProperty.HOST) + ":" + map.get(DBProperty.PORT) + "/" + map.get(DBProperty.DATABASE)
+                + "?user=" + URLEncoder.encode(map.get(DBProperty.USER), UTF_8) + "&password=" + URLEncoder.encode(map.get(DBProperty.PASSWORD), UTF_8);
+    }
+
+    default String getDefaultValue() {
+        return null;
+    }
 }

@@ -28,11 +28,8 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER
 
 public abstract class IntegrationTest {
     private static final PGSimpleDataSource datasource;
-    private static Map<String, String> entityManagerProperties = new HashMap<>();
+    private static final Map<String, String> entityManagerProperties = new HashMap<>();
     private static EntityManagerFactory entityManagerFactory;
-
-    protected EntityManager entityManager;
-    protected TransactionScopedPersistenceContext persistenceContext;
 
     static {
         datasource = new PGSimpleDataSource();
@@ -43,9 +40,12 @@ public abstract class IntegrationTest {
         datasource.setPassword(System.getProperty("user.name"));
     }
 
+    protected EntityManager entityManager;
+    protected TransactionScopedPersistenceContext persistenceContext;
+
     @BeforeClass
     public static void migrateDatabase() throws Exception {
-        final TickleRepoDatabaseMigrator dbMigrator = new TickleRepoDatabaseMigrator(datasource);
+        TickleRepoDatabaseMigrator dbMigrator = new TickleRepoDatabaseMigrator(datasource);
         dbMigrator.migrate();
     }
 
@@ -57,6 +57,23 @@ public abstract class IntegrationTest {
         entityManagerProperties.put(JDBC_DRIVER, "org.postgresql.Driver");
         entityManagerProperties.put("eclipselink.logging.level", "FINE");
         entityManagerFactory = Persistence.createEntityManagerFactory("tickleRepoIT", entityManagerProperties);
+    }
+
+    protected static void executeScriptResource(String resourcePath) {
+        URL resource = IntegrationTest.class.getResource(resourcePath);
+        try {
+            executeScript(new File(resource.toURI()));
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    static void executeScript(File scriptFile) {
+        try (Connection conn = datasource.getConnection()) {
+            JDBCUtil.executeScript(conn, scriptFile, StandardCharsets.UTF_8.name());
+        } catch (SQLException | IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Before
@@ -82,22 +99,5 @@ public abstract class IntegrationTest {
     public void clearEntityManagerCache() {
         entityManager.clear();
         entityManager.getEntityManagerFactory().getCache().evictAll();
-    }
-
-    protected static void executeScriptResource(String resourcePath) {
-        final URL resource = IntegrationTest.class.getResource(resourcePath);
-        try {
-            executeScript(new File(resource.toURI()));
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    static void executeScript(File scriptFile) {
-        try (Connection conn = datasource.getConnection()) {
-            JDBCUtil.executeScript(conn, scriptFile, StandardCharsets.UTF_8.name());
-        } catch (SQLException | IOException e) {
-            throw new IllegalStateException(e);
-        }
     }
 }

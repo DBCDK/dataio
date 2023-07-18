@@ -1,8 +1,0 @@
-FROM docker-metascrum.artifacts.dbccloud.dk/dbc-payara-artemis-base:devel
-
-ARG build_number=unknown
-LABEL BuildNumber=$build_number
-ARG git_commit=unknown
-LABEL GitCommit=$git_commit
-
-COPY dataio-sink-batch-exchange-${project.version}.war docker/sink-batch-exchange.json deployments/

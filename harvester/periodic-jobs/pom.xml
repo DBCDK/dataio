@@ -15,6 +15,12 @@
   <name>dataio-harvester-periodic-jobs</name>
   <packaging>war</packaging>
 
+  <properties>
+    <jetty.server.version>9.4.44.v20210927</jetty.server.version>
+    <jetty.http.version>9.4.44.v20210927</jetty.http.version>
+    <jetty.util.version>9.4.44.v20210927</jetty.util.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>javax</groupId>
@@ -118,6 +124,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>weekresolver-connector</artifactId>
+      <version>${week-resolver.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -149,6 +156,21 @@
       <artifactId>dataio-harvester-utils-holdings-items-connector</artifactId>
       <version>1.0-SNAPSHOT</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>${jetty.server.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-http</artifactId>
+      <version>${jetty.http.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-util</artifactId>
+      <version>${jetty.util.version}</version>
     </dependency>
   </dependencies>
 

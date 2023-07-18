@@ -23,12 +23,9 @@ public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase
     private final String groupId = "010100";
     private final String updateTemplate = "dbc";
     private final String queueProvider = "queue";
-
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(Integer.valueOf(WIREMOCK_PORT));
-
     private final String updateServiceEndpoint = "http://localhost:" + WIREMOCK_PORT + "/UpdateService/2.0";
-
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(Integer.parseInt(WIREMOCK_PORT));
     OpenUpdateServiceConnector openUpdateServiceConnector = new OpenUpdateServiceConnector(updateServiceEndpoint);
 
     /*
@@ -47,7 +44,7 @@ public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase
 
     @Test
     public void updateRecord_ok() {
-        final UpdateRecordResult updateRecordResult = getUpdateRecordOkResult();
+        UpdateRecordResult updateRecordResult = getUpdateRecordOkResult();
 
         // Verification
         assertThat("UpdateRecordResult", updateRecordResult, is(notNullValue()));
@@ -57,7 +54,7 @@ public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase
 
     @Test
     public void updateRecord_fail() {
-        final UpdateRecordResult updateRecordResult = getUpdateRecordFailedResult();
+        UpdateRecordResult updateRecordResult = getUpdateRecordFailedResult();
 
         // Verification
         assertThat("UpdateRecordResult", updateRecordResult, is(notNullValue()));
@@ -71,23 +68,23 @@ public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase
     }
 
     private UpdateRecordResult getUpdateRecordOkResult() {
-        final AddiRecord addiRecord = new AddiRecord(
+        AddiRecord addiRecord = new AddiRecord(
                 getMetaXml(updateTemplate, groupId).getBytes(StandardCharsets.UTF_8),
                 readTestRecord(MARC_EXCHANGE_WEBSERVICE_OK));
-        final BibliographicRecord bibliographicRecord = getBibliographicRecord(queueProvider, addiRecord);
+        BibliographicRecord bibliographicRecord = getBibliographicRecord(queueProvider, addiRecord);
         return openUpdateServiceConnector.updateRecord(groupId, updateTemplate, bibliographicRecord, DBC_TRACKING_ID);
     }
 
     private UpdateRecordResult getUpdateRecordFailedResult() {
-        final AddiRecord addiRecord = new AddiRecord(
+        AddiRecord addiRecord = new AddiRecord(
                 getMetaXml(updateTemplate, groupId).getBytes(StandardCharsets.UTF_8),
                 readTestRecord(MARC_EXCHANGE_WEBSERVICE_FAIL));
-        final BibliographicRecord bibliographicRecord = getBibliographicRecord(queueProvider, addiRecord);
+        BibliographicRecord bibliographicRecord = getBibliographicRecord(queueProvider, addiRecord);
         return openUpdateServiceConnector.updateRecord(groupId, updateTemplate, bibliographicRecord, DBC_TRACKING_ID);
     }
 
     private BibliographicRecord getBibliographicRecord(String queueProvider, AddiRecord addiRecord) {
-        final AddiRecordPreprocessor.Result preprocessorResult = new AddiRecordPreprocessor().preprocess(addiRecord, queueProvider);
+        AddiRecordPreprocessor.Result preprocessorResult = new AddiRecordPreprocessor().preprocess(addiRecord, queueProvider);
         return preprocessorResult.getBibliographicRecord();
     }
 }

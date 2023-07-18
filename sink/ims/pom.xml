@@ -6,56 +6,27 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-sink</artifactId>
+    <artifactId>jse-app</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
+    <relativePath>../../jse-app</relativePath>
   </parent>
 
   <artifactId>dataio-sink-ims</artifactId>
-  <name>dataio-sink-ims</name>
-  <packaging>war</packaging>
+
+  <properties>
+    <main-class>dk.dbc.dataio.sink.ims.ImsSinkApp</main-class>
+  </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>artemis-jms-base-image</artifactId>
-      <version>java11-SNAPSHOT</version>
-    </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>marc-client</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
-      <version>${javaee.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>invariant-utils</artifactId>
-      <version>${invariant-utils.version}</version>
-    </dependency>
-    <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-sink-types</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -67,25 +38,8 @@
     <dependency>
       <groupId>com.github.tomakehurst</groupId>
       <artifactId>wiremock</artifactId>
-      <version>${wiremock.version}</version>
+      <version>1.57</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>antlr</groupId>
-      <artifactId>antlr</artifactId>
-      <version>2.7.7</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.microprofile</groupId>
-      <artifactId>microprofile</artifactId>
-      <version>${microprofile.version}</version>
-      <type>pom</type>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dbc-commons-metrics-handler</artifactId>
-      <version>1.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.sun.xml.ws</groupId>
@@ -97,49 +51,49 @@
       <artifactId>jakarta.xml.ws-api</artifactId>
       <version>2.3.3</version>
     </dependency>
+    <dependency>
+      <groupId>com.sun.org.apache.xml.internal</groupId>
+      <artifactId>resolver</artifactId>
+      <version>20050927</version>
+    </dependency>
   </dependencies>
 
   <build>
+    <finalName>${project.name}</finalName>
     <plugins>
       <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>process config</id>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <version>${exec-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>prepare-build-docker-image</id>
-            <configuration>
-              <arguments combine.children="append">
-                <argument>dbc-payara-ims-sink</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>${maven.war.plugin.version}</version>
-        <configuration>
-          <failOnMissingWebXml>false</failOnMissingWebXml>
-          <attachClasses>true</attachClasses>
-          <webResources>
-            <resource>
-              <directory>${basedir}/src/main/webapp/WEB-INF</directory>
-              <filtering>true</filtering>
-              <targetPath>WEB-INF</targetPath>
-            </resource>
-          </webResources>
-        </configuration>
+        <artifactId>maven-assembly-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>docker-push</id>
+      <properties>
+        <tag>DIT-${BUILD_NUMBER}</tag>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>push</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>push</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

@@ -25,9 +25,12 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.destination;
+import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.redelivery;
 import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.rejected;
 import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.rollback;
 
@@ -80,8 +83,8 @@ public interface MessageConsumer extends MessageListener {
         try {
             messageId = message.getJMSMessageID();
             LOGGER.info("Received chunk {}/{} with uid: {}", JMSHeader.jobId.getHeader(message), JMSHeader.chunkId.getHeader(message), JMSHeader.trackingId.getHeader(message));
-            tags.add(new Tag("destination", getAddress() + "::" + getQueue()));
-            tags.add(new Tag("redelivery", Boolean.toString(message.getJMSRedelivered())));
+            tags.add(destination.is(getFQN()));
+            tags.add(redelivery.is(Boolean.toString(message.getJMSRedelivered())));
             ConsumedMessage consumedMessage = validateMessage(message);
             handleConsumedMessage(consumedMessage);
         } catch (InvalidMessageException e) {
@@ -151,7 +154,7 @@ public interface MessageConsumer extends MessageListener {
     String getAddress();
 
     default String getFQN() {
-        return getAddress() + "::" + getQueue();
+        return Objects.requireNonNull(getAddress()) + "::" + Objects.requireNonNull(getQueue());
     }
 
     default String getFilter() {

@@ -2,14 +2,13 @@ package dk.dbc.dataio.sink.openupdate;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,8 +53,6 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private final String submitter = "870970";
     private final String updateTemplate = "bog";
     private final String queueProvider = "queue";
-
-    private MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
     private final SimpleTimer mockedTimer = mock(SimpleTimer.class);
 
     private final AddiRecord addiRecord = newAddiRecord(
@@ -281,8 +278,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
                 addiRecordPreprocessor,
                 mockedOpenUpdateServiceConnector,
                 updateRecordResultMarshaller,
-                updateRecordErrorInterpreter,
-                metricsHandlerBean);
+                updateRecordErrorInterpreter);
     }
 
     private ChunkItemProcessor newWiredChunkItemProcessor() {
@@ -296,8 +292,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
                         addiRecordPreprocessor,
                         wiredOpenUpdateServiceConnector,
                         updateRecordResultMarshaller,
-                        updateRecordErrorInterpreter,
-                        metricsHandlerBean);
+                        updateRecordErrorInterpreter);
         chunkItemProcessor.retrySleepMillis = 0;
         return chunkItemProcessor;
     }

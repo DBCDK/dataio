@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.diff;
 
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -53,7 +54,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     private final ExternalToolDiffGenerator diffGenerator = newExternalToolDiffGenerator();
 
     @Test
-    public void exactEquality() throws DiffGeneratorException {
+    public void exactEquality() throws DiffGeneratorException, InvalidMessageException {
         if (canJsonDiff()) {
             final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON,
                     DOC1, DOC1);
@@ -62,7 +63,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void normalizedEquality() throws DiffGeneratorException {
+    public void normalizedEquality() throws DiffGeneratorException, InvalidMessageException {
         if (canJsonDiff()) {
             final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON,
                     DOC1, DOC1_PRETTY_PRINTED);
@@ -71,7 +72,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void semanticEquality() throws DiffGeneratorException {
+    public void semanticEquality() throws DiffGeneratorException, InvalidMessageException {
         if (canJsonDiff()) {
             final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON,
                     DOC1, DOC1_WITH_DIFFERENT_KEY_ORDERING);
@@ -80,7 +81,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void diff() throws DiffGeneratorException {
+    public void diff() throws DiffGeneratorException, InvalidMessageException {
         if (canJsonDiff()) {
             final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON,
                     DOC1, DOC2);
@@ -99,6 +100,8 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
                         DOC1, "{invalid".getBytes(StandardCharsets.UTF_8));
                 fail("No DiffGeneratorException thrown");
             } catch (DiffGeneratorException e) {
+            } catch (InvalidMessageException e) {
+                throw new RuntimeException(e);
             }
         }
     }

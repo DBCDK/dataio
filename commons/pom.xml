@@ -28,6 +28,7 @@
     <module>jmx-metric-registry</module>
     <module>javascript</module>
     <module>artemis-jse-app</module>
+    <module>artemis-jse-db-app</module>
   </modules>
 
 </project>

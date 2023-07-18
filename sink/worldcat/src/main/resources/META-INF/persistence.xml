@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright Dansk Bibliotekscenter a/s. Licensed under GNU 3
+  ~ See license text in LICENSE.txt
+  -->
+
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_1.xsd"
+             version="2.1">
+  <persistence-unit name="ocnRepoPU" transaction-type="RESOURCE_LOCAL">
+    <jta-data-source>jdbc/ocn-repo</jta-data-source>
+    <class>dk.dbc.commons.jpa.converter.StringListToPgTextArrayConverter</class>
+    <class>dk.dbc.ocnrepo.dto.WorldCatEntity</class>
+  </persistence-unit>
+  <persistence-unit name="ocnRepoIT" transaction-type="RESOURCE_LOCAL">
+    <class>dk.dbc.commons.jpa.converter.StringListToPgTextArrayConverter</class>
+    <class>dk.dbc.ocnrepo.dto.WorldCatEntity</class>
+    <properties>
+      <property name="javax.persistence.schema-generation.database.action" value="none"/>
+      <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
+      <property name="eclipselink.logging.level" value="FINE"/>
+    </properties>
+  </persistence-unit>
+</persistence>

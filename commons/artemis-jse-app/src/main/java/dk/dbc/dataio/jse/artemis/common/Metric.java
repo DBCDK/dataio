@@ -9,7 +9,7 @@ public enum Metric implements PrometheusMetricMixin {
     dataio_tx_elapsed;
 
     public enum ATag {
-        rollback, rejected;
+        rollback, rejected, redelivery, destination;
 
         public Tag is(String value) {
             return new Tag(name(), value);

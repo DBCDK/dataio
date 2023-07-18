@@ -12,7 +12,6 @@
     <artifactId>artemis-jse-app</artifactId>
 
     <properties>
-        <artemis-client.version>2.28.0</artemis-client.version>
         <micrometer.version>1.9.4</micrometer.version>
         <jetty.version>11.0.14</jetty.version>
     </properties>
@@ -26,7 +25,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>artemis-admin-client</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>1.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -53,11 +52,6 @@
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-types</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>artemis-jms-client</artifactId>
-            <version>${artemis-client.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.qpid</groupId>

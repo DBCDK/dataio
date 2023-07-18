@@ -47,5 +47,4 @@ enum DmatHarvesterMetrics implements CounterMetric {
     public Metadata getMetadata() {
         return metadata;
     }
-
 }

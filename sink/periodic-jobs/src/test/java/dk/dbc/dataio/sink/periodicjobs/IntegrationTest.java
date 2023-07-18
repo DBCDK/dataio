@@ -1,50 +1,50 @@
 package dk.dbc.dataio.sink.periodicjobs;
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.postgresql.ds.PGSimpleDataSource;
+import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import static org.mockito.Mockito.mock;
+
 public abstract class IntegrationTest extends JpaIntegrationTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IntegrationTest.class);
+
     @Rule
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+    protected JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    protected FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
 
-    static final EmbeddedPostgres pg = pgStart();
+    public static final DBCPostgreSQLContainer dbContainer = makeDBContainer();
 
-    private static EmbeddedPostgres pgStart() {
-        try {
-            return EmbeddedPostgres.start();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private static DBCPostgreSQLContainer makeDBContainer() {
+        DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withReuse(false);
+        container.start();
+        container.exposeHostPort();
+        LOGGER.info("Postgres url is:{}", container.getDockerJdbcUrl());
+        return container;
     }
 
-    static Connection connectToPeriodicJobsDB() {
-        try {
-            Class.forName("org.postgresql.Driver");
-            final String dbUrl = String.format("jdbc:postgresql://localhost:%s/postgres", pg.getPort());
-            final Connection connection = DriverManager.getConnection(dbUrl, "postgres", "");
-            connection.setAutoCommit(true);
-            return connection;
-        } catch (ClassNotFoundException | SQLException e) {
-            throw new RuntimeException(e);
-        }
+    protected static Connection connectToPeriodicJobsDB() throws SQLException {
+        return dbContainer.datasource().getConnection();
     }
 
     @Override
     public JpaTestEnvironment setup() {
-        final DataSource dataSource = pg.getPostgresDatabase();
+        DataSource dataSource = dbContainer.datasource();
         migrateDatabase(dataSource);
         jpaTestEnvironment = new JpaTestEnvironment((PGSimpleDataSource) dataSource, "periodic-jobsIT_PU");
         return jpaTestEnvironment;

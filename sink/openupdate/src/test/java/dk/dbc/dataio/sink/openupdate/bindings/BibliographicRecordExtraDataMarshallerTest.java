@@ -13,6 +13,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class BibliographicRecordExtraDataMarshallerTest {
     private final BibliographicRecordExtraDataMarshaller marshaller = new BibliographicRecordExtraDataMarshaller();
 
+    public static BibliographicRecordExtraData unmarshall(Document document) throws JAXBException {
+        Unmarshaller unmarshaller = JAXBContext.newInstance(BibliographicRecordExtraData.class).createUnmarshaller();
+        return unmarshaller.unmarshal(document.getDocumentElement(), BibliographicRecordExtraData.class).getValue();
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void toXmlDocument_dataArgIsNull_throws() throws JAXBException {
         marshaller.toXmlDocument(null);
@@ -20,19 +25,14 @@ public class BibliographicRecordExtraDataMarshallerTest {
 
     @Test
     public void toXmlDocument() throws JAXBException {
-        final BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
+        BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("myProvider");
         bibliographicRecordExtraData.setPriority(1000);
 
-        final BibliographicRecordExtraData unmarshalled = unmarshall(marshaller.toXmlDocument(bibliographicRecordExtraData));
+        BibliographicRecordExtraData unmarshalled = unmarshall(marshaller.toXmlDocument(bibliographicRecordExtraData));
         assertThat("providerName", unmarshalled.getProviderName(),
                 is(bibliographicRecordExtraData.getProviderName()));
         assertThat("priority", unmarshalled.getPriority(),
                 is(1000));
-    }
-
-    public static BibliographicRecordExtraData unmarshall(Document document) throws JAXBException {
-        final Unmarshaller unmarshaller = JAXBContext.newInstance(BibliographicRecordExtraData.class).createUnmarshaller();
-        return unmarshaller.unmarshal(document.getDocumentElement(), BibliographicRecordExtraData.class).getValue();
     }
 }

@@ -24,7 +24,7 @@ import static dk.dbc.dataio.jse.artemis.common.Config.ARTEMIS_USER;
 
 public class ZombieWatch {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZombieWatch.class);
-    private final AdminClient adminClient;
+    private AdminClient adminClient;
     private final HealthService healthService;
     private final Map<QueueKey, AtomicLong> monitors = new HashMap<>();
     private final Map<String, Runnable> checks = new ConcurrentHashMap<>();
@@ -33,10 +33,8 @@ public class ZombieWatch {
         this.healthService = healthService;
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1, Config.threadFactory("zombie-watch", true));
         scheduledExecutorService.scheduleAtFixedRate(this::zombieWatch, 1, 1, TimeUnit.MINUTES);
-        adminClient = ARTEMIS_ADMIN_PORT.asOptionalInteger()
-                .map(port -> new AdminClient("http://" + ARTEMIS_MQ_HOST + ":" + port, ARTEMIS_USER.toString(), ARTEMIS_PASSWORD.toString()))
-                .orElse(null);
-
+        adminClient = ARTEMIS_MQ_HOST.asOptionalString().flatMap(host -> ARTEMIS_ADMIN_PORT.asOptionalInteger()
+                .map(port -> new AdminClient("http://" + host + ":" + port, ARTEMIS_USER.toString(), ARTEMIS_PASSWORD.toString()))).orElse(null);
     }
 
     public void addCheck(String name, Runnable runnable) {

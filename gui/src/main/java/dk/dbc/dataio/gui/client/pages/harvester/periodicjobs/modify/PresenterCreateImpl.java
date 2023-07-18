@@ -64,6 +64,10 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
     }
 
     @Override
+    public void refreshButtonPressed() {
+    }
+
+    @Override
     public void validateSolrButtonPressed() {
 
     }

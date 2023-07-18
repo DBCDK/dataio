@@ -34,10 +34,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>artemis-jms-base-image</artifactId>
-      <version>java11-SNAPSHOT</version>
-      <type>pom</type>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>artemis-jms-client</artifactId>
+      <version>2.28.0</version>
     </dependency>
     <dependency>
       <groupId>javax</groupId>
@@ -194,7 +193,7 @@
     <dependency>
       <groupId>org.jvnet.mock-javamail</groupId>
       <artifactId>mock-javamail</artifactId>
-      <version>${mock-javamail.version}</version>
+      <version>${mock-javamail.javax.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

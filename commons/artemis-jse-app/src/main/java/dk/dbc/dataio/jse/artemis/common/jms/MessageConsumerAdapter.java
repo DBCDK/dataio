@@ -8,6 +8,7 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jse.artemis.common.JobProcessorException;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.jse.artemis.common.service.ZombieWatch;
+import dk.dbc.dataio.registry.PrometheusMetricRegistry;
 
 public abstract class MessageConsumerAdapter implements MessageConsumer {
     protected final ZombieWatch zombieWatch;
@@ -16,6 +17,7 @@ public abstract class MessageConsumerAdapter implements MessageConsumer {
     public MessageConsumerAdapter(ServiceHub serviceHub) {
         zombieWatch = serviceHub.zombieWatch;
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
+        initMetrics(PrometheusMetricRegistry.create());
     }
 
     @Override

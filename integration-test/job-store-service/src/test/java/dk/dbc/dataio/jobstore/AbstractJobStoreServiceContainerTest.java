@@ -6,9 +6,10 @@ import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.dataio.commons.testcontainers.Containers;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.jms.JmsQueueServiceConnector;
-import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
 import dk.dbc.httpclient.HttpClient;
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.MigrationInfo;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.Before;
@@ -20,6 +21,7 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -80,18 +82,22 @@ public abstract class AbstractJobStoreServiceContainerTest {
     }
 
     private static DBCPostgreSQLContainer startLogStoreDB(Network network) {
-        DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withNetwork(network).withReuse(false);
+        DBCPostgreSQLContainer container = new DBCPostgreSQLContainer()
+                .withNetwork(network)
+                .withReuse(false)
+                .withNetworkAliases("logstoreDB");
         container.start();
         container.exposeHostPort();
         return container;
     }
 
     private static DBCPostgreSQLContainer startJobstoreDB(Network network) {
-        DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withNetwork(network).withReuse(false);
+        DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withNetwork(network)
+                .withReuse(false)
+                .withNetworkAliases("jobstoreDB");
         container.start();
         container.exposeHostPort();
-        new DatabaseMigrator().withDataSource(container.datasource()).onStartup();
-        populateJobstoreDB(connectToDB(container));
+        populateJobstoreDB(container);
         return container;
     }
 
@@ -153,6 +159,9 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("JAVA_MAX_HEAP_SIZE", "4G")
                 .withEnv("JOBSTORE_DB_URL", jobstoreDBContainer.getPayaraDockerJdbcUrl())
                 .withEnv("ARTEMIS_MQ_HOST", ARTEMIS_ALIAS)
+                .withEnv("ARTEMIS_ADMIN_PORT", "8161")
+                .withEnv("ARTEMIS_USER", "admin")
+                .withEnv("ARTEMIS_PASSWORD", "GoFish")
                 .withEnv("FLOWSTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
                 .withEnv("FILESTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
                 .withEnv("LOGSTORE_URL", "http://" + LOGSTORE + ":8080/dataio/log-store-service/")
@@ -164,10 +173,12 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("MAIL_FROM", "danbib")
                 .withEnv("MAIL_TO_FALLBACK", "fallback")
                 .withEnv("TZ", "Europe/Copenhagen")
+                .withEnv("DEVELOPER", "on")
 //                .withEnv("REMOTE_DEBUGGING_HOST", getDebuggingHost())
                 .withExposedPorts(4848, 8080)
-                .waitingFor(Wait.forHttp(System.getProperty("jobstore.it.service.context") + "/status"))
-                .withStartupTimeout(Duration.ofMinutes(10));
+                .waitingFor(Wait.forHttp(System.getProperty("jobstore.it.service.context") + "/status")
+                        .withReadTimeout(Duration.of(10, ChronoUnit.SECONDS)))
+                .withStartupTimeout(Duration.ofMinutes(2));
         container.start();
         return container;
     }
@@ -180,15 +191,16 @@ public abstract class AbstractJobStoreServiceContainerTest {
         }
     }
 
-    static void populateJobstoreDB(Connection connection) {
+    static void populateJobstoreDB(DBCPostgreSQLContainer dbContainer) {
         try {
+            migrateJobstore(dbContainer.datasource());
 
             final String sql = Files.readString(Paths.get("src/test/resources/sql/jobstore.sql"))
                     .replaceAll("__DATE_1__", oldJobDateTime.format(formatter))
                     .replaceAll("__DATE_2__", aLittleYoungerJobDateTime.format(formatter))
                     .replaceAll("__DATE_3__", jobFromTheDayBeforeThedayBeforeYesterday.format(formatter))
                     .replaceAll("__DATE_4__", jobFromToday.format(formatter));
-            final PreparedStatement statement = connection.prepareStatement(sql);
+            final PreparedStatement statement = connectToDB(dbContainer).prepareStatement(sql);
             statement.executeUpdate();
 
         } catch (IOException | SQLException e) {
@@ -223,5 +235,19 @@ public abstract class AbstractJobStoreServiceContainerTest {
     @Before
     public void emptyQueues() {
         Arrays.stream(JmsQueueServiceConnector.Queue.values()).forEach(jmsQueueServiceConnector::emptyQueue);
+    }
+
+    static void migrateJobstore(DataSource dataSource) {
+        Flyway flyway = Flyway.configure()
+                .locations("filesystem:../../job-store-service/war/target/classes/db/migration")
+                .table("schema_version_2")
+                .baselineOnMigrate(true)
+                .baselineVersion("1")
+                .dataSource(dataSource)
+                .load();
+        for (MigrationInfo i : flyway.info().all()) {
+            LOGGER.info("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
+        }
+        flyway.migrate();
     }
 }

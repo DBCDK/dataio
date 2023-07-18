@@ -57,6 +57,11 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     }
 
     @Override
+    public void refreshButtonPressed() {
+        initializeModel();
+    }
+
+    @Override
     public void validateSolrButtonPressed() {
         commonInjector.getPeriodicJobsHarvesterProxy().executeSolrValidation(config.getId(),
                 new RunSolrValidationAsyncCallback());
@@ -161,7 +166,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onSuccess(HarvesterConfig config) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
-            History.back();
+            initializeModel();
         }
     }
 

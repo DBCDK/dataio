@@ -153,6 +153,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField
     Button runButton;
     @UiField
+    Button refreshButton;
+
+    @UiField
     Label status;
     @UiField
     TextArea queryStatus;
@@ -425,6 +428,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("runButton")
     void runButtonPressed(ClickEvent event) {
         presenter.runButtonPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("refreshButton")
+    void RefreshButtonPressed(ClickEvent event) {
+        presenter.refreshButtonPressed();
     }
 
     @SuppressWarnings("unused")

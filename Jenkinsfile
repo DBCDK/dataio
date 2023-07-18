@@ -10,7 +10,7 @@ pipeline {
 		maven 'Maven 3'
     }
     environment {
-        MAVEN_OPTS="-Dmaven.repo.local='/home/isworker/.m2/dataio-repo' -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
+        MAVEN_OPTS="-Dmaven.repo.local=/home/isworker/.m2/dataio-repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BUILD_NUMBER="${env.BUILD_NUMBER}"
@@ -52,7 +52,7 @@ pipeline {
             steps {
                 cleanWs()
                 sh """
-                    test -d '/home/isworker/.m2/dataio-repo/dk/dbc' && rm -r '/home/isworker/.m2/dataio-repo/dk/dbc' || echo ok
+                    test -d /home/isworker/.m2/dataio-repo/dk/dbc && rm -r /home/isworker/.m2/dataio-repo/dk/dbc || echo ok
                 """
                 checkout scm
             }

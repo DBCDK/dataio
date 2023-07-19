@@ -186,6 +186,7 @@ pipeline {
             }
             steps {
                 sh """
+                    git log -1
                     if [[ ! -z "\$(git log -1 | tail +5 | grep -E ' *!')" ]]; then
                         echo "Gogo stagin gadget!!!"
                         mvn deploy -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "${DEPLOY_ARTIFACTS}"

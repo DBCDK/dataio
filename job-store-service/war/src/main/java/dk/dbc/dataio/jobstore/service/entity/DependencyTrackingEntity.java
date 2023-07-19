@@ -32,6 +32,13 @@ import java.util.Set;
 @Table(name = "dependencytracking")
 @SqlResultSetMappings({
         @SqlResultSetMapping(
+                name = "jobId",
+                classes = {
+                        @ConstructorResult(
+                                targetClass = Integer.class,
+                                columns = {
+                                        @ColumnResult(name = "jobId")})}),
+        @SqlResultSetMapping(
                 name = DependencyTrackingEntity.KEY_RESULT,
                 classes = {
                         @ConstructorResult(
@@ -67,10 +74,10 @@ import java.util.Set;
         @NamedNativeQuery(name = "DependencyTrackingEntity.blockedGroupedBySink", query = "SELECT sinkid, 3 as status, count(*) from dependencyTracking where status = 3 group by sinkid",
                 resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT),
         @NamedNativeQuery(name = "DependencyTrackingEntity.dependingJobs",
-                query = "select distinct wo.\"jobId\" from dependencytracking d" +
+                query = "select distinct wo.\"jobId\" as jobId from dependencytracking d" +
                         "    cross join lateral jsonb_to_recordset(d.waitingon) as wo(\"jobId\" int, \"chunkId\" int)" +
                         "    where d.jobid = ?",
-                resultClass = Integer.class)
+                resultSetMapping = "jobId")
 })
 @NamedQueries({
         @NamedQuery(name = DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY,

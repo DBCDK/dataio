@@ -26,6 +26,8 @@ import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter
 @NamedQueries({
         @NamedQuery(name = JobQueueEntity.NQ_FIND_BY_STATE,
                 query = "SELECT jq FROM JobQueueEntity jq WHERE jq.state = :" + JobQueueEntity.FIELD_STATE),
+        @NamedQuery(name = JobQueueEntity.DELETE_BY_JOBID,
+                query = "DELETE FROM JobQueueEntity jq WHERE jq.job.id=:jobId")
 })
 @NamedNativeQueries({
         @NamedNativeQuery(name = JobQueueEntity.NQ_FIND_BY_SINK_AND_AVAILABLE_SUBMITTER, query =
@@ -41,6 +43,7 @@ public class JobQueueEntity {
     // this is native sql because jpql doesn't support json operators.
     // finds jobqueue entities with submitter ids which are not already in jobs marked as in progress
     public static final String NQ_FIND_BY_SINK_AND_AVAILABLE_SUBMITTER = "NQ_FIND_BY_SINK_AND_AVAILABLE_SUBMITTER";
+    public static final String DELETE_BY_JOBID = "JobQueueEntity.deleteByJobId";
 
     public static final String FIELD_SINK_ID = "sinkId";
     public static final String FIELD_STATE = "state";

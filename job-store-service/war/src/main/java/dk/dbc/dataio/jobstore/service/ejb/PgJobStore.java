@@ -90,12 +90,13 @@ public class PgJobStore {
     public JobInfoSnapshot abortJob(int jobId) {
         LOGGER.info("Aborting job {}", jobId);
         abortDependingJobs(jobId);
-        jobQueueRepository.getInProgress().stream()
-                .filter(j -> j.getJob().getId() == jobId)
-                .findFirst()
-                .ifPresent(jobQueueRepository::remove);
         JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+        LOGGER.info("Removing {} from job queue", jobId);
+        jobQueueRepository.deleteByJobId(jobId);
+        LOGGER.info("Removing {} from dependency tracking", jobId);
         removeFromDependencyTracking(jobEntity);
+
+        LOGGER.info("Setting aborted job state on {}", jobId);
         List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
         abortJob(jobEntity, diagnostics);
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);

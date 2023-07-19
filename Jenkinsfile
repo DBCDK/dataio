@@ -60,8 +60,8 @@ pipeline {
         stage("build") {
             steps {
                 sh """
-                mvn -B -T 6 install
-                mvn -B -T 6 pmd:pmd
+                mvn -B -T 6 -P !integration-test install
+                mvn -B -T 6 -P !integration-test pmd:pmd
                 echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                 ./cli/build_docker_image.sh
             """
@@ -191,7 +191,7 @@ pipeline {
                                     description: 'Dette byg bliver deployet til staging', name: 'Jep')])
                 }
                 sh """
-            mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "${DEPLOY_ARTIFACTS}"
+            mvn deploy -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "${DEPLOY_ARTIFACTS}"
             cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
         """
             }

@@ -165,6 +165,7 @@ public class JobSchedulerBean {
     public void scheduleChunk(ChunkEntity chunk, JobEntity job) {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(job, "job");
+        if(job.getState().isAborted()) return;
         final int sinkId = (int) job.getCachedSink().getSink().getId();
         final String barrierMatchKey = getBarrierMatchKey(job);
 
@@ -216,6 +217,7 @@ public class JobSchedulerBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void ensureLastChunkIsScheduled(int jobId) {
         final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+        if(jobEntity.getState().isAborted()) return;
         int chunkId = jobEntity.getNumberOfChunks() - 1;
         if (chunkId < 0) {
             chunkId = 0;

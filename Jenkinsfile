@@ -185,15 +185,13 @@ pipeline {
 
             }
             steps {
-                script {
-                    def deployBranchToStaging = input(message: 'Vil du deploye dette byg til staging DataIO?', ok: 'Yes',
-                            parameters: [booleanParam(defaultValue: true,
-                                    description: 'Dette byg bliver deployet til staging', name: 'Jep')])
-                }
                 sh """
-            mvn deploy -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "${DEPLOY_ARTIFACTS}"
-            cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
-        """
+                    git log -1 | tail +5 | grep -E ' *!' > /dev/null
+                    if [ ${?} -q 0]; then
+                        mvn deploy -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "${DEPLOY_ARTIFACTS}"
+                        cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
+                    fi
+                """
             }
         }
         stage("bump docker tags in dataio-secrets for non-master branches") {

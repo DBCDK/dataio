@@ -88,6 +88,8 @@ public class PgJobStore {
     SessionContext sessionContext;
 
     public JobInfoSnapshot abortJob(int jobId) {
+        LOGGER.info("Aborting job {}", jobId);
+        abortDependingJobs(jobId);
         JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
         removeFromDependencyTracking(jobEntity);
         List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
@@ -95,8 +97,17 @@ public class PgJobStore {
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
     }
 
-    private void removeFromDependencyTracking(JobEntity jobEntity) {
+    private void abortDependingJobs(int jobId) {
+        List<Integer> dependingJobs = jobStoreRepository.findDependingJobs(jobId);
+        if(!dependingJobs.isEmpty()) LOGGER.info("Aborting {} will also abort dependent jobs {}", jobId, dependingJobs);
+        for (Integer dependingJob : dependingJobs) {
+            abortJob(dependingJob);
+        }
+    }
 
+    private void removeFromDependencyTracking(JobEntity jobEntity) {
+        int count = jobStoreRepository.deleteDependencies(jobEntity.getId());
+        LOGGER.info("Aborting job {} deleted {} dependency tracking rows", jobEntity.getId(), count);
     }
 
     /**

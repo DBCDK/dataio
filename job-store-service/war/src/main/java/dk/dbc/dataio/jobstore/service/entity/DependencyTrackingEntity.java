@@ -19,6 +19,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.SqlResultSetMappings;
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -64,7 +65,12 @@ import java.util.Set;
                 query = "SELECT jobid, chunkid FROM dependencyTracking WHERE sinkId = ? AND submitter = ? AND hashes && ?::INTEGER[] ORDER BY jobId, chunkId FOR NO KEY UPDATE",
                 resultSetMapping = DependencyTrackingEntity.KEY_RESULT),
         @NamedNativeQuery(name = "DependencyTrackingEntity.blockedGroupedBySink", query = "SELECT sinkid, 3 as status, count(*) from dependencyTracking where status = 3 group by sinkid",
-                resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT)
+                resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT),
+        @NamedNativeQuery(name = "DependencyTrackingEntity.dependingJobs",
+                query = "select distinct wo.\"jobId\" from dependencytracking d" +
+                        "    cross join lateral jsonb_to_recordset(d.waitingon) as wo(\"jobId\" int, \"chunkId\" int)" +
+                        "    where d.jobid = ?",
+                resultClass = Integer.class)
 })
 @NamedQueries({
         @NamedQuery(name = DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY,
@@ -74,7 +80,9 @@ import java.util.Set;
         @NamedQuery(name = DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING,
                 query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus"),
         @NamedQuery(name = DependencyTrackingEntity.RESET_LIST_STATE_IN_DEPENDENCYTRACKING,
-                query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus AND e.key.jobId in :jobIds")
+                query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus AND e.key.jobId in :jobIds"),
+        @NamedQuery(name = DependencyTrackingEntity.DELETE_JOB,
+                query = "DELETE FROM DependencyTrackingEntity e WHERE e.key.jobId=:jobId")
 })
 public class DependencyTrackingEntity {
     static final String SINKID_STATUS_COUNT_RESULT = "SinkIdStatusCountResult";
@@ -88,6 +96,8 @@ public class DependencyTrackingEntity {
     public static final String CHUNKS_IN_STATE = "DependencyTrackingEntity.inState";
     public static final String RESET_STATE_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetState";
     public static final String RESET_LIST_STATE_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetList";
+    public static final String DEPENDING_JOBS = "DependencyTrackingEntity.dependingJobs";
+    public static final String DELETE_JOB = "DependencyTrackingEntity.deleteJob";
 
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
         this.key = new Key(chunk.getKey());
@@ -281,7 +291,7 @@ public class DependencyTrackingEntity {
     }
 
     @Embeddable
-    public static class Key {
+    public static class Key implements Serializable {
         @Column(name = "jobid")
         private int jobId;
 

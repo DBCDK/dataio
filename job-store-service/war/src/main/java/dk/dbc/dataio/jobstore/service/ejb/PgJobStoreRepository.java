@@ -126,6 +126,20 @@ public class PgJobStoreRepository extends RepositoryBase {
         return q.getSingleResult();
     }
 
+    public List<Integer> findDependingJobs(int jobId) {
+        TypedQuery<Integer> query = entityManager.createNamedQuery(DependencyTrackingEntity.DEPENDING_JOBS, Integer.class);
+        query.setParameter(1, jobId);
+        List<Integer> list = new ArrayList<>(query.getResultList());
+        list.remove(Integer.valueOf(jobId));
+        return list;
+    }
+
+    public int deleteDependencies(int jobId) {
+        Query query = entityManager.createNamedQuery(DependencyTrackingEntity.DELETE_JOB);
+        query.setParameter("jobId", jobId);
+        return query.executeUpdate();
+    }
+
     public int resetStatus(List<Integer> jobIds, DependencyTrackingEntity.ChunkSchedulingStatus fromStatus,
                            DependencyTrackingEntity.ChunkSchedulingStatus toStatus) {
         Query q;

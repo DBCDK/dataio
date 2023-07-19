@@ -90,16 +90,15 @@ public class PgJobStore {
     public JobInfoSnapshot abortJob(int jobId) {
         JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
         try {
+            LOGGER.info("Setting aborted job state on {}", jobId);
+            List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
+            abortJob(jobEntity, diagnostics);
             LOGGER.info("Aborting job {}", jobId);
             abortDependingJobs(jobId);
             LOGGER.info("Removing {} from job queue", jobId);
             jobQueueRepository.deleteByJobId(jobId);
             LOGGER.info("Removing {} from dependency tracking", jobId);
             removeFromDependencyTracking(jobEntity);
-
-            LOGGER.info("Setting aborted job state on {}", jobId);
-            List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
-            abortJob(jobEntity, diagnostics);
         } catch (Exception e) {
             LOGGER.error("Failed to abort {}", jobId, e);
         }

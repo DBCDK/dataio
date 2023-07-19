@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.types;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.types.Diagnostic;
 
@@ -112,6 +113,7 @@ public class State {
         return false;
     }
 
+    @JsonIgnore
     public boolean isAborted() {
         return diagnostics.stream().map(Diagnostic::getLevel).anyMatch(Diagnostic.Level.ABORTED::equals);
     }

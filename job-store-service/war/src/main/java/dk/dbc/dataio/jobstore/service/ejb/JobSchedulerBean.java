@@ -444,7 +444,7 @@ public class JobSchedulerBean {
 
             final int spaceLeftInQueue = JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK - enqueued;
             if (spaceLeftInQueue > 0) {
-                LOGGER.info("bulk scheduling for processing - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
+                LOGGER.debug("bulk scheduling for processing - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
 
                 final List<DependencyTrackingEntity> chunks = entityManager
                         .createNamedQuery(DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY, DependencyTrackingEntity.class)
@@ -453,7 +453,7 @@ public class JobSchedulerBean {
                         .setMaxResults(spaceLeftInQueue)
                         .getResultList();
 
-                LOGGER.info("bulk scheduling for processing - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
+                if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for processing - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
                 for (DependencyTrackingEntity toSchedule : chunks) {
                     final DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
                     LOGGER.info("bulk scheduling for processing - chunk {} to be scheduled for processing for sink {}", toScheduleKey, sinkId);
@@ -479,7 +479,7 @@ public class JobSchedulerBean {
 
             final int spaceLeftInQueue = MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK - enqueued;
             if (spaceLeftInQueue > 0) {
-                LOGGER.info("bulk scheduling for delivery - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
+                LOGGER.debug("bulk scheduling for delivery - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
 
                 final List<DependencyTrackingEntity> chunks = entityManager
                         .createNamedQuery(DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY, DependencyTrackingEntity.class)
@@ -488,7 +488,7 @@ public class JobSchedulerBean {
                         .setMaxResults(spaceLeftInQueue)
                         .getResultList();
 
-                LOGGER.info("bulk scheduling for delivery - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
+                if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for delivery - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
                 for (DependencyTrackingEntity toSchedule : chunks) {
                     final DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
                     LOGGER.info("bulk scheduling for delivery - chunk {} to be scheduled for delivery for sink {}", toScheduleKey, sinkId);

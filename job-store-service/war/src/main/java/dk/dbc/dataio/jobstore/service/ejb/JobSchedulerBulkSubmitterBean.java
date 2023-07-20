@@ -50,7 +50,7 @@ public class JobSchedulerBulkSubmitterBean {
 
                 if (queueStatus.getMode() == DIRECT) return;
 
-                LOGGER.info("prSink Delivering QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
+                LOGGER.debug("prSink Delivering QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
                 doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Delivering);
             } catch (Exception e) {
                 LOGGER.error("Error in sink for sink {}", sinkId, e);
@@ -69,7 +69,7 @@ public class JobSchedulerBulkSubmitterBean {
 
                 if (queueStatus.getMode() == DIRECT) return;
 
-                LOGGER.info("prSink Processing QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
+                LOGGER.debug("prSink Processing QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
                 doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Processing);
             } catch (Exception e) {
                 LOGGER.error("Error in Processing for sink {}", sinkId, e);
@@ -87,7 +87,7 @@ public class JobSchedulerBulkSubmitterBean {
     private void doBulkJmsQueueSubmit(Long sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus, ProcessingOrDelivering phase) {
         LOGGER.info("prSink {} queue test {} < {} -> {} ", phase, queueStatus.ready.intValue(), JobSchedulerBean.TRANSITION_TO_DIRECT_MARK, queueStatus.ready.intValue() < (JobSchedulerBean.TRANSITION_TO_DIRECT_MARK));
         if (queueStatus.getMode() == BULK && queueStatus.ready.intValue() < JobSchedulerBean.TRANSITION_TO_DIRECT_MARK) {
-            LOGGER.info("prSink {} Queue starting switch to DirectMode", phase);
+            LOGGER.debug("prSink {} Queue starting switch to DirectMode", phase);
             queueStatus.setMode(TRANSITION_TO_DIRECT);
             queueStatus.bulkToDirectCleanUpPushes = 0;
         }
@@ -102,7 +102,7 @@ public class JobSchedulerBulkSubmitterBean {
         // A Future is present, if not done check again on next schedule
         if (!queueStatus.lastAsyncPushResult.isDone()) return;
 
-        LOGGER.info("{} Async Result for sink {}, ready({}), enqueued({})", phase, sinkId, queueStatus.ready.intValue(), queueStatus.enqueued.intValue());
+        LOGGER.debug("{} Async Result for sink {}, ready({}), enqueued({})", phase, sinkId, queueStatus.ready.intValue(), queueStatus.enqueued.intValue());
         int lastAsyncPushedToQueue = -1;
         try {
             lastAsyncPushedToQueue = queueStatus.lastAsyncPushResult.get();

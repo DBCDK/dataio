@@ -60,11 +60,16 @@ pipeline {
         stage("build") {
             steps {
                 sh """
-                mvn -B -T 6 -P !integration-test install
-                mvn -B -T 6 -P !integration-test pmd:pmd
-                echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
-                ./cli/build_docker_image.sh
-            """
+                    FAST=""                    
+                    if [ -n "\$(git log -1 | tail +5 | grep -E ' *!!')" ]; then
+                        echo Fast branch deployment skip all tests
+                        FAST=" -P !integration-test -Dmaven.test.skip=true "
+                    fi
+                    mvn -B -T 6 \${FAST} install
+                    test -n \${FAST} && mvn -B -T 6 -P !integration-test pmd:pmd
+                    echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
+                    ./cli/build_docker_image.sh
+                """
                 script {
                     junit testResults: '**/target/*-reports/*.xml'
 

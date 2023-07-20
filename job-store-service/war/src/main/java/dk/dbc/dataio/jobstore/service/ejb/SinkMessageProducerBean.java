@@ -43,7 +43,7 @@ public class SinkMessageProducerBean implements MessageIdentifiers {
     JSONBContext jsonbContext = new JSONBContext();
 
     @PostConstruct
-    public void init(JobEntity job) {
+    public void init() {
         connectionFactory = new ActiveMQXAConnectionFactory("tcp://" + artemisHost + ":61616");
     }
 

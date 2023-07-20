@@ -60,7 +60,8 @@ pipeline {
         stage("build") {
             steps {
                 sh """
-                    FAST=""                    
+                    FAST=""
+                    echo BRANCHNAME: ${env.BRANCH_NAME}                    
                     if [ -n "\$(git log -1 | tail +5 | grep -E ' *!!')" ]; then
                         echo Fast branch deployment skip all tests
                         FAST=" -P !integration-test -Dmaven.test.skip=true "
@@ -71,7 +72,7 @@ pipeline {
                     ./cli/build_docker_image.sh
                 """
                 script {
-                    junit testResults: '**/target/*-reports/*.xml'
+                    junit allowEmptyResults:true, testResults: '**/target/*-reports/*.xml'
 
                     def java = scanForIssues tool: [$class: 'Java']
                     publishIssues issues:[java], unstableTotalAll:1

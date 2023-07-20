@@ -88,7 +88,7 @@ public class PgJobStore {
     SessionContext sessionContext;
 
     public JobInfoSnapshot abortJob(int jobId) {
-        JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+        JobEntity jobEntity = entityManager.find(JobEntity.class, jobId, LockModeType.PESSIMISTIC_WRITE);
         try {
             LOGGER.info("Setting aborted job state on {}", jobId);
             List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));

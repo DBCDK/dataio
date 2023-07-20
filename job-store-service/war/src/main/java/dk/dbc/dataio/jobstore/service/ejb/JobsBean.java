@@ -81,14 +81,18 @@ public class JobsBean {
     @EJB
     JobPurgeBean jobPurgeBean;
 
+    @EJB
+    SinkMessageProducerBean sinkMessageProducerBean;
+
     AdminClient adminClient = AdminClientFactory.getAdminClient();
 
     @POST
     @Path(JobStoreServiceConstants.JOB_ABORT + "/{jobId}")
-    public Response abortJob(@PathParam("jobId") int jobId) throws JSONBException {
+    public Response abortJob(@PathParam("jobId") int jobId) throws JobStoreException {
         LOGGER.warn("Aborting job {}", jobId);
         JobEntity job = jobStore.abortJob(jobId);
         removeFromQueues(job);
+        sinkMessageProducerBean.sendAbort(job);
         return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(job)).build();
     }
 

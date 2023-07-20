@@ -74,7 +74,6 @@ public class PresenterCreateImplTest extends PresenterImplTestBase {
 
         // Verifications
         assertThat(presenterCreateImpl.model.getSinkName(), is(""));
-        assertThat(presenterCreateImpl.model.getResourceName(), is(""));
         assertThat(presenterCreateImpl.model.getDescription(), is(""));
     }
 

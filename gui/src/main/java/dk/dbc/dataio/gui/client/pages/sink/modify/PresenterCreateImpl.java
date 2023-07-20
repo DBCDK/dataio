@@ -58,8 +58,6 @@ public class PresenterCreateImpl extends PresenterImpl {
         View view = getView();
         view.sinkTypeSelection.setEnabled(true);
         model.setSinkType(sinkType);
-        model.setResourceName("");
-        view.resource.setValue("");
         switch (sinkType) {
             case DPF:
                 model.setSinkConfig(new DpfSinkConfig());
@@ -84,12 +82,6 @@ public class PresenterCreateImpl extends PresenterImpl {
             case TICKLE:
                 model.setSinkConfig(null);
                 view.sequenceAnalysisSection.setVisible(false);
-                break;
-            case DUMMY:
-                model.setSinkConfig(null);
-                model.setResourceName(DEFAULT_DUMMY_SINK_RESOURCE);
-                view.resource.setEnabled(false);
-                view.resource.setValue(DEFAULT_DUMMY_SINK_RESOURCE);
                 break;
             case VIP:
                 model.setSinkConfig(new VipSinkConfig());

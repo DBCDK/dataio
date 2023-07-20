@@ -118,7 +118,6 @@ public class ViewTest {
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_TYPE));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_DESCRIPTION));
-        verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_RESOURCENAME));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_QUEUENAME));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_ACTION));
         verify(view.sinksTable).setSelectionModel(any(SelectionModel.class));
@@ -183,19 +182,6 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         assertThat(column.getValue(testModel1), is(testModel1.getDescription()));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void constructResourceNameColumn_call_correctlySetup() {
-        // Setup
-        view = new View();
-
-        // Subject Under Test
-        Column column = view.constructResourceNameColumn();
-
-        // Test that correct getValue handler has been setup
-        assertThat(column.getValue(testModel1), is(testModel1.getResourceName()));
     }
 
     @Test

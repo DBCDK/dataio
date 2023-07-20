@@ -28,7 +28,6 @@ public class SinkModelMapper {
                 sink.getContent().getSinkType(),
                 sink.getContent().getName(),
                 sink.getContent().getQueue(),
-                sink.getContent().getResource(),
                 sink.getContent().getDescription(),
                 sink.getContent().getSequenceAnalysisOption(),
                 sink.getContent().getSinkConfig());
@@ -55,7 +54,6 @@ public class SinkModelMapper {
         return new SinkContent(
                 model.getSinkName(),
                 model.getQueue(),
-                model.getResourceName(),
                 model.getDescription(),
                 model.getSinkType(),
                 model.getSinkConfig(),

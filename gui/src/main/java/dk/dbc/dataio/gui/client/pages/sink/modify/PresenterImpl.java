@@ -62,7 +62,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.worldCatSinkSection.setVisible(false);
         view.vipSinkSection.setVisible(false);
         view.dpfSinkSection.setVisible(false);
-        view.resource.setEnabled(true);
         handleSinkConfig(sinkType);
     }
 
@@ -92,16 +91,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         } else {
             getView().setErrorText(getTexts().error_QueueNameValidationError());
         }
-    }
-
-    /**
-     * A signal to the presenter, saying that the resource field has been changed
-     *
-     * @param resource, the new resource value
-     */
-    @Override
-    public void resourceChanged(String resource) {
-        model.setResourceName(resource);
     }
 
     /**
@@ -424,8 +413,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.name.setEnabled(false);
         view.queue.clearText();
         view.queue.setEnabled(false);
-        view.resource.clearText();
-        view.resource.setEnabled(false);
         view.description.clearText();
         view.description.setEnabled(false);
         view.url.clearText();
@@ -483,9 +470,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.name.setEnabled(true);
         view.name.setFocus(true);
         view.queue.setText(model.getQueue());
-        view.queue.setEnabled(true);
-        view.resource.setText(model.getResourceName());
-        view.resource.setEnabled(true);
         view.description.setText(model.getDescription());
         view.description.setEnabled(true);
         view.url.setEnabled(true);

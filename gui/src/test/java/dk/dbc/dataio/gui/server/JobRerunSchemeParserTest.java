@@ -91,7 +91,7 @@ public class JobRerunSchemeParserTest {
     public void parse_toTickleJob_hasActionRerunIsTypeTickle() throws FlowStoreServiceConnectorException {
         final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed()
                 .withSpecification(new JobSpecification()).withFlowStoreReferences(getFlowStoreReferencesWithSink());
-        when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(new Sink(1, 1, new SinkContentBuilder().setResource(JobRerunScheme.TICKLE_TOTAL).setSinkType(SinkContent.SinkType.TICKLE).build()));
+        when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(new Sink(1, 1, new SinkContentBuilder().setQueue(JobRerunScheme.TICKLE_TOTAL).setSinkType(SinkContent.SinkType.TICKLE).build()));
         final JobRerunSchemeParser jobRerunSchemeParser = new JobRerunSchemeParser(flowStoreServiceConnector);
 
         // Subject under test

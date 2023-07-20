@@ -14,9 +14,6 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String label_QueueName();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String label_ResourceName();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_Description();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

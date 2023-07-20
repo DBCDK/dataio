@@ -117,6 +117,6 @@ public class SinkModelBuilder {
      * @return The SinkModel object
      */
     public SinkModel build() {
-        return new SinkModel(id, version, sinkType, name, queue, resource, description, sequenceAnalysisOption, sinkConfig);
+        return new SinkModel(id, version, sinkType, name, queue, description, sequenceAnalysisOption, sinkConfig);
     }
 }

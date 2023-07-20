@@ -18,7 +18,6 @@ public class SinkModel extends GenericBackendModel {
     private SinkContent.SinkType sinkType;
     private String sinkName;
     private String queue;
-    private String resource;
     private String description;
     private SinkContent.SequenceAnalysisOption sequenceAnalysisOption;
     private SinkConfig sinkConfig;
@@ -28,7 +27,7 @@ public class SinkModel extends GenericBackendModel {
      * Empty constructor
      */
     public SinkModel() {
-        this(0L, 0L, SinkContent.SinkType.ES, "", "", "", "", SinkContent.SequenceAnalysisOption.ALL, null);
+        this(0L, 0L, SinkContent.SinkType.ES, "", "", "", SinkContent.SequenceAnalysisOption.ALL, null);
     }
 
     /**
@@ -38,7 +37,6 @@ public class SinkModel extends GenericBackendModel {
      * @param version                Sink Version
      * @param sinkType               Sink Type
      * @param name                   Sink Name
-     * @param resource               Sink Resource
      * @param description            Sink Description
      * @param sequenceAnalysisOption deciding level of sequence analysis
      * @param sinkConfig             Sink Config
@@ -48,7 +46,6 @@ public class SinkModel extends GenericBackendModel {
                      SinkContent.SinkType sinkType,
                      String name,
                      String queue,
-                     String resource,
                      String description,
                      SinkContent.SequenceAnalysisOption sequenceAnalysisOption,
                      SinkConfig sinkConfig) {
@@ -56,7 +53,6 @@ public class SinkModel extends GenericBackendModel {
         this.sinkType = sinkType;
         sinkName = name;
         this.queue = queue;
-        this.resource = resource;
         this.description = description == null ? "" : description;
         this.sequenceAnalysisOption = sequenceAnalysisOption;
         this.sinkConfig = sinkConfig;
@@ -86,24 +82,6 @@ public class SinkModel extends GenericBackendModel {
 
     public void setQueue(String queue) {
         this.queue = queue;
-    }
-
-    /**
-     * Gets the Resource name
-     *
-     * @return resourceName
-     */
-    public String getResourceName() {
-        return resource;
-    }
-
-    /**
-     * Set resource name
-     *
-     * @param resourceName Resource name
-     */
-    public void setResourceName(String resourceName) {
-        this.resource = resourceName;
     }
 
     /**
@@ -487,7 +465,6 @@ public class SinkModel extends GenericBackendModel {
 
         if (sinkType != sinkModel.sinkType) return false;
         if (sinkName != null ? !sinkName.equals(sinkModel.sinkName) : sinkModel.sinkName != null) return false;
-        if (resource != null ? !resource.equals(sinkModel.resource) : sinkModel.resource != null) return false;
         if (description != null ? !description.equals(sinkModel.description) : sinkModel.description != null)
             return false;
         if (sequenceAnalysisOption != sinkModel.sequenceAnalysisOption) return false;
@@ -499,7 +476,6 @@ public class SinkModel extends GenericBackendModel {
     public int hashCode() {
         int result = sinkType != null ? sinkType.hashCode() : 0;
         result = 31 * result + (sinkName != null ? sinkName.hashCode() : 0);
-        result = 31 * result + (resource != null ? resource.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + (sequenceAnalysisOption != null ? sequenceAnalysisOption.hashCode() : 0);
         result = 31 * result + (sinkConfig != null ? sinkConfig.hashCode() : 0);

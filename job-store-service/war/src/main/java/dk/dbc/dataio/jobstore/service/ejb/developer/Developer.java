@@ -3,11 +3,11 @@ package dk.dbc.dataio.jobstore.service.ejb.developer;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
@@ -40,7 +40,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,7 +80,7 @@ public class Developer {
             Flow flow = new Flow(1, 1, new FlowContent("Flow 1", "describe 1",
                     List.of(flowComponent)));
             Sink sink = new Sink(1, 1, new SinkContent("sink 1", "sinkqueue1",
-                    "resource1", "descibe 1", SinkContent.SinkType.HIVE, null,
+                    "descibe 1", SinkContent.SinkType.HIVE, null,
                     SinkContent.SequenceAnalysisOption.ID_ONLY));
 
             Submitter submitter = new Submitter(1, 1,

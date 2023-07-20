@@ -61,8 +61,8 @@ pipeline {
             steps {
                 sh """
                     FAST=""
-                    echo BRANCHNAME: ${env.BRANCH_NAME}                    
-                    if [ -n "\$(git log -1 | tail +5 | grep -E ' *!!')" ]; then
+                    ${env.BRANCH_NAME}                    
+                    if [ "master" -ne "\${env.BRANCH_NAME}"] && [ -n "\$(git log -1 | tail +5 | grep -E ' *!!')" ]; then
                         echo Fast branch deployment skip all tests
                         FAST=" -P !integration-test -Dmaven.test.skip=true "
                     fi

@@ -20,6 +20,7 @@ public enum JMSHeader {
 
     public final String name;
     public static final String CHUNK_PAYLOAD_TYPE = "Chunk";
+    public static final String ABORT_PAYLOAD_TYPE = "ABORT";
 
     JMSHeader() {
         name = name();

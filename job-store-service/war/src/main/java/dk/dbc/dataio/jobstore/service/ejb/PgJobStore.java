@@ -87,7 +87,7 @@ public class PgJobStore {
     @Resource
     SessionContext sessionContext;
 
-    public JobInfoSnapshot abortJob(int jobId) {
+    public JobEntity abortJob(int jobId) {
         JobEntity jobEntity = entityManager.find(JobEntity.class, jobId, LockModeType.PESSIMISTIC_WRITE);
         try {
             LOGGER.info("Setting aborted job state on {}", jobId);
@@ -102,8 +102,10 @@ public class PgJobStore {
         } catch (Exception e) {
             LOGGER.error("Failed to abort {}", jobId, e);
         }
-        return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
+        return jobEntity;
     }
+
+
 
     private void abortDependingJobs(int jobId) {
         List<Integer> dependingJobs = jobStoreRepository.findDependingJobs(jobId);

@@ -65,7 +65,7 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
             TextMessage message = createMessage(context, chunk, jobEntity);
             JMSProducer producer = context.createProducer();
             producer.setPriority(priority);
-            String queueName = jobEntity.getSpecification().getType().processorQueue;
+            String queueName = jobEntity.getProcessorQueue();
             Queue queue = context.createQueue(queueName);
             producer.send(queue, message);
         } catch (JSONBException | JMSException e) {

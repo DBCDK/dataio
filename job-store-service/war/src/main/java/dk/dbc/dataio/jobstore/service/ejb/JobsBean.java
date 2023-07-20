@@ -2,20 +2,19 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
+import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
@@ -51,10 +50,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static javax.ws.rs.core.Response.Status.ACCEPTED;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -93,19 +89,17 @@ public class JobsBean {
 
     @POST
     @Path(JobStoreServiceConstants.JOB_ABORT + "/{jobId}")
-    public Response abortJob(@PathParam("jobId") int jobId) throws FlowStoreServiceConnectorException, JSONBException {
+    public Response abortJob(@PathParam("jobId") int jobId) throws JSONBException {
         LOGGER.warn("Aborting job {}", jobId);
-        removeFromAllQueues(jobId);
-        JobInfoSnapshot snapshot = jobStore.abortJob(jobId);
-        return Response.ok(jsonbContext.marshall(snapshot)).build();
+        JobEntity job = jobStore.abortJob(jobId);
+        removeFromQueues(job);
+        return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(job)).build();
     }
 
-    private void removeFromAllQueues(int jobId) throws FlowStoreServiceConnectorException {
-        Stream<String> processQueues = Arrays.stream(JobSpecification.Type.values()).map(t -> t.processorQueue);
-        Stream<String> sinkQueues = flowStoreService.getConnector().findAllSinks().stream().map(Sink::getContent).map(SinkContent::getQueue);
-        List<String> queues = Stream.concat(processQueues, sinkQueues).distinct().collect(Collectors.toList());
-        LOGGER.info("Removing job {} from queues: {}", jobId, queues);
-        queues.forEach(q -> removeFromQueue(q, jobId));
+    private void removeFromQueues(JobEntity job) {
+        List<String> queues = List.of(job.getProcessorQueue(), job.getSinkQueue());
+        LOGGER.info("Removing job {} from queues: {}", job.getId(), queues);
+        queues.forEach(q -> removeFromQueue(q, job.getId()));
     }
 
     private void removeFromQueue(String fqn, int jobId) {

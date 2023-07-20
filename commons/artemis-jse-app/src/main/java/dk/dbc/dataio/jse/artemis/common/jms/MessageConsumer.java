@@ -21,11 +21,14 @@ import javax.jms.TextMessage;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -40,6 +43,7 @@ public interface MessageConsumer extends MessageListener {
     AtomicInteger RUNNING_TRANSACTIONS = new AtomicInteger(0);
     AtomicLong LAST_MESSAGE_TS = new AtomicLong(System.currentTimeMillis());
     ObjectMapper MAPPER = new ObjectMapper();
+    Set<Integer> ABORTED_JOBS = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     default void initMetrics(MetricRegistry metricRegistry) {
         metricRegistry.gauge("dataio_running_transactions", RUNNING_TRANSACTIONS::get);
@@ -82,9 +86,24 @@ public interface MessageConsumer extends MessageListener {
         List<Tag> tags = new ArrayList<>();
         try {
             messageId = message.getJMSMessageID();
-            LOGGER.info("Received chunk {}/{} with uid: {}", JMSHeader.jobId.getHeader(message), JMSHeader.chunkId.getHeader(message), JMSHeader.trackingId.getHeader(message));
+            int jobId = JMSHeader.jobId.getHeader(message);
             tags.add(destination.is(getFQN()));
             tags.add(redelivery.is(Boolean.toString(message.getJMSRedelivered())));
+            if(JMSHeader.ABORT_PAYLOAD_TYPE.equals(JMSHeader.payload.getHeader(message))) {
+                LOGGER.info("Received abort for job {}", jobId);
+                ABORTED_JOBS.add(jobId);
+                try {
+                    abortJob(jobId);
+                } catch (RuntimeException re) {
+                    LOGGER.warn("Job abortion failed for {}", jobId, re);
+                }
+                return;
+            }
+            if(ABORTED_JOBS.contains(jobId)) {
+                LOGGER.info("Discarding chunk {}/{} for aborted job", jobId, JMSHeader.chunkId.getHeader(message));
+                return;
+            }
+            LOGGER.info("Received chunk {}/{} with uid: {}", jobId, JMSHeader.chunkId.getHeader(message), JMSHeader.trackingId.getHeader(message));
             ConsumedMessage consumedMessage = validateMessage(message);
             handleConsumedMessage(consumedMessage);
         } catch (InvalidMessageException e) {
@@ -143,6 +162,9 @@ public interface MessageConsumer extends MessageListener {
             headers.put(propertyName, message.getObjectProperty(propertyName));
         }
         return headers;
+    }
+
+    default void abortJob(int jobId) {
     }
 
     default long getTimeSinceLastMessage() {

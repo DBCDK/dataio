@@ -2,7 +2,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
@@ -35,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -82,8 +80,6 @@ public class JobsBean {
 
     @EJB
     JobPurgeBean jobPurgeBean;
-    @Inject
-    FlowStoreServiceConnectorBean flowStoreService;
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
 

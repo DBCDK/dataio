@@ -60,6 +60,7 @@ pipeline {
         stage("build") {
             steps {
                 sh """
+                    #!/bin/bash
                     FAST=""
                     ${env.BRANCH_NAME}                    
                     if [[ "master" -ne "\${env.BRANCH_NAME}" && -n "\$(git log -1 | tail +5 | grep -E ' *!!')" ]]; then

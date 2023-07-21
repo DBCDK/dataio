@@ -13,6 +13,8 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.apache.activemq.artemis.jms.client.ActiveMQXAConnectionFactory;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -30,12 +32,14 @@ import javax.jms.JMSException;
 import javax.jms.JMSProducer;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
+import java.time.Duration;
 import java.util.Optional;
 
 @LocalBean
 @Stateless
 public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobProcessorMessageProducerBean.class);
+    private final RetryPolicy<?> retryPolicy;
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -43,6 +47,15 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     @ConfigProperty(name = "ARTEMIS_MQ_HOST")
     private String artemisHost;
     ConnectionFactory connectionFactory;
+
+    public JobProcessorMessageProducerBean() {
+        retryPolicy = new RetryPolicy<>().withDelay(Duration.ofSeconds(30)).withMaxRetries(10)
+                .onFailedAttempt(attempt -> LOGGER.warn("Unable to send message to processor", attempt.getLastFailure()));
+    }
+
+    public JobProcessorMessageProducerBean(RetryPolicy<?> retryPolicy) {
+        this.retryPolicy = retryPolicy;
+    }
 
     @PostConstruct
     public void init() {
@@ -67,7 +80,7 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
             producer.setPriority(priority);
             String queueName = jobEntity.getProcessorQueue();
             Queue queue = context.createQueue(queueName);
-            producer.send(queue, message);
+            Failsafe.with(retryPolicy).run(() -> producer.send(queue, message));
         } catch (JSONBException | JMSException e) {
             String errorMessage = String.format("Exception caught while queueing chunk %s for job %s with trackingId %s", chunk.getChunkId(), chunk.getJobId(), chunk.getTrackingId());
             throw new JobStoreException(errorMessage, e);

@@ -105,21 +105,6 @@ public class PgJobStore {
         return jobEntity;
     }
 
-
-
-    private void abortDependingJobs(int jobId) {
-        List<Integer> dependingJobs = jobStoreRepository.findDependingJobs(jobId);
-        if(!dependingJobs.isEmpty()) LOGGER.info("Aborting {} will also abort dependent jobs {}", jobId, dependingJobs);
-        for (Integer dependingJob : dependingJobs) {
-            abortJob(dependingJob);
-        }
-    }
-
-    private void removeFromDependencyTracking(JobEntity jobEntity) {
-        int count = jobStoreRepository.deleteDependencies(jobEntity.getId());
-        LOGGER.info("Aborting job {} deleted {} dependency tracking rows", jobEntity.getId(), count);
-    }
-
     /**
      * Adds new job in the underlying data store from given job input stream, after attempting to retrieve
      * required referenced objects through addJobParam.
@@ -376,6 +361,19 @@ public class PgJobStore {
 
         entityManager.flush();
         return jobEntity;
+    }
+
+    private void abortDependingJobs(int jobId) {
+        List<Integer> dependingJobs = jobStoreRepository.findDependingJobs(jobId);
+        if(!dependingJobs.isEmpty()) LOGGER.info("Aborting {} will also abort dependent jobs {}", jobId, dependingJobs);
+        for (Integer dependingJob : dependingJobs) {
+            abortJob(dependingJob);
+        }
+    }
+
+    private void removeFromDependencyTracking(JobEntity jobEntity) {
+        int count = jobStoreRepository.deleteDependencies(jobEntity.getId());
+        LOGGER.info("Aborting job {} deleted {} dependency tracking rows", jobEntity.getId(), count);
     }
 
     private State endPartitioningPhase(JobEntity job) {

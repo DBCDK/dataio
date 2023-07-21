@@ -41,7 +41,7 @@ import java.util.List;
  * This class is the View class for the New Jobs Show View
  */
 public class View extends ViewWidget {
-
+    private static final List<Long> ABORTABLE_SINKS = List.of(1L, 54L, 12451L);
     ViewJobsGinjector viewInjector = GWT.create(ViewJobsGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
@@ -552,7 +552,7 @@ public class View extends ViewWidget {
 
             @Override
             public String getCellStyleNames(Cell.Context context, JobModel model) {
-                return workFlowColumnsVisible ? "visible" : "invisible";
+                return ABORTABLE_SINKS.contains(model.getSinkId()) || workFlowColumnsVisible ? "visible" : "invisible";
             }
         };
         abortButtonColumn.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);

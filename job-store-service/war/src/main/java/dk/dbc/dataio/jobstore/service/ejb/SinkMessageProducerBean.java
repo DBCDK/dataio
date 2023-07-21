@@ -10,6 +10,8 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.apache.activemq.artemis.jms.client.ActiveMQXAConnectionFactory;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -25,6 +27,7 @@ import javax.jms.JMSException;
 import javax.jms.JMSProducer;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
+import java.time.Duration;
 
 /**
  * This Enterprise Java Bean (EJB) functions as JMS message producer for
@@ -34,6 +37,8 @@ import javax.jms.TextMessage;
 @Stateless
 public class SinkMessageProducerBean implements MessageIdentifiers {
     private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageProducerBean.class);
+    private final RetryPolicy<?> retryPolicy;
+
 
     @Inject
     @ConfigProperty(name = "ARTEMIS_MQ_HOST")
@@ -41,6 +46,15 @@ public class SinkMessageProducerBean implements MessageIdentifiers {
     ConnectionFactory connectionFactory;
 
     JSONBContext jsonbContext = new JSONBContext();
+
+    public SinkMessageProducerBean() {
+        retryPolicy = new RetryPolicy<>().withDelay(Duration.ofSeconds(30)).withMaxRetries(10)
+                .onFailedAttempt(attempt -> LOGGER.warn("Unable to send message to sink", attempt.getLastFailure()));
+    }
+
+    public SinkMessageProducerBean(RetryPolicy<?> retryPolicy) {
+        this.retryPolicy = retryPolicy;
+    }
 
     @PostConstruct
     public void init() {
@@ -73,6 +87,7 @@ public class SinkMessageProducerBean implements MessageIdentifiers {
         try(JMSContext context = connectionFactory.createContext()) {
             TextMessage message = createMessage(context, chunk, flowStoreReferences);
             LOGGER.info("Sending chunk {}/{} to queue {} with unique id {}", chunk.getJobId(), chunk.getChunkId(), job.getSinkQueue(), chunk.getTrackingId());
+
             send(context, message, job, priority);
         } catch (JSONBException | JMSException e) {
             String errorMessage = String.format(
@@ -89,7 +104,7 @@ public class SinkMessageProducerBean implements MessageIdentifiers {
         Queue queue = context.createQueue(qname.contains("::") ? qname : qname + "::" + qname);
         JMSProducer producer = context.createProducer();
         producer.setPriority(priority);
-        producer.send(queue, message);
+        Failsafe.with(retryPolicy).run(() -> producer.send(queue, message));
     }
 
     /**

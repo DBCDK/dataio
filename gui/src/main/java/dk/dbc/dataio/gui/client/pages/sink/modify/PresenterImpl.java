@@ -469,6 +469,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.name.setText(model.getSinkName());
         view.name.setEnabled(true);
         view.name.setFocus(true);
+        view.queue.setEnabled(true);
         view.queue.setText(model.getQueue());
         view.description.setText(model.getDescription());
         view.description.setEnabled(true);

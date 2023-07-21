@@ -13,6 +13,8 @@ import dk.dbc.dataio.jobstore.test.types.FlowStoreReferenceBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import net.jodah.failsafe.RetryPolicy;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,7 +22,11 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
+import javax.jms.JMSRuntimeException;
+import javax.jms.Message;
+import javax.jms.Queue;
 import javax.jms.TextMessage;
+import java.time.Duration;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -29,19 +35,21 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JobProcessorMessageProducerBeanTest {
-    private ConnectionFactory jmsConnectionFactory = mock(ConnectionFactory.class);
     private final JMSContext jmsContext = mock(JMSContext.class);
     private final JMSProducer jmsProducer = mock(JMSProducer.class);
+    private final ConnectionFactory jmsConnectionFactory = mock(ConnectionFactory.class);
     private final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
 
     @Before
     public void setupMocks() {
         when(jmsConnectionFactory.createContext()).thenReturn(jmsContext);
         when(jmsContext.createProducer()).thenReturn(jmsProducer);
+        when(jmsContext.createQueue(any(String.class))).thenReturn(mock(Queue.class));
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
     }
 
@@ -66,36 +74,47 @@ public class JobProcessorMessageProducerBeanTest {
 
     @Test
     public void createMessage_chunkArgIsValid_returnsMessageWithHeaderProperties() throws JSONBException, JMSException {
-        final JobEntity jobEntity = buildJobEntity();
+        JobEntity jobEntity = buildJobEntity();
 
         // Subject under test
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobEntity.getId()).build();
-        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, chunk, jobEntity);
+        TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, chunk, jobEntity);
 
         // Verification
         assertThat(JMSHeader.payload.getHeader(message), is(JMSHeader.CHUNK_PAYLOAD_TYPE));
 
-        final FlowStoreReference flowReference = jobEntity.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW);
+        FlowStoreReference flowReference = jobEntity.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW);
         assertThat(JMSHeader.flowId.getHeader(message), is(flowReference.getId()));
         assertThat(JMSHeader.flowVersion.getHeader(message), is(flowReference.getVersion()));
         assertThat(JMSHeader.jobId.getHeader(message), is(jobEntity.getId()));
         assertThat(JMSHeader.chunkId.getHeader(message), is(chunk.getChunkId()));
         assertThat(JMSHeader.trackingId.getHeader(message), notNullValue());
 
-        final JobSpecification jobSpecification = jobEntity.getSpecification();
+        JobSpecification jobSpecification = jobEntity.getSpecification();
         assertThat(JMSHeader.additionalArgs.getHeader(message, String.class).contains(String.valueOf(jobSpecification.getSubmitterId())), is(true));
         assertThat(JMSHeader.additionalArgs.getHeader(message, String.class).contains(String.valueOf(jobSpecification.getFormat())), is(true));
     }
 
+    @Test
+    public void sendRetryAndFail() {
+        when(jmsProducer.send(any(Queue.class), any(Message.class))).thenThrow(new JMSRuntimeException("Argh"));
+        JobProcessorMessageProducerBean producerBean = getInitializedBean();
+        JobEntity jobEntity = buildJobEntity();
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobEntity.getId()).build();
+        Assert.assertThrows(JMSRuntimeException.class, () -> producerBean.send(chunk, jobEntity, 1));
+        verify(jmsProducer, times(4)).send(any(Queue.class), any(Message.class));
+    }
+
     private JobProcessorMessageProducerBean getInitializedBean() {
-        final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = new JobProcessorMessageProducerBean();
+        RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withDelay(Duration.ofMillis(1)).withMaxRetries(3);
+        JobProcessorMessageProducerBean jobProcessorMessageProducerBean = new JobProcessorMessageProducerBean(retryPolicy);
         jobProcessorMessageProducerBean.connectionFactory = jmsConnectionFactory;
         jobProcessorMessageProducerBean.jsonbContext = new JSONBContext();
         return jobProcessorMessageProducerBean;
     }
 
     private JobEntity buildJobEntity() {
-        final JobEntity jobEntity = new JobEntity();
+        JobEntity jobEntity = new JobEntity();
         jobEntity.setSpecification(new JobSpecification().withType(JobSpecification.Type.ACCTEST));
         jobEntity.setFlowStoreReferences(buildFlowStoreReferences());
         return jobEntity;

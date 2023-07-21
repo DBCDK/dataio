@@ -11,7 +11,6 @@ import java.util.Objects;
 /**
  * SinkContent DTO class.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class SinkContent implements Serializable {
     private static final long serialVersionUID = -3413557101203220951L;
 
@@ -48,7 +47,7 @@ public class SinkContent implements Serializable {
      * Class constructor
      *
      * @param name                   sink name
-     * @param resource               sink resource
+     * @param queue                  sink queue
      * @param description            sink description
      * @param sinkType               sink type
      * @param sinkConfig             sink config
@@ -57,6 +56,7 @@ public class SinkContent implements Serializable {
      * @throws IllegalArgumentException if given empty-valued name or resource argument
      */
     @JsonCreator
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public SinkContent(@JsonProperty("name") String name,
                        @JsonProperty(value = "queue") String queue,
                        @JsonProperty("description") String description,
@@ -85,7 +85,7 @@ public class SinkContent implements Serializable {
     }
 
     public String getQueue() {
-        return queue == null ? "jmsDataioSinks" : queue;
+        return queue;
     }
 
     public String getDescription() {

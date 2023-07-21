@@ -54,7 +54,7 @@ public class View extends ViewWidget {
     public AsyncJobViewDataProvider dataProvider;
     ProvidesKey<JobModel> keyProvider = jobModel -> (jobModel == null) ? null : jobModel.getJobId();
     SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<>(keyProvider);
-    JobRerunScheme jobRerunScheme;;
+    JobRerunScheme jobRerunScheme;
 
     // Enums
     enum JobStatus {

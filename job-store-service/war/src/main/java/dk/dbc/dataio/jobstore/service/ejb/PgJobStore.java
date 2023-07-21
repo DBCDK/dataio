@@ -56,6 +56,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This stateless Enterprise Java Bean (EJB) facilitates access to the job-store database through persistence layer
@@ -87,14 +89,15 @@ public class PgJobStore {
     @Resource
     SessionContext sessionContext;
 
-    public JobEntity abortJob(int jobId) {
+    public JobEntity abortJob(int jobId, Set<Integer> loopDetection) {
         JobEntity jobEntity = entityManager.find(JobEntity.class, jobId, LockModeType.PESSIMISTIC_WRITE);
         try {
             LOGGER.info("Setting aborted job state on {}", jobId);
             List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
             abortJob(jobEntity, diagnostics);
             LOGGER.info("Aborting job {}", jobId);
-            abortDependingJobs(jobId);
+            loopDetection.add(jobId);
+            abortDependingJobs(jobId, loopDetection);
             LOGGER.info("Removing {} from job queue", jobId);
             jobQueueRepository.deleteByJobId(jobId);
             LOGGER.info("Removing {} from dependency tracking", jobId);
@@ -363,11 +366,11 @@ public class PgJobStore {
         return jobEntity;
     }
 
-    private void abortDependingJobs(int jobId) {
-        List<Integer> dependingJobs = jobStoreRepository.findDependingJobs(jobId);
+    private void abortDependingJobs(int jobId, Set<Integer> loopDetection) {
+        List<Integer> dependingJobs = jobStoreRepository.findDependingJobs(jobId).stream().filter(id -> !loopDetection.contains(id)).collect(Collectors.toList());
         if(!dependingJobs.isEmpty()) LOGGER.info("Aborting {} will also abort dependent jobs {}", jobId, dependingJobs);
         for (Integer dependingJob : dependingJobs) {
-            abortJob(dependingJob);
+            abortJob(dependingJob, loopDetection);
         }
     }
 

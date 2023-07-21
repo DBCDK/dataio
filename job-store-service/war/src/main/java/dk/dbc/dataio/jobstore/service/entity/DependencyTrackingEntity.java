@@ -73,10 +73,8 @@ import java.util.Set;
                 resultSetMapping = DependencyTrackingEntity.KEY_RESULT),
         @NamedNativeQuery(name = "DependencyTrackingEntity.blockedGroupedBySink", query = "SELECT sinkid, 3 as status, count(*) from dependencyTracking where status = 3 group by sinkid",
                 resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT),
-        @NamedNativeQuery(name = "DependencyTrackingEntity.dependingJobs",
-                query = "select distinct wo.\"jobId\" as jobId from dependencytracking d" +
-                        "    cross join lateral jsonb_to_recordset(d.waitingon) as wo(\"jobId\" int, \"chunkId\" int)" +
-                        "    where d.jobid = ?",
+        @NamedNativeQuery(name = DependencyTrackingEntity.DEPENDING_JOBS,
+                query = "select distinct jobid from dependencytracking where waitingon::jsonb @@ '$[*].jobId==?'",
                 resultSetMapping = "jobId")
 })
 @NamedQueries({

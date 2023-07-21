@@ -48,6 +48,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.ACCEPTED;
@@ -90,7 +91,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_ABORT + "/{jobId}")
     public Response abortJob(@PathParam("jobId") int jobId) throws JobStoreException {
         LOGGER.warn("Aborting job {}", jobId);
-        JobEntity job = jobStore.abortJob(jobId);
+        JobEntity job = jobStore.abortJob(jobId, new HashSet<>());
         removeFromQueues(job);
         sinkMessageProducerBean.sendAbort(job);
         return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(job)).build();

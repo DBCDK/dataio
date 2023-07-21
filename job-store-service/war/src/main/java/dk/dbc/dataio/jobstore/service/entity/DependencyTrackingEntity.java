@@ -72,10 +72,7 @@ import java.util.Set;
                 query = "SELECT jobid, chunkid FROM dependencyTracking WHERE sinkId = ? AND submitter = ? AND hashes && ?::INTEGER[] ORDER BY jobId, chunkId FOR NO KEY UPDATE",
                 resultSetMapping = DependencyTrackingEntity.KEY_RESULT),
         @NamedNativeQuery(name = "DependencyTrackingEntity.blockedGroupedBySink", query = "SELECT sinkid, 3 as status, count(*) from dependencyTracking where status = 3 group by sinkid",
-                resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT),
-        @NamedNativeQuery(name = DependencyTrackingEntity.DEPENDING_JOBS,
-                query = "select distinct jobid from dependencytracking where waitingon::jsonb @@ '$[*].jobId==?'",
-                resultSetMapping = "jobId")
+                resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT)
 })
 @NamedQueries({
         @NamedQuery(name = DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY,
@@ -101,7 +98,6 @@ public class DependencyTrackingEntity {
     public static final String CHUNKS_IN_STATE = "DependencyTrackingEntity.inState";
     public static final String RESET_STATE_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetState";
     public static final String RESET_LIST_STATE_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetList";
-    public static final String DEPENDING_JOBS = "DependencyTrackingEntity.dependingJobs";
     public static final String DELETE_JOB = "DependencyTrackingEntity.deleteJob";
 
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {

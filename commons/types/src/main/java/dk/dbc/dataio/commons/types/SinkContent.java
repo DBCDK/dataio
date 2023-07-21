@@ -11,6 +11,7 @@ import java.util.Objects;
 /**
  * SinkContent DTO class.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SinkContent implements Serializable {
     private static final long serialVersionUID = -3413557101203220951L;
 
@@ -56,7 +57,6 @@ public class SinkContent implements Serializable {
      * @throws IllegalArgumentException if given empty-valued name or resource argument
      */
     @JsonCreator
-    @JsonIgnoreProperties(ignoreUnknown = true)
     public SinkContent(@JsonProperty("name") String name,
                        @JsonProperty(value = "queue") String queue,
                        @JsonProperty("description") String description,

@@ -34,6 +34,7 @@ import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -552,7 +553,7 @@ public class View extends ViewWidget {
 
             @Override
             public String getCellStyleNames(Cell.Context context, JobModel model) {
-                return workFlowColumnsVisible ? "visible" : "invisible";
+                return Arrays.asList(1L, 54L, 12451L).contains(model.getSinkId()) || workFlowColumnsVisible ? "visible" : "invisible";
             }
         };
         abortButtonColumn.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);

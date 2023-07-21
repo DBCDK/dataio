@@ -37,7 +37,7 @@ import java.time.Duration;
 @Stateless
 public class SinkMessageProducerBean implements MessageIdentifiers {
     private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageProducerBean.class);
-    private final RetryPolicy<?> retryPolicy;;
+    private final RetryPolicy<?> retryPolicy;
 
 
     @Inject

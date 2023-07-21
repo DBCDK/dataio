@@ -127,8 +127,9 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     public List<Integer> findDependingJobs(int jobId) {
-        TypedQuery<Integer> query = entityManager.createQuery("select distinct jobid from dependencytracking where waitingon::jsonb @@ '$[*].jobId==" + jobId + "'", Integer.class);
+        Query query = entityManager.createNativeQuery("select distinct jobid from dependencytracking where waitingon::jsonb @@ '$[*].jobId==" + jobId + "'", Integer.class);
         query.setParameter(1, jobId);
+        @SuppressWarnings("unchecked")
         List<Integer> list = new ArrayList<>(query.getResultList());
         list.remove(Integer.valueOf(jobId));
         return list;

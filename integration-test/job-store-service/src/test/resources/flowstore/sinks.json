@@ -4,7 +4,7 @@
     "version": 2,
     "content": {
       "name": "dmat",
-      "resource": "dmat",
+      "queue": "sink::dmat",
       "sinkType": "DMAT",
       "sinkConfig": null,
       "description": "DMat staging",
@@ -16,7 +16,7 @@
     "version": 3,
     "content": {
       "name": "DPF sink staging",
-      "resource": "dpf",
+      "queue": "sink::dpf",
       "sinkType": "DPF",
       "sinkConfig": {
         "@class": "dk.dbc.dataio.commons.types.DpfSinkConfig",
@@ -35,7 +35,7 @@
     "version": 3,
     "content": {
       "name": "dummy",
-      "resource": "dummy",
+      "queue": "sink::dummy",
       "sinkType": "DUMMY",
       "sinkConfig": {
         "@class": "dk.dbc.dataio.commons.types.EsSinkConfig",
@@ -50,7 +50,7 @@
     "version": 1,
     "content": {
       "name": "Fbstest holdings items",
-      "resource": "holdings-items/fbstest",
+      "queue": "sink::holdings-items/fbstest",
       "sinkType": "HOLDINGS_ITEMS",
       "sinkConfig": null,
       "description": "Test af holdings items afleveringer til solr-doc-store",
@@ -62,7 +62,7 @@
     "version": 6,
     "content": {
       "name": "Hive sink staging",
-      "resource": "batch-exchange/loadtest",
+      "queue": "sink::batch-exchange/loadtest",
       "sinkType": "HIVE",
       "sinkConfig": null,
       "description": "Batchexchange hive sink på staging som rammer Corepo. Bruges også til loadtest",
@@ -74,7 +74,7 @@
     "version": 5,
     "content": {
       "name": "IMS sink staging",
-      "resource": "ims",
+      "queue": "sink::ims",
       "sinkType": "IMS",
       "sinkConfig": {
         "@class": "dk.dbc.dataio.commons.types.ImsSinkConfig",
@@ -89,7 +89,7 @@
     "version": 4,
     "content": {
       "name": "Kilderepo inkremental",
-      "resource": "tickle-repo/incremental",
+      "queue": "sink::tickle-repo/incremental",
       "sinkType": "TICKLE",
       "sinkConfig": null,
       "description": "Inkremental leveringer til kilde repositoriet",
@@ -101,7 +101,7 @@
     "version": 4,
     "content": {
       "name": "Kilderepo total",
-      "resource": "tickle-repo/total",
+      "queue": "sink::tickle-repo/total",
       "sinkType": "TICKLE",
       "sinkConfig": null,
       "description": "Totalleveringer til kilde repositoriet",
@@ -113,7 +113,7 @@
     "version": 2,
     "content": {
       "name": "MARC konverteringsservice",
-      "resource": "marcconv",
+      "queue": "sink::marcconv",
       "sinkType": "MARCCONV",
       "sinkConfig": null,
       "description": "Konverteringsservice for poster til MARC format.",
@@ -125,7 +125,7 @@
     "version": 3,
     "content": {
       "name": "OCLC test sink",
-      "resource": "worldcat",
+      "queue": "sink::worldcat",
       "sinkType": "WORLDCAT",
       "sinkConfig": {
         "@class": "dk.dbc.dataio.commons.types.WorldCatSinkConfig",
@@ -146,7 +146,7 @@
     "version": 2,
     "content": {
       "name": "Periodiske job",
-      "resource": "periodic-jobs",
+      "queue": "sink::periodic-jobs",
       "sinkType": "PERIODIC_JOBS",
       "sinkConfig": null,
       "description": "Specialiserede afleveringer for periodiske job.",
@@ -158,7 +158,7 @@
     "version": 1,
     "content": {
       "name": "Periodiske job - tomme job test",
-      "resource": "dataio/sinks/periodic-jobs-empty-jobs-test",
+      "queue": "sink::dataio/sinks/periodic-jobs-empty-jobs-test",
       "sinkType": "PERIODIC_JOBS",
       "sinkConfig": null,
       "description": "Periodiske job - tomme job test",
@@ -170,7 +170,7 @@
     "version": 3,
     "content": {
       "name": "test",
-      "resource": "dummy (bruges ikke lige nu fordi den larmer i overvaagningen)",
+      "queue": "sink::dummy",
       "sinkType": "ES",
       "sinkConfig": {
         "@class": "dk.dbc.dataio.commons.types.EsSinkConfig",
@@ -187,7 +187,7 @@
     "version": 14,
     "content": {
       "name": "TestBasis",
-      "resource": "test4 (Bruges ikke (heller ikke) lige nu)",
+      "queue": "sink::dummy",
       "sinkType": "ES",
       "sinkConfig": {
         "@class": "dk.dbc.dataio.commons.types.EsSinkConfig",
@@ -204,7 +204,7 @@
     "version": 2,
     "content": {
       "name": "tracer-bullet-sink",
-      "resource": "dummy",
+      "queue": "sink::dummy",
       "sinkType": "DUMMY",
       "sinkConfig": null,
       "description": "description",

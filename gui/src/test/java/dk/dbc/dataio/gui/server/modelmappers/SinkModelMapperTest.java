@@ -44,15 +44,15 @@ public class SinkModelMapperTest {
     private static final SinkModel defaultSinkModelES = new SinkModelBuilder()
             .setSinkType(SinkContent.SinkType.ES)
             .setName("Sink Model Name 1")
-            .setResource("Sink Model Resource 1")
+            .setQueue("sink::queue1")
             .setDescription("Sink Model Description 1")
             .setSinkConfig(esSC)
             .build();
     private static final SinkModel defaultSinkModelOU = new SinkModelBuilder()
             .setSinkType(SinkContent.SinkType.OPENUPDATE)
             .setName("Name OU")
-            .setResource("Resource OU")
             .setDescription("Description OU")
+            .setQueue("sink::queue_ou")
             .setSinkConfig(updateSC)
             .build();
 

@@ -49,8 +49,8 @@ public class ViewTest {
 
 
     // Test Data
-    private SinkModel testModel1 = new SinkModelBuilder().setName("SinkNam1").setQueue("SinkQueue1").setResource("SinkRes1").setDescription("SinkDescription1").setSinkType(SinkContent.SinkType.DUMMY).build();
-    private SinkModel testModel2 = new SinkModelBuilder().setName("SinkNam2").setQueue("SinkQueue2").setResource("SinkRes2").setDescription("SinkDescription2").build();
+    private SinkModel testModel1 = new SinkModelBuilder().setName("SinkNam1").setQueue("SinkQueue1").setDescription("SinkDescription1").setSinkType(SinkContent.SinkType.DUMMY).build();
+    private SinkModel testModel2 = new SinkModelBuilder().setName("SinkNam2").setQueue("SinkQueue2").setDescription("SinkDescription2").build();
     private List<SinkModel> testModels = Arrays.asList(testModel1, testModel2);
 
 

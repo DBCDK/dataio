@@ -109,7 +109,7 @@ public class JobStoreServiceConnector {
     public JobInfoSnapshot resendJob(int jobId) throws JobStoreServiceConnectorException {
         log.trace("JobStoreServiceConnector: resendJob({})", jobId);
         try {
-            return post(null, Response.Status.OK, JobInfoSnapshot.class, RESEND_JOB, JobStoreServiceConstants.JOB_ABORT, "jobIds", Integer.toString(jobId));
+            return post(null, Response.Status.OK, JobInfoSnapshot.class, RESEND_JOB, JobStoreServiceConstants.JOB_RESEND, "jobIds", Integer.toString(jobId));
         } catch (ProcessingException e) {
             throw new JobStoreServiceConnectorException("job-store communication error", e);
         }

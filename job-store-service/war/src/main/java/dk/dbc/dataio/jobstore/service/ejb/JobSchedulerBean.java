@@ -544,6 +544,7 @@ public class JobSchedulerBean {
             sinkStatus.processingStatus.setMode(QueueSubmitMode.BULK);
             sinkStatus.deliveringStatus.setMode(QueueSubmitMode.BULK);
         }
+        LOGGER.info("Reset sink counters " + sinkStatusMap);
     }
 
     List<DependencyTrackingEntity.Key> findChunksWaitingForMe(DependencyTrackingEntity.Key key, long sinkId) throws JobStoreException {

@@ -135,6 +135,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         return list;
     }
 
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public int deleteDependencies(int jobId) {
         Query query = entityManager.createNamedQuery(DependencyTrackingEntity.DELETE_JOB);
         query.setParameter("jobId", jobId);

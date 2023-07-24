@@ -49,5 +49,14 @@ class JobSchedulerSinkStatus {
         boolean isDirectSubmitMode() {
             return getMode() != JobSchedulerBean.QueueSubmitMode.BULK;
         }
+
+        @Override
+        public String toString() {
+            return "QueueStatus{" +
+                    "queueSubmitMode=" + queueSubmitMode +
+                    ", ready=" + ready +
+                    ", enqueued=" + enqueued +
+                    '}';
+        }
     }
 }

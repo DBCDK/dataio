@@ -98,7 +98,7 @@ public interface Texts extends Constants {
     String button_RerunJob();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_Resend();
+    String button_ResendJob();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_AbortJob();

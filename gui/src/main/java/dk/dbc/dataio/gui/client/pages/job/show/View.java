@@ -530,7 +530,7 @@ public class View extends ViewWidget {
         ButtonCell rerunButtonCell = new ButtonCell();
         Column<JobModel, String> rerunButtonColumn = new Column<JobModel, String>(rerunButtonCell) {
             public String getValue(JobModel object) {
-                return object.getJobCompletionTime().isEmpty() ? getTexts().button_Resend() : getTexts().button_RerunJob();
+                return object.getJobCompletionTime().isEmpty() ? getTexts().button_ResendJob() : getTexts().button_RerunJob();
             }
 
             @Override

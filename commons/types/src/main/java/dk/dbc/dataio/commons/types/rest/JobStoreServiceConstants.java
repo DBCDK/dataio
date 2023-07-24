@@ -9,7 +9,7 @@ public class JobStoreServiceConstants {
 
     public static final String JOB_COLLECTION = "jobs";
     public static final String JOB_COLLECTION_ACCTESTS = "jobs/acctests";
-    public static final String JOB_ABORT = "jobs/abort";
+    public static final String JOB_ABORT = "dataio/job-store-service/dependency/retransmit";
     public static final String JOB_COLLECTION_EMPTY = "jobs/empty";
     public static final String JOB_COLLECTION_QUERIES = "jobs/queries";
     public static final String JOB_COLLECTION_COUNT = "jobs/count";
@@ -45,7 +45,7 @@ public class JobStoreServiceConstants {
 
     public static final String SCHEDULER_SINK_FORCE_BULK_MODE = "dependency/sinks/{" + SINK_ID_VARIABLE + "}/forceBulkMode";
     public static final String SCHEDULER_SINK_FORCE_TRANSITION_MODE = "dependency/sinks/{" + SINK_ID_VARIABLE + "}/forceTransitionMode";
-    public static final String FORCE_DEPENDENCY_TRACKING_RETRANSMIT = "dependency/retransmit";
+    public static final String FORCE_DEPENDENCY_TRACKING_RETRANSMIT = "dependency/retransmit/{jobIds}";
 
     public static final String SINK_STATUS = "status/sinks/{sinkId}";
     public static final String SINKS_STATUS = "status/sinks";

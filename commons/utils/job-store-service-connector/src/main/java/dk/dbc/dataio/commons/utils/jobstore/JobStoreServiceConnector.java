@@ -53,6 +53,7 @@ import static dk.dbc.dataio.commons.utils.jobstore.Metric.LIST_ITEMS;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.LIST_JOBS;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.LIST_JOBS_CRIT;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.LIST_JOB_NOTIFICATIONS_FOR_JOB;
+import static dk.dbc.dataio.commons.utils.jobstore.Metric.RESEND_JOB;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.SET_WORKFLOW_NOTE;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.SET_WORKFLOW_NOTE2;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.SINK_STATUS;
@@ -100,6 +101,15 @@ public class JobStoreServiceConnector {
         log.trace("JobStoreServiceConnector: abortJob({})", jobId);
         try {
             return post(null, Response.Status.OK, JobInfoSnapshot.class, ABORT_JOB, JobStoreServiceConstants.JOB_ABORT, Integer.toString(jobId));
+        } catch (ProcessingException e) {
+            throw new JobStoreServiceConnectorException("job-store communication error", e);
+        }
+    }
+
+    public JobInfoSnapshot resendJob(int jobId) throws JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: resendJob({})", jobId);
+        try {
+            return post(null, Response.Status.OK, JobInfoSnapshot.class, RESEND_JOB, JobStoreServiceConstants.JOB_ABORT, "jobIds", Integer.toString(jobId));
         } catch (ProcessingException e) {
             throw new JobStoreServiceConnectorException("job-store communication error", e);
         }

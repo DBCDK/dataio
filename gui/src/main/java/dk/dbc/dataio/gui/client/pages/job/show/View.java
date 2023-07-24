@@ -530,7 +530,7 @@ public class View extends ViewWidget {
         ButtonCell rerunButtonCell = new ButtonCell();
         Column<JobModel, String> rerunButtonColumn = new Column<JobModel, String>(rerunButtonCell) {
             public String getValue(JobModel object) {
-                return getTexts().button_RerunJob();
+                return object.getJobCompletionTime().isEmpty() ? getTexts().button_Resend() : getTexts().button_RerunJob();
             }
 
             @Override
@@ -540,10 +540,11 @@ public class View extends ViewWidget {
         };
         rerunButtonColumn.setFieldUpdater((index, selectedRowModel, value) -> {
             if (selectedRowModel != null) {
+                presenter.setIsMultipleRerun(false);
                 if (selectedRowModel.getJobCompletionTime().isEmpty()) {
-                    setErrorText(getTexts().error_JobNotFinishedError());
+                    presenter.resendJob(selectedRowModel);
                 } else {
-                    presenter.setIsMultipleRerun(false);
+
                     presenter.getJobRerunScheme(selectedRowModel);
                 }
             }

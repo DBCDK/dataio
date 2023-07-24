@@ -33,6 +33,7 @@ public interface JobStoreProxy extends RemoteService {
     List<Notification> listJobNotificationsForJob(int jobId) throws ProxyException;
 
     JobModel reSubmitJob(JobModel jobModel) throws ProxyException;
+    JobModel resendJob(JobModel jobModel) throws ProxyException;
 
     List<JobModel> reSubmitJobs(List<JobModel> jobModels) throws ProxyException;
 

@@ -9,6 +9,7 @@ public enum Metric {
     ADD_CHUNK,
     ADD_EMPTY_JOB,
     ABORT_JOB,
+    RESEND_JOB,
     ADD_JOB,
     ADD_NOTIFICATION,
     COUNT_ITEMS,

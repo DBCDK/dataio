@@ -22,8 +22,8 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.Duration;
@@ -74,7 +74,7 @@ public class AdminBean {
 
     @POST
     @Path(JobStoreServiceConstants.FORCE_DEPENDENCY_TRACKING_RETRANSMIT)
-    public Response reTransmit(@QueryParam("jobIds") @DefaultValue("") String jobIds) {
+    public Response reTransmit(@PathParam("jobIds") @DefaultValue("") String jobIds) {
         List<Integer> ids = Arrays.stream(jobIds.split(" *, *")).map(Integer::valueOf).collect(Collectors.toList());
         return reTransmitAllJobs(ids);
     }

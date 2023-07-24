@@ -29,6 +29,7 @@ public interface JobStoreProxyAsync {
     void listJobNotificationsForJob(int jobId, AsyncCallback<List<Notification>> async);
 
     void reSubmitJob(JobModel jobModel, AsyncCallback<JobModel> async);
+    void resendJob(JobModel jobModel, AsyncCallback<JobModel> async);
 
     void abortJob(JobModel jobModel, AsyncCallback<JobModel> async);
 

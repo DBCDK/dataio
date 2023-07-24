@@ -48,6 +48,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
         // When...
         final SinkContent sinkContent = new SinkContentBuilder()
                 .setName("SinksIT.createSink_ok")
+                .setQueue("sink::dummy")
                 .build();
 
         // Then...
@@ -168,7 +169,6 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
         // When...
         final SinkContent newSinkContent = new SinkContentBuilder()
                 .setName("SinksIT.updateSink_ok.updated")
-                .setResource("NewResourceName")
                 .build();
         Sink updatedSink = flowStoreServiceConnector.updateSink(newSinkContent, sink.getId(), sink.getVersion());
 

@@ -57,8 +57,11 @@ import java.util.Set;
                                         @ColumnResult(name = "count"),})})
 })
 @NamedNativeQueries({
-        @NamedNativeQuery(name = DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY,
+        @NamedNativeQuery(name = DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY_ALL,
                 query = "SELECT sinkid, status, count(*) FROM dependencytracking GROUP BY sinkid, status ORDER BY sinkid, status",
+                resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT),
+        @NamedNativeQuery(name = DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY,
+                query = "SELECT sinkid, status, count(*) FROM dependencytracking WHERE sinkid=? GROUP BY status ORDER BY sinkid, status",
                 resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT),
         @NamedNativeQuery(name = DependencyTrackingEntity.JOB_COUNT_CHUNK_COUNT_QUERY,
                 query = "SELECT count(DISTINCT jobid) AS numberOfJobs, count(jobid) AS NumberOfChunks FROM dependencytracking WHERE sinkid = ?"),
@@ -89,6 +92,7 @@ import java.util.Set;
 public class DependencyTrackingEntity {
     static final String SINKID_STATUS_COUNT_RESULT = "SinkIdStatusCountResult";
     public static final String KEY_RESULT = "DependencyTrackingEntity.Key";
+    public static final String SINKID_STATUS_COUNT_QUERY_ALL = "DependencyTrackingEntity.sinkIdStatusCountAll";
     public static final String SINKID_STATUS_COUNT_QUERY = "DependencyTrackingEntity.sinkIdStatusCount";
     public static final String JOB_COUNT_CHUNK_COUNT_QUERY = "DependencyTrackingEntity.jobCountChunkCount";
     public static final String RELATED_CHUNKS_QUERY = "DependencyTrackingEntity.relatedChunks";

@@ -41,6 +41,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -509,10 +510,18 @@ public class JobSchedulerBean {
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void loadSinkStatusOnBootstrap() {
-        final List<SinkIdStatusCountResult> initialCounts = entityManager
-                .createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY, SinkIdStatusCountResult.class)
-                .getResultList();
+    public void loadSinkStatusOnBootstrap(Long sinkId) {
+        TypedQuery<SinkIdStatusCountResult> query;
+        if(sinkId == null) {
+            query  = entityManager.createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY_ALL, SinkIdStatusCountResult.class);
+            sinkStatusMap.clear();
+        }
+        else {
+            query = entityManager.createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY, SinkIdStatusCountResult.class);
+            query.setParameter("sinkId", sinkId);
+            sinkStatusMap.remove(sinkId);
+        }
+        final List<SinkIdStatusCountResult> initialCounts = query.getResultList();
 
         for (SinkIdStatusCountResult entry : initialCounts) {
             final JobSchedulerSinkStatus sinkStatus = getSinkStatus(entry.sinkId);

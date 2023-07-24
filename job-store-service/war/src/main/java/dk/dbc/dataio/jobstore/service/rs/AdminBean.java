@@ -84,7 +84,7 @@ public class AdminBean {
         LOGGER.info("Reset dependency tracking states. Sets status = 1 for status = 2 for {} entities", rowsUpdated);
         rowsUpdated = jobStoreRepository.resetStatus(jobIds, QUEUED_FOR_DELIVERY, DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_DELIVERY);
         LOGGER.info("Reset dependency tracking states. Sets status = 4 for status = 5 for {} entities", rowsUpdated);
-        jobSchedulerBean.loadSinkStatusOnBootstrap();
+        jobSchedulerBean.loadSinkStatusOnBootstrap(null);
         return Response.ok().build();
     }
 }

@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
-import javax.ejb.LocalBean;
 import javax.ejb.Schedule;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -37,7 +36,6 @@ import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Chu
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING;
 
 @Stateless
-@LocalBean
 @Path("/")
 public class AdminBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminBean.class);

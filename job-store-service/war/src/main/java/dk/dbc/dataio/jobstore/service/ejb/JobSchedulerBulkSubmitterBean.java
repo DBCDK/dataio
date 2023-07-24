@@ -85,7 +85,7 @@ public class JobSchedulerBulkSubmitterBean {
 
 
     private void doBulkJmsQueueSubmit(Long sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus, ProcessingOrDelivering phase) {
-        LOGGER.info("prSink {} queue test {} < {} -> {} ", phase, queueStatus.ready.intValue(), JobSchedulerBean.TRANSITION_TO_DIRECT_MARK, queueStatus.ready.intValue() < (JobSchedulerBean.TRANSITION_TO_DIRECT_MARK));
+        LOGGER.debug("prSink {} queue test {} < {} -> {} ", phase, queueStatus.ready.intValue(), JobSchedulerBean.TRANSITION_TO_DIRECT_MARK, queueStatus.ready.intValue() < (JobSchedulerBean.TRANSITION_TO_DIRECT_MARK));
         if (queueStatus.getMode() == BULK && queueStatus.ready.intValue() < JobSchedulerBean.TRANSITION_TO_DIRECT_MARK) {
             LOGGER.debug("prSink {} Queue starting switch to DirectMode", phase);
             queueStatus.setMode(TRANSITION_TO_DIRECT);

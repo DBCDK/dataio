@@ -30,6 +30,7 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
+import javax.jms.JMSRuntimeException;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
 import java.time.Duration;
@@ -49,7 +50,7 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     ConnectionFactory connectionFactory;
 
     public JobProcessorMessageProducerBean() {
-        retryPolicy = new RetryPolicy<>().withDelay(Duration.ofSeconds(30)).withMaxRetries(10)
+        retryPolicy = new RetryPolicy<>().handle(JMSRuntimeException.class).withDelay(Duration.ofSeconds(30)).withMaxRetries(10)
                 .onFailedAttempt(attempt -> LOGGER.warn("Unable to send message to processor", attempt.getLastFailure()));
     }
 
@@ -74,18 +75,22 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void send(Chunk chunk, JobEntity jobEntity, int priority) throws NullPointerException, JobStoreException {
         LOGGER.info("Sending chunk {}/{} with trackingId {}", chunk.getJobId(), chunk.getChunkId(), chunk.getTrackingId());
-        try(JMSContext context = connectionFactory.createContext()) {
-            TextMessage message = createMessage(context, chunk, jobEntity);
-            JMSProducer producer = context.createProducer();
-            producer.setPriority(priority);
-            String queueName = jobEntity.getProcessorQueue();
-            Queue queue = context.createQueue(queueName);
-            Failsafe.with(retryPolicy).run(() -> producer.send(queue, message));
-        } catch (JSONBException | JMSException e) {
-            String errorMessage = String.format("Exception caught while queueing chunk %s for job %s with trackingId %s", chunk.getChunkId(), chunk.getJobId(), chunk.getTrackingId());
-            throw new JobStoreException(errorMessage, e);
-        }
+        Failsafe.with(retryPolicy).run(() -> {
+            try (JMSContext context = connectionFactory.createContext()) {
+                TextMessage message = createMessage(context, chunk, jobEntity);
+                JMSProducer producer = context.createProducer();
+                producer.setPriority(priority);
+                String queueName = jobEntity.getProcessorQueue();
+                Queue queue = context.createQueue(queueName);
+                producer.send(queue, message);
+            } catch (JSONBException | JMSException e) {
+                String errorMessage = String.format("Exception caught while queueing chunk %s for job %s with trackingId %s", chunk.getChunkId(), chunk.getJobId(), chunk.getTrackingId());
+                throw new JobStoreException(errorMessage, e);
+            }
+        });
     }
+
+
 
     /**
      * Creates new TextMessage with given chunk instance as JSON payload

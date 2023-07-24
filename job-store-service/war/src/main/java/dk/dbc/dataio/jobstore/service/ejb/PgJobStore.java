@@ -400,7 +400,7 @@ public class PgJobStore {
 
     private JobEntity partitionJobIntoChunksAndItems(JobEntity job, PartitioningParam partitioningParam) throws JobStoreException {
         // Attempt partitioning only if no fatal error has occurred
-        if (!job.hasFatalError()) {
+        if (!job.hasFatalError() && !job.getState().isAborted()) {
             final List<Diagnostic> abortDiagnostics = new ArrayList<>(0);
 
             LOGGER.info("Partitioning job {}", job.getId());

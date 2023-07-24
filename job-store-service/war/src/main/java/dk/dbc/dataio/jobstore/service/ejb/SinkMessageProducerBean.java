@@ -25,6 +25,7 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
+import javax.jms.JMSRuntimeException;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
 import java.time.Duration;
@@ -48,7 +49,7 @@ public class SinkMessageProducerBean implements MessageIdentifiers {
     JSONBContext jsonbContext = new JSONBContext();
 
     public SinkMessageProducerBean() {
-        retryPolicy = new RetryPolicy<>().withDelay(Duration.ofSeconds(30)).withMaxRetries(10)
+        retryPolicy = new RetryPolicy<>().handle(JMSRuntimeException.class).withDelay(Duration.ofSeconds(30)).withMaxRetries(10)
                 .onFailedAttempt(attempt -> LOGGER.warn("Unable to send message to sink", attempt.getLastFailure()));
     }
 
@@ -84,19 +85,21 @@ public class SinkMessageProducerBean implements MessageIdentifiers {
      */
     public void send(Chunk chunk, JobEntity job, int priority) throws JobStoreException {
         FlowStoreReferences flowStoreReferences = job.getFlowStoreReferences();
-        try(JMSContext context = connectionFactory.createContext()) {
-            TextMessage message = createMessage(context, chunk, flowStoreReferences);
-            LOGGER.info("Sending chunk {}/{} to queue {} with unique id {}", chunk.getJobId(), chunk.getChunkId(), job.getSinkQueue(), chunk.getTrackingId());
+        Failsafe.with(retryPolicy).run(() -> {
+            try (JMSContext context = connectionFactory.createContext()) {
+                TextMessage message = createMessage(context, chunk, flowStoreReferences);
+                LOGGER.info("Sending chunk {}/{} to queue {} with unique id {}", chunk.getJobId(), chunk.getChunkId(), job.getSinkQueue(), chunk.getTrackingId());
 
-            send(context, message, job, priority);
-        } catch (JSONBException | JMSException e) {
-            String errorMessage = String.format(
-                    "Exception caught while sending processed chunk %d in job %s with trackingId %s",
-                    chunk.getChunkId(),
-                    chunk.getJobId(),
-                    chunk.getTrackingId());
-            throw new JobStoreException(errorMessage, e);
-        }
+                send(context, message, job, priority);
+            } catch (JSONBException | JMSException e) {
+                String errorMessage = String.format(
+                        "Exception caught while sending processed chunk %d in job %s with trackingId %s",
+                        chunk.getChunkId(),
+                        chunk.getJobId(),
+                        chunk.getTrackingId());
+                throw new JobStoreException(errorMessage, e);
+            }
+        });
     }
 
     private void send(JMSContext context, TextMessage message, JobEntity job, int priority) {
@@ -104,7 +107,7 @@ public class SinkMessageProducerBean implements MessageIdentifiers {
         Queue queue = context.createQueue(qname.contains("::") ? qname : qname + "::" + qname);
         JMSProducer producer = context.createProducer();
         producer.setPriority(priority);
-        Failsafe.with(retryPolicy).run(() -> producer.send(queue, message));
+        producer.send(queue, message);
     }
 
     /**

@@ -72,13 +72,13 @@ public class SinkContent implements Serializable {
         this.sequenceAnalysisOption = InvariantUtil.checkNotNullOrThrow(sequenceAnalysisOption, "sequenceAnalysisOption");
     }
 
-    public SinkContent(String name, String description, SinkType sinkType, SequenceAnalysisOption sequenceAnalysisOption) {
-        this(name, "jmsDataioSinks", description, sinkType, NULL_CONFIG, sequenceAnalysisOption);
+    public SinkContent(String name, String queue, String description, SequenceAnalysisOption sequenceAnalysisOption) {
+        this(name, queue, description, NULL_TYPE, NULL_CONFIG, sequenceAnalysisOption);
     }
 
-    public SinkContent(String name, String resource, String description, SequenceAnalysisOption sequenceAnalysisOption) {
-        this(name, "jmsDataioSinks", description, NULL_TYPE, NULL_CONFIG, sequenceAnalysisOption);
-    }
+//    public SinkContent(String name, String description, SequenceAnalysisOption sequenceAnalysisOption) {
+//        this(name, "jmsDataioSinks", description, NULL_TYPE, NULL_CONFIG, sequenceAnalysisOption);
+//    }
 
     public String getName() {
         return name;

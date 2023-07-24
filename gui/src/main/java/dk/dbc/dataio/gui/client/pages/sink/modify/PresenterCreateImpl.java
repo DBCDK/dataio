@@ -16,8 +16,6 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
  */
 public class PresenterCreateImpl extends PresenterImpl {
 
-    private static final String DEFAULT_DUMMY_SINK_RESOURCE = "dummy";
-
     /**
      * Constructor
      *

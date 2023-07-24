@@ -42,6 +42,7 @@ import java.util.List;
  * This class is the View class for the New Jobs Show View
  */
 public class View extends ViewWidget {
+    // List of sinks that are known to be abortable
     private static final List<Long> ABORTABLE_SINKS = Arrays.asList(
             1L,     // diff
             54L,    // s:dummy

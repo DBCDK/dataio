@@ -518,7 +518,7 @@ public class JobSchedulerBean {
         }
         else {
             query = entityManager.createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY, SinkIdStatusCountResult.class);
-            query.setParameter("sinkId", sinkId);
+            query.setParameter(1, sinkId);
             sinkStatusMap.remove(sinkId);
         }
         final List<SinkIdStatusCountResult> initialCounts = query.getResultList();

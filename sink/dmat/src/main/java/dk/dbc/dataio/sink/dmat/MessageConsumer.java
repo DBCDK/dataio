@@ -41,7 +41,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
     public MessageConsumer(ServiceHub serviceHub, DMatServiceConnector connector) {
         super(serviceHub);
         jobStore = serviceHub.jobStoreServiceConnector;
-        this.connector = connector;;
+        this.connector = connector;
     }
 
     @Override

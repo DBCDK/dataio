@@ -518,16 +518,14 @@ public class PgJobStore {
         if (jobEntity == null) {
             throw new JobStoreException(String.format("JobEntity.%d could not be found", chunkEntity.getKey().getJobId()));
         }
-        if(!jobEntity.getState().isAborted()) {
-            jobStoreRepository.updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
-            if (chunkCompletesJob(jobEntity, chunk)) {
-                if (chunk.isTerminationChunk() && chunk.getItems().get(0).getStatus() == ChunkItem.Status.FAILURE) {
-                    jobEntity.setFatalError(true);
-                }
-                jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
-                addNotificationIfSpecificationHasDestination(Notification.Type.JOB_COMPLETED, jobEntity);
-                logTimerMessage(jobEntity);
+        jobStoreRepository.updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
+        if (chunkCompletesJob(jobEntity, chunk)) {
+            if (chunk.isTerminationChunk() && chunk.getItems().get(0).getStatus() == ChunkItem.Status.FAILURE) {
+                jobEntity.setFatalError(true);
             }
+            jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+            addNotificationIfSpecificationHasDestination(Notification.Type.JOB_COMPLETED, jobEntity);
+            logTimerMessage(jobEntity);
         }
 
         jobStoreRepository.flushEntityManager();

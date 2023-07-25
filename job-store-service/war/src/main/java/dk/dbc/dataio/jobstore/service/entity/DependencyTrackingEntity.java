@@ -19,7 +19,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.SqlResultSetMappings;
 import javax.persistence.Table;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -296,7 +295,7 @@ public class DependencyTrackingEntity {
     }
 
     @Embeddable
-    public static class Key implements Serializable {
+    public static class Key {
         @Column(name = "jobid")
         private int jobId;
 

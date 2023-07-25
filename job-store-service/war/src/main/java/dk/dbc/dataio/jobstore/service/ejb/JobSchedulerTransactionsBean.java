@@ -155,11 +155,9 @@ public class JobSchedulerTransactionsBean {
         dependencyTrackingEntity.setStatus(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
         try {
             JobEntity jobEntity = entityManager.find(JobEntity.class, chunk.getKey().getJobId());
-            if(!jobEntity.getState().isAborted()) {
-                jobProcessorMessageProducerBean.send(getChunkFrom(chunk), jobEntity, priority);
-                queueStatus.enqueued.incrementAndGet();
-                LOGGER.info("submitToProcessing: chunk {}/{} scheduled for processing", key.getJobId(), key.getChunkId());
-            }
+            jobProcessorMessageProducerBean.send(getChunkFrom(chunk), jobEntity, priority);
+            queueStatus.enqueued.incrementAndGet();
+            LOGGER.info("submitToProcessing: chunk {}/{} scheduled for processing", key.getJobId(), key.getChunkId());
         } catch (JobStoreException e) {
             LOGGER.error("submitToProcessing: unable to send chunk {}/{} to JMS queue",
                     key.getJobId(), key.getChunkId(), e);

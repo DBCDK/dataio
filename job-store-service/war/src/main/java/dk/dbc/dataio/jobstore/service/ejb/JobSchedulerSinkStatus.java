@@ -17,6 +17,14 @@ class JobSchedulerSinkStatus {
         return deliveringStatus.isDirectSubmitMode();
     }
 
+    @Override
+    public String toString() {
+        return "JobSchedulerSinkStatus{" +
+                "processingStatus=" + processingStatus +
+                ", deliveringStatus=" + deliveringStatus +
+                '}';
+    }
+
     // Status for a single JMS queue..
     static class QueueStatus {
         private JobSchedulerBean.QueueSubmitMode queueSubmitMode = JobSchedulerBean.QueueSubmitMode.DIRECT;

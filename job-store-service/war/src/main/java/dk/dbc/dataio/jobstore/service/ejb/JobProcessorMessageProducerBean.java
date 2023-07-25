@@ -13,7 +13,6 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.activemq.artemis.jms.client.ActiveMQXAConnectionFactory;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -40,7 +39,6 @@ import java.util.Optional;
 @Stateless
 public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobProcessorMessageProducerBean.class);
-    private final RetryPolicy<?> retryPolicy;
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -75,19 +73,17 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void send(Chunk chunk, JobEntity jobEntity, int priority) throws NullPointerException, JobStoreException {
         LOGGER.info("Sending chunk {}/{} with trackingId {}", chunk.getJobId(), chunk.getChunkId(), chunk.getTrackingId());
-        Failsafe.with(retryPolicy).run(() -> {
-            try (JMSContext context = connectionFactory.createContext()) {
-                TextMessage message = createMessage(context, chunk, jobEntity);
-                JMSProducer producer = context.createProducer();
-                producer.setPriority(priority);
-                String queueName = jobEntity.getProcessorQueue();
-                Queue queue = context.createQueue(queueName);
-                producer.send(queue, message);
-            } catch (JSONBException | JMSException e) {
-                String errorMessage = String.format("Exception caught while queueing chunk %s for job %s with trackingId %s", chunk.getChunkId(), chunk.getJobId(), chunk.getTrackingId());
-                throw new JobStoreException(errorMessage, e);
-            }
-        });
+        try (JMSContext context = connectionFactory.createContext()) {
+            TextMessage message = createMessage(context, chunk, jobEntity);
+            JMSProducer producer = context.createProducer();
+            producer.setPriority(priority);
+            String queueName = jobEntity.getProcessorQueue();
+            Queue queue = context.createQueue(queueName);
+            producer.send(queue, message);
+        } catch (JSONBException | JMSException e) {
+            String errorMessage = String.format("Exception caught while queueing chunk %s for job %s with trackingId %s", chunk.getChunkId(), chunk.getJobId(), chunk.getTrackingId());
+            throw new JobStoreException(errorMessage, e);
+        }
     }
 
 

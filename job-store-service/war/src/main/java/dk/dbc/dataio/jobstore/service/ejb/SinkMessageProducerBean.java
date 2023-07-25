@@ -10,7 +10,6 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.activemq.artemis.jms.client.ActiveMQXAConnectionFactory;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -38,8 +37,6 @@ import java.time.Duration;
 @Stateless
 public class SinkMessageProducerBean implements MessageIdentifiers {
     private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageProducerBean.class);
-    private final RetryPolicy<?> retryPolicy;
-
 
     @Inject
     @ConfigProperty(name = "ARTEMIS_MQ_HOST")
@@ -85,21 +82,19 @@ public class SinkMessageProducerBean implements MessageIdentifiers {
      */
     public void send(Chunk chunk, JobEntity job, int priority) throws JobStoreException {
         FlowStoreReferences flowStoreReferences = job.getFlowStoreReferences();
-        Failsafe.with(retryPolicy).run(() -> {
-            try (JMSContext context = connectionFactory.createContext()) {
-                TextMessage message = createMessage(context, chunk, flowStoreReferences);
-                LOGGER.info("Sending chunk {}/{} to queue {} with unique id {}", chunk.getJobId(), chunk.getChunkId(), job.getSinkQueue(), chunk.getTrackingId());
+        try (JMSContext context = connectionFactory.createContext()) {
+            TextMessage message = createMessage(context, chunk, flowStoreReferences);
+            LOGGER.info("Sending chunk {}/{} to queue {} with unique id {}", chunk.getJobId(), chunk.getChunkId(), job.getSinkQueue(), chunk.getTrackingId());
 
-                send(context, message, job, priority);
-            } catch (JSONBException | JMSException e) {
-                String errorMessage = String.format(
-                        "Exception caught while sending processed chunk %d in job %s with trackingId %s",
-                        chunk.getChunkId(),
-                        chunk.getJobId(),
-                        chunk.getTrackingId());
-                throw new JobStoreException(errorMessage, e);
-            }
-        });
+            send(context, message, job, priority);
+        } catch (JSONBException | JMSException e) {
+            String errorMessage = String.format(
+                    "Exception caught while sending processed chunk %d in job %s with trackingId %s",
+                    chunk.getChunkId(),
+                    chunk.getJobId(),
+                    chunk.getTrackingId());
+            throw new JobStoreException(errorMessage, e);
+        }
     }
 
     private void send(JMSContext context, TextMessage message, JobEntity job, int priority) {

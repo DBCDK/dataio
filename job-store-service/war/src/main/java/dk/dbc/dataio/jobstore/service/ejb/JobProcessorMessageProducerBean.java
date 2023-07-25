@@ -13,7 +13,6 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import net.jodah.failsafe.RetryPolicy;
 import org.apache.activemq.artemis.jms.client.ActiveMQXAConnectionFactory;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -29,10 +28,8 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
-import javax.jms.JMSRuntimeException;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
-import java.time.Duration;
 import java.util.Optional;
 
 @LocalBean
@@ -46,15 +43,6 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     @ConfigProperty(name = "ARTEMIS_MQ_HOST")
     private String artemisHost;
     ConnectionFactory connectionFactory;
-
-    public JobProcessorMessageProducerBean() {
-        retryPolicy = new RetryPolicy<>().handle(JMSRuntimeException.class).withDelay(Duration.ofSeconds(30)).withMaxRetries(10)
-                .onFailedAttempt(attempt -> LOGGER.warn("Unable to send message to processor", attempt.getLastFailure()));
-    }
-
-    public JobProcessorMessageProducerBean(RetryPolicy<?> retryPolicy) {
-        this.retryPolicy = retryPolicy;
-    }
 
     @PostConstruct
     public void init() {

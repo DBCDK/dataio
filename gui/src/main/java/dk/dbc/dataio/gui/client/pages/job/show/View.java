@@ -528,9 +528,9 @@ public class View extends ViewWidget {
      */
     Column constructRerunColumn() {
         ButtonCell rerunButtonCell = new ButtonCell();
-        Column<JobModel, String> rerunButtonColumn = new Column<JobModel, String>(rerunButtonCell) {
+        Column<JobModel, String> rerunButtonColumn = new Column<>(rerunButtonCell) {
             public String getValue(JobModel object) {
-                return object.getJobCompletionTime().isEmpty() ? getTexts().button_ResendJob() : getTexts().button_RerunJob();
+                return object != null && object.getJobCompletionTime().isEmpty() ? getTexts().button_ResendJob() : getTexts().button_RerunJob();
             }
 
             @Override

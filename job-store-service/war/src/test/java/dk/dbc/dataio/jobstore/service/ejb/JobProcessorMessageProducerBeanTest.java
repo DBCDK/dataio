@@ -13,8 +13,6 @@ import dk.dbc.dataio.jobstore.test.types.FlowStoreReferenceBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import net.jodah.failsafe.RetryPolicy;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -22,11 +20,8 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
-import javax.jms.JMSRuntimeException;
-import javax.jms.Message;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
-import java.time.Duration;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -35,7 +30,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -95,19 +89,8 @@ public class JobProcessorMessageProducerBeanTest {
         assertThat(JMSHeader.additionalArgs.getHeader(message, String.class).contains(String.valueOf(jobSpecification.getFormat())), is(true));
     }
 
-    @Test
-    public void sendRetryAndFail() {
-        when(jmsProducer.send(any(Queue.class), any(Message.class))).thenThrow(new JMSRuntimeException("Argh"));
-        JobProcessorMessageProducerBean producerBean = getInitializedBean();
-        JobEntity jobEntity = buildJobEntity();
-        Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobEntity.getId()).build();
-        Assert.assertThrows(JMSRuntimeException.class, () -> producerBean.send(chunk, jobEntity, 1));
-        verify(jmsProducer, times(4)).send(any(Queue.class), any(Message.class));
-    }
-
     private JobProcessorMessageProducerBean getInitializedBean() {
-        RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withDelay(Duration.ofMillis(1)).withMaxRetries(3);
-        JobProcessorMessageProducerBean jobProcessorMessageProducerBean = new JobProcessorMessageProducerBean(retryPolicy);
+        JobProcessorMessageProducerBean jobProcessorMessageProducerBean = new JobProcessorMessageProducerBean();
         jobProcessorMessageProducerBean.connectionFactory = jmsConnectionFactory;
         jobProcessorMessageProducerBean.jsonbContext = new JSONBContext();
         return jobProcessorMessageProducerBean;

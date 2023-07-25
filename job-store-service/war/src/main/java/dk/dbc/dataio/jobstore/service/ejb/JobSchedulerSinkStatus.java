@@ -19,9 +19,9 @@ class JobSchedulerSinkStatus {
 
     @Override
     public String toString() {
-        return "JobSchedulerSinkStatus{" +
-                "processingStatus=" + processingStatus +
-                ", deliveringStatus=" + deliveringStatus +
+        return "status{" +
+                "processing=" + processingStatus +
+                ", delivering=" + deliveringStatus +
                 '}';
     }
 
@@ -60,8 +60,8 @@ class JobSchedulerSinkStatus {
 
         @Override
         public String toString() {
-            return "QueueStatus{" +
-                    "queueSubmitMode=" + queueSubmitMode +
+            return "Queue{" +
+                    "mode=" + queueSubmitMode +
                     ", ready=" + ready +
                     ", enqueued=" + enqueued +
                     '}';

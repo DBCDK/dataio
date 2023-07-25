@@ -31,13 +31,6 @@ import java.util.Set;
 @Table(name = "dependencytracking")
 @SqlResultSetMappings({
         @SqlResultSetMapping(
-                name = "jobId",
-                classes = {
-                        @ConstructorResult(
-                                targetClass = Integer.class,
-                                columns = {
-                                        @ColumnResult(name = "jobId")})}),
-        @SqlResultSetMapping(
                 name = DependencyTrackingEntity.KEY_RESULT,
                 classes = {
                         @ConstructorResult(

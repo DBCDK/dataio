@@ -254,10 +254,12 @@ public class JobEntity {
     }
 
     public String getProcessorQueue() {
-        return Optional.ofNullable(getSpecification()).map(JobSpecification::getType).map(t -> t.processorQueue).orElse(null);
+        return Optional.ofNullable(getSpecification()).map(JobSpecification::getType).map(t -> t.processorQueue)
+                .orElseThrow(() -> new IllegalStateException("No processor queue was found for job " + id));
     }
 
     public String getSinkQueue() {
-        return Optional.ofNullable(getCachedSink()).map(SinkCacheEntity::getSink).map(Sink::getContent).map(SinkContent::getQueue).orElse(null);
+        return Optional.ofNullable(getCachedSink()).map(SinkCacheEntity::getSink).map(Sink::getContent).map(SinkContent::getQueue)
+                .orElseThrow(() -> new IllegalStateException("No sink queue was found for job " + id));
     }
 }

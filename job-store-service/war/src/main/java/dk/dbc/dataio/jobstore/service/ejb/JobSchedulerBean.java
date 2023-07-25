@@ -514,7 +514,6 @@ public class JobSchedulerBean {
         TypedQuery<SinkIdStatusCountResult> query;
         if(sinkId == null) {
             query  = entityManager.createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY_ALL, SinkIdStatusCountResult.class);
-            sinkStatusMap.clear();
         }
         else {
             query = entityManager.createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY, SinkIdStatusCountResult.class);

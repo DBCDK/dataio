@@ -96,9 +96,9 @@ public class PgJobStore {
         if(!loopDetection.add(jobId)) return jobEntity;
         try {
             LOGGER.info("Obtaining lock on job {} for abort", jobId);
-            Map<String, Object> map = Map.of("javax.persistence.lock.timeout", 1000);
+            Map<String, Object> map = Map.of("javax.persistence.lock.timeout", 60000);
             entityManager.lock(jobEntity, LockModeType.NONE, map);
-            entityManager.lock(jobEntity, LockModeType.PESSIMISTIC_WRITE, map);
+            jobEntity = entityManager.find(JobEntity.class, jobId, LockModeType.PESSIMISTIC_WRITE, map);
             LOGGER.info("Setting aborted job state on {}", jobId);
             List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
             abortJob(jobEntity, diagnostics);
@@ -111,6 +111,7 @@ public class PgJobStore {
             LOGGER.info("Removing {} from dependency tracking", jobId);
             removeFromDependencyTracking(jobEntity);
             jobSchedulerBean.loadSinkStatusOnBootstrap((int)jobEntity.getCachedSink().getSink().getId());
+            LOGGER.info("Aborting job {} done", jobId);
         } catch (Exception e) {
             LOGGER.error("Failed to abort {}", jobId, e);
         }
@@ -119,9 +120,10 @@ public class PgJobStore {
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void abortDependencies(JobEntity jobEntity) {
-        LOGGER.info("Removing {} from dependency tracking", jobEntity.getId());
+        LOGGER.info("Removing tracking for job {} from dependency tracking", jobEntity.getId());
         removeFromDependencyTracking(jobEntity);
         jobSchedulerBean.loadSinkStatusOnBootstrap((int)jobEntity.getCachedSink().getSink().getId());
+        LOGGER.info("Removed tracking for job {} from dependency tracking", jobEntity.getId());
     }
 
     /**

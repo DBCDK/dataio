@@ -95,6 +95,7 @@ public class JobsBean {
         removeFromQueues(job);
         jobStore.abortDependencies(job);
         sinkMessageProducerBean.sendAbort(job);
+        LOGGER.info("Abort job {} and removed its dependencies", jobId);
         return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(job)).build();
     }
 

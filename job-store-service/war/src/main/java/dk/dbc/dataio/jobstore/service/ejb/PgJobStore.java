@@ -90,7 +90,7 @@ public class PgJobStore {
     @Resource
     SessionContext sessionContext;
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public JobEntity abortJob(int jobId, Set<Integer> loopDetection) {
         JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
         if(!loopDetection.add(jobId)) return jobEntity;
@@ -115,6 +115,13 @@ public class PgJobStore {
             LOGGER.error("Failed to abort {}", jobId, e);
         }
         return jobEntity;
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void abortDependencies(JobEntity jobEntity) {
+        LOGGER.info("Removing {} from dependency tracking", jobEntity.getId());
+        removeFromDependencyTracking(jobEntity);
+        jobSchedulerBean.loadSinkStatusOnBootstrap((int)jobEntity.getCachedSink().getSink().getId());
     }
 
     /**

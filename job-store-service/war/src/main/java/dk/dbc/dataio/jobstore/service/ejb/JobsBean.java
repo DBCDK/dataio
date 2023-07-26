@@ -93,6 +93,7 @@ public class JobsBean {
         LOGGER.warn("Aborting job {}", jobId);
         JobEntity job = jobStore.abortJob(jobId, new HashSet<>());
         removeFromQueues(job);
+        jobStore.abortDependencies(job);
         sinkMessageProducerBean.sendAbort(job);
         return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(job)).build();
     }

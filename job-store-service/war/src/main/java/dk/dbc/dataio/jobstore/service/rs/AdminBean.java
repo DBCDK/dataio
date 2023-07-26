@@ -73,16 +73,17 @@ public class AdminBean {
     @POST
     @Path(JobStoreServiceConstants.FORCE_DEPENDENCY_TRACKING_RETRANSMIT)
     public Response retransmit() {
-        return reTransmitAllJobs(null);
+        return retransmitJobs(null);
     }
 
+    @SuppressWarnings("UnresolvedRestParam")
     @POST
     @Path(JobStoreServiceConstants.FORCE_DEPENDENCY_TRACKING_RETRANSMIT_ID)
     public Response retransmit(@PathParam("jobId") Integer jobId) {
-        return retransmitAllJobs(jobId);
+        return retransmitJobs(jobId);
     }
 
-    private Response retransmitAllJobs(Integer jobId) {
+    private Response retransmitJobs(Integer jobId) {
         Integer sinkId = Optional.ofNullable(jobId).map(id -> entityManager.find(JobEntity.class, id))
                 .map(JobEntity::getCachedSink)
                 .map(SinkCacheEntity::getSink)

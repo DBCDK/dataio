@@ -508,15 +508,16 @@ public class JobSchedulerBean {
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void loadSinkStatusOnBootstrap(Long sinkId) {
+    public void loadSinkStatusOnBootstrap(Integer sinkId) {
         TypedQuery<SinkIdStatusCountResult> query;
         if(sinkId == null) {
             query  = entityManager.createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY_ALL, SinkIdStatusCountResult.class);
+            sinkStatusMap.clear();
         }
         else {
             query = entityManager.createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY, SinkIdStatusCountResult.class);
             query.setParameter(1, sinkId);
-            sinkStatusMap.remove(sinkId);
+            sinkStatusMap.remove((long)sinkId);
         }
         final List<SinkIdStatusCountResult> initialCounts = query.getResultList();
 

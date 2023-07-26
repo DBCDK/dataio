@@ -55,6 +55,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -91,7 +92,9 @@ public class PgJobStore {
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public JobEntity abortJob(int jobId, Set<Integer> loopDetection) {
-        JobEntity jobEntity = entityManager.find(JobEntity.class, jobId, LockModeType.PESSIMISTIC_WRITE);
+        JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+        entityManager.lock(jobEntity, LockModeType.NONE);
+        entityManager.lock(jobEntity, LockModeType.PESSIMISTIC_WRITE, Map.of(("javax.persistence.lock.timeout", 1000));
         if(!loopDetection.add(jobId)) return jobEntity;
         try {
             LOGGER.info("Setting aborted job state on {}", jobId);

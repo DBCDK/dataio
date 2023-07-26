@@ -90,9 +90,9 @@ public class AdminBean {
                 .map(Long::intValue)
                 .orElse(null);
         JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
-        int rowsUpdated = jobStoreRepository.resetStatus(jobIds, QUEUED_FOR_PROCESSING, READY_FOR_PROCESSING);
+        int rowsUpdated = jobStoreRepository.resetStatus(jobId, QUEUED_FOR_PROCESSING, READY_FOR_PROCESSING);
         LOGGER.info("Reset dependency tracking states. Sets status = 1 for status = 2 for {} entities", rowsUpdated);
-        rowsUpdated = jobStoreRepository.resetStatus(jobIds, QUEUED_FOR_DELIVERY, READY_FOR_DELIVERY);
+        rowsUpdated = jobStoreRepository.resetStatus(jobId, QUEUED_FOR_DELIVERY, READY_FOR_DELIVERY);
         LOGGER.info("Reset dependency tracking states. Sets status = 4 for status = 5 for {} entities", rowsUpdated);
         jobSchedulerBean.loadSinkStatusOnBootstrap(sinkId);
         return Response.ok().build();

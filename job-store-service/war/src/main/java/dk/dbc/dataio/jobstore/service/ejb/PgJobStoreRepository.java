@@ -722,6 +722,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         try {
             final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = getSequenceAnalysisOption(jobId);
             for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
+                if(JobsBean.isAborted(jobId)) throw new JobAborted(jobId);
                 if (dataPartitionerResult == null || dataPartitionerResult.isEmpty()) {
                     continue;
                 }

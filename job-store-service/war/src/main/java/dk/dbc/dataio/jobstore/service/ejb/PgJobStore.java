@@ -89,6 +89,7 @@ public class PgJobStore {
     @Resource
     SessionContext sessionContext;
 
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public JobEntity abortJob(int jobId, Set<Integer> loopDetection) {
         JobEntity jobEntity = entityManager.find(JobEntity.class, jobId, LockModeType.PESSIMISTIC_WRITE);
         if(!loopDetection.add(jobId)) return jobEntity;

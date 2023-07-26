@@ -96,8 +96,9 @@ public class PgJobStore {
         if(!loopDetection.add(jobId)) return jobEntity;
         try {
             LOGGER.info("Obtaining lock on job {} for abort", jobId);
-            entityManager.lock(jobEntity, LockModeType.NONE);
-            entityManager.lock(jobEntity, LockModeType.PESSIMISTIC_WRITE, Map.of("javax.persistence.lock.timeout", 1000));
+            Map<String, Object> map = Map.of("javax.persistence.lock.timeout", 1000);
+            entityManager.lock(jobEntity, LockModeType.NONE, map);
+            entityManager.lock(jobEntity, LockModeType.PESSIMISTIC_WRITE, map);
             LOGGER.info("Setting aborted job state on {}", jobId);
             List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
             abortJob(jobEntity, diagnostics);

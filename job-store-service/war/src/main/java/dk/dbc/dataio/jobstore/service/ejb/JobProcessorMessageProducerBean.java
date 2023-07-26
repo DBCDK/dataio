@@ -13,6 +13,8 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.apache.activemq.artemis.jms.client.ActiveMQXAConnectionFactory;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -28,14 +30,17 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
+import javax.jms.JMSRuntimeException;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
+import java.time.Duration;
 import java.util.Optional;
 
 @LocalBean
 @Stateless
 public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobProcessorMessageProducerBean.class);
+    private final RetryPolicy<?> retryPolicy;
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -43,6 +48,15 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     @ConfigProperty(name = "ARTEMIS_MQ_HOST")
     private String artemisHost;
     ConnectionFactory connectionFactory;
+
+    public JobProcessorMessageProducerBean() {
+        retryPolicy = new RetryPolicy<>().handle(JMSRuntimeException.class).withDelay(Duration.ofSeconds(30)).withMaxRetries(10)
+                .onFailedAttempt(attempt -> LOGGER.warn("Unable to send message to processor", attempt.getLastFailure()));
+    }
+
+    public JobProcessorMessageProducerBean(RetryPolicy<?> retryPolicy) {
+        this.retryPolicy = retryPolicy;
+    }
 
     @PostConstruct
     public void init() {
@@ -61,17 +75,19 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void send(Chunk chunk, JobEntity jobEntity, int priority) throws NullPointerException, JobStoreException {
         LOGGER.info("Sending chunk {}/{} with trackingId {}", chunk.getJobId(), chunk.getChunkId(), chunk.getTrackingId());
-        try (JMSContext context = connectionFactory.createContext()) {
-            TextMessage message = createMessage(context, chunk, jobEntity);
-            JMSProducer producer = context.createProducer();
-            producer.setPriority(priority);
-            String queueName = jobEntity.getProcessorQueue();
-            Queue queue = context.createQueue(queueName);
-            producer.send(queue, message);
-        } catch (JSONBException | JMSException e) {
-            String errorMessage = String.format("Exception caught while queueing chunk %s for job %s with trackingId %s", chunk.getChunkId(), chunk.getJobId(), chunk.getTrackingId());
-            throw new JobStoreException(errorMessage, e);
-        }
+        Failsafe.with(retryPolicy).run(() -> {
+            try (JMSContext context = connectionFactory.createContext()) {
+                TextMessage message = createMessage(context, chunk, jobEntity);
+                JMSProducer producer = context.createProducer();
+                producer.setPriority(priority);
+                String queueName = jobEntity.getProcessorQueue();
+                Queue queue = context.createQueue(queueName);
+                producer.send(queue, message);
+            } catch (JSONBException | JMSException e) {
+                String errorMessage = String.format("Exception caught while queueing chunk %s for job %s with trackingId %s", chunk.getChunkId(), chunk.getJobId(), chunk.getTrackingId());
+                throw new JobStoreException(errorMessage, e);
+            }
+        });
     }
 
 
@@ -82,7 +98,6 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
      * @param context   active JMS context
      * @param chunk     chunk instance to be added as payload
      * @param jobEntity to where the chunk instance belongs
-     * @param uuid Unique identifier to ease message tracking across our servers
      * @return TextMessage instance
      * @throws JSONBException when unable to marshall chunk instance to JSON
      * @throws JMSException   when unable to create JMS message

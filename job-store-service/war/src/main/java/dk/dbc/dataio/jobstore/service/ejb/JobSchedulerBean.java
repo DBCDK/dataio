@@ -457,11 +457,13 @@ public class JobSchedulerBean {
 
                 if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for processing - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
                 for (DependencyTrackingEntity toSchedule : chunks) {
-                    final DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
-                    LOGGER.info("bulk scheduling for processing - chunk {} to be scheduled for processing for sink {}", toScheduleKey, sinkId);
-                    final ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
-                    jobSchedulerTransactionsBean.submitToProcessing(chunk, queueStatus, toSchedule.getPriority());
-                    chunksPushedToQueue++;
+                    if(!JobsBean.isAborted(toSchedule.getKey().getJobId())) {
+                        final DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
+                        LOGGER.info("bulk scheduling for processing - chunk {} to be scheduled for processing for sink {}", toScheduleKey, sinkId);
+                        final ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
+                        jobSchedulerTransactionsBean.submitToProcessing(chunk, queueStatus, toSchedule.getPriority());
+                        chunksPushedToQueue++;
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -492,11 +494,13 @@ public class JobSchedulerBean {
 
                 if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for delivery - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
                 for (DependencyTrackingEntity toSchedule : chunks) {
-                    final DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
-                    LOGGER.info("bulk scheduling for delivery - chunk {} to be scheduled for delivery for sink {}", toScheduleKey, sinkId);
-                    jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(
-                            jobSchedulerTransactionsBean.getProcessedChunkFrom(toSchedule), queueStatus);
-                    chunksPushedToQueue++;
+                    if(!JobsBean.isAborted(toSchedule.getKey().getJobId())) {
+                        final DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
+                        LOGGER.info("bulk scheduling for delivery - chunk {} to be scheduled for delivery for sink {}", toScheduleKey, sinkId);
+                        jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(
+                                jobSchedulerTransactionsBean.getProcessedChunkFrom(toSchedule), queueStatus);
+                        chunksPushedToQueue++;
+                    }
                 }
             }
         } catch (Exception ex) {

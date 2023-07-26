@@ -53,6 +53,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.ACCEPTED;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -96,12 +97,14 @@ public class JobsBean {
     public Response abortJob(@PathParam("jobId") int jobId) throws JobStoreException {
         LOGGER.warn("Aborting job {}", jobId);
         ABORTED_JOBS.add(jobId);
-        JobEntity job = jobStore.abortJob(jobId, new HashSet<>());
-        removeFromQueues(job);
-        jobStore.abortDependencies(job);
-        sinkMessageProducerBean.sendAbort(job);
+        Set<Integer> abortedIds = new HashSet<>();
+        List<JobEntity> jobs = jobStore.abortJob(jobId, abortedIds).collect(Collectors.toList());
+        for (JobEntity job : jobs) {
+            removeFromQueues(job);
+            sinkMessageProducerBean.sendAbort(job);
+        }
         LOGGER.info("Abort job {} and removed its dependencies", jobId);
-        return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(job)).build();
+        return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(jobs.stream().findFirst().orElse(null))).build();
     }
 
     private void removeFromQueues(JobEntity job) {

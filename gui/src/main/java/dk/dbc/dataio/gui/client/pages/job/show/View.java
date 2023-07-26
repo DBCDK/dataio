@@ -561,7 +561,7 @@ public class View extends ViewWidget {
 
             @Override
             public void render(Cell.Context context, JobModel object, SafeHtmlBuilder sb) {
-                if(ABORTABLE_SINKS.contains(object.getSinkId())) {
+                if(ABORTABLE_SINKS.contains(object.getSinkId()) && object.getJobCompletionTime().isEmpty()) {
                     super.render(context, object, sb);
                 }
             }

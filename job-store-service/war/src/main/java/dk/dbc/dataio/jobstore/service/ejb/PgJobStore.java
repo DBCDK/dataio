@@ -59,6 +59,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This stateless Enterprise Java Bean (EJB) facilitates access to the job-store database through persistence layer
@@ -91,9 +92,9 @@ public class PgJobStore {
     SessionContext sessionContext;
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public JobEntity abortJob(int jobId, Set<Integer> loopDetection) {
+    public Stream<JobEntity> abortJob(int jobId, Set<Integer> loopDetection) {
         JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
-        if(!loopDetection.add(jobId)) return jobEntity;
+        if(!loopDetection.add(jobId)) return Stream.empty();
         LOGGER.info("Obtaining lock on job {} for abort", jobId);
         Map<String, Object> map = Map.of("javax.persistence.lock.timeout", 60000);
         entityManager.lock(jobEntity, LockModeType.NONE, map);
@@ -104,22 +105,14 @@ public class PgJobStore {
         jobStoreRepository.flushEntityManager();
         jobStoreRepository.refreshFromDatabase(jobEntity);
         LOGGER.info("Aborting job {}", jobId);
-        abortDependingJobs(jobId, loopDetection);
+        Stream<JobEntity> jobs = abortDependingJobs(jobId, loopDetection);
         LOGGER.info("Removing {} from job queue", jobId);
         jobQueueRepository.deleteByJobId(jobId);
         LOGGER.info("Removing {} from dependency tracking", jobId);
         removeFromDependencyTracking(jobEntity);
         jobSchedulerBean.loadSinkStatusOnBootstrap((int)jobEntity.getCachedSink().getSink().getId());
         LOGGER.info("Aborting job {} done", jobId);
-        return jobEntity;
-    }
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void abortDependencies(JobEntity jobEntity) {
-        LOGGER.info("Removing tracking for job {} from dependency tracking", jobEntity.getId());
-        removeFromDependencyTracking(jobEntity);
-        jobSchedulerBean.loadSinkStatusOnBootstrap((int)jobEntity.getCachedSink().getSink().getId());
-        LOGGER.info("Removed tracking for job {} from dependency tracking", jobEntity.getId());
+        return Stream.concat(Stream.of(jobEntity), jobs);
     }
 
     /**
@@ -380,12 +373,10 @@ public class PgJobStore {
         return jobEntity;
     }
 
-    private void abortDependingJobs(int jobId, Set<Integer> loopDetection) {
-        List<Integer> dependingJobs = jobStoreRepository.findDependingJobs(jobId).stream().filter(id -> !loopDetection.contains(id)).collect(Collectors.toList());
+    private Stream<JobEntity> abortDependingJobs(int jobId, Set<Integer> jobids) {
+        List<Integer> dependingJobs = jobStoreRepository.findDependingJobs(jobId).stream().filter(id -> !jobids.contains(id)).collect(Collectors.toList());
         if(!dependingJobs.isEmpty()) LOGGER.info("Aborting {} will also abort dependent jobs {}", jobId, dependingJobs);
-        for (Integer dependingJob : dependingJobs) {
-            abortJob(dependingJob, loopDetection);
-        }
+        return dependingJobs.stream().flatMap(j -> abortJob(j, jobids));
     }
 
     private void removeFromDependencyTracking(JobEntity jobEntity) {

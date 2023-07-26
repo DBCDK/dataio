@@ -93,10 +93,11 @@ public class PgJobStore {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public JobEntity abortJob(int jobId, Set<Integer> loopDetection) {
         JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
-        entityManager.lock(jobEntity, LockModeType.NONE);
-        entityManager.lock(jobEntity, LockModeType.PESSIMISTIC_WRITE, Map.of(("javax.persistence.lock.timeout", 1000));
         if(!loopDetection.add(jobId)) return jobEntity;
         try {
+            LOGGER.info("Obtaining lock on job {} for abort", jobId);
+            entityManager.lock(jobEntity, LockModeType.NONE);
+            entityManager.lock(jobEntity, LockModeType.PESSIMISTIC_WRITE, Map.of("javax.persistence.lock.timeout", 1000));
             LOGGER.info("Setting aborted job state on {}", jobId);
             List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
             abortJob(jobEntity, diagnostics);

@@ -166,7 +166,7 @@ public class JobSchedulerBean {
     public void scheduleChunk(ChunkEntity chunk, JobEntity job) {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(job, "job");
-        if(job.getState().isAborted()) return;
+        if(job.getState().isAborted() || JobsBean.isAborted(job.getId())) return;
         final int sinkId = (int) job.getCachedSink().getSink().getId();
         final String barrierMatchKey = getBarrierMatchKey(job);
 
@@ -218,7 +218,7 @@ public class JobSchedulerBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void ensureLastChunkIsScheduled(int jobId) {
         final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
-        if(jobEntity.getState().isAborted()) return;
+        if(jobEntity.getState().isAborted() || JobsBean.isAborted(jobId)) return;
         int chunkId = jobEntity.getNumberOfChunks() - 1;
         if (chunkId < 0) {
             chunkId = 0;
@@ -422,6 +422,7 @@ public class JobSchedulerBean {
             // JMS connection pool and also of ending up stuck in DIRECT mode when
             // it should be BULK causing the sink delivery to stall because changes
             // to ready state will be seen to late by the bulk submitter.
+            if(JobsBean.isAborted(chunk.getJobId())) throw new JobAborted(chunk.getJobId());
             jobSchedulerTransactionsBean.attemptToUnblockChunk(chunkBlockedKey, chunkDoneKey, sinkQueueStatus);
         }
         if (chunksWaitingForMe.size() > 0) {

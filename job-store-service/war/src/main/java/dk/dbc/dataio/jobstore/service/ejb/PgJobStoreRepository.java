@@ -625,6 +625,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         final Iterator<ChunkItem> nextIterator = chunk.nextIterator();
         try {
             for (ChunkItem chunkItem : chunk) {
+                if(JobsBean.isAborted(chunk.getJobId())) throw new JobAborted(chunk.getJobId());
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                 LOGGER.info("updateChunkItemEntities: updating {} chunk item {}/{}/{}",
                         chunk.getType(), chunk.getJobId(), chunk.getChunkId(), chunkItem.getId());

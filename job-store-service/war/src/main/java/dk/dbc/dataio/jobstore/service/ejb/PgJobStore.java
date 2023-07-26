@@ -94,27 +94,23 @@ public class PgJobStore {
     public JobEntity abortJob(int jobId, Set<Integer> loopDetection) {
         JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
         if(!loopDetection.add(jobId)) return jobEntity;
-        try {
-            LOGGER.info("Obtaining lock on job {} for abort", jobId);
-            Map<String, Object> map = Map.of("javax.persistence.lock.timeout", 60000);
-            entityManager.lock(jobEntity, LockModeType.NONE, map);
-            jobEntity = entityManager.find(JobEntity.class, jobId, LockModeType.PESSIMISTIC_WRITE, map);
-            LOGGER.info("Setting aborted job state on {}", jobId);
-            List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
-            abortJob(jobEntity, diagnostics);
-            jobStoreRepository.flushEntityManager();
-            jobStoreRepository.refreshFromDatabase(jobEntity);
-            LOGGER.info("Aborting job {}", jobId);
-            abortDependingJobs(jobId, loopDetection);
-            LOGGER.info("Removing {} from job queue", jobId);
-            jobQueueRepository.deleteByJobId(jobId);
-            LOGGER.info("Removing {} from dependency tracking", jobId);
-            removeFromDependencyTracking(jobEntity);
-            jobSchedulerBean.loadSinkStatusOnBootstrap((int)jobEntity.getCachedSink().getSink().getId());
-            LOGGER.info("Aborting job {} done", jobId);
-        } catch (Exception e) {
-            LOGGER.error("Failed to abort {}", jobId, e);
-        }
+        LOGGER.info("Obtaining lock on job {} for abort", jobId);
+        Map<String, Object> map = Map.of("javax.persistence.lock.timeout", 60000);
+        entityManager.lock(jobEntity, LockModeType.NONE, map);
+        jobEntity = entityManager.find(JobEntity.class, jobId, LockModeType.PESSIMISTIC_WRITE, map);
+        LOGGER.info("Setting aborted job state on {}", jobId);
+        List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
+        abortJob(jobEntity, diagnostics);
+        jobStoreRepository.flushEntityManager();
+        jobStoreRepository.refreshFromDatabase(jobEntity);
+        LOGGER.info("Aborting job {}", jobId);
+        abortDependingJobs(jobId, loopDetection);
+        LOGGER.info("Removing {} from job queue", jobId);
+        jobQueueRepository.deleteByJobId(jobId);
+        LOGGER.info("Removing {} from dependency tracking", jobId);
+        removeFromDependencyTracking(jobEntity);
+        jobSchedulerBean.loadSinkStatusOnBootstrap((int)jobEntity.getCachedSink().getSink().getId());
+        LOGGER.info("Aborting job {} done", jobId);
         return jobEntity;
     }
 
@@ -417,7 +413,7 @@ public class PgJobStore {
 
     private JobEntity partitionJobIntoChunksAndItems(JobEntity job, PartitioningParam partitioningParam) throws JobStoreException {
         // Attempt partitioning only if no fatal error has occurred
-        if (!job.hasFatalError() && !job.getState().isAborted()) {
+        if (!job.hasFatalError() && !job.getState().isAborted() || JobsBean.isAborted(job.getId())) {
             final List<Diagnostic> abortDiagnostics = new ArrayList<>(0);
 
             LOGGER.info("Partitioning job {}", job.getId());
@@ -498,7 +494,7 @@ public class PgJobStore {
      * @throws JobStoreException       if unable to find referenced chunk or job entities
      */
     @Stopwatch
-    public JobInfoSnapshot addChunk(Chunk chunk) throws NullPointerException, JobStoreException {
+    public JobInfoSnapshot addChunk(Chunk chunk) throws JobStoreException {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         LOGGER.info("addChunk: adding {} chunk {}/{}", chunk.getType(), chunk.getJobId(), chunk.getChunkId());
 

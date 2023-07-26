@@ -112,6 +112,7 @@ public class JobSchedulerTransactionsBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Asynchronous
     public void submitToProcessingIfPossibleAsync(ChunkEntity chunk, long sinkId, int priority) {
+        if(JobsBean.isAborted(chunk.getKey().getJobId())) return;
         submitToProcessingIfPossible(chunk, sinkId, priority);
     }
 
@@ -155,7 +156,6 @@ public class JobSchedulerTransactionsBean {
         dependencyTrackingEntity.setStatus(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
         try {
             JobEntity jobEntity = entityManager.find(JobEntity.class, chunk.getKey().getJobId());
-            if(jobEntity.getState().isAborted()) return;
             jobProcessorMessageProducerBean.send(getChunkFrom(chunk), jobEntity, priority);
             queueStatus.enqueued.incrementAndGet();
             LOGGER.info("submitToProcessing: chunk {}/{} scheduled for processing", key.getJobId(), key.getChunkId());
@@ -229,7 +229,7 @@ public class JobSchedulerTransactionsBean {
         }
 
         final JobEntity jobEntity = jobStoreRepository.getJobEntityById((int) chunk.getJobId());
-        if(jobEntity.getState().isAborted()) return;
+        if(jobEntity.getState().isAborted() || JobsBean.isAborted(jobEntity.getId())) return;
         // chunk is ready for sink
         try {
             sinkMessageProducerBean.send(chunk, jobEntity, dependencyTrackingEntity.getPriority());

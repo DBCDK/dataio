@@ -48,8 +48,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static javax.ws.rs.core.Response.Status.ACCEPTED;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -63,6 +66,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 @Path("/")
 public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
+    private static final Set<Integer> ABORTED_JOBS = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -91,6 +95,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_ABORT + "/{jobId}")
     public Response abortJob(@PathParam("jobId") int jobId) throws JobStoreException {
         LOGGER.warn("Aborting job {}", jobId);
+        ABORTED_JOBS.add(jobId);
         JobEntity job = jobStore.abortJob(jobId, new HashSet<>());
         removeFromQueues(job);
         jobStore.abortDependencies(job);
@@ -103,6 +108,10 @@ public class JobsBean {
         List<String> queues = List.of(job.getProcessorQueue(), job.getSinkQueue());
         LOGGER.info("Removing job {} from queues: {}", job.getId(), queues);
         queues.forEach(q -> removeFromQueue(q, job.getId()));
+    }
+
+    public static boolean isAborted(int jobId) {
+        return ABORTED_JOBS.contains(jobId);
     }
 
     private void removeFromQueue(String fqn, int jobId) {
@@ -799,13 +808,8 @@ public class JobsBean {
      * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on referenced entities not found
      */
-    Response addChunk(
-            UriInfo uriInfo,
-            long jobId,
-            long chunkId,
-            Chunk.Type type,
-            Chunk chunk) throws JobStoreException, JSONBException {
-
+    Response addChunk(UriInfo uriInfo, long jobId, long chunkId, Chunk.Type type, Chunk chunk) throws JobStoreException, JSONBException {
+        if(JobsBean.isAborted((int)jobId)) return Response.accepted().build();
         try {
             JobError jobError = getChunkInputDataError(jobId, chunkId, chunk, type);
             if (jobError == null) {

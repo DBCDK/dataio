@@ -74,10 +74,10 @@ import java.util.Set;
                 query = "SELECT e FROM DependencyTrackingEntity e WHERE e.sinkid=:sinkId AND e.status=:state ORDER BY e.priority DESC, e.key.jobId, e.key.chunkId"),
         @NamedQuery(name = DependencyTrackingEntity.CHUNKS_IN_STATE,
                 query = "SELECT count(e) FROM DependencyTrackingEntity e WHERE e.status = :status"),
-        @NamedQuery(name = DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING,
+        @NamedQuery(name = DependencyTrackingEntity.RESET_STATES_IN_DEPENDENCYTRACKING,
                 query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus"),
-        @NamedQuery(name = DependencyTrackingEntity.RESET_LIST_STATE_IN_DEPENDENCYTRACKING,
-                query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus AND e.key.jobId in :jobIds"),
+        @NamedQuery(name = DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING,
+                query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus AND e.key.jobId = :jobId"),
         @NamedQuery(name = DependencyTrackingEntity.DELETE_JOB,
                 query = "DELETE FROM DependencyTrackingEntity e WHERE e.key.jobId=:jobId")
 })
@@ -92,8 +92,8 @@ public class DependencyTrackingEntity {
     public static final String CHUNKS_TO_WAIT_FOR_QUERY = "DependencyTrackingEntity.chunksToWaitFor";
     public static final String BLOCKED_GROUPED_BY_SINK = "DependencyTrackingEntity.blockedGroupedBySink";
     public static final String CHUNKS_IN_STATE = "DependencyTrackingEntity.inState";
+    public static final String RESET_STATES_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetStates";
     public static final String RESET_STATE_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetState";
-    public static final String RESET_LIST_STATE_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetList";
     public static final String DELETE_JOB = "DependencyTrackingEntity.deleteJob";
 
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {

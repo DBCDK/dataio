@@ -142,13 +142,13 @@ public class PgJobStoreRepository extends RepositoryBase {
         return query.executeUpdate();
     }
 
-    public int resetStatus(List<Integer> jobIds, DependencyTrackingEntity.ChunkSchedulingStatus fromStatus,
+    public int resetStatus(Integer jobId, DependencyTrackingEntity.ChunkSchedulingStatus fromStatus,
                            DependencyTrackingEntity.ChunkSchedulingStatus toStatus) {
         Query q;
-        if(jobIds.isEmpty()) q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING);
+        if(jobId == null) q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATES_IN_DEPENDENCYTRACKING);
         else {
-            q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_LIST_STATE_IN_DEPENDENCYTRACKING);
-            q.setParameter("jobIds", jobIds);
+            q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING);
+            q.setParameter("jobId", jobId);
         }
         q.setParameter("fromStatus", fromStatus);
         q.setParameter("toStatus", toStatus);

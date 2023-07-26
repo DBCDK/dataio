@@ -102,7 +102,7 @@ public class PgJobStore {
             jobQueueRepository.deleteByJobId(jobId);
             LOGGER.info("Removing {} from dependency tracking", jobId);
             removeFromDependencyTracking(jobEntity);
-            jobSchedulerBean.loadSinkStatusOnBootstrap(jobEntity.getCachedSink().getSink().getId());
+            jobSchedulerBean.loadSinkStatusOnBootstrap((int)jobEntity.getCachedSink().getSink().getId());
         } catch (Exception e) {
             LOGGER.error("Failed to abort {}", jobId, e);
         }

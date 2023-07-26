@@ -91,12 +91,12 @@ public class PgJobStore {
 
     public JobEntity abortJob(int jobId, Set<Integer> loopDetection) {
         JobEntity jobEntity = entityManager.find(JobEntity.class, jobId, LockModeType.PESSIMISTIC_WRITE);
+        if(!loopDetection.add(jobId)) return jobEntity;
         try {
             LOGGER.info("Setting aborted job state on {}", jobId);
             List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
             abortJob(jobEntity, diagnostics);
             LOGGER.info("Aborting job {}", jobId);
-            loopDetection.add(jobId);
             abortDependingJobs(jobId, loopDetection);
             LOGGER.info("Removing {} from job queue", jobId);
             jobQueueRepository.deleteByJobId(jobId);

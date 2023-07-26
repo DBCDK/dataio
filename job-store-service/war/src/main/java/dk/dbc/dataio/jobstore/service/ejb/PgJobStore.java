@@ -102,6 +102,8 @@ public class PgJobStore {
             LOGGER.info("Setting aborted job state on {}", jobId);
             List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
             abortJob(jobEntity, diagnostics);
+            jobStoreRepository.flushEntityManager();
+            jobStoreRepository.refreshFromDatabase(jobEntity);
             LOGGER.info("Aborting job {}", jobId);
             abortDependingJobs(jobId, loopDetection);
             LOGGER.info("Removing {} from job queue", jobId);
@@ -524,6 +526,7 @@ public class PgJobStore {
         if (jobEntity == null) {
             throw new JobStoreException(String.format("JobEntity.%d could not be found", chunkEntity.getKey().getJobId()));
         }
+
         jobStoreRepository.updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
         if (chunkCompletesJob(jobEntity, chunk)) {
             if (chunk.isTerminationChunk() && chunk.getItems().get(0).getStatus() == ChunkItem.Status.FAILURE) {

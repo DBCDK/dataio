@@ -102,6 +102,7 @@ public class JobsBean {
         for (JobEntity job : jobs) {
             removeFromQueues(job);
             sinkMessageProducerBean.sendAbort(job);
+            jobStore.removeFromDependencyTracking(job);
         }
         LOGGER.info("Abort job {} and removed its dependencies", jobId);
         return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(jobs.stream().findFirst().orElse(null))).build();

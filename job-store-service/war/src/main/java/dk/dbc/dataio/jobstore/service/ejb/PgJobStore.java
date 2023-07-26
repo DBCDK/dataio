@@ -379,9 +379,9 @@ public class PgJobStore {
         return dependingJobs.stream().flatMap(j -> abortJob(j, jobids));
     }
 
-    private void removeFromDependencyTracking(JobEntity jobEntity) {
+    public void removeFromDependencyTracking(JobEntity jobEntity) {
         int count = jobStoreRepository.deleteDependencies(jobEntity.getId());
-        LOGGER.info("Aborting job {} deleted {} dependency tracking rows", jobEntity.getId(), count);
+        if(count > 0) LOGGER.info("Aborting job {} deleted {} dependency tracking rows", jobEntity.getId(), count);
     }
 
     private State endPartitioningPhase(JobEntity job) {

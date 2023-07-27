@@ -71,7 +71,7 @@ public class JobsBean {
 
     JSONBContext jsonbContext = new JSONBContext();
 
-    /* This is not private so it is accessible from automatic test */
+    /* This is not private, so it is accessible from automatic test */
     @EJB
     PgJobStore jobStore;
 
@@ -89,6 +89,8 @@ public class JobsBean {
 
     @EJB
     SinkMessageProducerBean sinkMessageProducerBean;
+    @EJB
+    JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
 
@@ -101,6 +103,7 @@ public class JobsBean {
         List<JobEntity> jobs = jobStore.abortJob(jobId, abortedIds).collect(Collectors.toList());
         for (JobEntity job : jobs) {
             removeFromQueues(job);
+            jobProcessorMessageProducerBean.sendAbort(job);
             sinkMessageProducerBean.sendAbort(job);
             jobStore.removeFromDependencyTracking(job);
         }

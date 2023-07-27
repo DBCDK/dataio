@@ -26,19 +26,16 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
-import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
-import javax.jms.JMSProducer;
 import javax.jms.JMSRuntimeException;
-import javax.jms.Queue;
 import javax.jms.TextMessage;
 import java.time.Duration;
 import java.util.Optional;
 
 @LocalBean
 @Stateless
-public class JobProcessorMessageProducerBean implements MessageIdentifiers {
+public class JobProcessorMessageProducerBean extends AbstractMessageProducer implements MessageIdentifiers {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobProcessorMessageProducerBean.class);
     private final RetryPolicy<?> retryPolicy;
 
@@ -47,34 +44,20 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
     @Inject
     @ConfigProperty(name = "ARTEMIS_MQ_HOST")
     private String artemisHost;
-    ConnectionFactory connectionFactory;
 
     public JobProcessorMessageProducerBean() {
-        retryPolicy = new RetryPolicy<>().handle(JMSRuntimeException.class).withDelay(Duration.ofSeconds(30)).withMaxRetries(10)
-                .onFailedAttempt(attempt -> LOGGER.warn("Unable to send message to processor", attempt.getLastFailure()));
+        this(new RetryPolicy<>().handle(JMSRuntimeException.class).withDelay(Duration.ofSeconds(30)).withMaxRetries(10)
+                .onFailedAttempt(attempt -> LOGGER.warn("Unable to send message to processor", attempt.getLastFailure())));
     }
 
     public JobProcessorMessageProducerBean(RetryPolicy<?> retryPolicy) {
+        super(JobEntity::getProcessorQueue);
         this.retryPolicy = retryPolicy;
     }
 
     @PostConstruct
     public void init() {
         connectionFactory = new ActiveMQXAConnectionFactory("tcp://" + artemisHost + ":61616");
-    }
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void sendAbort(JobEntity job) throws JobStoreException {
-        String queueName = job.getProcessorQueue();
-        try(JMSContext context = connectionFactory.createContext()) {
-            TextMessage message = context.createTextMessage();
-            JMSHeader.payload.addHeader(message, JMSHeader.ABORT_PAYLOAD_TYPE);
-            JMSHeader.abortId.addHeader(message, job.getId());
-            LOGGER.warn("Sending abort for job {} to queue {}", job.getId(), queueName);
-            send(context, message, job, 9);
-        } catch (JMSException e) {
-            throw new JobStoreException("Unable to send job abort for " + job.getId() +  " to queue " + queueName, e);
-        }
     }
 
     /**
@@ -125,14 +108,6 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
         JMSHeader.additionalArgs.addHeader(message, resolveAdditionalArgs(jobEntity));
 
         return message;
-    }
-
-    private void send(JMSContext context, TextMessage message, JobEntity job, int priority) {
-        String qname = job.getProcessorQueue();
-        Queue queue = context.createQueue(qname.contains("::") ? qname : qname + "::" + qname);
-        JMSProducer producer = context.createProducer();
-        producer.setPriority(priority);
-        producer.send(queue, message);
     }
 
     /**

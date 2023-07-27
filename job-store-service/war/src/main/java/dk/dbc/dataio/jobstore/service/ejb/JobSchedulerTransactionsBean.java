@@ -44,7 +44,7 @@ public class JobSchedulerTransactionsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerTransactionsBean.class);
 
     @Inject
-    @ConfigProperty(name = "ENABLE_OPTIMIZER", defaultValue = "FALSE")
+    @ConfigProperty(name = "ENABLE_DEPENDENCY_OPTIMIZER", defaultValue = "TRUE")
     private Boolean enableOptimizer;
 
     @Inject
@@ -301,6 +301,7 @@ public class JobSchedulerTransactionsBean {
     /**
      * Finding lists of chunks in dependency Tracking with this jobId and MatchKey.
      * Note only First key in waitForKey is checked.
+     *
      * @param sinkId     sinkId
      * @param jobId      jobId for witch chunks to wait for barrier
      * @param waitForKey dataSetID

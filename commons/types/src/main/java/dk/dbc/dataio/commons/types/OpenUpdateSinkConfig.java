@@ -103,7 +103,6 @@ public class OpenUpdateSinkConfig implements SinkConfig, Serializable {
     public String toString() {
         return "OpenUpdateSinkConfig{" +
                 "userId='" + userId + '\'' +
-                ", password='" + password + '\'' +
                 ", endpoint='" + endpoint + '\'' +
                 ", availableQueueProviders=" + availableQueueProviders +
                 ", ignoredValidationErrors=" + ignoredValidationErrors +

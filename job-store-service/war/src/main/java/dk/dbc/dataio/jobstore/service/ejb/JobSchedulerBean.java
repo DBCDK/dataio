@@ -288,8 +288,7 @@ public class JobSchedulerBean {
     }
 
     private String getBarrierMatchKey(JobEntity job) {
-        if (REQUIRES_TERMINATION_CHUNK.contains(
-                job.getCachedSink().getSink().getContent().getSinkType())) {
+        if (REQUIRES_TERMINATION_CHUNK.contains(job.getCachedSink().getSink().getContent().getSinkType())) {
             return String.valueOf(job.getSpecification().getSubmitterId());
         }
         return null;

@@ -23,10 +23,11 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK;
@@ -201,9 +202,7 @@ public class JobSchedulerTransactionsBean {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void attemptToUnblockChunk(
-            DependencyTrackingEntity.Key chunkBlockedKey,
-            DependencyTrackingEntity.Key chunkDoneKey,
+    public void attemptToUnblockChunk(DependencyTrackingEntity.Key chunkBlockedKey, DependencyTrackingEntity.Key chunkDoneKey,
             JobSchedulerSinkStatus.QueueStatus sinkQueueStatus) {
 
         DependencyTrackingEntity blockedChunk = entityManager.find(
@@ -268,7 +267,7 @@ public class JobSchedulerTransactionsBean {
             return Collections.emptySet();
         }
 
-        final Query query = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_TO_WAIT_FOR_QUERY);
+        Query query = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_TO_WAIT_FOR_QUERY);
         query.setParameter(1, entity.getSinkid());
         query.setParameter(2, entity.getSubmitterNumber());
         if (barrierMatchKey != null) {
@@ -276,7 +275,15 @@ public class JobSchedulerTransactionsBean {
         } else {
             query.setParameter(3, PgIntArray.toPgString(entity.getHashes()));
         }
-        return new HashSet<>((List<DependencyTrackingEntity.Key>) query.getResultList());
+        return simplifyDependencies(entity, query.getResultList());
+    }
+
+    public static Set<DependencyTrackingEntity.Key> simplifyDependencies(DependencyTrackingEntity entity, List<DependencyTrackingEntity> dependencies) {
+        Set<DependencyTrackingEntity.Key> keys = dependencies.stream()
+                .map(DependencyTrackingEntity::getWaitingOn)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+        return entity.getWaitingOn().stream().filter(k -> !keys.contains(k)).collect(Collectors.toSet());
     }
 
     /**

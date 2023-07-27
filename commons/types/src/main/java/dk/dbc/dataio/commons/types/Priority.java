@@ -1,7 +1,6 @@
 package dk.dbc.dataio.commons.types;
 
 public enum Priority {
-    MAX(9),
     HIGH(7),
     NORMAL(4),
     LOW(1);

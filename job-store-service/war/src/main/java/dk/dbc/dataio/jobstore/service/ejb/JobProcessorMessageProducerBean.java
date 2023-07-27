@@ -15,13 +15,17 @@ import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
+import org.apache.activemq.artemis.jms.client.ActiveMQXAConnectionFactory;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSRuntimeException;
@@ -34,8 +38,10 @@ import java.util.Optional;
 public class JobProcessorMessageProducerBean extends AbstractMessageProducer implements MessageIdentifiers {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobProcessorMessageProducerBean.class);
     private final RetryPolicy<?> retryPolicy;
-
     JSONBContext jsonbContext = new JSONBContext();
+    @Inject
+    @ConfigProperty(name = "ARTEMIS_MQ_HOST")
+    private String artemisHost;
 
     public JobProcessorMessageProducerBean() {
         this(new RetryPolicy<>().handle(JMSRuntimeException.class).withDelay(Duration.ofSeconds(30)).withMaxRetries(10)
@@ -45,6 +51,11 @@ public class JobProcessorMessageProducerBean extends AbstractMessageProducer imp
     public JobProcessorMessageProducerBean(RetryPolicy<?> retryPolicy) {
         super(JobEntity::getProcessorQueue);
         this.retryPolicy = retryPolicy;
+    }
+
+    @PostConstruct
+    public void init() {
+        connectionFactory = new ActiveMQXAConnectionFactory("tcp://" + artemisHost + ":61616");
     }
 
     /**

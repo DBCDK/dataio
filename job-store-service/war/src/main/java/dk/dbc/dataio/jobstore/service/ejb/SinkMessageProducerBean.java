@@ -12,11 +12,15 @@ import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
+import org.apache.activemq.artemis.jms.client.ActiveMQXAConnectionFactory;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSRuntimeException;
@@ -33,6 +37,9 @@ public class SinkMessageProducerBean extends AbstractMessageProducer implements 
     private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageProducerBean.class);
     private final RetryPolicy<?> retryPolicy;
     JSONBContext jsonbContext = new JSONBContext();
+    @Inject
+    @ConfigProperty(name = "ARTEMIS_MQ_HOST")
+    private String artemisHost;
 
     public SinkMessageProducerBean() {
         this(new RetryPolicy<>().handle(JMSRuntimeException.class).withDelay(Duration.ofSeconds(30)).withMaxRetries(10)
@@ -42,6 +49,11 @@ public class SinkMessageProducerBean extends AbstractMessageProducer implements 
     public SinkMessageProducerBean(RetryPolicy<?> retryPolicy) {
         super(JobEntity::getSinkQueue);
         this.retryPolicy = retryPolicy;
+    }
+
+    @PostConstruct
+    public void init() {
+        connectionFactory = new ActiveMQXAConnectionFactory("tcp://" + artemisHost + ":61616");
     }
 
     /**

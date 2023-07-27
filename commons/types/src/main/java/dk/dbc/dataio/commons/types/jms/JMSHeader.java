@@ -16,7 +16,10 @@ public enum JMSHeader {
     flowVersion,
     resource,
     sinkId("id"),
-    sinkVersion("version"), flowBinderId, flowBinderVersion;
+    sinkVersion("version"),
+    flowBinderId,
+    flowBinderVersion,
+    abortId;
 
     public final String name;
     public static final String CHUNK_PAYLOAD_TYPE = "Chunk";

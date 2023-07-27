@@ -66,7 +66,7 @@ public class SinkMessageProducerBean implements MessageIdentifiers {
         try(JMSContext context = connectionFactory.createContext()) {
             TextMessage message = context.createTextMessage();
             JMSHeader.payload.addHeader(message, JMSHeader.ABORT_PAYLOAD_TYPE);
-            JMSHeader.jobId.addHeader(message, job.getId());
+            JMSHeader.abortId.addHeader(message, job.getId());
             LOGGER.warn("Sending abort for job {} to queue {}", job.getId(), queue);
             send(context, message, job, 9);
         } catch (JMSException e) {

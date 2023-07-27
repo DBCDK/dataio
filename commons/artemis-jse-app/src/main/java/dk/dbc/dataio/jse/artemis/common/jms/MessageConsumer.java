@@ -86,19 +86,20 @@ public interface MessageConsumer extends MessageListener {
         List<Tag> tags = new ArrayList<>();
         try {
             messageId = message.getJMSMessageID();
-            int jobId = JMSHeader.jobId.getHeader(message);
-            tags.add(destination.is(getFQN()));
-            tags.add(redelivery.is(Boolean.toString(message.getJMSRedelivered())));
             if(JMSHeader.ABORT_PAYLOAD_TYPE.equals(JMSHeader.payload.getHeader(message))) {
-                LOGGER.info("Received abort for job {}", jobId);
-                ABORTED_JOBS.add(jobId);
+                int abortId = JMSHeader.abortId.getHeader(message);
+                LOGGER.info("Received abort for job {}", abortId);
+                ABORTED_JOBS.add(abortId);
                 try {
-                    abortJob(jobId);
+                    abortJob(abortId);
                 } catch (RuntimeException re) {
-                    LOGGER.warn("Job abortion failed for {}", jobId, re);
+                    LOGGER.warn("Job abortion failed for {}", abortId, re);
                 }
                 return;
             }
+            int jobId = JMSHeader.jobId.getHeader(message);
+            tags.add(destination.is(getFQN()));
+            tags.add(redelivery.is(Boolean.toString(message.getJMSRedelivered())));
             if(ABORTED_JOBS.contains(jobId)) {
                 LOGGER.info("Discarding chunk {}/{} for aborted job", jobId, JMSHeader.chunkId.getHeader(message));
                 return;

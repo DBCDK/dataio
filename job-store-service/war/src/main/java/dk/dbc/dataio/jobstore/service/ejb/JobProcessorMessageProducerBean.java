@@ -63,6 +63,20 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
         connectionFactory = new ActiveMQXAConnectionFactory("tcp://" + artemisHost + ":61616");
     }
 
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void sendAbort(JobEntity job) throws JobStoreException {
+        String queueName = job.getProcessorQueue();
+        try(JMSContext context = connectionFactory.createContext()) {
+            TextMessage message = context.createTextMessage();
+            JMSHeader.payload.addHeader(message, JMSHeader.ABORT_PAYLOAD_TYPE);
+            JMSHeader.abortId.addHeader(message, job.getId());
+            LOGGER.warn("Sending abort for job {} to queue {}", job.getId(), queueName);
+            send(context, message, job, 9);
+        } catch (JMSException e) {
+            throw new JobStoreException("Unable to send job abort for " + job.getId() +  " to queue " + queueName, e);
+        }
+    }
+
     /**
      * Sends given Chunk instance as JMS message with JSON payload to processor queue destination
      *
@@ -78,11 +92,7 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
         Failsafe.with(retryPolicy).run(() -> {
             try (JMSContext context = connectionFactory.createContext()) {
                 TextMessage message = createMessage(context, chunk, jobEntity);
-                JMSProducer producer = context.createProducer();
-                producer.setPriority(priority);
-                String queueName = jobEntity.getProcessorQueue();
-                Queue queue = context.createQueue(queueName);
-                producer.send(queue, message);
+                send(context, message, jobEntity, priority);
             } catch (JSONBException | JMSException e) {
                 String errorMessage = String.format("Exception caught while queueing chunk %s for job %s with trackingId %s", chunk.getChunkId(), chunk.getJobId(), chunk.getTrackingId());
                 throw new JobStoreException(errorMessage, e);
@@ -115,6 +125,14 @@ public class JobProcessorMessageProducerBean implements MessageIdentifiers {
         JMSHeader.additionalArgs.addHeader(message, resolveAdditionalArgs(jobEntity));
 
         return message;
+    }
+
+    private void send(JMSContext context, TextMessage message, JobEntity job, int priority) {
+        String qname = job.getProcessorQueue();
+        Queue queue = context.createQueue(qname.contains("::") ? qname : qname + "::" + qname);
+        JMSProducer producer = context.createProducer();
+        producer.setPriority(priority);
+        producer.send(queue, message);
     }
 
     /**

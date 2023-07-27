@@ -11,6 +11,7 @@ import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +42,10 @@ import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.getSinkStatus;
 @Stateless
 public class JobSchedulerTransactionsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerTransactionsBean.class);
+
+    @Inject
+    @ConfigProperty(name = "ENABLE_OPTIMIZER", defaultValue = "FALSE")
+    private Boolean enableOptimizer;
 
     @Inject
     @JobstoreDB
@@ -278,17 +283,12 @@ public class JobSchedulerTransactionsBean {
         } else {
             query.setParameter(3, PgIntArray.toPgString(entity.getHashes()));
         }
-        try {
-            List<DependencyTrackingEntity> list = query.getResultList();
-            Set<DependencyTrackingEntity.Key> set = simplifyDependencies(list);
-            return set;
-        } catch (RuntimeException e) {
-            LOGGER.warn("NOOOO!", e);
-        }
-        return Set.of();
+        List<DependencyTrackingEntity> list = query.getResultList();
+        if(enableOptimizer) return optimizeDependencies(list);
+        return list.stream().map(DependencyTrackingEntity::getKey).collect(Collectors.toSet());
     }
 
-    public static Set<DependencyTrackingEntity.Key> simplifyDependencies(List<? extends DependencyTrackingEntity> dependencies) {
+    public static Set<DependencyTrackingEntity.Key> optimizeDependencies(List<? extends DependencyTrackingEntity> dependencies) {
         if(dependencies.isEmpty()) return Set.of();
         Set<DependencyTrackingEntity.Key> keys = dependencies.stream()
                 .map(DependencyTrackingEntity::getWaitingOn)

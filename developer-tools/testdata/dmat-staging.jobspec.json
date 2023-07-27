@@ -1,0 +1,16 @@
+{
+  "type": "TRANSIENT",
+  "format": "dmat",
+  "charset": "utf8",
+  "ancestry": {
+    "previousJobId": 0,
+    "harvesterToken": "tickle-repo:18551:399:70320"
+  },
+  "dataFile": "urn:dataio-fs:8017423",
+  "packaging": "addi-xml",
+  "destination": "dmat",
+  "submitterId": 150015,
+  "resultmailInitials": "",
+  "mailForNotificationAboutProcessing": "",
+  "mailForNotificationAboutVerification": ""
+}

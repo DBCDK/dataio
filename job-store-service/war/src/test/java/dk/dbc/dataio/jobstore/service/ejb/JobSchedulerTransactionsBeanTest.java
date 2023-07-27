@@ -12,6 +12,19 @@ import java.util.stream.Collectors;
 
 public class JobSchedulerTransactionsBeanTest {
     @Test
+    public void jobPyramidTest() {
+        List<Dep> list = List.of(
+                new Dep(0, 0),
+                new Dep(1, 0).wo(0, 0),
+                new Dep(2, 0).wo(1, 0).wo(0, 0),
+                new Dep(3, 0).wo(2, 0).wo(1, 0).wo(0, 0).remain()
+        );
+        Set<DependencyTrackingEntity.Key> result = JobSchedulerTransactionsBean.optimizeDependencies(list);
+        Set<DependencyTrackingEntity.Key> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTrackingEntity::getKey).collect(Collectors.toSet());
+        Assert.assertEquals("All dependencies marked to remain should be in the result and nothing else", expected, result);
+    }
+
+    @Test
     public void cleanTreeTest() {
         List<Dep> list = List.of(
                 new Dep(0, 0),
@@ -24,7 +37,7 @@ public class JobSchedulerTransactionsBeanTest {
                 new Dep(0, 6).wo(0, 5).remain(),
                 new Dep(2, 0).remain()
         );
-        Set<DependencyTrackingEntity.Key> result = JobSchedulerTransactionsBean.simplifyDependencies(list);
+        Set<DependencyTrackingEntity.Key> result = JobSchedulerTransactionsBean.optimizeDependencies(list);
         Set<DependencyTrackingEntity.Key> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTrackingEntity::getKey).collect(Collectors.toSet());
         Assert.assertEquals("All dependencies marked to remain should be in the result and nothing else", expected, result);
     }
@@ -42,7 +55,7 @@ public class JobSchedulerTransactionsBeanTest {
                 new Dep(0, 6).wo(0, 0, 5).wo(1, 0).remain(),
                 new Dep(2, 0).remain()
         );
-        Set<DependencyTrackingEntity.Key> result = JobSchedulerTransactionsBean.simplifyDependencies(list);
+        Set<DependencyTrackingEntity.Key> result = JobSchedulerTransactionsBean.optimizeDependencies(list);
         Set<DependencyTrackingEntity.Key> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTrackingEntity::getKey).collect(Collectors.toSet());
         Assert.assertEquals("All dependencies marked to remain should be in the result and nothing else", expected, result);
     }

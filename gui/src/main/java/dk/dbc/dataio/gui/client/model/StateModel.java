@@ -13,6 +13,16 @@ public class StateModel implements Serializable {
     private StateElement partitioning = new StateElement();
     private StateElement processing = new StateElement();
     private StateElement delivering = new StateElement();
+    private boolean aborted = false;
+
+    public boolean isAborted() {
+        return aborted;
+    }
+
+    public StateModel withAborted(boolean aborted) {
+        this.aborted = aborted;
+        return this;
+    }
 
     public StateElement getPartitioning() {
         return partitioning;

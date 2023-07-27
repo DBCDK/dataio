@@ -13,8 +13,6 @@ public interface Presenter extends GenericPresenter {
 
     void queueChanged(String name);
 
-    void resourceChanged(String resource);
-
     void descriptionChanged(String description);
 
     void openUpdateUserIdChanged(String userId);

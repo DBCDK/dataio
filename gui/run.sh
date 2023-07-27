@@ -13,4 +13,5 @@ docker run -e JAVA_MAX_HEAP_SIZE=2g \
 -e FTP_URL="ftp://anonymous:info%40dbc.dk@ftp-staging.dbc.dk/datain" \
 -e LOGSTORE_URL="http://dataio-logstore-service.metascrum-staging.svc.cloud.dbc.dk/dataio/log-store-service/" \
 -e ELK_URL="http\\://elk.dbc.dk\:5601/#/discover/Traceid\:-Staging?_g\=(time\:(from\:now-7d,mode\:quick,to\:now))&_a\=(query\:(query_string\:(analyze_wildcard\:!t,query\:\\'%22@TRACEID@%22\\')),sort\:!(\\'@timestamp\\',asc))" \
+-e LOG_FORMAT=text \
 -p 8080:8080 docker-metascrum.artifacts.dbccloud.dk/dbc-payara-gui:devel

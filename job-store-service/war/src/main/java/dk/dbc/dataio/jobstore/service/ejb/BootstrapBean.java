@@ -29,7 +29,7 @@ public class BootstrapBean {
         resetJobsInterruptedDuringPartitioning();
         resetInterruptedRerunTasks();
         jobSchedulerBean.registerMetrics();
-        jobSchedulerBean.loadSinkStatusOnBootstrap();
+        jobSchedulerBean.loadSinkStatusOnBootstrap(null);
     }
 
     /*

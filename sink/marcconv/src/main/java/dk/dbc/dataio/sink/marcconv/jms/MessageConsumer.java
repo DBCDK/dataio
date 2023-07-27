@@ -80,6 +80,14 @@ public class MessageConsumer extends MessageConsumerAdapter {
     }
 
     @Override
+    public void abortJob(int jobId) {
+        EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        conversionFinalizer.deleteJob(jobId);
+        transaction.commit();
+    }
+
+    @Override
     public String getQueue() {
         return QUEUE;
     }

@@ -12,6 +12,7 @@ public class Diagnostic {
     public enum Level {
         ERROR,      // an action returned an error response
         FATAL,      // an unexpected exception prevented us from completing an action
+        ABORTED, // the user aborted the job
         WARNING
     }
 

@@ -1,13 +1,16 @@
 package dk.dbc.dataio.jobstore.types;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.types.Diagnostic;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Class representing the current state of a job.
@@ -24,7 +27,7 @@ public class State {
 
     public State() {
         diagnostics = new ArrayList<>();
-        states = new HashMap<>(Phase.values().length);
+        states = new EnumMap<>(Phase.class);
         for (Phase phase : Phase.values()) {
             states.put(phase, new StateElement());
         }
@@ -81,12 +84,9 @@ public class State {
      * @return true if all phases have completed, otherwise false
      */
     public boolean allPhasesAreDone() {
-        for (Map.Entry<Phase, StateElement> entry : states.entrySet()) {
-            if (entry.getValue().getEndDate() == null) {
-                return false;
-            }
-        }
-        return true;
+        return states.values().stream()
+                .map(StateElement::getEndDate)
+                .noneMatch(Objects::isNull);
     }
 
     /**
@@ -111,6 +111,11 @@ public class State {
             }
         }
         return false;
+    }
+
+    @JsonIgnore
+    public boolean isAborted() {
+        return diagnostics.stream().map(Diagnostic::getLevel).anyMatch(Diagnostic.Level.ABORTED::equals);
     }
 
     /*

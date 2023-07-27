@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.invariant.InvariantUtil;
 
@@ -10,6 +11,7 @@ import java.util.Objects;
 /**
  * SinkContent DTO class.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SinkContent implements Serializable {
     private static final long serialVersionUID = -3413557101203220951L;
 
@@ -37,7 +39,6 @@ public class SinkContent implements Serializable {
 
     private final String name;
     private final String queue;
-    private final String resource;
     private final String description;
     private final SinkType sinkType;
     private final SinkConfig sinkConfig;
@@ -47,7 +48,7 @@ public class SinkContent implements Serializable {
      * Class constructor
      *
      * @param name                   sink name
-     * @param resource               sink resource
+     * @param queue                  sink queue
      * @param description            sink description
      * @param sinkType               sink type
      * @param sinkConfig             sink config
@@ -58,7 +59,6 @@ public class SinkContent implements Serializable {
     @JsonCreator
     public SinkContent(@JsonProperty("name") String name,
                        @JsonProperty(value = "queue") String queue,
-                       @JsonProperty("resource") String resource,
                        @JsonProperty("description") String description,
                        @JsonProperty("sinkType") SinkType sinkType,
                        @JsonProperty("sinkConfig") SinkConfig sinkConfig,
@@ -66,31 +66,26 @@ public class SinkContent implements Serializable {
 
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.queue = queue;
-        this.resource = resource;
         this.description = description;
         this.sinkType = sinkType;
         this.sinkConfig = sinkConfig;
         this.sequenceAnalysisOption = InvariantUtil.checkNotNullOrThrow(sequenceAnalysisOption, "sequenceAnalysisOption");
     }
 
-    public SinkContent(String name, String resource, String description, SinkType sinkType, SequenceAnalysisOption sequenceAnalysisOption) {
-        this(name, "jmsDataioSinks", resource, description, sinkType, NULL_CONFIG, sequenceAnalysisOption);
+    public SinkContent(String name, String queue, String description, SequenceAnalysisOption sequenceAnalysisOption) {
+        this(name, queue, description, NULL_TYPE, NULL_CONFIG, sequenceAnalysisOption);
     }
 
-    public SinkContent(String name, String resource, String description, SequenceAnalysisOption sequenceAnalysisOption) {
-        this(name, "jmsDataioSinks", resource, description, NULL_TYPE, NULL_CONFIG, sequenceAnalysisOption);
-    }
+//    public SinkContent(String name, String description, SequenceAnalysisOption sequenceAnalysisOption) {
+//        this(name, "jmsDataioSinks", description, NULL_TYPE, NULL_CONFIG, sequenceAnalysisOption);
+//    }
 
     public String getName() {
         return name;
     }
 
     public String getQueue() {
-        return queue == null ? "jmsDataioSinks" : queue;
-    }
-
-    public String getResource() {
-        return resource;
+        return queue;
     }
 
     public String getDescription() {
@@ -116,7 +111,6 @@ public class SinkContent implements Serializable {
         SinkContent that = (SinkContent) o;
         return name.equals(that.name)
                 && queue.equals(that.queue)
-                && Objects.equals(resource, that.resource)
                 && description.equals(that.description)
                 && sinkType == that.sinkType
                 && Objects.equals(sinkConfig, that.sinkConfig)
@@ -127,7 +121,6 @@ public class SinkContent implements Serializable {
     public int hashCode() {
         int result = name.hashCode();
         result = 31 * result + queue.hashCode();
-        result = 31 * result + resource.hashCode();
         result = 31 * result + description.hashCode();
         result = 31 * result + (sinkType != null ? sinkType.hashCode() : 0);
         result = 31 * result + (sinkConfig != null ? sinkConfig.hashCode() : 0);

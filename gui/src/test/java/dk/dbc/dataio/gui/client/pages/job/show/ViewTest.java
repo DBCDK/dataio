@@ -140,7 +140,7 @@ public class ViewTest {
 
         // Verify invocations
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), isA(View.HideShowColumnHeader.class));
-        verify(viewConcrete.jobsTable, times(3)).addColumn(isA(Column.class), isA(View.HidableColumnHeader.class));
+        verify(viewConcrete.jobsTable, times(4)).addColumn(isA(Column.class), isA(View.HidableColumnHeader.class));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_JOBCREATIONTIME));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_JOBID));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_SUBMITTER));

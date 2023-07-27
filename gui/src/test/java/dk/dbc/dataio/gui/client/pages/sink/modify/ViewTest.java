@@ -53,7 +53,7 @@ public class ViewTest {
         // Test Verification
         verifyNoMoreInteractions(view.sinkTypeSelection);
         verifyNoMoreInteractions(view.name);
-        verifyNoMoreInteractions(view.resource);
+        verifyNoMoreInteractions(view.queue);
         verifyNoMoreInteractions(view.description);
         verifyNoMoreInteractions(view.updateSinkSection);
         verifyNoMoreInteractions(view.url);
@@ -95,16 +95,16 @@ public class ViewTest {
     }
 
     @Test
-    public void resourceChanged_called_presenterNotified() {
+    public void queueChanged_called_presenterNotified() {
         // Test preparation
         setupView();
-        when(view.resource.getText()).thenReturn("-resource-");
+        when(view.queue.getText()).thenReturn("-queue-");
 
         // Subject Under Test
-        view.resourceChanged(mockedValueChangeEvent);
+        view.queueChanged(mockedValueChangeEvent);
 
         // Test Verification
-        verify(mockedPresenter).resourceChanged("-resource-");
+        verify(mockedPresenter).queueChanged("-queue-");
         verify(mockedPresenter).keyPressed();
         verifyNoMoreInteractions(mockedPresenter);
     }

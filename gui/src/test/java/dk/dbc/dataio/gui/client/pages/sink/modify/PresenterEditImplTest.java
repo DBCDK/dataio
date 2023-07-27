@@ -103,7 +103,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         presenterEditImpl.model = new SinkModel();
 
         presenterEditImpl.nameChanged("a");                   // Name is ok
-        presenterEditImpl.resourceChanged("resource");        // Resource is ok
+        presenterEditImpl.queueChanged("sink::queue");
 
         presenterEditImpl.saveModel();
 
@@ -410,7 +410,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
     private void verifyNoMoreViewInteractions() {
         verifyNoMoreInteractions(editView.name);
-        verifyNoMoreInteractions(editView.resource);
+        verifyNoMoreInteractions(editView.queue);
         verifyNoMoreInteractions(editView.description);
         verifyNoMoreInteractions(editView.updateSinkSection);
         verifyNoMoreInteractions(editView.esSinkSection);

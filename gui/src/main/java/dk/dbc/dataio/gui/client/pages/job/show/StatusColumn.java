@@ -41,6 +41,8 @@ class StatusColumn extends Column<JobModel, ImageResource> {
                 return resources.red();
             case PREVIEW:
                 return resources.yellow();
+            case ABORTED:
+                return resources.deleteDownButton();
             default:
                 return resources.green();
         }
@@ -54,26 +56,28 @@ class StatusColumn extends Column<JobModel, ImageResource> {
      */
     private View.JobStatus getJobStatus(JobModel model) {
         if (model == null) {
-            model = new JobModel();
+            return View.JobStatus.NOT_DONE;
         }
-        View.JobStatus jobStatus = View.JobStatus.DONE_WITHOUT_ERROR; // Default value
 
-        // Check if the job has failed before partitioning
-        if (model.getDiagnosticModels().size() != 0) {
-            jobStatus = View.JobStatus.DONE_WITH_ERROR;
-        } else {
-            // Check if the job is completely done
-            if (model.getJobCompletionTime() == null || model.getJobCompletionTime().isEmpty()) {
-                jobStatus = View.JobStatus.NOT_DONE;
-            }
-            // If the job is done: Check if any errors has occurred.
-            else if (model.getStateModel().getFailedCounter() != 0 || model.isDiagnosticFatal()) {
-                jobStatus = View.JobStatus.DONE_WITH_ERROR;
-            } else if (model.getNumberOfItems() != 0 && model.getNumberOfChunks() == 0) {
-                jobStatus = View.JobStatus.PREVIEW;
-            }
+        if (model.getStateModel().isAborted()) {
+            return View.JobStatus.ABORTED;
         }
-        return jobStatus;
+        // Check if the job has failed before partitioning
+        if (!model.getDiagnosticModels().isEmpty()){
+            return View.JobStatus.DONE_WITH_ERROR;
+        }
+        // Check if the job is completely done
+        if (model.getJobCompletionTime() == null || model.getJobCompletionTime().isEmpty()) {
+            return View.JobStatus.NOT_DONE;
+        }
+        // If the job is done: Check if any errors has occurred.
+        if (model.getStateModel().getFailedCounter() != 0 || model.isDiagnosticFatal()) {
+            return View.JobStatus.DONE_WITH_ERROR;
+        }
+        if (model.getNumberOfItems() != 0 && model.getNumberOfChunks() == 0) {
+            return View.JobStatus.PREVIEW;
+        }
+        return View.JobStatus.DONE_WITHOUT_ERROR;
     }
 
 }

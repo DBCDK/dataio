@@ -49,8 +49,8 @@ public class ViewTest {
 
 
     // Test Data
-    private SinkModel testModel1 = new SinkModelBuilder().setName("SinkNam1").setQueue("SinkQueue1").setResource("SinkRes1").setDescription("SinkDescription1").setSinkType(SinkContent.SinkType.DUMMY).build();
-    private SinkModel testModel2 = new SinkModelBuilder().setName("SinkNam2").setQueue("SinkQueue2").setResource("SinkRes2").setDescription("SinkDescription2").build();
+    private SinkModel testModel1 = new SinkModelBuilder().setName("SinkNam1").setQueue("SinkQueue1").setDescription("SinkDescription1").setSinkType(SinkContent.SinkType.DUMMY).build();
+    private SinkModel testModel2 = new SinkModelBuilder().setName("SinkNam2").setQueue("SinkQueue2").setDescription("SinkDescription2").build();
     private List<SinkModel> testModels = Arrays.asList(testModel1, testModel2);
 
 
@@ -118,7 +118,6 @@ public class ViewTest {
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_TYPE));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_DESCRIPTION));
-        verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_RESOURCENAME));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_QUEUENAME));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_ACTION));
         verify(view.sinksTable).setSelectionModel(any(SelectionModel.class));
@@ -183,19 +182,6 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         assertThat(column.getValue(testModel1), is(testModel1.getDescription()));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void constructResourceNameColumn_call_correctlySetup() {
-        // Setup
-        view = new View();
-
-        // Subject Under Test
-        Column column = view.constructResourceNameColumn();
-
-        // Test that correct getValue handler has been setup
-        assertThat(column.getValue(testModel1), is(testModel1.getResourceName()));
     }
 
     @Test

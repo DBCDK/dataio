@@ -63,7 +63,7 @@ public class JsonBuilderTest {
     }
 
     @Test
-    public void SinkContentJsonBuilderProducesValidJson() throws JSONBException {
+    public void sinkContentJsonBuilderProducesValidJson() throws JSONBException {
         jsonbContext.unmarshall(new SinkContentJsonBuilder().build(), SinkContent.class);
     }
 

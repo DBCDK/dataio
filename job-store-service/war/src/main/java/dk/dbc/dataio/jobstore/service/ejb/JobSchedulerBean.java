@@ -41,8 +41,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
-import java.time.Duration;
-import java.time.Instant;
+import javax.persistence.TypedQuery;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -167,6 +166,7 @@ public class JobSchedulerBean {
     public void scheduleChunk(ChunkEntity chunk, JobEntity job) {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(job, "job");
+        if(job.getState().isAborted() || JobsBean.isAborted(job.getId())) return;
         final int sinkId = (int) job.getCachedSink().getSink().getId();
         final String barrierMatchKey = getBarrierMatchKey(job);
 
@@ -208,13 +208,6 @@ public class JobSchedulerBean {
     }
     }
 
-    @Schedule(second = "0", minute = "5", hour = "*", persistent = false)
-    public void cleanStaleJMSConnections() {
-        LOGGER.info("Cleaning stale artemis connections");
-        Instant i = Instant.now().minus(Duration.ofMinutes(15));
-        adminClient.closeConsumerConnections(c -> i.isAfter(c.getLastAcknowledgedTime()));
-    }
-
     /**
      * Ensures that the last committed chunk for the given job ID is scheduled
      * for processing if it hasn't been already.
@@ -225,6 +218,7 @@ public class JobSchedulerBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void ensureLastChunkIsScheduled(int jobId) {
         final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+        if(jobEntity.getState().isAborted() || JobsBean.isAborted(jobId)) return;
         int chunkId = jobEntity.getNumberOfChunks() - 1;
         if (chunkId < 0) {
             chunkId = 0;
@@ -427,6 +421,7 @@ public class JobSchedulerBean {
             // JMS connection pool and also of ending up stuck in DIRECT mode when
             // it should be BULK causing the sink delivery to stall because changes
             // to ready state will be seen to late by the bulk submitter.
+            if(JobsBean.isAborted(chunk.getJobId())) throw new JobAborted(chunk.getJobId());
             jobSchedulerTransactionsBean.attemptToUnblockChunk(chunkBlockedKey, chunkDoneKey, sinkQueueStatus);
         }
         if (chunksWaitingForMe.size() > 0) {
@@ -450,7 +445,7 @@ public class JobSchedulerBean {
 
             final int spaceLeftInQueue = JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK - enqueued;
             if (spaceLeftInQueue > 0) {
-                LOGGER.info("bulk scheduling for processing - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
+                LOGGER.debug("bulk scheduling for processing - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
 
                 final List<DependencyTrackingEntity> chunks = entityManager
                         .createNamedQuery(DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY, DependencyTrackingEntity.class)
@@ -459,13 +454,15 @@ public class JobSchedulerBean {
                         .setMaxResults(spaceLeftInQueue)
                         .getResultList();
 
-                LOGGER.info("bulk scheduling for processing - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
+                if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for processing - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
                 for (DependencyTrackingEntity toSchedule : chunks) {
-                    final DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
-                    LOGGER.info("bulk scheduling for processing - chunk {} to be scheduled for processing for sink {}", toScheduleKey, sinkId);
-                    final ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
-                    jobSchedulerTransactionsBean.submitToProcessing(chunk, queueStatus, toSchedule.getPriority());
-                    chunksPushedToQueue++;
+                    if(!JobsBean.isAborted(toSchedule.getKey().getJobId())) {
+                        final DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
+                        LOGGER.info("bulk scheduling for processing - chunk {} to be scheduled for processing for sink {}", toScheduleKey, sinkId);
+                        final ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
+                        jobSchedulerTransactionsBean.submitToProcessing(chunk, queueStatus, toSchedule.getPriority());
+                        chunksPushedToQueue++;
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -485,7 +482,7 @@ public class JobSchedulerBean {
 
             final int spaceLeftInQueue = MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK - enqueued;
             if (spaceLeftInQueue > 0) {
-                LOGGER.info("bulk scheduling for delivery - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
+                LOGGER.debug("bulk scheduling for delivery - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
 
                 final List<DependencyTrackingEntity> chunks = entityManager
                         .createNamedQuery(DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY, DependencyTrackingEntity.class)
@@ -494,13 +491,15 @@ public class JobSchedulerBean {
                         .setMaxResults(spaceLeftInQueue)
                         .getResultList();
 
-                LOGGER.info("bulk scheduling for delivery - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
+                if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for delivery - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
                 for (DependencyTrackingEntity toSchedule : chunks) {
-                    final DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
-                    LOGGER.info("bulk scheduling for delivery - chunk {} to be scheduled for delivery for sink {}", toScheduleKey, sinkId);
-                    jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(
-                            jobSchedulerTransactionsBean.getProcessedChunkFrom(toSchedule), queueStatus);
-                    chunksPushedToQueue++;
+                    if(!JobsBean.isAborted(toSchedule.getKey().getJobId())) {
+                        final DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
+                        LOGGER.info("bulk scheduling for delivery - chunk {} to be scheduled for delivery for sink {}", toScheduleKey, sinkId);
+                        jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(
+                                jobSchedulerTransactionsBean.getProcessedChunkFrom(toSchedule), queueStatus);
+                        chunksPushedToQueue++;
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -515,10 +514,18 @@ public class JobSchedulerBean {
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void loadSinkStatusOnBootstrap() {
-        final List<SinkIdStatusCountResult> initialCounts = entityManager
-                .createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY, SinkIdStatusCountResult.class)
-                .getResultList();
+    public void loadSinkStatusOnBootstrap(Integer sinkId) {
+        TypedQuery<SinkIdStatusCountResult> query;
+        if(sinkId == null) {
+            query  = entityManager.createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY_ALL, SinkIdStatusCountResult.class);
+            sinkStatusMap.clear();
+        }
+        else {
+            query = entityManager.createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY, SinkIdStatusCountResult.class);
+            query.setParameter(1, sinkId);
+            sinkStatusMap.remove((long)sinkId);
+        }
+        final List<SinkIdStatusCountResult> initialCounts = query.getResultList();
 
         for (SinkIdStatusCountResult entry : initialCounts) {
             final JobSchedulerSinkStatus sinkStatus = getSinkStatus(entry.sinkId);
@@ -541,6 +548,7 @@ public class JobSchedulerBean {
             sinkStatus.processingStatus.setMode(QueueSubmitMode.BULK);
             sinkStatus.deliveringStatus.setMode(QueueSubmitMode.BULK);
         }
+        LOGGER.info("Reset sink counters " + sinkStatusMap);
     }
 
     List<DependencyTrackingEntity.Key> findChunksWaitingForMe(DependencyTrackingEntity.Key key, long sinkId) throws JobStoreException {

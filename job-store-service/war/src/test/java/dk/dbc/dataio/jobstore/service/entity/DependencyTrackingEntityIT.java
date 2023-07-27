@@ -104,7 +104,7 @@ public class DependencyTrackingEntityIT {
         JPATestUtils.runSqlFromResource(entityManager, this, "dependencyTracking_sinkStatusLoadTest.sql");
 
         final List<SinkIdStatusCountResult> result = persistenceContext.run(() -> entityManager
-                .createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY, SinkIdStatusCountResult.class)
+                .createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY_ALL, SinkIdStatusCountResult.class)
                 .getResultList());
 
         assertThat("result size", result.size(), is(10));

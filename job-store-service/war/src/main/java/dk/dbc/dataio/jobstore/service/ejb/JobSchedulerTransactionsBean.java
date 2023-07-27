@@ -301,7 +301,6 @@ public class JobSchedulerTransactionsBean {
     /**
      * Finding lists of chunks in dependency Tracking with this jobId and MatchKey.
      * Note only First key in waitForKey is checked.
-     *
      * @param sinkId     sinkId
      * @param jobId      jobId for witch chunks to wait for barrier
      * @param waitForKey dataSetID

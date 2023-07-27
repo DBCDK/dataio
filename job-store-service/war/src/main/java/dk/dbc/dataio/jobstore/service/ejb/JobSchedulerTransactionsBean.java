@@ -26,6 +26,7 @@ import javax.persistence.Query;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -283,6 +284,7 @@ public class JobSchedulerTransactionsBean {
     public static Set<DependencyTrackingEntity.Key> simplifyDependencies(DependencyTrackingEntity entity, List<DependencyTrackingEntity> dependencies) {
         Set<DependencyTrackingEntity.Key> keys = dependencies.stream()
                 .map(DependencyTrackingEntity::getWaitingOn)
+                .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
         return entity.getWaitingOn().stream().filter(k -> !keys.contains(k)).collect(Collectors.toSet());

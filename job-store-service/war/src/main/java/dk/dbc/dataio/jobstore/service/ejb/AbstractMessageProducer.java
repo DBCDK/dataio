@@ -3,11 +3,15 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import org.apache.activemq.artemis.jms.client.ActiveMQXAConnectionFactory;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
@@ -20,9 +24,17 @@ public abstract class AbstractMessageProducer {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMessageProducer.class);
     protected ConnectionFactory connectionFactory;
     private final Function<JobEntity, String> queueNameFromJob;
+    @Inject
+    @ConfigProperty(name = "ARTEMIS_MQ_HOST")
+    private String artemisHost;
 
     protected AbstractMessageProducer(Function<JobEntity, String> queueNameFromJob) {
         this.queueNameFromJob = queueNameFromJob;
+    }
+
+    @PostConstruct
+    public void init() {
+        connectionFactory = new ActiveMQXAConnectionFactory("tcp://" + artemisHost + ":61616");
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)

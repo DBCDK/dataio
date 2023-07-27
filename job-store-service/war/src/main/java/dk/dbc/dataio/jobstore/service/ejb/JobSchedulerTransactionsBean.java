@@ -278,16 +278,24 @@ public class JobSchedulerTransactionsBean {
         } else {
             query.setParameter(3, PgIntArray.toPgString(entity.getHashes()));
         }
-        return simplifyDependencies(entity, query.getResultList());
+        try {
+            List<DependencyTrackingEntity> list = query.getResultList();
+            Set<DependencyTrackingEntity.Key> set = simplifyDependencies(list);
+            return set;
+        } catch (RuntimeException e) {
+            LOGGER.warn("NOOOO!", e);
+        }
+        return Set.of();
     }
 
-    public static Set<DependencyTrackingEntity.Key> simplifyDependencies(DependencyTrackingEntity entity, List<DependencyTrackingEntity> dependencies) {
+    public static Set<DependencyTrackingEntity.Key> simplifyDependencies(List<? extends DependencyTrackingEntity> dependencies) {
+        if(dependencies.isEmpty()) return Set.of();
         Set<DependencyTrackingEntity.Key> keys = dependencies.stream()
                 .map(DependencyTrackingEntity::getWaitingOn)
                 .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
-        return entity.getWaitingOn().stream().filter(k -> !keys.contains(k)).collect(Collectors.toSet());
+        return dependencies.stream().map(DependencyTrackingEntity::getKey).filter(k -> !keys.contains(k)).collect(Collectors.toSet());
     }
 
     /**

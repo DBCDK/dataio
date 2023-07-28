@@ -44,7 +44,7 @@ public class JobSchedulerTransactionsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerTransactionsBean.class);
 
     @Inject
-    @ConfigProperty(name = "ENABLE_DEPENDENCY_OPTIMIZER", defaultValue = "TRUE")
+    @ConfigProperty(name = "ENABLE_DEPENDENCY_OPTIMIZER", defaultValue = "true")
     private Boolean enableOptimizer;
 
     @Inject

@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore.service.rs;
 
-import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
@@ -48,16 +47,13 @@ public class AdminBean {
     @JobstoreDB
     EntityManager entityManager;
 
-    @Inject
-    FlowStoreServiceConnectorBean flowStoreService;
-
     AdminClient adminClient = AdminClientFactory.getAdminClient();
 
     @Schedule(second = "0", minute = "5", hour = "*", persistent = false)
     public void cleanStaleJMSConnections() {
         LOGGER.info("Cleaning stale artemis connections");
         Instant i = Instant.now().minus(Duration.ofMinutes(15));
-        adminClient.closeConsumerConnections(c -> i.isAfter(c.getLastAcknowledgedTime()));
+        adminClient.closeConsumerConnections(c -> i.isAfter(c.getLastAcknowledgedTime()) && c.getDeliveringCount() > 0);
     }
 
     @GET

@@ -27,7 +27,6 @@
         </li>
         <li><prompted:PromptedTextBox ui:field="name" guiId="sinknamepanel" prompt="{txt.label_SinkName}"/></li>
         <li><prompted:PromptedTextBox ui:field="queue" guiId="sinkqueuepanel" prompt="{txt.label_QueueName}"/></li>
-        <li><prompted:PromptedTextBox ui:field="resource" guiId="sinkresourcepanel" prompt="{txt.label_ResourceName}"/></li>
         <li><prompted:PromptedTextArea ui:field="description" guiId="sinkdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
         <g:HTMLPanel ui:field="sequenceAnalysisSection" visible="false">
             <li>

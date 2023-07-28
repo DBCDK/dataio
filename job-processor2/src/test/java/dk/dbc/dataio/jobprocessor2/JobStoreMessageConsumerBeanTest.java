@@ -56,6 +56,7 @@ public class JobStoreMessageConsumerBeanTest {
         JobStoreMessageConsumer jobStoreMessageConsumer = new JobStoreMessageConsumer(SERVICE_HUB);
         MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
         JMSHeader.payload.addHeader(textMessage, JMSHeader.CHUNK_PAYLOAD_TYPE);
+        JMSHeader.jobId.addHeader(textMessage, 0);
         textMessage.setText("{'invalid': 'instance'}");
         jobStoreMessageConsumer.onMessage(textMessage);
         Assert.assertEquals(0, Metric.dataio_message_count.counter(rollback.is("true")).getCount());

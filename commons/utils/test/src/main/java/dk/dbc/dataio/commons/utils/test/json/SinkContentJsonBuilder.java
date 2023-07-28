@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.types.SinkContent;
 
 public class SinkContentJsonBuilder extends JsonBuilder {
     private String name = "defaultSinkName";
-    private String resource = "defaultResource";
+    private String queue = "defaultQueue";
     private String description = "defaultDescription";
     private SinkContent.SinkType sinkType = null;
     private String sinkConfig = null;
@@ -15,8 +15,8 @@ public class SinkContentJsonBuilder extends JsonBuilder {
         return this;
     }
 
-    public SinkContentJsonBuilder setResource(String resource) {
-        this.resource = resource;
+    public SinkContentJsonBuilder setQueue(String queue) {
+        this.queue = queue;
         return this;
     }
 
@@ -45,7 +45,7 @@ public class SinkContentJsonBuilder extends JsonBuilder {
         stringBuilder.append(START_OBJECT);
         stringBuilder.append(asTextMember("name", name));
         stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("resource", resource));
+        stringBuilder.append(asTextMember("queue", queue));
         stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("description", description));
         stringBuilder.append(MEMBER_DELIMITER);

@@ -1589,7 +1589,7 @@ public class FlowStoreProxyImplTest {
     @Test @Ignore // Will be replaced with check for empty queue name, when we have transitioned away from message selectors
     public void updateSink_throwsIllegalArgumentException() throws Exception {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
-        SinkModel model = new SinkModelBuilder().setResource("").build();
+        SinkModel model = new SinkModelBuilder().build();
         updateSink_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
 

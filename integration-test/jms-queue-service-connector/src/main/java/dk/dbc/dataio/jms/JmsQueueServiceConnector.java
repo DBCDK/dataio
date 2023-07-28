@@ -25,7 +25,7 @@ public class JmsQueueServiceConnector {
         PROCESSING("jms/dataio/processor"),
         PROCESSING_BUSINESS("processor::business"),
         PROCESSING_ACCTEST("processor::acctest"),
-        SINK("jms/dataio/sinks"),
+        SINK_BE_CISTERNE("sink::batch-exchange/cisterne"),
         SINK_PERIODIC_JOBS("sink::periodic-jobs");
 
         private final String queueName;

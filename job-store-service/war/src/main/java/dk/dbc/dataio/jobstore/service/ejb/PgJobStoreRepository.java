@@ -121,18 +121,38 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     public long getChunksToBeResetForState(DependencyTrackingEntity.ChunkSchedulingStatus status) {
-        TypedQuery<Long> q = entityManager
-                .createNamedQuery(DependencyTrackingEntity.CHUNKS_IN_STATE, Long.class);
+        TypedQuery<Long> q = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_IN_STATE, Long.class);
         q.setParameter("status", status);
         return q.getSingleResult();
     }
 
-    public void resetStatus(DependencyTrackingEntity.ChunkSchedulingStatus fromStatus,
-                            DependencyTrackingEntity.ChunkSchedulingStatus toStatus) {
-        Query q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING);
+    public List<Integer> findDependingJobs(int jobId) {
+        Query query = entityManager.createNativeQuery("select distinct jobid from dependencytracking where waitingon::jsonb @@ '$[*].jobId==" + jobId + "'");
+        query.setParameter(1, jobId);
+        @SuppressWarnings("unchecked")
+        List<Integer> list = new ArrayList<Integer>(query.getResultList());
+        list.remove(Integer.valueOf(jobId));
+        return list;
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public int deleteDependencies(int jobId) {
+        Query query = entityManager.createNamedQuery(DependencyTrackingEntity.DELETE_JOB);
+        query.setParameter("jobId", jobId);
+        return query.executeUpdate();
+    }
+
+    public int resetStatus(Integer jobId, DependencyTrackingEntity.ChunkSchedulingStatus fromStatus,
+                           DependencyTrackingEntity.ChunkSchedulingStatus toStatus) {
+        Query q;
+        if(jobId == null) q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATES_IN_DEPENDENCYTRACKING);
+        else {
+            q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING);
+            q.setParameter("jobId", jobId);
+        }
         q.setParameter("fromStatus", fromStatus);
         q.setParameter("toStatus", toStatus);
-        q.executeUpdate();
+        return q.executeUpdate();
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -605,6 +625,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         final Iterator<ChunkItem> nextIterator = chunk.nextIterator();
         try {
             for (ChunkItem chunkItem : chunk) {
+                if(JobsBean.isAborted(chunk.getJobId())) throw new JobAborted(chunk.getJobId());
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                 LOGGER.info("updateChunkItemEntities: updating {} chunk item {}/{}/{}",
                         chunk.getType(), chunk.getJobId(), chunk.getChunkId(), chunkItem.getId());
@@ -701,6 +722,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         try {
             final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = getSequenceAnalysisOption(jobId);
             for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
+                if(JobsBean.isAborted(jobId)) throw new JobAborted(jobId);
                 if (dataPartitionerResult == null || dataPartitionerResult.isEmpty()) {
                     continue;
                 }

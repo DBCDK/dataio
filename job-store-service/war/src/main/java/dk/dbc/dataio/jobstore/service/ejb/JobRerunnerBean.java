@@ -18,7 +18,6 @@ import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
-import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.util.JobExporter;
 import dk.dbc.dataio.jobstore.service.util.MailNotification;
@@ -209,12 +208,10 @@ public class JobRerunnerBean {
     }
 
     private boolean isTickleTotalJob(JobEntity job) {
-        final SinkCacheEntity cachedSink = job.getCachedSink();
         // I really don't like this reliance on sink resource naming, but this is
         // currently the only way to distinguish between TOTAL and INCREMENTAL
         // tickle job types.
-        return cachedSink != null
-                && cachedSink.getSink().getContent().getResource().toLowerCase().endsWith("total");
+        return job.getSinkQueue() != null && job.getSinkQueue().endsWith("total");
     }
 
     private HarvestRecordsRequest getTickleHarvestRecordsRequest(RerunEntity rerunEntity) {

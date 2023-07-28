@@ -57,8 +57,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField
     PromptedTextBox queue;
     @UiField
-    PromptedTextBox resource;
-    @UiField
     PromptedTextArea description;
     @UiField
     HTMLPanel sequenceAnalysisSection;
@@ -141,13 +139,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("queue")
     void queueChanged(ValueChangeEvent<String> event) {
         presenter.queueChanged(queue.getText());
-        presenter.keyPressed();
-    }
-
-    @SuppressWarnings("unused")
-    @UiHandler("resource")
-    void resourceChanged(ValueChangeEvent<String> event) {
-        presenter.resourceChanged(resource.getText());
         presenter.keyPressed();
     }
 

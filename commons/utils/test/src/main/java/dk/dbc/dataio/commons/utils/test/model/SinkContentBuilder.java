@@ -5,7 +5,6 @@ import dk.dbc.dataio.commons.types.SinkContent;
 
 public class SinkContentBuilder {
     private String name = "name";
-    private String resource = "resource";
     private String queue = "queue";
     private String description = "description";
     private SinkContent.SinkType sinkType = SinkContent.SinkType.DUMMY;
@@ -14,11 +13,6 @@ public class SinkContentBuilder {
 
     public SinkContentBuilder setName(String name) {
         this.name = name;
-        return this;
-    }
-
-    public SinkContentBuilder setResource(String resource) {
-        this.resource = resource;
         return this;
     }
 
@@ -43,6 +37,6 @@ public class SinkContentBuilder {
     }
 
     public SinkContent build() {
-        return new SinkContent(name, queue, resource, description, sinkType, sinkConfig, sequenceAnalysisOption);
+        return new SinkContent(name, queue, description, sinkType, sinkConfig, sequenceAnalysisOption);
     }
 }

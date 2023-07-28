@@ -86,13 +86,12 @@ public class SinkMessageProducerBeanTest {
     @Test
     public void createMessage_chunkArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JSONBException {
         // Subject Under Test
-        TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, chunk, sink, flowStoreReferences);
+        TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, chunk, flowStoreReferences);
 
         // Verifications
         FlowStoreReference sinkReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK);
         FlowStoreReference flowBinderReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER);
         assertThat("Message payload property", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
-        assertThat("Message resource property", message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(sink.getContent().getResource()));
         assertThat("Message id property", message.getLongProperty(JmsConstants.SINK_ID_PROPERTY_NAME), is(sinkReference.getId()));
         assertThat("Message version property", message.getLongProperty(JmsConstants.SINK_VERSION_PROPERTY_NAME), is(sinkReference.getVersion()));
         assertThat("Message flowBinderId property", message.getLongProperty(JmsConstants.FLOW_BINDER_ID_PROPERTY_NAME), is(flowBinderReference.getId()));

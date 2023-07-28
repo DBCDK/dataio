@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response;
 import java.time.Duration;
 import java.util.List;
 
+import static dk.dbc.dataio.commons.utils.jobstore.Metric.ABORT_JOB;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_ACC_TEST_JOB;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_CHUNK;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_EMPTY_JOB;
@@ -52,6 +53,7 @@ import static dk.dbc.dataio.commons.utils.jobstore.Metric.LIST_ITEMS;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.LIST_JOBS;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.LIST_JOBS_CRIT;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.LIST_JOB_NOTIFICATIONS_FOR_JOB;
+import static dk.dbc.dataio.commons.utils.jobstore.Metric.RESEND_JOB;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.SET_WORKFLOW_NOTE;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.SET_WORKFLOW_NOTE2;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.SINK_STATUS;
@@ -93,6 +95,24 @@ public class JobStoreServiceConnector {
         this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "httpClient");
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
         this.metricRegistry = metricRegistry;
+    }
+
+    public JobInfoSnapshot abortJob(int jobId) throws JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: abortJob({})", jobId);
+        try {
+            return post(null, Response.Status.OK, JobInfoSnapshot.class, ABORT_JOB, JobStoreServiceConstants.JOB_ABORT, Integer.toString(jobId));
+        } catch (ProcessingException e) {
+            throw new JobStoreServiceConnectorException("job-store communication error", e);
+        }
+    }
+
+    public JobInfoSnapshot resendJob(int jobId) throws JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: resendJob({})", jobId);
+        try {
+            return post(null, Response.Status.OK, JobInfoSnapshot.class, RESEND_JOB, JobStoreServiceConstants.JOB_RESEND, Integer.toString(jobId));
+        } catch (ProcessingException e) {
+            throw new JobStoreServiceConnectorException("job-store communication error", e);
+        }
     }
 
     /**

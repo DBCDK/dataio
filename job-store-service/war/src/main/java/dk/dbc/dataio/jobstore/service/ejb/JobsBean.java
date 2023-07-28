@@ -11,8 +11,9 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
+import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
@@ -26,6 +27,8 @@ import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.jms.artemis.AdminClient;
+import dk.dbc.jms.artemis.AdminClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +48,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.ACCEPTED;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -59,10 +67,11 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 @Path("/")
 public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
+    private static final Set<Integer> ABORTED_JOBS = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     JSONBContext jsonbContext = new JSONBContext();
 
-    /* This is not private so it is accessible from automatic test */
+    /* This is not private, so it is accessible from automatic test */
     @EJB
     PgJobStore jobStore;
 
@@ -77,6 +86,47 @@ public class JobsBean {
 
     @EJB
     JobPurgeBean jobPurgeBean;
+
+    @EJB
+    SinkMessageProducerBean sinkMessageProducerBean;
+    @EJB
+    JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
+
+    AdminClient adminClient = AdminClientFactory.getAdminClient();
+
+    @POST
+    @Path(JobStoreServiceConstants.JOB_ABORT + "/{jobId}")
+    public Response abortJob(@PathParam("jobId") int jobId) throws JobStoreException {
+        LOGGER.warn("Aborting job {}", jobId);
+        ABORTED_JOBS.add(jobId);
+        Set<Integer> abortedIds = new HashSet<>();
+        List<JobEntity> jobs = jobStore.abortJob(jobId, abortedIds).collect(Collectors.toList());
+        for (JobEntity job : jobs) {
+            removeFromQueues(job);
+            jobProcessorMessageProducerBean.sendAbort(job);
+            sinkMessageProducerBean.sendAbort(job);
+            jobStore.removeFromDependencyTracking(job);
+        }
+        LOGGER.info("Abort job {} and removed its dependencies", jobId);
+        return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(jobs.stream().findFirst().orElse(null))).build();
+    }
+
+    private void removeFromQueues(JobEntity job) {
+        List<String> queues = List.of(job.getProcessorQueue(), job.getSinkQueue());
+        LOGGER.info("Removing job {} from queues: {}", job.getId(), queues);
+        queues.forEach(q -> removeFromQueue(q, job.getId()));
+    }
+
+    public static boolean isAborted(int jobId) {
+        return ABORTED_JOBS.contains(jobId);
+    }
+
+    private void removeFromQueue(String fqn, int jobId) {
+        String[] sa = fqn.split("::", 2);
+        String address = sa[0];
+        String queue = sa[sa.length - 1];
+        adminClient.removeMessages(queue, address, "jobId = '" + jobId + "'");
+    }
 
     /**
      * Adds new job based on POSTed job input stream, and persists it in the underlying data store
@@ -402,35 +452,6 @@ public class JobsBean {
     @Produces({MediaType.APPLICATION_JSON})
     public Response countJobsByGet(@QueryParam("q") String query) throws JSONBException {
         return countJobsByIOQL(query);
-    }
-
-    @POST
-    @Path(JobStoreServiceConstants.FORCE_DEPENDENCY_TRACKING_RETRANSMIT)
-    public Response reTransmitAll() {
-        return reTransmitAllJobs();
-    }
-
-    private Response reTransmitAllJobs() {
-        long numberOfChunksInProcessing = jobStoreRepository
-                .getChunksToBeResetForState(DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
-        LOGGER.info("Resetting depedencytracking states. Sets status = 1 for status = 2 for {} entities",
-                numberOfChunksInProcessing);
-
-        jobStoreRepository.resetStatus(
-                DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING,
-                DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING
-                );
-        long numberOfChunksInDelivering = jobStoreRepository
-                .getChunksToBeResetForState(DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
-        LOGGER.info("Resetting depedencytracking states. Sets status = 4 for status = 5 for {} entities",
-                numberOfChunksInDelivering);
-
-        jobStoreRepository.resetStatus(
-                DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY,
-                DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_DELIVERY
-        );
-        jobSchedulerBean.loadSinkStatusOnBootstrap();
-        return Response.ok().build();
     }
 
     private Response countJobsByIOQL(String query) throws JSONBException {
@@ -794,13 +815,8 @@ public class JobsBean {
      * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on referenced entities not found
      */
-    Response addChunk(
-            UriInfo uriInfo,
-            long jobId,
-            long chunkId,
-            Chunk.Type type,
-            Chunk chunk) throws JobStoreException, JSONBException {
-
+    Response addChunk(UriInfo uriInfo, long jobId, long chunkId, Chunk.Type type, Chunk chunk) throws JobStoreException, JSONBException {
+        if(JobsBean.isAborted((int)jobId)) return Response.accepted().build();
         try {
             JobError jobError = getChunkInputDataError(jobId, chunkId, chunk, type);
             if (jobError == null) {

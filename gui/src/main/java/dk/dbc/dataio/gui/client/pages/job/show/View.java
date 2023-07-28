@@ -48,7 +48,8 @@ public class View extends ViewWidget {
             54L,    // s:dummy
             551L,   // p:dummy
             8461L,  // p:marcconv
-            9751L  // s:tickle inc
+            9751L,  // s:tickle inc
+            18401L  // s:dmat
     );
     ViewJobsGinjector viewInjector = GWT.create(ViewJobsGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);

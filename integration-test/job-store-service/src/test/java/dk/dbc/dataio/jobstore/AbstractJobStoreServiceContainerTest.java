@@ -66,8 +66,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
     static final JobStoreServiceConnector jobStoreServiceConnector = makeJobStoreConnector(jobStoreServiceContainer);
 
     private static JobStoreServiceConnector makeJobStoreConnector(GenericContainer<?> jobStoreContainer) {
-        String url = "http://" + jobStoreContainer.getHost() + ":" + jobStoreContainer.getMappedPort(8080) +
-                System.getProperty("jobstore.it.service.context");
+        String url = "http://" + jobStoreContainer.getHost() + ":" + jobStoreContainer.getMappedPort(8080) + "/dataio/job-store-service";
         return new JobStoreServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), url);
     }
 
@@ -176,7 +175,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("DEVELOPER", "on")
 //                .withEnv("REMOTE_DEBUGGING_HOST", getDebuggingHost())
                 .withExposedPorts(4848, 8080)
-                .waitingFor(Wait.forHttp(System.getProperty("jobstore.it.service.context") + "/status")
+                .waitingFor(Wait.forHttp("/dataio/job-store-service/status")
                         .withReadTimeout(Duration.of(10, ChronoUnit.SECONDS)))
                 .withStartupTimeout(Duration.ofMinutes(2));
         container.start();
@@ -185,7 +184,8 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
     private static String getDebuggingHost() {
         try {
-            return InetAddress.getLocalHost().getHostAddress() + ":5005";
+            String blah = InetAddress.getLocalHost().getHostAddress() + ":5005";
+            return "192.168.0.88:5005";
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }

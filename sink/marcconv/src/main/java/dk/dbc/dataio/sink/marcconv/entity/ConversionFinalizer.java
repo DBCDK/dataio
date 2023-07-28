@@ -79,6 +79,11 @@ public class ConversionFinalizer {
         return newResultChunk(fileStoreServiceConnector, chunk, fileId);
     }
 
+    public void deleteJob(int jobId) {
+        deleteConversionBlocks(jobId);
+        deleteConversionParam(jobId);
+    }
+
     private Optional<ExistingFile> fileAlreadyExists(FileStoreServiceConnector fileStoreServiceConnector, Integer jobId, ConversionMetadata metadata) {
         // A file may already exist if something exploded after the call to the
         // ConversionFinalizerBean.handleTerminationChunk() method. If so we must
@@ -96,8 +101,7 @@ public class ConversionFinalizer {
     }
 
     private String uploadFile(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk) {
-        Integer jobId = Math.toIntExact(chunk.getJobId());
-        Query getConversionBlocksQuery = entityManager.createNamedQuery(ConversionBlock.GET_CONVERSION_BLOCKS_QUERY_NAME).setParameter(1, jobId);
+        Query getConversionBlocksQuery = entityManager.createNamedQuery(ConversionBlock.GET_CONVERSION_BLOCKS_QUERY_NAME).setParameter(1, chunk.getJobId());
 
         String fileId = null;
         try (ResultSet<ConversionBlock> blocks = new ResultSet<>(entityManager, getConversionBlocksQuery, new ConversionBlockResultSetMapping())) {
@@ -111,7 +115,7 @@ public class ConversionFinalizer {
                     fileStoreServiceConnector.appendToFile(fileId, block.getBytes());
                 }
             }
-            LOGGER.info("Uploaded conversion file {} for job {}", fileId, jobId);
+            LOGGER.info("Uploaded conversion file {} for job {}", fileId, chunk.getJobId());
         } catch (FileStoreServiceConnectorException | RuntimeException e) {
             deleteFile(fileStoreServiceConnector, fileId);
             throw new RuntimeException(e);

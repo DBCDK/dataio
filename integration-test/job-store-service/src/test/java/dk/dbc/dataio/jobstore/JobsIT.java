@@ -11,7 +11,6 @@ import dk.dbc.dataio.jms.JmsQueueServiceConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.jms.JMSException;
@@ -87,7 +86,7 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
         // Then...
         // (And now taking chunk sequence very serious!)
         chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
-                        JmsQueueServiceConnector.Queue.SINK, 2, 10000)
+                        JmsQueueServiceConnector.Queue.SINK_BE_CISTERNE, 2, 10000)
                 .stream().map(this::getChunk)
                 .collect(Collectors.toList());
 

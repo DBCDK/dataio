@@ -58,7 +58,6 @@ public class View extends ViewWidget {
         sinksTable.addColumn(constructNameColumn(), getTexts().columnHeader_Name());
         sinksTable.addColumn(constructDescriptionColumn(), getTexts().columnHeader_Description());
         sinksTable.addColumn(constructQueueNameColumn(), getTexts().columnHeader_QueueName());
-        sinksTable.addColumn(constructResourceNameColumn(), getTexts().columnHeader_ResourceName());
         sinksTable.addColumn(constructActionColumn(), getTexts().columnHeader_Action());
         sinksTable.setSelectionModel(selectionModel);
         sinksTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
@@ -114,21 +113,6 @@ public class View extends ViewWidget {
             @Override
             public String getValue(SinkModel model) {
                 return model.getQueue();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Resource Name column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Resource Name column
-     */
-    Column constructResourceNameColumn() {
-        return new TextColumn<SinkModel>() {
-            @Override
-            public String getValue(SinkModel model) {
-                return model.getResourceName();
             }
         };
     }

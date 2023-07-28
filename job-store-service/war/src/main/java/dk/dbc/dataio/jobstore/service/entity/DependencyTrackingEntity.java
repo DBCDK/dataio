@@ -49,8 +49,11 @@ import java.util.Set;
                                         @ColumnResult(name = "count"),})})
 })
 @NamedNativeQueries({
-        @NamedNativeQuery(name = DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY,
+        @NamedNativeQuery(name = DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY_ALL,
                 query = "SELECT sinkid, status, count(*) FROM dependencytracking GROUP BY sinkid, status ORDER BY sinkid, status",
+                resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT),
+        @NamedNativeQuery(name = DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY,
+                query = "SELECT sinkid, status, count(*) FROM dependencytracking WHERE sinkid=? GROUP BY sinkid, status ORDER BY sinkid, status",
                 resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT),
         @NamedNativeQuery(name = DependencyTrackingEntity.JOB_COUNT_CHUNK_COUNT_QUERY,
                 query = "SELECT count(DISTINCT jobid) AS numberOfJobs, count(jobid) AS NumberOfChunks FROM dependencytracking WHERE sinkid = ?"),
@@ -71,12 +74,17 @@ import java.util.Set;
                 query = "SELECT e FROM DependencyTrackingEntity e WHERE e.sinkid=:sinkId AND e.status=:state ORDER BY e.priority DESC, e.key.jobId, e.key.chunkId"),
         @NamedQuery(name = DependencyTrackingEntity.CHUNKS_IN_STATE,
                 query = "SELECT count(e) FROM DependencyTrackingEntity e WHERE e.status = :status"),
+        @NamedQuery(name = DependencyTrackingEntity.RESET_STATES_IN_DEPENDENCYTRACKING,
+                query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus"),
         @NamedQuery(name = DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING,
-                query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus")
+                query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus AND e.key.jobId = :jobId"),
+        @NamedQuery(name = DependencyTrackingEntity.DELETE_JOB,
+                query = "DELETE FROM DependencyTrackingEntity e WHERE e.key.jobId=:jobId")
 })
 public class DependencyTrackingEntity {
     static final String SINKID_STATUS_COUNT_RESULT = "SinkIdStatusCountResult";
     public static final String KEY_RESULT = "DependencyTrackingEntity.Key";
+    public static final String SINKID_STATUS_COUNT_QUERY_ALL = "DependencyTrackingEntity.sinkIdStatusCountAll";
     public static final String SINKID_STATUS_COUNT_QUERY = "DependencyTrackingEntity.sinkIdStatusCount";
     public static final String JOB_COUNT_CHUNK_COUNT_QUERY = "DependencyTrackingEntity.jobCountChunkCount";
     public static final String RELATED_CHUNKS_QUERY = "DependencyTrackingEntity.relatedChunks";
@@ -84,7 +92,9 @@ public class DependencyTrackingEntity {
     public static final String CHUNKS_TO_WAIT_FOR_QUERY = "DependencyTrackingEntity.chunksToWaitFor";
     public static final String BLOCKED_GROUPED_BY_SINK = "DependencyTrackingEntity.blockedGroupedBySink";
     public static final String CHUNKS_IN_STATE = "DependencyTrackingEntity.inState";
+    public static final String RESET_STATES_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetStates";
     public static final String RESET_STATE_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetState";
+    public static final String DELETE_JOB = "DependencyTrackingEntity.deleteJob";
 
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
         this.key = new Key(chunk.getKey());

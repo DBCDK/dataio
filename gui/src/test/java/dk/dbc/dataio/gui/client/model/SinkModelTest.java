@@ -23,14 +23,14 @@ public class SinkModelTest {
         assertThat(model.getVersion(), is(0L));
         assertThat(model.getSinkType(), is(SinkContent.SinkType.ES));
         assertThat(model.getSinkName(), is(""));
-        assertThat(model.getResourceName(), is(""));
+        assertThat(model.getQueue(), is(""));
         assertThat(model.getDescription(), is(""));
         assertThat(model.getSinkConfig(), is(nullValue()));
     }
 
     @Test
     public void constructor_withConfigValues_returnsNewInstanceWithDefaultValues() {
-        SinkModel model = new SinkModel(5L, 6L, SinkContent.SinkType.OPENUPDATE, "nam3", "queue", "resou3", "descri3", SinkContent.SequenceAnalysisOption.ALL,
+        SinkModel model = new SinkModel(5L, 6L, SinkContent.SinkType.OPENUPDATE, "nam3", "queue", "descri3", SinkContent.SequenceAnalysisOption.ALL,
                 new OpenUpdateSinkConfig().withUserId("user").withPassword("pass").withEndpoint("url"));
 
         assertThat(model, is(notNullValue()));
@@ -38,7 +38,7 @@ public class SinkModelTest {
         assertThat(model.getVersion(), is(6L));
         assertThat(model.getSinkType(), is(SinkContent.SinkType.OPENUPDATE));
         assertThat(model.getSinkName(), is("nam3"));
-        assertThat(model.getResourceName(), is("resou3"));
+        assertThat(model.getQueue(), is("queue"));
         assertThat(model.getDescription(), is("descri3"));
         assertThat(model.getOpenUpdateUserId(), is("user"));
         assertThat(model.getOpenUpdatePassword(), is("pass"));
@@ -132,11 +132,11 @@ public class SinkModelTest {
     }
 
     private SinkModel getNoConfigTestModel() {
-        return new SinkModel(1, 2, SinkContent.SinkType.DUMMY, "Name", "Queue", "Resource", "Description", SinkContent.SequenceAnalysisOption.ALL, null);
+        return new SinkModel(1, 2, SinkContent.SinkType.DUMMY, "Name", "Queue", "Description", SinkContent.SequenceAnalysisOption.ALL, null);
     }
 
     private SinkModel getWithConfigTestModel() {
-        return new SinkModel(5, 6, SinkContent.SinkType.OPENUPDATE, "Name2", "Queue", "Resource2", "Description2", SinkContent.SequenceAnalysisOption.ALL,
+        return new SinkModel(5, 6, SinkContent.SinkType.OPENUPDATE, "Name2", "Queue", "Description2", SinkContent.SequenceAnalysisOption.ALL,
                 new OpenUpdateSinkConfig());
     }
 

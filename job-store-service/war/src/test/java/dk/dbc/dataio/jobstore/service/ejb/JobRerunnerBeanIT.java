@@ -345,7 +345,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         final Sink sink = new SinkBuilder()
                 .setContent(new SinkContentBuilder()
                         .setSinkType(SinkContent.SinkType.TICKLE)
-                        .setResource("dataio/sinks/tickle-repo/total")
+                        .setQueue("sink::tickle-repo/total")
                         .build())
                 .build();
         final SinkCacheEntity sinkCacheEntity = newPersistedSinkCacheEntity(sink);

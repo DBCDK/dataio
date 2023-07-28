@@ -17,6 +17,7 @@ import javax.jms.Message;
 import javax.jms.Queue;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -92,7 +93,7 @@ public abstract class MessageConsumerApp {
                 Message message = consumer.receive(1000);
                 if(message != null) {
                     noMsgCount = 0;
-                    messageId = message.getJMSMessageID();
+                    messageId = message.getJMSMessageID() == null ? UUID.randomUUID().toString() : message.getJMSMessageID();
                     TX_ELAPSED.put(messageId, Instant.now());
                     try {
                         listener.onMessage(message);

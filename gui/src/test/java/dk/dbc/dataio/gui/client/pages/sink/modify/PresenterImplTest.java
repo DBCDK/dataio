@@ -173,17 +173,17 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void resourceChanged_callResourceChanged_recourceIsChangedAccordingly() {
+    public void queueChanged_callResourceChanged_queueIsChangedAccordingly() {
 
         // Setup
-        final String CHANGED_RESOURCE = "UpdatedResource";
+        final String CHANGED_QUEUE = "sink::UpdatedQueue";
         initializeAndStartPresenter();
 
         // Subject Under Test
-        presenterImpl.resourceChanged(CHANGED_RESOURCE);
+        presenterImpl.queueChanged(CHANGED_QUEUE);
 
         // Verifications
-        assertThat(presenterImpl.model.getResourceName(), is(CHANGED_RESOURCE));
+        assertThat(presenterImpl.model.getQueue(), is(CHANGED_QUEUE));
     }
 
     @Test

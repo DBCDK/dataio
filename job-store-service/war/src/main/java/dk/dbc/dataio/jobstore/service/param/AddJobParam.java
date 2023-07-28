@@ -218,7 +218,7 @@ public class AddJobParam {
     }
 
     static Sink createDiffSink() {
-        return new Sink(1, 1, new SinkContent("DiffSink", "sink::diff", null,
+        return new Sink(1, 1, new SinkContent("DiffSink", "sink::diff",
                 "Internal sink used for acceptance test diff functionality", null, null,SinkContent.SequenceAnalysisOption.ID_ONLY));
     }
 }

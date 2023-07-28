@@ -2,6 +2,8 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Priority;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
@@ -18,6 +20,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import java.sql.Timestamp;
+import java.util.Optional;
 
 @Entity
 @Table(name = "job")
@@ -248,5 +251,15 @@ public class JobEntity {
     /* constructor used for testing */
     public JobEntity(int id) {
         this.id = id;
+    }
+
+    public String getProcessorQueue() {
+        return Optional.ofNullable(getSpecification()).map(JobSpecification::getType).map(t -> t.processorQueue)
+                .orElseThrow(() -> new IllegalStateException("No processor queue was found for job " + id));
+    }
+
+    public String getSinkQueue() {
+        return Optional.ofNullable(getCachedSink()).map(SinkCacheEntity::getSink).map(Sink::getContent).map(SinkContent::getQueue)
+                .orElseThrow(() -> new IllegalStateException("No sink queue was found for job " + id));
     }
 }

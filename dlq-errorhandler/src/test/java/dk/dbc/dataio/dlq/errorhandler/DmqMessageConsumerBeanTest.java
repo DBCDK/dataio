@@ -50,6 +50,7 @@ public class DmqMessageConsumerBeanTest {
     public void onMessage_messageArgPayloadIsInvalid_noTransactionRollback() throws JMSException {
         MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
         JMSHeader.payload.addHeader(textMessage, JMSHeader.CHUNK_PAYLOAD_TYPE);
+        JMSHeader.jobId.addHeader(textMessage, 0);
         textMessage.setText("{'invalid': 'instance'}");
         dlqMessageConsumer.onMessage(textMessage);
         long rej = Metric.dataio_message_count.counter(destination.is(dlqMessageConsumer.getFQN()), redelivery.is("false"), rejected.is("true")).getCount();
@@ -73,6 +74,7 @@ public class DmqMessageConsumerBeanTest {
         Chunk originalChunk = new ChunkBuilder(Chunk.Type.PARTITIONED).build();
         MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
         JMSHeader.payload.addHeader(textMessage, JMSHeader.CHUNK_PAYLOAD_TYPE);
+        JMSHeader.jobId.addHeader(textMessage, 0);
         textMessage.setText(dlqMessageConsumer.jsonbContext.marshall(originalChunk));
         dlqMessageConsumer.onMessage(textMessage);
         long rec = Metric.dataio_message_count.counter(destination.is(dlqMessageConsumer.getFQN()), redelivery.is("false")).getCount();

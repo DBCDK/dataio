@@ -59,14 +59,19 @@ pipeline {
         }
         stage("build") {
             steps {
-                sh """
-                mvn -B -T 6 install
-                mvn -B -T 6 pmd:pmd
-                echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
-                ./cli/build_docker_image.sh
-            """
+                sh """#!/bin/bash
+                    FAST=""
+                    if [ "master" != "${env.BRANCH_NAME}" ] && [ -n "\$(git log -1 | tail +5 | grep -E ' *!!')" ]; then
+                        echo Fast branch deployment skip all tests
+                        FAST=" -P !integration-test -Dmaven.test.skip=true "
+                    fi
+                    mvn -B -T 6 \${FAST} install
+                    test -n \${FAST} && mvn -B -T 6 -P !integration-test pmd:pmd
+                    echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
+                    ./cli/build_docker_image.sh
+                """
                 script {
-                    junit testResults: '**/target/*-reports/*.xml'
+                    junit allowEmptyResults:true, testResults: '**/target/*-reports/*.xml'
 
                     def java = scanForIssues tool: [$class: 'Java']
                     publishIssues issues:[java], unstableTotalAll:1
@@ -185,15 +190,14 @@ pipeline {
 
             }
             steps {
-                script {
-                    def deployBranchToStaging = input(message: 'Vil du deploye dette byg til staging DataIO?', ok: 'Yes',
-                            parameters: [booleanParam(defaultValue: true,
-                                    description: 'Dette byg bliver deployet til staging', name: 'Jep')])
-                }
                 sh """
-            mvn deploy -B -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "${DEPLOY_ARTIFACTS}"
-            cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
-        """
+                    #!/bin/bash
+                    if [ -n "\$(git log -1 | tail +5 | grep -E ' *!')" ]; then
+                        echo "Gogo staging gadget!!!"
+                        mvn deploy -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "${DEPLOY_ARTIFACTS}"
+                        cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
+                    fi
+                """
             }
         }
         stage("bump docker tags in dataio-secrets for non-master branches") {

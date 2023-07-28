@@ -213,7 +213,7 @@ public class JobModelMapper {
         return new StateModel()
                 .withPartitioning(state.getPhase(State.Phase.PARTITIONING))
                 .withProcessing(state.getPhase(State.Phase.PROCESSING))
-                .withDelivering(state.getPhase(State.Phase.DELIVERING));
-
+                .withDelivering(state.getPhase(State.Phase.DELIVERING))
+                .withAborted(state.isAborted());
     }
 }

@@ -55,7 +55,11 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This stateless Enterprise Java Bean (EJB) facilitates access to the job-store database through persistence layer
@@ -86,6 +90,30 @@ public class PgJobStore {
 
     @Resource
     SessionContext sessionContext;
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public Stream<JobEntity> abortJob(int jobId, Set<Integer> loopDetection) {
+        JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+        if(!loopDetection.add(jobId)) return Stream.empty();
+        LOGGER.info("Obtaining lock on job {} for abort", jobId);
+        Map<String, Object> map = Map.of("javax.persistence.lock.timeout", 60000);
+        entityManager.lock(jobEntity, LockModeType.NONE, map);
+        jobEntity = entityManager.find(JobEntity.class, jobId, LockModeType.PESSIMISTIC_WRITE, map);
+        LOGGER.info("Setting aborted job state on {}", jobId);
+        List<Diagnostic> diagnostics = List.of(new Diagnostic(Diagnostic.Level.FATAL, "Afbrudt af bruger"));
+        abortJob(jobEntity, diagnostics);
+        jobStoreRepository.flushEntityManager();
+        jobStoreRepository.refreshFromDatabase(jobEntity);
+        LOGGER.info("Aborting job {}", jobId);
+        Stream<JobEntity> jobs = abortDependingJobs(jobId, loopDetection);
+        LOGGER.info("Removing {} from job queue", jobId);
+        jobQueueRepository.deleteByJobId(jobId);
+        LOGGER.info("Removing {} from dependency tracking", jobId);
+        removeFromDependencyTracking(jobEntity);
+        jobSchedulerBean.loadSinkStatusOnBootstrap((int)jobEntity.getCachedSink().getSink().getId());
+        LOGGER.info("Aborting job {} done", jobId);
+        return Stream.concat(Stream.of(jobEntity), jobs);
+    }
 
     /**
      * Adds new job in the underlying data store from given job input stream, after attempting to retrieve
@@ -345,6 +373,17 @@ public class PgJobStore {
         return jobEntity;
     }
 
+    private Stream<JobEntity> abortDependingJobs(int jobId, Set<Integer> jobids) {
+        List<Integer> dependingJobs = jobStoreRepository.findDependingJobs(jobId).stream().filter(id -> !jobids.contains(id)).collect(Collectors.toList());
+        if(!dependingJobs.isEmpty()) LOGGER.info("Aborting {} will also abort dependent jobs {}", jobId, dependingJobs);
+        return dependingJobs.stream().flatMap(j -> abortJob(j, jobids));
+    }
+
+    public void removeFromDependencyTracking(JobEntity jobEntity) {
+        int count = jobStoreRepository.deleteDependencies(jobEntity.getId());
+        if(count > 0) LOGGER.info("Aborting job {} deleted {} dependency tracking rows", jobEntity.getId(), count);
+    }
+
     private State endPartitioningPhase(JobEntity job) {
         final Date now = new Date();
 
@@ -365,7 +404,7 @@ public class PgJobStore {
 
     private JobEntity partitionJobIntoChunksAndItems(JobEntity job, PartitioningParam partitioningParam) throws JobStoreException {
         // Attempt partitioning only if no fatal error has occurred
-        if (!job.hasFatalError()) {
+        if (!job.hasFatalError() && !job.getState().isAborted() || JobsBean.isAborted(job.getId())) {
             final List<Diagnostic> abortDiagnostics = new ArrayList<>(0);
 
             LOGGER.info("Partitioning job {}", job.getId());
@@ -446,7 +485,7 @@ public class PgJobStore {
      * @throws JobStoreException       if unable to find referenced chunk or job entities
      */
     @Stopwatch
-    public JobInfoSnapshot addChunk(Chunk chunk) throws NullPointerException, JobStoreException {
+    public JobInfoSnapshot addChunk(Chunk chunk) throws JobStoreException {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         LOGGER.info("addChunk: adding {} chunk {}/{}", chunk.getType(), chunk.getJobId(), chunk.getChunkId());
 
@@ -483,6 +522,7 @@ public class PgJobStore {
         if (jobEntity == null) {
             throw new JobStoreException(String.format("JobEntity.%d could not be found", chunkEntity.getKey().getJobId()));
         }
+
         jobStoreRepository.updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
         if (chunkCompletesJob(jobEntity, chunk)) {
             if (chunk.isTerminationChunk() && chunk.getItems().get(0).getStatus() == ChunkItem.Status.FAILURE) {

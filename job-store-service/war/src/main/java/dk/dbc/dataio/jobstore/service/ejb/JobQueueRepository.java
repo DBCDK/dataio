@@ -62,6 +62,10 @@ public class JobQueueRepository extends RepositoryBase {
                 .withRetries(jobQueueEntity.getRetries() + 1);
     }
 
+    public void deleteByJobId(int jobId) {
+        entityManager.createNamedQuery(JobQueueEntity.DELETE_BY_JOBID).setParameter("jobId", jobId).executeUpdate();
+    }
+
     /**
      * Exclusively seizes head of queue for given {@link Sink} if it
      * is in {@link dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.State#WAITING} state

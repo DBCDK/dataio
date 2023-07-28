@@ -34,6 +34,9 @@ public interface Presenter extends GenericPresenter {
     void setIsMultipleRerun(boolean isMultipleRerun);
 
     void getJobRerunScheme(JobModel jobModel);
+    void resendJob(JobModel jobModel);
+
+    void abortJob(JobModel jobModel);
 
     void rerun();
 

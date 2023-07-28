@@ -188,7 +188,7 @@ public class JobRerunSchemeParser {
     private boolean canRerunFailedOnly(JobInfoSnapshot jobInfoSnapshot, Sink sink) {
         if (getNumberOfFailedItems(jobInfoSnapshot) == 0) {
             return false;
-        } else return sink == null || !sink.getContent().getResource().equals(JobRerunScheme.TICKLE_TOTAL);
+        } else return sink == null || !sink.getContent().getQueue().equals(JobRerunScheme.TICKLE_TOTAL);
     }
 
     /*

@@ -16,62 +16,61 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class SinkContentTest {
     private static final String NAME = "name";
     private static final String QUEUE = "queue";
-    private static final String RESOURCE = "resource";
     private static final String DESCRIPTION = "description";
     private static final SinkContent.SinkType SINK_TYPE = SinkContent.SinkType.OPENUPDATE;
     private static final SinkConfig SINK_CONFIG = OpenUpdateSinkConfigTest.newOpenUpdateSinkConfigInstance();
     private static final SinkContent.SequenceAnalysisOption SEQUENCE_ANALYSIS_OPTION = SinkContent.SequenceAnalysisOption.ALL;
 
+    public static SinkContent newSinkContentInstance() {
+        return new SinkContent(NAME, QUEUE, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
+    }
+
+    public static SinkContent newSinkContentWithTypeInstance() {
+        return new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, null, SEQUENCE_ANALYSIS_OPTION);
+    }
+
+    public static SinkContent newSinkContentWithTypeAndConfigInstance() {
+        return new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, SINK_CONFIG, SEQUENCE_ANALYSIS_OPTION);
+    }
+
     @Test(expected = NullPointerException.class)
     public void constructor_nameArgIsNull_throws() {
-        new SinkContent(null, RESOURCE, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
+        new SinkContent(null, QUEUE, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_nameArgIsEmpty_throws() {
-        new SinkContent("", RESOURCE, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
+        new SinkContent("", QUEUE, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
     }
 
     @Test
     public void constructor_descriptionArgIsEmpty_returnsNewInstance() {
-        new SinkContent(NAME, RESOURCE, "", SEQUENCE_ANALYSIS_OPTION);
+        new SinkContent(NAME, QUEUE, "", SEQUENCE_ANALYSIS_OPTION);
     }
 
     @Test
     public void constructor_descriptionArgIsNull_returnsNewInstance() {
-        new SinkContent(NAME, RESOURCE, null, SEQUENCE_ANALYSIS_OPTION);
+        new SinkContent(NAME, QUEUE, "", SEQUENCE_ANALYSIS_OPTION);
     }
 
     @Test
     public void constructor_sinkTypeArgIsNull_returnsNewInstance() {
-        new SinkContent(NAME, RESOURCE, DESCRIPTION, null, SEQUENCE_ANALYSIS_OPTION);
+        new SinkContent(NAME, QUEUE, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
     }
 
     @Test
     public void constructor_sinkConfigArgIsNull_returnsNewInstance() {
-        new SinkContent(NAME, QUEUE, RESOURCE, DESCRIPTION, SINK_TYPE, null, SEQUENCE_ANALYSIS_OPTION);
+        new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, null, SEQUENCE_ANALYSIS_OPTION);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_sequenceAnalysisOptionArgIsNull_throws() {
-        new SinkContent(NAME, RESOURCE, DESCRIPTION, null);
+        new SinkContent(NAME, QUEUE, DESCRIPTION, null);
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final SinkContent instance = new SinkContent(NAME, QUEUE, RESOURCE, DESCRIPTION, SINK_TYPE, SINK_CONFIG, SEQUENCE_ANALYSIS_OPTION);
+        SinkContent instance = new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, SINK_CONFIG, SEQUENCE_ANALYSIS_OPTION);
         assertThat(instance, is(notNullValue()));
-    }
-
-    public static SinkContent newSinkContentInstance() {
-        return new SinkContent(NAME, RESOURCE, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
-    }
-
-    public static SinkContent newSinkContentWithTypeInstance() {
-        return new SinkContent(NAME, RESOURCE, DESCRIPTION, SINK_TYPE, SEQUENCE_ANALYSIS_OPTION);
-    }
-
-    public static SinkContent newSinkContentWithTypeAndConfigInstance() {
-        return new SinkContent(NAME, QUEUE, RESOURCE, DESCRIPTION, SINK_TYPE, SINK_CONFIG, SEQUENCE_ANALYSIS_OPTION);
     }
 }

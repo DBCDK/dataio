@@ -21,6 +21,7 @@ import com.google.gwt.user.cellview.client.Header;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.view.client.ProvidesKey;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
@@ -33,6 +34,7 @@ import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -40,7 +42,14 @@ import java.util.List;
  * This class is the View class for the New Jobs Show View
  */
 public class View extends ViewWidget {
-
+    // List of sinks that are known to be abortable
+    private static final List<Long> ABORTABLE_SINKS = Arrays.asList(
+            1L,     // diff
+            54L,    // s:dummy
+            551L,   // p:dummy
+            8461L,  // p:marcconv
+            9751L  // s:tickle inc
+    );
     ViewJobsGinjector viewInjector = GWT.create(ViewJobsGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
@@ -57,7 +66,7 @@ public class View extends ViewWidget {
 
     // Enums
     enum JobStatus {
-        NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR, PREVIEW
+        NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR, PREVIEW, ABORTED;
     }
 
     public View() {
@@ -221,6 +230,7 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructIsFixedColumn(), new HidableColumnHeader(getTexts().columnHeader_Fixed()));
         jobsTable.addColumn(constructAssigneeColumn(), new HidableColumnHeader(getTexts().columnHeader_Assignee()));
         jobsTable.addColumn(constructRerunColumn(), new HidableColumnHeader(getTexts().columnHeader_Action()));
+        jobsTable.addColumn(constructAbortColumn(), new HidableColumnHeader(getTexts().columnHeader_Action()));
         jobsTable.addColumn(constructJobCreationTimeColumn(), getTexts().columnHeader_JobCreationTime());
         jobsTable.addColumn(constructJobIdColumn(), getTexts().columnHeader_JobId());
         jobsTable.addColumn(constructSubmitterColumn(), getTexts().columnHeader_Submitter());
@@ -518,9 +528,9 @@ public class View extends ViewWidget {
      */
     Column constructRerunColumn() {
         ButtonCell rerunButtonCell = new ButtonCell();
-        Column<JobModel, String> rerunButtonColumn = new Column<JobModel, String>(rerunButtonCell) {
+        Column<JobModel, String> rerunButtonColumn = new Column<>(rerunButtonCell) {
             public String getValue(JobModel object) {
-                return getTexts().button_RerunJob();
+                return object != null && object.getJobCompletionTime().isEmpty() ? getTexts().button_ResendJob() : getTexts().button_RerunJob();
             }
 
             @Override
@@ -530,15 +540,49 @@ public class View extends ViewWidget {
         };
         rerunButtonColumn.setFieldUpdater((index, selectedRowModel, value) -> {
             if (selectedRowModel != null) {
+                presenter.setIsMultipleRerun(false);
                 if (selectedRowModel.getJobCompletionTime().isEmpty()) {
-                    setErrorText(getTexts().error_JobNotFinishedError());
+                    presenter.resendJob(selectedRowModel);
                 } else {
-                    presenter.setIsMultipleRerun(false);
+
                     presenter.getJobRerunScheme(selectedRowModel);
                 }
             }
         });
         return rerunButtonColumn;
+    }
+
+    Column constructAbortColumn() {
+        ButtonCell abortButtonCell = new ButtonCell();
+        Column<JobModel, String> abortButtonColumn = new Column<>(abortButtonCell) {
+            public String getValue(JobModel object) {
+                return getTexts().button_AbortJob();
+            }
+
+            @Override
+            public void render(Cell.Context context, JobModel object, SafeHtmlBuilder sb) {
+                if(ABORTABLE_SINKS.contains(object.getSinkId()) && object.getJobCompletionTime().isEmpty()) {
+                    super.render(context, object, sb);
+                }
+            }
+
+            @Override
+            public String getCellStyleNames(Cell.Context context, JobModel model) {
+                return workFlowColumnsVisible ? "visible" : "invisible";
+            }
+        };
+        abortButtonColumn.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+        abortButtonColumn.setFieldUpdater((index, selectedRowModel, value) -> {
+            if (selectedRowModel != null) {
+                if (selectedRowModel.getJobCompletionTime().isEmpty()) {
+                    presenter.setIsMultipleRerun(false);
+                    presenter.abortJob(selectedRowModel);
+                } else {
+                    setErrorText(getTexts().error_JobFinishedError());
+                }
+            }
+        });
+        return abortButtonColumn;
     }
 
     /*

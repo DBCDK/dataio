@@ -84,7 +84,7 @@ public class AddAccTestJobParamTest extends ParamBaseTest {
                 jobSpecification.getFormat(),
                 jobSpecification.getCharset(),
                 jobSpecification.getSubmitterId(),
-                jobSpecification.getDestination())).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("mesage", 404));
+                jobSpecification.getDestination())).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("message", 404));
 
         final AddAccTestJobParam addAccTestJobParam = new AddAccTestJobParam(accTestJobInputStream, mockedFlowStoreServiceConnector);
 

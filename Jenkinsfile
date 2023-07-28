@@ -94,7 +94,6 @@ pipeline {
             steps {
                 sh """
                 cat docker-images.log | parallel -j 3 docker push {}:master-${env.BUILD_NUMBER}
-                docker tag docker-metascrum.artifacts.dbccloud.dk/gatekeeper-staging:devel docker-metascrum.artifacts.dbccloud.dk/gatekeeper-staging:DIT-${env.BUILD_NUMBER}
                 docker tag docker-metascrum.artifacts.dbccloud.dk/gatekeeper-jmx-exporter:devel docker-metascrum.artifacts.dbccloud.dk/gatekeeper-jmx-exporter:DIT-${env.BUILD_NUMBER}
                 docker push docker-metascrum.artifacts.dbccloud.dk/gatekeeper-staging:DIT-${env.BUILD_NUMBER}
                 docker push docker-metascrum.artifacts.dbccloud.dk/gatekeeper-jmx-exporter:DIT-${env.BUILD_NUMBER}

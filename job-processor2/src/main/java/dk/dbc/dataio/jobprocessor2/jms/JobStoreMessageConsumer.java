@@ -1,15 +1,12 @@
 package dk.dbc.dataio.jobprocessor2.jms;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.jobprocessor2.Metric;
 import dk.dbc.dataio.jobprocessor2.ProcessorConfig;
 import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
@@ -41,13 +38,12 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
     private static final Map<WatchKey, Instant> scriptStartTimes = new ConcurrentHashMap<>();
     private static final String QUEUE = ProcessorConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = ProcessorConfig.QUEUE.fqnAsAddress();
-    private static final String FILTER = ProcessorConfig.MESSAGE_FILTER.asOptionalString().orElse(null);
 
     public JobStoreMessageConsumer(ServiceHub serviceHub) {
         super(serviceHub);
         healthService = serviceHub.healthService;
-        chunkProcessor = new ChunkProcessor(healthService);
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
+        chunkProcessor = new ChunkProcessor(healthService, jobStoreServiceConnector);
         Metric.dataio_jobprocessor_chunk_duration_ms.gauge(this::getLongestRunningChunkDuration);
         zombieWatch.addCheck("script-check" , this::scriptRuntimeCheck);
     }
@@ -66,8 +62,7 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
         long flowId = JMSHeader.flowId.getHeader(consumedMessage, Long.class);
         long flowVersion = JMSHeader.flowVersion.getHeader(consumedMessage, Long.class);
         String additionalArgs = JMSHeader.additionalArgs.getHeader(consumedMessage, String.class);
-        Flow flow = getFlow(chunk, flowId, flowVersion);
-        sendResultToJobStore(processChunk(chunk, flow, additionalArgs));
+        sendResultToJobStore(processChunk(chunk, flowId, flowVersion, additionalArgs));
     }
 
     @Override
@@ -78,11 +73,6 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
     @Override
     public String getAddress() {
         return ADDRESS;
-    }
-
-    @Override
-    public String getFilter() {
-        return FILTER;
     }
 
     @SuppressWarnings("unused")
@@ -117,12 +107,12 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
         }
     }
 
-    private Chunk processChunk(Chunk chunk, Flow flow, String additionalArgs) {
-        WatchKey key = new WatchKey(chunk, flow);
+    private Chunk processChunk(Chunk chunk, long flowId, long flowVersion, String additionalArgs) {
+        WatchKey key = new WatchKey(chunk);
         Instant start = Instant.now();
         scriptStartTimes.put(key, start);
         try {
-            Chunk process = chunkProcessor.process(chunk, flow, additionalArgs);
+            Chunk process = chunkProcessor.process(chunk, flowId, flowVersion, additionalArgs);
             Metric.dataio_jobprocessor_chunk_failed.counter().inc(process.getItems().stream()
                     .map(ChunkItem::getStatus)
                     .filter(ChunkItem.Status.FAILURE::equals)
@@ -132,38 +122,20 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
             scriptStartTimes.remove(key);
             Duration duration = Duration.between(start, Instant.now());
             if(duration.compareTo(SLOW_THRESHOLD_MS) > 0) {
-                Tag tag = new Tag("flow", key.flow);
+                Tag tag = new Tag("flow", flowId + ":" + flowVersion);
                 Metric.dataio_jobprocessor_slow_jobs.simpleTimer(tag).update(duration);
             }
-        }
-    }
-
-    private Flow getFlow(Chunk chunk, long flowId, long flowVersion) throws JobProcessorException {
-        return chunkProcessor.getCachedFlow(flowId, flowVersion).orElseGet(() -> flowFromJobStore(chunk));
-    }
-
-    private Flow flowFromJobStore(Chunk chunk) throws JobProcessorException {
-        StopWatch stopWatch = new StopWatch();
-        try {
-            return jobStoreServiceConnector.getCachedFlow(chunk.getJobId());
-        } catch (JobStoreServiceConnectorException e) {
-            throw new JobProcessorException(String.format(
-                    "Exception caught while fetching flow for job %s", chunk.getJobId()), e);
-        } finally {
-            LOGGER.debug("Fetching flow took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
     public static class WatchKey {
         public final long chunkId;
         public final long jobId;
-        public final String flow;
         public final long threadId;
 
-        public WatchKey(Chunk chunk, Flow flow) {
+        public WatchKey(Chunk chunk) {
             chunkId = chunk.getChunkId();
             jobId = chunk.getJobId();
-            this.flow = String.join(", ", "id=" + flow.getId(), "version=" + flow.getVersion(), "name=" + flow.getContent().getName());
             threadId = Thread.currentThread().getId();
         }
 
@@ -172,12 +144,12 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             WatchKey watchKey = (WatchKey) o;
-            return chunkId == watchKey.chunkId && jobId == watchKey.jobId && threadId == watchKey.threadId && Objects.equals(flow, watchKey.flow);
+            return chunkId == watchKey.chunkId && jobId == watchKey.jobId && threadId == watchKey.threadId;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(chunkId, jobId, flow, threadId);
+            return Objects.hash(chunkId, jobId, threadId);
         }
     }
 }

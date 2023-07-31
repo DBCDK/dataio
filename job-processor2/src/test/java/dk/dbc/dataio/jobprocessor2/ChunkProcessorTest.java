@@ -11,6 +11,8 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
@@ -22,6 +24,8 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
 import dk.dbc.dataio.jse.artemis.common.service.HealthService;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -30,12 +34,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ChunkProcessorTest {
     static final String javaScriptReturnUpperCase = "returnUpperCase";
@@ -49,6 +54,11 @@ public class ChunkProcessorTest {
     private final long submitter = 123;
     private final String format = "DasFormat";
     private final String additionalArgs = String.format("{\"format\":\"%s\",\"submitter\":%s}", format, submitter);
+
+    @Before
+    public void initCache() {
+        ChunkProcessor.clearFlowCache();
+    }
 
     public static FlowComponentContent getFlowComponentContent(ScriptWrapper scriptWrapper) {
         List<JavaScript> js = List.of(scriptWrapper.javaScript,
@@ -90,28 +100,30 @@ public class ChunkProcessorTest {
     }
 
     @Test
-    public void emptyChunk_returnsEmptyResult() {
+    public void emptyChunk_returnsEmptyResult() throws JobStoreServiceConnectorException {
         Chunk emptyChunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobId).setItems(new ArrayList<>(0)).build();
         ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptReturnUpperCase, getJavaScript(getJavaScriptReturnUpperCaseFunction()));
         Flow flow = getFlow(scriptWrapper);
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        Chunk processedChunk = chunkProcessor.process(emptyChunk, flow, additionalArgs);
+        ChunkProcessor chunkProcessor = makeChunkProcessor(emptyChunk, flow);
+        Chunk processedChunk = chunkProcessor.process(emptyChunk, flow.getId(), flow.getVersion(), additionalArgs);
         assertProcessedChunk(processedChunk, jobId, emptyChunk.getChunkId(), 0);
     }
 
-    private ChunkProcessor makeChunkProcessor() {
-        return new ChunkProcessor(Mockito.mock(HealthService.class));
+    private ChunkProcessor makeChunkProcessor(Chunk chunk, Flow flow) throws JobStoreServiceConnectorException {
+        JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+        when(jobStoreServiceConnector.getCachedFlow(Mockito.eq(chunk.getJobId()))).thenReturn(flow);
+        return new ChunkProcessor(mock(HealthService.class), jobStoreServiceConnector);
     }
 
     @Test
-    public void exceptionThrownFromJavascript_chunkItemFailure() {
+    public void exceptionThrownFromJavascript_chunkItemFailure() throws JobStoreServiceConnectorException {
         ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptThrowException, getJavaScript(getJavaScriptThrowExceptionFunction()));
         Flow flow = getFlow(scriptWrapper);
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobId).setItems(getItems("throw")).build();
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        Chunk processedChunk = chunkProcessor.process(chunk, flow, additionalArgs);
+        ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
+        Chunk processedChunk = chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), additionalArgs);
         assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
         Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
@@ -124,13 +136,13 @@ public class ChunkProcessorTest {
     }
 
     @Test
-    public void illegalOperationOnControlFieldExceptionThrownFromJavascript_chunkItemFailure() {
+    public void illegalOperationOnControlFieldExceptionThrownFromJavascript_chunkItemFailure() throws JobStoreServiceConnectorException {
         ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptThrowIllegalOperationOnControlFieldException, getJavaScript(getJavaScriptThrowIllegalOperationOnControlFieldExceptionFunction()));
         Flow flow = getFlow(scriptWrapper);
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobId).setItems(getItems("throw")).build();
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        Chunk processedChunk = chunkProcessor.process(chunk, flow, additionalArgs);
+        ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
+        Chunk processedChunk = chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), additionalArgs);
         assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
         Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
@@ -143,13 +155,13 @@ public class ChunkProcessorTest {
     }
 
     @Test
-    public void exceptionThrownFromOneOutOfThreeJavascripts_chunkItemFailureForThrowSuccessForRest() {
+    public void exceptionThrownFromOneOutOfThreeJavascripts_chunkItemFailureForThrowSuccessForRest() throws JobStoreServiceConnectorException {
         ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptThrowException, getJavaScript(getJavaScriptThrowExceptionFunction()));
         Flow flow = getFlow(scriptWrapper);
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobId).setItems(getItems("zero", "throw", "two")).build();
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        Chunk processedChunk = chunkProcessor.process(chunk, flow, additionalArgs);
+        ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
+        Chunk processedChunk = chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), additionalArgs);
         assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 3);
         Iterator<ChunkItem> iterator = processedChunk.iterator();
 
@@ -174,14 +186,14 @@ public class ChunkProcessorTest {
     }
 
     @Test
-    public void illegalJavascriptInEnvironment_chunkItemFailure() {
+    public void illegalJavascriptInEnvironment_chunkItemFailure() throws JobStoreServiceConnectorException {
         ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase, getJavaScript(getJavaScriptReturnUpperCaseFunction()));
         ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptThrowException, getJavaScript("This is not a legal javascript!"));
         Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobId).setItems(getItems("zero", "one")).build();
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        Chunk processedChunk = chunkProcessor.process(chunk, flow, additionalArgs);
+        ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
+        Chunk processedChunk = chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), additionalArgs);
         assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 2);
         Iterator<ChunkItem> iterator = processedChunk.iterator();
 
@@ -201,14 +213,14 @@ public class ChunkProcessorTest {
     }
 
     @Test
-    public void javascriptReturnsEmptyString_chunkItemIgnored() {
+    public void javascriptReturnsEmptyString_chunkItemIgnored() throws JobStoreServiceConnectorException {
         ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase, getJavaScript(getJavaScriptReturnUpperCaseFunction()));
         ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnEmptyString, getJavaScript(getJavaScriptReturnEmptyStringFunction()));
         Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobId).setItems(getItems("zero")).build();
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        Chunk processedChunk = chunkProcessor.process(chunk, flow, additionalArgs);
+        ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
+        Chunk processedChunk = chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), additionalArgs);
         assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
         Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
@@ -222,14 +234,14 @@ public class ChunkProcessorTest {
 
     @Ignore("Testing better handling of ClassCastException")
     @Test
-    public void javascriptReturnsWithNoResult_chunkItemFailed() {
+    public void javascriptReturnsWithNoResult_chunkItemFailed() throws JobStoreServiceConnectorException {
         ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase, getJavaScript(getJavaScriptReturnUpperCaseFunction()));
         ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnNoResult, getJavaScript(getJavaScriptReturnNoResultFunction()));
         Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobId).setItems(getItems("zero")).build();
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        Chunk processedChunk = chunkProcessor.process(chunk, flow, additionalArgs);
+        ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
+        Chunk processedChunk = chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), additionalArgs);
         assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
         Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
@@ -243,15 +255,15 @@ public class ChunkProcessorTest {
     }
 
     @Test
-    public void multipleFlowComponents_returnsResultOfJavascriptPipe() {
+    public void multipleFlowComponents_returnsResultOfJavascriptPipe() throws JobStoreServiceConnectorException {
         final String record = "zero";
         ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase, getJavaScript(getJavaScriptReturnUpperCaseFunction()));
         ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnConcatenation, getJavaScript(getJavaScriptReturnConcatenationFunction()));
         Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobId).setItems(getItems(record)).build();
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        Chunk processedChunk = chunkProcessor.process(chunk, flow, additionalArgs);
+        ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
+        Chunk processedChunk = chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), additionalArgs);
         assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
         Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
@@ -262,14 +274,14 @@ public class ChunkProcessorTest {
     }
 
     @Test
-    public void javaScriptIgnoreRecord() {
+    public void javaScriptIgnoreRecord() throws JobStoreServiceConnectorException {
         ScriptWrapper scriptWrapper1 = new ScriptWrapper("throwIgnore", getJavaScript("function throwIgnore() {" + "Packages.dk.dbc.javascript.recordprocessing.IgnoreRecord.doThrow('errorMessage');" + "}"));
         ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnNoResult, getJavaScript(getJavaScriptReturnNoResultFunction()));
         Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobId).setItems(getItems("zero")).build();
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        Chunk processedChunk = chunkProcessor.process(chunk, flow, additionalArgs);
+        ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
+        Chunk processedChunk = chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), additionalArgs);
         assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
         Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
@@ -282,14 +294,14 @@ public class ChunkProcessorTest {
     }
 
     @Test
-    public void javaScriptFailRecord() {
+    public void javaScriptFailRecord() throws JobStoreServiceConnectorException {
         ScriptWrapper scriptWrapper1 = new ScriptWrapper("throwIgnore", getJavaScript("function throwIgnore() {" + "Packages.dk.dbc.javascript.recordprocessing.FailRecord.doThrow('errorMessage');" + "}"));
         ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnNoResult, getJavaScript(getJavaScriptReturnNoResultFunction()));
         Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobId).setItems(getItems("zero")).build();
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        Chunk processedChunk = chunkProcessor.process(chunk, flow, additionalArgs);
+        ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
+        Chunk processedChunk = chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), additionalArgs);
         assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
         Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
@@ -303,19 +315,19 @@ public class ChunkProcessorTest {
     }
 
     @Test
-    public void flowHasNextComponents_returnsChunkWithNextItems() {
+    public void flowHasNextComponents_returnsChunkWithNextItems() throws JobStoreServiceConnectorException {
         FlowComponent flowComponent = new FlowComponentBuilder().setContent(getFlowComponentContent(new ScriptWrapper(javaScriptReturnUpperCase, getJavaScript(getJavaScriptReturnUpperCaseFunction())))).setNext(getFlowComponentContent(new ScriptWrapper(javaScriptReturnUpperCase, getJavaScript(getJavaScriptReturnUpperCaseFunction())))).build();
         Flow flow = new FlowBuilder().setContent(new FlowContentBuilder().setComponents(Collections.singletonList(flowComponent)).build()).build();
         final String record = "zero";
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobId).setItems(getItems(record)).build();
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        Chunk processedChunk = chunkProcessor.process(chunk, flow, additionalArgs);
+        ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
+        Chunk processedChunk = chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), additionalArgs);
         assertThat("Chunk has next items", processedChunk.hasNextItems(), is(true));
     }
 
     @Test
-    public void skipsOnlyChunkItemsWithStatusFailureAndIgnore_returnsResultOfJavascriptPipe() {
+    public void skipsOnlyChunkItemsWithStatusFailureAndIgnore_returnsResultOfJavascriptPipe() throws JobStoreServiceConnectorException {
 
         final String record = "zero";
         ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase, getJavaScript(getJavaScriptReturnUpperCaseFunction()));
@@ -329,8 +341,8 @@ public class ChunkProcessorTest {
 
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobId).setItems(items).build();
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        Chunk processedChunk = chunkProcessor.process(chunk, flow, additionalArgs);
+        ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
+        Chunk processedChunk = chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), additionalArgs);
         assertProcessedChunk(processedChunk, jobId, 1, 3);
         Iterator<ChunkItem> iterator = processedChunk.iterator();
 
@@ -368,8 +380,8 @@ public class ChunkProcessorTest {
         ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptReturnConcatenation, getJavaScript(getJavaScriptReturnConcatenationFunction()));
         Flow flow = getFlow(scriptWrapper);
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        Chunk result = chunkProcessor.process(chunk, flow, additionalArgs);
+        ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
+        Chunk result = chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), additionalArgs);
 
         Iterator<ChunkItem> iterator = result.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
@@ -379,20 +391,14 @@ public class ChunkProcessorTest {
     }
 
     @Test
-    public void flowNotInCache() {
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        assertThat(chunkProcessor.getCachedFlow(42, 1), is(Optional.empty()));
-    }
-
-    @Test
-    public void flowInCache() {
+    public void flowInCache() throws JobStoreServiceConnectorException {
         ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptThrowException, getJavaScript(getJavaScriptThrowExceptionFunction()));
         Flow flow = getFlow(scriptWrapper);
         Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(jobId).setItems(getItems("throw")).build();
 
-        ChunkProcessor chunkProcessor = makeChunkProcessor();
-        chunkProcessor.process(chunk, flow, null);
-        assertThat(chunkProcessor.getCachedFlow(flow.getId(), flow.getVersion()).isPresent(), is(true));
+        ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
+        chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), null);
+        Assert.assertTrue("Cache should contain our flow", chunkProcessor.getCacheView().values().stream().anyMatch(f -> f.flow.equals(flow)));
     }
 
     private void assertProcessedChunk(Chunk chunk, int jobID, long chunkId, int chunkSize) {

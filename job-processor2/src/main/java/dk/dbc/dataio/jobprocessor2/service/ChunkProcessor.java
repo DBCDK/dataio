@@ -5,9 +5,13 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.jobprocessor2.ProcessorConfig;
 import dk.dbc.dataio.jobprocessor2.util.ChunkItemProcessor;
 import dk.dbc.dataio.jobprocessor2.util.FlowCache;
+import dk.dbc.dataio.jse.artemis.common.JobProcessorException;
 import dk.dbc.dataio.jse.artemis.common.service.HealthService;
 import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
@@ -16,7 +20,8 @@ import org.slf4j.MDC;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This Enterprise Java Bean (EJB) processes chunks with JavaScript contained in the associated flow
@@ -25,46 +30,58 @@ public class ChunkProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessor.class);
     private static final String FLOW_NAME_MDC_KEY = "flowName";
     private static final String FLOW_VERSION_MDC_KEY = "flowVersion";
+    private static final AtomicInteger PROCESSOR_ID_GEN = new AtomicInteger();
+    private final int processorId = PROCESSOR_ID_GEN.getAndIncrement();
+    private static final boolean SHARE_FLOWS = ProcessorConfig.SHARE_FLOWS.asBoolean();
     private final HealthService healthService;
+    private static final FlowCache flowCache = new FlowCache();
+    private final JobStoreServiceConnector jobStoreServiceConnector;
 
-    // A per bean instance LRU flow cache
-    private final FlowCache flowCache = new FlowCache();
-
-    public ChunkProcessor(HealthService healthService) {
+    public ChunkProcessor(HealthService healthService, JobStoreServiceConnector jobStoreServiceConnector) {
         this.healthService = healthService;
+        this.jobStoreServiceConnector = jobStoreServiceConnector;
+    }
+
+    public static void clearFlowCache() {
+        flowCache.clear();
+    }
+
+    public Map<String, FlowCache.FlowCacheEntry> getCacheView() {
+        return flowCache.getView();
     }
 
     /**
      * Processes given chunk with business logic dictated by given flow
      *
      * @param chunk          chunk
-     * @param flow           flow containing business logic
+     * @param flowId         flowId containing business logic
+     * @param flowVersion    flowVersion containing business logic
      * @param additionalArgs supplementary process data
      * @return result of processing
      */
-    public Chunk process(Chunk chunk, Flow flow, String additionalArgs) {
+    public Chunk process(Chunk chunk, long flowId, long flowVersion, String additionalArgs) {
         StopWatch stopWatchForChunk = new StopWatch();
+        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.PROCESSED);
         try {
-            flowMdcPut(flow);
-
-            LOGGER.info("process(): processing chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
-            Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.PROCESSED);
             if (chunk.size() > 0) {
-                try {
-                    FlowCache.FlowCacheEntry flowCacheEntry = cacheFlow(flow);
+                FlowCache.FlowCacheEntry flowCacheEntry = getFlow(chunk, flowId, flowVersion);
+                flowMdcPut(flowCacheEntry.flow);
+                LOGGER.info("process(): processing chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
+                try {
                     result.addAllItems(
                             processItemsWithCurrentRevision(chunk, flowCacheEntry, additionalArgs),
                             processItemsWithNextRevision(chunk, flowCacheEntry, additionalArgs));
                 } catch (OutOfMemoryError t) {
                         healthService.signal(HealthFlag.OUT_OF_MEMORY);
                         throw t;
-                } catch (Exception e) {
-                    // Since we cannot signal failure at chunk level, we have to fail all items in the chunk
-                    LOGGER.error("process(): unrecoverable exception caught while processing chunk {}/{}", chunk.getJobId(), chunk.getChunkId(), e);
-                    result.addAllItems(failAllItems(chunk, e));
                 }
             }
+            return result;
+        } catch (Exception e) {
+            // Since we cannot signal failure at chunk level, we have to fail all items in the chunk
+            LOGGER.error("process(): unrecoverable exception caught while processing chunk {}/{}", chunk.getJobId(), chunk.getChunkId(), e);
+            result.addAllItems(failAllItems(chunk, e));
             return result;
         } finally {
             LOGGER.info("process(): processing of chunk {}/{} took {} milliseconds",
@@ -73,15 +90,21 @@ public class ChunkProcessor {
         }
     }
 
-    /**
-     * Returns flow identified by given ID and version if already cached by this processor thread
-     *
-     * @param flowId      flow ID
-     * @param flowVersion flow version
-     * @return Flow instance if cached, empty if not
-     */
-    public Optional<Flow> getCachedFlow(long flowId, long flowVersion) {
-        return Optional.ofNullable(flowCache.get(getCacheKey(flowId, flowVersion))).map(f -> f.flow);
+    private FlowCache.FlowCacheEntry getFlow(Chunk chunk, long flowId, long flowVersion) throws Exception {
+        String cacheKey = getCacheKey(flowId, flowVersion);
+        return flowCache.get(cacheKey, () -> flowFromJobStore(chunk));
+    }
+
+    private Flow flowFromJobStore(Chunk chunk) throws JobProcessorException {
+        StopWatch stopWatch = new StopWatch();
+        try {
+            return jobStoreServiceConnector.getCachedFlow(chunk.getJobId());
+        } catch (JobStoreServiceConnectorException e) {
+            throw new JobProcessorException(String.format(
+                    "Exception caught while fetching flow for job %s", chunk.getJobId()), e);
+        } finally {
+            LOGGER.debug("Fetching flow took {} milliseconds", stopWatch.getElapsedTime());
+        }
     }
 
     private void flowMdcPut(Flow flow) {
@@ -94,18 +117,8 @@ public class ChunkProcessor {
         MDC.remove(FLOW_VERSION_MDC_KEY);
     }
 
-    protected FlowCache.FlowCacheEntry cacheFlow(Flow flow) throws OutOfMemoryError, Exception {
-        String cacheKey = getCacheKey(flow.getId(), flow.getVersion());
-        FlowCache.FlowCacheEntry entry = flowCache.get(cacheKey);
-        if (entry != null) {
-            LOGGER.info("cacheFlow(): cache hit for flow (id.version) ({})", cacheKey);
-            return entry;
-        }
-        return flowCache.put(cacheKey, flow);
-    }
-
     private String getCacheKey(long flowId, long flowVersion) {
-        return String.format("%d.%d", flowId, flowVersion);
+        return (!SHARE_FLOWS ? "p" + processorId + ":" : "") + flowId + "." + flowVersion;
     }
 
     private List<ChunkItem> processItemsWithCurrentRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, String additionalArgs) {

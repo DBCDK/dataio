@@ -4,6 +4,7 @@ import dk.dbc.commons.jpa.converter.IntegerArrayToPgIntArrayConverter;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.lang.Hashcode;
 import org.eclipse.persistence.annotations.Mutable;
+import org.postgresql.util.PGobject;
 
 import javax.persistence.Column;
 import javax.persistence.ColumnResult;
@@ -19,6 +20,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.SqlResultSetMappings;
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -37,7 +39,16 @@ import java.util.Set;
                                 targetClass = DependencyTrackingEntity.Key.class,
                                 columns = {
                                         @ColumnResult(name = "jobId"),
-                                        @ColumnResult(name = "chunkId"),})}),
+                                        @ColumnResult(name = "chunkId")})}),
+        @SqlResultSetMapping(
+                name = DependencyTrackingEntity.KEY_WAITING_ON_RESULT,
+                classes = {
+                        @ConstructorResult(
+                                targetClass = DependencyTrackingEntity.class,
+                                columns = {
+                                        @ColumnResult(name = "jobId"),
+                                        @ColumnResult(name = "chunkId"),
+                                        @ColumnResult(name = "waitingon")})}),
         @SqlResultSetMapping(
                 name = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT,
                 classes = {
@@ -46,7 +57,7 @@ import java.util.Set;
                                 columns = {
                                         @ColumnResult(name = "sinkId"),
                                         @ColumnResult(name = "Status"),
-                                        @ColumnResult(name = "count"),})})
+                                        @ColumnResult(name = "count")})})
 })
 @NamedNativeQueries({
         @NamedNativeQuery(name = DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY_ALL,
@@ -64,8 +75,8 @@ import java.util.Set;
                 // Using the array overlap (&&) operator, which returns true
                 // if the two argument arrays have at least one common element, and
                 // certainly is a lot faster than OR'ing together 'matchKeys @>' expressions.
-                query = "SELECT jobid, chunkid FROM dependencyTracking WHERE sinkId = ? AND submitter = ? AND hashes && ?::INTEGER[] ORDER BY jobId, chunkId FOR NO KEY UPDATE",
-                resultSetMapping = DependencyTrackingEntity.KEY_RESULT),
+                query = "SELECT jobid, chunkid, waitingon FROM dependencyTracking WHERE sinkId = ? AND submitter = ? AND hashes && ?::INTEGER[] ORDER BY jobId, chunkId FOR NO KEY UPDATE",
+                resultSetMapping = DependencyTrackingEntity.KEY_WAITING_ON_RESULT),
         @NamedNativeQuery(name = "DependencyTrackingEntity.blockedGroupedBySink", query = "SELECT sinkid, 3 as status, count(*) from dependencyTracking where status = 3 group by sinkid",
                 resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT)
 })
@@ -84,8 +95,9 @@ import java.util.Set;
 public class DependencyTrackingEntity {
     static final String SINKID_STATUS_COUNT_RESULT = "SinkIdStatusCountResult";
     public static final String KEY_RESULT = "DependencyTrackingEntity.Key";
-    public static final String SINKID_STATUS_COUNT_QUERY_ALL = "DependencyTrackingEntity.sinkIdStatusCountAll";
+    public static final String KEY_WAITING_ON_RESULT = "DependencyTrackingEntity.KeyAndWaitingOn";
     public static final String SINKID_STATUS_COUNT_QUERY = "DependencyTrackingEntity.sinkIdStatusCount";
+    public static final String SINKID_STATUS_COUNT_QUERY_ALL = "DependencyTrackingEntity.sinkIdStatusCountAll";
     public static final String JOB_COUNT_CHUNK_COUNT_QUERY = "DependencyTrackingEntity.jobCountChunkCount";
     public static final String RELATED_CHUNKS_QUERY = "DependencyTrackingEntity.relatedChunks";
     public static final String BY_SINKID_AND_STATE_QUERY = "DependencyTrackingEntity.bySinkIdAndState";
@@ -111,6 +123,11 @@ public class DependencyTrackingEntity {
     }
 
     public DependencyTrackingEntity() {
+    }
+
+    public DependencyTrackingEntity(int jobId, int chunkId, PGobject waitingOn) {
+        key = new Key(jobId, chunkId);
+        this.waitingOn = new KeySetJSONBConverter().convertToEntityAttribute(waitingOn);
     }
 
     /* Be advised that updating the internal state of a 'json' column
@@ -288,7 +305,8 @@ public class DependencyTrackingEntity {
     }
 
     @Embeddable
-    public static class Key {
+    public static class Key implements Serializable {
+        private static final long serialVersionUID = -5575195152198835462L;
         @Column(name = "jobid")
         private int jobId;
 

@@ -11,6 +11,7 @@ import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,10 +24,12 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK;
@@ -39,6 +42,10 @@ import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.getSinkStatus;
 @Stateless
 public class JobSchedulerTransactionsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerTransactionsBean.class);
+
+    @Inject
+    @ConfigProperty(name = "ENABLE_DEPENDENCY_OPTIMIZER", defaultValue = "true")
+    private Boolean enableOptimizer;
 
     @Inject
     @JobstoreDB
@@ -202,9 +209,7 @@ public class JobSchedulerTransactionsBean {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void attemptToUnblockChunk(
-            DependencyTrackingEntity.Key chunkBlockedKey,
-            DependencyTrackingEntity.Key chunkDoneKey,
+    public void attemptToUnblockChunk(DependencyTrackingEntity.Key chunkBlockedKey, DependencyTrackingEntity.Key chunkDoneKey,
             JobSchedulerSinkStatus.QueueStatus sinkQueueStatus) {
 
         DependencyTrackingEntity blockedChunk = entityManager.find(
@@ -270,7 +275,7 @@ public class JobSchedulerTransactionsBean {
             return Collections.emptySet();
         }
 
-        final Query query = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_TO_WAIT_FOR_QUERY);
+        Query query = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_TO_WAIT_FOR_QUERY);
         query.setParameter(1, entity.getSinkid());
         query.setParameter(2, entity.getSubmitterNumber());
         if (barrierMatchKey != null) {
@@ -278,7 +283,19 @@ public class JobSchedulerTransactionsBean {
         } else {
             query.setParameter(3, PgIntArray.toPgString(entity.getHashes()));
         }
-        return new HashSet<>((List<DependencyTrackingEntity.Key>) query.getResultList());
+        List<DependencyTrackingEntity> list = query.getResultList();
+        if(enableOptimizer) return optimizeDependencies(list);
+        return list.stream().map(DependencyTrackingEntity::getKey).collect(Collectors.toSet());
+    }
+
+    public static Set<DependencyTrackingEntity.Key> optimizeDependencies(List<? extends DependencyTrackingEntity> dependencies) {
+        if(dependencies.isEmpty()) return Set.of();
+        Set<DependencyTrackingEntity.Key> keys = dependencies.stream()
+                .map(DependencyTrackingEntity::getWaitingOn)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+        return dependencies.stream().map(DependencyTrackingEntity::getKey).filter(k -> !keys.contains(k)).collect(Collectors.toSet());
     }
 
     /**

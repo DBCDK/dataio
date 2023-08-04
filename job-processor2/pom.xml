@@ -53,6 +53,39 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>build</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <tagName>devel</tagName>
+                    <images>
+                        <image>
+                            <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
+                            <build>
+                                <from>${java.image}</from>
+                                <user>gfish</user>
+                                <env>
+                                    <LOG_FORMAT default-value="json"/>
+                                    <LOG_LEVEL default-value="INFO"/>
+                                    <TZ default-value="Europe/Copenhagen"/>
+                                </env>
+                                <assemblies>
+                                    <assembly>
+                                        <descriptorRef>artifact</descriptorRef>
+                                        <targetDir>/work</targetDir>
+                                    </assembly>
+                                </assemblies>
+                                <cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-256m} -XX:+ExitOnOutOfMemoryError -Dlogback.configurationFile=logback-jobstore.xml -jar /work/${project.build.finalName}.jar</cmd>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
             </plugin>
         </plugins>
     </build>

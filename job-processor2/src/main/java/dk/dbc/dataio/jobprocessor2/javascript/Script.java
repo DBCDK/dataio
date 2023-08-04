@@ -22,14 +22,16 @@ public class Script {
         StringSourceSchemeHandler sssh = new StringSourceSchemeHandler(javascripts);
         mh.registerHandler("string", sssh);
         mh.addSearchPath(new SchemeURI("string", "."));
-        jsEnvironment = new Environment();
-        jsEnvironment.registerUseFunction(mh);
-        if (requireCacheJson != null) {
-            loadRequireCache(requireCacheJson);
+        synchronized (Script.class) {
+            jsEnvironment = new Environment();
+            jsEnvironment.registerUseFunction(mh);
+            if (requireCacheJson != null) {
+                loadRequireCache(requireCacheJson);
+            }
+            jsEnvironment.eval(javascripts.get(0).javascript);
+            this.scriptId = scriptId;
+            this.invocationMethod = invocationMethod;
         }
-        jsEnvironment.eval(javascripts.get(0).javascript);
-        this.scriptId = scriptId;
-        this.invocationMethod = invocationMethod;
     }
 
 

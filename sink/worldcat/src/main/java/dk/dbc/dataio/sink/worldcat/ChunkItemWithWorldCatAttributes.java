@@ -5,6 +5,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.lang.Require;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 
 import java.io.ByteArrayInputStream;
@@ -20,6 +21,7 @@ public class ChunkItemWithWorldCatAttributes extends ChunkItem {
     private WorldCatAttributes worldCatAttributes = null;
 
     public static ChunkItemWithWorldCatAttributes of(ChunkItem chunkItem) throws IllegalArgumentException {
+        Require.nonNull(chunkItem.getType(), () -> new IllegalArgumentException("Type list must not be null: " + chunkItem));
         final ChunkItemWithWorldCatAttributes extendedChunkItem = new ChunkItemWithWorldCatAttributes();
 
         try {

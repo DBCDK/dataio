@@ -29,15 +29,15 @@ import java.util.HashSet;
 import java.util.List;
 
 
-public class MessageConsumer extends MessageConsumerAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
+public class WorldcatMessageConsumer extends MessageConsumerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(WorldcatMessageConsumer.class);
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     FlowStoreServiceConnector flowStoreServiceConnector;
     EntityManager entityManager;
 
 
-    public MessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
+    public WorldcatMessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
         super(serviceHub);
         this.entityManager = entityManager;
         ocnRepo = new OcnRepo(entityManager);

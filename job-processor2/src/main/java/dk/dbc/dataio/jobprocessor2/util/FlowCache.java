@@ -33,10 +33,10 @@ public class FlowCache {
             .build();
 
     public FlowCache() {
-        Metric.dataio_flow_cache_hit_rate.gauge(flowCache.stats()::hitRate);
+        Metric.dataio_flow_cache_hit_rate.gauge(() -> flowCache.stats().hitRate());
         Metric.dataio_flow_cache_size.gauge(flowCache::size);
-        Metric.dataio_flow_cache_fetch.gauge(flowCache.stats()::loadCount);
-        Metric.dataio_flow_cache_fetch_time.gauge(flowCache.stats()::totalLoadTime);
+        Metric.dataio_flow_cache_fetch.gauge(() -> flowCache.stats().loadCount());
+        Metric.dataio_flow_cache_fetch_time.gauge(() -> flowCache.stats().totalLoadTime());
     }
 
     public void clear() {

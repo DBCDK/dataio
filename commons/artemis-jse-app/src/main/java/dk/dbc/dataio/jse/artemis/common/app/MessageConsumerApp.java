@@ -89,7 +89,7 @@ public abstract class MessageConsumerApp {
         String messageId = null;
         try {
             int noMsgCount = 0;
-            while(keepRunning.get() && noMsgCount < CONSUMER_IDLE_MAX) {
+            while(keepRunning.get() && (noMsgCount < CONSUMER_IDLE_MAX || CONSUMER_IDLE_MAX == -1)) {
                 Message message = consumer.receive(1000);
                 if(message != null) {
                     noMsgCount = 0;

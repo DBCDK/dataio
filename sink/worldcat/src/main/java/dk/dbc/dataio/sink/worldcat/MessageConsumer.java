@@ -203,8 +203,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
             worldCatEntity
                     .withAgencyId(pid.getAgencyId())
                     .withBibliographicRecordId(pid.getBibliographicRecordId());
-            ocnRepo.getEntityManager().persist(worldCatEntity);
-            return worldCatEntity;
+            return ocnRepo.getEntityManager().merge(worldCatEntity);
         }
 
         if (worldCatEntities.size() > 1) {

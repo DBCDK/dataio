@@ -31,7 +31,7 @@ public class ChunkItemWithWorldCatAttributes extends ChunkItem {
                         .withEncoding(chunkItem.getEncoding())
                         .withStatus(chunkItem.getStatus())
                         .withTrackingId(chunkItem.getTrackingId())
-                        .withType(chunkItem.getType().toArray(new ChunkItem.Type[chunkItem.getType().size()]))
+                        .withType(chunkItem.getType().toArray(new Type[0]))
                         .withData(addiRecord.getContentData());
 
                 extendedChunkItem.withWorldCatAttributes(
@@ -41,7 +41,7 @@ public class ChunkItemWithWorldCatAttributes extends ChunkItem {
             if (addiReader.hasNext()) {
                 throw new IllegalArgumentException("Chunk item contains multiple ADDI records");
             }
-        } catch (IOException | JSONBException | NullPointerException e) {
+        } catch (IOException | JSONBException e) {
             throw new IllegalArgumentException(e);
         }
 

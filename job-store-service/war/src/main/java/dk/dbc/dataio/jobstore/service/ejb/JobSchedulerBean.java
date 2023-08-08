@@ -20,8 +20,6 @@ import dk.dbc.dataio.jobstore.service.entity.SinkIdStatusCountResult;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.invariant.InvariantUtil;
-import dk.dbc.jms.artemis.AdminClient;
-import dk.dbc.jms.artemis.AdminClientFactory;
 import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -105,8 +103,6 @@ public class JobSchedulerBean {
     // If the Application is run in multiple JVM's the limiter is pr jvm not pr application
     static final ConcurrentHashMap<Long, JobSchedulerSinkStatus> sinkStatusMap = new ConcurrentHashMap<>(16, 0.9F, 1);
 
-    // Artemis admin client. Used for regularly ditch stale jms connections.
-    static final AdminClient adminClient = AdminClientFactory.getAdminClient();
     @Inject
     @JobstoreDB
     EntityManager entityManager;
@@ -124,16 +120,13 @@ public class JobSchedulerBean {
 
     private static final Map<String, Integer> blockedCounts = new ConcurrentHashMap<>();
     private static final Map<Long, Long> maxDeliveryDurations = new ConcurrentHashMap<>();
-    private static final Map<Long, MetricID> sinkDeliveryMetricIDs = new ConcurrentHashMap<>();
 
 
     public void registerMetrics() {
         try {
             for (Sink sink : flowStore.getConnector().findAllSinks()) {
-                MetricID metricID = new MetricID("longest_running_delivery_in_ms",
+                MetricID metricID = new MetricID("dataio-longest_running_delivery_in_ms",
                         new Tag("sink_name", sink.getContent().getName()));
-                sinkDeliveryMetricIDs.put(sink.getId(), metricID);
-                maxDeliveryDurations.put(sink.getId(), 0L);
                 Gauge<?> gauge = metricRegistry.getGauge(metricID);
                 if (gauge == null) metricRegistry.gauge(metricID, () -> getLongestRunningChunkDuration(sink.getId()));
                 LOGGER.info("Registered gauge for longest_running_delivery_in_ms -> {}", metricID);
@@ -146,7 +139,9 @@ public class JobSchedulerBean {
     }
 
     private long getLongestRunningChunkDuration(long sinkId) {
-        return maxDeliveryDurations.computeIfAbsent(sinkId, k -> 0L);
+        Long l = maxDeliveryDurations.computeIfAbsent(sinkId, k -> 0L);
+        maxDeliveryDurations.put(sinkId, 0L);
+        return l;
     }
 
     public JobSchedulerBean withEntityManager(EntityManager entityManager) {
@@ -430,8 +425,7 @@ public class JobSchedulerBean {
         }
 
         long thisDuration = System.currentTimeMillis() - startTime;
-        maxDeliveryDurations.put(chunkDoneSinkId,
-                Math.max(thisDuration,  maxDeliveryDurations.computeIfAbsent(chunkDoneSinkId, k -> 0L)));
+        maxDeliveryDurations.merge(chunkDoneSinkId, thisDuration, Math::max);
     }
 
     @Asynchronous

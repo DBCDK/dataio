@@ -106,7 +106,7 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     public List<DependencyTrackingEntity> getStaleDependencies(DependencyTrackingEntity.ChunkSchedulingStatus status, Duration timeout) {
-        TypedQuery<DependencyTrackingEntity> query = entityManager.createNamedQuery(DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY, DependencyTrackingEntity.class);
+        TypedQuery<DependencyTrackingEntity> query = entityManager.createNamedQuery(DependencyTrackingEntity.BY_STATE_AND_LAST_MODIFIED, DependencyTrackingEntity.class);
         query.setParameter("date", new Timestamp(Instant.now().minus(timeout).toEpochMilli()));
         query.setParameter("status", status);
         return query.getResultList();

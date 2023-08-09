@@ -87,7 +87,7 @@ import java.util.Set;
         @NamedQuery(name = DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY,
                 query = "SELECT e FROM DependencyTrackingEntity e WHERE e.sinkid=:sinkId AND e.status=:state ORDER BY e.priority DESC, e.key.jobId, e.key.chunkId"),
         @NamedQuery(name = DependencyTrackingEntity.BY_STATE_AND_LAST_MODIFIED,
-                query = "SELECT e FROM DependencyTrackingEntity e WHERE e.lastModified < :date AND e.status = :state"),
+                query = "SELECT e FROM DependencyTrackingEntity e WHERE e.lastModified < :date AND e.status = :status"),
         @NamedQuery(name = DependencyTrackingEntity.CHUNKS_IN_STATE,
                 query = "SELECT count(e) FROM DependencyTrackingEntity e WHERE e.status = :status"),
         @NamedQuery(name = DependencyTrackingEntity.RESET_STATES_IN_DEPENDENCYTRACKING,

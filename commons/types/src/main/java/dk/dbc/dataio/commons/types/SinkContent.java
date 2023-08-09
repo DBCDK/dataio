@@ -72,7 +72,7 @@ public class SinkContent implements Serializable {
         this.sinkType = sinkType;
         this.sinkConfig = sinkConfig;
         this.sequenceAnalysisOption = InvariantUtil.checkNotNullOrThrow(sequenceAnalysisOption, "sequenceAnalysisOption");
-        this.timeout = timeout;
+        this.timeout = Math.max(1, timeout);
     }
 
     public SinkContent(String name, String queue, String description, SinkType sinkType, SinkConfig sinkConfig, SequenceAnalysisOption sequenceAnalysisOption) {

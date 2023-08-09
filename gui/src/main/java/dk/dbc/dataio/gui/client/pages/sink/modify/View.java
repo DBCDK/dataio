@@ -153,7 +153,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiHandler("timeout")
     void timeoutChanged(ValueChangeEvent<String> event) {
-        presenter.timeoutChanged(timeout.getText());
+        if(timeout.getText().matches("\\d+") && Integer.parseInt(timeout.getText()) > 0) presenter.timeoutChanged(timeout.getText());
         presenter.keyPressed();
     }
 

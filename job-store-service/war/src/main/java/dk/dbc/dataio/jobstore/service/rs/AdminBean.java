@@ -18,6 +18,7 @@ import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
+import org.glassfish.jersey.internal.guava.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
@@ -73,15 +74,14 @@ public class AdminBean {
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
     private final Map<String, Counter> staleChunks = new HashMap<>();
+    private final org.glassfish.jersey.internal.guava.Cache<Integer, Sink> sinkMap = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
 
     @SuppressWarnings("unused")
     @Schedule(minute = "*", hour = "*", persistent = false)
-    public void updateStaleChunks() throws FlowStoreServiceConnectorException {
-        Map<Integer, Sink> allSinks = flowstore.getConnector().findAllSinks().stream().collect(Collectors.toMap(s -> (int)s.getId(), s -> s));
-        Duration minDuration = findMinTimeout(allSinks.values());
-        Stream<DependencyTrackingEntity> delStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_DELIVERY, minDuration).stream().filter(d -> isTimeout(d, allSinks));
+    public void updateStaleChunks() {
+        Stream<DependencyTrackingEntity> delStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
         Stream<DependencyTrackingEntity> procStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
-        Stream.concat(delStream, procStream).forEach(d -> staleChunks.computeIfAbsent(getSinkName(d, allSinks), this::registerChunkMetric).inc());
+        Stream.concat(delStream, procStream).forEach(d -> staleChunks.computeIfAbsent(getSinkName(d.getSinkid()), this::registerChunkMetric).inc());
     }
 
     @SuppressWarnings("unused")
@@ -145,16 +145,30 @@ public class AdminBean {
         return metricRegistry.counter(metricID);
     }
 
-    static String getSinkName(DependencyTrackingEntity d, Map<Integer, Sink> allSinks) {
-        return Optional.ofNullable(allSinks.get(d.getSinkid()))
-                .map(Sink::getContent)
-                .map(SinkContent::getName)
-                .orElse(Integer.toString(d.getSinkid()));
+    private String getSinkName(int id) {
+        return getSink(id).getContent().getName();
     }
 
-    static boolean isTimeout(DependencyTrackingEntity de, Map<Integer, Sink> allSinks) {
+    Sink getSink(int id) {
+        Sink sink = sinkMap.getIfPresent(id);
+        if(sink == null) {
+            sink = getFromFlowstore(id);
+            sinkMap.put(id, sink);
+        }
+        return sink;
+    }
+
+    private Sink getFromFlowstore(int id) {
+        try {
+            return flowstore.getConnector().getSink(id);
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new RuntimeException("Found no sink with id " + id);
+        }
+    }
+
+    boolean isTimeout(DependencyTrackingEntity de) {
         if(de.getLastModified() == null) return false;
-        Optional<Sink> sink = Optional.ofNullable(allSinks.get(de.getSinkid()));
+        Optional<Sink> sink = Optional.ofNullable(getSink(de.getSinkid()));
         Instant lm = Instant.ofEpochMilli(de.getLastModified().getTime());
         Instant now = Instant.now();
         return sink.map(Sink::getContent)

@@ -27,15 +27,15 @@ public class AdminBeanTest {
     @Test
     public void getSinkName() {
         DependencyTrackingEntity dte = new DependencyTrackingEntity().setSinkid(2);
-        String sinkName = AdminBean.getSinkName(dte, SINKS);
+        String sinkName = new TestAdminBean().getSink(dte.getSinkid()).getContent().getName();
         Assert.assertEquals("sink2", sinkName);
     }
 
     @Test
     public void isTimeout() {
-        Assert.assertFalse(AdminBean.isTimeout(new TestDependencyTrackingEntity(Instant.now()).setSinkid(2), SINKS));
-        Assert.assertTrue(AdminBean.isTimeout(new TestDependencyTrackingEntity(Instant.now().minus(Duration.ofHours(2))).setSinkid(2), SINKS));
-        Assert.assertFalse(AdminBean.isTimeout(new TestDependencyTrackingEntity(Instant.now().minus(Duration.ofHours(2))).setSinkid(3), SINKS));
+        Assert.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTrackingEntity(Instant.now()).setSinkid(2)));
+        Assert.assertTrue(new TestAdminBean().isTimeout(new TestDependencyTrackingEntity(Instant.now().minus(Duration.ofHours(2))).setSinkid(2)));
+        Assert.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTrackingEntity(Instant.now().minus(Duration.ofHours(2))).setSinkid(3)));
     }
 
     public static SinkContent newSinkContent(String name, int timeout) {
@@ -52,6 +52,13 @@ public class AdminBeanTest {
         @Override
         public Timestamp getLastModified() {
             return new Timestamp(lm.toEpochMilli());
+        }
+    }
+
+    private static class TestAdminBean extends AdminBean {
+        @Override
+        Sink getSink(int id) {
+            return SINKS.get(id);
         }
     }
 }

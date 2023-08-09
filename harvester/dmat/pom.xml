@@ -146,7 +146,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-testcontainers-postgres</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>${dbc-commons-testcontainers-postgres-version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

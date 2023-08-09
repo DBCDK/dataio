@@ -59,6 +59,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField
     PromptedTextArea description;
     @UiField
+    PromptedTextBox timeout;
+    @UiField
     HTMLPanel sequenceAnalysisSection;
     @UiField
     HTMLPanel updateSinkSection;
@@ -146,6 +148,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("description")
     void descriptionChanged(ValueChangeEvent<String> event) {
         presenter.descriptionChanged(description.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("timeout")
+    void timeoutChanged(ValueChangeEvent<String> event) {
+        presenter.timeoutChanged(timeout.getText());
         presenter.keyPressed();
     }
 

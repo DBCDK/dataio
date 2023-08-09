@@ -30,7 +30,8 @@ public class SinkModelMapper {
                 sink.getContent().getQueue(),
                 sink.getContent().getDescription(),
                 sink.getContent().getSequenceAnalysisOption(),
-                sink.getContent().getSinkConfig());
+                sink.getContent().getSinkConfig(),
+                sink.getContent().getTimeout());
     }
 
     /**
@@ -57,7 +58,8 @@ public class SinkModelMapper {
                 model.getDescription(),
                 model.getSinkType(),
                 model.getSinkConfig(),
-                model.getSequenceAnalysisOption());
+                model.getSequenceAnalysisOption(),
+                model.getTimeout());
     }
 
     /**

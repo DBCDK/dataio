@@ -43,6 +43,7 @@ public class SinkContent implements Serializable {
     private final SinkType sinkType;
     private final SinkConfig sinkConfig;
     private final SequenceAnalysisOption sequenceAnalysisOption;
+    private final int timeout;
 
     /**
      * Class constructor
@@ -62,7 +63,8 @@ public class SinkContent implements Serializable {
                        @JsonProperty("description") String description,
                        @JsonProperty("sinkType") SinkType sinkType,
                        @JsonProperty("sinkConfig") SinkConfig sinkConfig,
-                       @JsonProperty("sequenceAnalysisOption") SequenceAnalysisOption sequenceAnalysisOption) {
+                       @JsonProperty("sequenceAnalysisOption") SequenceAnalysisOption sequenceAnalysisOption,
+                       @JsonProperty("timeout") int timeout) {
 
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.queue = queue;
@@ -70,10 +72,15 @@ public class SinkContent implements Serializable {
         this.sinkType = sinkType;
         this.sinkConfig = sinkConfig;
         this.sequenceAnalysisOption = InvariantUtil.checkNotNullOrThrow(sequenceAnalysisOption, "sequenceAnalysisOption");
+        this.timeout = timeout;
+    }
+
+    public SinkContent(String name, String queue, String description, SinkType sinkType, SinkConfig sinkConfig, SequenceAnalysisOption sequenceAnalysisOption) {
+        this(name, queue, description, sinkType, sinkConfig, sequenceAnalysisOption, 1);
     }
 
     public SinkContent(String name, String queue, String description, SequenceAnalysisOption sequenceAnalysisOption) {
-        this(name, queue, description, NULL_TYPE, NULL_CONFIG, sequenceAnalysisOption);
+        this(name, queue, description, NULL_TYPE, NULL_CONFIG, sequenceAnalysisOption, 1);
     }
 
 //    public SinkContent(String name, String description, SequenceAnalysisOption sequenceAnalysisOption) {
@@ -102,6 +109,10 @@ public class SinkContent implements Serializable {
 
     public SequenceAnalysisOption getSequenceAnalysisOption() {
         return sequenceAnalysisOption;
+    }
+
+    public int getTimeout() {
+        return timeout;
     }
 
     @Override

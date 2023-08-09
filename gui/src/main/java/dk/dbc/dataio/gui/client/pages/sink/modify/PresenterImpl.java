@@ -85,6 +85,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
+    public void timeoutChanged(String timeout) {
+        model.setTimeout(Integer.parseInt(timeout));
+    }
+
+    @Override
     public void queueChanged(String name) {
         if(name.contains("::")) {
             model.setQueue(name);

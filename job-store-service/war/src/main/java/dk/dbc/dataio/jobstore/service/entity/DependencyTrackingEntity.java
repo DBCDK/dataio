@@ -17,10 +17,13 @@ import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.PreUpdate;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.SqlResultSetMappings;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -83,6 +86,8 @@ import java.util.Set;
 @NamedQueries({
         @NamedQuery(name = DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY,
                 query = "SELECT e FROM DependencyTrackingEntity e WHERE e.sinkid=:sinkId AND e.status=:state ORDER BY e.priority DESC, e.key.jobId, e.key.chunkId"),
+        @NamedQuery(name = DependencyTrackingEntity.BY_STATE_AND_LAST_MODIFIED,
+                query = "SELECT e FROM DependencyTrackingEntity e WHERE e.lastModified < :date AND e.status = :state"),
         @NamedQuery(name = DependencyTrackingEntity.CHUNKS_IN_STATE,
                 query = "SELECT count(e) FROM DependencyTrackingEntity e WHERE e.status = :status"),
         @NamedQuery(name = DependencyTrackingEntity.RESET_STATES_IN_DEPENDENCYTRACKING,
@@ -106,6 +111,7 @@ public class DependencyTrackingEntity {
     public static final String CHUNKS_IN_STATE = "DependencyTrackingEntity.inState";
     public static final String RESET_STATES_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetStates";
     public static final String RESET_STATE_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetState";
+    public static final String BY_STATE_AND_LAST_MODIFIED = "DependencyTrackingEntity.bySinkIdAndLastModified";
     public static final String DELETE_JOB = "DependencyTrackingEntity.deleteJob";
 
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
@@ -175,6 +181,10 @@ public class DependencyTrackingEntity {
     private Integer[] hashes;
 
     private int submitter;
+
+    @Column(nullable = false)
+    private Timestamp lastModified = new Timestamp(new Date().getTime());
+
 
     public Key getKey() {
         return key;
@@ -249,6 +259,15 @@ public class DependencyTrackingEntity {
     public DependencyTrackingEntity setPriority(int priority) {
         this.priority = priority;
         return this;
+    }
+
+    @PreUpdate
+    public void updateLastModified() {
+        lastModified = new Timestamp(new Date().getTime());
+    }
+
+    public Timestamp getLastModified() {
+        return lastModified;
     }
 
     public boolean equals(Object o) {

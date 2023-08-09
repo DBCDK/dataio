@@ -17,6 +17,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String label_Description();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_Timeout();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_SinkUrl();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

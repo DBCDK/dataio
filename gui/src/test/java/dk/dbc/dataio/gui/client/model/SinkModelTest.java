@@ -31,7 +31,7 @@ public class SinkModelTest {
     @Test
     public void constructor_withConfigValues_returnsNewInstanceWithDefaultValues() {
         SinkModel model = new SinkModel(5L, 6L, SinkContent.SinkType.OPENUPDATE, "nam3", "queue", "descri3", SinkContent.SequenceAnalysisOption.ALL,
-                new OpenUpdateSinkConfig().withUserId("user").withPassword("pass").withEndpoint("url"));
+                new OpenUpdateSinkConfig().withUserId("user").withPassword("pass").withEndpoint("url"), 1);
 
         assertThat(model, is(notNullValue()));
         assertThat(model.getId(), is(5L));
@@ -132,12 +132,12 @@ public class SinkModelTest {
     }
 
     private SinkModel getNoConfigTestModel() {
-        return new SinkModel(1, 2, SinkContent.SinkType.DUMMY, "Name", "Queue", "Description", SinkContent.SequenceAnalysisOption.ALL, null);
+        return new SinkModel(1, 2, SinkContent.SinkType.DUMMY, "Name", "Queue", "Description", SinkContent.SequenceAnalysisOption.ALL, null, 1);
     }
 
     private SinkModel getWithConfigTestModel() {
         return new SinkModel(5, 6, SinkContent.SinkType.OPENUPDATE, "Name2", "Queue", "Description2", SinkContent.SequenceAnalysisOption.ALL,
-                new OpenUpdateSinkConfig());
+                new OpenUpdateSinkConfig(), 1);
     }
 
 }

@@ -13,10 +13,10 @@ import java.util.Map;
 
 public class AdminBeanTest {
     private final static Map<Integer, Sink> SINKS = Map.of(
-            1, new Sink(1, 1, newSinkContent("sink1", Duration.ofHours(2))),
-            2, new Sink(2, 1, newSinkContent("sink2", Duration.ofHours(1))),
-            3, new Sink(3, 1, newSinkContent("sink3", Duration.ofHours(4))),
-            4, new Sink(4, 1, newSinkContent("sink4", Duration.ofHours(3)))
+            1, new Sink(1, 1, newSinkContent("sink1", 2)),
+            2, new Sink(2, 1, newSinkContent("sink2", 1)),
+            3, new Sink(3, 1, newSinkContent("sink3", 4)),
+            4, new Sink(4, 1, newSinkContent("sink4", 3))
     );
     @Test
     public void findMin() {
@@ -38,7 +38,7 @@ public class AdminBeanTest {
         Assert.assertFalse(AdminBean.isTimeout(new TestDependencyTrackingEntity(Instant.now().minus(Duration.ofHours(2))).setSinkid(3), SINKS));
     }
 
-    public static SinkContent newSinkContent(String name, Duration timeout) {
+    public static SinkContent newSinkContent(String name, int timeout) {
         return new SinkContent(name, "queue", "description", SinkContent.SinkType.DUMMY, null, SinkContent.SequenceAnalysisOption.ALL, timeout);
     }
 

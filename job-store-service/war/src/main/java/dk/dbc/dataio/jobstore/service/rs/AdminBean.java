@@ -69,7 +69,7 @@ public class AdminBean {
     EntityManager entityManager;
 
     @Inject
-    private MetricRegistry metricRegistry;;
+    private MetricRegistry metricRegistry;
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
     private final Map<String, Counter> staleChunks = new HashMap<>();

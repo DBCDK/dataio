@@ -3,10 +3,13 @@ package dk.dbc.dataio.harvester.ticklerepo;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.commons.persistence.MultiJpaIntegrationTest;
 import dk.dbc.commons.persistence.MultiJpaTestEnvironment;
+import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.dataio.harvester.task.TaskRepoDatabaseMigrator;
 import dk.dbc.ticklerepo.TickleRepoDatabaseMigrator;
 import org.junit.Before;
 import org.postgresql.ds.PGSimpleDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -21,17 +24,29 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 
 public abstract class IntegrationTest extends MultiJpaIntegrationTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IntegrationTest.class);
+    private static final DBCPostgreSQLContainer dbContainer = makeDBContainer();
+
+    private static DBCPostgreSQLContainer makeDBContainer() {
+        DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withReuse(false);
+        container.start();
+        container.exposeHostPort();
+        LOGGER.info("Postgres url is:{}", container.getDockerJdbcUrl());
+        return container;
+    }
+
     @Override
     public MultiJpaTestEnvironment setup() {
-        final PGSimpleDataSource taskRepoDataSource = getTaskRepoDataSource();
+        DataSource taskRepoDataSource = dbContainer.datasource();
         migrateTaskRepoDatabase(taskRepoDataSource);
-        final PGSimpleDataSource tickleRepoDataSource = getTickleRepoDataSource();
+        createTickleDB(taskRepoDataSource);
+        DataSource tickleRepoDataSource = getTickleRepoDataSource();
         migrateTickleRepoDatabase(tickleRepoDataSource);
         this.environment = new MultiJpaTestEnvironment()
                 .add("taskrepo", new JpaTestEnvironment(taskRepoDataSource, "taskrepoIT_PU",
-                        getTaskRepoEntityManagerFactoryProperties(taskRepoDataSource)))
+                        dbContainer.entityManagerProperties()))
                 .add("ticklerepo", new JpaTestEnvironment(tickleRepoDataSource, "tickleRepoIT",
-                        getTickleRepoEntityManagerFactoryProperties(tickleRepoDataSource)));
+                        getTickleRepoEntityManagerFactoryProperties()));
         try (Connection conn = tickleRepoDataSource.getConnection();
              Statement statement = conn.createStatement()) {
             statement.executeUpdate("DELETE FROM record");
@@ -57,53 +72,42 @@ public abstract class IntegrationTest extends MultiJpaIntegrationTest {
         taskEnvironment.getEntityManager().getTransaction().commit();
     }
 
-    private PGSimpleDataSource getTaskRepoDataSource() {
-        final PGSimpleDataSource datasource = new PGSimpleDataSource();
-        datasource.setDatabaseName("taskrepo");
-        datasource.setServerName("localhost");
-        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port", "5432")));
-        datasource.setUser(System.getProperty("user.name"));
-        datasource.setPassword(System.getProperty("user.name"));
-        return datasource;
-    }
-
-    private Map<String, String> getTaskRepoEntityManagerFactoryProperties(PGSimpleDataSource datasource) {
-        final Map<String, String> properties = new HashMap<>();
-        properties.put(JDBC_USER, datasource.getUser());
-        properties.put(JDBC_PASSWORD, datasource.getPassword());
-        properties.put(JDBC_URL, datasource.getUrl());
-        properties.put(JDBC_DRIVER, "org.postgresql.Driver");
-        properties.put("eclipselink.logging.level", "FINE");
-        return properties;
-    }
-
     private PGSimpleDataSource getTickleRepoDataSource() {
-        final PGSimpleDataSource datasource = new PGSimpleDataSource();
+        PGSimpleDataSource datasource = new PGSimpleDataSource();
         datasource.setDatabaseName("ticklerepo");
         datasource.setServerName("localhost");
-        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port", "5432")));
+        datasource.setPortNumber(dbContainer.getHostPort());
         datasource.setUser(System.getProperty("user.name"));
         datasource.setPassword(System.getProperty("user.name"));
         return datasource;
     }
 
-    private Map<String, String> getTickleRepoEntityManagerFactoryProperties(PGSimpleDataSource datasource) {
-        final Map<String, String> properties = new HashMap<>();
-        properties.put(JDBC_USER, datasource.getUser());
-        properties.put(JDBC_PASSWORD, datasource.getPassword());
-        properties.put(JDBC_URL, datasource.getUrl());
+    private Map<String, String> getTickleRepoEntityManagerFactoryProperties() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put(JDBC_USER, dbContainer.getUsername());
+        properties.put(JDBC_PASSWORD, dbContainer.getUsername());
+        properties.put(JDBC_URL, String.format("jdbc:postgresql://localhost:%d/%s", dbContainer.getHostPort(),  "ticklerepo"));
         properties.put(JDBC_DRIVER, "org.postgresql.Driver");
         properties.put("eclipselink.logging.level", "FINE");
         return properties;
+    }
+
+    private void createTickleDB(DataSource dataSource) {
+        try (Connection conn = dataSource.getConnection();
+             Statement statement = conn.createStatement()) {
+            statement.executeUpdate("CREATE DATABASE ticklerepo OWNER " + dbContainer.getUsername());
+        } catch (SQLException e) {
+            LOGGER.error("Error:", e);
+        }
     }
 
     private void migrateTickleRepoDatabase(DataSource dataSource) {
-        final TickleRepoDatabaseMigrator tickleRepoDatabaseMigrator = new TickleRepoDatabaseMigrator(dataSource);
+        TickleRepoDatabaseMigrator tickleRepoDatabaseMigrator = new TickleRepoDatabaseMigrator(dataSource);
         tickleRepoDatabaseMigrator.migrate();
     }
 
     private void migrateTaskRepoDatabase(DataSource dataSource) {
-        final TaskRepoDatabaseMigrator taskRepoDatabaseMigrator = new TaskRepoDatabaseMigrator(dataSource);
+        TaskRepoDatabaseMigrator taskRepoDatabaseMigrator = new TaskRepoDatabaseMigrator(dataSource);
         taskRepoDatabaseMigrator.migrate();
     }
 }

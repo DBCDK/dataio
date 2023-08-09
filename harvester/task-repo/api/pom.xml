@@ -62,62 +62,21 @@
       <artifactId>dbc-commons-testutil-jpa</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-testcontainers-postgres</artifactId>
+      <version>1.1-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.8</version>
-        <executions>
-          <execution>
-            <id>reserve-network-port</id>
-            <goals>
-              <goal>reserve-network-port</goal>
-            </goals>
-            <phase>initialize</phase>
-            <configuration>
-              <portNames>
-                <portName>taskrepo.postgresql.port</portName>
-              </portNames>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>dk.dbc</groupId>
-        <artifactId>postgresql-maven-plugin</artifactId>
-        <version>${dbc-commons.version}</version>
-        <executions>
-          <execution>
-            <id>start-postgresql</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>start</goal>
-            </goals>
-            <configuration>
-              <pgPort>${taskrepo.postgresql.port}</pgPort>
-              <pgDbName>taskrepo</pgDbName>
-            </configuration>
-          </execution>
-          <execution>
-            <id>stop-postgresql</id>
-            <phase>post-integration-test</phase>
-            <goals>
-              <goal>shutdown</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <systemPropertyVariables>
-            <postgresql.port>${taskrepo.postgresql.port}</postgresql.port>
-          </systemPropertyVariables>
         </configuration>
         <executions>
           <execution>

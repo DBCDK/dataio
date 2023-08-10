@@ -83,6 +83,7 @@ public abstract class MessageConsumerApp {
                 sleep(RECONNECT_DELAY);
             } catch (RuntimeException e) {
                 LOGGER.error("Caught generic exception in listener loop", e);
+                sleep(RECONNECT_DELAY);
             }
         }
     }

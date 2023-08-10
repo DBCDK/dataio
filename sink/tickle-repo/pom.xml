@@ -26,11 +26,6 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dataio-flow-store-service</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-cache</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -64,6 +59,11 @@
             <groupId>com.github.stefanbirkner</groupId>
             <artifactId>system-rules</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>json-binding</artifactId>
+            <version>0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

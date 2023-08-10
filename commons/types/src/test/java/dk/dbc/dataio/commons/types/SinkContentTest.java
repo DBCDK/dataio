@@ -26,11 +26,11 @@ public class SinkContentTest {
     }
 
     public static SinkContent newSinkContentWithTypeInstance() {
-        return new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, null, SEQUENCE_ANALYSIS_OPTION);
+        return new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, null, SEQUENCE_ANALYSIS_OPTION, 1);
     }
 
     public static SinkContent newSinkContentWithTypeAndConfigInstance() {
-        return new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, SINK_CONFIG, SEQUENCE_ANALYSIS_OPTION);
+        return new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, SINK_CONFIG, SEQUENCE_ANALYSIS_OPTION, 1);
     }
 
     @Test(expected = NullPointerException.class)
@@ -60,7 +60,7 @@ public class SinkContentTest {
 
     @Test
     public void constructor_sinkConfigArgIsNull_returnsNewInstance() {
-        new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, null, SEQUENCE_ANALYSIS_OPTION);
+        new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, null, SEQUENCE_ANALYSIS_OPTION, 1);
     }
 
     @Test(expected = NullPointerException.class)
@@ -70,7 +70,7 @@ public class SinkContentTest {
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        SinkContent instance = new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, SINK_CONFIG, SEQUENCE_ANALYSIS_OPTION);
+        SinkContent instance = new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, SINK_CONFIG, SEQUENCE_ANALYSIS_OPTION, 1);
         assertThat(instance, is(notNullValue()));
     }
 }

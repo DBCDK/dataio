@@ -22,7 +22,7 @@ public enum Config implements EnvConfig {
     STALE_JMS_PROVIDER("PT1m"),
     STALE_THRESHOLD("20"),
     CONSUMER_THREADS("1"),
-    CONSUMER_IDLE_MAX("30");
+    CONSUMER_IDLE_MAX("-1");
 
     private final String defaultValue;
     private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);

@@ -85,6 +85,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
+    public void timeoutChanged(String timeout) {
+        model.setTimeout(Integer.parseInt(timeout));
+    }
+
+    @Override
     public void queueChanged(String name) {
         if(name.contains("::")) {
             model.setQueue(name);
@@ -415,6 +420,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.queue.setEnabled(false);
         view.description.clearText();
         view.description.setEnabled(false);
+        view.timeout.clearText();
+        view.timeout.setEnabled(false);
         view.url.clearText();
         view.url.setEnabled(false);
         view.openupdateuserid.clearText();
@@ -473,6 +480,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.queue.setText(model.getQueue());
         view.description.setText(model.getDescription());
         view.description.setEnabled(true);
+        view.timeout.setText(Integer.toString(model.getTimeout()));
+        view.timeout.setEnabled(true);
         view.url.setEnabled(true);
         view.openupdateuserid.setEnabled(true);
         view.openupdatepassword.setEnabled(true);

@@ -81,6 +81,9 @@ public abstract class MessageConsumerApp {
             } catch (JMSRuntimeException e) {
                 LOGGER.error("Failed to connect to artemis on {} retrying in {}s", Config.getBrokerUrl(), RECONNECT_DELAY.toSeconds(), e);
                 sleep(RECONNECT_DELAY);
+            } catch (RuntimeException e) {
+                LOGGER.error("Caught generic exception in listener loop", e);
+                sleep(RECONNECT_DELAY);
             }
         }
     }
@@ -89,7 +92,7 @@ public abstract class MessageConsumerApp {
         String messageId = null;
         try {
             int noMsgCount = 0;
-            while(keepRunning.get() && noMsgCount < CONSUMER_IDLE_MAX) {
+            while(keepRunning.get() && (noMsgCount < CONSUMER_IDLE_MAX || CONSUMER_IDLE_MAX == -1)) {
                 Message message = consumer.receive(1000);
                 if(message != null) {
                     noMsgCount = 0;

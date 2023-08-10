@@ -64,6 +64,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CoderMalfunctionError;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -101,6 +103,13 @@ public class PgJobStoreRepository extends RepositoryBase {
     public List<JobInfoSnapshot> listJobs(JobListCriteria criteria) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
         return new JobListQuery(entityManager).execute(criteria);
+    }
+
+    public List<DependencyTrackingEntity> getStaleDependencies(DependencyTrackingEntity.ChunkSchedulingStatus status, Duration timeout) {
+        TypedQuery<DependencyTrackingEntity> query = entityManager.createNamedQuery(DependencyTrackingEntity.BY_STATE_AND_LAST_MODIFIED, DependencyTrackingEntity.class);
+        query.setParameter("date", new Timestamp(Instant.now().minus(timeout).toEpochMilli()));
+        query.setParameter("status", status);
+        return query.getResultList();
     }
 
     @Stopwatch

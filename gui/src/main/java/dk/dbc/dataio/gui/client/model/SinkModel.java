@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.gui.client.util.Format;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class SinkModel extends GenericBackendModel {
@@ -21,26 +22,12 @@ public class SinkModel extends GenericBackendModel {
     private String description;
     private SinkContent.SequenceAnalysisOption sequenceAnalysisOption;
     private SinkConfig sinkConfig;
+    private int timeout;
 
-
-    /**
-     * Empty constructor
-     */
     public SinkModel() {
-        this(0L, 0L, SinkContent.SinkType.ES, "", "", "", SinkContent.SequenceAnalysisOption.ALL, null);
+        this(0L, 0L, SinkContent.SinkType.ES, "", "", "", SinkContent.SequenceAnalysisOption.ALL, null, 1);
     }
 
-    /**
-     * Open Update Config Sink
-     *
-     * @param id                     Sink Id
-     * @param version                Sink Version
-     * @param sinkType               Sink Type
-     * @param name                   Sink Name
-     * @param description            Sink Description
-     * @param sequenceAnalysisOption deciding level of sequence analysis
-     * @param sinkConfig             Sink Config
-     */
     public SinkModel(long id,
                      long version,
                      SinkContent.SinkType sinkType,
@@ -48,7 +35,8 @@ public class SinkModel extends GenericBackendModel {
                      String queue,
                      String description,
                      SinkContent.SequenceAnalysisOption sequenceAnalysisOption,
-                     SinkConfig sinkConfig) {
+                     SinkConfig sinkConfig,
+                     int timeout) {
         super(id, version);
         this.sinkType = sinkType;
         sinkName = name;
@@ -56,6 +44,7 @@ public class SinkModel extends GenericBackendModel {
         this.description = description == null ? "" : description;
         this.sequenceAnalysisOption = sequenceAnalysisOption;
         this.sinkConfig = sinkConfig;
+        this.timeout = timeout;
     }
 
     /**
@@ -222,6 +211,15 @@ public class SinkModel extends GenericBackendModel {
 
     public void setDpfUpdateServiceAvailableQueueProviders(List<String> updateServiceAvailableQueueProviders) {
         ((DpfSinkConfig) sinkConfig).withUpdateServiceAvailableQueueProviders(updateServiceAvailableQueueProviders);
+    }
+
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public SinkModel setTimeout(int timeout) {
+        this.timeout = timeout;
+        return this;
     }
 
     /**
@@ -457,28 +455,15 @@ public class SinkModel extends GenericBackendModel {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof SinkModel)) return false;
-
-        SinkModel sinkModel = (SinkModel) o;
-
-        if (sinkType != sinkModel.sinkType) return false;
-        if (sinkName != null ? !sinkName.equals(sinkModel.sinkName) : sinkModel.sinkName != null) return false;
-        if (description != null ? !description.equals(sinkModel.description) : sinkModel.description != null)
-            return false;
-        if (sequenceAnalysisOption != sinkModel.sequenceAnalysisOption) return false;
-        return sinkConfig != null ? sinkConfig.equals(sinkModel.sinkConfig) : sinkModel.sinkConfig == null;
-
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        SinkModel sinkModel = (SinkModel) object;
+        return sinkType == sinkModel.sinkType && Objects.equals(sinkName, sinkModel.sinkName) && Objects.equals(queue, sinkModel.queue) && Objects.equals(description, sinkModel.description) && sequenceAnalysisOption == sinkModel.sequenceAnalysisOption && Objects.equals(sinkConfig, sinkModel.sinkConfig) && Objects.equals(timeout, sinkModel.timeout);
     }
 
     @Override
     public int hashCode() {
-        int result = sinkType != null ? sinkType.hashCode() : 0;
-        result = 31 * result + (sinkName != null ? sinkName.hashCode() : 0);
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (sequenceAnalysisOption != null ? sequenceAnalysisOption.hashCode() : 0);
-        result = 31 * result + (sinkConfig != null ? sinkConfig.hashCode() : 0);
-        return result;
+        return Objects.hash(sinkType, sinkName, queue, description, sequenceAnalysisOption, sinkConfig, timeout);
     }
 }

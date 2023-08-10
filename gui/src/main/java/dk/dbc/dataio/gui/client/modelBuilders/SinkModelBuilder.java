@@ -16,6 +16,7 @@ public class SinkModelBuilder {
     private String description = "description";
     private SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
     private SinkConfig sinkConfig = null;
+    private int timeout;
 
     /**
      * Sets the ID for the Sink
@@ -99,12 +100,17 @@ public class SinkModelBuilder {
         return this;
     }
 
+    public SinkModelBuilder setTimeout(int timeout) {
+        this.timeout = timeout;
+        return this;
+    }
+
     /**
      * Build the SinkModel object
      *
      * @return The SinkModel object
      */
     public SinkModel build() {
-        return new SinkModel(id, version, sinkType, name, queue, description, sequenceAnalysisOption, sinkConfig);
+        return new SinkModel(id, version, sinkType, name, queue, description, sequenceAnalysisOption, sinkConfig, timeout);
     }
 }

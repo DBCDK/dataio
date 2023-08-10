@@ -4,6 +4,7 @@ import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.commons.persistence.MultiJpaIntegrationTest;
 import dk.dbc.commons.persistence.MultiJpaTestEnvironment;
 import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
+import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.harvester.task.TaskRepoDatabaseMigrator;
 import dk.dbc.ticklerepo.TickleRepoDatabaseMigrator;
 import org.junit.Before;
@@ -23,17 +24,8 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASS
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 
-public abstract class IntegrationTest extends MultiJpaIntegrationTest {
+public abstract class IntegrationTest extends MultiJpaIntegrationTest implements PostgresContainerJPAUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(IntegrationTest.class);
-    private static final DBCPostgreSQLContainer dbContainer = makeDBContainer();
-
-    private static DBCPostgreSQLContainer makeDBContainer() {
-        DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withReuse(false);
-        container.start();
-        container.exposeHostPort();
-        LOGGER.info("Postgres url is:{}", container.getDockerJdbcUrl());
-        return container;
-    }
 
     @Override
     public MultiJpaTestEnvironment setup() {

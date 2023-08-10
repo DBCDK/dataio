@@ -2,15 +2,13 @@ package dk.dbc.dataio.harvester.task;
 
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
-import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
+import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -24,17 +22,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class TaskRepoIT extends JpaIntegrationTest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskRepoIT.class);
-    private static final DBCPostgreSQLContainer dbContainer = makeDBContainer();
-
-    private static DBCPostgreSQLContainer makeDBContainer() {
-        DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withReuse(false);
-        container.start();
-        container.exposeHostPort();
-        LOGGER.info("Postgres url is:{}", container.getDockerJdbcUrl());
-        return container;
-    }
+public class TaskRepoIT extends JpaIntegrationTest implements PostgresContainerJPAUtils {
 
     @Override
     public JpaTestEnvironment setup() {

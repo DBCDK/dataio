@@ -6,6 +6,7 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -59,7 +60,7 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.mockito.Mockito.mock;
 
-public class AbstractJobStoreIT {
+public class AbstractJobStoreIT implements PostgresContainerJPAUtils {
     protected static final String JOB_TABLE_NAME = "job";
     protected static final String CHUNK_TABLE_NAME = "chunk";
     protected static final String ITEM_TABLE_NAME = "item";
@@ -71,11 +72,8 @@ public class AbstractJobStoreIT {
     protected static final String REORDERED_ITEM_TABLE_NAME = "reordereditem";
     protected static final String RERUN_TABLE_NAME = "rerun";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobStoreIT.class);
-    static final DBCPostgreSQLContainer dbContainer = makeDBContainer();
     protected static final DataSource datasource = dbContainer.datasource();
     private static final long SUBMITTERID = 123456;
-    protected static String DATABASE_NAME = "testdb";
-    protected static int DATABASE_PORT = 5432;
     protected final FileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
     protected final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     protected final FlowStoreServiceConnectorBean mockedFlowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
@@ -84,14 +82,6 @@ public class AbstractJobStoreIT {
     protected EntityManager entityManager;
     protected TransactionScopedPersistenceContext persistenceContext;
     protected JSONBContext jsonbContext = new JSONBContext();
-
-    private static DBCPostgreSQLContainer makeDBContainer() {
-        DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withReuse(false);
-        container.start();
-        container.exposeHostPort();
-        LOGGER.info("Postgres url is:{}", container.getDockerJdbcUrl());
-        return container;
-    }
 
     @BeforeClass
     public static void createDb() {

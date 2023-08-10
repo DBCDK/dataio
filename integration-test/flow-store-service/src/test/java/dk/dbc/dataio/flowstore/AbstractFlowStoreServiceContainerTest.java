@@ -3,6 +3,7 @@ package dk.dbc.dataio.flowstore;
 import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.testcontainers.Containers;
+import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
 import net.jodah.failsafe.RetryPolicy;
@@ -16,19 +17,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
 
-public abstract class AbstractFlowStoreServiceContainerTest {
+public abstract class AbstractFlowStoreServiceContainerTest implements PostgresContainerJPAUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFlowStoreServiceContainerTest.class);
-    private static final DBCPostgreSQLContainer dbContainer = makeDBContainer();
-
-    private static DBCPostgreSQLContainer makeDBContainer() {
-        DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withReuse(false);
-        container.start();
-        container.exposeHostPort();
-        LOGGER.info("Postgres url is:{}", container.getDockerJdbcUrl());
-        return container;
-    }
-
-
     static final GenericContainer<?> flowstoreServiceContainer;
     static final String flowStoreServiceBaseUrl;
     static final FlowStoreServiceConnector flowStoreServiceConnector;

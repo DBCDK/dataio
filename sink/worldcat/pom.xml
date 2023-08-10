@@ -67,15 +67,15 @@
       <version>2.3.3</version>
     </dependency>
     <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dbc-commons-testcontainers-postgres</artifactId>
-      <version>${dbc-commons-testcontainers-postgres-version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-inline</artifactId>
       <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-testcontainers</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

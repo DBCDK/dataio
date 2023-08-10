@@ -54,6 +54,7 @@ public class SinkContent implements Serializable {
      * @param sinkType               sink type
      * @param sinkConfig             sink config
      * @param sequenceAnalysisOption options for sequence analysis
+     * @param timeout                chunk timeout (in hours) for the sink
      * @throws NullPointerException     if given null-valued name or resource argument
      * @throws IllegalArgumentException if given empty-valued name or resource argument
      */

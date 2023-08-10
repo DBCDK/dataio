@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-public class MessageConsumer extends MessageConsumerAdapter {
+public class VipMessageConsumer extends MessageConsumerAdapter {
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     private final ConfigBean configBean;
@@ -33,7 +33,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
     private VipCoreConnector vipCoreConnector;
     private final JSONBContext jsonbContext = new JSONBContext();
 
-    public MessageConsumer(ServiceHub serviceHub, ConfigBean configBean) {
+    public VipMessageConsumer(ServiceHub serviceHub, ConfigBean configBean) {
         super(serviceHub);
         this.configBean = configBean;
     }

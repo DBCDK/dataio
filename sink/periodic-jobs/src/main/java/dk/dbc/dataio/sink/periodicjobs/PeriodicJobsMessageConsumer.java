@@ -38,8 +38,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 
-public class MessageConsumer extends MessageConsumerAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
+public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsMessageConsumer.class);
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     private final ConversionFactory conversionFactory = new ConversionFactory();
@@ -55,7 +55,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
 
     WeekResolverConnector weekResolverConnector;
 
-    public MessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
+    public PeriodicJobsMessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
         super(serviceHub);
         this.entityManager = entityManager;
         this.flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FLOWSTORE_URL.asString());
@@ -126,6 +126,18 @@ public class MessageConsumer extends MessageConsumerAdapter {
             transaction.commit();
         } finally {
             if(transaction.isActive()) transaction.rollback();
+        }
+    }
+
+    @Override
+    public void abortJob(int jobId) {
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            periodicJobsFinalizerBean.deleteDelivery(jobId);
+            periodicJobsFinalizerBean.deleteDataBlocks(jobId);
+            LOGGER.info("Aborted job {}", jobId);
+        } finally {
+            if(transaction.isActive()) transaction.commit();
         }
     }
 

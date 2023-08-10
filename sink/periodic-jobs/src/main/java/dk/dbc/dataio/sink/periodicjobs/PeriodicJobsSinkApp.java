@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 public class PeriodicJobsSinkApp extends MessageConsumerApp {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsSinkApp.class);
     private static final ServiceHub serviceHub = ServiceHub.defaultHub();
-    private static final Supplier<MessageConsumer> messageConsumer = () -> new MessageConsumer(serviceHub,
+    private static final Supplier<PeriodicJobsMessageConsumer> messageConsumer = () -> new PeriodicJobsMessageConsumer(serviceHub,
             JPAHelper.makeEntityManager("periodic-jobs_PU", SinkConfig.PERIODIC_JOBS_DB_URL));
     public PeriodicJobsSinkApp() {
         LOGGER.info("Migrating db");

@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -63,6 +64,24 @@ public class BatchExchangeMessageConsumer extends MessageConsumerAdapter {
             DBCTrackedLogContext.remove();
             if(transaction.isActive()) transaction.rollback();
         }
+    }
+
+    @Override
+    public void abortJob(int jobId) {
+
+
+    }
+
+    private int deleteBatch(int jobId) {
+        Query query = entityManager.createQuery("delete from Batch b where b.name like :jobId");
+        query.setParameter("jobId", jobId + "-%");
+        return query.executeUpdate();
+    }
+
+    private int deleteBatchEntries(int jobId) {
+        Query query = entityManager.createQuery("delete from BatchEntry b where b.batch = :jobId");
+        query.setParameter("jobId", jobId);
+        return query.executeUpdate();
     }
 
     @Override

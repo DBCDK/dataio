@@ -31,8 +31,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public class MessageConsumer extends MessageConsumerAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
+public class TickleMessageConsumer extends MessageConsumerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TickleMessageConsumer.class);
     private final Batch.Type tickleBehaviour = Batch.Type.valueOf(SinkConfig.TICKLE_BEHAVIOUR.asString().toUpperCase());
     final Cache<Integer, Batch> batchCache = CacheBuilder.newBuilder().maximumSize(50).expireAfterAccess(Duration.ofHours(1)).build();
     final TickleRepo tickleRepo;
@@ -41,7 +41,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
 
 
-    public MessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
+    public TickleMessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
         super(serviceHub);
         this.entityManager = entityManager;
         this.tickleRepo = new TickleRepo(entityManager);
@@ -81,6 +81,20 @@ public class MessageConsumer extends MessageConsumerAdapter {
     }
 
     @Override
+    public void abortJob(int jobId) {
+        getBatch(jobId).ifPresent(batch -> {
+            EntityTransaction transaction = entityManager.getTransaction();
+            transaction.begin();
+            try {
+                entityManager.remove(batch);
+                batchCache.invalidate(jobId);
+            } finally {
+                if(transaction.isActive()) transaction.commit();
+            }
+        });
+    }
+
+    @Override
     public String getQueue() {
         return QUEUE;
     }
@@ -90,12 +104,14 @@ public class MessageConsumer extends MessageConsumerAdapter {
         return ADDRESS;
     }
 
+    public Optional<Batch> getBatch(int jobId) {
+        Batch batch = batchCache.getIfPresent(jobId);
+        if(batch != null) return Optional.of(batch);
+        return tickleRepo.lookupBatch(new Batch().withBatchKey(jobId));
+    }
+
     private Batch getBatch(Chunk chunk) {
-        Batch batch = batchCache.getIfPresent(chunk.getJobId());
-        if(batch != null) return batch;
-        batch = tickleRepo.lookupBatch(new Batch().withBatchKey(chunk.getJobId())).orElseGet(() -> createBatch(chunk));
-        if(batch != null) batchCache.put(chunk.getJobId(), batch);
-        return batch;
+        return getBatch(chunk.getJobId()).orElseGet(() -> createBatch(chunk));
     }
 
     private Batch createBatch(Chunk chunk) {
@@ -108,11 +124,13 @@ public class MessageConsumer extends MessageConsumerAdapter {
         DataSet dataset = tickleRepo.lookupDataSet(searchValue)
                 .orElseGet(() -> tickleRepo.createDataSet(searchValue));
         // create new batch and cache it
-        return tickleRepo.createBatch(new Batch()
+        Batch batch = tickleRepo.createBatch(new Batch()
                 .withBatchKey(chunk.getJobId())
                 .withDataset(dataset.getId())
                 .withType(tickleBehaviour)
                 .withMetadata(getBatchMetadata(chunk.getJobId())));
+        batchCache.put(chunk.getJobId(), batch);
+        return batch;
     }
 
     /* Use job specification as batch metadata */

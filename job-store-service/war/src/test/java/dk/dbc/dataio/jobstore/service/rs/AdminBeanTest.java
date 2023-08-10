@@ -18,11 +18,6 @@ public class AdminBeanTest {
             3, new Sink(3, 1, newSinkContent("sink3", 4)),
             4, new Sink(4, 1, newSinkContent("sink4", 3))
     );
-    @Test
-    public void findMin() {
-        Duration min = AdminBean.findMinTimeout(SINKS.values());
-        Assert.assertEquals(Duration.ofHours(1), min);
-    }
 
     @Test
     public void getSinkName() {

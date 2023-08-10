@@ -37,7 +37,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -128,15 +127,6 @@ public class AdminBean {
         LOGGER.info("Reset dependency tracking states. Sets status = 4 for status = 5 for {} entities", rowsUpdated);
         jobSchedulerBean.loadSinkStatusOnBootstrap(sinkId);
         return Response.ok().build();
-    }
-
-    static Duration findMinTimeout(Collection<Sink> allSinks) {
-        int h = allSinks.stream()
-                .map(Sink::getContent)
-                .mapToInt(SinkContent::getTimeout)
-                .min()
-                .orElse(1);
-        return Duration.ofHours(h);
     }
 
     private Counter registerChunkMetric(String sinkName) {

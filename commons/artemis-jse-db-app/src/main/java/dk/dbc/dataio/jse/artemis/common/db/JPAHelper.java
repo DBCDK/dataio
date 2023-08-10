@@ -10,6 +10,7 @@ import javax.sql.DataSource;
 import java.util.Map;
 
 public class JPAHelper {
+
     public static EntityManager makeEntityManager(String persistenceUnit, EnvConfig config) {
         return makeEntityManager(persistenceUnit, config.asPGJDBCUrl());
     }

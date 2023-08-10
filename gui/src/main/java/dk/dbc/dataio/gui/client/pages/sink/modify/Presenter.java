@@ -15,6 +15,8 @@ public interface Presenter extends GenericPresenter {
 
     void descriptionChanged(String description);
 
+    void timeoutChanged(String timeout);
+
     void openUpdateUserIdChanged(String userId);
 
     void passwordChanged(String password);

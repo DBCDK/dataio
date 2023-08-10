@@ -1,14 +1,24 @@
 package dk.dbc.dataio.jobstore.service.rs;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.jms.artemis.AdminClient;
 import dk.dbc.jms.artemis.AdminClientFactory;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.metrics.Counter;
+import org.eclipse.microprofile.metrics.MetricID;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
+import org.glassfish.jersey.internal.guava.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +37,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
@@ -43,13 +57,34 @@ public class AdminBean {
     @EJB
     PgJobStoreRepository jobStoreRepository;
 
+    @EJB
+    FlowStoreServiceConnectorBean flowstore;
+
+    @Inject
+    @ConfigProperty(name = "PROCESSOR_TIMEOUT", defaultValue = "PT1H")
+    private Duration processorTimeout;
+
     @Inject
     @JobstoreDB
     EntityManager entityManager;
 
-    AdminClient adminClient = AdminClientFactory.getAdminClient();
+    @Inject
+    private MetricRegistry metricRegistry;
 
-    @Schedule(second = "0", minute = "5", hour = "*", persistent = false)
+    AdminClient adminClient = AdminClientFactory.getAdminClient();
+    private final Map<String, Counter> staleChunks = new HashMap<>();
+    private final org.glassfish.jersey.internal.guava.Cache<Integer, Sink> sinkMap = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
+
+    @SuppressWarnings("unused")
+    @Schedule(minute = "*", hour = "*", persistent = false)
+    public void updateStaleChunks() {
+        Stream<DependencyTrackingEntity> delStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
+        Stream<DependencyTrackingEntity> procStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
+        Stream.concat(delStream, procStream).forEach(d -> staleChunks.computeIfAbsent(getSinkName(d.getSinkid()), this::registerChunkMetric).inc());
+    }
+
+    @SuppressWarnings("unused")
+    @Schedule(minute = "5", hour = "*", persistent = false)
     public void cleanStaleJMSConnections() {
         LOGGER.info("Cleaning stale artemis connections");
         Instant i = Instant.now().minus(Duration.ofMinutes(15));
@@ -92,5 +127,45 @@ public class AdminBean {
         LOGGER.info("Reset dependency tracking states. Sets status = 4 for status = 5 for {} entities", rowsUpdated);
         jobSchedulerBean.loadSinkStatusOnBootstrap(sinkId);
         return Response.ok().build();
+    }
+
+    private Counter registerChunkMetric(String sinkName) {
+        MetricID metricID = new MetricID("dataio_stale_chunks", new Tag("sink", sinkName));
+        LOGGER.info("Registering metric: {}", metricID);
+        return metricRegistry.counter(metricID);
+    }
+
+    private String getSinkName(int id) {
+        return getSink(id).getContent().getName();
+    }
+
+    Sink getSink(int id) {
+        Sink sink = sinkMap.getIfPresent(id);
+        if(sink == null) {
+            sink = getFromFlowstore(id);
+            sinkMap.put(id, sink);
+        }
+        return sink;
+    }
+
+    private Sink getFromFlowstore(int id) {
+        try {
+            return flowstore.getConnector().getSink(id);
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new RuntimeException("Found no sink with id " + id);
+        }
+    }
+
+    boolean isTimeout(DependencyTrackingEntity de) {
+        if(de.getLastModified() == null) return false;
+        Optional<Sink> sink = Optional.ofNullable(getSink(de.getSinkid()));
+        Instant lm = Instant.ofEpochMilli(de.getLastModified().getTime());
+        Instant now = Instant.now();
+        return sink.map(Sink::getContent)
+                .map(SinkContent::getTimeout)
+                .map(Duration::ofHours)
+                .map(now::minus)
+                .map(lm::isBefore)
+                .orElse(false);
     }
 }

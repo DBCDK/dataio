@@ -5,6 +5,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.lang.Require;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 
 import java.io.ByteArrayInputStream;
@@ -20,6 +21,7 @@ public class ChunkItemWithWorldCatAttributes extends ChunkItem {
     private WorldCatAttributes worldCatAttributes = null;
 
     public static ChunkItemWithWorldCatAttributes of(ChunkItem chunkItem) throws IllegalArgumentException {
+        Require.nonNull(chunkItem.getType(), () -> new IllegalArgumentException("Type list must not be null: " + chunkItem));
         final ChunkItemWithWorldCatAttributes extendedChunkItem = new ChunkItemWithWorldCatAttributes();
 
         try {
@@ -31,7 +33,7 @@ public class ChunkItemWithWorldCatAttributes extends ChunkItem {
                         .withEncoding(chunkItem.getEncoding())
                         .withStatus(chunkItem.getStatus())
                         .withTrackingId(chunkItem.getTrackingId())
-                        .withType(chunkItem.getType().toArray(new ChunkItem.Type[chunkItem.getType().size()]))
+                        .withType(chunkItem.getType().toArray(new Type[0]))
                         .withData(addiRecord.getContentData());
 
                 extendedChunkItem.withWorldCatAttributes(
@@ -41,7 +43,7 @@ public class ChunkItemWithWorldCatAttributes extends ChunkItem {
             if (addiReader.hasNext()) {
                 throw new IllegalArgumentException("Chunk item contains multiple ADDI records");
             }
-        } catch (IOException | JSONBException | NullPointerException e) {
+        } catch (IOException | JSONBException e) {
             throw new IllegalArgumentException(e);
         }
 

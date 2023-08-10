@@ -90,7 +90,6 @@ public class WorldCatSinkConfig implements SinkConfig, Serializable {
     public String toString() {
         return "WorldCatSinkConfig{" +
                 "userId='" + userId + '\'' +
-                ", password='" + password + '\'' +
                 ", endpoint='" + endpoint + '\'' +
                 ", projectId='" + projectId + '\'' +
                 ", retryDiagnostics=" + retryDiagnostics +

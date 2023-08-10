@@ -51,7 +51,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class MessageConsumerIT extends IntegrationTest {
+public class WorldcatMessageConsumerIT extends IntegrationTest {
     private final WciruServiceBroker wciruServiceBroker = mock(WciruServiceBroker.class);
     private final WciruServiceConnector wciruServiceConnector = mock(WciruServiceConnector.class);
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
@@ -101,7 +101,7 @@ public class MessageConsumerIT extends IntegrationTest {
                 .withPid(pid.toString())
                 .withHoldings(Collections.emptyList()));
 
-        final MessageConsumer bean = newMessageConsumerBean();
+        final WorldcatMessageConsumer bean = newMessageConsumerBean();
         final ChunkItem result = bean.handleChunkItem(chunkItem);
 
         verifyPush();
@@ -130,7 +130,7 @@ public class MessageConsumerIT extends IntegrationTest {
                 .withPid(pid.toString())
                 .withHoldings(Collections.emptyList()));
 
-        final MessageConsumer bean = newMessageConsumerBean();
+        final WorldcatMessageConsumer bean = newMessageConsumerBean();
         final ChunkItem result =  bean.handleChunkItem(chunkItem);
 
         verifyNoPush();
@@ -163,7 +163,7 @@ public class MessageConsumerIT extends IntegrationTest {
         final String checksumBeforeUpdate = jpaTestEnvironment.getEntityManager()
                 .find(WorldCatEntity.class, pid.toString()).getChecksum();
 
-        final MessageConsumer bean = newMessageConsumerBean();
+        final WorldcatMessageConsumer bean = newMessageConsumerBean();
         final ChunkItem result = bean.handleChunkItem(chunkItem);
 
         verifyPush();
@@ -196,7 +196,7 @@ public class MessageConsumerIT extends IntegrationTest {
                 .withPid(pid.toString())
                 .withHoldings(Collections.emptyList()));
 
-        final MessageConsumer bean = newMessageConsumerBean();
+        final WorldcatMessageConsumer bean = newMessageConsumerBean();
         final ChunkItem result =  bean.handleChunkItem(chunkItem);
 
         verifyPush();
@@ -227,7 +227,7 @@ public class MessageConsumerIT extends IntegrationTest {
                 .withPid(pid.toString())
                 .withHoldings(Collections.emptyList()));
 
-        final MessageConsumer bean = newMessageConsumerBean();
+        final WorldcatMessageConsumer bean = newMessageConsumerBean();
         final ChunkItem result = bean.handleChunkItem(chunkItem);
 
         verifyPush();
@@ -253,7 +253,7 @@ public class MessageConsumerIT extends IntegrationTest {
                 .withPid(pid.toString())
                 .withHoldings(Collections.emptyList()));
 
-        final MessageConsumer bean = newMessageConsumerBean();
+        final WorldcatMessageConsumer bean = newMessageConsumerBean();
         final ChunkItem result = bean.handleChunkItem(chunkItem);
 
         verifyPush();
@@ -283,7 +283,7 @@ public class MessageConsumerIT extends IntegrationTest {
                         .withSymbol("DEF")
                         .withAction(Holding.Action.INSERT))));
 
-        final MessageConsumer bean = newMessageConsumerBean();
+        final WorldcatMessageConsumer bean = newMessageConsumerBean();
          bean.handleChunkItem(chunkItem);
 
         final ArgumentCaptor<ChunkItemWithWorldCatAttributes> chunkItemArgumentCaptor =
@@ -321,7 +321,7 @@ public class MessageConsumerIT extends IntegrationTest {
                         .withSymbol("DEF")
                         .withAction(Holding.Action.INSERT))));
 
-        final MessageConsumer bean = newMessageConsumerBean();
+        final WorldcatMessageConsumer bean = newMessageConsumerBean();
         bean.handleChunkItem(chunkItem);
 
         verifyPush();
@@ -348,7 +348,7 @@ public class MessageConsumerIT extends IntegrationTest {
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).appendItem(chunkItem).build();
         final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
 
-        final MessageConsumer bean = newMessageConsumerBean();
+        final WorldcatMessageConsumer bean = newMessageConsumerBean();
         bean.handleConsumedMessage(message);
 
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong());
@@ -367,7 +367,7 @@ public class MessageConsumerIT extends IntegrationTest {
 
         final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
 
-        final MessageConsumer bean = newMessageConsumerBean();
+        final WorldcatMessageConsumer bean = newMessageConsumerBean();
         jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleConsumedMessage(message));
 
         final ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
@@ -390,7 +390,7 @@ public class MessageConsumerIT extends IntegrationTest {
 
         final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
 
-        final MessageConsumer bean = newMessageConsumerBean();
+        final WorldcatMessageConsumer bean = newMessageConsumerBean();
         jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleConsumedMessage(message));
 
         final ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
@@ -412,13 +412,13 @@ public class MessageConsumerIT extends IntegrationTest {
     }
 
 
-    private MessageConsumer newMessageConsumerBean() {
-        final MessageConsumer messageConsumer = new MessageConsumer(
+    private WorldcatMessageConsumer newMessageConsumerBean() {
+        final WorldcatMessageConsumer worldcatMessageConsumer = new WorldcatMessageConsumer(
                 new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build(), jpaTestEnvironment.getEntityManager());
-        messageConsumer.wciruServiceBroker = wciruServiceBroker;
-        messageConsumer.worldCatConfigBean = worldCatConfigBean;
-        messageConsumer.config = config;
-        return messageConsumer;
+        worldcatMessageConsumer.wciruServiceBroker = wciruServiceBroker;
+        worldcatMessageConsumer.worldCatConfigBean = worldCatConfigBean;
+        worldcatMessageConsumer.config = config;
+        return worldcatMessageConsumer;
     }
 
     private ChunkItem newChunkItem(String data, WorldCatAttributes attributes) {

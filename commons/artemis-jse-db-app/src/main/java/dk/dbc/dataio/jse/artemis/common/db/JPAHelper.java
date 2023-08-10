@@ -3,8 +3,6 @@ package dk.dbc.dataio.jse.artemis.common.db;
 import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 import org.flywaydb.core.Flyway;
 import org.postgresql.ds.PGSimpleDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Persistence;
@@ -12,7 +10,6 @@ import javax.sql.DataSource;
 import java.util.Map;
 
 public class JPAHelper {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JPAHelper.class);
 
     public static EntityManager makeEntityManager(String persistenceUnit, EnvConfig config) {
         return makeEntityManager(persistenceUnit, config.asPGJDBCUrl());

@@ -19,18 +19,13 @@ public class JPAHelper {
     }
 
     public static EntityManager makeEntityManager(String persistenceUnit, String jdbcUrl) {
-        try {
-            Map<String, String> config = Map.of(
-                    "javax.persistence.transactionType", "RESOURCE_LOCAL",
-                    "provider", "org.eclipse.persistence.jpa.PersistenceProvider",
-                    "javax.persistence.schema-generation.database.action", "none",
-                    "javax.persistence.jdbc.driver", "org.postgresql.Driver",
-                    "javax.persistence.jdbc.url", jdbcUrl);
-            return makeEntityManager(persistenceUnit, config);
-        } catch (RuntimeException e) {
-            LOGGER.info("Unable to create an entity manager for {}", persistenceUnit, e);
-            throw e;
-        }
+        Map<String, String> config = Map.of(
+                "javax.persistence.transactionType", "RESOURCE_LOCAL",
+                "provider", "org.eclipse.persistence.jpa.PersistenceProvider",
+                "javax.persistence.schema-generation.database.action", "none",
+                "javax.persistence.jdbc.driver", "org.postgresql.Driver",
+                "javax.persistence.jdbc.url", jdbcUrl);
+        return makeEntityManager(persistenceUnit, config);
     }
 
     public static EntityManager makeEntityManager(String persistenceUnit, Map<String, String> config) {

@@ -14,7 +14,6 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.jms.artemis.AdminClient;
 import dk.dbc.jms.artemis.AdminClientFactory;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
@@ -37,10 +36,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
@@ -72,7 +74,7 @@ public class AdminBean {
     private MetricRegistry metricRegistry;
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
-    private final Map<String, Counter> staleChunks = new HashMap<>();
+    private final Map<String, AtomicInteger> staleChunks = new ConcurrentHashMap<>();
     private final org.glassfish.jersey.internal.guava.Cache<Integer, Sink> sinkMap = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
 
     @SuppressWarnings("unused")
@@ -80,9 +82,10 @@ public class AdminBean {
     public void updateStaleChunks() {
         Stream<DependencyTrackingEntity> delStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
         Stream<DependencyTrackingEntity> procStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
-        Map<String, Counter> map = new HashMap<>();
-        Stream.concat(delStream, procStream).forEach(d -> map.computeIfAbsent(getSinkName(d.getSinkid()), this::registerChunkMetric).inc());
-        staleChunks.putAll(map);
+        List<DependencyTrackingEntity> list = Stream.concat(delStream, procStream).collect(Collectors.toList());
+        list.stream().map(s -> getSinkName(s.getSinkid())).filter(s -> !staleChunks.containsKey(s)).forEach(this::registerChunkMetric);
+        Map<Integer, List<DependencyTrackingEntity>> map = list.stream().collect(Collectors.groupingBy(DependencyTrackingEntity::getSinkid));
+        staleChunks.forEach((k, v) -> v.set(map.getOrDefault(k, List.of()).size()));
     }
 
     @SuppressWarnings("unused")
@@ -131,10 +134,10 @@ public class AdminBean {
         return Response.ok().build();
     }
 
-    private Counter registerChunkMetric(String sinkName) {
+    private void registerChunkMetric(String sinkName) {
         MetricID metricID = new MetricID("dataio_stale_chunks", new Tag("sink", sinkName));
         LOGGER.info("Registering metric: {}", metricID);
-        return metricRegistry.counter(metricID);
+        metricRegistry.gauge(metricID, () -> staleChunks.computeIfAbsent(sinkName, k -> new AtomicInteger()));
     }
 
     private String getSinkName(int id) {

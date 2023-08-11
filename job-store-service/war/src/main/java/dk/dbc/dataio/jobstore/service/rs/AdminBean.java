@@ -83,9 +83,10 @@ public class AdminBean {
         Stream<DependencyTrackingEntity> delStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
         Stream<DependencyTrackingEntity> procStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
         List<DependencyTrackingEntity> list = Stream.concat(delStream, procStream).collect(Collectors.toList());
-        list.stream().map(s -> getSinkName(s.getSinkid())).filter(s -> !staleChunks.containsKey(s)).forEach(this::registerChunkMetric);
+        list.stream().map(s -> getSinkName(s.getSinkid())).distinct().filter(s -> staleChunks.putIfAbsent(s, new AtomicInteger(0)) == null).forEach(this::registerChunkMetric);
         Map<Integer, List<DependencyTrackingEntity>> map = list.stream().collect(Collectors.groupingBy(DependencyTrackingEntity::getSinkid));
-        staleChunks.forEach((k, v) -> v.set(map.getOrDefault(k, List.of()).size()));
+        Map<String, Integer> counters = map.entrySet().stream().collect(Collectors.toMap(e -> getSinkName(e.getKey()), e -> e.getValue().size()));
+        staleChunks.forEach((k, v) -> v.set(counters.getOrDefault(k, 0)));
     }
 
     @SuppressWarnings("unused")

@@ -68,20 +68,15 @@ public class BatchExchangeMessageConsumer extends MessageConsumerAdapter {
 
     @Override
     public void abortJob(int jobId) {
+        EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        try {
+            deleteBatch(jobId);
+            LOGGER.warn("Aborted job {}", jobId);
+        } finally {
+            if(transaction.isActive()) transaction.commit();
+        }
 
-
-    }
-
-    private int deleteBatch(int jobId) {
-        Query query = entityManager.createQuery("delete from Batch b where b.name like :jobId");
-        query.setParameter("jobId", jobId + "-%");
-        return query.executeUpdate();
-    }
-
-    private int deleteBatchEntries(int jobId) {
-        Query query = entityManager.createQuery("delete from BatchEntry b where b.batch = :jobId");
-        query.setParameter("jobId", jobId);
-        return query.executeUpdate();
     }
 
     @Override
@@ -129,6 +124,12 @@ public class BatchExchangeMessageConsumer extends MessageConsumerAdapter {
                 throw new InvalidMessageException("Unknown chunk item state: " + chunkItem.getStatus().name());
         }
         return entries;
+    }
+
+    private int deleteBatch(int jobId) {
+        Query query = entityManager.createQuery("delete from Batch b where b.name like :jobId");
+        query.setParameter("jobId", jobId + "-%");
+        return query.executeUpdate();
     }
 
     private BatchEntry createPendingBatchEntry(AddiRecord addiRecord) throws IOException {

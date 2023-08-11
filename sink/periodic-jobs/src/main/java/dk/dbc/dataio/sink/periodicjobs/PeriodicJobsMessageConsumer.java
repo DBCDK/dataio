@@ -132,6 +132,7 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
     @Override
     public void abortJob(int jobId) {
         EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
         try {
             periodicJobsFinalizerBean.deleteDelivery(jobId);
             periodicJobsFinalizerBean.deleteDataBlocks(jobId);

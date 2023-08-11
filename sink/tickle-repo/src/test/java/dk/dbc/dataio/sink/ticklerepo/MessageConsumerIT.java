@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -24,6 +25,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.ArgumentCaptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -44,6 +47,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MessageConsumerIT extends IntegrationTest {
+    Logger LOGGER = LoggerFactory.getLogger(MessageConsumerIT.class);
     @Rule
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
@@ -67,12 +71,12 @@ public class MessageConsumerIT extends IntegrationTest {
     /*  When: handling valid chunk items referencing non-existing dataset
      *  Then: dataset is created as dictated by chunk item tickle attributes
      */
-    //@Test DISABLED for now
-    public void datasetCreated() {
+    @Test
+    public void datasetCreated() throws InvalidMessageException {
         ConsumedMessage message = ObjectFactory.createConsumedMessage(createChunk());
         MessageConsumer messageConsumer = createMessageConsumerBean();
 
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(message));
+        messageConsumer.handleConsumedMessage(message);
 
         assertThat(messageConsumer.tickleRepo.lookupDataSet(new DataSet()
                         .withName(tickleAttributes1.getDatasetName()))
@@ -82,14 +86,14 @@ public class MessageConsumerIT extends IntegrationTest {
     /*  When: handling valid chunk items referencing existing dataset
      *  Then: no dataset is created
      */
-    //@Test DISABLED for now
-    public void datasetExists() {
+    @Test
+    public void datasetExists() throws InvalidMessageException {
         executeScriptResource("/ticklerepo-existing-dataset.sql");
 
         ConsumedMessage message = ObjectFactory.createConsumedMessage(createChunk());
         MessageConsumer messageConsumer = createMessageConsumerBean();
 
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(message));
+        messageConsumer.handleConsumedMessage(message);
 
         Batch batch = messageConsumer.tickleRepo.lookupBatch(new Batch().withId(1)).orElse(null);
         assertThat("batch created", batch, is(notNullValue()));
@@ -101,8 +105,8 @@ public class MessageConsumerIT extends IntegrationTest {
      *   And: the created batch is cached in the consumer
      *   And: the created batch has the job specification as metadata
      */
-    //@Test DISABLED for now
-    public void batchCreated() throws JobStoreServiceConnectorException, JSONBException {
+    @Test
+    public void batchCreated() throws JobStoreServiceConnectorException, JSONBException, InvalidMessageException {
         Chunk chunk = createChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
         MessageConsumer messageConsumer = createMessageConsumerBean();
@@ -114,7 +118,7 @@ public class MessageConsumerIT extends IntegrationTest {
         when(jobStoreServiceConnector.listJobs("job:id = " + chunk.getJobId()))
                 .thenReturn(Collections.singletonList(jobInfoSnapshot));
 
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(message));
+        messageConsumer.handleConsumedMessage(message);
 
         Batch batch = messageConsumer.tickleRepo.lookupBatch(new Batch().withId(1)).orElse(null);
         assertThat("batch created", batch, is(notNullValue()));
@@ -129,15 +133,15 @@ public class MessageConsumerIT extends IntegrationTest {
      *  Then: a new batch of type TOTAL is created
      *   And: the created batch is cached in the consumer
      */
-    //@Test DISABLED for now
-    public void totalBatchCreated() {
+    @Test
+    public void totalBatchCreated() throws InvalidMessageException {
         environmentVariables.set("TICKLE_BEHAVIOUR", "total");
 
         Chunk chunk = createChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
         MessageConsumer messageConsumer = createMessageConsumerBean();
 
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(message));
+        messageConsumer.handleConsumedMessage(message);
 
         Batch batch = messageConsumer.tickleRepo.lookupBatch(new Batch().withId(1)).orElse(null);
         assertThat("batch created", batch, is(notNullValue()));
@@ -150,17 +154,17 @@ public class MessageConsumerIT extends IntegrationTest {
      *  Then: the existing batch is used
      *   And: the batch is cached in the consumer
      */
-    //@Test DISABLED for now
-    public void batchExists() {
+    @Test
+    public void batchExists() throws InvalidMessageException {
         Chunk chunk = createChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
         MessageConsumer messageConsumer = createMessageConsumerBean();
 
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(message));
+        messageConsumer.handleConsumedMessage(message);
 
         messageConsumer.batchCache.invalidateAll();
 
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(message));
+        messageConsumer.handleConsumedMessage(message);
 
         assertThat("job ID in cache", messageConsumer.batchCache.asMap().containsKey(chunk.getJobId()), is(true));
         assertThat("cached batch", messageConsumer.batchCache.getIfPresent(chunk.getJobId()).getId(), is(1));
@@ -169,13 +173,13 @@ public class MessageConsumerIT extends IntegrationTest {
     /*  When: handling chunk containing no successful chunk items
      *  Then: the tickle repo is not updated
      */
-    //@Test DISABLED for now
-    public void chunkContainsNoItemsForTickle() throws JobStoreServiceConnectorException {
+    @Test
+    public void chunkContainsNoItemsForTickle() throws JobStoreServiceConnectorException, InvalidMessageException {
         Chunk chunk = createIgnoredChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
         MessageConsumer messageConsumer = createMessageConsumerBean();
 
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(message));
+        messageConsumer.handleConsumedMessage(message);
 
         assertThat("dataset created", messageConsumer.tickleRepo.lookupDataSet(new DataSet().withId(1)).isPresent(), is(false));
         assertThat("batch created", messageConsumer.tickleRepo.lookupBatch(new Batch().withId(1)).isPresent(), is(false));
@@ -192,13 +196,13 @@ public class MessageConsumerIT extends IntegrationTest {
      *   When: handling chunk containing successful chunk items
      *   Then: the tickle repo is updated with new records
      */
-    //@Test DISABLED for now
-    public void recordsCreated() {
+    @Test
+    public void recordsCreated() throws InvalidMessageException {
         Chunk chunk = createChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
         MessageConsumer messageConsumer = createMessageConsumerBean();
 
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(message));
+        messageConsumer.handleConsumedMessage(message);
 
         TickleRepo.ResultSet<Record> rs = persistenceContext.run(() ->
                 messageConsumer.tickleRepo.getRecordsInBatch(messageConsumer.batchCache.getIfPresent(chunk.getJobId())));
@@ -226,15 +230,15 @@ public class MessageConsumerIT extends IntegrationTest {
      *   When: handling chunk containing successful chunk items for existing records
      *   Then: the tickle repo is updated only when record checksum indicates a change
      */
-    //@Test DISABLED for now
-    public void checksum() {
+    @Test
+    public void checksum() throws InvalidMessageException {
         executeScriptResource("/ticklerepo-existing-records.sql");
 
         Chunk chunk = createChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
         MessageConsumer messageConsumer = createMessageConsumerBean();
 
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(message));
+         messageConsumer.handleConsumedMessage(message);
 
         Batch batch = messageConsumer.batchCache.getIfPresent(chunk.getJobId());
 
@@ -258,49 +262,47 @@ public class MessageConsumerIT extends IntegrationTest {
     /*  When: handling chunk containing successful end-of-job chunk item
      *   Then: the tickle repo batch is closed
      */
-    //@Test DISABLED for now
-    public void closeBatch() {
+    @Test
+    public void closeBatch() throws InvalidMessageException {
         MessageConsumer messageConsumer = createMessageConsumerBean();
-
         Chunk chunk = createChunk();
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(
-                ObjectFactory.createConsumedMessage(chunk)));
+        messageConsumer.handleConsumedMessage( ObjectFactory.createConsumedMessage(chunk));
 
         Chunk endJobChunk = createEndJobChunk();
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(
-                ObjectFactory.createConsumedMessage(endJobChunk)));
+        messageConsumer.handleConsumedMessage(ObjectFactory.createConsumedMessage(endJobChunk));
 
         Batch batch = messageConsumer.batchCache.getIfPresent(chunk.getJobId());
-        verify(messageConsumer.tickleRepo).closeBatch(batch);
+
+        assert batch != null;
+        assertThat("Batch is closed", batch.getTimeOfCompletion(), is(notNullValue()));
+
     }
 
     /*   When: handling chunk containing failed end-of-job chunk item
      *   Then: the tickle repo batch is aborted
      */
     //@Test DISABLED for now
-    public void abortBatch() {
+    public void abortBatch() throws InvalidMessageException {
         MessageConsumer messageConsumer = createMessageConsumerBean();
 
         Chunk chunk = createChunk();
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(
-                ObjectFactory.createConsumedMessage(chunk)));
+        messageConsumer.handleConsumedMessage(ObjectFactory.createConsumedMessage(chunk));
 
         Chunk endJobChunk = createFailedEndJobChunk();
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(
-                ObjectFactory.createConsumedMessage(endJobChunk)));
+        messageConsumer.handleConsumedMessage(ObjectFactory.createConsumedMessage(endJobChunk));
 
         Batch batch = messageConsumer.batchCache.getIfPresent(chunk.getJobId());
         verify(messageConsumer.tickleRepo).abortBatch(batch);
         verify(messageConsumer.tickleRepo).closeBatch(batch);
     }
 
-    //@Test DISABLED for now
-    public void resultingChunk() throws JobStoreServiceConnectorException {
+    @Test
+    public void resultingChunk() throws JobStoreServiceConnectorException, InvalidMessageException {
         Chunk chunk = createChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
         MessageConsumer messageConsumer = createMessageConsumerBean();
 
-        persistenceContext.run(() -> messageConsumer.handleConsumedMessage(message));
+         messageConsumer.handleConsumedMessage(message);
 
         ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), eq(chunk.getJobId()), eq(chunk.getChunkId()));
@@ -346,7 +348,8 @@ public class MessageConsumerIT extends IntegrationTest {
 
     private MessageConsumer createMessageConsumerBean() {
         ServiceHub hub = new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build();
-        return new MessageConsumer(hub, entityManager);
+        MessageConsumer messageConsumer = new MessageConsumer(hub, entityManager);
+        return messageConsumer;
     }
 
     private Chunk createChunk() {

@@ -281,7 +281,7 @@ public class MessageConsumerIT extends IntegrationTest {
     /*   When: handling chunk containing failed end-of-job chunk item
      *   Then: the tickle repo batch is aborted
      */
-    //@Test DISABLED for now
+    //@Test DISABLED for now and again
     public void abortBatch() throws InvalidMessageException {
         MessageConsumer messageConsumer = createMessageConsumerBean();
 

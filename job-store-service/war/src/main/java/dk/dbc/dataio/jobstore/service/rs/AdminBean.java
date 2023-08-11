@@ -80,7 +80,9 @@ public class AdminBean {
     public void updateStaleChunks() {
         Stream<DependencyTrackingEntity> delStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
         Stream<DependencyTrackingEntity> procStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
-        Stream.concat(delStream, procStream).forEach(d -> staleChunks.computeIfAbsent(getSinkName(d.getSinkid()), this::registerChunkMetric).inc());
+        Map<String, Counter> map = new HashMap<>();
+        Stream.concat(delStream, procStream).forEach(d -> map.computeIfAbsent(getSinkName(d.getSinkid()), this::registerChunkMetric).inc());
+        staleChunks.putAll(map);
     }
 
     @SuppressWarnings("unused")

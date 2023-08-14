@@ -1,15 +1,16 @@
 package dk.dbc.dataio.sink.ticklerepo;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.ticklerepo.TickleRepoDatabaseMigrator;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -18,45 +19,24 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
-
-public abstract class IntegrationTest {
-    private static final PGSimpleDataSource datasource;
-    private static final Map<String, String> entityManagerProperties = new HashMap<>();
+public abstract class IntegrationTest implements PostgresContainerJPAUtils {
     private static EntityManagerFactory entityManagerFactory;
 
-    static {
-        datasource = new PGSimpleDataSource();
-        datasource.setDatabaseName("ticklerepo");
-        datasource.setServerName("localhost");
-        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port", "5432")));
-        datasource.setUser(System.getProperty("user.name"));
-        datasource.setPassword(System.getProperty("user.name"));
-    }
+    private static DataSource datasource = dbContainer.datasource();
 
     protected EntityManager entityManager;
     protected TransactionScopedPersistenceContext persistenceContext;
 
     @BeforeClass
-    public static void migrateDatabase() throws Exception {
+    public static void migrateDatabase() {
         TickleRepoDatabaseMigrator dbMigrator = new TickleRepoDatabaseMigrator(datasource);
         dbMigrator.migrate();
     }
 
     @BeforeClass
     public static void createEntityManagerFactory() {
-        entityManagerProperties.put(JDBC_USER, datasource.getUser());
-        entityManagerProperties.put(JDBC_PASSWORD, datasource.getPassword());
-        entityManagerProperties.put(JDBC_URL, datasource.getUrl());
-        entityManagerProperties.put(JDBC_DRIVER, "org.postgresql.Driver");
-        entityManagerProperties.put("eclipselink.logging.level", "FINE");
-        entityManagerFactory = Persistence.createEntityManagerFactory("tickleRepoIT", entityManagerProperties);
+        entityManagerFactory = Persistence.createEntityManagerFactory("tickleRepoIT",
+                dbContainer.entityManagerProperties());
     }
 
     protected static void executeScriptResource(String resourcePath) {
@@ -91,7 +71,7 @@ public abstract class IntegrationTest {
 
     @Before
     public void createEntityManager() {
-        entityManager = entityManagerFactory.createEntityManager(entityManagerProperties);
+        entityManager = entityManagerFactory.createEntityManager(dbContainer.entityManagerProperties());
         persistenceContext = new TransactionScopedPersistenceContext(entityManager);
     }
 

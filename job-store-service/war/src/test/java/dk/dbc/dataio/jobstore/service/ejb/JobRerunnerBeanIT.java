@@ -172,6 +172,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     public void rerunTickleRepoHarvesterIncrementalJob() throws HarvesterTaskServiceConnectorException {
         final RerunEntity rerun = getRerunEntityForTickleRepoIncrementalJob();
         final JobEntity job = rerun.getJob();
+        job.setCachedSink(newPersistedSinkCacheEntity());
 
         persistenceContext.run(() -> jobRerunnerBean.rerunHarvesterJob(rerun, tickleRepoHarvesterToken));
 
@@ -191,6 +192,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         persistenceContext.run(() -> rerun.withIncludeFailedOnly(true));
 
         final JobEntity job = rerun.getJob();
+        job.setCachedSink(newPersistedSinkCacheEntity());
 
         persistenceContext.run(() -> jobRerunnerBean.rerunHarvesterJob(rerun, tickleRepoHarvesterToken));
 

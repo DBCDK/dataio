@@ -26,6 +26,7 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
 
         final JobSchedulerTransactionsBean bean = new JobSchedulerTransactionsBean();
         bean.entityManager = entityManager;
+        bean.enableOptimizer =false;
 
         assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
                         .setSubmitterNumber(123456)
@@ -88,6 +89,7 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
 
         final JobSchedulerTransactionsBean bean = new JobSchedulerTransactionsBean();
         bean.entityManager = entityManager;
+        bean.enableOptimizer =false;
 
         persistenceContext.run(() -> bean.persistDependencyEntity(entity, null));
 

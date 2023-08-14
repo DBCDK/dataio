@@ -221,7 +221,7 @@ pipeline {
                 script {
                     sh """
                         #!/bin/bash
-                        if [ -n "\\\$(git log -1 | tail +5 | grep -E ' *!')" ]; then
+                        if [ -n "\$(git log -1 | tail +5 | grep -E ' *!')" ]; then
                             echo "Gogo version gadget!!!"
                             set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets ${env.BRANCH_NAME}-${env.BUILD_NUMBER} -b staging
                         fi

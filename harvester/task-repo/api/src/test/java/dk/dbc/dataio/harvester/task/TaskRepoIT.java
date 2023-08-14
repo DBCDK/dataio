@@ -2,37 +2,34 @@ package dk.dbc.dataio.harvester.task;
 
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
+import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.postgresql.ds.PGSimpleDataSource;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class TaskRepoIT extends JpaIntegrationTest {
+public class TaskRepoIT extends JpaIntegrationTest implements PostgresContainerJPAUtils {
+
     @Override
     public JpaTestEnvironment setup() {
-        final PGSimpleDataSource dataSource = getDataSource();
+        DataSource dataSource = getDataSource();
         migrateDatabase(dataSource);
         jpaTestEnvironment = new JpaTestEnvironment(dataSource, "taskrepoIT_PU",
-                getEntityManagerFactoryProperties(dataSource));
+                getEntityManagerFactoryProperties());
         return jpaTestEnvironment;
     }
 
@@ -112,9 +109,9 @@ public class TaskRepoIT extends JpaIntegrationTest {
         private boolean waiting = false;
 
         TaskThread() {
-            final PGSimpleDataSource dataSource = getDataSource();
+            DataSource dataSource = getDataSource();
             jpaTestEnvironment = new JpaTestEnvironment(dataSource, "taskrepoIT_PU",
-                    getEntityManagerFactoryProperties(dataSource));
+                    getEntityManagerFactoryProperties());
         }
 
         public void run() {
@@ -156,28 +153,16 @@ public class TaskRepoIT extends JpaIntegrationTest {
         }
     }
 
-    private static PGSimpleDataSource getDataSource() {
-        final PGSimpleDataSource datasource = new PGSimpleDataSource();
-        datasource.setDatabaseName("taskrepo");
-        datasource.setServerName("localhost");
-        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port", "5432")));
-        datasource.setUser(System.getProperty("user.name"));
-        datasource.setPassword(System.getProperty("user.name"));
-        return datasource;
+    private static DataSource getDataSource() {
+        return dbContainer.datasource();
     }
 
-    private static Map<String, String> getEntityManagerFactoryProperties(PGSimpleDataSource datasource) {
-        final Map<String, String> properties = new HashMap<>();
-        properties.put(JDBC_USER, datasource.getUser());
-        properties.put(JDBC_PASSWORD, datasource.getPassword());
-        properties.put(JDBC_URL, datasource.getUrl());
-        properties.put(JDBC_DRIVER, "org.postgresql.Driver");
-        properties.put("eclipselink.logging.level", "FINE");
-        return properties;
+    private static Map<String, String> getEntityManagerFactoryProperties() {
+        return dbContainer.entityManagerProperties();
     }
 
-    private void migrateDatabase(PGSimpleDataSource datasource) {
-        final TaskRepoDatabaseMigrator dbMigrator = new TaskRepoDatabaseMigrator(datasource);
+    private void migrateDatabase(DataSource datasource) {
+        TaskRepoDatabaseMigrator dbMigrator = new TaskRepoDatabaseMigrator(datasource);
         dbMigrator.migrate();
     }
 

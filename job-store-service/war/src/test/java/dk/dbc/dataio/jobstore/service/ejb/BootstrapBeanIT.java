@@ -1,5 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
@@ -8,6 +11,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,6 +19,7 @@ import javax.ejb.ScheduleExpression;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -40,7 +45,7 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
      * And  : in-progress queue entries are updated to waiting state
      */
     @Test
-    public void initialize_resetsJobsInterruptedDuringPartitioning() {
+    public void initialize_resetsJobsInterruptedDuringPartitioning() throws FlowStoreServiceConnectorException {
         // Given...
         final JobEntity job1 = newPersistedJobEntity();
         final JobEntity job2 = newPersistedJobEntity();
@@ -68,7 +73,7 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
         });
 
         // When...
-        final BootstrapBean bootstrapBean = newBootstrapBean();
+        BootstrapBean bootstrapBean = newBootstrapBean();
         persistenceContext.run(bootstrapBean::initialize);
 
         // Then...
@@ -89,7 +94,7 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
      * Then : in-progress queue entry is reset to waiting state
      */
     @Test
-    public void initialize_resetsInterruptedRerunTasks() {
+    public void initialize_resetsInterruptedRerunTasks() throws FlowStoreServiceConnectorException {
         // Given
         final JobEntity job = newPersistedJobEntity();
         final RerunEntity rerun = newPersistedRerunEntity(job);
@@ -105,7 +110,7 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
                 bootstrapBean.rerunsRepository.getInProgress().size(), is(0));
     }
 
-    private BootstrapBean newBootstrapBean() {
+    private BootstrapBean newBootstrapBean() throws FlowStoreServiceConnectorException {
         final BootstrapBean bootstrapBean = new BootstrapBean();
         bootstrapBean.jobQueueRepository = newJobQueueRepository();
         bootstrapBean.jobSchedulerBean = newJobSchedulerBean();
@@ -113,6 +118,13 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
         bootstrapBean.timerService = timerService;
         bootstrapBean.jobSchedulerBean.jobSchedulerTransactionsBean =
                 mock(JobSchedulerTransactionsBean.class);
+        bootstrapBean.jobSchedulerBean.metricRegistry =
+                mock(MetricRegistry.class);
+        bootstrapBean.jobSchedulerBean.flowStore =
+                mock(FlowStoreServiceConnectorBean.class);
+        FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        when(bootstrapBean.jobSchedulerBean.flowStore.getConnector()).thenReturn(flowStoreServiceConnector);
+        when(bootstrapBean.jobSchedulerBean.flowStore.getConnector().findAllSinks()).thenReturn(Collections.emptyList());
         return bootstrapBean;
     }
 }

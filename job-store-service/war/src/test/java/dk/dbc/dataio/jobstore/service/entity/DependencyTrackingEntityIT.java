@@ -2,16 +2,11 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
-import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
-import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
+import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
 import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,22 +16,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
 
-public class DependencyTrackingEntityIT {
-    private EntityManager entityManager;
-    private TransactionScopedPersistenceContext persistenceContext;
-
-    @BeforeClass
-    public static void setupDatabase() throws SQLException {
-        new DatabaseMigrator()
-                .withDataSource(JPATestUtils.getIntegrationTestDataSource("testdb"))
-                .onStartup();
-    }
-
-    @Before
-    public void setupPersistenceContext() throws Exception {
-        entityManager = JPATestUtils.getIntegrationTestEntityManager("jobstoreIT");
-        persistenceContext = new TransactionScopedPersistenceContext(entityManager);
-    }
+public class DependencyTrackingEntityIT  extends AbstractJobStoreIT {
 
     @After
     public void cleanupEntityManager() {

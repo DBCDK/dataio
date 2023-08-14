@@ -1,15 +1,10 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
-import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
-import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
-import org.junit.Before;
+import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,23 +14,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class DanMarc2LineFormatReorderingDataPartitionerIT {
-    private EntityManager entityManager;
-    private TransactionScopedPersistenceContext persistenceContext;
-
-    @Before
-    public void setupDatabase() throws SQLException {
-        final DatabaseMigrator migrator = new DatabaseMigrator()
-                .withDataSource(JPATestUtils.getIntegrationTestDataSource());
-        migrator.onStartup();
-    }
-
-    @Before
-    public void setupEntityManager() {
-        entityManager = JPATestUtils.getIntegrationTestEntityManager();
-        persistenceContext = new TransactionScopedPersistenceContext(entityManager);
-        JPATestUtils.clearDatabase(entityManager);
-    }
+public class DanMarc2LineFormatReorderingDataPartitionerIT extends AbstractJobStoreIT {
 
     @Test
     public void volumeAfterParentsReordering() {

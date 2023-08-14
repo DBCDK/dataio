@@ -62,6 +62,12 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-testcontainers</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>json-binding</artifactId>
             <version>0.1-SNAPSHOT</version>
         </dependency>
@@ -70,6 +76,21 @@
     <build>
         <finalName>${project.name}</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>

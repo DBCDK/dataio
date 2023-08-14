@@ -15,6 +15,7 @@ import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
+import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,6 +126,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean();
         bean.pgJobStoreRepository = newPgJobStoreRepository();
         jtbean.entityManager = bean.entityManager;
+        jtbean.enableOptimizer = false;
         jtbean.sinkMessageProducerBean = mock(SinkMessageProducerBean.class);
         jtbean.jobStoreRepository = bean.pgJobStoreRepository;
         bean.jobSchedulerTransactionsBean = jtbean;
@@ -133,6 +135,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         jobEntity.setPriority(Priority.NORMAL);
         jobEntity.setSpecification(new JobSpecification()
                 .withSubmitterId(1));
+        jobEntity.setState(new State());
         jobEntity.setCachedSink(SinkCacheEntity.create(new SinkBuilder()
                 .setId(1)
                 .setContent(new SinkContentBuilder()

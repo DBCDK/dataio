@@ -145,12 +145,6 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dbc-commons-testcontainers-postgres</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-jdbc-util</artifactId>
       <version>1.3-SNAPSHOT</version>
       <scope>test</scope>

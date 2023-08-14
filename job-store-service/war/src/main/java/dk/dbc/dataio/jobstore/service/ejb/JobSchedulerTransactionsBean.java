@@ -45,7 +45,7 @@ public class JobSchedulerTransactionsBean {
 
     @Inject
     @ConfigProperty(name = "ENABLE_DEPENDENCY_OPTIMIZER", defaultValue = "true")
-    private Boolean enableOptimizer;
+    protected Boolean enableOptimizer;
 
     @Inject
     @JobstoreDB

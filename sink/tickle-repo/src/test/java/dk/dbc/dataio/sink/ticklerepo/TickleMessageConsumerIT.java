@@ -15,6 +15,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumer;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.testutil.ObjectFactory;
 import dk.dbc.ticklerepo.TickleRepo;
@@ -46,8 +47,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class MessageConsumerIT extends IntegrationTest {
-    Logger LOGGER = LoggerFactory.getLogger(MessageConsumerIT.class);
+public class TickleMessageConsumerIT extends IntegrationTest {
+    Logger LOGGER = LoggerFactory.getLogger(TickleMessageConsumerIT.class);
     @Rule
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
@@ -74,7 +75,7 @@ public class MessageConsumerIT extends IntegrationTest {
     @Test
     public void datasetCreated() throws InvalidMessageException {
         ConsumedMessage message = ObjectFactory.createConsumedMessage(createChunk());
-        MessageConsumer messageConsumer = createMessageConsumerBean();
+        TickleMessageConsumer messageConsumer = createMessageConsumerBean();
 
         messageConsumer.handleConsumedMessage(message);
 
@@ -91,7 +92,7 @@ public class MessageConsumerIT extends IntegrationTest {
         executeScriptResource("/ticklerepo-existing-dataset.sql");
 
         ConsumedMessage message = ObjectFactory.createConsumedMessage(createChunk());
-        MessageConsumer messageConsumer = createMessageConsumerBean();
+        TickleMessageConsumer messageConsumer = createMessageConsumerBean();
 
         messageConsumer.handleConsumedMessage(message);
 
@@ -109,7 +110,7 @@ public class MessageConsumerIT extends IntegrationTest {
     public void batchCreated() throws JobStoreServiceConnectorException, JSONBException, InvalidMessageException {
         Chunk chunk = createChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
-        MessageConsumer messageConsumer = createMessageConsumerBean();
+        TickleMessageConsumer messageConsumer = createMessageConsumerBean();
 
         JobSpecification jobSpecification = new JobSpecification()
                 .withDataFile("testFile");
@@ -139,7 +140,7 @@ public class MessageConsumerIT extends IntegrationTest {
 
         Chunk chunk = createChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
-        MessageConsumer messageConsumer = createMessageConsumerBean();
+        TickleMessageConsumer messageConsumer = createMessageConsumerBean();
 
         messageConsumer.handleConsumedMessage(message);
 
@@ -158,7 +159,7 @@ public class MessageConsumerIT extends IntegrationTest {
     public void batchExists() throws InvalidMessageException {
         Chunk chunk = createChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
-        MessageConsumer messageConsumer = createMessageConsumerBean();
+        TickleMessageConsumer messageConsumer = createMessageConsumerBean();
 
         messageConsumer.handleConsumedMessage(message);
 
@@ -177,7 +178,7 @@ public class MessageConsumerIT extends IntegrationTest {
     public void chunkContainsNoItemsForTickle() throws JobStoreServiceConnectorException, InvalidMessageException {
         Chunk chunk = createIgnoredChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
-        MessageConsumer messageConsumer = createMessageConsumerBean();
+        TickleMessageConsumer messageConsumer = createMessageConsumerBean();
 
         messageConsumer.handleConsumedMessage(message);
 
@@ -200,7 +201,7 @@ public class MessageConsumerIT extends IntegrationTest {
     public void recordsCreated() throws InvalidMessageException {
         Chunk chunk = createChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
-        MessageConsumer messageConsumer = createMessageConsumerBean();
+        TickleMessageConsumer messageConsumer = createMessageConsumerBean();
 
         messageConsumer.handleConsumedMessage(message);
 
@@ -236,7 +237,7 @@ public class MessageConsumerIT extends IntegrationTest {
 
         Chunk chunk = createChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
-        MessageConsumer messageConsumer = createMessageConsumerBean();
+        TickleMessageConsumer messageConsumer = createMessageConsumerBean();
 
          messageConsumer.handleConsumedMessage(message);
 
@@ -264,7 +265,7 @@ public class MessageConsumerIT extends IntegrationTest {
      */
     @Test
     public void closeBatch() throws InvalidMessageException {
-        MessageConsumer messageConsumer = createMessageConsumerBean();
+        TickleMessageConsumer messageConsumer = createMessageConsumerBean();
         Chunk chunk = createChunk();
         messageConsumer.handleConsumedMessage( ObjectFactory.createConsumedMessage(chunk));
 
@@ -283,7 +284,7 @@ public class MessageConsumerIT extends IntegrationTest {
      */
     //@Test DISABLED for now and again
     public void abortBatch() throws InvalidMessageException {
-        MessageConsumer messageConsumer = createMessageConsumerBean();
+        TickleMessageConsumer messageConsumer = createMessageConsumerBean();
 
         Chunk chunk = createChunk();
         messageConsumer.handleConsumedMessage(ObjectFactory.createConsumedMessage(chunk));
@@ -346,9 +347,9 @@ public class MessageConsumerIT extends IntegrationTest {
         assertThat("5th item tracking ID", item.getTrackingId(), is(chunk.getItems().get(4).getTrackingId()));
     }
 
-    private MessageConsumer createMessageConsumerBean() {
+    private TickleMessageConsumer createMessageConsumerBean() {
         ServiceHub hub = new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build();
-        MessageConsumer messageConsumer = new MessageConsumer(hub, entityManager);
+        TickleMessageConsumer messageConsumer = new TickleMessageConsumer(hub, entityManager);
         return messageConsumer;
     }
 

@@ -1,8 +1,7 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
-
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 /**
  * The responsibility of this class is to ensure that volume records are

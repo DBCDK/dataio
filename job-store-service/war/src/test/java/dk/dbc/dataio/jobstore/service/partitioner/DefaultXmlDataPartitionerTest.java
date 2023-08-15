@@ -21,7 +21,7 @@ import static org.junit.Assert.fail;
 
 @SuppressWarnings("Duplicates")
 public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
-    private final static String XML_HEADER = "<?xml version='1.0'?>";
+    private final static String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
     @Test
     public void emptyRootElement_returnsNoXMLStrings() {
@@ -260,7 +260,8 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next().getChunkItem(), is(expectedXml));
+        ChunkItem item = iterator.next().getChunkItem();
+        assertThat(item, is(expectedXml));
         assertThat(iterator.hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is((long) xml.getBytes(StandardCharsets.UTF_8).length));
     }
@@ -435,9 +436,11 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
 
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        //<?xml version="1.0" encoding="UTF-8" standalone="no"?><test><child1 size="2">What is the size here?</child1></test>
 
         assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next().getChunkItem(), is(expectedXml));
+        ChunkItem item = iterator.next().getChunkItem();
+        assertThat(item, is(expectedXml));
         assertThat(iterator.hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is((long) xml.getBytes(StandardCharsets.UTF_8).length));
     }
@@ -565,7 +568,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<test>"
                 + "<child1 size=\"Quotation Mark: &quot; \">What is this?</child1>"
                 + "</test>").build();
-
+        //<?xml version="1.0" encoding="UTF-8" standalone="no"?><test><child1 size="2">What is the size here?</child1></test>
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 

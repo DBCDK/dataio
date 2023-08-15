@@ -1,10 +1,10 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
+import jakarta.ejb.EJBTransactionRolledbackException;
+import jakarta.ejb.TransactionRolledbackLocalException;
 import org.junit.Test;
 
-import javax.ejb.EJBTransactionRolledbackException;
-import javax.ejb.TransactionRolledbackLocalException;
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.is;

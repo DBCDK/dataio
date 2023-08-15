@@ -1,9 +1,9 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import org.postgresql.util.PGobject;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 import java.sql.SQLException;
 
 @Converter

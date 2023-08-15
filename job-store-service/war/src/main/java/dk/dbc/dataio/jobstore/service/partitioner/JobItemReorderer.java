@@ -2,8 +2,8 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
+import jakarta.persistence.EntityManager;
 
-import javax.persistence.EntityManager;
 import java.util.Optional;
 
 /**

@@ -1,7 +1,7 @@
 package dk.dbc.dataio.commons.utils.test.jms;
 
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
+import jakarta.jms.JMSException;
+import jakarta.jms.TextMessage;
 
 public class MockedJmsTextMessage extends MockedJmsMessage implements TextMessage {
     private String payload;

@@ -4,8 +4,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
-
-import javax.ejb.TransactionRolledbackLocalException;
+import jakarta.ejb.TransactionRolledbackLocalException;
 
 /**
  * This class represents the result of a job partitioning
@@ -13,7 +12,7 @@ import javax.ejb.TransactionRolledbackLocalException;
 public class Partitioning {
     enum KnownFailure {
         PREMATURE_END_OF_DATA("dk.dbc.dataio.jobstore.types.PrematureEndOfDataException"),
-        TRANSACTION_ROLLED_BACK_LOCAL("javax.ejb.TransactionRolledbackLocalException");
+        TRANSACTION_ROLLED_BACK_LOCAL("jakarta.ejb.TransactionRolledbackLocalException");
 
         private final String failureClassName;
 

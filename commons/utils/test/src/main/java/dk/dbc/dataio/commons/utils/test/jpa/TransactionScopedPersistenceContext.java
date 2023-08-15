@@ -1,7 +1,7 @@
 package dk.dbc.dataio.commons.utils.test.jpa;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 
 /**
  * Class used to execute blocks of code given as lambda expressions

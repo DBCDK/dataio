@@ -15,11 +15,11 @@ import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
+import jakarta.persistence.LockModeType;
 import org.junit.Before;
 import org.junit.Test;
 import types.TestablePartitioningParamBuilder;
 
-import javax.persistence.LockModeType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;

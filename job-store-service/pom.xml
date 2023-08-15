@@ -20,7 +20,7 @@
     <module>test</module>
     <module>types</module>
     <module>war</module>
-    <module>developer-tools</module>
+<!--    <module>developer-tools</module> Wants to use javax.jms -->
   </modules>
 
 </project>

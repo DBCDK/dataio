@@ -27,14 +27,14 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import jakarta.persistence.EntityTransaction;
+import jakarta.ws.rs.ProcessingException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import types.TestableAddJobParam;
 import types.TestableAddJobParamBuilder;
 
-import javax.persistence.EntityTransaction;
-import javax.ws.rs.ProcessingException;
 import java.io.ByteArrayInputStream;
 import java.io.IOError;
 import java.sql.SQLException;

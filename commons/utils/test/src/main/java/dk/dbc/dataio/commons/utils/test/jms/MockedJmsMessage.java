@@ -1,10 +1,10 @@
 package dk.dbc.dataio.commons.utils.test.jms;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
 
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;

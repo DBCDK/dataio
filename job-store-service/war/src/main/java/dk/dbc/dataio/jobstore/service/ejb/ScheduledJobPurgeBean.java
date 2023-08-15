@@ -1,12 +1,11 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import jakarta.ejb.EJB;
+import jakarta.ejb.Schedule;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ejb.EJB;
-import javax.ejb.Schedule;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
 
 /**
  * This enterprise Java bean represents periodic attempts at purging old jobs and all related entries from the system.

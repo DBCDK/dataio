@@ -6,13 +6,15 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-commons</artifactId>
+    <artifactId>p6</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
+    <relativePath>../../p6</relativePath>
   </parent>
 
   <artifactId>dataio-commons-types</artifactId>
   <name>dataio-commons-types</name>
+  <version>2.0-SNAPSHOT</version>
 
   <build>
     <resources>
@@ -40,10 +42,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
-      <version>${javaee.version}</version>
-      <scope>provided</scope>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

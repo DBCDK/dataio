@@ -1,9 +1,8 @@
 package dk.dbc.dataio.commons.types.jms;
 
 import dk.dbc.dataio.commons.types.Chunk;
-
-import javax.jms.JMSException;
-import javax.jms.Message;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
 
 public interface MessageIdentifiers {
     default void addIdentifiers(Message message, Chunk chunk) throws JMSException {

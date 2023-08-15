@@ -6,13 +6,15 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-commons-utils</artifactId>
+    <artifactId>p6</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
+    <relativePath>../../../p6</relativePath>
   </parent>
 
   <artifactId>dataio-commons-utils-test</artifactId>
   <name>dataio-commons-utils-test</name>
+  <version>2.0-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
@@ -23,7 +25,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-lang</artifactId>
-      <version>${project.version}</version>
+      <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -31,10 +33,8 @@
       <version>1.3-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
-      <version>${javaee.version}</version>
-      <scope>provided</scope>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>

@@ -7,8 +7,8 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
+import jakarta.persistence.EntityManager;
 
-import javax.persistence.EntityManager;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;

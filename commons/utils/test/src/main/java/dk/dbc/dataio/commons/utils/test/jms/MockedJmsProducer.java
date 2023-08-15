@@ -1,9 +1,10 @@
 package dk.dbc.dataio.commons.utils.test.jms;
 
-import javax.jms.CompletionListener;
-import javax.jms.Destination;
-import javax.jms.JMSProducer;
-import javax.jms.Message;
+import jakarta.jms.CompletionListener;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSProducer;
+import jakarta.jms.Message;
+
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.Map;

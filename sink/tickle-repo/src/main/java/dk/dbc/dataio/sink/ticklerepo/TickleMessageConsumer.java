@@ -82,16 +82,15 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
 
     @Override
     public void abortJob(int jobId) {
-        getBatch(jobId).ifPresent(batch -> {
-            EntityTransaction transaction = entityManager.getTransaction();
-            transaction.begin();
-            try {
-                entityManager.remove(batch);
-                batchCache.invalidate(jobId);
-            } finally {
-                if(transaction.isActive()) transaction.commit();
-            }
-        });
+        EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        try {
+            Batch batch = getBatch(jobId);
+            entityManager.remove(batch);
+            batchCache.invalidate(jobId);
+        } finally {
+            if(transaction.isActive()) transaction.commit();
+        }
     }
 
     @Override
@@ -104,14 +103,18 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         return ADDRESS;
     }
 
-    public Optional<Batch> getBatch(int jobId) {
+    public Batch getBatch(Chunk chunk) {
+        int jobId = chunk.getJobId();
         Batch batch = batchCache.getIfPresent(jobId);
-        if(batch != null) return Optional.of(batch);
-        return tickleRepo.lookupBatch(new Batch().withBatchKey(jobId));
+        if(batch != null) return batch;
+        batch = tickleRepo.lookupBatch(new Batch().withBatchKey(jobId)).orElse(null);
+        if(batch == null) batch = createBatch(chunk);
+        if(batch != null) batchCache.put(jobId, batch);
+        return batch;
     }
 
-    private Batch getBatch(Chunk chunk) {
-        return getBatch(chunk.getJobId()).orElseGet(() -> createBatch(chunk));
+    protected Batch getBatch(int jobId) {
+        return tickleRepo.lookupBatch(new Batch().withBatchKey(jobId)).orElse(null);
     }
 
     private Batch createBatch(Chunk chunk) {
@@ -129,7 +132,6 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
                 .withDataset(dataset.getId())
                 .withType(tickleBehaviour)
                 .withMetadata(getBatchMetadata(chunk.getJobId())));
-        batchCache.put(chunk.getJobId(), batch);
         return batch;
     }
 

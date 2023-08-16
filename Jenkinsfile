@@ -34,7 +34,7 @@ pipeline {
             sink/dpf, \
             commons/utils/file-store-service-connector, \
             commons/types, \
-            commons/util/test \
+            commons/utils/test \
         "
     }
     triggers {

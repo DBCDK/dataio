@@ -18,6 +18,11 @@
   <name>dataio</name>
 
   <properties>
+    <dataio-commons-utils-file-store-service-connector.version>1.1-migration</dataio-commons-utils-file-store-service-connector.version>
+    <dataio-commons-types.version>1.1-migration</dataio-commons-types.version>
+    <dataio-commons-utils-test.version>1.1-migration</dataio-commons-utils-test.version>
+    <dataio-commons-utils-tickle-harvester-service-connector.version>1.1-migration</dataio-commons-utils-tickle-harvester-service-connector.version>
+
     <svnkit.version>1.7.8</svnkit.version>
     <jaxws.version>2.2</jaxws.version>
     <javax.json.version>1.1.4</javax.json.version>

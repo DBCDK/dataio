@@ -13,6 +13,7 @@
 
   <artifactId>dataio-commons-types</artifactId>
   <name>dataio-commons-types</name>
+  <version>${dataio-commons-types.version}</version>
 
   <build>
     <resources>

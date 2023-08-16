@@ -31,7 +31,10 @@ pipeline {
             sink/openupdate, \
             sink/batch-exchange, \
             sink/periodic-jobs, \
-            sink/dpf \
+            sink/dpf, \
+            commons/utils/file-store-service-connector, \
+            commons/types, \
+            commons/util/test \
         "
     }
     triggers {

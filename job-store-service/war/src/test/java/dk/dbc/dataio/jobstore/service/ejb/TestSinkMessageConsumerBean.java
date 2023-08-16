@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  */
 @MessageDriven(activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "jms/dataio/sinks"),
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),}
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "jakarta.jms.Queue"),}
 )
 public class TestSinkMessageConsumerBean extends AbstractSinkMessageConsumerBean {
 

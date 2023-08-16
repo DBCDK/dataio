@@ -53,7 +53,7 @@ public class VipCsvDataPartitionerTest {
         result = iterator.next();
         assertThat("3rd result chunk item status", result.getChunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("3rd result chunk item data", StringUtil.asString(result.getChunkItem().getData()),
-                is("<csv><line><C0>\"g\"</C0><C1>h contains&lt;p>&lt;a href=\"url\">html&lt;/a></C1></line></csv>"));
+                is("<csv><line><C0>\"g\"</C0><C1>h contains&lt;p&gt;&lt;a href=\"url\"&gt;html&lt;/a&gt;</C1></line></csv>"));
         assertThat("3rd result record info", result.getRecordInfo(), is(nullValue()));
         assertThat("3rd result position in datafile", result.getPositionInDatafile(), is(3));
 

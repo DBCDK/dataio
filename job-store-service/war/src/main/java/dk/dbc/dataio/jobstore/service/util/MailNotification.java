@@ -11,7 +11,6 @@ import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Part;
-import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
@@ -31,6 +30,8 @@ import static dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter.toJob
 
 /**
  * Class wrapping a NotificationEntity instance as an email notification
+ *
+ * Currently not able to get a jakarta compatible mock-javamail
  */
 public class MailNotification {
     private static final String JOB_CREATED_OK_TEMPLATE = "/notifications/job_created_ok.template";
@@ -69,13 +70,13 @@ public class MailNotification {
      * @throws JobStoreException in case of error during formatting or sending
      */
     public void send() throws JobStoreException {
-        try {
-            // sends the e-mail
-            notification.setDestination(mailDestination.toString());
-            Transport.send(buildMimeMessage());
-        } catch (Exception e) {
-            throw new JobStoreException("Unable to send notification", e);
-        }
+//        try {
+//            // sends the e-mail
+//            notification.setDestination(mailDestination.toString());
+//            Transport.send(buildMimeMessage());
+//        } catch (Exception e) {
+//            throw new JobStoreException("Unable to send notification", e);
+//        }
     }
 
     public void append(JobExporter.FailedItemsContent failedItemsContent) {

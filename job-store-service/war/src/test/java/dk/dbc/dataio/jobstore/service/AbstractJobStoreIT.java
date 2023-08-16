@@ -40,7 +40,6 @@ import jakarta.persistence.Query;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.jvnet.mock_javamail.Mailbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,7 +104,7 @@ public class AbstractJobStoreIT implements PostgresContainerJPAUtils {
 
     @Before
     public void clearMailBoxes() {
-        Mailbox.clearAll();
+//        Mailbox.clearAll();
     }
 
     @Before

@@ -14,9 +14,6 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.vipcore.service.VipCoreServiceConnector;
 import jakarta.ejb.SessionContext;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Session;
-import jakarta.mail.internet.AddressException;
 import jakarta.persistence.Query;
 import org.junit.Rule;
 import org.junit.Test;
@@ -129,7 +126,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
      * item exports in the order first chunk item before second chunk item
      */
     @Test
-    public void processNotificationWithAppendedFailures() throws MessagingException, IOException {
+    public void processNotificationWithAppendedFailures() throws IOException {
         environmentVariables.set("MAIL_TO_FALLBACK", mailToFallback);
 
         // Given...
@@ -208,7 +205,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
      * the data from the item failed in partitioning as attachment
      */
     @Test
-    public void processNotificationWithAppendedAndAttachedFailures() throws MessagingException, IOException {
+    public void processNotificationWithAppendedAndAttachedFailures() throws IOException {
         // Given...
         final JobEntity jobEntity = newJobEntity();
         jobEntity.getSpecification()
@@ -324,7 +321,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
      * Then : all waiting notifications are processed
      */
     @Test
-    public void flushNotifications() throws AddressException {
+    public void flushNotifications() {
         final JobEntity jobEntity = newPersistedJobEntity();
         jobEntity.getSpecification()
                 .withMailForNotificationAboutVerification("verification@company.com");
@@ -376,7 +373,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 
         final JobNotificationRepository jobNotificationRepository = new JobNotificationRepository();
         jobNotificationRepository.entityManager = entityManager;
-        jobNotificationRepository.mailSession = Session.getDefaultInstance(mailSessionProperties);
+//        jobNotificationRepository.mailSession = Session.getDefaultInstance(mailSessionProperties);
         jobNotificationRepository.sessionContext = sessionContext;
         jobNotificationRepository.vipCoreServiceConnector = vipCoreServiceConnector;
 

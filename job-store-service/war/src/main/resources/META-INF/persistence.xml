@@ -30,6 +30,7 @@
     <class>dk.dbc.dataio.jobstore.service.entity.StringSetConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.RerunStateConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.RerunEntity</class>
+    <shared-cache-mode>DISABLE_SELECTIVE</shared-cache-mode>
     <properties>
       <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
       <property name="eclipselink.jdbc.batch-writing" value="JDBC" />

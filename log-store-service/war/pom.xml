@@ -77,7 +77,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
-      <version>${project.version}</version>
+      <version>${dataio-commons-types.version}</version>
     </dependency>
     <dependency>
       <groupId>org.flywaydb</groupId>

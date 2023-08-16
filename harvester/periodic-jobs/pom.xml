@@ -36,7 +36,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-file-store-service-connector</artifactId>
-      <version>${project.version}</version>
+      <version>${dataio-commons-utils-file-store-service-connector.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

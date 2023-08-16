@@ -75,7 +75,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
-      <version>${project.version}</version>
+      <version>${dataio-commons-types.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -120,7 +120,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
-      <version>${project.version}</version>
+      <version>${dataio-commons-utils-test.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -172,7 +172,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-file-store-service-connector</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>${dataio-commons-utils-file-store-service-connector.version}</version>
       <type>ejb</type>
       <exclusions>
         <exclusion>
@@ -238,7 +238,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-tickle-harvester-service-connector</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>${dataio-commons-utils-tickle-harvester-service-connector.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

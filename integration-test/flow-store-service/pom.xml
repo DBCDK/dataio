@@ -30,7 +30,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
-      <version>${project.version}</version>
+      <version>${dataio-commons-types.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -42,7 +42,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
-      <version>${project.version}</version>
+      <version>${dataio-commons-utils-test.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

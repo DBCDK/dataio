@@ -14,12 +14,17 @@
   </parent>
 
   <artifactId>p6</artifactId>
-  <version>2.0-SNAPSHOT</version>
+  <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>p6</name>
   <description>Temporary main pom for Payara 6 migration</description>
 
   <properties>
+    <dataio-commons-utils-file-store-service-connector.version>1.1-migration</dataio-commons-utils-file-store-service-connector.version>
+    <dataio-commons-types.version>1.1-migration</dataio-commons-types.version>
+    <dataio-commons-utils-test.version>1.1-migration</dataio-commons-utils-test.version>
+    <dataio-commons-utils-tickle-harvester-service-connector.version>1.1-migration</dataio-commons-utils-tickle-harvester-service-connector.version>
+
     <svnkit.version>1.7.8</svnkit.version>
     <microprofile.version>4.1</microprofile.version>
     <maven.install.plugin.version>3.0.0-M1</maven.install.plugin.version>

@@ -44,7 +44,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
-      <version>${project.version}</version>
+      <version>${dataio-commons-utils-test.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -58,9 +58,8 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-ejb-plugin</artifactId>
-        <version>${maven.ejb.plugin.version}</version>
         <configuration>
-          <ejbVersion>${ejb.version}</ejbVersion>
+          <ejbVersion>3.2</ejbVersion>
           <filterDeploymentDescriptor>true</filterDeploymentDescriptor>
         </configuration>
       </plugin>

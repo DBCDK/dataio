@@ -12,7 +12,7 @@ public class VipSinkApp extends MessageConsumerApp {
     private static final  FlowStoreServiceConnector FLOW_STORE = new FlowStoreServiceConnector(ClientBuilder.newClient(),
             SinkConfig.FLOWSTORE_URL.asString());
     private static final ConfigBean CONFIG_BEAN = new ConfigBean(FLOW_STORE);
-    private static final Supplier<MessageConsumer> messageConsumer = () -> new MessageConsumer(serviceHub, CONFIG_BEAN);
+    private static final Supplier<VipMessageConsumer> messageConsumer = () -> new VipMessageConsumer(serviceHub, CONFIG_BEAN);
 
     public static void main(String[] args) {
         new VipSinkApp().go(serviceHub, messageConsumer);

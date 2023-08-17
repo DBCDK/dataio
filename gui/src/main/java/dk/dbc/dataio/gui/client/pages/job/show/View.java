@@ -34,7 +34,6 @@ import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -43,14 +42,6 @@ import java.util.List;
  */
 public class View extends ViewWidget {
     // List of sinks that are known to be abortable
-    private static final List<Long> ABORTABLE_SINKS = Arrays.asList(
-            1L,     // diff
-            54L,    // s:dummy
-            551L,   // p:dummy
-            8461L,  // p:marcconv
-            9751L,  // s:tickle inc
-            18401L  // s:dmat
-    );
     ViewJobsGinjector viewInjector = GWT.create(ViewJobsGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
@@ -562,7 +553,7 @@ public class View extends ViewWidget {
 
             @Override
             public void render(Cell.Context context, JobModel object, SafeHtmlBuilder sb) {
-                if(ABORTABLE_SINKS.contains(object.getSinkId()) && object.getJobCompletionTime().isEmpty()) {
+                if(object.getJobCompletionTime().isEmpty()) {
                     super.render(context, object, sb);
                 }
             }

@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -66,6 +67,19 @@ public class BatchExchangeMessageConsumer extends MessageConsumerAdapter {
     }
 
     @Override
+    public void abortJob(int jobId) {
+        EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        try {
+            deleteBatch(jobId);
+            LOGGER.warn("Aborted job {}", jobId);
+        } finally {
+            if(transaction.isActive()) transaction.commit();
+        }
+
+    }
+
+    @Override
     public String getQueue() {
         return QUEUE;
     }
@@ -110,6 +124,12 @@ public class BatchExchangeMessageConsumer extends MessageConsumerAdapter {
                 throw new InvalidMessageException("Unknown chunk item state: " + chunkItem.getStatus().name());
         }
         return entries;
+    }
+
+    private int deleteBatch(int jobId) {
+        Query query = entityManager.createQuery("delete from Batch b where b.name like :jobId");
+        query.setParameter("jobId", jobId + "-%");
+        return query.executeUpdate();
     }
 
     private BatchEntry createPendingBatchEntry(AddiRecord addiRecord) throws IOException {

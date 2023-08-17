@@ -21,7 +21,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class MessageConsumerIT extends IntegrationTest {
+public class PeriodicJobsMessageConsumerIT extends IntegrationTest {
     private final AddiRecord addiRecord1 =
             newAddiRecord(new ConversionParam(), "record-1");
     private final AddiRecord addiRecord2 =
@@ -32,7 +32,7 @@ public class MessageConsumerIT extends IntegrationTest {
 
     @Test
     public void handleChunk() {
-        MessageConsumer messageConsumer = newMessageConsumerBean();
+        PeriodicJobsMessageConsumer periodicJobsMessageConsumer = newMessageConsumerBean();
 
         List<ChunkItem> chunkItems = Arrays.asList(
                 new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.FAILURE).build(),
@@ -55,7 +55,7 @@ public class MessageConsumerIT extends IntegrationTest {
                 .build();
 
         Chunk result = env().getPersistenceContext().run(() ->
-                messageConsumer.handleChunk(chunk));
+                periodicJobsMessageConsumer.handleChunk(chunk));
         assertThat("number of chunk items", result.size(), is(5));
         assertThat("1st chunk item",
                 result.getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
@@ -121,10 +121,10 @@ public class MessageConsumerIT extends IntegrationTest {
             env().getEntityManager().persist(existingDatablock);
         });
 
-        MessageConsumer messageConsumer = newMessageConsumerBean();
+        PeriodicJobsMessageConsumer periodicJobsMessageConsumer = newMessageConsumerBean();
 
         Chunk result = env().getPersistenceContext().run(() ->
-                messageConsumer.handleChunk(chunk));
+                periodicJobsMessageConsumer.handleChunk(chunk));
 
         assertThat("1st chunk item",
                 result.getItems().get(0).getStatus(), is(ChunkItem.Status.SUCCESS));
@@ -133,7 +133,7 @@ public class MessageConsumerIT extends IntegrationTest {
     @Test
     public void emptyConversionResultsFails() {
         final int jobId = 42;
-        MessageConsumer messageConsumer = newMessageConsumerBean();
+        PeriodicJobsMessageConsumer periodicJobsMessageConsumer = newMessageConsumerBean();
         List<ChunkItem> chunkItems = Collections.singletonList(
                 new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.SUCCESS)
                         .setData(newAddiRecord(new ConversionParam(), "").getBytes())
@@ -146,7 +146,7 @@ public class MessageConsumerIT extends IntegrationTest {
                 .build();
 
         Chunk result = env().getPersistenceContext().run(() ->
-                messageConsumer.handleChunk(chunk));
+                periodicJobsMessageConsumer.handleChunk(chunk));
         assertThat("1st chunk item",
                 result.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
 
@@ -156,12 +156,12 @@ public class MessageConsumerIT extends IntegrationTest {
         assertThat("datablock not written", datablock, is(nullValue()));
     }
 
-    private MessageConsumer newMessageConsumerBean() {
-        MessageConsumer messageConsumer = new MessageConsumer(new ServiceHub.Builder()
+    private PeriodicJobsMessageConsumer newMessageConsumerBean() {
+        PeriodicJobsMessageConsumer periodicJobsMessageConsumer = new PeriodicJobsMessageConsumer(new ServiceHub.Builder()
                 .withJobStoreServiceConnector(jobStoreServiceConnector)
                 .build(),
                 env().getEntityManager());
-        return messageConsumer;
+        return periodicJobsMessageConsumer;
     }
 
     private AddiRecord newAddiRecord(ConversionParam conversionParam, String data) {

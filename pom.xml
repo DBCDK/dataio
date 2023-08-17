@@ -22,6 +22,7 @@
     <dataio-commons-types.version>1.1-migration</dataio-commons-types.version>
     <dataio-commons-utils-test.version>1.1-migration</dataio-commons-utils-test.version>
     <dataio-commons-utils-tickle-harvester-service-connector.version>1.1-migration</dataio-commons-utils-tickle-harvester-service-connector.version>
+    <dataio-harvester-task-repo-connector.version>1.1-migration</dataio-harvester-task-repo-connector.version>
 
     <svnkit.version>1.7.8</svnkit.version>
     <jaxws.version>2.2</jaxws.version>

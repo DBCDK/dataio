@@ -14,6 +14,7 @@ import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsMailFinalizerBean;
 import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsSFtpFinalizerBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.persistence.EntityManager;
 
 /**
@@ -55,14 +56,14 @@ public class PeriodicJobsFinalizerBean {
         return result;
     }
 
-    private int deleteDataBlocks(Integer jobId) {
+    public int deleteDataBlocks(Integer jobId) {
         return entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.DELETE_DATA_BLOCKS_QUERY_NAME)
                 .setParameter("jobId", jobId)
                 .executeUpdate();
     }
 
-    private int deleteDelivery(Integer jobId) {
+    public int deleteDelivery(Integer jobId) {
         return entityManager
                 .createNamedQuery(PeriodicJobsDelivery.DELETE_DELIVERY_QUERY_NAME)
                 .setParameter("jobId", jobId)

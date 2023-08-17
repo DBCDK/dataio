@@ -20,9 +20,9 @@ import static org.mockito.Mockito.mock;
 
 // TODO: 24-04-19 Add wiremock request/response tests when VIP-CORE service is available
 
-public class MessageConsumerTest {
+public class VipMessageConsumerTest {
     private final ServiceHub hub = new ServiceHub.Builder().withJobStoreServiceConnector(mock(JobStoreServiceConnector.class)).build();
-    private final MessageConsumer messageConsumer = new MessageConsumer(hub, new ConfigBean(mock(FlowStoreServiceConnector.class)));
+    private final VipMessageConsumer vipMessageConsumer = new VipMessageConsumer(hub, new ConfigBean(mock(FlowStoreServiceConnector.class)));
 
     private static AddiRecord createAddiRecord(String metadata, String content) {
         return new AddiRecord(StringUtil.asBytes(metadata), StringUtil.asBytes(content));
@@ -42,7 +42,7 @@ public class MessageConsumerTest {
                 .setItems(chunkItems)
                 .build();
 
-        Chunk result = messageConsumer.handleChunk(chunk);
+        Chunk result = vipMessageConsumer.handleChunk(chunk);
 
         assertThat("number of chunk items", result.size(), is(3));
         assertThat("1st chunk item", result.getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));

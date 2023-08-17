@@ -6,9 +6,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-file-store-service</artifactId>
+    <artifactId>payara-micro-app</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
+    <relativePath>../../payara-micro-app</relativePath>
   </parent>
 
   <artifactId>dataio-file-store-service-war</artifactId>
@@ -16,17 +17,6 @@
   <packaging>war</packaging>
 
   <dependencies>
-    <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
-      <version>${javaee.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-types</artifactId>
-      <version>${project.version}</version>
-    </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-binary-file-store</artifactId>
@@ -42,28 +32,6 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-io</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.flywaydb</groupId>
-      <artifactId>flyway-core</artifactId>
-      <version>${flyway.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jersey.core</groupId>
-      <artifactId>jersey-client</artifactId>
-      <version>${jersey.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -105,20 +73,35 @@
         </executions>
       </plugin>
       <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <version>${exec-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>prepare-build-docker-image</id>
-            <configuration>
-              <arguments combine.children="append">
-                <argument>dbc-payara-filestore</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>docker-push</id>
+      <properties>
+        <tag>DIT-${BUILD_NUMBER}</tag>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>push</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>push</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

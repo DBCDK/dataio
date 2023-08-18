@@ -74,7 +74,7 @@ public class AdminBean {
     private MetricRegistry metricRegistry;
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
-    private final Map<String, AtomicInteger> staleChunks = new ConcurrentHashMap<>();
+    private static final Map<String, AtomicInteger> staleChunks = new ConcurrentHashMap<>();
     private final org.glassfish.jersey.internal.guava.Cache<Integer, Sink> sinkMap = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
 
     @SuppressWarnings("unused")
@@ -138,7 +138,7 @@ public class AdminBean {
     private void registerChunkMetric(String sinkName) {
         MetricID metricID = new MetricID("dataio_stale_chunks", new Tag("sink", sinkName));
         LOGGER.info("Registering metric: {}", metricID);
-        metricRegistry.gauge(metricID, () -> staleChunks.computeIfAbsent(sinkName, k -> new AtomicInteger()));
+        metricRegistry.gauge(metricID, () -> staleChunks.get(sinkName));
     }
 
     private String getSinkName(int id) {

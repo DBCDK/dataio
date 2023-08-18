@@ -26,7 +26,6 @@
     <module>periodic-jobs</module>
     <module>testutil</module>
     <module>tickle-repo</module>
-    <module>types</module>
     <module>util</module>
     <module>vip</module>
     <module>worldcat</module>

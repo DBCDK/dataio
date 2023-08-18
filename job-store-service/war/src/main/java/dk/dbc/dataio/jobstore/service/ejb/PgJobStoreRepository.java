@@ -72,6 +72,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
@@ -151,13 +152,13 @@ public class PgJobStoreRepository extends RepositoryBase {
         return query.executeUpdate();
     }
 
-    public int resetStatus(Integer jobId, DependencyTrackingEntity.ChunkSchedulingStatus fromStatus,
+    public int resetStatus(Set<Integer> jobIds, DependencyTrackingEntity.ChunkSchedulingStatus fromStatus,
                            DependencyTrackingEntity.ChunkSchedulingStatus toStatus) {
         Query q;
-        if(jobId == null) q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATES_IN_DEPENDENCYTRACKING);
+        if(jobIds == null || jobIds.isEmpty()) q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATES_IN_DEPENDENCYTRACKING);
         else {
             q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING);
-            q.setParameter("jobId", jobId);
+            q.setParameter("jobIds", jobIds);
         }
         q.setParameter("fromStatus", fromStatus);
         q.setParameter("toStatus", toStatus);

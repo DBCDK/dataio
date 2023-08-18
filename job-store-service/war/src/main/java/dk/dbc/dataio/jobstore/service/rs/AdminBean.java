@@ -36,9 +36,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -83,10 +85,22 @@ public class AdminBean {
         Stream<DependencyTrackingEntity> delStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
         Stream<DependencyTrackingEntity> procStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
         List<DependencyTrackingEntity> list = Stream.concat(delStream, procStream).collect(Collectors.toList());
+        retryIfNeeded(list);
         list.stream().map(s -> getSinkName(s.getSinkid())).distinct().filter(s -> staleChunks.putIfAbsent(s, new AtomicInteger(0)) == null).forEach(this::registerChunkMetric);
         Map<Integer, List<DependencyTrackingEntity>> map = list.stream().collect(Collectors.groupingBy(DependencyTrackingEntity::getSinkid));
         Map<String, Integer> counters = map.entrySet().stream().collect(Collectors.toMap(e -> getSinkName(e.getKey()), e -> e.getValue().size()));
         staleChunks.forEach((k, v) -> v.set(counters.getOrDefault(k, 0)));
+    }
+
+    private void retryIfNeeded(List<DependencyTrackingEntity> list) {
+        Set<Integer> retries = list.stream()
+                .filter(de -> de.getRetries() < 1)
+                .filter(de -> de.getWaitingOn().isEmpty())
+                .map(de -> de.getKey().getJobId())
+                .collect(Collectors.toSet());
+        LOGGER.warn("Retrying stale jobs: {}", retries.stream().map(Object::toString).collect(Collectors.joining(", ")));
+        retransmitJobs(retries);
+        list.forEach(DependencyTrackingEntity::incRetries);
     }
 
     @SuppressWarnings("unused")
@@ -116,22 +130,23 @@ public class AdminBean {
     @SuppressWarnings("UnresolvedRestParam")
     @POST
     @Path(JobStoreServiceConstants.FORCE_DEPENDENCY_TRACKING_RETRANSMIT_ID)
-    public Response retransmit(@PathParam("jobId") Integer jobId) {
-        return retransmitJobs(jobId);
+    public Response retransmit(@PathParam("jobIds") String jobIds) {
+        Set<Integer> ids = Arrays.stream(jobIds.split(" *, *")).map(Integer::valueOf).collect(Collectors.toSet());;
+        return retransmitJobs(ids);
     }
 
-    private Response retransmitJobs(Integer jobId) {
-        Integer sinkId = Optional.ofNullable(jobId).map(id -> entityManager.find(JobEntity.class, id))
+    private Response retransmitJobs(Set<Integer> jobIds) {
+        Set<Integer> sinkId = jobIds.stream().map(id -> entityManager.find(JobEntity.class, id))
                 .map(JobEntity::getCachedSink)
                 .map(SinkCacheEntity::getSink)
                 .map(Sink::getId)
                 .map(Long::intValue)
-                .orElse(null);
-        int rowsUpdated = jobStoreRepository.resetStatus(jobId, QUEUED_FOR_PROCESSING, READY_FOR_PROCESSING);
+                .collect(Collectors.toSet());
+        int rowsUpdated = jobStoreRepository.resetStatus(jobIds, QUEUED_FOR_PROCESSING, READY_FOR_PROCESSING);
         LOGGER.info("Reset dependency tracking states. Sets status = 1 for status = 2 for {} entities", rowsUpdated);
-        rowsUpdated = jobStoreRepository.resetStatus(jobId, QUEUED_FOR_DELIVERY, READY_FOR_DELIVERY);
+        rowsUpdated = jobStoreRepository.resetStatus(jobIds, QUEUED_FOR_DELIVERY, READY_FOR_DELIVERY);
         LOGGER.info("Reset dependency tracking states. Sets status = 4 for status = 5 for {} entities", rowsUpdated);
-        jobSchedulerBean.loadSinkStatusOnBootstrap(sinkId);
+        sinkId.forEach(jobSchedulerBean::loadSinkStatusOnBootstrap);
         return Response.ok().build();
     }
 

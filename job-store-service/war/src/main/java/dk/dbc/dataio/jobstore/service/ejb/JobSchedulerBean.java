@@ -43,9 +43,12 @@ import javax.persistence.TypedQuery;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.BLOCKED_GROUPED_BY_SINK;
@@ -125,17 +128,23 @@ public class JobSchedulerBean {
     public void registerMetrics() {
         try {
             for (Sink sink : flowStore.getConnector().findAllSinks()) {
-                MetricID metricID = new MetricID("dataio-longest_running_delivery_in_ms",
-                        new Tag("sink_name", sink.getContent().getName()));
+                Tag sinkTag = new Tag("sink_name", sink.getContent().getName());
+                MetricID metricID = new MetricID("dataio-longest_running_delivery_in_ms", sinkTag);
                 Gauge<?> gauge = metricRegistry.getGauge(metricID);
                 if (gauge == null) metricRegistry.gauge(metricID, () -> getLongestRunningChunkDuration(sink.getId()));
                 LOGGER.info("Registered gauge for longest_running_delivery_in_ms -> {}", metricID);
+                metricRegistry.gauge("dataio-status_map", () -> getEnqueued(sink.getId(), s -> s.processingStatus), sinkTag, new Tag("state", "processing"));
+                metricRegistry.gauge("dataio-status_map", () -> getEnqueued(sink.getId(), s -> s.deliveringStatus), sinkTag, new Tag("state", "delivering"));
             }
         } catch (FlowStoreServiceConnectorException e) {
             LOGGER.error("Unable to get sinks list from flowstore:", e);
         } catch (javax.ws.rs.ProcessingException e1) {
             LOGGER.error("Flowstore unavailable:", e1);
         }
+    }
+
+    private Integer getEnqueued(long sinkId, Function<JobSchedulerSinkStatus, JobSchedulerSinkStatus.QueueStatus> f) {
+        return Optional.ofNullable(sinkStatusMap.get(sinkId)).map(f).map(q -> q.enqueued).map(AtomicInteger::get).orElse(0);
     }
 
     private long getLongestRunningChunkDuration(long sinkId) {

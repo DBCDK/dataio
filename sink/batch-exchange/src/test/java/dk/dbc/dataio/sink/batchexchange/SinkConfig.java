@@ -5,7 +5,7 @@ import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 public enum SinkConfig implements EnvConfig {
     QUEUE("dummy::dummy"),
     BATCH_EXCHANGE_DB_URL,
-    FINALIZER_LIVENESS_THRESHOLD("PT10m");;
+    FINALIZER_LIVENESS_THRESHOLD("PT5m");;
 
     private final String defaultValue;
 

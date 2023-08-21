@@ -96,7 +96,6 @@ public class AdminBean {
         Set<Integer> retries = list.stream()
                 .filter(de -> de.getRetries() < 1)
                 .filter(de -> de.getWaitingOn().isEmpty())
-                .peek(de -> LOGGER.info("Retrying {} lm: {}", de.getKey(), de.getLastModified()))
                 .map(de -> de.getKey().getJobId())
                 .collect(Collectors.toSet());
         if(retries.isEmpty()) return;

@@ -132,7 +132,7 @@ public class AdminBean {
     @POST
     @Path(JobStoreServiceConstants.FORCE_DEPENDENCY_TRACKING_RETRANSMIT_ID)
     public Response retransmit(@PathParam("jobIds") String jobIds) {
-        Set<Integer> ids = Arrays.stream(jobIds.split(" *, *")).map(Integer::valueOf).collect(Collectors.toSet());;
+        Set<Integer> ids = Arrays.stream(jobIds.split(" *, *")).map(Integer::valueOf).collect(Collectors.toSet());
         return retransmitJobs(ids);
     }
 

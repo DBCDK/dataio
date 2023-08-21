@@ -129,12 +129,13 @@ public class JobSchedulerBean {
         try {
             for (Sink sink : flowStore.getConnector().findAllSinks()) {
                 Tag sinkTag = new Tag("sink_name", sink.getContent().getName());
-                MetricID metricID = new MetricID("dataio-longest_running_delivery_in_ms", sinkTag);
+                MetricID metricID = new MetricID("dataio_longest_running_delivery_in_ms", sinkTag);
                 Gauge<?> gauge = metricRegistry.getGauge(metricID);
                 if (gauge == null) metricRegistry.gauge(metricID, () -> getLongestRunningChunkDuration(sink.getId()));
                 LOGGER.info("Registered gauge for longest_running_delivery_in_ms -> {}", metricID);
-                metricRegistry.gauge("dataio-status_map", () -> getEnqueued(sink.getId(), s -> s.processingStatus), sinkTag, new Tag("state", "processing"));
-                metricRegistry.gauge("dataio-status_map", () -> getEnqueued(sink.getId(), s -> s.deliveringStatus), sinkTag, new Tag("state", "delivering"));
+                metricRegistry.gauge("dataio_status_map", () -> getEnqueued(sink.getId(), s -> s.processingStatus), sinkTag, new Tag("state", "processing"));
+                metricRegistry.gauge("dataio_status_map", () -> getEnqueued(sink.getId(), s -> s.deliveringStatus), sinkTag, new Tag("state", "delivering"));
+                LOGGER.info("Registered status map metrics for sink -> {}", sink.getContent().getName());
             }
         } catch (FlowStoreServiceConnectorException e) {
             LOGGER.error("Unable to get sinks list from flowstore:", e);

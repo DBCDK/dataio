@@ -96,8 +96,10 @@ public class AdminBean {
         Set<Integer> retries = list.stream()
                 .filter(de -> de.getRetries() < 1)
                 .filter(de -> de.getWaitingOn().isEmpty())
+                .peek(de -> LOGGER.info("Retrying {} lm: {}", de.getKey(), de.getLastModified()))
                 .map(de -> de.getKey().getJobId())
                 .collect(Collectors.toSet());
+        if(retries.isEmpty()) return;
         LOGGER.warn("Retrying stale jobs: {}", retries.stream().map(Object::toString).collect(Collectors.joining(", ")));
         retransmitJobs(retries);
         list.forEach(DependencyTrackingEntity::incRetries);

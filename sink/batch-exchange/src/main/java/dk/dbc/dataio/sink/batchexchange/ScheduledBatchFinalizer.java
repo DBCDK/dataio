@@ -23,7 +23,7 @@ public class ScheduledBatchFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledBatchFinalizer.class);
 
     private final BatchFinalizer batchFinalizer;
-    private static final Duration LIVENESS_THRESHOLD = Duration.ofMinutes(5);
+    private static final Duration LIVENESS_THRESHOLD = SinkConfig.FINALIZER_LIVENESS_THRESHOLD.asDuration();
     private static final AtomicReference<Instant> LAST_RUN = new AtomicReference<>(Instant.now());
     private final HealthService healthService;
     private final AtomicInteger THREAD_ID = new AtomicInteger();

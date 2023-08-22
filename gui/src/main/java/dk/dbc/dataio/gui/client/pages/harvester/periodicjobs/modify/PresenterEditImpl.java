@@ -15,11 +15,13 @@ import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.SFtpPickup;
 
+
 import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
 
 
 public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     private long id;
+
 
     public PresenterEditImpl(Place place, String header) {
         super(header);
@@ -122,17 +124,31 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         }
     }
 
+    @Override
+    public void harvesterTypeChanged(PeriodicJobsHarvesterConfig.HarvesterType harvesterType) {
+        super.harvesterTypeChanged(harvesterType);
+        handleHarvesterType();
+    }
+
     private void handleHarvesterType() {
         if (config != null) {
             final View view = getView();
             view.holdingsSection.setVisible(false);
 
             if (config.getContent().getHarvesterType() == PeriodicJobsHarvesterConfig.HarvesterType.STANDARD_WITH_HOLDINGS) {
+                if (config.getContent().getHoldingsFilter() != null) {
+                    view.holdingsTypeSelection.setValue(config.getContent().getHoldingsFilter().name());
+                }
                 view.holdingsSection.setVisible(true);
-                view.holdingsTypeSelection.setValue(config.getContent().getHoldingsFilter().name());
+                view.holdingsSolrUrl.setText(config.getContent().getHoldingsSolrUrl());
+            } else {
+                view.holdingsSection.setVisible(false);
+                view.holdingsTypeSelection.setValue(null);
                 view.holdingsSolrUrl.setText(config.getContent().getHoldingsSolrUrl());
             }
+
         }
+
     }
 
     class GetPeriodicJobsHarvesterConfigAsyncCallback implements AsyncCallback<PeriodicJobsHarvesterConfig> {
@@ -141,6 +157,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             String msg = "PeriodicJobsHarvesterConfig.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
                     e, commonInjector.getProxyErrorTexts(), msg));
+
         }
 
         @Override

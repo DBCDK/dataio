@@ -93,7 +93,7 @@ import java.util.Set;
         @NamedQuery(name = DependencyTrackingEntity.RESET_STATES_IN_DEPENDENCYTRACKING,
                 query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus"),
         @NamedQuery(name = DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING,
-                query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus AND e.key.jobId = :jobId"),
+                query = "UPDATE DependencyTrackingEntity e SET e.status = :toStatus WHERE e.status = :fromStatus AND e.key.jobId in :jobIds"),
         @NamedQuery(name = DependencyTrackingEntity.DELETE_JOB,
                 query = "DELETE FROM DependencyTrackingEntity e WHERE e.key.jobId=:jobId")
 })
@@ -184,7 +184,8 @@ public class DependencyTrackingEntity {
 
     @Column(nullable = false)
     private Timestamp lastModified = new Timestamp(new Date().getTime());
-
+    @Column
+    private int retries = 0;
 
     public Key getKey() {
         return key;
@@ -268,6 +269,19 @@ public class DependencyTrackingEntity {
 
     public Timestamp getLastModified() {
         return lastModified;
+    }
+
+    public int getRetries() {
+        return retries;
+    }
+
+    public int incRetries() {
+        return ++retries;
+    }
+
+    public DependencyTrackingEntity withRetries(int retries) {
+        this.retries = retries;
+        return this;
     }
 
     public boolean equals(Object o) {

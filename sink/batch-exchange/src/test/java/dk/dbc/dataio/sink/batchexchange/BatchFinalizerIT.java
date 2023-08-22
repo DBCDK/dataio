@@ -11,6 +11,7 @@ import dk.dbc.dataio.jse.artemis.common.service.ZombieWatch;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.time.Duration;
 import java.time.Instant;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
@@ -129,13 +130,13 @@ public class BatchFinalizerIT extends IntegrationTest {
 
     @Test
     public void isUpTest() {
-        ScheduledBatchFinalizer batchFinalizerBean = new MockScheduledBatchFinalizer(Instant.now().minusSeconds(299));
+        ScheduledBatchFinalizer batchFinalizerBean = new MockScheduledBatchFinalizer(Instant.now().minus(SinkConfig.FINALIZER_LIVENESS_THRESHOLD.asDuration()).plus(Duration.ofSeconds(1)));
         assertThat("Bean should be up", !batchFinalizerBean.isDown());
     }
 
     @Test
     public void isDownTest() {
-        ScheduledBatchFinalizer batchFinalizerBean = new MockScheduledBatchFinalizer(Instant.now().minusSeconds(301));
+        ScheduledBatchFinalizer batchFinalizerBean = new MockScheduledBatchFinalizer(Instant.now().minus(SinkConfig.FINALIZER_LIVENESS_THRESHOLD.asDuration()).minus(Duration.ofSeconds(1)));
         assertThat("Bean should be down", batchFinalizerBean.isDown());
     }
 

@@ -18,6 +18,7 @@ pipeline {
             commons/utils/tickle-harvester-service-connector, \
             file-store-service/war/, \
             log-store-service/war, \
+            flow-store-service, \
             gatekeeper, \
             job-processor2, \
             dlq-errorhandler, \

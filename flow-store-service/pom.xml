@@ -7,9 +7,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio</artifactId>
+    <artifactId>payara-micro-app</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
+    <relativePath>../payara-micro-app</relativePath>
   </parent>
 
   <artifactId>dataio-flow-store-service</artifactId>
@@ -29,22 +30,6 @@
         </executions>
       </plugin>
       <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <version>${exec-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>prepare-build-docker-image</id>
-            <configuration>
-              <arguments combine.children="append">
-                <argument>dbc-payara-flowstore</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
         <version>2.3</version>
@@ -59,17 +44,25 @@
           </webResources>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <configuration>
+          <images>
+            <image>
+              <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
+              <build>
+                <runCmds>
+                  <run>echo "set server.thread-pools.thread-pool.http-thread-pool.max-thread-pool-size=500" >>scripts/prebootcommandfile.txt</run>
+                </runCmds>
+              </build>
+            </image>
+          </images>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
-
   <dependencies>
-
-    <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
-      <version>${javaee.version}</version>
-      <scope>provided</scope>
-    </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
@@ -125,16 +118,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-simple</artifactId>
-        <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.flywaydb</groupId>
-      <artifactId>flyway-core</artifactId>
-      <version>${flyway.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>${postgresql-driver.version}</version>
@@ -152,4 +135,30 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>docker-push</id>
+      <properties>
+        <tag>DIT-${BUILD_NUMBER}</tag>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>push</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>push</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

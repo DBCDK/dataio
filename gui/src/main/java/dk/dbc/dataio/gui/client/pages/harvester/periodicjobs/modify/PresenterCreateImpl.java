@@ -49,6 +49,7 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
                         .withSubmitterNumber("")
                         .withContact("")
                         .withHoldingsSolrUrl("")
+                        .withHoldingsFilter(PeriodicJobsHarvesterConfig.HoldingsFilter.WITH_HOLDINGS)
                         .withEnabled(false));
         setConfig(config);
     }

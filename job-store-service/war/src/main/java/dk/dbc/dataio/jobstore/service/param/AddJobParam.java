@@ -12,7 +12,6 @@ import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -183,7 +182,7 @@ public class AddJobParam {
 
     protected Sink lookupSink() {
         if (jobInputStream.getJobSpecification().getType() == JobSpecification.Type.ACCTEST) {
-            return createDiffSink();
+            return Sink.DIFF;
         } else if (flowBinder != null) {
             final long sinkId = flowBinder.getContent().getSinkId();
             try {
@@ -215,10 +214,5 @@ public class AddJobParam {
                     new FlowStoreReference(submitter.getId(), submitter.getVersion(), submitter.getContent().getName()));
         }
         return flowStoreReferences;
-    }
-
-    static Sink createDiffSink() {
-        return new Sink(1, 1, new SinkContent("DiffSink", "sink::diff",
-                "Internal sink used for acceptance test diff functionality", null, null,SinkContent.SequenceAnalysisOption.ID_ONLY));
     }
 }

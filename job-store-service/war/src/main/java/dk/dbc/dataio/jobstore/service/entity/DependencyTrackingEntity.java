@@ -279,6 +279,11 @@ public class DependencyTrackingEntity {
         return ++retries;
     }
 
+    public DependencyTrackingEntity withRetries(int retries) {
+        this.retries = retries;
+        return this;
+    }
+
     public boolean equals(Object o) {
         if (this == o) {
             return true;

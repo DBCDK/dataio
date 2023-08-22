@@ -82,17 +82,22 @@ public class AdminBean {
     @SuppressWarnings("unused")
     @Schedule(minute = "*", hour = "*", persistent = false)
     public void updateStaleChunks() {
-        Stream<DependencyTrackingEntity> delStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
-        Stream<DependencyTrackingEntity> procStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
-        List<DependencyTrackingEntity> list = Stream.concat(delStream, procStream).collect(Collectors.toList());
-        retryIfNeeded(list);
-        list.stream().map(s -> getSinkName(s.getSinkid())).distinct().filter(s -> staleChunks.putIfAbsent(s, new AtomicInteger(0)) == null).forEach(this::registerChunkMetric);
-        Map<Integer, List<DependencyTrackingEntity>> map = list.stream().collect(Collectors.groupingBy(DependencyTrackingEntity::getSinkid));
-        Map<String, Integer> counters = map.entrySet().stream().collect(Collectors.toMap(e -> getSinkName(e.getKey()), e -> e.getValue().size()));
-        staleChunks.forEach((k, v) -> v.set(counters.getOrDefault(k, 0)));
+        try {
+            Stream<DependencyTrackingEntity> delStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
+            Stream<DependencyTrackingEntity> procStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
+            List<DependencyTrackingEntity> list = Stream.concat(delStream, procStream).collect(Collectors.toList());
+            retryIfNeeded(list);
+            list.stream().map(s -> getSinkName(s.getSinkid())).distinct().filter(s -> staleChunks.putIfAbsent(s, new AtomicInteger(0)) == null).forEach(this::registerChunkMetric);
+            Map<Integer, List<DependencyTrackingEntity>> map = list.stream().collect(Collectors.groupingBy(DependencyTrackingEntity::getSinkid));
+            Map<String, Integer> counters = map.entrySet().stream().collect(Collectors.toMap(e -> getSinkName(e.getKey()), e -> e.getValue().size()));
+            staleChunks.forEach((k, v) -> v.set(counters.getOrDefault(k, 0)));
+        } catch (RuntimeException e) {
+            LOGGER.error("Caught runtime exception un update stale chunks", e);
+            throw e;
+        }
     }
 
-    private void retryIfNeeded(List<DependencyTrackingEntity> list) {
+    public void retryIfNeeded(List<DependencyTrackingEntity> list) {
         Set<Integer> retries = list.stream()
                 .filter(de -> de.getRetries() < 1)
                 .filter(de -> de.getWaitingOn().isEmpty())
@@ -162,6 +167,7 @@ public class AdminBean {
     }
 
     Sink getSink(int id) {
+        if(id == 1) return Sink.DIFF;
         Sink sink = sinkMap.getIfPresent(id);
         if(sink == null) {
             sink = getFromFlowstore(id);

@@ -33,7 +33,7 @@ public class AddAccTestJobParamTest extends ParamBaseTest {
     private final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final FlowBinder flowBinder = new FlowBinderBuilder().setContent(new FlowBinderContentBuilder().setName("FlowBinderName").setFlowId(42).setSinkId(42).build()).build();
     private final Flow flow = new FlowBuilder().setContent(new FlowContentBuilder().setName("accTestFlow").build()).build();
-    private final Sink sink = AddJobParam.createDiffSink();
+    private final Sink sink = Sink.DIFF;
     private final RecordSplitterConstants.RecordSplitter typeOfDataPartitioner = RecordSplitterConstants.RecordSplitter.XML;
     private AccTestJobInputStream accTestJobInputStream;
 

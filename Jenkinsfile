@@ -141,6 +141,7 @@ pipeline {
             steps {
                 sh """
                 ./docker/remove-images docker-metascrum.artifacts.dbccloud.dk/dbc-payara-*
+                ./docker/remove-images docker-metascrum.artifacts.dbccloud.dk/dataio-*
             """
             }
         }

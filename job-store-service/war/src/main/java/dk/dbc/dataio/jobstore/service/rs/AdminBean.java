@@ -91,6 +91,7 @@ public class AdminBean {
             Map<Integer, List<DependencyTrackingEntity>> map = list.stream().collect(Collectors.groupingBy(DependencyTrackingEntity::getSinkid));
             Map<String, Integer> counters = map.entrySet().stream().collect(Collectors.toMap(e -> getSinkName(e.getKey()), e -> e.getValue().size()));
             staleChunks.forEach((k, v) -> v.set(counters.getOrDefault(k, 0)));
+            LOGGER.info("Stale chunks alert set for jobs: " + list.stream().map(e -> e.getKey().getJobId()).distinct().map(i -> Integer.toString(i)).collect(Collectors.joining(", ")));
         } catch (RuntimeException e) {
             LOGGER.error("Caught runtime exception un update stale chunks", e);
             throw e;

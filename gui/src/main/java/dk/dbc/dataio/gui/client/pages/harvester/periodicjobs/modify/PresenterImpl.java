@@ -17,6 +17,7 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.Pickup;
 import dk.dbc.dataio.harvester.types.SFtpPickup;
 
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,6 +26,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     String urlDataioFilestoreRs = null;
+
     protected String header;
     protected PeriodicJobsHarvesterConfig config = null;
     private final Map<String, String> metadata = new HashMap<>();
@@ -91,6 +93,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void harvesterTypeChanged(PeriodicJobsHarvesterConfig.HarvesterType harvesterType) {
         if (config != null) {
             config.getContent().withHarvesterType(harvesterType);
+
         }
     }
 
@@ -479,6 +482,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.SFTP.name());
         }
         view.harvesterTypeSelection.setSelectedValue(configContent.getHarvesterType().name());
+        if (configContent.getHarvesterType() == PeriodicJobsHarvesterConfig.HarvesterType.STANDARD_WITH_HOLDINGS) {
+            view.holdingsTypeSelection.setSelectedValue(configContent.getHoldingsFilter().name());
+        }
         view.name.setText(configContent.getName());
         view.schedule.setText(configContent.getSchedule());
         view.description.setText(configContent.getDescription());

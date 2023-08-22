@@ -22,6 +22,10 @@
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-job-store-service-types</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-httpclient</artifactId>
     </dependency>
     <dependency>
@@ -223,6 +227,10 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>artemis-admin-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>eclipselink</artifactId>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

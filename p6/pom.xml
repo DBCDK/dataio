@@ -325,6 +325,11 @@
     <dependencies>
       <dependency>
         <groupId>dk.dbc</groupId>
+        <artifactId>dataio-job-store-service-types</artifactId>
+        <version>2.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>dk.dbc</groupId>
         <artifactId>dataio-commons-types</artifactId>
         <version>2.0-SNAPSHOT</version>
       </dependency>
@@ -333,6 +338,13 @@
         <artifactId>dataio-commons-utils-test</artifactId>
         <version>2.0-SNAPSHOT</version>
       </dependency>
+      <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>dataio-commons-testcontainers</artifactId>
+        <version>2.0-SNAPSHOT</version>
+        <scope>test</scope>
+      </dependency>
+
       <dependency>
         <groupId>dk.dbc</groupId>
         <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
@@ -377,7 +389,12 @@
         <artifactId>dataio-harvester-task-repo-connector</artifactId>
         <version>2.0-SNAPSHOT</version>
       </dependency>
-
+      <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>dataio-commons-utils-test</artifactId>
+        <version>2.0-SNAPSHOT</version>
+        <scope>test</scope>
+      </dependency>
 
       <dependency>
         <groupId>org.apache.solr</groupId>
@@ -516,6 +533,7 @@
         <groupId>org.eclipse.persistence</groupId>
         <artifactId>eclipselink</artifactId>
         <version>${eclipselink.version}</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>dk.dbc</groupId>

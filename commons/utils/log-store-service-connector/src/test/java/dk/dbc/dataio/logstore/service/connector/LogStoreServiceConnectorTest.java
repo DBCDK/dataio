@@ -1,8 +1,7 @@
 package dk.dbc.dataio.logstore.service.connector;
 
+import jakarta.ws.rs.client.Client;
 import org.junit.Test;
-
-import javax.ws.rs.client.Client;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;

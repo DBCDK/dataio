@@ -5,8 +5,8 @@ import org.testcontainers.containers.GenericContainer;
 public enum Containers {
     FILE_STORE("dataio-file-store-service-war:" + getTag()),
     FLOW_STORE("dataio-flow-store-service:" + getTag()),
-    JOB_STORE("dbc-payara-jobstore:" + getTag()),
-    JMS_QUEUE_SVC("dbc-payara-jms-queue-service:" + getTag()),
+    JOB_STORE("dataio-job-store-service-war:" + getTag()),
+    JMS_QUEUE_SVC("dataio-integration-test-jms-queue-service:" + getTag()),
     ARTEMIS("artemis:2_24_0-15"),
     LOG_STORE("dataio-log-store-service-war:" + getTag());
 

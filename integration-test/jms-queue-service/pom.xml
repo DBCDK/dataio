@@ -7,14 +7,19 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-integration-test</artifactId>
+    <artifactId>payara-micro-app</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
+    <relativePath>../../payara-micro-app</relativePath>
   </parent>
 
   <artifactId>dataio-integration-test-jms-queue-service</artifactId>
   <name>dataio-integration-test-jms-queue-service</name>
   <packaging>war</packaging>
+
+  <properties>
+    <java.image>docker-metascrum.artifacts.dbccloud.dk/dbc-payara-artemis-base:devel</java.image>
+  </properties>
 
   <build>
     <plugins>
@@ -44,19 +49,15 @@
         </executions>
       </plugin>
       <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <version>${exec-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>prepare-build-docker-image</id>
-            <configuration>
-              <arguments combine.children="append">
-                <argument>dbc-payara-jms-queue-service</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <configuration>
+          <images>
+            <image>
+              <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
+            </image>
+          </images>
+        </configuration>
       </plugin>
     </plugins>
   </build>

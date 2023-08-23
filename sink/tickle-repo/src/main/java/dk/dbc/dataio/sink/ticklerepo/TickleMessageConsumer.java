@@ -126,20 +126,24 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         if(tickleAttributes == null) return null;
         // find dataset or else create it
         EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        DataSet searchValue = new DataSet()
-                .withName(tickleAttributes.getDatasetName())
-                .withAgencyId(tickleAttributes.getAgencyId());
-        DataSet dataset = tickleRepo.lookupDataSet(searchValue)
-                .orElseGet(() -> tickleRepo.createDataSet(searchValue));
-        // create new batch and cache it
-        Batch batch = tickleRepo.createBatch(new Batch()
-                .withBatchKey(chunk.getJobId())
-                .withDataset(dataset.getId())
-                .withType(tickleBehaviour)
-                .withMetadata(getBatchMetadata(chunk.getJobId())));
-        transaction.commit();
-        return batch;
+        try {
+            transaction.begin();
+            DataSet searchValue = new DataSet()
+                    .withName(tickleAttributes.getDatasetName())
+                    .withAgencyId(tickleAttributes.getAgencyId());
+            DataSet dataset = tickleRepo.lookupDataSet(searchValue)
+                    .orElseGet(() -> tickleRepo.createDataSet(searchValue));
+            // create new batch and cache it
+            Batch batch = tickleRepo.createBatch(new Batch()
+                    .withBatchKey(chunk.getJobId())
+                    .withDataset(dataset.getId())
+                    .withType(tickleBehaviour)
+                    .withMetadata(getBatchMetadata(chunk.getJobId())));
+            transaction.commit();
+            return batch;
+        } finally {
+            if(transaction.isActive()) transaction.rollback();
+        }
     }
 
     /* Use job specification as batch metadata */

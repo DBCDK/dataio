@@ -2,8 +2,6 @@ package dk.dbc.dataio.commons.testcontainers;
 
 import org.testcontainers.containers.GenericContainer;
 
-import java.util.concurrent.RecursiveTask;
-
 public enum Containers {
     FILE_STORE("dataio-file-store-service-war:" + getTag()),
     FLOW_STORE("dataio-flow-store-service:" + getTag()),
@@ -29,21 +27,11 @@ public enum Containers {
     }
 
     public static String getTag() {
-        String tag;
-        String tagFromEnv = System.getProperty("tag");
-        if (tagFromEnv != null && !tagFromEnv.isEmpty()) {
-            return tagFromEnv;
-        }
-        String buildNumber = System.getenv("BUILD_NUMBER");
-        if (buildNumber == null || buildNumber.isEmpty()) {
-            tag = "devel";
+        String tag = System.getProperty("tag");
+        if (tag != null && !tag.isEmpty()) {
+            return tag;
         } else {
-            tag = buildNumber;
-            final String branchName = System.getenv("BRANCH_NAME");
-            if (branchName != null && !branchName.isEmpty()) {
-                tag = branchName + "-" + buildNumber;
-            }
+            return "devel";
         }
-        return tag;
     }
 }

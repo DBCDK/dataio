@@ -125,14 +125,14 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         TickleAttributes tickleAttributes = findFirstTickleAttributes(chunk).orElse(null);
         if(tickleAttributes == null) return null;
         // find dataset or else create it
+        EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
         DataSet searchValue = new DataSet()
                 .withName(tickleAttributes.getDatasetName())
                 .withAgencyId(tickleAttributes.getAgencyId());
         DataSet dataset = tickleRepo.lookupDataSet(searchValue)
                 .orElseGet(() -> tickleRepo.createDataSet(searchValue));
         // create new batch and cache it
-        EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
         Batch batch = tickleRepo.createBatch(new Batch()
                 .withBatchKey(chunk.getJobId())
                 .withDataset(dataset.getId())

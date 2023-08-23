@@ -38,6 +38,7 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.Query;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.slf4j.Logger;
@@ -93,12 +94,13 @@ public class AbstractJobStoreIT implements PostgresContainerJPAUtils {
         Map<String, String> properties = new HashMap<>();
         properties.put(JDBC_USER, dbContainer.getUsername());
         properties.put(JDBC_PASSWORD, dbContainer.getPassword());
-        properties.put(JDBC_URL, String.format("jdbc:postgresql://localhost:%s/%s", dbContainer.getHostPort(), dbContainer.getDatabaseName()));
+        properties.put(JDBC_URL, dbContainer.getDockerJdbcUrl());
         properties.put(JDBC_DRIVER, "org.postgresql.Driver");
         properties.put("eclipselink.logging.level", "FINE");
 
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("jobstoreIT", dbContainer.entityManagerProperties());
+        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("jobstoreIT", properties);
         entityManager = entityManagerFactory.createEntityManager(properties);
+        Assert.assertNotNull("Should have an entity manager", entityManager);
         persistenceContext = new TransactionScopedPersistenceContext(entityManager);
     }
 

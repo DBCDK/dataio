@@ -19,6 +19,7 @@ pipeline {
             file-store-service/war/, \
             log-store-service/war, \
             flow-store-service, \
+            job-store-service/war, \
             gatekeeper, \
             job-processor2, \
             dlq-errorhandler, \

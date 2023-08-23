@@ -94,7 +94,7 @@ public class AbstractJobStoreIT implements PostgresContainerJPAUtils {
         Map<String, String> properties = new HashMap<>();
         properties.put(JDBC_USER, dbContainer.getUsername());
         properties.put(JDBC_PASSWORD, dbContainer.getPassword());
-        properties.put(JDBC_URL, dbContainer.getDockerJdbcUrl());
+        properties.put(JDBC_URL, String.format("jdbc:postgresql://localhost:%s/%s", dbContainer.getHostPort(), dbContainer.getDatabaseName()));
         properties.put(JDBC_DRIVER, "org.postgresql.Driver");
         properties.put("eclipselink.logging.level", "FINE");
 

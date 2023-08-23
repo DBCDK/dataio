@@ -52,8 +52,8 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         Chunk chunk = unmarshallPayload(consumedMessage);
         EntityTransaction transaction = entityManager.getTransaction();
         try {
-            transaction.begin();
             Batch batch = getBatch(chunk);
+            transaction.begin();
             Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
             if (chunk.isTerminationChunk()) {
                 try {
@@ -107,10 +107,14 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         int jobId = chunk.getJobId();
         Batch batch = batchCache.getIfPresent(jobId);
         if(batch != null) return batch;
-        batch = tickleRepo.lookupBatch(new Batch().withBatchKey(jobId)).orElse(null);
-        if(batch == null) batch = createBatch(chunk);
-        if(batch != null) batchCache.put(jobId, batch);
-        return batch;
+        synchronized (TickleMessageConsumer.class) {
+            batch = batchCache.getIfPresent(jobId);
+            if(batch != null) return batch;
+            batch = tickleRepo.lookupBatch(new Batch().withBatchKey(jobId)).orElse(null);
+            if(batch == null) batch = createBatch(chunk);
+            if(batch != null) batchCache.put(jobId, batch);
+            return batch;
+        }
     }
 
     protected Batch getBatch(int jobId) {
@@ -127,11 +131,14 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         DataSet dataset = tickleRepo.lookupDataSet(searchValue)
                 .orElseGet(() -> tickleRepo.createDataSet(searchValue));
         // create new batch and cache it
+        EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
         Batch batch = tickleRepo.createBatch(new Batch()
                 .withBatchKey(chunk.getJobId())
                 .withDataset(dataset.getId())
                 .withType(tickleBehaviour)
                 .withMetadata(getBatchMetadata(chunk.getJobId())));
+        transaction.commit();
         return batch;
     }
 

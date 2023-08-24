@@ -184,7 +184,7 @@ pipeline {
                 }
             }
         }
-        stage("deploy this branch to staging?") {
+        stage("Not master branch: Push images when commit message starts with '!'") {
             when {
                 allOf {
                     not {
@@ -207,7 +207,7 @@ pipeline {
                 """
             }
         }
-        stage("bump docker tags in dataio-secrets for non-master branches") {
+        stage("Not master branch: Bump docker tags in dataio-secrets when commit message starts with '!'") {
             agent {
                 docker {
                     label workerNode

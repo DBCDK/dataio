@@ -10,7 +10,7 @@ pipeline {
 		maven 'Maven 3'
     }
     environment {
-        MAVEN_OPTS="-Dtag=${env.BRANCH_NAME}-${env.BUILD_NUMBER} -Dmaven.repo.local=/home/isworker/.m2/dataio-repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
+        MAVEN_OPTS="-Dmaven.repo.local=/home/isworker/.m2/dataio-repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BUILD_NUMBER="${env.BUILD_NUMBER}"
@@ -73,7 +73,7 @@ pipeline {
                         echo Fast branch deployment skip all tests
                         FAST=" -P !integration-test -Dmaven.test.skip=true "
                     fi
-                    mvn -B -T 4 \${FAST} install
+                    mvn -B -T 4 -Dtag=${env.BRANCH_NAME}-${env.BUILD_NUMBER} \${FAST} install
                     test -n \${FAST} && mvn -B -T 6 -P !integration-test pmd:pmd
                     echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                     ./cli/build_docker_image.sh

@@ -25,7 +25,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
-      <version>${dataio-commons-types.version}</version>
     </dependency>
   </dependencies>
   <build>

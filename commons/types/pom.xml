@@ -13,7 +13,6 @@
   </parent>
 
   <artifactId>dataio-commons-types</artifactId>
-  <name>dataio-commons-types</name>
 
   <build>
     <resources>
@@ -52,17 +51,14 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-json-binding</artifactId>
-      <version>${dbc-commons-json-binding.version}</version>
     </dependency>
     <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-simple</artifactId>
-        <version>${slf4j.version}</version>
         <scope>test</scope>
     </dependency>
     <dependency>
@@ -73,7 +69,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-testutil-assert</artifactId>
-      <version>1.3-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

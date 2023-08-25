@@ -13,7 +13,6 @@
   </parent>
 
   <artifactId>dataio-commons-utils-test</artifactId>
-  <name>dataio-commons-utils-test</name>
 
   <dependencies>
     <dependency>

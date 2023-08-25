@@ -13,14 +13,12 @@
   </parent>
 
   <artifactId>dataio-commons-utils-rr-harvester-service-connector</artifactId>
-  <name>dataio-commons-utils-rr-harvester-service-connector</name>
   <packaging>ejb</packaging>
 
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-httpclient</artifactId>
-      <version>2.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>jakarta.platform</groupId>
@@ -39,13 +37,10 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-harvester-task-repo-connector</artifactId>
-      <version>2.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
-      <version>${dataio-commons-utils-test.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.github.stefanbirkner</groupId>
@@ -59,7 +54,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-ejb-plugin</artifactId>
         <configuration>
-          <ejbVersion>3.2</ejbVersion>
+          <ejbVersion>${ejb.version}</ejbVersion>
           <filterDeploymentDescriptor>true</filterDeploymentDescriptor>
         </configuration>
       </plugin>

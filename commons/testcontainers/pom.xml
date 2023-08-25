@@ -14,7 +14,7 @@
   </parent>
 
   <artifactId>dataio-commons-testcontainers</artifactId>
-  <name>dataio-commons-testcontainers</name>
+  <version>1.1-migration</version>
 
   <dependencies>
     <dependency>

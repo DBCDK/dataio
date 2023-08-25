@@ -13,7 +13,6 @@
   </parent>
 
   <artifactId>dataio-commons-utils-service</artifactId>
-  <name>dataio-commons-utils-service</name>
 
   <dependencies>
     <dependency>
@@ -31,7 +30,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

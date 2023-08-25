@@ -12,32 +12,26 @@
   </parent>
 
   <artifactId>dataio-harvester-rr</artifactId>
-  <name>dataio-harvester-rr</name>
   <packaging>war</packaging>
 
   <dependencies>
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
-      <version>${javaee.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
-      <version>${jersey.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
-      <version>${dataio-commons-types.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -47,23 +41,18 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-json-binding</artifactId>
-      <version>${dbc-commons-json-binding.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>vipcore-connector</artifactId>
-      <version>${vipcore-connector.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-service</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
-      <version>${dataio-commons-utils-test.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -105,17 +94,14 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-log</artifactId>
-      <version>1.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-core</artifactId>
-      <version>${flyway.version}</version>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>${postgresql-driver.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -126,7 +112,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>rawrepo-record-service-connector</artifactId>
-      <version>${rawrepo-record-service-connector.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -172,8 +157,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-testcontainers</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 

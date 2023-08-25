@@ -1,6 +1,6 @@
 package dk.dbc.dataio.harvester.types;
 
-import javax.ejb.ApplicationException;
+import jakarta.ejb.ApplicationException;
 
 @ApplicationException(rollback = false)
 public class HarvesterSourceException extends HarvesterException {

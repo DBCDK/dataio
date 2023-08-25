@@ -113,7 +113,7 @@
             <id>prepare-build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-payara-filestore</argument>
+                <argument>dataio-file-store-service-war</argument>
               </arguments>
             </configuration>
           </execution>

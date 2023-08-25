@@ -325,17 +325,22 @@
     <dependencies>
       <dependency>
         <groupId>dk.dbc</groupId>
+        <artifactId>dataio-harvester-types</artifactId>
+        <version>2.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>dataio-commons-utils-service</artifactId>
+        <version>2.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>dk.dbc</groupId>
         <artifactId>dataio-job-store-service-types</artifactId>
         <version>2.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>dk.dbc</groupId>
         <artifactId>dataio-commons-types</artifactId>
-        <version>2.0-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>dk.dbc</groupId>
-        <artifactId>dataio-commons-utils-test</artifactId>
         <version>2.0-SNAPSHOT</version>
       </dependency>
       <dependency>
@@ -387,7 +392,7 @@
       <dependency>
         <groupId>dk.dbc</groupId>
         <artifactId>artemis-admin-client</artifactId>
-        <version>1.2-SNAPSHOT</version>
+        <version>2.0-SNAPSHOT</version>
         <scope>compile</scope>
       </dependency>
       <dependency>
@@ -421,74 +426,6 @@
             <artifactId>jaxws-rt</artifactId>
           </exclusion>
         </exclusions>
-
-<!--        dk.dbc:vipcore-connector:jar:1.5-SNAPSHOT:compile
-[INFO] |  +- dk.dbc:stopwatch:jar:1.0-SNAPSHOT:compile
-[INFO] |  +- dk.dbc:vipcore:jar:vipcore-client:1.0.0-SNAPSHOT:compile
-[INFO] |  |  +- jakarta.xml.ws:jakarta.xml.ws-api:jar:2.3.3:compile
-[INFO] |  |  |  +- jakarta.xml.soap:jakarta.xml.soap-api:jar:1.4.2:compile
-[INFO] |  |  |  \- jakarta.jws:jakarta.jws-api:jar:2.1.0:compile
-[INFO] |  |  +- com.sun.xml.ws:jaxws-rt:jar:2.3.3:compile
-[INFO] |  |  |  +- com.sun.xml.ws:policy:jar:2.7.10:compile
-[INFO] |  |  |  +- com.sun.xml.bind:jaxb-impl:jar:4.0.0:runtime
-[INFO] |  |  |  +- org.glassfish.ha:ha-api:jar:3.1.12:compile
-[INFO] |  |  |  +- org.glassfish.external:management-api:jar:3.2.2:compile
-[INFO] |  |  |  +- org.glassfish.gmbal:gmbal:jar:4.0.1:compile
-[INFO] |  |  |  +- org.glassfish.pfl:pfl-tf:jar:4.1.0:compile
-[INFO] |  |  |  +- org.glassfish.pfl:pfl-basic:jar:4.1.0:compile
-[INFO] |  |  |  +- org.jvnet.staxex:stax-ex:jar:1.8.3:compile
-[INFO] |  |  |  +- com.sun.xml.stream.buffer:streambuffer:jar:1.5.9:compile
-[INFO] |  |  |  +- org.jvnet.mimepull:mimepull:jar:1.9.13:compile
-[INFO] |  |  |  +- com.sun.xml.fastinfoset:FastInfoset:jar:1.2.18:compile
-[INFO] |  |  |  +- com.sun.xml.messaging.saaj:saaj-impl:jar:1.5.2:runtime
-[INFO] |  |  |  +- com.fasterxml.woodstox:woodstox-core:jar:5.1.0:runtime
-[INFO] |  |  |  \- org.codehaus.woodstox:stax2-api:jar:4.1:runtime
-[INFO] |  |  +- org.apache.commons:commons-lang3:jar:3.9:compile
-[INFO] |  |  +- commons-validator:commons-validator:jar:1.6:compile
-[INFO] |  |  |  \- commons-digester:commons-digester:jar:1.8.1:compile
-[INFO] |  |  +- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.9.9:compile
-[INFO] |  |  +- org.jvnet.jaxb2_commons:jaxb2-basics-runtime:jar:0.12.0:compile
-[INFO] |  |  +- com.github.seancfoley:ipaddress:jar:5.3.1:compile
-[INFO] |  |  \- dk.dbc:dbc-commons-audit-trail:jar:1.0-SNAPSHOT:compile
-[INFO] |  \- org.apache.commons:commons-collections4:jar:4.4:compile-->
-<!--        <exclusions>-->
-<!--          <exclusion>-->
-<!--            <groupId>org.glassfish.ha</groupId>-->
-<!--            <artifactId>ha-api</artifactId>-->
-<!--          </exclusion>-->
-<!--          <exclusion>-->
-<!--            <groupId>jakarta.jws</groupId>-->
-<!--            <artifactId>jakarta.jws-api</artifactId>-->
-<!--          </exclusion>-->
-<!--          <exclusion>-->
-<!--            <groupId>jakarta.xml.ws</groupId>-->
-<!--            <artifactId>jakarta.xml.ws-api</artifactId>-->
-<!--          </exclusion>-->
-<!--          <exclusion>-->
-<!--            <groupId>org.glassfish.external</groupId>-->
-<!--            <artifactId>management-api</artifactId>-->
-<!--          </exclusion>-->
-<!--          <exclusion>-->
-<!--            <groupId>org.jvnet.mimepull</groupId>-->
-<!--            <artifactId>mimepull</artifactId>-->
-<!--          </exclusion>-->
-<!--          <exclusion>-->
-<!--            <groupId>org.glassfish.pfl</groupId>-->
-<!--            <artifactId>pfl-basic</artifactId>-->
-<!--          </exclusion>-->
-<!--          <exclusion>-->
-<!--            <groupId>org.glassfish.pfl</groupId>-->
-<!--            <artifactId>pfl-tf</artifactId>-->
-<!--          </exclusion>-->
-<!--          <exclusion>-->
-<!--            <groupId>org.codehaus.woodstox</groupId>-->
-<!--            <artifactId>stax2-api</artifactId>-->
-<!--          </exclusion>-->
-<!--          <exclusion>-->
-<!--            <groupId>com.fasterxml.woodstox</groupId>-->
-<!--            <artifactId>woodstox-core</artifactId>-->
-<!--          </exclusion>-->
-<!--        </exclusions>-->
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>

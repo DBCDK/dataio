@@ -32,6 +32,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
+import jakarta.ws.rs.ProcessingException;
 import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -139,7 +140,7 @@ public class JobSchedulerBean {
             }
         } catch (FlowStoreServiceConnectorException e) {
             LOGGER.error("Unable to get sinks list from flowstore:", e);
-        } catch (javax.ws.rs.ProcessingException e1) {
+        } catch (ProcessingException e1) {
             LOGGER.error("Flowstore unavailable:", e1);
         }
     }
@@ -208,7 +209,7 @@ public class JobSchedulerBean {
             }
         } catch (FlowStoreServiceConnectorException e) {
             throw new RuntimeException(e);
-        } catch (javax.ws.rs.ProcessingException e1) {
+        } catch (ProcessingException e1) {
         LOGGER.error("Flowstore unavailable:", e1);
     }
     }

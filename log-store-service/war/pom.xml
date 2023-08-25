@@ -37,7 +37,7 @@
             <id>prepare-build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-payara-logstore</argument>
+                <argument>dataio-log-store-service-war</argument>
               </arguments>
             </configuration>
           </execution>

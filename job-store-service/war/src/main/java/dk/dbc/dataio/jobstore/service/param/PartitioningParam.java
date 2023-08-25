@@ -33,10 +33,10 @@ import dk.dbc.dataio.jobstore.service.partitioner.ZippedXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.invariant.InvariantUtil;
 import jakarta.persistence.EntityManager;
+import jakarta.ws.rs.ProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.ProcessingException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;

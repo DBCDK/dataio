@@ -37,7 +37,7 @@
             <id>prepare-build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-payara-flowstore</argument>
+                <argument>dataio-flowstore-store-service-war</argument>
               </arguments>
             </configuration>
           </execution>

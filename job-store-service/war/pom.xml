@@ -300,7 +300,7 @@
             <id>prepare-build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dataio-job-store-service-war</argument>
+                <argument>dbc-payara-jobstore</argument>
               </arguments>
             </configuration>
           </execution>

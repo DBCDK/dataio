@@ -9,6 +9,7 @@
     <artifactId>p6</artifactId>
     <groupId>dk.dbc</groupId>
     <version>2.0-SNAPSHOT</version>
+    <relativePath>../../p6</relativePath>
   </parent>
 
   <artifactId>dataio-harvester-types</artifactId>

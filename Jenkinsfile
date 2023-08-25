@@ -32,9 +32,18 @@ pipeline {
             sink/batch-exchange, \
             sink/periodic-jobs, \
             sink/dpf, \
-            commons/utils/file-store-service-connector, \
+            commons/testcontainers, \
             commons/types, \
+            commons/utils/file-store-service-connector, \
+            commons/utils/flow-store-service-connector, \
+            commons/utils/log-store-service-connector, \
+            commons/utils/rr-harvester-service-connector, \
+            commons/utils/service, \
+            commons/utils/service, \
+            commons/utils/tickle-harvester-service-connector, \
             harvester/task-repo/connector, \
+            harvester/types, \
+            job-store-service/types, \
             commons/utils/test \
         "
     }

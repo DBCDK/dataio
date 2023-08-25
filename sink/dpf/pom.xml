@@ -20,7 +20,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
-            <version>${project.version}</version>
+            <type>ejb</type>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -49,7 +49,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>weekresolver-connector</artifactId>
-            <version>${week-resolver.version}</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>

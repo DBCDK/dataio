@@ -53,7 +53,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-service</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.stefanbirkner</groupId>
@@ -63,8 +62,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-testcontainers</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>

@@ -12,20 +12,16 @@
   </parent>
 
   <artifactId>dataio-file-store-service-war</artifactId>
-  <name>dataio-file-store-service-war</name>
   <packaging>war</packaging>
 
   <dependencies>
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
-      <version>${javaee.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
-      <version>${dataio-commons-types.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -73,7 +69,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-service</artifactId>
-      <version>${project.version}</version>
     </dependency>
   </dependencies>
 

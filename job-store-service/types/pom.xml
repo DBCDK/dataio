@@ -12,8 +12,7 @@
   </parent>
 
   <artifactId>dataio-job-store-service-types</artifactId>
-  <name>dataio-job-store-service-types</name>
-  <packaging>jar</packaging>
+  <version>1.1-migration</version>
 
   <build>
     <resources>
@@ -37,30 +36,25 @@
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
-      <version>${javaee.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
-      <version>${dataio-commons-types.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-json-binding</artifactId>
-      <version>${dbc-commons-json-binding.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-lang</artifactId>
-      <version>${project.version}</version>
+      <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
-      <version>${dataio-commons-utils-test.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -69,7 +63,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
   </dependencies>
 </project>

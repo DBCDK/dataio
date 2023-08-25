@@ -72,7 +72,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-service</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -82,7 +81,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
-      <version>${dataio-commons-types.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -92,12 +90,12 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
-      <version>${project.version}</version>
+      <type>ejb</type>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-log-store-service-connector</artifactId>
-      <version>${project.version}</version>
+      <type>ejb</type>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -115,7 +113,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
-      <version>${dataio-commons-utils-test.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.eclipse.persistence</groupId>
@@ -132,19 +129,16 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-file-store-service-connector</artifactId>
-      <version>${dataio-commons-utils-file-store-service-connector.version}</version>
       <type>ejb</type>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-rr-harvester-service-connector</artifactId>
-      <version>${project.version}</version>
       <type>ejb</type>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-tickle-harvester-service-connector</artifactId>
-      <version>${project.version}</version>
       <type>ejb</type>
     </dependency>
     <dependency>
@@ -288,8 +282,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>artemis-admin-client</artifactId>
-      <version>1.2-SNAPSHOT</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -300,8 +292,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-testcontainers</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 

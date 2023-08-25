@@ -82,7 +82,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
-      <version>${dataio-commons-utils-test.version}</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 </project>

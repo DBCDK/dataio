@@ -23,7 +23,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-file-store-service-connector</artifactId>
-      <version>${dataio-commons-utils-file-store-service-connector.version}</version>
       <type>ejb</type>
       <scope>test</scope>
     </dependency>
@@ -35,29 +34,24 @@
     <dependency>
       <groupId>org.glassfish.jersey.inject</groupId>
       <artifactId>jersey-hk2</artifactId>
-      <version>${jersey.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
-      <version>${jersey.version}</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-json-jackson</artifactId>
-      <version>${jersey.version}</version>
     </dependency>
     <dependency>
     <groupId>org.glassfish.jersey.connectors</groupId>
       <artifactId>jersey-apache-connector</artifactId>
-      <version>${jersey.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>${postgresql-driver.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -73,8 +67,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-testcontainers</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>

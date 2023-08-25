@@ -31,12 +31,10 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-service</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-job-store-service-types</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -57,7 +55,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
-      <version>${dataio-commons-utils-test.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -69,7 +66,6 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -83,7 +79,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-ejb-plugin</artifactId>
-        <version>2.3</version>
         <configuration>
           <ejbVersion>3.2</ejbVersion>
           <filterDeploymentDescriptor>true</filterDeploymentDescriptor>

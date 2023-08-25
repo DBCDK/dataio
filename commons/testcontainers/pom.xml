@@ -13,7 +13,7 @@
   </parent>
 
   <artifactId>dataio-commons-testcontainers</artifactId>
-  <name>dataio-commons-testcontainers</name>
+  <version>1.1-migration</version>
 
   <dependencies>
     <dependency>
@@ -34,7 +34,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-testcontainers-postgres</artifactId>
-      <version>${dbc-commons-testcontainers-postgres-version}</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

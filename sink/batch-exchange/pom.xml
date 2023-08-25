@@ -55,8 +55,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-testcontainers</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>

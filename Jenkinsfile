@@ -231,10 +231,10 @@ pipeline {
             }
         }
     }
-    post {
-        always {
-            echo 'Cleaning up'
-            cleanWs()
-        }
-    }
+//    post {
+//        always {
+//            echo 'Cleaning up'
+//            cleanWs()
+//        }
+//    }
 }

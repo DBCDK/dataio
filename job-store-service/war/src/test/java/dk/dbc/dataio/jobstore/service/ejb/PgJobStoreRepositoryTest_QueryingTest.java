@@ -11,9 +11,9 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import jakarta.persistence.Query;
 import org.junit.Test;
 
-import javax.persistence.Query;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;

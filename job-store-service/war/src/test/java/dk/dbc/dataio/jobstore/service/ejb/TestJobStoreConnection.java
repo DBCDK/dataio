@@ -5,13 +5,12 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.PathBuilder;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
 
 /**
  * Created by ja7 on 1/14/17.

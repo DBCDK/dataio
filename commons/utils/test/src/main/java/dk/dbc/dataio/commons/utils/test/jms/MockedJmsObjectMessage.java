@@ -1,7 +1,8 @@
 package dk.dbc.dataio.commons.utils.test.jms;
 
-import javax.jms.JMSException;
-import javax.jms.ObjectMessage;
+import jakarta.jms.JMSException;
+import jakarta.jms.ObjectMessage;
+
 import java.io.Serializable;
 
 public class MockedJmsObjectMessage extends MockedJmsMessage implements ObjectMessage {

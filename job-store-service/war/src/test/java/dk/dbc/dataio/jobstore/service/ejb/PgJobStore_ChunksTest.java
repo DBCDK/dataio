@@ -53,7 +53,7 @@ import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.jobstore.types.State.Phase.DELIVERING;
 import static dk.dbc.dataio.jobstore.types.State.Phase.PARTITIONING;
 import static dk.dbc.dataio.jobstore.types.State.Phase.PROCESSING;
-import static javax.persistence.LockModeType.PESSIMISTIC_WRITE;
+import static jakarta.persistence.LockModeType.PESSIMISTIC_WRITE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;

@@ -27,11 +27,11 @@ import dk.dbc.dataio.jobstore.service.partitioner.VolumeAfterParents;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.State;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.BitSet;

@@ -10,13 +10,13 @@ import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.PathBuilder;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.MediaType;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.List;
 

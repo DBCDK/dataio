@@ -1,11 +1,11 @@
 package dk.dbc.dataio.commons.utils.test.jpa;
 
 import dk.dbc.dataio.commons.utils.lang.ResourceReader;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 import org.postgresql.ds.PGSimpleDataSource;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DriverManager;

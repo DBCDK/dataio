@@ -2,17 +2,15 @@ package dk.dbc.dataio.rrharvester.service.connector.ejb;
 
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
 import dk.dbc.httpclient.HttpClient;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.ejb.EJBException;
+import jakarta.ejb.LocalBean;
+import jakarta.ejb.Singleton;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.ejb.EJBException;
-import javax.ejb.LocalBean;
-import javax.ejb.Singleton;
-import javax.ws.rs.client.Client;
 
 // TODO: 10-07-19 replace EJB with @ApplicationScoped CDI producer
 
@@ -25,9 +23,7 @@ public class RRHarvesterServiceConnectorBean {
 
     @PostConstruct
     public void initializeConnector() {
-        final Client client = HttpClient.newClient(
-                new ClientConfig()
-                        .register(new JacksonFeature()));
+        Client client = ClientBuilder.newClient();
         final String endpoint = System.getenv("RAWREPO_HARVESTER_URL");
         if (endpoint == null || endpoint.trim().isEmpty()) {
             throw new EJBException("RAWREPO_HARVESTER_URL must be set");

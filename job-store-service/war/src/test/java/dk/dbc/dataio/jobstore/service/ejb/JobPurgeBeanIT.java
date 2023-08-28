@@ -14,10 +14,10 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.logstore.service.connector.ejb.LogStoreServiceConnectorBean;
+import jakarta.ejb.SessionContext;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.ejb.SessionContext;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

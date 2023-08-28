@@ -1,10 +1,10 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.commons.jsonb.JSONBException;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import org.postgresql.util.PGobject;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;

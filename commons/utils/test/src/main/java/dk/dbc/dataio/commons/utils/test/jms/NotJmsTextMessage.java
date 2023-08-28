@@ -1,9 +1,10 @@
 package dk.dbc.dataio.commons.utils.test.jms;
 
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Queue;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.Queue;
+
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;

@@ -5,12 +5,11 @@ import dk.dbc.dataio.commons.types.rest.LogStoreServiceConstants;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.invariant.InvariantUtil;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
 
 /**
  * LogStoreServiceConnector - dataIO log-store REST service client.

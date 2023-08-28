@@ -5,11 +5,11 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilterField;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilterGroup;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
+import jakarta.persistence.Query;
 import org.eclipse.persistence.config.HintValues;
 import org.eclipse.persistence.config.QueryHints;
 import org.eclipse.persistence.queries.CursoredStream;
 
-import javax.persistence.Query;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;

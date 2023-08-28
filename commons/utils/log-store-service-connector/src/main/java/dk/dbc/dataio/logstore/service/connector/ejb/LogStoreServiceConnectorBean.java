@@ -2,13 +2,12 @@ package dk.dbc.dataio.logstore.service.connector.ejb;
 
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
 import dk.dbc.httpclient.HttpClient;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.ejb.LocalBean;
+import jakarta.ejb.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.ejb.LocalBean;
-import javax.ejb.Singleton;
 
 // TODO: 05-07-19 replace EJB with @ApplicationScoped CDI producer
 

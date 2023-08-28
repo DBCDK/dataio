@@ -17,8 +17,8 @@ import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.invariant.InvariantUtil;
+import jakarta.ws.rs.ProcessingException;
 
-import javax.ws.rs.ProcessingException;
 import java.util.ArrayList;
 import java.util.List;
 

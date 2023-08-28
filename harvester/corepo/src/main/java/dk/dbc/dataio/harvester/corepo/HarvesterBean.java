@@ -6,13 +6,12 @@ import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Local;
+import jakarta.ejb.Singleton;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ejb.EJB;
-import javax.ejb.Local;
-import javax.ejb.Singleton;
-import javax.inject.Inject;
 
 @Local
 @Singleton

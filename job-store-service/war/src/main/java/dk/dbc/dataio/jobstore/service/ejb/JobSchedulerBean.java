@@ -20,6 +20,19 @@ import dk.dbc.dataio.jobstore.service.entity.SinkIdStatusCountResult;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.invariant.InvariantUtil;
+import jakarta.ejb.AsyncResult;
+import jakarta.ejb.Asynchronous;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Schedule;
+import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
+import jakarta.ws.rs.ProcessingException;
 import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -28,18 +41,6 @@ import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.AsyncResult;
-import javax.ejb.Asynchronous;
-import javax.ejb.EJB;
-import javax.ejb.Schedule;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -139,7 +140,7 @@ public class JobSchedulerBean {
             }
         } catch (FlowStoreServiceConnectorException e) {
             LOGGER.error("Unable to get sinks list from flowstore:", e);
-        } catch (javax.ws.rs.ProcessingException e1) {
+        } catch (ProcessingException e1) {
             LOGGER.error("Flowstore unavailable:", e1);
         }
     }
@@ -208,7 +209,7 @@ public class JobSchedulerBean {
             }
         } catch (FlowStoreServiceConnectorException e) {
             throw new RuntimeException(e);
-        } catch (javax.ws.rs.ProcessingException e1) {
+        } catch (ProcessingException e1) {
         LOGGER.error("Flowstore unavailable:", e1);
     }
     }

@@ -29,13 +29,13 @@ import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
+import jakarta.persistence.EntityTransaction;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.ArgumentCaptor;
 
-import javax.persistence.EntityTransaction;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.stream.Collectors;

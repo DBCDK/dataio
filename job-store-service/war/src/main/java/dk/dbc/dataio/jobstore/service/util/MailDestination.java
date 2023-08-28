@@ -6,12 +6,12 @@ import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.marshallers.Information;
 import dk.dbc.vipcore.service.VipCoreServiceConnector;
+import jakarta.mail.Session;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.mail.Session;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import java.util.Optional;
 
 import static dk.dbc.dataio.commons.types.Constants.CALL_OPEN_AGENCY;

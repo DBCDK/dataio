@@ -6,13 +6,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-harvester</artifactId>
+    <artifactId>p6</artifactId>
     <groupId>dk.dbc</groupId>
-    <version>1.0-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
+    <relativePath>../../p6</relativePath>
   </parent>
 
   <artifactId>dataio-harvester-types</artifactId>
-  <version>1.1-migration</version>
 
   <build>
     <resources>
@@ -35,22 +35,18 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-json-binding</artifactId>
-      <version>${dbc-commons-json-binding.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
-      <version>${javaee.version}</version>
-      <scope>provided</scope>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>org.xmlunit</groupId>

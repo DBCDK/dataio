@@ -348,11 +348,11 @@
       <id>branch-build</id>
       <activation>
         <property>
-          <name>BRANCH_NAME</name>
+          <name>env.BRANCH_NAME</name>
         </property>
       </activation>
       <properties>
-        <tag>${BRANCH_NAME}-${BUILD_NUMBER}</tag>
+        <tag>${env.BRANCH_NAME}-${BUILD_NUMBER}</tag>
       </properties>
     </profile>
     <profile>

@@ -17,6 +17,7 @@
 
   <properties>
     <jobstore.it.persistence.unit.name>jobstoreIT</jobstore.it.persistence.unit.name>
+    <tag>devel</tag>
   </properties>
 
   <dependencies>
@@ -291,44 +292,7 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <version>${exec-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>prepare-build-docker-image</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>${build-docker-image}</executable>
-              <arguments>
-                <argument>--src-directory</argument>
-                <argument>${basedir}/src/main/docker</argument>
-                <argument>--build-directory</argument>
-                <argument>${project.build.directory}</argument>
-                <argument>--images-log</argument>
-                <!--suppress UnresolvedMavenProperty -->
-                <argument>${session.executionRootDirectory}/docker-images.log</argument>
-                <argument>${project.build.finalName}.${project.packaging}</argument>
-                <argument>dbc-payara-jobstore</argument>
-              </arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>build-docker-image</id>
-            <phase>package</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>${project.build.directory}/docker/build_docker_image.sh</executable>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -344,6 +308,27 @@
               <targetPath>WEB-INF</targetPath>
             </resource>
           </webResources>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <configuration>
+          <images>
+            <image>
+              <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
+<!--              <build>-->
+<!--                <runCmds>-->
+<!--                  <run>-->
+<!--                    echo 'set server.thread-pools.thread-pool.http-thread-pool.max-thread-pool-size=200\n\-->
+<!--                    set server.thread-pools.thread-pool.http-thread-pool.min-thread-pool-size=50\n\-->
+<!--                    set server.thread-pools.thread-pool.thread-pool-1.max-thread-pool-size=200\n\-->
+<!--                    set server.thread-pools.thread-pool.thread-pool-1.min-thread-pool-size=50' >>scripts/prebootcommandfile.txt-->
+<!--                  </run>-->
+<!--                </runCmds>-->
+<!--              </build>-->
+            </image>
+          </images>
         </configuration>
       </plugin>
       <plugin>
@@ -363,4 +348,40 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>branch-build</id>
+      <activation>
+        <property>
+          <name>BRANCH_NAME</name>
+        </property>
+      </activation>
+      <properties>
+        <tag>${BRANCH_NAME}-${BUILD_NUMBER}</tag>
+      </properties>
+    </profile>
+    <profile>
+      <id>docker-push</id>
+      <properties>
+        <tag>DIT-${BUILD_NUMBER}</tag>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>push</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>push</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

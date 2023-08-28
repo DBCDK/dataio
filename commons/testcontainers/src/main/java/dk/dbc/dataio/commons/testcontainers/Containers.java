@@ -5,7 +5,7 @@ import org.testcontainers.containers.GenericContainer;
 public enum Containers {
     FILE_STORE("dbc-payara-filestore:" + getTag()),
     FLOW_STORE("dbc-payara-flowstore:" + getTag()),
-    JOB_STORE("dbc-payara-jobstore:" + getTag()),
+    JOB_STORE("docker-metascrum.artifacts.dbccloud.dk/dataio-job-store-service-war:" + getTag()),
     ARTEMIS("artemis:2_30_0-0"),
     LOG_STORE("dbc-payara-logstore:" + getTag());
 

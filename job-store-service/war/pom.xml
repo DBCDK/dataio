@@ -298,10 +298,33 @@
         <executions>
           <execution>
             <id>prepare-build-docker-image</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
             <configuration>
-              <arguments combine.children="append">
+              <executable>${build-docker-image}</executable>
+              <arguments>
+                <argument>--src-directory</argument>
+                <argument>${basedir}/src/main/docker</argument>
+                <argument>--build-directory</argument>
+                <argument>${project.build.directory}</argument>
+                <argument>--images-log</argument>
+                <!--suppress UnresolvedMavenProperty -->
+                <argument>${session.executionRootDirectory}/docker-images.log</argument>
+                <argument>${project.build.finalName}.${project.packaging}</argument>
                 <argument>dbc-payara-jobstore</argument>
               </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build-docker-image</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${project.build.directory}/docker/build_docker_image.sh</executable>
             </configuration>
           </execution>
         </executions>

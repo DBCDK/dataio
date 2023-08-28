@@ -20,37 +20,6 @@
         pool-name="jdbc/dataio/jobstore/pool"
         jndi-name="jdbc/dataio/jobstore">
     </jdbc-resource>
-
-<!--    <admin-object-resource-->
-<!--        res-adapter="jmsra"-->
-<!--        res-type="javax.jms.Queue"-->
-<!--        jndi-name="jms/dataio/dmq">-->
-<!--        <property name="Name" value="mq.sys.dmq"></property>-->
-<!--    </admin-object-resource>-->
-
-<!--    <admin-object-resource-->
-<!--        res-adapter="jmsra"-->
-<!--        res-type="javax.jms.Queue"-->
-<!--        jndi-name="jms/dataio/sinks">-->
-<!--        <property name="Name" value="jmsDataioSinks"></property>-->
-<!--    </admin-object-resource>-->
-
-<!--    <admin-object-resource-->
-<!--        res-adapter="jmsra"-->
-<!--        res-type="javax.jms.Queue"-->
-<!--        jndi-name="jms/dataio/processor">-->
-<!--        <property name="Name" value="jmsDataioProcessor"></property>-->
-<!--    </admin-object-resource>-->
-
-<!--    <connector-connection-pool-->
-<!--        name="jms/__defaultConnectionFactory-Connection-Pool"-->
-<!--        resource-adapter-name="jmsra"-->
-<!--        connection-definition-name="javax.jms.ConnectionFactory"/>-->
-
-<!--    <connector-resource-->
-<!--        jndi-name="jms/__defaultConnectionFactory"-->
-<!--        pool-name="jms/__defaultConnectionFactory-Connection-Pool"/>-->
-
     <mail-resource
         host="localhost"
         from="test@dataio"

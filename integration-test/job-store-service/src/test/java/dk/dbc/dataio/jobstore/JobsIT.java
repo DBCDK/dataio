@@ -7,13 +7,13 @@ import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.jms.JmsQueueServiceConnector;
+import dk.dbc.dataio.jms.JmsQueueTester;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
+import jakarta.jms.JMSException;
 import org.junit.Test;
 
-import javax.jms.JMSException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,7 +52,7 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
         // And...
         // (Since we cannot be certain of sequence of partitioning...)
         List<Chunk> chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
-                JmsQueueServiceConnector.Queue.PROCESSING_BUSINESS, 2, 10000)
+                JmsQueueTester.Queue.PROCESSING_BUSINESS, 2, 10000)
                 .stream().map(this::getChunk)
                 .sorted(Comparator.comparing(chunk1 -> chunk1 != null ? chunk1.getChunkId() : 0))
                 .collect(Collectors.toList());
@@ -86,7 +86,7 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
         // Then...
         // (And now taking chunk sequence very serious!)
         chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
-                        JmsQueueServiceConnector.Queue.SINK_BE_CISTERNE, 2, 10000)
+                        JmsQueueTester.Queue.SINK_BE_CISTERNE, 2, 10000)
                 .stream().map(this::getChunk)
                 .collect(Collectors.toList());
 

@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.dataio.commons.testcontainers.Containers;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.jms.JmsQueueServiceConnector;
+import dk.dbc.dataio.jms.JmsQueueTester;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
 import dk.dbc.httpclient.HttpClient;
 import org.flywaydb.core.Flyway;
@@ -46,12 +46,11 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
     private static final String ARTEMIS_ALIAS = "dataio-artemis";
     private static final String LOGSTORE = "dataio-logstore";
-    private static final String JMS_QUEUE_SERVICE_ALIAS = "dataio-jms-queue-service";
     private static final String JOBSTORE_SERVICE_ALIAS = "dataio-jobstore-service";
-    private static final LocalDateTime oldJobDateTime = LocalDateTime.now().minus(JOB_EXPIRATION_AGE_IN_DAYS + 2, ChronoUnit.DAYS);
-    private static final LocalDateTime aLittleYoungerJobDateTime = LocalDateTime.now().minus(JOB_EXPIRATION_AGE_IN_DAYS - 1, ChronoUnit.DAYS);
-    private static final LocalDateTime jobFromTheDayBeforeThedayBeforeYesterday = LocalDateTime.now().minus(3, ChronoUnit.DAYS);
-    private static final LocalDateTime jobFromToday = LocalDateTime.now().minus(2, ChronoUnit.HOURS);
+    private static final LocalDateTime oldJobDateTime = LocalDateTime.now().minusDays(JOB_EXPIRATION_AGE_IN_DAYS + 2);
+    private static final LocalDateTime aLittleYoungerJobDateTime = LocalDateTime.now().minusDays(JOB_EXPIRATION_AGE_IN_DAYS - 1);
+    private static final LocalDateTime jobFromTheDayBeforeThedayBeforeYesterday = LocalDateTime.now().minusDays(3);
+    private static final LocalDateTime jobFromToday = LocalDateTime.now().minusHours(2);
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private static final WireMockServer wireMockServer = startWireMockServer();
@@ -59,8 +58,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
     private static final GenericContainer<?> logStoreContainer = startLogstoreServiceContainer(network, logStoreDBContainer);
     static final LogStoreServiceConnector logstoreServiceConnector = makeLogstoreConnector(logStoreContainer);
     private static final GenericContainer<?> artemisContainer = startArtemisContainer(network);
-    private static final GenericContainer<?> jmsQueueServiceContainer = startJmsQueueServiceContainer(network);
-    static final JmsQueueServiceConnector jmsQueueServiceConnector = makeJmsServiceConnector(jmsQueueServiceContainer);
+    static final JmsQueueTester jmsQueueServiceConnector = makeJmsQueueTester(artemisContainer);
     private static final DBCPostgreSQLContainer jobstoreDBContainer = startJobstoreDB(network);
     private static final GenericContainer<?> jobStoreServiceContainer = startJobStoreServiceContainer(network);
     static final JobStoreServiceConnector jobStoreServiceConnector = makeJobStoreConnector(jobStoreServiceContainer);
@@ -70,9 +68,8 @@ public abstract class AbstractJobStoreServiceContainerTest {
         return new JobStoreServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), url);
     }
 
-    private static JmsQueueServiceConnector makeJmsServiceConnector(GenericContainer<?> jmsQueueServiceContainer) {
-        String jmsQueueServiceBaseurl = "http://" + jmsQueueServiceContainer.getHost() + ":" + jmsQueueServiceContainer.getMappedPort(8080);
-        return new JmsQueueServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), jmsQueueServiceBaseurl);
+    private static JmsQueueTester makeJmsQueueTester(GenericContainer<?> artemisContainer) {
+        return new JmsQueueTester(artemisContainer.getHost() + ":" + artemisContainer.getMappedPort(61616));
     }
 
     private static LogStoreServiceConnector makeLogstoreConnector(GenericContainer<?> logstoreContainer) {
@@ -136,19 +133,6 @@ public abstract class AbstractJobStoreServiceContainerTest {
         return container;
     }
 
-    private static GenericContainer<?> startJmsQueueServiceContainer(Network network) {
-        final GenericContainer<?> container = Containers.JMS_QUEUE_SVC.makeContainer()
-                .withNetwork(network)
-                .withNetworkAliases(JMS_QUEUE_SERVICE_ALIAS)
-                .withLogConsumer(new Slf4jLogConsumer(LOGGER))
-                .withEnv("LOG_FORMAT", "text")
-                .withEnv("JAVA_MAX_HEAP_SIZE", "1G")
-                .withEnv("ARTEMIS_MQ_HOST", ARTEMIS_ALIAS)
-                .withExposedPorts(8080);
-        container.start();
-        return container;
-    }
-
     private static GenericContainer<?> startJobStoreServiceContainer(Network network) {
         final GenericContainer<?> container = Containers.JOB_STORE.makeContainer()
                 .withNetwork(network)
@@ -184,8 +168,8 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
     private static String getDebuggingHost() {
         try {
-            String blah = InetAddress.getLocalHost().getHostAddress() + ":5005";
-            return "192.168.0.88:5005";
+            String host = InetAddress.getLocalHost().getHostAddress() + ":5005";
+            return host;
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
@@ -234,7 +218,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
     @Before
     public void emptyQueues() {
-        Arrays.stream(JmsQueueServiceConnector.Queue.values()).forEach(jmsQueueServiceConnector::emptyQueue);
+        Arrays.stream(JmsQueueTester.Queue.values()).forEach(jmsQueueServiceConnector::emptyQueue);
     }
 
     static void migrateJobstore(DataSource dataSource) {

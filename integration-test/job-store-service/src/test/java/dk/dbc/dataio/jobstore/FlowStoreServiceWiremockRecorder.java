@@ -5,10 +5,9 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.httpclient.HttpClient;
+import jakarta.ws.rs.client.Client;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
-
-import javax.ws.rs.client.Client;
 
 public class FlowStoreServiceWiremockRecorder {
     private final FlowStoreServiceConnector flowStoreServiceConnector;

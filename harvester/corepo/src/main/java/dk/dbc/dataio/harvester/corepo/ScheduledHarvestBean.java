@@ -2,13 +2,12 @@ package dk.dbc.dataio.harvester.corepo;
 
 import dk.dbc.dataio.harvester.AbstractScheduledHarvestBean;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
+import jakarta.ejb.EJB;
+import jakarta.ejb.ScheduleExpression;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ejb.EJB;
-import javax.ejb.ScheduleExpression;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
 
 /**
  * This singleton Enterprise Java Bean (EJB) class executes scheduled harvest

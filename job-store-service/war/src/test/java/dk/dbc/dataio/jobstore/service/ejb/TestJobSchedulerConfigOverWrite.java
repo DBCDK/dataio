@@ -1,11 +1,10 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
 
 /**
  * Created by ja7 on 06-05-16.

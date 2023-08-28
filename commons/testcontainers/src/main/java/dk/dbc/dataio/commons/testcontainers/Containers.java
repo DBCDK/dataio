@@ -6,8 +6,7 @@ public enum Containers {
     FILE_STORE("dbc-payara-filestore:" + getTag()),
     FLOW_STORE("dbc-payara-flowstore:" + getTag()),
     JOB_STORE("dbc-payara-jobstore:" + getTag()),
-    JMS_QUEUE_SVC("dbc-payara-jms-queue-service:" + getTag()),
-    ARTEMIS("artemis:2_24_0-15"),
+    ARTEMIS("artemis:2_30_0-0"),
     LOG_STORE("dbc-payara-logstore:" + getTag());
 
     private final String dockerRepo;

@@ -1,8 +1,8 @@
 package dk.dbc.dataio.filestore.service.connector;
 
 import dk.dbc.httpclient.HttpClient;
+import jakarta.ws.rs.ProcessingException;
 
-import javax.ws.rs.ProcessingException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

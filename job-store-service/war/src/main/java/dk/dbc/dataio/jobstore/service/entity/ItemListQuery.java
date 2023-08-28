@@ -4,12 +4,12 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.querylanguage.DataIOQLParser;
 import dk.dbc.dataio.querylanguage.ParseException;
 import dk.dbc.invariant.InvariantUtil;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceException;
+import jakarta.persistence.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceException;
-import javax.persistence.Query;
 import java.util.List;
 
 /**

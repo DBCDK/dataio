@@ -1,6 +1,6 @@
 package dk.dbc.dataio.commons.types.exceptions;
 
-import javax.ejb.ApplicationException;
+import jakarta.ejb.ApplicationException;
 
 @ApplicationException(rollback = true)
 public class ReferencedEntityNotFoundException extends Exception {

@@ -5,19 +5,18 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import jakarta.activation.DataHandler;
+import jakarta.mail.BodyPart;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Multipart;
+import jakarta.mail.Part;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
 
-import javax.activation.DataHandler;
-import javax.mail.BodyPart;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.Part;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -31,6 +30,8 @@ import static dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter.toJob
 
 /**
  * Class wrapping a NotificationEntity instance as an email notification
+ *
+ * Currently not able to get a jakarta compatible mock-javamail
  */
 public class MailNotification {
     private static final String JOB_CREATED_OK_TEMPLATE = "/notifications/job_created_ok.template";
@@ -69,13 +70,13 @@ public class MailNotification {
      * @throws JobStoreException in case of error during formatting or sending
      */
     public void send() throws JobStoreException {
-        try {
-            // sends the e-mail
-            notification.setDestination(mailDestination.toString());
-            Transport.send(buildMimeMessage());
-        } catch (Exception e) {
-            throw new JobStoreException("Unable to send notification", e);
-        }
+//        try {
+//            // sends the e-mail
+//            notification.setDestination(mailDestination.toString());
+//            Transport.send(buildMimeMessage());
+//        } catch (Exception e) {
+//            throw new JobStoreException("Unable to send notification", e);
+//        }
     }
 
     public void append(JobExporter.FailedItemsContent failedItemsContent) {

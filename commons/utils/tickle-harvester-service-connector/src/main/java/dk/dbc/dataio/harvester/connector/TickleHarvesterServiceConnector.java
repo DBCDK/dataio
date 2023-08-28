@@ -5,10 +5,10 @@ import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorExcep
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.HttpPost;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.time.Instant;
 
 public class TickleHarvesterServiceConnector extends HarvesterTaskServiceConnector {

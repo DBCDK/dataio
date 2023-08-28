@@ -1,11 +1,10 @@
 package dk.dbc.dataio.rrharvester.service.connector.ejb;
 
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
+import jakarta.ejb.EJBException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-
-import javax.ejb.EJBException;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;

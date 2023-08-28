@@ -1,6 +1,6 @@
 package dk.dbc.dataio.commons.types.exceptions;
 
-import javax.ejb.ApplicationException;
+import jakarta.ejb.ApplicationException;
 
 @ApplicationException(rollback = false)
 public class InvalidMessageException extends Exception {

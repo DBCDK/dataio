@@ -3,7 +3,6 @@ package dk.dbc.dataio.jobstore.service;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
@@ -33,18 +32,18 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
+import jakarta.ejb.SessionContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+import jakarta.persistence.Query;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.jvnet.mock_javamail.Mailbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.SessionContext;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -99,14 +98,15 @@ public class AbstractJobStoreIT implements PostgresContainerJPAUtils {
         properties.put(JDBC_DRIVER, "org.postgresql.Driver");
         properties.put("eclipselink.logging.level", "FINE");
 
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("jobstoreIT", dbContainer.entityManagerProperties());
+        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("jobstoreIT", properties);
         entityManager = entityManagerFactory.createEntityManager(properties);
+        Assert.assertNotNull("Should have an entity manager", entityManager);
         persistenceContext = new TransactionScopedPersistenceContext(entityManager);
     }
 
     @Before
     public void clearMailBoxes() {
-        Mailbox.clearAll();
+//        Mailbox.clearAll();
     }
 
     @Before

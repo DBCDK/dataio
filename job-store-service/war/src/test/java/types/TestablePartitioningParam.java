@@ -7,8 +7,8 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
+import jakarta.persistence.EntityManager;
 
-import javax.persistence.EntityManager;
 import java.io.InputStream;
 import java.util.List;
 

@@ -1,10 +1,10 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

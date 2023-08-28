@@ -2,10 +2,10 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Flow;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import org.postgresql.util.PGobject;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 import java.sql.SQLException;
 
 /**

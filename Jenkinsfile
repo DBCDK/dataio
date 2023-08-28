@@ -6,20 +6,17 @@ def workerNode = "devel11"
 pipeline {
     agent {label workerNode}
     tools {
-		jdk 'jdk11'
-		maven 'Maven 3'
+        jdk 'jdk11'
+        maven 'Maven 3'
     }
     environment {
         MAVEN_OPTS="-Dmaven.repo.local=/home/isworker/.m2/dataio-repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BUILD_NUMBER="${env.BUILD_NUMBER}"
+        DEPLOY_TO_STAGING_CANDIDATE = "yes"
         DEPLOY_ARTIFACTS="commons/utils/flow-store-service-connector, \
             commons/utils/tickle-harvester-service-connector, \
-            file-store-service/war/, \
-            log-store-service/war, \
-            flow-store-service, \
-            job-store-service/war, \
             gatekeeper, \
             job-processor2, \
             dlq-errorhandler, \
@@ -44,12 +41,12 @@ pipeline {
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara5-bump-trigger",
-			threshold: hudson.model.Result.SUCCESS)
+                threshold: hudson.model.Result.SUCCESS)
     }
     options {
         skipDefaultCheckout(true)
         buildDiscarder(logRotator(artifactDaysToKeepStr: "",
-            artifactNumToKeepStr: "", daysToKeepStr: "30", numToKeepStr: "30"))
+                artifactNumToKeepStr: "", daysToKeepStr: "30", numToKeepStr: "30"))
         timestamps()
         timeout(time: 1, unit: "HOURS")
         disableConcurrentBuilds(abortPrevious: true)
@@ -73,7 +70,7 @@ pipeline {
                         echo Fast branch deployment skip all tests
                         FAST=" -P !integration-test -Dmaven.test.skip=true "
                     fi
-                    mvn -B -T 4 -Dtag=${env.BRANCH_NAME}-${env.BUILD_NUMBER} \${FAST} install
+                    mvn -B -T 4 \${FAST} install
                     test -n \${FAST} && mvn -B -T 6 -P !integration-test pmd:pmd
                     echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                     ./cli/build_docker_image.sh
@@ -184,30 +181,25 @@ pipeline {
                 }
             }
         }
-        stage("Not master branch: Push images when commit message starts with '!'") {
+        stage("deploy this branch to staging? (then push dockers to artifactory first)") {
             when {
                 allOf {
                     not {
                         branch "master"
                     }
-                    not {
-                        branch "PR-*"
-                    }
+                    environment name:  DEPLOY_TO_STAGING_CANDIDATE, value: "yes"
                 }
 
             }
             steps {
                 sh """
-                    #!/bin/bash
-                    if [ -n "\$(git log -1 | tail +5 | grep -E ' *!')" ]; then
-                        echo "Gogo staging gadget!!!"
-                        mvn deploy -B -T 6 -Dmaven.test.skip=true -Pdocker-push  --am -pl "${DEPLOY_ARTIFACTS}"
-                        cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
-                    fi
+                    echo "Gogo staging gadget!!!"
+                    mvn deploy -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "${DEPLOY_ARTIFACTS}"
+                    cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
                 """
             }
         }
-        stage("Not master branch: Bump docker tags in dataio-secrets when commit message starts with '!'") {
+        stage("bump docker tags in dataio-secrets for non-master branches") {
             agent {
                 docker {
                     label workerNode
@@ -220,21 +212,15 @@ pipeline {
                     not {
                         branch "master"
                     }
-                    not {
-                        branch "PR-*"
-                    }
+                    environment name:  DEPLOY_TO_STAGING_CANDIDATE, value: "yes"
                 }
 
             }
             steps {
                 script {
                     sh """
-                        #!/bin/bash
-                        if [ -n "\$(git log -1 | tail +5 | grep -E ' *!')" ]; then
-                            echo "Gogo version gadget!!!"
-                            set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets ${env.BRANCH_NAME}-${env.BUILD_NUMBER} -b staging
-                        fi
-                            
+                        echo "Gogo version gadget!!!"
+                        set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets ${env.BRANCH_NAME}-${env.BUILD_NUMBER} -b staging
                     """
                 }
             }

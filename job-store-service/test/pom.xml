@@ -12,8 +12,6 @@
   </parent>
 
   <artifactId>dataio-job-store-service-test</artifactId>
-  <name>dataio-job-store-service-test</name>
-  <packaging>jar</packaging>
 
   <dependencies>
     <dependency>

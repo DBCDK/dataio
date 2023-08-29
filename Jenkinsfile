@@ -32,7 +32,7 @@ pipeline {
             sink/openupdate, \
             sink/batch-exchange, \
             sink/periodic-jobs, \
-            sink/dpf \
+            sink/dpf, \
             job-store-service \
             "
     }

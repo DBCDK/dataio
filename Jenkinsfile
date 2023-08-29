@@ -110,7 +110,7 @@ pipeline {
             }
             steps {
                 sh """
-                mvn deploy -T 6 -B -Dmaven.test.skip=true -Pdocker-push -am -pl "${DEPLOY_ARTIFACTS}"
+                mvn deploy -T 6 -B -Dmaven.test.skip=true -Pdocker-push -am -pl "${DEPLOY_ARTIFACTS}" -Dtag="DIT-${env.BUILD_NUMBER}"
             """
             }
         }

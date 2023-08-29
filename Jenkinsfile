@@ -33,7 +33,7 @@ pipeline {
             sink/batch-exchange, \
             sink/periodic-jobs, \
             sink/dpf, \
-            job-store-service \
+            job-store-service/war \
             "
     }
     triggers {

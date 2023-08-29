@@ -33,6 +33,7 @@ pipeline {
             sink/batch-exchange, \
             sink/periodic-jobs, \
             sink/dpf \
+            job-store-service \
             "
     }
     triggers {
@@ -110,7 +111,7 @@ pipeline {
             }
             steps {
                 sh """
-                mvn deploy -T 6 -B -Dmaven.test.skip=true -Pdocker-push -am -pl "${DEPLOY_ARTIFACTS}" -Dtag="DIT-${env.BUILD_NUMBER}"
+                mvn deploy -T 6 -B -Dmaven.test.skip=true -Pdocker-push -am -pl "${DEPLOY_ARTIFACTS}"
             """
             }
         }

@@ -11,6 +11,7 @@ import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Part;
+import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
@@ -70,13 +71,13 @@ public class MailNotification {
      * @throws JobStoreException in case of error during formatting or sending
      */
     public void send() throws JobStoreException {
-//        try {
-//            // sends the e-mail
-//            notification.setDestination(mailDestination.toString());
-//            Transport.send(buildMimeMessage());
-//        } catch (Exception e) {
-//            throw new JobStoreException("Unable to send notification", e);
-//        }
+        try {
+            // sends the e-mail
+            notification.setDestination(mailDestination.toString());
+            Transport.send(buildMimeMessage());
+        } catch (Exception e) {
+            throw new JobStoreException("Unable to send notification", e);
+        }
     }
 
     public void append(JobExporter.FailedItemsContent failedItemsContent) {

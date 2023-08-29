@@ -123,7 +123,7 @@ public class JobNotificationRepository extends RepositoryBase {
             // flush to catch database errors early
             // and therefore avoid mail bombings
             entityManager.flush();
-            mailNotification.send();
+            send(mailNotification);
         } catch (JobStoreException e) {
             LOGGER.error("Notification processing failed", e);
             notification.setStatus(Notification.Status.FAILED);
@@ -133,6 +133,10 @@ public class JobNotificationRepository extends RepositoryBase {
 
         notification.setStatus(Notification.Status.COMPLETED);
         return true;
+    }
+
+    protected void send(MailNotification mailNotification) throws JobStoreException {
+        mailNotification.send();
     }
 
     /**

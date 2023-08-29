@@ -8,7 +8,9 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
+import dk.dbc.dataio.jobstore.service.util.MailNotification;
 import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
@@ -371,9 +373,12 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.from", "dataio@dbc.dk");
 
-        final JobNotificationRepository jobNotificationRepository = new JobNotificationRepository();
+        final JobNotificationRepository jobNotificationRepository = new JobNotificationRepository() {
+            @Override
+            protected void send(MailNotification mailNotification) throws JobStoreException {
+            }
+        };
         jobNotificationRepository.entityManager = entityManager;
-//        jobNotificationRepository.mailSession = Session.getDefaultInstance(mailSessionProperties);
         jobNotificationRepository.sessionContext = sessionContext;
         jobNotificationRepository.vipCoreServiceConnector = vipCoreServiceConnector;
 

@@ -72,16 +72,16 @@ pipeline {
                     ./cli/build_docker_image.sh
                 """
                 script {
-                    junit allowEmptyResults:true, testResults: '**/target/*-reports/*.xml'
+                    junit allowEmptyResults: true, testResults: '**/target/*-reports/*.xml'
 
                     def java = scanForIssues tool: [$class: 'Java']
-                    publishIssues issues:[java], unstableTotalAll:1
+                    publishIssues issues: [java], unstableTotalAll: 1
 
                     def pmd = scanForIssues tool: [$class: 'Pmd']
-                    publishIssues issues:[pmd], unstableTotalAll:1
+                    publishIssues issues: [pmd], unstableTotalAll: 1
 
                     def spotbugs = scanForIssues tool: [$class: 'SpotBugs']
-                    publishIssues issues:[spotbugs], unstableTotalAll:1
+                    publishIssues issues: [spotbugs], unstableTotalAll: 1
 
                     archiveArtifacts artifacts: "docker-images.log,cli/acceptance-test/target/dataio-cli-acctest.jar,gatekeeper/target/dataio-gatekeeper*.jar,cli/dataio-cli",
                             fingerprint: true
@@ -179,20 +179,20 @@ pipeline {
         }
         stage("deploy this branch to staging? (then push dockers to artifactory first)") {
             when {
-                    not {
-                        branch "master"
-                    }
+                not {
+                    branch "master"
+                }
             }
             steps {
                 script {
                     if (env.DEPLOY_TO_STAGING_CANDIDATE.toBoolean()) {
-                sh """
+                        sh """
                         echo "Gogo staging gadget!!!"
                         mvn deploy -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "${DEPLOY_ARTIFACTS}"
                         cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
                 """
-            }
-        }
+                    }
+                }
             }
         }
         stage("bump docker tags in dataio-secrets for non-master branches") {
@@ -204,26 +204,26 @@ pipeline {
                 }
             }
             when {
-                    not {
-                        branch "master"
-                    }
+                not {
+                    branch "master"
+                }
 
             }
             steps {
                 script {
                     if (env.DEPLOY_TO_STAGING_CANDIDATE.toBoolean()) {
-                    sh """
+                        sh """
                             echo "Gogo version gadget!!!"
                             set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets ${env.BRANCH_NAME}-${env.BUILD_NUMBER} -b staging
                     """
+                    }
                 }
             }
         }
-    }
 //    post {
 //        always {
 //            echo 'Cleaning up'
 //            cleanWs()
 //        }
-//    }
+    }
 }

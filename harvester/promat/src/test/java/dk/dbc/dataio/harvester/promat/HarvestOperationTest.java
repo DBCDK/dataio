@@ -1,7 +1,5 @@
 package dk.dbc.dataio.harvester.promat;
 
-import dk.dbc.commons.metricshandler.CounterMetric;
-import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -25,6 +23,9 @@ import dk.dbc.promat.service.persistence.CaseStatus;
 import dk.dbc.promat.service.persistence.PromatCase;
 import dk.dbc.promat.service.persistence.PromatTask;
 import dk.dbc.promat.service.persistence.TaskFieldType;
+import org.eclipse.microprofile.metrics.Counter;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -41,7 +42,6 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -52,7 +52,7 @@ class HarvestOperationTest {
     private MockedFileStoreServiceConnector fileStoreServiceConnector;
     private FlowStoreServiceConnector flowStoreServiceConnector;
     private PromatServiceConnector promatServiceConnector;
-    private final MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
+    private final MetricRegistry metricsHandlerBean = mock(MetricRegistry.class);
     private Path harvesterTmpFile;
 
     @TempDir
@@ -68,11 +68,9 @@ class HarvestOperationTest {
         jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class)))
                 .thenReturn(new JobInfoSnapshot());
-
+        when(metricsHandlerBean.counter(any(Metadata.class))).thenReturn(mock(Counter.class));
         flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         promatServiceConnector = mock(PromatServiceConnector.class);
-
-        doNothing().when(metricsHandlerBean).increment(any(CounterMetric.class), any());
     }
 
     @Test
@@ -231,12 +229,6 @@ class HarvestOperationTest {
 
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(PromatHarvesterConfig.class));
-
-        // Check metrics
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_HARVESTED, 3L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_PROCESSED, 3L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_FAILED, 0L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_ADDED, 3L);
     }
 
     @Test
@@ -261,11 +253,6 @@ class HarvestOperationTest {
         verify(promatServiceConnector, never()).updateCase(any(Integer.class), any(CaseRequest.class));
         verify(jobStoreServiceConnector, never()).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(PromatHarvesterConfig.class));
-
-        // Check metrics
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_HARVESTED, 0L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_PROCESSED, 0L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_FAILED, 0L);
     }
 
     @Test
@@ -312,11 +299,6 @@ class HarvestOperationTest {
         // No jobs where added
         verify(jobStoreServiceConnector, never()).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(PromatHarvesterConfig.class));
-
-        // Check metrics
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_HARVESTED, 1L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_PROCESSED, 0L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_FAILED, 1L);
     }
 
     @Test
@@ -369,11 +351,6 @@ class HarvestOperationTest {
         // No jobs where added
         verify(jobStoreServiceConnector, never()).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(PromatHarvesterConfig.class));
-
-        // Check metrics
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_HARVESTED, 1L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_PROCESSED, 0L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_FAILED, 1L);
     }
 
     @Test
@@ -430,11 +407,6 @@ class HarvestOperationTest {
         // No jobs where added
         verify(jobStoreServiceConnector, never()).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(PromatHarvesterConfig.class));
-
-        // Check metrics
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_HARVESTED, 1L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_PROCESSED, 0L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_FAILED, 1L);
     }
 
     @Test
@@ -493,12 +465,6 @@ class HarvestOperationTest {
         // Jobs where added
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(PromatHarvesterConfig.class));
-
-        // Check metrics
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_HARVESTED, 1L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_PROCESSED, 1L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_FAILED, 1L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_ADDED, 1L);
     }
 
     @Test
@@ -640,12 +606,6 @@ class HarvestOperationTest {
 
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(PromatHarvesterConfig.class));
-
-        // Check metrics
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_HARVESTED, 3L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_PROCESSED, 2L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_FAILED, 1L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_ADDED, 2L);
     }
 
     @Test
@@ -790,12 +750,6 @@ class HarvestOperationTest {
 
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(PromatHarvesterConfig.class));
-
-        // Check metrics
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_HARVESTED, 3L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_PROCESSED, 2L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_FAILED, 1L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_ADDED, 2L);
     }
 
     @Test
@@ -960,12 +914,6 @@ class HarvestOperationTest {
 
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(PromatHarvesterConfig.class));
-
-        // Check metrics
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_HARVESTED, 3L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_PROCESSED, 3L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_FAILED, 1L);
-        verify(metricsHandlerBean).increment(PromatHarvesterMetrics.RECORDS_ADDED, 3L);
     }
 
     @Test

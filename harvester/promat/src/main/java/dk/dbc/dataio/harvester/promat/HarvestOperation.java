@@ -3,7 +3,6 @@ package dk.dbc.dataio.harvester.promat;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -27,6 +26,7 @@ import dk.dbc.promat.service.persistence.CaseStatus;
 import dk.dbc.promat.service.persistence.PromatCase;
 import dk.dbc.promat.service.persistence.PromatTask;
 import dk.dbc.promat.service.persistence.TaskFieldType;
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +59,7 @@ public class HarvestOperation {
     private final PromatCaseXmlTransformer promatCaseXmlTransformer;
     private final ZoneId timezone;
 
-    private final MetricsHandlerBean metricsHandler;
+    private final MetricRegistry metricRegistry;
 
     public HarvestOperation(PromatHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
@@ -67,7 +67,7 @@ public class HarvestOperation {
                             FlowStoreServiceConnector flowStoreServiceConnector,
                             JobStoreServiceConnector jobStoreServiceConnector,
                             PromatServiceConnector promatServiceConnector,
-                            MetricsHandlerBean metricsHandler) {
+                            MetricRegistry metricRegistry) {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
@@ -77,7 +77,7 @@ public class HarvestOperation {
         this.jsonbContext = new JSONBContext();
         this.promatCaseXmlTransformer = new PromatCaseXmlTransformer();
         this.timezone = getTimezone();
-        this.metricsHandler = metricsHandler;
+        this.metricRegistry = metricRegistry;
     }
 
     public int execute() throws HarvesterException {
@@ -142,7 +142,7 @@ public class HarvestOperation {
                 Optional<JobInfoSnapshot> jobInfo = jobBuilder.build();
                 jobInfo.ifPresent(jobInfoSnapshot -> {
                     LOGGER.info("Created job {} with {} items", jobInfoSnapshot.getJobId(), recordsAdded);
-                    metricsHandler.increment(PromatHarvesterMetrics.RECORDS_ADDED, recordsAdded);
+                    metricRegistry.counter(PromatHarvesterMetrics.RECORDS_ADDED.getMetadata()).inc(recordsAdded);
                 });
             } else if (recordsHarvested == 0) {
                 LOGGER.info("No new records harvested from Promat");
@@ -164,24 +164,24 @@ public class HarvestOperation {
         } catch (PromatServiceConnectorException e) {
             LOGGER.error(String.format("Caught unexpected PromatServiceConnectorException: %s", e.getMessage()), e);
             LOGGER.error("Promat may now have stale records in status PROCESSING");
-            metricsHandler.increment(PromatHarvesterMetrics.EXCEPTIONS);
+            metricRegistry.counter(PromatHarvesterMetrics.EXCEPTIONS.getMetadata()).inc();
             throw new HarvesterException("Caught DMatServiceConnectorException", e);
         } catch (HarvesterException e) {
             LOGGER.error(String.format("Caught HarvesterException: %s", e.getMessage()), e);
             LOGGER.error("Promat may now have stale records in status PROCESSING");
-            metricsHandler.increment(PromatHarvesterMetrics.EXCEPTIONS);
+            metricRegistry.counter(PromatHarvesterMetrics.EXCEPTIONS.getMetadata()).inc();
             throw e;
         } catch (Exception e) {
             LOGGER.error(String.format("Caught unexpected Exception: %s", e.getMessage()), e);
             LOGGER.error("Promat may now have stale records in status PROCESSING");
-            metricsHandler.increment(PromatHarvesterMetrics.UNHANDLED_EXCEPTIONS);
+            metricRegistry.counter(PromatHarvesterMetrics.UNHANDLED_EXCEPTIONS.getMetadata()).inc();
             throw new HarvesterException("Caught Exception", e);
         } finally {
             LOGGER.info("Harvested {} promat cases. {} was processed, {} was skipped, {} failed in {} ms", recordsHarvested,
                     recordsProcessed, recordsSkipped, recordsFailed.get(), stopwatch.getElapsedTime());
-            metricsHandler.increment(PromatHarvesterMetrics.RECORDS_HARVESTED, recordsHarvested);
-            metricsHandler.increment(PromatHarvesterMetrics.RECORDS_PROCESSED, recordsProcessed);
-            metricsHandler.increment(PromatHarvesterMetrics.RECORDS_FAILED, recordsFailed.get() + recordsSkipped);
+            metricRegistry.counter(PromatHarvesterMetrics.RECORDS_HARVESTED.getMetadata()).inc(recordsHarvested);
+            metricRegistry.counter(PromatHarvesterMetrics.RECORDS_PROCESSED.getMetadata()).inc(recordsProcessed);
+            metricRegistry.counter(PromatHarvesterMetrics.RECORDS_FAILED.getMetadata()).inc(recordsFailed.get() + recordsSkipped);
         }
     }
 

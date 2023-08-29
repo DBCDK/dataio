@@ -20,6 +20,10 @@
     <description>Temporary main pom for Payara 6 migration</description>
 
     <properties>
+        <tag>devel</tag>
+        <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest</java.image>
+        <docker.deploydir>/opt/payara6/deployments</docker.deploydir>
+
         <dataio-commons-utils-file-store-service-connector.version>1.1-migration</dataio-commons-utils-file-store-service-connector.version>
         <dataio-commons-types.version>1.1-migration</dataio-commons-types.version>
         <dataio-commons-utils-test.version>1.1-migration</dataio-commons-utils-test.version>

@@ -14,6 +14,7 @@ pipeline {
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BUILD_NUMBER="${env.BUILD_NUMBER}"
+        DEPLOY_TO_STAGING_CANDIDATE=false
         DEPLOY_ARTIFACTS="commons/utils/flow-store-service-connector, \
             commons/utils/tickle-harvester-service-connector, \
             gatekeeper, \
@@ -65,7 +66,7 @@ pipeline {
                         echo Fast branch deployment skip all tests
                         FAST=" -P !integration-test -Dmaven.test.skip=true "
                     fi
-                    mvn -B -T 4 \${FAST} install
+                    mvn -B -T 4 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install
                     test -n \${FAST} && mvn -B -T 6 -P !integration-test pmd:pmd
                     echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                     ./cli/build_docker_image.sh
@@ -134,6 +135,7 @@ pipeline {
             steps {
                 sh """
                 ./docker/remove-images docker-metascrum.artifacts.dbccloud.dk/dbc-payara-*
+                ./docker/remove-images docker-metascrum.artifacts.dbccloud.dk/dataio-*
             """
             }
         }
@@ -175,27 +177,22 @@ pipeline {
                 }
             }
         }
-        stage("deploy this branch to staging?") {
+        stage("deploy this branch to staging? (then push dockers to artifactory first)") {
             when {
-                allOf {
                     not {
                         branch "master"
                     }
-                    not {
-                        branch "PR-*"
-                    }
-                }
-
             }
             steps {
+                script {
+                    if (env.DEPLOY_TO_STAGING_CANDIDATE.toBoolean()) {
                 sh """
-                    #!/bin/bash
-                    if [ -n "\$(git log -1 | tail +5 | grep -E ' *!')" ]; then
                         echo "Gogo staging gadget!!!"
                         mvn deploy -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "${DEPLOY_ARTIFACTS}"
                         cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
-                    fi
                 """
+            }
+        }
             }
         }
         stage("bump docker tags in dataio-secrets for non-master branches") {
@@ -207,25 +204,17 @@ pipeline {
                 }
             }
             when {
-                allOf {
                     not {
                         branch "master"
                     }
-                    not {
-                        branch "PR-*"
-                    }
-                }
 
             }
             steps {
                 script {
+                    if (env.DEPLOY_TO_STAGING_CANDIDATE.toBoolean()) {
                     sh """
-                        #!/bin/bash
-                        if [ -n "\$(git log -1 | tail +5 | grep -E ' *!')" ]; then
                             echo "Gogo version gadget!!!"
                             set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets ${env.BRANCH_NAME}-${env.BUILD_NUMBER} -b staging
-                        fi
-                            
                     """
                 }
             }

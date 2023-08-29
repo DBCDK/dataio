@@ -33,6 +33,7 @@ pipeline {
             sink/batch-exchange, \
             sink/periodic-jobs, \
             sink/dpf, \
+            harvester/corepo, \
             job-store-service/war \
             "
     }

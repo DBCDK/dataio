@@ -158,10 +158,10 @@
                                 <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
                                 <build>
                                     <from>${java.image}</from>
-                                    <user>gfish</user>
                                     <env>
                                         <TZ default-value="Europe/Copenhagen"/>
                                     </env>
+                                    <workdir>/opt/payara6</workdir>
                                     <assemblies>
                                         <assembly>
                                             <name>payara-resources</name>

@@ -137,6 +137,10 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-types</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>jmx-metric-registry</artifactId>
       <version>${project.version}</version>
     </dependency>

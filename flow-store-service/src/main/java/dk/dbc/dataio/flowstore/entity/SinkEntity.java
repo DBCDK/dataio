@@ -1,11 +1,11 @@
 package dk.dbc.dataio.flowstore.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityResult;
-import javax.persistence.NamedNativeQueries;
-import javax.persistence.NamedNativeQuery;
-import javax.persistence.SqlResultSetMapping;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityResult;
+import jakarta.persistence.NamedNativeQueries;
+import jakarta.persistence.NamedNativeQuery;
+import jakarta.persistence.SqlResultSetMapping;
+import jakarta.persistence.Table;
 
 @Entity
 @SqlResultSetMapping(name = "Sink.implicit", entities = {

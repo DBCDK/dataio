@@ -2,11 +2,11 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.flowstore.entity.Versioned;
+import jakarta.persistence.EntityManager;
+import jakarta.ws.rs.core.UriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 
 /**

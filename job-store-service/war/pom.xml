@@ -279,18 +279,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
-        <version>${maven.war.plugin.version}</version>
-        <configuration>
-          <failOnMissingWebXml>false</failOnMissingWebXml>
-          <attachClasses>true</attachClasses>
-          <webResources>
-            <resource>
-              <directory>${basedir}/src/main/webapp/WEB-INF</directory>
-              <filtering>true</filtering>
-              <targetPath>WEB-INF</targetPath>
-            </resource>
-          </webResources>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>io.fabric8</groupId>

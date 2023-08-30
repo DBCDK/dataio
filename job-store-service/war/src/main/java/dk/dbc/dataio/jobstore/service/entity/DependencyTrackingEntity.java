@@ -144,15 +144,22 @@ public class DependencyTrackingEntity {
 
     public enum ChunkSchedulingStatus {
         READY_FOR_PROCESSING(1),   // chunk is ready for processing
-        QUEUED_FOR_PROCESSING(2),  // chunk is sent to processor JMS queue
+        QUEUED_FOR_PROCESSING(2, READY_FOR_PROCESSING),  // chunk is sent to processor JMS queue
         BLOCKED(3),                // chunk is waiting for other chunk(s) to return from sink
         READY_FOR_DELIVERY(4),     // chunk is ready for delivery
-        QUEUED_FOR_DELIVERY(5);     // chunk is sent to sink JMS queue
+        QUEUED_FOR_DELIVERY(5, READY_FOR_DELIVERY);     // chunk is sent to sink JMS queue
 
         public final Integer value;
+        public final ChunkSchedulingStatus resend;
 
         ChunkSchedulingStatus(Integer value) {
             this.value = value;
+            resend = null;
+        }
+
+        ChunkSchedulingStatus(Integer value, ChunkSchedulingStatus resend) {
+            this.value = value;
+            this.resend = resend;
         }
     }
 
@@ -275,8 +282,13 @@ public class DependencyTrackingEntity {
         return retries;
     }
 
-    public int incRetries() {
-        return ++retries;
+    public int resend() {
+        ChunkSchedulingStatus resend = status.resend;
+        if(resend != null) {
+            setStatus(resend);
+            ++retries;
+        }
+        return retries;
     }
 
     public DependencyTrackingEntity withRetries(int retries) {
@@ -398,6 +410,10 @@ public class DependencyTrackingEntity {
                     "jobId=" + jobId +
                     ", chunkId=" + chunkId +
                     '}';
+        }
+
+        public String toChunkIdentifier() {
+            return jobId + "/" + chunkId;
         }
     }
 }

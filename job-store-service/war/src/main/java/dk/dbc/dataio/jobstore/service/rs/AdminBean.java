@@ -86,7 +86,7 @@ public class AdminBean {
             Stream<DependencyTrackingEntity> delStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
             Stream<DependencyTrackingEntity> procStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
             List<DependencyTrackingEntity> list = Stream.concat(delStream, procStream).collect(Collectors.toList());
-            retryIfNeeded(list);
+            resendIfNeeded(list);
             list.stream().map(s -> getSinkName(s.getSinkid())).distinct().filter(s -> staleChunks.putIfAbsent(s, new AtomicInteger(0)) == null).forEach(this::registerChunkMetric);
             Map<Integer, List<DependencyTrackingEntity>> map = list.stream().collect(Collectors.groupingBy(DependencyTrackingEntity::getSinkid));
             Map<String, Integer> counters = map.entrySet().stream().collect(Collectors.toMap(e -> getSinkName(e.getKey()), e -> e.getValue().size()));
@@ -98,16 +98,18 @@ public class AdminBean {
         }
     }
 
-    public void retryIfNeeded(List<DependencyTrackingEntity> list) {
-        Set<Integer> retries = list.stream()
+    public void resendIfNeeded(List<DependencyTrackingEntity> list) {
+        Set<DependencyTrackingEntity> retries = list.stream()
                 .filter(de -> de.getRetries() < 1)
                 .filter(de -> de.getWaitingOn().isEmpty())
-                .map(de -> de.getKey().getJobId())
                 .collect(Collectors.toSet());
         if(retries.isEmpty()) return;
-        LOGGER.warn("Retrying stale jobs: {}", retries.stream().map(Object::toString).collect(Collectors.joining(", ")));
-        retransmitJobs(retries);
-        list.forEach(DependencyTrackingEntity::incRetries);
+        LOGGER.warn("Retrying stale trackers: {}", retries.stream()
+                .map(e -> e.getKey().toChunkIdentifier())
+                .collect(Collectors.joining(", ")));
+        list.forEach(DependencyTrackingEntity::resend);
+        Set<Integer> sinks = list.stream().map(DependencyTrackingEntity::getSinkid).collect(Collectors.toSet());
+        sinks.forEach(jobSchedulerBean::loadSinkStatusOnBootstrap);
     }
 
     @SuppressWarnings("unused")

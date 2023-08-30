@@ -34,6 +34,7 @@ pipeline {
             sink/periodic-jobs, \
             sink/dpf, \
             harvester/corepo, \
+            commons/utils/binary-file-store, \
             job-store-service/war \
             "
     }

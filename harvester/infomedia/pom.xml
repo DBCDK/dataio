@@ -31,7 +31,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-binary-file-store</artifactId>
-      <version>${project.version}</version>
+      <type>ejb</type>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

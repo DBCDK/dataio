@@ -1,7 +1,7 @@
 #!groovy
 
-def docker_images_log_stash_tag = "docker_images_log"
-def workerNode = "devel11"
+String docker_images_log_stash_tag = "docker_images_log"
+String workerNode = "devel11"
 Boolean DEPLOY_TO_STAGING_CANDIDATE=false
 
 pipeline {
@@ -197,7 +197,7 @@ pipeline {
             }
             steps {
                 script {
-                    if (env.DEPLOY_TO_STAGING_CANDIDATE.toBoolean()) {
+                    if (DEPLOY_TO_STAGING_CANDIDATE) {
                         sh """
                         echo "Gogo staging gadget!!!"
                         mvn deploy -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "${DEPLOY_ARTIFACTS}"

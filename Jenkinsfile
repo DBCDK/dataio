@@ -2,7 +2,7 @@
 
 def docker_images_log_stash_tag = "docker_images_log"
 def workerNode = "devel11"
-Boolean DEPLOY_TO_STAGING_GIT_LOG=false
+Boolean DEPLOY_TO_STAGING_CANDIDATE=false
 
 pipeline {
     agent {label workerNode}
@@ -15,7 +15,6 @@ pipeline {
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BUILD_NUMBER="${env.BUILD_NUMBER}"
-        DEPLOY_TO_STAGING_CANDIDATE=false
         DEPLOY_ARTIFACTS="commons/utils/flow-store-service-connector, \
             commons/utils/tickle-harvester-service-connector, \
             gatekeeper, \
@@ -61,7 +60,7 @@ pipeline {
                 """
                 checkout scm
                 script {
-                    DEPLOY_TO_STAGING_GIT_LOG=sh(
+                    DEPLOY_TO_STAGING_CANDIDATE|=sh(
                             returnStdout: true,
                             script: """#!/bin/bash
                                 git log -1 | tail +5 | grep -E ' *!' | echo ""
@@ -73,7 +72,7 @@ pipeline {
         stage("build") {
             steps {
                 sh """#!/bin/bash
-                    echo "TEST FOR HELVEDE ${DEPLOY_TO_STAGING_GIT_LOG}" 
+                    echo "TEST FOR HELVEDE ${DEPLOY_TO_STAGING_CANDIDATE}" 
                     FAST=""
                     if [ "master" != "${env.BRANCH_NAME}" ] && [ -n "\$(git log -1 | tail +5 | grep -E ' *!!')" ]; then
                         echo Fast branch deployment skip all tests

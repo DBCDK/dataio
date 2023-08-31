@@ -73,7 +73,7 @@ pipeline {
         stage("build") {
             steps {
                 sh """#!/bin/bash
-                    echo "TEST FOR HELVEDE ${env.DEPLOY_TO_STAGING_GIT_LOG}" 
+                    echo "TEST FOR HELVEDE ${DEPLOY_TO_STAGING_GIT_LOG}" 
                     FAST=""
                     if [ "master" != "${env.BRANCH_NAME}" ] && [ -n "\$(git log -1 | tail +5 | grep -E ' *!!')" ]; then
                         echo Fast branch deployment skip all tests

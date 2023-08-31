@@ -35,7 +35,9 @@ pipeline {
             sink/dpf, \
             harvester/corepo, \
             commons/utils/binary-file-store, \
-            job-store-service/war \
+            job-store-service/war, \
+            file-store-service, \
+            flow-store-service \
             "
     }
     triggers {

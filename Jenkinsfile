@@ -61,6 +61,7 @@ pipeline {
                 checkout scm
                 script {
                     DEPLOY_TO_STAGING_CANDIDATE|=sh(
+                            returnStatus: true,
                             script: """#!/bin/bash
                                 git log -1 | tail +5 | grep -E ' *!'
                             """

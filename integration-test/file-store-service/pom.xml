@@ -11,12 +11,11 @@
   </parent>
 
   <artifactId>dataio-integration-test-file-store-service</artifactId>
-  <name>dataio-integration-test-file-store-service</name>
 
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-file-store-service-war</artifactId>
+      <artifactId>dataio-file-store-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>
       <scope>test</scope>

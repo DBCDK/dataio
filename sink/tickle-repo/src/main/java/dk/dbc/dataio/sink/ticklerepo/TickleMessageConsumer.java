@@ -14,19 +14,29 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
+import dk.dbc.dataio.registry.PrometheusMetricRegistry;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.ticklerepo.TickleRepo;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
+import org.eclipse.microprofile.metrics.Gauge;
+import org.eclipse.microprofile.metrics.MetricID;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.Query;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +55,29 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         super(serviceHub);
         this.entityManager = entityManager;
         this.tickleRepo = new TickleRepo(entityManager);
+        registerMetrics(PrometheusMetricRegistry.create());
+    }
+
+    public void registerMetrics(MetricRegistry metricRegistry) {
+        Query query = entityManager.createNativeQuery("SELECT * FROM dataset", DataSet.class);
+        List<DataSet> dataSets = query.getResultList();
+        for (DataSet dataSet : dataSets) {
+            Tag dataSetTag = new Tag("dataset_name", dataSet.getName());
+            MetricID metricID = new MetricID("dataio_tickle_repo_oldest_batch_in_hours", dataSetTag);
+            Gauge<?> gauge = metricRegistry.getGauge(metricID);
+            if (gauge == null) metricRegistry.gauge(metricID, () -> getOldestOpenBatch(dataSet.getId()));
+            LOGGER.info("Registered age gauge for dataSet -> {}", dataSet.getId());
+        }
+    }
+    private long getOldestOpenBatch(int dataSetId) {
+        String timeZone = System.getenv().getOrDefault("TZ", "Europe/Copenhagen");
+        Query query = entityManager.createNativeQuery("select * from batch where dataset = ? and timeofcompletion is null order by timeofcreation asc; ", Batch.class);
+        query.setParameter(1, dataSetId);
+        List<Batch> batches = query.getResultList();
+        if (batches.isEmpty()) return 0;
+        ZonedDateTime now = LocalDateTime.now().atZone(ZoneId.of(timeZone));
+        ZonedDateTime then = batches.get(0).getTimeOfCreation().toLocalDateTime().atZone(ZoneId.of(timeZone));
+        return ChronoUnit.HOURS.between(then, now);
     }
 
     @Override

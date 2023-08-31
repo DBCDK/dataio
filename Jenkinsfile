@@ -61,11 +61,10 @@ pipeline {
                 checkout scm
                 script {
                     DEPLOY_TO_STAGING_CANDIDATE|=sh(
-                            returnStdout: true,
                             script: """#!/bin/bash
-                                git log -1 | tail +5 | grep -E ' *!' | echo ""
+                                git log -1 | tail +5 | grep -E ' *!'
                             """
-                    ).trim().isEmpty()
+                    ) == 0
                 }
             }
         }

@@ -15,7 +15,7 @@ pipeline {
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BUILD_NUMBER="${env.BUILD_NUMBER}"
         DEPLOY_TO_STAGING_CANDIDATE=false
-        DEPLOY_TO_STAGING_GIT_LOG=false
+        Boolean DEPLOY_TO_STAGING_GIT_LOG=false
         DEPLOY_ARTIFACTS="commons/utils/flow-store-service-connector, \
             commons/utils/tickle-harvester-service-connector, \
             gatekeeper, \
@@ -55,8 +55,8 @@ pipeline {
     stages {
         stage('clean and checkout') {
             steps {
-                cleanWs()
                 DEPLOY_TO_STAGING_GIT_LOG=sh(returnStdout: true, script: "git log -1 | tail +5 | grep -E ' *!'").trim().isEmpty()
+                cleanWs()
                 sh """
                     test -d /home/isworker/.m2/dataio-repo/dk/dbc && rm -r /home/isworker/.m2/dataio-repo/dk/dbc || echo ok
                 """

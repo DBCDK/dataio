@@ -52,7 +52,7 @@ pipeline {
         lock('dataio-build')
     }
     stages {
-        stage('clean and checkout ') {
+        stage('clean and checkout') {
             steps {
                 cleanWs()
                 sh """
@@ -72,7 +72,6 @@ pipeline {
         stage("build") {
             steps {
                 sh """#!/bin/bash
-                    echo "TEST FOR HELVEDE ${DEPLOY_TO_STAGING_CANDIDATE}" 
                     FAST=""
                     if [ "master" != "${env.BRANCH_NAME}" ] && [ -n "\$(git log -1 | tail +5 | grep -E ' *!!')" ]; then
                         echo Fast branch deployment skip all tests

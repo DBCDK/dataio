@@ -3,8 +3,6 @@ package dk.dbc.dataio.filestore.service.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import dk.dbc.invariant.InvariantUtil;
-import dk.dbc.jsonb.JsonConverter;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -17,6 +15,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
@@ -91,7 +90,7 @@ public class FileAttributes {
 
     @JsonRawValue
     @Column(columnDefinition = "jsonb")
-    @Convert(converter = JsonConverter.class)
+    @Convert(converter = String2JSonB.class)
     private String metadata;
 
     public Long getId() {

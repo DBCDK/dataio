@@ -1,12 +1,9 @@
 package dk.dbc.dataio.filestore.service.rest;
 
 import dk.dbc.dataio.filestore.service.ejb.FilesBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
-import java.util.HashSet;
+
 import java.util.Set;
 
 /**
@@ -15,16 +12,9 @@ import java.util.Set;
  */
 @ApplicationPath("/")
 public class FileStoreApplication extends Application {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileStoreApplication.class);
 
     @Override
     public Set<Class<?>> getClasses() {
-        final Set<Class<?>> classes = new HashSet<>();
-        classes.add(FilesBean.class);
-        classes.add(StatusBean.class);
-        for (Class<?> clazz : classes) {
-            LOGGER.info("Registered {} resource", clazz.getName());
-        }
-        return classes;
+        return Set.of(FilesBean.class, StatusBean.class);
     }
 }

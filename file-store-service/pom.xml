@@ -56,12 +56,13 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>json-binding</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-service</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

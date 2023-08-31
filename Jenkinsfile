@@ -15,7 +15,7 @@ pipeline {
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BUILD_NUMBER="${env.BUILD_NUMBER}"
         DEPLOY_TO_STAGING_CANDIDATE=false
-        DEPLOY_TO_STAGING_GIT_LOG=!sh(returnStdout: true, script: "git log -1 | tail +5 | grep -E ' *!'").trim().isEmpty()
+        DEPLOY_TO_STAGING_GIT_LOG=sh(returnStdout: true, script: "git log -1 | tail +5 | grep -E ' *!'").trim().isEmpty()
         DEPLOY_ARTIFACTS="commons/utils/flow-store-service-connector, \
             commons/utils/tickle-harvester-service-connector, \
             gatekeeper, \
@@ -63,7 +63,7 @@ pipeline {
             }
         }
         stage("build") {
-            println "TEST: " + DEPLOY_TO_STAGING_GIT_LOG
+            echo "TEST: " + DEPLOY_TO_STAGING_GIT_LOG
             steps {
                 sh """#!/bin/bash
                     FAST=""

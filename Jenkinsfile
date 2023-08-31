@@ -222,7 +222,7 @@ pipeline {
             }
             steps {
                 script {
-                    if (env.DEPLOY_TO_STAGING_CANDIDATE.toBoolean()) {
+                    if (DEPLOY_TO_STAGING_CANDIDATE) {
                         sh """
                             echo "Gogo version gadget!!!"
                             set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets ${env.BRANCH_NAME}-${env.BUILD_NUMBER} -b staging

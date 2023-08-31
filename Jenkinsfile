@@ -53,7 +53,7 @@ pipeline {
         lock('dataio-build')
     }
     stages {
-        stage('clean and checkout') {
+        stage('clean and checkout ') {
             steps {
                 cleanWs()
                 sh """

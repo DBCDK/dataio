@@ -63,9 +63,9 @@ pipeline {
             }
         }
         stage("build") {
-            sh("echo TEST: ${env.DEPLOY_TO_STAGING_GIT_LOG}")
             steps {
                 sh """#!/bin/bash
+                    echo TEST: ${env.DEPLOY_TO_STAGING_GIT_LOG}
                     FAST=""
                     if [ "master" != "${env.BRANCH_NAME}" ] && [ -n "\$(git log -1 | tail +5 | grep -E ' *!!')" ]; then
                         echo Fast branch deployment skip all tests

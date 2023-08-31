@@ -55,14 +55,14 @@ pipeline {
     stages {
         stage('clean and checkout') {
             steps {
-                script {
-                    DEPLOY_TO_STAGING_GIT_LOG=sh(returnStdout: true, script: "git log -1 | tail +5 | grep -E ' *!'").trim().isEmpty()
-                }
                 cleanWs()
                 sh """
                     test -d /home/isworker/.m2/dataio-repo/dk/dbc && rm -r /home/isworker/.m2/dataio-repo/dk/dbc || echo ok
                 """
                 checkout scm
+                script {
+                    DEPLOY_TO_STAGING_GIT_LOG=sh(returnStdout: true, script: "git log -1 | tail +5 | grep -E ' *!'").trim().isEmpty()
+                }
             }
         }
         stage("build") {

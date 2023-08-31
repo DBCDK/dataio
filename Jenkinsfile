@@ -64,7 +64,7 @@ pipeline {
                     DEPLOY_TO_STAGING_GIT_LOG=sh(
                             returnStdout: true,
                             script: """#!/bin/bash
-                                git log -1 | tail +5 | grep -E ' *!'
+                                git log -1 | tail +5 | grep -E ' *!' | echo ""
                             """
                     ).trim().isEmpty()
                 }

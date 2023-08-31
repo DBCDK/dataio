@@ -63,7 +63,7 @@ pipeline {
             }
         }
         stage("build") {
-            echo "TEST: " + DEPLOY_TO_STAGING_GIT_LOG
+            System.out.println("TEST: " + DEPLOY_TO_STAGING_GIT_LOG)
             steps {
                 sh """#!/bin/bash
                     FAST=""

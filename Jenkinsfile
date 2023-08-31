@@ -2,6 +2,7 @@
 
 def docker_images_log_stash_tag = "docker_images_log"
 def workerNode = "devel11"
+Boolean DEPLOY_TO_STAGING_GIT_LOG=false
 
 pipeline {
     agent {label workerNode}
@@ -15,7 +16,6 @@ pipeline {
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BUILD_NUMBER="${env.BUILD_NUMBER}"
         DEPLOY_TO_STAGING_CANDIDATE=false
-        Boolean DEPLOY_TO_STAGING_GIT_LOG=false
         DEPLOY_ARTIFACTS="commons/utils/flow-store-service-connector, \
             commons/utils/tickle-harvester-service-connector, \
             gatekeeper, \

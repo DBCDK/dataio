@@ -7,7 +7,7 @@ public enum Containers {
     FLOW_STORE("dataio-flow-store-service:" + getTag()),
     JOB_STORE("dataio-job-store-service-war:" + getTag()),
     ARTEMIS("artemis:2_30_0-0"),
-    LOG_STORE("dbc-payara-logstore:" + getTag());
+    LOG_STORE("dataio-log-store-service-war:" + getTag());
 
     private final String dockerRepo;
     private final String path;

@@ -180,7 +180,7 @@ pipeline {
                 }
             }
             when {
-                branch "master"
+                branch "DO_NOT_BUMP_DIT_GITOPS_UNTIL_IMAGES_NAMES_ARE_IN_PLACE"
             }
             steps {
                 script {

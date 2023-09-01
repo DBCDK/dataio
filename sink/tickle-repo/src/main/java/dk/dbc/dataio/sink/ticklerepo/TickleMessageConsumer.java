@@ -105,9 +105,8 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
             } else {
                 chunk.getItems().forEach(chunkItem -> result.insertItem(handleChunkItem(chunkItem, batch)));
             }
-
-            sendResultToJobStore(result);
             transaction.commit();
+            sendResultToJobStore(result);
         } finally {
             if(transaction.isActive()) transaction.rollback();
         }

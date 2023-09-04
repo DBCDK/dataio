@@ -465,8 +465,69 @@
                 <version>2.0-SNAPSHOT</version>
                 <type>ejb</type>
             </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-utils-harvester-job-builder</artifactId>
+                <version>2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>oai-connector</artifactId>
+                <version>2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-framework</artifactId>
+                <version>2.0-SNAPSHOT</version>
+            </dependency>
 
             <!-- Non migration stuff -->
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-utils-datafile-verifier</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <type>ejb</type>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-job-store-service-test</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-periodic-jobs-harvester-service-connector</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>ftp-client</artifactId>
+                <version>1.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-utils-time-interval</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-svn</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-lang</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>nl.jqno.equalsverifier</groupId>
                 <artifactId>equalsverifier</artifactId>
@@ -508,6 +569,37 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-jdk14</artifactId>
                 <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-fileupload</groupId>
+                <artifactId>commons-fileupload</artifactId>
+                <version>1.4</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-cache</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-javascript</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-query-builder</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.json</groupId>
+                <artifactId>javax.json-api</artifactId>
+                <version>1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish</groupId>
+                <artifactId>javax.json</artifactId>
+                <version>1.1.4</version>
+                <scope>provided</scope>
             </dependency>
 
 

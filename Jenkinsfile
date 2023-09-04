@@ -17,6 +17,7 @@ pipeline {
         BUILD_NUMBER="${env.BUILD_NUMBER}"
         DEPLOY_ARTIFACTS="commons/utils/flow-store-service-connector, \
             commons/utils/tickle-harvester-service-connector, \
+            harvester/framework, \
             gatekeeper, \
             job-processor2, \
             dlq-errorhandler, \

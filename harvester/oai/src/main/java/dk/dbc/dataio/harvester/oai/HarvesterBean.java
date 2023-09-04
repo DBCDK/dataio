@@ -9,11 +9,10 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.OaiHarvesterConfig;
 import dk.dbc.oai.OaiConnectorException;
 import dk.dbc.oai.OaiConnectorFactory;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ejb.EJB;
-import javax.ejb.Singleton;
 
 @Singleton
 public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, OaiHarvesterConfig> {

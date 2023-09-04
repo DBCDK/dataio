@@ -1,9 +1,8 @@
 package dk.dbc.dataio.harvester.oai.rest;
 
 import dk.dbc.dataio.commons.utils.service.ServiceStatus;
-
-import javax.ejb.Stateless;
-import javax.ws.rs.Path;
+import jakarta.ejb.Stateless;
+import jakarta.ws.rs.Path;
 
 @Stateless
 @Path("/")

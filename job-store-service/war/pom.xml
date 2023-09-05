@@ -344,7 +344,7 @@
             <executions>
               <execution>
                 <id>push</id>
-                <phase>deploy</phase>
+                <phase>install</phase>
                 <goals>
                   <goal>push</goal>
                 </goals>

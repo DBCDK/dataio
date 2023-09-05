@@ -132,7 +132,7 @@ public class HarvestOperation {
                             new HarvestRecordsRequest(records)));
             return records.size();
         } catch (HarvesterTaskServiceConnectorException | RuntimeException e) {
-            throw new HarvesterException("Failed to submit records to RR", e);
+            throw new HarvesterException("Failed to submit records " + records.size() + " to RR", e);
         } finally {
             records.clear();
         }

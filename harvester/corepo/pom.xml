@@ -30,6 +30,20 @@
       <groupId>dk.dbc</groupId>
       <artifactId>corepo-access</artifactId>
       <version>1.1-SNAPSHOT</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.googlecode.jmockit</groupId>
+          <artifactId>jmockit</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -80,6 +94,11 @@
       <artifactId>jakarta.xml.ws-api</artifactId>
       <version>4.0.0</version>
     </dependency>
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock</artifactId>
+      <version>2.27.2</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -109,6 +128,7 @@
     <profile>
       <id>docker-push</id>
       <properties>
+        <!--suppress UnresolvedMavenProperty -->
         <tag>DIT-${BUILD_NUMBER}</tag>
       </properties>
       <build>

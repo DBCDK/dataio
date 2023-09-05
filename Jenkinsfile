@@ -1,8 +1,9 @@
 #!groovy
 
-def docker_images_log_stash_tag = "docker_images_log"
-def workerNode = "devel11"
-
+String docker_images_log_stash_tag = "docker_images_log"
+String workerNode = "devel11"
+Boolean DEPLOY_TO_STAGING_CANDIDATE=false
+// byg for fanden!!
 pipeline {
     agent {label workerNode}
     tools {
@@ -14,29 +15,11 @@ pipeline {
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BUILD_NUMBER="${env.BUILD_NUMBER}"
-        DEPLOY_TO_STAGING_CANDIDATE=false
         DEPLOY_ARTIFACTS="commons/utils/flow-store-service-connector, \
             commons/utils/tickle-harvester-service-connector, \
+            harvester/framework, \
             gatekeeper, \
-            job-processor2, \
-            dlq-errorhandler, \
-            sink/dummy, \
-            sink/marcconv, \
-            sink/dmat, \
-            sink/worldcat, \
-            sink/diff, \
-            sink/holdings-items, \
-            sink/vip, \
-            sink/ims, \
-            sink/tickle-repo, \
-            sink/openupdate, \
-            sink/batch-exchange, \
-            sink/periodic-jobs, \
-            sink/dpf, \
-            harvester/corepo, \
-            commons/utils/binary-file-store, \
-            job-store-service/war \
-            "
+            commons/utils/binary-file-store"
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara5-bump-trigger",
@@ -59,6 +42,14 @@ pipeline {
                     test -d /home/isworker/.m2/dataio-repo/dk/dbc && rm -r /home/isworker/.m2/dataio-repo/dk/dbc || echo ok
                 """
                 checkout scm
+                script {
+                    DEPLOY_TO_STAGING_CANDIDATE|=sh(
+                            returnStatus: true,
+                            script: """#!/bin/bash
+                                git log -1 | tail +5 | grep -E ' *!'
+                            """
+                    ) == 0
+                }
             }
         }
         stage("build") {
@@ -69,7 +60,7 @@ pipeline {
                         echo Fast branch deployment skip all tests
                         FAST=" -P !integration-test -Dmaven.test.skip=true "
                     fi
-                    mvn -B -T 4 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install
+                    mvn -B -T 4 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" verify
                     test -n \${FAST} && mvn -B -T 6 -P !integration-test pmd:pmd
                     echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                     ./cli/build_docker_image.sh
@@ -113,7 +104,8 @@ pipeline {
             }
             steps {
                 sh """
-                mvn deploy -T 6 -B -Dmaven.test.skip=true -Pdocker-push -am -pl "${DEPLOY_ARTIFACTS}"
+                mvn install -T 6 -B -Dmaven.test.skip=true -Pdocker-push
+                mvn deploy -T 6 -B -Dmaven.test.skip=true -am -pl "${DEPLOY_ARTIFACTS}"
             """
             }
         }
@@ -188,10 +180,10 @@ pipeline {
             }
             steps {
                 script {
-                    if (env.DEPLOY_TO_STAGING_CANDIDATE.toBoolean()) {
+                    if (DEPLOY_TO_STAGING_CANDIDATE) {
                         sh """
                         echo "Gogo staging gadget!!!"
-                        mvn deploy -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" -am -pl "${DEPLOY_ARTIFACTS}"
+                        mvn install -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
                         cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
                 """
                     }
@@ -214,7 +206,7 @@ pipeline {
             }
             steps {
                 script {
-                    if (env.DEPLOY_TO_STAGING_CANDIDATE.toBoolean()) {
+                    if (DEPLOY_TO_STAGING_CANDIDATE) {
                         sh """
                             echo "Gogo version gadget!!!"
                             set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets ${env.BRANCH_NAME}-${env.BUILD_NUMBER} -b staging

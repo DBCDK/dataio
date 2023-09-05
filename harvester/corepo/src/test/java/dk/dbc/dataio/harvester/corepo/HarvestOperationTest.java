@@ -134,13 +134,13 @@ public class HarvestOperationTest {
                 .withTrackingId("987654321")
                 .withDeleted(true)
                 .withLibraryRules(new AddiMetaData.LibraryRules());
-        List<AddiMetaData> records = List.of();
+        List<AddiMetaData> records = List.of(data);
         long rrHarvester = config.getContent().getRrHarvester();
         HarvestRecordsRequest recordsRequest = new HarvestRecordsRequest(records);
-        String response = connector.createHarvestTask(rrHarvester, recordsRequest);
-        String body = wireMockServer.getServeEvents().getServeEvents().get(0).getResponse().getBodyAsString();
+        connector.createHarvestTask(rrHarvester, recordsRequest);
+        String body = wireMockServer.getServeEvents().getServeEvents().get(0).getRequest().getBodyAsString();
         HarvestRecordsRequest request = new ObjectMapper().readValue(body, HarvestRecordsRequest.class);
-        Assert.assertEquals(request.getRecords());
+        Assert.assertEquals(records, request.getRecords());
     }
 
     private HarvestOperation newHarvestOperation() throws HarvesterException {
@@ -151,7 +151,7 @@ public class HarvestOperationTest {
 
     private static WireMockServer makeWireMockServer() {
         WireMockServer server = new WireMockServer(options().dynamicPort());
-        server.stubFor(post(urlMatching(".*")).willReturn(status(201).withHeader("location", "barbados")));
+        server.stubFor(post(urlMatching("/dataio/harvester/.*")).willReturn(status(201).withHeader("location", "barbados")));
         server.addMockServiceRequestListener((request, response) -> {
             System.out.println(request.getMethod() + ":" + request.getUrl());
         });

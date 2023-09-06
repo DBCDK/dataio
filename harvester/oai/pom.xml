@@ -43,7 +43,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
-      <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -89,12 +88,6 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.xml.bind</groupId>
-      <artifactId>jaxb-api</artifactId>
-      <version>2.3.1</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 

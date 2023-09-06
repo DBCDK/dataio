@@ -23,12 +23,12 @@ import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
+import jakarta.ws.rs.ProcessingException;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.ProcessingException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

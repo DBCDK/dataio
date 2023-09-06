@@ -2,10 +2,10 @@ package dk.dbc.dataio.harvester.ticklerepo;
 
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
+import jakarta.ejb.SessionContext;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import javax.ejb.SessionContext;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -16,23 +16,23 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class HarvesterBeanTest {
-    private SessionContext sessionContext = mock(SessionContext.class);
-    private HarvestOperation harvestOperation = mock(HarvestOperation.class);
-    private HarvestOperationFactoryBean harvestOperationFactory = mock(HarvestOperationFactoryBean.class);
+    private final SessionContext sessionContext = mock(SessionContext.class);
+    private final HarvestOperation harvestOperation = mock(HarvestOperation.class);
+    private final HarvestOperationFactoryBean harvestOperationFactory = mock(HarvestOperationFactoryBean.class);
 
     @Test
     public void harvest_harvestOperationCompletes_returnsNumberOfItemsHarvested() throws HarvesterException, ExecutionException, InterruptedException {
-        final HarvesterBean harvesterBean = getHarvesterBean();
-        final TickleRepoHarvesterConfig config = createConfig();
-        final int expectedNumberOfItemsHarvested = 42;
+        HarvesterBean harvesterBean = getHarvesterBean();
+        TickleRepoHarvesterConfig config = createConfig();
+        int expectedNumberOfItemsHarvested = 42;
         when(harvestOperation.execute()).thenReturn(expectedNumberOfItemsHarvested);
 
-        final Future<Integer> harvestResult = harvesterBean.harvest(config);
+        Future<Integer> harvestResult = harvesterBean.harvest(config);
         assertThat("Items harvested", harvestResult.get(), is(expectedNumberOfItemsHarvested));
     }
 
     private HarvesterBean getHarvesterBean() {
-        final HarvesterBean harvesterBean = Mockito.spy(new HarvesterBean());
+        HarvesterBean harvesterBean = Mockito.spy(new HarvesterBean());
         harvesterBean.sessionContext = sessionContext;
         harvesterBean.harvestOperationFactory = harvestOperationFactory;
         when(sessionContext.getBusinessObject(HarvesterBean.class)).thenReturn(harvesterBean);

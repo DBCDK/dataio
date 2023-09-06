@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 public class HarvesterConfigurationBeanTest {
     private final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private final Class harvesterConfigurationType = TickleRepoHarvesterConfig.class;
+    private final Class<TickleRepoHarvesterConfig> harvesterConfigurationType = TickleRepoHarvesterConfig.class;
 
     @Before
     public void setupMocks() {
@@ -34,17 +34,17 @@ public class HarvesterConfigurationBeanTest {
         when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(harvesterConfigurationType))
                 .thenThrow(new FlowStoreServiceConnectorException("Died"));
 
-        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
         assertThat(bean::reload, isThrowing(HarvesterException.class));
     }
 
     @Test
     public void reload_flowStoreLookupReturns_setsConfigs() throws FlowStoreServiceConnectorException, HarvesterException {
-        final List<TickleRepoHarvesterConfig> configs = new ArrayList<>(0);
+        List<TickleRepoHarvesterConfig> configs = new ArrayList<>(0);
         when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(harvesterConfigurationType))
                 .thenReturn(configs);
 
-        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
         bean.configs = new ArrayList<>(Collections.singletonList(newConfig()));
         bean.reload();
         assertThat("config after initialize", bean.configs, is(configs));
@@ -52,20 +52,20 @@ public class HarvesterConfigurationBeanTest {
 
     @Test
     public void get_returnsEmptyListOnNullConfig() {
-        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
         assertThat(bean.get(), is(Collections.emptyList()));
     }
 
     @Test
     public void get_returnsConfigs() {
-        final List<TickleRepoHarvesterConfig> configs = Collections.singletonList(newConfig());
-        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        List<TickleRepoHarvesterConfig> configs = Collections.singletonList(newConfig());
+        HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
         bean.configs = configs;
         assertThat(bean.get(), is(configs));
     }
 
     private HarvesterConfigurationBean newHarvesterConfigurationBean() {
-        final HarvesterConfigurationBean harvesterConfigurationBean = new HarvesterConfigurationBean();
+        HarvesterConfigurationBean harvesterConfigurationBean = new HarvesterConfigurationBean();
         harvesterConfigurationBean.flowStoreServiceConnectorBean = flowStoreServiceConnectorBean;
         return harvesterConfigurationBean;
     }

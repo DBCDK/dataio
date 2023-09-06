@@ -1,8 +1,7 @@
 package dk.dbc.dataio.harvester.ticklerepo.rest;
 
 import dk.dbc.dataio.harvester.task.rest.HarvesterApplicationCore;
-
-import javax.ws.rs.ApplicationPath;
+import jakarta.ws.rs.ApplicationPath;
 
 /**
  * This class defines the other classes that make up this JAX-RS application by

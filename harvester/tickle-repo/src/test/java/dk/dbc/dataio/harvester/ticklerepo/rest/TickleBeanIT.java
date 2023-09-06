@@ -7,10 +7,10 @@ import dk.dbc.ticklerepo.TickleRepo;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
+import jakarta.persistence.Query;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

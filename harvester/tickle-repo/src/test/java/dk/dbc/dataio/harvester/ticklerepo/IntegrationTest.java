@@ -3,7 +3,6 @@ package dk.dbc.dataio.harvester.ticklerepo;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.commons.persistence.MultiJpaIntegrationTest;
 import dk.dbc.commons.persistence.MultiJpaTestEnvironment;
-import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.harvester.task.TaskRepoDatabaseMigrator;
 import dk.dbc.ticklerepo.TickleRepoDatabaseMigrator;

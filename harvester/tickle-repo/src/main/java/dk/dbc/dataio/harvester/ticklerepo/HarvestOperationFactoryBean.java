@@ -9,10 +9,9 @@ import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
 import dk.dbc.ticklerepo.TickleRepo;
-
-import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
+import jakarta.annotation.PostConstruct;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Stateless;
 
 @Stateless
 public class HarvestOperationFactoryBean {

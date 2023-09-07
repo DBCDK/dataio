@@ -5,19 +5,15 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
-import dk.dbc.rawrepo.queue.ConfigurationException;
-import dk.dbc.rawrepo.queue.QueueException;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -28,7 +24,7 @@ import static org.mockito.Mockito.when;
 public class ScheduledHarvestBeanTest {
     private final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private final Class rrHarvesterConfigurationType = RRHarvesterConfig.class;
+    private final Class<RRHarvesterConfig> rrHarvesterConfigurationType = RRHarvesterConfig.class;
     private final HarvesterBean harvesterBean = mock(HarvesterBean.class);
 
     @Before
@@ -38,36 +34,32 @@ public class ScheduledHarvestBeanTest {
 
     @Test
     public void scheduleHarvests_emptyConfig_resultsInZeroRunningHarvests() {
-        final ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean(Collections.emptyList());
+        ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean(Collections.emptyList());
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 
     @Test
     public void scheduleHarvests_nonEmptyConfig_resultsInRunningHarvests() {
-        final ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
+        ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
     }
 
     @Test
-    public void scheduleHarvests_harvestCompletes_reschedulesHarvest()
-            throws HarvesterException, QueueException, ConfigurationException, SQLException {
+    public void scheduleHarvests_harvestCompletes_reschedulesHarvest() throws HarvesterException {
         when(harvesterBean.harvest(any(RRHarvesterConfig.class))).thenReturn(new MockedFuture());
-        final ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
+        ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
     }
 
     @Test
-    public void scheduleHarvests_harvestCompletesAndIsNoLongerConfigured_removesHarvest()
-            throws HarvesterException, FlowStoreServiceConnectorException, QueueException, ConfigurationException, SQLException {
+    public void scheduleHarvests_harvestCompletesAndIsNoLongerConfigured_removesHarvest() throws HarvesterException, FlowStoreServiceConnectorException {
         when(harvesterBean.harvest(any(RRHarvesterConfig.class))).thenReturn(new MockedFuture());
-        final ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType))
-                .thenReturn(HarvesterTestUtil.getRRHarvesterConfigs(HarvesterTestUtil.getRRHarvestConfigContent()))
-                .thenReturn(new ArrayList<>(0));
+        ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType)).thenReturn(HarvesterTestUtil.getRRHarvesterConfigs(HarvesterTestUtil.getRRHarvestConfigContent())).thenReturn(new ArrayList<>(0));
 
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
@@ -75,27 +67,23 @@ public class ScheduledHarvestBeanTest {
     }
 
     @Test
-    public void scheduleHarvests_harvestCompletesWithException_reschedulesHarvest()
-            throws HarvesterException, QueueException, ConfigurationException, SQLException {
-        final MockedFuture mockedFuture = new MockedFuture();
+    public void scheduleHarvests_harvestCompletesWithException_reschedulesHarvest() throws HarvesterException {
+        MockedFuture mockedFuture = new MockedFuture();
         mockedFuture.exception = new ExecutionException("DIED", new IllegalStateException());
         when(harvesterBean.harvest(any(RRHarvesterConfig.class))).thenReturn(mockedFuture);
-        final ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
+        ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
     }
 
     @Test
-    public void scheduleHarvests_harvestCompletesWithExceptionAndIsNoLongerConfigured_removesHarvest()
-            throws HarvesterException, FlowStoreServiceConnectorException, QueueException, ConfigurationException, SQLException {
-        final MockedFuture mockedFuture = new MockedFuture();
+    public void scheduleHarvests_harvestCompletesWithExceptionAndIsNoLongerConfigured_removesHarvest() throws HarvesterException, FlowStoreServiceConnectorException {
+        MockedFuture mockedFuture = new MockedFuture();
         mockedFuture.exception = new ExecutionException("DIED", new IllegalStateException());
         when(harvesterBean.harvest(any(RRHarvesterConfig.class))).thenReturn(mockedFuture);
-        final ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType))
-                .thenReturn(HarvesterTestUtil.getRRHarvesterConfigs(HarvesterTestUtil.getRRHarvestConfigContent()))
-                .thenReturn(new ArrayList<>(0));
+        ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType)).thenReturn(HarvesterTestUtil.getRRHarvesterConfigs(HarvesterTestUtil.getRRHarvestConfigContent())).thenReturn(new ArrayList<>(0));
 
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
@@ -112,7 +100,7 @@ public class ScheduledHarvestBeanTest {
         } catch (FlowStoreServiceConnectorException e) {
             throw new IllegalStateException(e);
         }
-        final ScheduledHarvestBean scheduledHarvestBean = new ScheduledHarvestBean();
+        ScheduledHarvestBean scheduledHarvestBean = new ScheduledHarvestBean();
         scheduledHarvestBean.harvester = harvesterBean;
         scheduledHarvestBean.config = new HarvesterConfigurationBean();
         scheduledHarvestBean.config.flowStoreServiceConnectorBean = flowStoreServiceConnectorBean;
@@ -140,7 +128,7 @@ public class ScheduledHarvestBeanTest {
         }
 
         @Override
-        public Integer get() throws InterruptedException, ExecutionException {
+        public Integer get() throws ExecutionException {
             if (exception != null) {
                 throw exception;
             }
@@ -148,7 +136,7 @@ public class ScheduledHarvestBeanTest {
         }
 
         @Override
-        public Integer get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        public Integer get(long timeout, TimeUnit unit) throws ExecutionException {
             if (exception != null) {
                 throw exception;
             }

@@ -97,7 +97,7 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>testee</artifactId>
+            <artifactId>dbc-commons-testee</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

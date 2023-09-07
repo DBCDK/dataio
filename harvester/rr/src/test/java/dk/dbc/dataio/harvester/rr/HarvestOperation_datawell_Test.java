@@ -23,7 +23,7 @@ import dk.dbc.rawrepo.queue.QueueItem;
 import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
-import dk.dbc.vipcore.exception.VipCoreException;
+import jakarta.persistence.EntityManager;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -34,7 +34,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -63,7 +62,7 @@ public class HarvestOperation_datawell_Test {
     private final static VipCoreConnection VIP_CORE_CONNECTION = mock(VipCoreConnection.class);
     private final static RecordServiceConnector RAW_REPO_RECORD_SERVICE_CONNECTOR = mock(RecordServiceConnector.class);
 
-    private final static HashMap<String, String> QUEUE_DAO_CONFIGURATION = new HashMap<String, String>();
+    private final static HashMap<String, String> QUEUE_DAO_CONFIGURATION = new HashMap<>();
     private final static RawRepoQueueDAO QUEUE_DAO = mock(RawRepoQueueDAO.class);
 
     /* 1st record is a DBC record */
@@ -151,7 +150,7 @@ public class HarvestOperation_datawell_Test {
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
     @Before
-    public void setupMocks() throws SQLException, IOException, ConfigurationException, QueueException, VipCoreException {
+    public void setupMocks() throws SQLException, IOException, ConfigurationException, QueueException {
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR.dequeue(CONSUMER_ID))
                 .thenReturn(FIRST_QUEUE_ITEM)
@@ -194,15 +193,15 @@ public class HarvestOperation_datawell_Test {
             throws HarvesterException, RecordServiceConnectorException {
         // Mock rawrepo return values
         when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(FIRST_RECORD_HEAD_ID.getBibliographicRecordId(), FIRST_RECORD_HEAD);
                     put(FIRST_RECORD_SECTION_ID.getBibliographicRecordId(), FIRST_RECORD_SECTION);
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(SECOND_RECORD_ID.getBibliographicRecordId(), SECOND_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
@@ -250,7 +249,7 @@ public class HarvestOperation_datawell_Test {
                 .withDeleted(false)
                 .withLibraryRules(localLibraryRules));
 
-        final HarvestOperation harvestOperation = newHarvestOperation();
+        HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
         verifyHarvesterDataFiles();
@@ -267,14 +266,14 @@ public class HarvestOperation_datawell_Test {
 
         // Mock rawrepo return values
         when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                     put("INVALID_RECORD_ID", invalidRecord);
                 }})
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(SECOND_RECORD_ID.getBibliographicRecordId(), SECOND_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
         when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordIdDTO.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);

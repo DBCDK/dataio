@@ -10,7 +10,7 @@ public class HarvesterTestUtil {
     }
 
     public static List<RRHarvesterConfig> getRRHarvesterConfigs(RRHarvesterConfig.Content... entries) {
-        final List<RRHarvesterConfig> configs = new ArrayList<>(entries.length);
+        List<RRHarvesterConfig> configs = new ArrayList<>(entries.length);
         long id = 1;
         for (RRHarvesterConfig.Content content : entries) {
             configs.add(new RRHarvesterConfig(id++, 1, content));

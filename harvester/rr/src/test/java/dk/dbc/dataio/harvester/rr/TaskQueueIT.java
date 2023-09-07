@@ -23,30 +23,18 @@ public class TaskQueueIT extends IntegrationTest {
      */
     @Test
     public void readyTasksExists() {
-        final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content());
+        RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content());
         final int submitterNumber = 123456;
-        final RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordIdDTO("id1", submitterNumber))
-                .withAddiMetaData(new AddiMetaData()
-                        .withBibliographicRecordId("id1")
-                        .withSubmitterNumber(submitterNumber)
-                        .withLibraryRules(new AddiMetaData.LibraryRules()));
-        final RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordIdDTO("id2", submitterNumber))
-                .withAddiMetaData(new AddiMetaData()
-                        .withBibliographicRecordId("id2")
-                        .withSubmitterNumber(submitterNumber)
-                        .withLibraryRules(new AddiMetaData.LibraryRules()));
+        RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask().withRecordId(new RecordIdDTO("id1", submitterNumber)).withAddiMetaData(new AddiMetaData().withBibliographicRecordId("id1").withSubmitterNumber(submitterNumber).withLibraryRules(new AddiMetaData.LibraryRules()));
+        RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask().withRecordId(new RecordIdDTO("id2", submitterNumber)).withAddiMetaData(new AddiMetaData().withBibliographicRecordId("id2").withSubmitterNumber(submitterNumber).withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        final HarvestTask task = new HarvestTask();
+        HarvestTask task = new HarvestTask();
         task.setConfigId(config.getId());
-        task.setRecords(Arrays.asList(
-                expectedRecordHarvestTask1.getAddiMetaData(),
-                expectedRecordHarvestTask2.getAddiMetaData()));
+        task.setRecords(Arrays.asList(expectedRecordHarvestTask1.getAddiMetaData(), expectedRecordHarvestTask2.getAddiMetaData()));
         persist(task);
         jpaTestEnvironment.getEntityManager().refresh(task);
 
-        final TaskQueue taskQueue = new TaskQueue(config, new TaskRepo(jpaTestEnvironment.getEntityManager()));
+        TaskQueue taskQueue = new TaskQueue(config, new TaskRepo(jpaTestEnvironment.getEntityManager()));
         jpaTestEnvironment.getPersistenceContext().run(() -> {
             assertThat("task queue is empty", taskQueue.isEmpty(), is(false));
             assertThat("1st harvestRecordTask", taskQueue.poll(), is(expectedRecordHarvestTask1));
@@ -63,14 +51,14 @@ public class TaskQueueIT extends IntegrationTest {
      */
     @Test
     public void noReadyTasksExists() {
-        final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content());
+        RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content());
 
-        final HarvestTask task = new HarvestTask();
+        HarvestTask task = new HarvestTask();
         task.setConfigId(config.getId());
         task.setRecords(Collections.emptyList());
         persist(task);
 
-        final TaskQueue taskQueue = new TaskQueue(config, new TaskRepo(jpaTestEnvironment.getEntityManager()));
+        TaskQueue taskQueue = new TaskQueue(config, new TaskRepo(jpaTestEnvironment.getEntityManager()));
         jpaTestEnvironment.getPersistenceContext().run(() -> {
             assertThat("task queue is empty", taskQueue.isEmpty(), is(true));
             taskQueue.commit();

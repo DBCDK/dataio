@@ -12,6 +12,7 @@ import dk.dbc.testee.SameThreadExecutorService;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
+import jakarta.enterprise.concurrent.ManagedExecutorService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,7 +20,6 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.concurrent.ManagedExecutorService;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;

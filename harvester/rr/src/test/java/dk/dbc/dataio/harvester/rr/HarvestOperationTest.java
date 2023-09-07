@@ -20,6 +20,8 @@ import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -29,8 +31,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -89,7 +89,7 @@ public class HarvestOperationTest {
                 .thenReturn(QUEUE_ITEM)
                 .thenReturn(null);
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(RECORD_ID.getBibliographicRecordId(), RECORD);
                 }});
         when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class))).thenReturn(RECORD);
@@ -153,7 +153,7 @@ public class HarvestOperationTest {
                 .thenReturn(null);
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
@@ -184,7 +184,7 @@ public class HarvestOperationTest {
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(
                 any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
@@ -239,7 +239,7 @@ public class HarvestOperationTest {
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(
                 any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(RECORD_ID.getBibliographicRecordId(), rrRecord);
                 }});
 
@@ -292,7 +292,7 @@ public class HarvestOperationTest {
         rrRecord.setContent(getRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(
                 any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put("unexpectedBibliographicRecordId", rrRecord);
                 }});
 
@@ -328,7 +328,7 @@ public class HarvestOperationTest {
                 .thenReturn(null);
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(recordId.getBibliographicRecordId(), record);
                 }});
 
@@ -357,7 +357,7 @@ public class HarvestOperationTest {
                 .thenReturn(null);
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(DBC_RECORD_ID.getBibliographicRecordId(), record);
                 }});
 

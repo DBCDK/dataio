@@ -1,8 +1,7 @@
 package dk.dbc.dataio.logstore.service.ejb;
 
+import jakarta.ws.rs.core.Response;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;

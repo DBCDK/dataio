@@ -7,11 +7,11 @@ import dk.dbc.dataio.flowstore.ejb.GatekeeperDestinationsBean;
 import dk.dbc.dataio.flowstore.ejb.HarvestersBean;
 import dk.dbc.dataio.flowstore.ejb.SinksBean;
 import dk.dbc.dataio.flowstore.ejb.SubmittersBean;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
 import java.util.HashSet;
 import java.util.Set;
 

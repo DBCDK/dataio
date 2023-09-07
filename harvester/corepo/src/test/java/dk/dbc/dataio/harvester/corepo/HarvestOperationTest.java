@@ -1,7 +1,11 @@
 package dk.dbc.dataio.harvester.corepo;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
@@ -10,6 +14,8 @@ import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.opensearch.commons.repository.RepositoryException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import jakarta.ws.rs.client.ClientBuilder;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,7 +24,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.status;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,6 +43,7 @@ public class HarvestOperationTest {
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector = mock(VipCoreLibraryRulesConnector.class);
     private final HarvesterTaskServiceConnector rrHarvesterServiceConnector = mock(HarvesterTaskServiceConnector.class);
+    protected static WireMockServer wireMockServer = makeWireMockServer();
 
     CoRepoHarvesterConfig config;
 
@@ -110,9 +122,40 @@ public class HarvestOperationTest {
         }
     }
 
+    @Test
+    public void rrConnectorTest() throws HarvesterTaskServiceConnectorException, JsonProcessingException {
+        String baseUrl = wireMockServer.baseUrl() + "/dataio/harvester/";
+        HarvesterTaskServiceConnector connector = new HarvesterTaskServiceConnector(ClientBuilder.newClient(), baseUrl);
+        AddiMetaData data = new AddiMetaData()
+                .withBibliographicRecordId("12356789")
+                .withSubmitterNumber(191919)
+                .withFormat("Hest")
+                .withCreationDate(Date.from(Instant.now()))
+                .withTrackingId("987654321")
+                .withDeleted(true)
+                .withLibraryRules(new AddiMetaData.LibraryRules());
+        List<AddiMetaData> records = List.of(data);
+        long rrHarvester = config.getContent().getRrHarvester();
+        HarvestRecordsRequest recordsRequest = new HarvestRecordsRequest(records);
+        connector.createHarvestTask(rrHarvester, recordsRequest);
+        String body = wireMockServer.getServeEvents().getServeEvents().get(0).getRequest().getBodyAsString();
+        HarvestRecordsRequest request = new ObjectMapper().readValue(body, HarvestRecordsRequest.class);
+        Assert.assertEquals(records, request.getRecords());
+    }
+
     private HarvestOperation newHarvestOperation() throws HarvesterException {
         return new HarvestOperation(config, coRepoConnector,
                 flowStoreServiceConnector, vipCoreLibraryRulesConnector,
                 rrHarvesterServiceConnector);
+    }
+
+    private static WireMockServer makeWireMockServer() {
+        WireMockServer server = new WireMockServer(options().dynamicPort());
+        server.stubFor(post(urlMatching("/dataio/harvester/.*")).willReturn(status(201).withHeader("location", "barbados")));
+        server.addMockServiceRequestListener((request, response) -> {
+            System.out.println(request.getMethod() + ":" + request.getUrl());
+        });
+        server.start();
+        return server;
     }
 }

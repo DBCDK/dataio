@@ -31,14 +31,10 @@
         </dataio-commons-utils-tickle-harvester-service-connector.version>
 
         <ejb.version>3.2</ejb.version>
-
+        <maven.deploy.plugin.version>3.1.0</maven.deploy.plugin.version>
+        <maven.install.plugin.version>3.1.0</maven.install.plugin.version>
         <svnkit.version>1.7.8</svnkit.version>
         <microprofile.version>4.1</microprofile.version>
-        <maven.install.plugin.version>3.0.0-M1</maven.install.plugin.version>
-        <maven.deploy.plugin.version>3.0.0-M1</maven.deploy.plugin.version>
-        <maven.ear.plugin.version>2.8</maven.ear.plugin.version>
-        <maven.ejb.plugin.version>2.3</maven.ejb.plugin.version>
-        <maven.war.plugin.version>2.3</maven.war.plugin.version>
         <maven.jaxws.plugin.version>2.3</maven.jaxws.plugin.version>
         <maven-download-plugin.version>1.1.0</maven-download-plugin.version>
         <maven-failsafe-plugin.version>2.14.1</maven-failsafe-plugin.version>
@@ -129,6 +125,21 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>3.4.0</version>
+                    <configuration>
+                        <failOnMissingWebXml>false</failOnMissingWebXml>
+                        <webResources>
+                            <resource>
+                                <directory>${basedir}/src/main/webapp/WEB-INF</directory>
+                                <filtering>true</filtering>
+                                <targetPath>WEB-INF</targetPath>
+                            </resource>
+                        </webResources>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-pmd-plugin</artifactId>
@@ -264,7 +275,14 @@
                     <skip>false</skip>
                 </configuration>
             </plugin>
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-ejb-plugin</artifactId>
+                <configuration>
+                    <ejbVersion>${ejb.version}</ejbVersion>
+                    <filterDeploymentDescriptor>true</filterDeploymentDescriptor>
+                </configuration>
+            </plugin>
             <plugin>
                 <!--
                   This plugin is used in order to not install any
@@ -440,6 +458,56 @@
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-integration-test-jms-queue</artifactId>
                 <version>2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-binary-file-store</artifactId>
+                <version>2.0-SNAPSHOT</version>
+                <type>ejb</type>
+            </dependency>
+
+            <!-- Non migration stuff -->
+            <dependency>
+                <groupId>nl.jqno.equalsverifier</groupId>
+                <artifactId>equalsverifier</artifactId>
+                <version>1.2</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-query-language</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-io</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>json-binding</artifactId>
+                <version>${json-binding.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>invariant-utils</artifactId>
+                <version>0.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.j256.simplemagic</groupId>
+                <artifactId>simplemagic</artifactId>
+                <version>1.12</version>
+            </dependency>
+            <dependency>
+                <groupId>junit-addons</groupId>
+                <artifactId>junit-addons</artifactId>
+                <version>1.4</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-jdk14</artifactId>
+                <version>${slf4j.version}</version>
             </dependency>
 
 

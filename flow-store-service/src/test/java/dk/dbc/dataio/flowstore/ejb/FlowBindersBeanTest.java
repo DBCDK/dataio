@@ -7,11 +7,11 @@ import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.FlowBinderJsonBuilder;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.ws.rs.core.Response;
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;

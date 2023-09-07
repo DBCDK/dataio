@@ -1,12 +1,9 @@
 package dk.dbc.dataio.logstore.service.rest;
 
 import dk.dbc.dataio.logstore.service.ejb.LogEntriesBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -15,16 +12,8 @@ import java.util.Set;
  */
 @ApplicationPath("/")
 public class LogStoreApplication extends Application {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LogStoreApplication.class);
-
     @Override
     public Set<Class<?>> getClasses() {
-        final Set<Class<?>> classes = new HashSet<>();
-        classes.add(LogEntriesBean.class);
-        classes.add(StatusBean.class);
-        for (Class<?> clazz : classes) {
-            LOGGER.info("Registered {} resource", clazz.getName());
-        }
-        return classes;
+        return Set.of(LogEntriesBean.class, StatusBean.class);
     }
 }

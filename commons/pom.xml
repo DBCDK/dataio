@@ -24,7 +24,6 @@
     <module>testcontainers</module>
     <module>types</module>
     <module>utils</module>
-    <module>artemis-jms-base-image</module>
     <module>jmx-metric-registry</module>
     <module>javascript</module>
     <module>artemis-jse-app</module>

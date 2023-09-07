@@ -1,14 +1,17 @@
 package dk.dbc.dataio.logstore.service.entity;
 
-import javax.persistence.Basic;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
+
 import java.sql.Timestamp;
 
 @Entity
-@javax.persistence.Table(name = "logentry")
+@Table(name = "logentry")
 @NamedQueries({
         @NamedQuery(name = LogEntryEntity.QUERY_FIND_ITEM_ENTRIES, query = "SELECT e FROM LogEntryEntity e WHERE e.jobId=:jobId AND e.chunkId=:chunkId AND e.itemId=:itemId ORDER BY e.id ASC"),
         @NamedQuery(name = LogEntryEntity.QUERY_DELETE_ITEM_ENTRIES_FOR_JOB, query = "DELETE FROM LogEntryEntity e WHERE e.jobId=:jobId")
@@ -20,7 +23,7 @@ public class LogEntryEntity {
     private long id;
 
     @Id
-    @javax.persistence.Column(name = "id")
+    @Column(name = "id")
     public long getId() {
         return id;
     }
@@ -32,7 +35,7 @@ public class LogEntryEntity {
     private Timestamp timestamp;
 
     @Basic
-    @javax.persistence.Column(name = "timestamp")
+    @Column(name = "timestamp")
     public Timestamp getTimestamp() {
         return new Timestamp(timestamp.getTime());
     }
@@ -44,7 +47,7 @@ public class LogEntryEntity {
     private String formattedMessage;
 
     @Basic
-    @javax.persistence.Column(name = "formatted_message")
+    @Column(name = "formatted_message")
     public String getFormattedMessage() {
         return formattedMessage;
     }
@@ -56,7 +59,7 @@ public class LogEntryEntity {
     private String threadName;
 
     @Basic
-    @javax.persistence.Column(name = "thread_name")
+    @Column(name = "thread_name")
     public String getThreadName() {
         return threadName;
     }
@@ -68,7 +71,7 @@ public class LogEntryEntity {
     private String loggerName;
 
     @Basic
-    @javax.persistence.Column(name = "logger_name")
+    @Column(name = "logger_name")
     public String getLoggerName() {
         return loggerName;
     }
@@ -80,7 +83,7 @@ public class LogEntryEntity {
     private String levelString;
 
     @Basic
-    @javax.persistence.Column(name = "level_string")
+    @Column(name = "level_string")
     public String getLevelString() {
         return levelString;
     }
@@ -92,7 +95,7 @@ public class LogEntryEntity {
     private String callerFilename;
 
     @Basic
-    @javax.persistence.Column(name = "caller_filename")
+    @Column(name = "caller_filename")
     public String getCallerFilename() {
         return callerFilename;
     }
@@ -104,7 +107,7 @@ public class LogEntryEntity {
     private String callerClass;
 
     @Basic
-    @javax.persistence.Column(name = "caller_class")
+    @Column(name = "caller_class")
     public String getCallerClass() {
         return callerClass;
     }
@@ -116,7 +119,7 @@ public class LogEntryEntity {
     private String callerMethod;
 
     @Basic
-    @javax.persistence.Column(name = "caller_method")
+    @Column(name = "caller_method")
     public String getCallerMethod() {
         return callerMethod;
     }
@@ -128,7 +131,7 @@ public class LogEntryEntity {
     private String callerLine;
 
     @Basic
-    @javax.persistence.Column(name = "caller_line")
+    @Column(name = "caller_line")
     public String getCallerLine() {
         return callerLine;
     }
@@ -140,7 +143,7 @@ public class LogEntryEntity {
     private String stackTrace;
 
     @Basic
-    @javax.persistence.Column(name = "stack_trace")
+    @Column(name = "stack_trace")
     public String getStackTrace() {
         return stackTrace;
     }
@@ -152,7 +155,7 @@ public class LogEntryEntity {
     private String mdc;
 
     @Basic
-    @javax.persistence.Column(name = "mdc")
+    @Column(name = "mdc")
     public String getMdc() {
         return mdc;
     }
@@ -164,7 +167,7 @@ public class LogEntryEntity {
     private String jobId;
 
     @Basic
-    @javax.persistence.Column(name = "job_id")
+    @Column(name = "job_id")
     public String getJobId() {
         return jobId;
     }
@@ -176,7 +179,7 @@ public class LogEntryEntity {
     private Long chunkId;
 
     @Basic
-    @javax.persistence.Column(name = "chunk_id")
+    @Column(name = "chunk_id")
     public Long getChunkId() {
         return chunkId;
     }
@@ -188,7 +191,7 @@ public class LogEntryEntity {
     private Long itemId;
 
     @Basic
-    @javax.persistence.Column(name = "item_id")
+    @Column(name = "item_id")
     public Long getItemId() {
         return itemId;
     }

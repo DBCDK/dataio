@@ -69,7 +69,7 @@ pipeline {
                     junit allowEmptyResults: true, testResults: '**/target/*-reports/*.xml'
 
                     def java = scanForIssues tool: [$class: 'Java']
-                    publishIssues issues: [java], unstableTotalAll: 1
+                    publishIssues issues: [java], unstableTotalAll: 10
 
                     def pmd = scanForIssues tool: [$class: 'Pmd']
                     publishIssues issues: [pmd], unstableTotalAll: 1

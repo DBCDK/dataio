@@ -1,6 +1,5 @@
 package dk.dbc.dataio.flowstore;
 
-import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.testcontainers.Containers;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;

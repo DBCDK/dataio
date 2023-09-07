@@ -354,10 +354,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-war-plugin</artifactId>
-            <version>${maven.war.plugin.version}</version>
-            <configuration>
-              <failOnMissingWebXml>false</failOnMissingWebXml>
-            </configuration>
           </plugin>
 
           <!-- We need to force reuseForks to false to avoid suspected GwtMockito memory leak -->

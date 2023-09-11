@@ -30,6 +30,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class TickleMessageConsumer extends MessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(TickleMessageConsumer.class);
@@ -39,6 +40,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
     private final EntityManager entityManager;
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
+    private static final AtomicLong evictCounter = new AtomicLong();
 
 
     public TickleMessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
@@ -50,9 +52,10 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         Chunk chunk = unmarshallPayload(consumedMessage);
+        if(evictCounter.incrementAndGet() % 1000  == 0) entityManager.getEntityManagerFactory().getCache().evictAll();
         EntityTransaction transaction = entityManager.getTransaction();
+        Batch batch = getBatch(chunk);
         try {
-            Batch batch = getBatch(chunk);
             transaction.begin();
             Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
             if (chunk.isTerminationChunk()) {
@@ -75,6 +78,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
             }
 
             transaction.commit();
+            if(chunk.isTerminationChunk()) LOGGER.info("");
             sendResultToJobStore(result);
         } finally {
             if(transaction.isActive()) transaction.rollback();

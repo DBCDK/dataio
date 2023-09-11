@@ -37,10 +37,5 @@
       <artifactId>invariant-utils</artifactId>
       <version>${invariant-utils.version}</version>
     </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>json-binding</artifactId>
-      <version>${json-binding.version}</version>
-    </dependency>
   </dependencies>
 </project>

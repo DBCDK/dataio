@@ -110,6 +110,7 @@
     <profile>
       <id>docker-push</id>
       <properties>
+        <!--suppress UnresolvedMavenProperty -->
         <tag>DIT-${BUILD_NUMBER}</tag>
       </properties>
       <build>

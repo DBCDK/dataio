@@ -1,6 +1,14 @@
 package dk.dbc.dataio.sink.marcconv.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Lob;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -51,7 +59,7 @@ public class ConversionBlock {
 
     @Embeddable
     public static class Key implements Serializable {
-        @SuppressWarnings("PMD.UnusedPrivateField")
+        @SuppressWarnings({"PMD.UnusedPrivateField", "unused"})
         private static final long SerialVersionUID = 1;
         @Column(name = "jobid")
         private int jobId;

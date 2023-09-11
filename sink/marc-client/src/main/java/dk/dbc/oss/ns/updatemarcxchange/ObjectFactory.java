@@ -1,10 +1,10 @@
 
 package dk.dbc.oss.ns.updatemarcxchange;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlElementDecl;
-import javax.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.annotation.XmlElementDecl;
+import jakarta.xml.bind.annotation.XmlRegistry;
 
 
 /**
@@ -24,12 +24,12 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _UpdateMarcXchangeRequest_QNAME = new QName("http://oss.dbc.dk/ns/updateMarcXchange", "UpdateMarcXchangeRequest");
-    private final static QName _UpdateMarcXchangeResult_QNAME = new QName("http://oss.dbc.dk/ns/updateMarcXchange", "UpdateMarcXchangeResult");
-    private final static QName _MarcXchangeRecord_QNAME = new QName("http://oss.dbc.dk/ns/updateMarcXchange", "MarcXchangeRecord");
-    private final static QName _MarcXchangeRecordId_QNAME = new QName("http://oss.dbc.dk/ns/updateMarcXchange", "MarcXchangeRecordId");
-    private final static QName _TrackingId_QNAME = new QName("http://oss.dbc.dk/ns/updateMarcXchange", "trackingId");
-    private final static QName _UpdateMarcXchangeMessage_QNAME = new QName("http://oss.dbc.dk/ns/updateMarcXchange", "updateMarcXchangeMessage");
+    private static final QName _UpdateMarcXchangeRequest_QNAME = new QName("http://oss.dbc.dk/ns/updateMarcXchange", "UpdateMarcXchangeRequest");
+    private static final QName _UpdateMarcXchangeResult_QNAME = new QName("http://oss.dbc.dk/ns/updateMarcXchange", "UpdateMarcXchangeResult");
+    private static final QName _MarcXchangeRecord_QNAME = new QName("http://oss.dbc.dk/ns/updateMarcXchange", "MarcXchangeRecord");
+    private static final QName _MarcXchangeRecordId_QNAME = new QName("http://oss.dbc.dk/ns/updateMarcXchange", "MarcXchangeRecordId");
+    private static final QName _TrackingId_QNAME = new QName("http://oss.dbc.dk/ns/updateMarcXchange", "trackingId");
+    private static final QName _UpdateMarcXchangeMessage_QNAME = new QName("http://oss.dbc.dk/ns/updateMarcXchange", "updateMarcXchangeMessage");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: dk.dbc.oss.ns.updatemarcxchange
@@ -41,6 +41,8 @@ public class ObjectFactory {
     /**
      * Create an instance of {@link UpdateMarcXchange }
      * 
+     * @return
+     *     the new instance of {@link UpdateMarcXchange }
      */
     public UpdateMarcXchange createUpdateMarcXchange() {
         return new UpdateMarcXchange();
@@ -49,6 +51,8 @@ public class ObjectFactory {
     /**
      * Create an instance of {@link UpdateMarcXchangeRequest }
      * 
+     * @return
+     *     the new instance of {@link UpdateMarcXchangeRequest }
      */
     public UpdateMarcXchangeRequest createUpdateMarcXchangeRequest() {
         return new UpdateMarcXchangeRequest();
@@ -57,6 +61,8 @@ public class ObjectFactory {
     /**
      * Create an instance of {@link UpdateMarcXchangeResponse }
      * 
+     * @return
+     *     the new instance of {@link UpdateMarcXchangeResponse }
      */
     public UpdateMarcXchangeResponse createUpdateMarcXchangeResponse() {
         return new UpdateMarcXchangeResponse();
@@ -65,6 +71,8 @@ public class ObjectFactory {
     /**
      * Create an instance of {@link UpdateMarcXchangeResult }
      * 
+     * @return
+     *     the new instance of {@link UpdateMarcXchangeResult }
      */
     public UpdateMarcXchangeResult createUpdateMarcXchangeResult() {
         return new UpdateMarcXchangeResult();
@@ -73,6 +81,8 @@ public class ObjectFactory {
     /**
      * Create an instance of {@link MarcXchangeRecord }
      * 
+     * @return
+     *     the new instance of {@link MarcXchangeRecord }
      */
     public MarcXchangeRecord createMarcXchangeRecord() {
         return new MarcXchangeRecord();
@@ -88,7 +98,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://oss.dbc.dk/ns/updateMarcXchange", name = "UpdateMarcXchangeRequest")
     public JAXBElement<UpdateMarcXchangeRequest> createUpdateMarcXchangeRequest(UpdateMarcXchangeRequest value) {
-        return new JAXBElement<UpdateMarcXchangeRequest>(_UpdateMarcXchangeRequest_QNAME, UpdateMarcXchangeRequest.class, null, value);
+        return new JAXBElement<>(_UpdateMarcXchangeRequest_QNAME, UpdateMarcXchangeRequest.class, null, value);
     }
 
     /**
@@ -101,7 +111,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://oss.dbc.dk/ns/updateMarcXchange", name = "UpdateMarcXchangeResult")
     public JAXBElement<UpdateMarcXchangeResult> createUpdateMarcXchangeResult(UpdateMarcXchangeResult value) {
-        return new JAXBElement<UpdateMarcXchangeResult>(_UpdateMarcXchangeResult_QNAME, UpdateMarcXchangeResult.class, null, value);
+        return new JAXBElement<>(_UpdateMarcXchangeResult_QNAME, UpdateMarcXchangeResult.class, null, value);
     }
 
     /**
@@ -114,7 +124,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://oss.dbc.dk/ns/updateMarcXchange", name = "MarcXchangeRecord")
     public JAXBElement<MarcXchangeRecord> createMarcXchangeRecord(MarcXchangeRecord value) {
-        return new JAXBElement<MarcXchangeRecord>(_MarcXchangeRecord_QNAME, MarcXchangeRecord.class, null, value);
+        return new JAXBElement<>(_MarcXchangeRecord_QNAME, MarcXchangeRecord.class, null, value);
     }
 
     /**
@@ -127,7 +137,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://oss.dbc.dk/ns/updateMarcXchange", name = "MarcXchangeRecordId")
     public JAXBElement<String> createMarcXchangeRecordId(String value) {
-        return new JAXBElement<String>(_MarcXchangeRecordId_QNAME, String.class, null, value);
+        return new JAXBElement<>(_MarcXchangeRecordId_QNAME, String.class, null, value);
     }
 
     /**
@@ -140,7 +150,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://oss.dbc.dk/ns/updateMarcXchange", name = "trackingId")
     public JAXBElement<String> createTrackingId(String value) {
-        return new JAXBElement<String>(_TrackingId_QNAME, String.class, null, value);
+        return new JAXBElement<>(_TrackingId_QNAME, String.class, null, value);
     }
 
     /**
@@ -153,7 +163,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://oss.dbc.dk/ns/updateMarcXchange", name = "updateMarcXchangeMessage")
     public JAXBElement<String> createUpdateMarcXchangeMessage(String value) {
-        return new JAXBElement<String>(_UpdateMarcXchangeMessage_QNAME, String.class, null, value);
+        return new JAXBElement<>(_UpdateMarcXchangeMessage_QNAME, String.class, null, value);
     }
 
 }

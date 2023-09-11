@@ -6,6 +6,7 @@ import dk.dbc.invariant.InvariantUtil;
 
 import java.util.Objects;
 
+@SuppressWarnings("unused")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ConversionMetadata {
     private final String origin;

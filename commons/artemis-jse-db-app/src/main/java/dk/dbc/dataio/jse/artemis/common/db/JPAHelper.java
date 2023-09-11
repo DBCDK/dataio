@@ -1,11 +1,11 @@
 package dk.dbc.dataio.jse.artemis.common.db;
 
 import dk.dbc.dataio.jse.artemis.common.EnvConfig;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Persistence;
 import org.flywaydb.core.Flyway;
 import org.postgresql.ds.PGSimpleDataSource;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Persistence;
 import javax.sql.DataSource;
 import java.util.Map;
 

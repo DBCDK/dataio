@@ -56,6 +56,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
             transaction.begin();
             Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
             if (chunk.isTerminationChunk()) {
+                LOGGER.info("Got the termination chunk {} for batch {}", chunk.getTrackingId(), batch.getId());
                 try {
                     // Give the before-last message enough time to commit
                     // its records to the tickle-repo before initiating

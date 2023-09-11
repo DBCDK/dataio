@@ -10,6 +10,7 @@ import java.util.function.Function;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+@SuppressWarnings("unused")
 public interface EnvConfig {
     default Optional<String> asOptionalString() {
         return getProperty(getName()).or(() -> Optional.ofNullable(getDefaultValue())).map(String::trim).filter(s -> !s.isEmpty());
@@ -88,6 +89,7 @@ public interface EnvConfig {
     }
 
     default String getDefaultValue() {
+        //noinspection ReturnOfNull
         return null;
     }
 }

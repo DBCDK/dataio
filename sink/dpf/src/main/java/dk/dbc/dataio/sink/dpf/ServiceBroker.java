@@ -28,10 +28,10 @@ import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
+import jakarta.ws.rs.client.ClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.client.ClientBuilder;
 import java.util.Collections;
 import java.util.List;
 

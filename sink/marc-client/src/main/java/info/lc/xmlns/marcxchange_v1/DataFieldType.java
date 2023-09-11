@@ -1,16 +1,16 @@
 
 package info.lc.xmlns.marcxchange_v1;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 
 /**
@@ -20,28 +20,28 @@ import java.util.List;
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
- * <pre>
- * &lt;complexType name="dataFieldType"&gt;
- *   &lt;complexContent&gt;
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
- *       &lt;sequence maxOccurs="unbounded"&gt;
- *         &lt;element name="subfield" type="{info:lc/xmlns/marcxchange-v1}subfieldatafieldType"/&gt;
- *       &lt;/sequence&gt;
- *       &lt;attribute name="id" type="{info:lc/xmlns/marcxchange-v1}idDataType" /&gt;
- *       &lt;attribute name="tag" use="required" type="{info:lc/xmlns/marcxchange-v1}tagDataType" /&gt;
- *       &lt;attribute name="ind1" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" /&gt;
- *       &lt;attribute name="ind2" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" /&gt;
- *       &lt;attribute name="ind3" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" /&gt;
- *       &lt;attribute name="ind4" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" /&gt;
- *       &lt;attribute name="ind5" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" /&gt;
- *       &lt;attribute name="ind6" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" /&gt;
- *       &lt;attribute name="ind7" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" /&gt;
- *       &lt;attribute name="ind8" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" /&gt;
- *       &lt;attribute name="ind9" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" /&gt;
- *     &lt;/restriction&gt;
- *   &lt;/complexContent&gt;
- * &lt;/complexType&gt;
- * </pre>
+ * <pre>{@code
+ * <complexType name="dataFieldType">
+ *   <complexContent>
+ *     <restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *       <sequence maxOccurs="unbounded">
+ *         <element name="subfield" type="{info:lc/xmlns/marcxchange-v1}subfieldatafieldType"/>
+ *       </sequence>
+ *       <attribute name="id" type="{info:lc/xmlns/marcxchange-v1}idDataType" />
+ *       <attribute name="tag" use="required" type="{info:lc/xmlns/marcxchange-v1}tagDataType" />
+ *       <attribute name="ind1" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" />
+ *       <attribute name="ind2" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" />
+ *       <attribute name="ind3" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" />
+ *       <attribute name="ind4" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" />
+ *       <attribute name="ind5" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" />
+ *       <attribute name="ind6" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" />
+ *       <attribute name="ind7" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" />
+ *       <attribute name="ind8" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" />
+ *       <attribute name="ind9" type="{info:lc/xmlns/marcxchange-v1}indicatorDataType" />
+ *     </restriction>
+ *   </complexContent>
+ * </complexType>
+ * }</pre>
  * 
  * 
  */
@@ -84,8 +84,8 @@ public class DataFieldType {
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the subfield property.
+     * returned list will be present inside the Jakarta XML Binding object.
+     * This is why there is not a {@code set} method for the subfield property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
@@ -99,10 +99,12 @@ public class DataFieldType {
      * {@link SubfieldatafieldType }
      * 
      * 
+     * @return
+     *     The value of the subfield property.
      */
     public List<SubfieldatafieldType> getSubfield() {
         if (subfield == null) {
-            subfield = new ArrayList<SubfieldatafieldType>();
+            subfield = new ArrayList<>();
         }
         return this.subfield;
     }

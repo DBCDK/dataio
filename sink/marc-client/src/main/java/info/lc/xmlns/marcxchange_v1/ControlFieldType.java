@@ -1,14 +1,14 @@
 
 package info.lc.xmlns.marcxchange_v1;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlValue;
+import jakarta.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 
 /**
@@ -18,16 +18,16 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
- * <pre>
- * &lt;complexType name="controlFieldType"&gt;
- *   &lt;simpleContent&gt;
- *     &lt;extension base="&lt;info:lc/xmlns/marcxchange-v1&gt;controlDataType"&gt;
- *       &lt;attribute name="id" type="{info:lc/xmlns/marcxchange-v1}idDataType" /&gt;
- *       &lt;attribute name="tag" use="required" type="{info:lc/xmlns/marcxchange-v1}controltagDataType" /&gt;
- *     &lt;/extension&gt;
- *   &lt;/simpleContent&gt;
- * &lt;/complexType&gt;
- * </pre>
+ * <pre>{@code
+ * <complexType name="controlFieldType">
+ *   <simpleContent>
+ *     <extension base="<info:lc/xmlns/marcxchange-v1>controlDataType">
+ *       <attribute name="id" type="{info:lc/xmlns/marcxchange-v1}idDataType" />
+ *       <attribute name="tag" use="required" type="{info:lc/xmlns/marcxchange-v1}controltagDataType" />
+ *     </extension>
+ *   </simpleContent>
+ * </complexType>
+ * }</pre>
  * 
  * 
  */

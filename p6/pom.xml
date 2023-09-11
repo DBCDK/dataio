@@ -9,7 +9,7 @@
     <parent>
         <groupId>dk.dbc</groupId>
         <artifactId>microservice-pom</artifactId>
-        <version>payara6-SNAPSHOT</version>
+        <version>java11-SNAPSHOT</version>
         <relativePath/>
     </parent>
 
@@ -23,12 +23,6 @@
         <tag>devel</tag>
         <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest</java.image>
         <docker.deploydir>/opt/payara6/deployments</docker.deploydir>
-
-        <dataio-commons-utils-file-store-service-connector.version>1.1-migration</dataio-commons-utils-file-store-service-connector.version>
-        <dataio-commons-types.version>1.1-migration</dataio-commons-types.version>
-        <dataio-commons-utils-test.version>1.1-migration</dataio-commons-utils-test.version>
-        <dataio-commons-utils-tickle-harvester-service-connector.version>1.1-migration
-        </dataio-commons-utils-tickle-harvester-service-connector.version>
 
         <ejb.version>3.2</ejb.version>
         <maven.deploy.plugin.version>3.1.0</maven.deploy.plugin.version>
@@ -424,7 +418,6 @@
                 <artifactId>infomedia-connector</artifactId>
                 <version>2.0-SNAPSHOT</version>
             </dependency>
-
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
@@ -523,8 +516,32 @@
                 <artifactId>tickle-repo-api</artifactId>
                 <version>2.0-SNAPSHOT</version>
             </dependency>
-
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-openupdate-service-connector</artifactId>
+                <version>2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-jpa-resultset</artifactId>
+                <version>2.0-SNAPSHOT</version>
+            </dependency>
             <!-- Non migration stuff -->
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-proxy</artifactId>
+                <version>1.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-sink-util</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-conversion</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-macro-expansion</artifactId>
@@ -559,7 +576,7 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>2.0-SNAPSHOT</version>
                 <type>ejb</type>
             </dependency>
             <dependency>
@@ -584,8 +601,17 @@
                 <artifactId>dataio-harvester-utils-time-interval</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
-
-
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-sink-testutil</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-sftp-client</artifactId>
+                <version>1.1-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-svn</artifactId>
@@ -664,13 +690,33 @@
                 <version>1.0</version>
             </dependency>
             <dependency>
+                <groupId>org.eclipse.angus</groupId>
+                <artifactId>angus-mail</artifactId>
+                <version>2.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.stefanbirkner</groupId>
+                <artifactId>fake-sftp-server-rule</artifactId>
+                <version>2.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockftpserver</groupId>
+                <artifactId>MockFtpServer</artifactId>
+                <version>2.7.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.glassfish</groupId>
                 <artifactId>javax.json</artifactId>
                 <version>1.1.4</version>
                 <scope>provided</scope>
             </dependency>
-
-
+            <dependency>
+                <groupId>org.xmlunit</groupId>
+                <artifactId>xmlunit-matchers</artifactId>
+                <version>2.0.0</version>
+                <scope>test</scope>
+            </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey.inject</groupId>
                 <artifactId>jersey-hk2</artifactId>
@@ -736,11 +782,6 @@
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-core</artifactId>
                 <version>${flyway.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.postgresql</groupId>
-                <artifactId>postgresql</artifactId>
-                <version>${postgresql-driver.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>

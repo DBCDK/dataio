@@ -7,12 +7,11 @@
   <parent>
     <artifactId>jse-app</artifactId>
     <groupId>dk.dbc</groupId>
-    <version>1.0-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
     <relativePath>../../jse-app</relativePath>
   </parent>
 
   <artifactId>dataio-sink-periodic-jobs</artifactId>
-  <name>dataio-sink-periodic-jobs</name>
 
   <repositories>
     <repository>
@@ -30,32 +29,26 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>artemis-jse-db-app</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-proxy</artifactId>
-      <version>1.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-conversion</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-macro-expansion</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-cache</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-io</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -83,7 +76,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>stopwatch</artifactId>
-      <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -92,8 +84,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-sink-testutil</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -114,32 +104,27 @@
       <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.jvnet.mock-javamail</groupId>
-      <artifactId>mock-javamail</artifactId>
-      <version>${mock-javamail.version}</version>
-      <scope>test</scope>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.jvnet.mock-javamail</groupId>-->
+<!--      <artifactId>mock-javamail</artifactId>-->
+<!--      <version>${mock-javamail.version}</version>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>ftp-client</artifactId>
-      <version>${ftpclient.version}</version>
     </dependency>
     <dependency>
       <groupId>org.mockftpserver</groupId>
       <artifactId>MockFtpServer</artifactId>
-      <version>${mockftpserver.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-sftp-client</artifactId>
-      <version>1.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.github.stefanbirkner</groupId>
       <artifactId>fake-sftp-server-rule</artifactId>
-      <version>2.0.1</version>
     </dependency>
     <dependency>
       <groupId>com.github.stefanbirkner</groupId>
@@ -148,7 +133,6 @@
     <dependency>
       <groupId>org.eclipse.angus</groupId>
       <artifactId>angus-mail</artifactId>
-      <version>${angus-mail.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -188,6 +172,7 @@
     <profile>
       <id>docker-push</id>
       <properties>
+        <!--suppress UnresolvedMavenProperty -->
         <tag>DIT-${BUILD_NUMBER}</tag>
       </properties>
       <build>

@@ -1,25 +1,25 @@
 package dk.dbc.dataio.sink.marcconv.entity;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.dataio.commons.conversion.ConversionParam;
-import dk.dbc.jsonb.JSONBContext;
-import dk.dbc.jsonb.JSONBException;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import org.postgresql.util.PGobject;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 import java.sql.SQLException;
 
 @Converter
 public class ConversionParamConverter implements AttributeConverter<ConversionParam, PGobject> {
-    private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     public PGobject convertToDatabaseColumn(ConversionParam conversionParam) {
         final PGobject pgObject = new PGobject();
         pgObject.setType("jsonb");
         try {
-            pgObject.setValue(JSONB_CONTEXT.marshall(conversionParam));
-        } catch (SQLException | JSONBException e) {
+            pgObject.setValue(MAPPER.writeValueAsString(conversionParam));
+        } catch (SQLException | JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
         return pgObject;
@@ -31,8 +31,8 @@ public class ConversionParamConverter implements AttributeConverter<ConversionPa
             return null;
         }
         try {
-            return JSONB_CONTEXT.unmarshall(pgObject.getValue(), ConversionParam.class);
-        } catch (JSONBException e) {
+            return MAPPER.readValue(pgObject.getValue(), ConversionParam.class);
+        } catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
     }

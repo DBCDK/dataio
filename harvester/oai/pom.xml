@@ -13,7 +13,6 @@
   </parent>
 
   <artifactId>dataio-harvester-oai</artifactId>
-  <name>dataio-harvester-oai</name>
   <packaging>war</packaging>
 
   <dependencies>

@@ -5,8 +5,8 @@ import dk.dbc.dataio.jse.artemis.common.app.MessageConsumerApp;
 import dk.dbc.dataio.jse.artemis.common.db.JPAHelper;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.marcconv.jms.MessageConsumer;
+import jakarta.ws.rs.client.ClientBuilder;
 
-import javax.ws.rs.client.ClientBuilder;
 import java.util.function.Supplier;
 
 public class MarcConvSinkApp extends MessageConsumerApp {

@@ -3,9 +3,9 @@ package dk.dbc.dataio.jse.artemis.common.service;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.jse.artemis.common.Config;
 import dk.dbc.dataio.registry.PrometheusMetricRegistry;
+import jakarta.ws.rs.client.ClientBuilder;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 
-import javax.ws.rs.client.ClientBuilder;
 
 
 public class ServiceHub implements AutoCloseable {
@@ -25,6 +25,7 @@ public class ServiceHub implements AutoCloseable {
         this.jobStoreServiceConnector = jobStoreServiceConnector;
     }
 
+    @SuppressWarnings("unused")
     public static ServiceHub defaultHub() {
         return new ServiceHub.Builder().build();
     }

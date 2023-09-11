@@ -52,7 +52,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         Chunk chunk = unmarshallPayload(consumedMessage);
-        if(evictCounter.incrementAndGet() % 1000  == 0) entityManager.getEntityManagerFactory().getCache().evictAll();
+        if(evictCounter.incrementAndGet() % 10000  == 0) entityManager.clear();
         EntityTransaction transaction = entityManager.getTransaction();
         Batch batch = getBatch(chunk);
         try {

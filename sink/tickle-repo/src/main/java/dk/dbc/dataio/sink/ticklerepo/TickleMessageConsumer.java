@@ -78,7 +78,11 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
             }
 
             transaction.commit();
-            if(chunk.isTerminationChunk()) LOGGER.info("");
+            if(chunk.isTerminationChunk()) {
+                entityManager.refresh(batch);
+                if(batch.getTimeOfCompletion() == null) LOGGER.error("Completed batch {} for job {} has no completion timestamp", batch.getId(), batch.getBatchKey());
+                else LOGGER.info("Batch {}  for job {} was closed with completion time: {}", batch.getId(), batch.getBatchKey(), batch.getTimeOfCompletion());
+            }
             sendResultToJobStore(result);
         } finally {
             if(transaction.isActive()) transaction.rollback();

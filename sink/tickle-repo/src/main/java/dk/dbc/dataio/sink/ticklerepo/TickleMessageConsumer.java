@@ -40,6 +40,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class TickleMessageConsumer extends MessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(TickleMessageConsumer.class);
@@ -49,6 +50,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
     private final EntityManager entityManager;
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
+    private static final AtomicLong evictCounter = new AtomicLong();
 
 
     public TickleMessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
@@ -83,12 +85,14 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         Chunk chunk = unmarshallPayload(consumedMessage);
+        if(evictCounter.incrementAndGet() % 10000  == 0) entityManager.clear();
         EntityTransaction transaction = entityManager.getTransaction();
+        Batch batch = getBatch(chunk);
         try {
-            Batch batch = getBatch(chunk);
             transaction.begin();
             Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
             if (chunk.isTerminationChunk()) {
+                LOGGER.info("Got the termination chunk {} for batch {}", chunk.getTrackingId(), batch.getId());
                 try {
                     // Give the before-last message enough time to commit
                     // its records to the tickle-repo before initiating
@@ -106,6 +110,11 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
                 chunk.getItems().forEach(chunkItem -> result.insertItem(handleChunkItem(chunkItem, batch)));
             }
             transaction.commit();
+            if(chunk.isTerminationChunk()) {
+                entityManager.refresh(batch);
+                if(batch.getTimeOfCompletion() == null) LOGGER.error("Completed batch {} for job {} has no completion timestamp", batch.getId(), batch.getBatchKey());
+                else LOGGER.info("Batch {} for job {} was closed with completion time: {}", batch.getId(), batch.getBatchKey(), batch.getTimeOfCompletion());
+            }
             sendResultToJobStore(result);
         } finally {
             if(transaction.isActive()) transaction.rollback();

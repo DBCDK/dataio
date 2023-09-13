@@ -14,6 +14,8 @@ import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.PathBuilder;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.Response;
 import net.jodah.failsafe.RetryPolicy;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
@@ -31,8 +33,6 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -55,6 +55,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.zip.GZIPOutputStream;
 
@@ -77,13 +78,13 @@ public class FilesIT {
             .withEnv("FILESTORE_DB_URL", dbContainer.getPayaraDockerJdbcUrl())
             .withEnv("BFS_ROOT", "/tmp/filestore")
             .withExposedPorts(8080)
-            .waitingFor(Wait.forHttp(System.getProperty("filestore.it.service.context") + "/status"))
-            .withStartupTimeout(Duration.ofMinutes(5));
+            .waitingFor(Wait.forHttp("/dataio/file-store-service/status"))
+            .withStartupTimeout(Duration.ofMinutes(2));
     private static final int MiB = 1024 * 1024;
     private static final int BUFFER_SIZE = 8192;
     private static FileStoreServiceConnector fileStoreServiceConnector;
     @Rule
-    public TemporaryFolder rootFolder = new TemporaryFolder(new File(System.getProperty("build.dir")));
+    public TemporaryFolder rootFolder = new TemporaryFolder(new File(Optional.ofNullable(System.getProperty("build.dir")).orElse("target")));
 
     private static DBCPostgreSQLContainer makeDBContainer() {
         DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withReuse(false);

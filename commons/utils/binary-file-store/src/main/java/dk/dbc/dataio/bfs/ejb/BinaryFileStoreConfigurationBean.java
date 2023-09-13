@@ -1,12 +1,12 @@
 package dk.dbc.dataio.bfs.ejb;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.ejb.EJBException;
+import jakarta.ejb.LocalBean;
+import jakarta.ejb.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.EJBException;
-import javax.ejb.LocalBean;
-import javax.ejb.Singleton;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 

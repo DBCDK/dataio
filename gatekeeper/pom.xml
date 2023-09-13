@@ -127,6 +127,10 @@
       <version>1.2</version>
     </dependency>
     <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-types</artifactId>
+    </dependency>
+    <dependency>
       <artifactId>dataio-commons-utils-io</artifactId>
       <groupId>dk.dbc</groupId>
       <version>${project.version}</version>

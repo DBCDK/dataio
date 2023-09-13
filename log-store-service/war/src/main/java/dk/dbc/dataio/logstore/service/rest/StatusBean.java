@@ -1,10 +1,10 @@
 package dk.dbc.dataio.logstore.service.rest;
 
 import dk.dbc.dataio.commons.utils.service.ServiceStatus;
-
-import javax.ejb.Stateless;
+import jakarta.ejb.Stateless;
+import jakarta.ws.rs.Path;
 
 @Stateless
-@javax.ws.rs.Path("/")
+@Path("/")
 public class StatusBean implements ServiceStatus {
 }

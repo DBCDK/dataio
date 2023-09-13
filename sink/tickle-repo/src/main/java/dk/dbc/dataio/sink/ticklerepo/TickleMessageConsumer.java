@@ -109,6 +109,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
             } else {
                 chunk.getItems().forEach(chunkItem -> result.insertItem(handleChunkItem(chunkItem, batch)));
             }
+
             transaction.commit();
             if(chunk.isTerminationChunk()) {
                 entityManager.refresh(batch);

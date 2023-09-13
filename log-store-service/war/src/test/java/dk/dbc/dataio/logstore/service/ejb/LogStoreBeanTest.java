@@ -1,10 +1,10 @@
 package dk.dbc.dataio.logstore.service.ejb;
 
 import dk.dbc.dataio.logstore.service.entity.LogEntryEntity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;

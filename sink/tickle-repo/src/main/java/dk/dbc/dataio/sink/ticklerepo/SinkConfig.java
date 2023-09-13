@@ -6,7 +6,8 @@ public enum SinkConfig implements EnvConfig {
     QUEUE,
     MESSAGE_FILTER(null),
     TICKLE_BEHAVIOUR("INCREMENTAL"),
-    TICKLE_REPO_DB_URL;
+    TICKLE_REPO_DB_URL,
+    TIMEZONE("Europe/Copenhagen");
     private final String defaultValue;
 
     SinkConfig() {

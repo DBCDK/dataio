@@ -1,10 +1,10 @@
 package dk.dbc.dataio.sink.openupdate.bindings;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import org.w3c.dom.Document;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.transform.dom.DOMResult;
 import java.nio.charset.StandardCharsets;
 

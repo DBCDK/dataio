@@ -16,10 +16,10 @@ import dk.dbc.dataio.sink.periodicjobs.GroupHeaderIncludePredicate;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlock;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlockResultSetMapping;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
+import jakarta.persistence.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;

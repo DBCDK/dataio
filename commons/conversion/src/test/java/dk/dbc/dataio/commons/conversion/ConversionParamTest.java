@@ -1,7 +1,7 @@
 package dk.dbc.dataio.commons.conversion;
 
-import dk.dbc.jsonb.JSONBContext;
-import dk.dbc.jsonb.JSONBException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.Marc8Charset;
 import org.junit.Test;
@@ -37,10 +37,10 @@ public class ConversionParamTest {
     }
 
     @Test
-    public void unmarshalling() throws JSONBException {
-        final JSONBContext jsonbContext = new JSONBContext();
+    public void unmarshalling() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
         final String json = "{\"encoding\": \"utf8\", \"magicNumber\": 42, \"submitter\": 123456}";
-        final ConversionParam param = jsonbContext.unmarshall(json, ConversionParam.class);
+        final ConversionParam param = mapper.readValue(json, ConversionParam.class);
         assertThat("encoding", param.getEncoding().orElse(null), is(StandardCharsets.UTF_8));
         assertThat("submitter", param.getSubmitter().orElse(null), is(123456));
     }

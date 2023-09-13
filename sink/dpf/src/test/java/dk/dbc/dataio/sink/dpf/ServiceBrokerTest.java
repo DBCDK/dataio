@@ -1,8 +1,8 @@
 package dk.dbc.dataio.sink.dpf;
 
-import dk.dbc.weekresolver.WeekResolverConnector;
-import dk.dbc.weekresolver.WeekResolverConnectorException;
-import dk.dbc.weekresolver.WeekResolverResult;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
+import dk.dbc.weekresolver.model.WeekResolverResult;
 import org.junit.Before;
 import org.junit.Test;
 

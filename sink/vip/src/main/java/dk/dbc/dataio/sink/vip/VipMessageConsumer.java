@@ -18,8 +18,8 @@ import dk.dbc.dataio.sink.vip.connector.VipCoreConnector;
 import dk.dbc.dataio.sink.vip.connector.VipCoreConnectorException;
 import dk.dbc.dataio.sink.vip.connector.VipCoreConnectorUnexpectedStatusCodeException;
 import dk.dbc.log.DBCTrackedLogContext;
+import jakarta.ws.rs.client.ClientBuilder;
 
-import javax.ws.rs.client.ClientBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

@@ -19,7 +19,7 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.testee.NonContainerManagedExecutorService;
 import dk.dbc.testee.SameThreadExecutorService;
-import dk.dbc.weekresolver.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import jakarta.enterprise.concurrent.ManagedExecutorService;
 import org.junit.Before;
 import org.junit.Rule;

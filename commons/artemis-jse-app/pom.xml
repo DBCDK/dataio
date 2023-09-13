@@ -15,17 +15,14 @@
     <properties>
         <micrometer.version>1.9.4</micrometer.version>
         <jetty.version>11.0.14</jetty.version>
+        <jaxrs-version>3.0.0</jaxrs-version>
     </properties>
 
     <dependencies>
 
         <dependency>
-            <groupId>jakarta.ws.rs</groupId>
-            <artifactId>jakarta.ws.rs-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dbc-commons-httpclient</artifactId>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-web-api</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>

@@ -12,9 +12,9 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.sink.periodicjobs.IntegrationTest;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlock;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
-import dk.dbc.weekresolver.WeekResolverConnector;
-import dk.dbc.weekresolver.WeekResolverConnectorException;
-import dk.dbc.weekresolver.WeekResolverResult;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
+import dk.dbc.weekresolver.model.WeekResolverResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -175,7 +175,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
 
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(41);
-        when(weekResolverConnector.getCurrentWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
+        when(weekResolverConnector.getCurrentWeekCodeForDate(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
 
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();

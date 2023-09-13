@@ -10,10 +10,10 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import jakarta.persistence.EntityManager;
 import org.glassfish.jersey.internal.guava.Cache;
 import org.glassfish.jersey.internal.guava.CacheBuilder;
 
-import javax.persistence.EntityManager;
 import java.util.concurrent.TimeUnit;
 
 public class PeriodicJobsConfigurationBean {

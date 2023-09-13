@@ -8,10 +8,10 @@ import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.ExtraRecordData;
 import dk.dbc.oss.ns.catalogingupdate.RecordData;
+import jakarta.xml.bind.JAXBException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 
 public class AddiRecordPreprocessor extends DocumentTransformer {

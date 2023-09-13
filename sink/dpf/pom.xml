@@ -25,22 +25,18 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-openupdate-service-connector</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>lobby-connector</artifactId>
-            <version>1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
           <groupId>dk.dbc</groupId>
           <artifactId>dataio-sink-util</artifactId>
-          <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>updateservice-rest-connector</artifactId>
-            <version>2.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -53,7 +49,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>opennumberroll-connector</artifactId>
-            <version>1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -62,14 +57,16 @@
         <dependency>
           <groupId>org.xmlunit</groupId>
           <artifactId>xmlunit-matchers</artifactId>
-          <version>2.6.3</version>
-          <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.sun.org.apache.xml.internal</groupId>
-            <artifactId>resolver</artifactId>
-            <version>20050927</version>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-json-binding</artifactId>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.sun.org.apache.xml.internal</groupId>-->
+<!--            <artifactId>resolver</artifactId>-->
+<!--            <version>20050927</version>-->
+<!--        </dependency>-->
     </dependencies>
 
     <build>

@@ -32,7 +32,8 @@
             <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
             <type>ejb</type>
         </dependency>
-<!--        <dependency>-->
+
+        <!--        <dependency>-->
 <!--            <groupId>com.sun.org.apache.xml.internal</groupId>-->
 <!--            <artifactId>resolver</artifactId>-->
 <!--            <version>20050927</version>-->

@@ -3,9 +3,9 @@ package dk.dbc.dataio.sink.periodicjobs;
 import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.common.utils.io.UncheckedFileOutputStream;
 import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.io.File;
 import java.io.IOException;
 

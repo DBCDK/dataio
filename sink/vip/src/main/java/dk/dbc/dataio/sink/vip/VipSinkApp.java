@@ -3,8 +3,8 @@ package dk.dbc.dataio.sink.vip;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.jse.artemis.common.app.MessageConsumerApp;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
+import jakarta.ws.rs.client.ClientBuilder;
 
-import javax.ws.rs.client.ClientBuilder;
 import java.util.function.Supplier;
 
 public class VipSinkApp extends MessageConsumerApp {

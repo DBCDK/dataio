@@ -3,11 +3,11 @@ package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.oss.ns.catalogingupdate.ObjectFactory;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 

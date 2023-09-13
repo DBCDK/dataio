@@ -11,7 +11,6 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JMSHeader;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
@@ -27,7 +26,6 @@ public class UpdateMessageConsumer extends MessageConsumerAdapter {
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     private final FlowStoreServiceConnector flowStoreServiceConnector;
-    private final JobStoreServiceConnector jobStoreServiceConnector;
     private final OpenUpdateConfig openUpdateConfig;
     private final AddiRecordPreprocessor addiRecordPreprocessor;
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
@@ -38,7 +36,6 @@ public class UpdateMessageConsumer extends MessageConsumerAdapter {
 
     public UpdateMessageConsumer(ServiceHub serviceHub, FlowStoreServiceConnector flowStoreServiceConnector, OpenUpdateConfig openUpdateConfig, AddiRecordPreprocessor addiRecordPreprocessor) {
         super(serviceHub);
-        jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.openUpdateConfig = openUpdateConfig;
         this.addiRecordPreprocessor = addiRecordPreprocessor;

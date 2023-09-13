@@ -25,7 +25,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>artemis-jse-app</artifactId>
-            <version>2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -211,7 +210,7 @@
                             </goals>
                         </execution>
                     </executions>
-                    <configuration>
+                    <configuration combine.self="override">
                         <tagName>devel</tagName>
                         <images>
                             <image>

@@ -1,15 +1,14 @@
 package dk.dbc.dataio.sink.testutil;
 
-import javax.ejb.EJBHome;
-import javax.ejb.EJBLocalHome;
-import javax.ejb.MessageDrivenContext;
-import javax.ejb.TimerService;
-import javax.transaction.UserTransaction;
+import jakarta.ejb.EJBHome;
+import jakarta.ejb.EJBLocalHome;
+import jakarta.ejb.MessageDrivenContext;
+import jakarta.ejb.TimerService;
+import jakarta.transaction.UserTransaction;
+
 import java.security.Principal;
 import java.util.Map;
-import java.util.Properties;
 
-@SuppressWarnings(value = "deprecation")
 public class MockedMessageDrivenContext implements MessageDrivenContext {
     private boolean rollbackOnly = false;
 
@@ -24,23 +23,8 @@ public class MockedMessageDrivenContext implements MessageDrivenContext {
     }
 
     @Override
-    public Properties getEnvironment() {
-        return null;
-    }
-
-    @Override
-    public java.security.Identity getCallerIdentity() {
-        return null;
-    }
-
-    @Override
     public Principal getCallerPrincipal() throws IllegalStateException {
         return null;
-    }
-
-    @Override
-    public boolean isCallerInRole(java.security.Identity identity) {
-        return false;
     }
 
     @Override

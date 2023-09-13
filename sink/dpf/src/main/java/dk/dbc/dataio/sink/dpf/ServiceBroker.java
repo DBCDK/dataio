@@ -1,5 +1,7 @@
 package dk.dbc.dataio.sink.dpf;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.DpfSinkConfig;
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
@@ -7,7 +9,6 @@ import dk.dbc.dataio.sink.dpf.transform.BibliographicRecordFactory;
 import dk.dbc.dataio.sink.dpf.transform.BibliographicRecordFactoryException;
 import dk.dbc.dataio.sink.dpf.transform.MarcRecordFactory;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
-import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.LobbyConnector;
 import dk.dbc.lobby.LobbyConnectorException;
 import dk.dbc.marc.binding.DataField;
@@ -25,9 +26,9 @@ import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
-import dk.dbc.weekresolver.WeekResolverConnector;
-import dk.dbc.weekresolver.WeekResolverConnectorException;
-import dk.dbc.weekresolver.WeekResolverResult;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
+import dk.dbc.weekresolver.model.WeekResolverResult;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,12 +75,11 @@ public class ServiceBroker {
         opennumberRollConnector = null;
     }
 
-    public void sendToLobby(DpfRecord dpfRecord) throws LobbyConnectorException, JSONBException {
+    public void sendToLobby(DpfRecord dpfRecord) throws LobbyConnectorException, JsonProcessingException {
         lobbyConnector.createOrReplaceApplicant(dpfRecord.toLobbyApplicant());
     }
 
-    public UpdateRecordResponseDTO isDoubleRecord(DpfRecord dpfRecord)
-            throws UpdateServiceDoubleRecordCheckConnectorException, JSONBException {
+    public UpdateRecordResponseDTO isDoubleRecord(DpfRecord dpfRecord) throws UpdateServiceDoubleRecordCheckConnectorException, JSONBException {
         byte[] content = MarcRecordFactory.toMarcXchange(dpfRecord.getBody());
         RecordDataDTO recordDataDTO = new RecordDataDTO();
         recordDataDTO.setContent(Collections.singletonList(new String(content)));

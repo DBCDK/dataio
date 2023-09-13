@@ -6,13 +6,13 @@ import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangePortType;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeRequest;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeServices;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.WebServiceException;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.WebServiceException;
 import java.time.Duration;
 import java.util.List;
 

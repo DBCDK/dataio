@@ -2,12 +2,12 @@ package dk.dbc.oclc.wciru;
 
 import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import dk.dbc.invariant.InvariantUtil;
+import jakarta.xml.ws.BindingProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.xml.ws.BindingProvider;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;

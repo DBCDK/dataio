@@ -10,9 +10,9 @@ import dk.dbc.dataio.sink.periodicjobs.ContainerTest;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlock;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
 import dk.dbc.proxy.ProxyBean;
-import dk.dbc.weekresolver.WeekResolverConnector;
-import dk.dbc.weekresolver.WeekResolverConnectorException;
-import dk.dbc.weekresolver.WeekResolverResult;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
+import dk.dbc.weekresolver.model.WeekResolverResult;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -124,7 +124,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
         final WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(41);
-        when(weekResolverConnector.getCurrentWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
+        when(weekResolverConnector.getCurrentWeekCodeForDate(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
         final int jobId = 42;
         persistDataBlocks(jobId);
 

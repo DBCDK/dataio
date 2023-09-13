@@ -9,7 +9,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.postgresql.ds.PGSimpleDataSource;
-import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

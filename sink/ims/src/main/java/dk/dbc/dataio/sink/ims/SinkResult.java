@@ -6,8 +6,8 @@ import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.oss.ns.updatemarcxchange.MarcXchangeRecord;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
+import jakarta.xml.bind.JAXBException;
 
-import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

@@ -10,10 +10,10 @@ import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.ims.connector.ImsServiceConnector;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
+import jakarta.xml.ws.WebServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.ws.WebServiceException;
 import java.time.Duration;
 import java.util.List;
 

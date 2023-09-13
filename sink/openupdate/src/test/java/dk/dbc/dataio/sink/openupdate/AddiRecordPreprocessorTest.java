@@ -5,11 +5,11 @@ import dk.dbc.dataio.sink.openupdate.bindings.BibliographicRecordExtraData;
 import dk.dbc.dataio.sink.openupdate.bindings.BibliographicRecordExtraDataMarshallerTest;
 import dk.dbc.dataio.sink.util.DocumentTransformer;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
+import jakarta.xml.bind.JAXBException;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.transform.TransformerException;
 import java.nio.charset.StandardCharsets;
 

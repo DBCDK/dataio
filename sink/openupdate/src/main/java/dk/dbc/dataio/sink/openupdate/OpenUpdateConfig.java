@@ -32,7 +32,6 @@ public class OpenUpdateConfig {
      * Refreshes the sink config contained in this bean by flow-store lookup if it is outdated
      *
      * @param consumedMessage consumed message containing the version and the id of the sink
-     * @throws SinkException on error to retrieve property for id or version or on error on fetching sink
      */
     private void refreshConfig(ConsumedMessage consumedMessage) {
         try {

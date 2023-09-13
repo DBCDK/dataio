@@ -52,7 +52,6 @@
         <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
         <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
         <argparse4j.version>0.9.0</argparse4j.version>
-        <week-resolver.version>1.5-PRE-EE10-SNAPSHOT</week-resolver.version>
 
         <file.store.basejakarta.jakartaee-apipath>${user.dir}/integration-test/mountpoint/file-store</file.store.basejakarta.jakartaee-apipath>
         <harvester.basepath>${user.dir}/integration-test/mountpoint/harvester</harvester.basepath>
@@ -373,6 +372,26 @@
         <dependencies>
             <dependency>
                 <groupId>dk.dbc</groupId>
+                <artifactId>solr-doc-store-connector</artifactId>
+                <version>2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>opennumberroll-connector</artifactId>
+                <version>2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>updateservice-rest-connector</artifactId>
+                <version>2.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>lobby-connector</artifactId>
+                <version>2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
                 <version>2.0-SNAPSHOT</version>
             </dependency>
@@ -528,6 +547,16 @@
             </dependency>
             <!-- Non migration stuff -->
             <dependency>
+                <groupId>com.sun.xml.ws</groupId>
+                <artifactId>jaxws-rt</artifactId>
+                <version>4.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.xml.ws</groupId>
+                <artifactId>jakarta.xml.ws-api</artifactId>
+                <version>4.0.0</version>
+            </dependency>
+            <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dbc-commons-proxy</artifactId>
                 <version>1.1-SNAPSHOT</version>
@@ -640,11 +669,6 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
-                <artifactId>json-binding</artifactId>
-                <version>${json-binding.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
                 <artifactId>invariant-utils</artifactId>
                 <version>0.1.0</version>
             </dependency>
@@ -712,9 +736,14 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <groupId>jakarta.ws.rs</groupId>
+                <artifactId>jakarta.ws.rs-api</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+            <dependency>
                 <groupId>org.xmlunit</groupId>
                 <artifactId>xmlunit-matchers</artifactId>
-                <version>2.0.0</version>
+                <version>2.6.3</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -868,7 +897,7 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>weekresolver-connector</artifactId>
-                <version>${week-resolver.version}</version>
+                <version>2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>

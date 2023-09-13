@@ -106,9 +106,9 @@
             </plugin>
 
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
+                <groupId>com.sun.xml.ws</groupId>
                 <artifactId>jaxws-maven-plugin</artifactId>
-                <version>2.6</version>
+                <version>4.0.1</version>
                 <executions>
                     <execution>
                         <phase>generate-resources</phase>
@@ -121,7 +121,7 @@
                                 <vmArg>-Djavax.xml.accessExternalStylesheet=all</vmArg>
                                 <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
                             </vmArgs>
-                            <target>2.2</target>
+                            <target>3.0</target>
                             <wsdlLocation>http://localhost/wsdl/catalogingUpdate.wsdl</wsdlLocation>
                             <wsdlDirectory>${update-service.files.local}/META-INF/wsdl</wsdlDirectory>
                         </configuration>

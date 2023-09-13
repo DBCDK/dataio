@@ -4,11 +4,11 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResponse;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import org.xmlunit.matchers.CompareMatcher;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;

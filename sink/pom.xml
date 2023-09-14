@@ -1,35 +1,34 @@
-
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <artifactId>dataio</artifactId>
-    <groupId>dk.dbc</groupId>
-    <version>1.0-SNAPSHOT</version>
-  </parent>
+    <parent>
+        <artifactId>jse-app</artifactId>
+        <groupId>dk.dbc</groupId>
+        <version>2.0-SNAPSHOT</version>
+        <relativePath>../jse-app</relativePath>
+    </parent>
 
-  <artifactId>dataio-sink</artifactId>
-  <name>dataio-sink</name>
-  <packaging>pom</packaging>
+    <artifactId>dataio-sink</artifactId>
+    <packaging>pom</packaging>
 
-  <modules>
-    <module>batch-exchange</module>
-    <module>diff</module>
-    <module>dpf</module>
-    <module>dummy</module>
-    <module>holdings-items</module>
-    <module>ims</module>
-    <module>marcconv</module>
-    <module>openupdate</module>
-    <module>periodic-jobs</module>
-    <module>testutil</module>
-    <module>tickle-repo</module>
-    <module>util</module>
-    <module>vip</module>
-    <module>worldcat</module>
-    <module>dmat</module>
-    <module>marc-client</module>
-  </modules>
+    <modules>
+        <module>batch-exchange</module>
+        <module>diff</module>
+        <module>dpf</module>
+        <module>dummy</module>
+        <module>holdings-items</module>
+        <module>ims</module>
+        <module>marcconv</module>
+        <module>openupdate</module>
+        <module>periodic-jobs</module>
+        <module>testutil</module>
+        <module>tickle-repo</module>
+        <module>util</module>
+        <module>vip</module>
+        <module>worldcat</module>
+        <module>dmat</module>
+        <module>marc-client</module>
+    </modules>
 </project>

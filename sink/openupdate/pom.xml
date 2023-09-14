@@ -6,10 +6,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>jse-app</artifactId>
+        <artifactId>dataio-sink</artifactId>
         <groupId>dk.dbc</groupId>
         <version>2.0-SNAPSHOT</version>
-        <relativePath>../../jse-app</relativePath>
     </parent>
 
     <artifactId>dataio-sink-openupdate</artifactId>
@@ -36,12 +35,6 @@
             <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
             <type>ejb</type>
         </dependency>
-
-        <!--        <dependency>-->
-<!--            <groupId>com.sun.org.apache.xml.internal</groupId>-->
-<!--            <artifactId>resolver</artifactId>-->
-<!--            <version>20050927</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>

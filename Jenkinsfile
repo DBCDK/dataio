@@ -19,7 +19,8 @@ pipeline {
             commons/utils/tickle-harvester-service-connector, \
             harvester/framework, \
             gatekeeper, \
-            commons/utils/binary-file-store"
+            harvester/utils/rawrepo-connector, \
+            commons/utils/binary-file-store,"
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara5-bump-trigger",

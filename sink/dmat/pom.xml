@@ -9,7 +9,6 @@
         <artifactId>jse-app</artifactId>
         <groupId>dk.dbc</groupId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../../jse-app</relativePath>
     </parent>
 
     <artifactId>dataio-sink-dmat</artifactId>
@@ -43,6 +42,7 @@
         <profile>
             <id>docker-push</id>
             <properties>
+                <!--suppress UnresolvedMavenProperty -->
                 <tag>DIT-${BUILD_NUMBER}</tag>
             </properties>
             <build>
@@ -64,4 +64,11 @@
             </build>
         </profile>
     </profiles>
+
+    <repositories>
+        <repository>
+            <id>mavenrepo.dbc.dk</id>
+            <url>https://mavenrepo.dbc.dk/content/groups/public/</url>
+        </repository>
+    </repositories>
 </project>

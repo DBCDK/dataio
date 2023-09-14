@@ -18,6 +18,13 @@
         <main-class>dk.dbc.dataio.sink.dummy.DummySinkApp</main-class>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>artemis-jse-app</artifactId>
+        </dependency>
+    </dependencies>
+
     <build>
         <finalName>${project.name}</finalName>
         <plugins>

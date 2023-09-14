@@ -1,5 +1,7 @@
 package dk.dbc.dataio.sink.marcconv.jms;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.conversion.ConversionParam;
 import dk.dbc.dataio.commons.types.Chunk;
@@ -14,8 +16,6 @@ import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.marcconv.IntegrationTest;
 import dk.dbc.dataio.sink.marcconv.entity.ConversionBlock;
 import dk.dbc.dataio.sink.marcconv.entity.StoredConversionParam;
-import dk.dbc.jsonb.JSONBContext;
-import dk.dbc.jsonb.JSONBException;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -23,11 +23,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class MessageConsumerIT extends IntegrationTest {
-    private final JSONBContext jsonbContext = new JSONBContext();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     private final ConversionParam conversionParam = new ConversionParam().withPackaging("iso").withEncoding("danmarc2");
     private final AddiRecord addiRecord1 = newAddiRecord(conversionParam, "test-record-1-danmarc2.marcxchange");
     private final byte[] isoRecord1 = ResourceReader.getResourceAsByteArray(MessageConsumerIT.class, "test-record-1-danmarc2.iso");
@@ -111,10 +113,10 @@ public class MessageConsumerIT extends IntegrationTest {
 
     private AddiRecord newAddiRecord(ConversionParam conversionParam, String resourceFile) {
         try {
-            byte[] metadata = StringUtil.asBytes(jsonbContext.marshall(conversionParam));
+            byte[] metadata = MAPPER.writeValueAsBytes(conversionParam);
             byte[] record = ResourceReader.getResourceAsByteArray(MessageConsumerIT.class, resourceFile);
             return new AddiRecord(metadata, record);
-        } catch (JSONBException e) {
+        } catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
     }

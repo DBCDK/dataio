@@ -8,7 +8,7 @@
         <class>dk.dbc.dataio.harvester.task.entity.HarvestTaskSelectorConverter</class>
         <class>dk.dbc.dataio.harvester.task.entity.HarvestTask</class>
         <properties>
-            <property name="javax.persistence.schema-generation.database.action" value="none"/>
+            <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
         </properties>
     </persistence-unit>
     <persistence-unit name="taskrepoIT_PU" transaction-type="RESOURCE_LOCAL">
@@ -16,7 +16,7 @@
         <class>dk.dbc.dataio.harvester.task.entity.HarvestTaskSelectorConverter</class>
         <class>dk.dbc.dataio.harvester.task.entity.HarvestTask</class>
         <properties>
-            <property name="javax.persistence.schema-generation.database.action" value="none"/>
+            <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
             <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
             <property name="eclipselink.logging.level" value="FINE"/>
         </properties>

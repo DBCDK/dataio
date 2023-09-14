@@ -21,6 +21,10 @@
     <dependencies>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>artemis-jse-app</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-openupdate-service-connector</artifactId>
         </dependency>
         <dependency>

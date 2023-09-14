@@ -17,7 +17,7 @@
     <class>dk.dbc.commons.jpa.converter.StringListToPgTextArrayConverter</class>
     <class>dk.dbc.ocnrepo.dto.WorldCatEntity</class>
     <properties>
-      <property name="javax.persistence.schema-generation.database.action" value="none"/>
+      <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
       <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
       <property name="eclipselink.logging.level" value="FINE"/>
     </properties>

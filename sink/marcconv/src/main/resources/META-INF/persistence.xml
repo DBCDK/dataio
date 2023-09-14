@@ -8,7 +8,7 @@
     <class>dk.dbc.dataio.sink.marcconv.entity.ConversionParamConverter</class>
     <class>dk.dbc.dataio.sink.marcconv.entity.StoredConversionParam</class>
     <properties>
-      <property name="javax.persistence.schema-generation.database.action" value="none"/>
+      <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
     </properties>
   </persistence-unit>
   <persistence-unit name="marcconvIT_PU" transaction-type="RESOURCE_LOCAL">
@@ -16,7 +16,7 @@
     <class>dk.dbc.dataio.sink.marcconv.entity.ConversionParamConverter</class>
     <class>dk.dbc.dataio.sink.marcconv.entity.StoredConversionParam</class>
     <properties>
-      <property name="javax.persistence.schema-generation.database.action" value="none"/>
+      <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
       <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
       <property name="eclipselink.logging.level" value="FINE"/>
     </properties>

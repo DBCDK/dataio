@@ -372,6 +372,11 @@
         <dependencies>
             <dependency>
                 <groupId>dk.dbc</groupId>
+                <artifactId>batch-exchange-api</artifactId>
+                <version>2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
                 <artifactId>solr-doc-store-connector</artifactId>
                 <version>2.0-SNAPSHOT</version>
             </dependency>
@@ -547,6 +552,11 @@
             </dependency>
             <!-- Non migration stuff -->
             <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-addi-binding</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
                 <groupId>com.sun.xml.ws</groupId>
                 <artifactId>jaxws-rt</artifactId>
                 <version>4.0.1</version>
@@ -633,7 +643,7 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-sink-testutil</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>2.0-SNAPSHOT</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

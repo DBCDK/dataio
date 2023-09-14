@@ -2,11 +2,9 @@ package dk.dbc.dataio.sink.ims;
 
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.oss.ns.updatemarcxchange.MarcXchangeRecord;
+import jakarta.xml.bind.JAXBException;
 import org.junit.Test;
 
-import javax.xml.bind.JAXBException;
-
-import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;

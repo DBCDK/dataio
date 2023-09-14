@@ -19,6 +19,10 @@
     <dependencies>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>artemis-jse-app</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
             <type>ejb</type>
         </dependency>

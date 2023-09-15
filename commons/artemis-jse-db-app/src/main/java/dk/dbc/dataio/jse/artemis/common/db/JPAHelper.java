@@ -9,6 +9,11 @@ import org.postgresql.ds.PGSimpleDataSource;
 import javax.sql.DataSource;
 import java.util.Map;
 
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.SCHEMA_GENERATION_DATABASE_ACTION;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.TRANSACTION_TYPE;
+
 public class JPAHelper {
 
     public static EntityManager makeEntityManager(String persistenceUnit, EnvConfig config) {
@@ -17,11 +22,11 @@ public class JPAHelper {
 
     public static EntityManager makeEntityManager(String persistenceUnit, String jdbcUrl) {
         Map<String, String> config = Map.of(
-                "javax.persistence.transactionType", "RESOURCE_LOCAL",
+                TRANSACTION_TYPE, "RESOURCE_LOCAL",
                 "provider", "org.eclipse.persistence.jpa.PersistenceProvider",
-                "javax.persistence.schema-generation.database.action", "none",
-                "javax.persistence.jdbc.driver", "org.postgresql.Driver",
-                "javax.persistence.jdbc.url", jdbcUrl);
+                SCHEMA_GENERATION_DATABASE_ACTION, "none",
+                JDBC_DRIVER, "org.postgresql.Driver",
+                JDBC_URL, jdbcUrl);
         return makeEntityManager(persistenceUnit, config);
     }
 

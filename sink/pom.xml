@@ -14,6 +14,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>marc-client</module>
         <module>batch-exchange</module>
         <module>diff</module>
         <module>dpf</module>
@@ -29,6 +30,5 @@
         <module>vip</module>
         <module>worldcat</module>
         <module>dmat</module>
-        <module>marc-client</module>
     </modules>
 </project>

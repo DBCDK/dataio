@@ -3,11 +3,8 @@ package dk.dbc.dataio.sink.ims;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.oss.ns.updatemarcxchange.MarcXchangeRecord;
 import jakarta.xml.bind.JAXBException;
+import org.junit.Assert;
 import org.junit.Test;
-
-import static dk.dbc.commons.testutil.Assert.isThrowing;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class MarcXchangeRecordUnmarshallerTest {
 
@@ -25,12 +22,11 @@ public class MarcXchangeRecordUnmarshallerTest {
         MarcXchangeRecord marcXchangeRecord = marcXchangeRecordUnmarshaller.toMarcXchangeRecord(
                 new ChunkItemBuilder().setData(collection).setId(3).build());
 
-        assertThat(marcXchangeRecord.getMarcXchangeRecordId(), is("3"));
+        Assert.assertEquals(3, marcXchangeRecord.getMarcXchangeRecordId());
     }
 
-    @Test
-    public void toMarcXchangeRecord_invalidCollection_returns() {
-        assertThat(() -> marcXchangeRecordUnmarshaller.toMarcXchangeRecord(
-                new ChunkItemBuilder().setData("invalid").build()), isThrowing(JAXBException.class));
+    @Test(expected = JAXBException.class)
+    public void toMarcXchangeRecord_invalidCollection_returns() throws JAXBException {
+        marcXchangeRecordUnmarshaller.toMarcXchangeRecord(new ChunkItemBuilder().setData("invalid").build());
     }
 }

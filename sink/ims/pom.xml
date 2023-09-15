@@ -50,12 +50,6 @@
             <groupId>jakarta.xml.ws</groupId>
             <artifactId>jakarta.xml.ws-api</artifactId>
         </dependency>
-        <!--    DIE!!! Maybe... -->
-        <!--    <dependency>-->
-        <!--      <groupId>com.sun.org.apache.xml.internal</groupId>-->
-        <!--      <artifactId>resolver</artifactId>-->
-        <!--      <version>20050927</version>-->
-        <!--    </dependency>-->
     </dependencies>
 
     <build>

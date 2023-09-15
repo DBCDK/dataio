@@ -175,7 +175,7 @@
             <id>prepare-build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-payara-dmat-harvester</argument>
+                <argument>dataio-harvester-dmat</argument>
               </arguments>
             </configuration>
           </execution>

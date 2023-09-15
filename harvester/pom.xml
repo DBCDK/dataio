@@ -20,12 +20,12 @@
     <module>infomedia</module>
     <module>oai</module>
     <module>periodic-jobs</module>
-<!--    <module>promat</module>-->
+    <module>promat</module>
     <module>rr</module>
     <module>task-repo</module>
     <module>tickle-repo</module>
     <module>types</module>
     <module>utils</module>
-<!--    <module>dmat</module>-->
+    <module>dmat</module>
   </modules>
 </project>

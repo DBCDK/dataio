@@ -22,7 +22,7 @@ public class MarcXchangeRecordUnmarshallerTest {
         MarcXchangeRecord marcXchangeRecord = marcXchangeRecordUnmarshaller.toMarcXchangeRecord(
                 new ChunkItemBuilder().setData(collection).setId(3).build());
 
-        Assert.assertEquals(3, marcXchangeRecord.getMarcXchangeRecordId());
+        Assert.assertEquals("3", marcXchangeRecord.getMarcXchangeRecordId());
     }
 
     @Test(expected = JAXBException.class)

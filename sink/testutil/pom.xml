@@ -6,9 +6,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>dataio-sink</artifactId>
+        <artifactId>jse-app</artifactId>
         <groupId>dk.dbc</groupId>
         <version>2.0-SNAPSHOT</version>
+        <relativePath>../../jse-app</relativePath>
     </parent>
 
     <artifactId>dataio-sink-testutil</artifactId>

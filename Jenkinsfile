@@ -20,7 +20,8 @@ pipeline {
             harvester/framework, \
             gatekeeper, \
             harvester/utils/rawrepo-connector, \
-            commons/utils/binary-file-store,"
+            harvester/utils/harvester-job-builder, \
+            commons/utils/binary-file-store"
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara5-bump-trigger",

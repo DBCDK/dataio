@@ -28,6 +28,6 @@
         <module>util</module>
         <module>vip</module>
         <module>worldcat</module>
-<!--        <module>dmat</module>-->
+        <module>dmat</module>
     </modules>
 </project>

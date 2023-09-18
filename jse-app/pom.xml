@@ -74,6 +74,12 @@
                 <version>4.0.0</version>
             </dependency>
             <dependency>
+                <groupId>jakarta.platform</groupId>
+                <artifactId>jakarta.jakartaee-api</artifactId>
+                <scope>compile</scope>
+                <version>${jakartaee.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>jakarta.jms</groupId>
                 <artifactId>jakarta.jms-api</artifactId>
                 <version>3.1.0</version>

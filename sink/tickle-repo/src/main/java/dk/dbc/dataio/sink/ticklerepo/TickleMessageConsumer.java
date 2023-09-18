@@ -14,11 +14,16 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
+import dk.dbc.dataio.registry.PrometheusMetricRegistry;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.ticklerepo.TickleRepo;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
+import org.eclipse.microprofile.metrics.Gauge;
+import org.eclipse.microprofile.metrics.MetricID;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import org.slf4j.Logger;
@@ -27,9 +32,14 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class TickleMessageConsumer extends MessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(TickleMessageConsumer.class);
@@ -39,20 +49,45 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
     private final EntityManager entityManager;
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
+    private static final AtomicLong evictCounter = new AtomicLong();
 
 
     public TickleMessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
         super(serviceHub);
         this.entityManager = entityManager;
         this.tickleRepo = new TickleRepo(entityManager);
+        registerMetrics(PrometheusMetricRegistry.create());
+    }
+
+    public void registerMetrics(MetricRegistry metricRegistry) {
+        Query query = entityManager.createNativeQuery("SELECT * FROM dataset", DataSet.class);
+        List<DataSet> dataSets = query.getResultList();
+        for (DataSet dataSet : dataSets) {
+            Tag dataSetTag = new Tag("dataset_name", dataSet.getName());
+            MetricID metricID = new MetricID("dataio_tickle_repo_oldest_batch_in_hours", dataSetTag);
+            Gauge<?> gauge = metricRegistry.getGauge(metricID);
+            if (gauge == null) metricRegistry.gauge(metricID, () -> getOldestOpenBatch(dataSet.getId()));
+            LOGGER.info("Registered age gauge for dataSet -> {}", dataSet.getId());
+        }
+    }
+    private long getOldestOpenBatch(int dataSetId) {
+        String timeZone = SinkConfig.TIMEZONE.asString();
+        Query query = entityManager.createNativeQuery("select * from batch where dataset = ? and timeofcompletion is null order by timeofcreation asc; ", Batch.class);
+        query.setParameter(1, dataSetId);
+        List<Batch> batches = query.getResultList();
+        if (batches.isEmpty()) return 0;
+        ZonedDateTime now = LocalDateTime.now().atZone(ZoneId.of(timeZone));
+        ZonedDateTime then = batches.get(0).getTimeOfCreation().toLocalDateTime().atZone(ZoneId.of(timeZone));
+        return ChronoUnit.HOURS.between(then, now);
     }
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         Chunk chunk = unmarshallPayload(consumedMessage);
+        if(evictCounter.incrementAndGet() % 10000  == 0) entityManager.clear();
         EntityTransaction transaction = entityManager.getTransaction();
+        Batch batch = getBatch(chunk);
         try {
-            Batch batch = getBatch(chunk);
             transaction.begin();
             Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
             if (chunk.isTerminationChunk()) {
@@ -74,8 +109,13 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
                 chunk.getItems().forEach(chunkItem -> result.insertItem(handleChunkItem(chunkItem, batch)));
             }
 
-            sendResultToJobStore(result);
             transaction.commit();
+            if(chunk.isTerminationChunk()) {
+                entityManager.refresh(batch);
+                if(batch.getTimeOfCompletion() == null) LOGGER.error("Completed batch {} for job {} has no completion timestamp", batch.getId(), batch.getBatchKey());
+                else LOGGER.info("Batch {} for job {} was closed with completion time: {}", batch.getId(), batch.getBatchKey(), batch.getTimeOfCompletion());
+            }
+            sendResultToJobStore(result);
         } finally {
             if(transaction.isActive()) transaction.rollback();
         }

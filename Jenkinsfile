@@ -19,6 +19,8 @@ pipeline {
             commons/utils/tickle-harvester-service-connector, \
             harvester/framework, \
             gatekeeper, \
+            harvester/utils/rawrepo-connector, \
+            harvester/utils/harvester-job-builder, \
             commons/utils/binary-file-store"
     }
     triggers {

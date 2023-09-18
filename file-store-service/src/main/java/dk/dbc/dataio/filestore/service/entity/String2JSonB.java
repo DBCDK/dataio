@@ -23,6 +23,7 @@ public class String2JSonB implements AttributeConverter<String, PGobject> {
 
     @Override
     public String convertToEntityAttribute(PGobject object) {
+        if(object == null) return null;
         return object.getValue();
     }
 }

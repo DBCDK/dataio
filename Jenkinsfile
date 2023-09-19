@@ -62,7 +62,7 @@ pipeline {
                         echo Fast branch deployment skip all tests
                         FAST=" -P !integration-test -Dmaven.test.skip=true "
                     fi
-                    mvn -B -T 4 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" verify
+                    mvn -B -T 4 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" verify || exit 1
                     test -n \${FAST} && mvn -B -T 6 -P !integration-test pmd:pmd
                     echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                     ./cli/build_docker_image.sh
@@ -107,7 +107,7 @@ pipeline {
             steps {
                 sh """
                 mvn install -T 6 -B -Dmaven.test.skip=true -Pdocker-push
-                mvn deploy -T 6 -B -Dmaven.test.skip=true -am -pl "${DEPLOY_ARTIFACTS}"
+                mvn deploy -T 6 -B -Dmaven.test.skip=true -pl "${DEPLOY_ARTIFACTS}"
             """
             }
         }
@@ -145,7 +145,7 @@ pipeline {
                 }
             }
             when {
-                branch "master"
+                branch "DISABLEDmaster" // No autodeploy while we are migrating to Payara 6
             }
             steps {
                 script {

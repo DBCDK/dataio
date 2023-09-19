@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -33,7 +34,9 @@ public abstract class AbstractHarvesterConfigurationBean<T extends HarvesterConf
     public void reload() throws HarvesterException {
         getLogger().debug("Retrieving configuration");
         try {
-            configs = flowStoreServiceConnectorBean.getConnector().findEnabledHarvesterConfigsByType(getConfigClass());
+            List<T> newConfigs = flowStoreServiceConnectorBean.getConnector().findEnabledHarvesterConfigsByType(getConfigClass());
+            if(Objects.equals(configs, newConfigs)) return;
+            configs = newConfigs;
             getLogger().info("Applying configuration: {}", configs);
         } catch (FlowStoreServiceConnectorException e) {
             throw new HarvesterException("Exception caught while refreshing configuration", e);

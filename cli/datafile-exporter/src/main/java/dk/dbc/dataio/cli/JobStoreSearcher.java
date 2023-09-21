@@ -9,11 +9,11 @@ import dk.dbc.dataio.querylanguage.JsonValue;
 import dk.dbc.dataio.querylanguage.Ordering;
 import dk.dbc.dataio.querylanguage.QueryBuilder;
 import dk.dbc.httpclient.HttpClient;
+import jakarta.ws.rs.client.Client;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
-import javax.ws.rs.client.Client;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;

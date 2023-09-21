@@ -280,7 +280,7 @@ public class HarvestOperation {
                     LOGGER.error("Error refreshing config {}", config.getId(), fssce);
                 }
             }
-            throw new HarvesterException("Failed to update harvester config: " + config.toString(), e);
+            throw new HarvesterException("Failed to update harvester config: " + config, e);
         }
     }
 
@@ -309,7 +309,7 @@ public class HarvestOperation {
 
         @Override
         public Iterator<PromatCase> iterator() {
-            return new Iterator<PromatCase>() {
+            return new Iterator<>() {
                 @Override
                 public boolean hasNext() {
                     if (!cases.hasNext() && !exhausted) {

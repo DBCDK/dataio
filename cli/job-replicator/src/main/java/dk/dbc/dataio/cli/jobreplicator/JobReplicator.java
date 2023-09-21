@@ -26,8 +26,8 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnector;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
 import dk.dbc.httpclient.HttpClient;
+import jakarta.ws.rs.client.Client;
 
-import javax.ws.rs.client.Client;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -54,8 +54,7 @@ public class JobReplicator {
         try {
             arguments.parseArgs(args);
         } catch (ArgParseException e) {
-            System.err.println(String.format("error parsing arguments: %s",
-                    e.toString()));
+            System.err.printf("error parsing arguments: %s%n", e);
             System.exit(1);
         }
 
@@ -105,12 +104,10 @@ public class JobReplicator {
                     new JobStoreServiceConnector(client, targetJobStoreEndpoint);
             JobInfoSnapshot jobInfoSnapshot = targetJobStore.addJob(
                     jobInputStream);
-            System.out.println(String.format("added job %d", jobInfoSnapshot
-                    .getJobId()));
+            System.out.printf("added job %d%n", jobInfoSnapshot.getJobId());
         } catch (JobReplicatorException | UrlResolverServiceConnectorException |
                  JobStoreServiceConnectorException e) {
-            System.err.println(String.format("caught exception: %s",
-                    e.toString()));
+            System.err.printf("caught exception: %s%n", e);
             System.exit(1);
         }
     }
@@ -121,8 +118,7 @@ public class JobReplicator {
         UrlResolverServiceConnector urlResolverServiceConnector =
                 new UrlResolverServiceConnector(client, hostUrl);
         Map<String, String> endpoints = urlResolverServiceConnector.getUrls();
-        for (Map.Entry<String, String> entry : overriddenEndpoints.entrySet())
-            endpoints.put(entry.getKey(), entry.getValue());
+        endpoints.putAll(overriddenEndpoints);
         return endpoints;
     }
 
@@ -161,8 +157,7 @@ public class JobReplicator {
 
             return FileStoreUrn.create(newFileId).toString();
         } catch (URISyntaxException | FileStoreServiceConnectorException e) {
-            throw new JobReplicatorException(String.format(
-                    "error adding file to file store: %s", e.toString()), e);
+            throw new JobReplicatorException(String.format("error adding file to file store: %s", e), e);
         }
     }
 
@@ -184,8 +179,7 @@ public class JobReplicator {
                         .createSubmitter(sourceSubmitter.getContent());
                 return targetSubmitter.getId();
             } catch (FlowStoreServiceConnectorException e2) {
-                throw new JobReplicatorException(String.format(
-                        "error adding submitter: %s", e.toString()), e2);
+                throw new JobReplicatorException(String.format("error adding submitter: %s", e), e2);
             }
         }
     }
@@ -256,8 +250,7 @@ public class JobReplicator {
             throws JobReplicatorException {
         try {
             FlowBinder flowBinder = checkFlowBinder(jobReplicatorInfo);
-            System.out.println(String.format("using flowbinder %s",
-                    flowBinder.getContent().getName()));
+            System.out.printf("using flowbinder %s%n", flowBinder.getContent().getName());
             if (jobReplicatorInfo.getTargetSinkName() != null) {
                 System.err.println("warning: flow binder exists so " +
                         "target-sink-name argument will be ignored");
@@ -268,8 +261,7 @@ public class JobReplicator {
                         "without argument target-sink-name");
             }
             FlowBinder flowBinder = createFlowBinder(jobReplicatorInfo);
-            System.out.println(String.format("creating flowbinder %s",
-                    flowBinder.getContent().getName()));
+            System.out.printf("creating flowbinder %s%n", flowBinder.getContent().getName());
         }
     }
 
@@ -314,8 +306,7 @@ public class JobReplicator {
             return jobReplicatorInfo.getTargetFlowStoreConnector().createFlowBinder(
                     targetFlowBinder);
         } catch (FlowStoreServiceConnectorException e) {
-            throw new JobReplicatorException(String.format(
-                    "error creating flow binder: %s", e.toString()), e);
+            throw new JobReplicatorException(String.format("error creating flow binder: %s", e), e);
         }
     }
 

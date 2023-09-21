@@ -4,10 +4,10 @@ import dk.dbc.dataio.cli.options.Options;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnector;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
 import dk.dbc.httpclient.HttpClient;
+import jakarta.ws.rs.client.Client;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
-import javax.ws.rs.client.Client;
 import java.util.Map;
 
 public abstract class Command<T extends Options> {

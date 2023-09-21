@@ -58,8 +58,7 @@ public class HarvesterTaskServiceConnector {
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 
-    public String createHarvestTask(long harvestId, HarvestRequest request)
-            throws ProcessingException, HarvesterTaskServiceConnectorException {
+    public String createHarvestTask(long harvestId, HarvestRequest request) throws ProcessingException, HarvesterTaskServiceConnectorException {
         log.trace("createHarvestTask({});", harvestId);
         final StopWatch stopWatch = new StopWatch();
         try {

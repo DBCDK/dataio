@@ -18,7 +18,6 @@
     <module>corepo</module>
     <module>framework</module>
     <module>infomedia</module>
-    <module>oai</module>
     <module>periodic-jobs</module>
     <module>promat</module>
     <module>rr</module>

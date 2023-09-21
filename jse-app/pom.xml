@@ -179,6 +179,32 @@
     </dependencyManagement>
 
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <id>warn</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration combine.self="override">
+                            <skip>true</skip>
+<!--                            <rules>-->
+<!--                                <bannedDependencies>-->
+<!--                                    <level>ERROR</level>-->
+<!--                                    <excludes>-->
+<!--                                        <exclude>com.fasterxml.jackson.module:jackson-module-jaxb-annotations:*:jar:*</exclude>-->
+<!--                                    </excludes>-->
+<!--                                </bannedDependencies>-->
+<!--                            </rules>-->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -226,18 +252,12 @@
                         <tagName>devel</tagName>
                         <images>
                             <image>
-                                <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
+                                <name>docker-metascrum.artifacts.dbccloud.dk/dataio-cli:${tag}</name>
                                 <build>
                                     <from>${java.image}</from>
-                                    <user>gfish</user>
-                                    <env>
-                                        <LOG_FORMAT default-value="json"/>
-                                        <LOG_LEVEL default-value="INFO"/>
-                                        <TZ default-value="Europe/Copenhagen"/>
-                                    </env>
                                     <assemblies>
                                         <assembly>
-                                            <descriptorRef>artifact</descriptorRef>
+                                            <descriptorRef>dependencies</descriptorRef>
                                             <targetDir>/work</targetDir>
                                         </assembly>
                                     </assemblies>

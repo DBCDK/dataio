@@ -20,11 +20,11 @@ import dk.dbc.dataio.jse.artemis.common.JobProcessorException;
 import dk.dbc.dataio.jse.artemis.common.Metric;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.registry.PrometheusMetricRegistry;
+import jakarta.jms.JMSException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.jms.JMSException;
 import java.util.Collections;
 import java.util.Map;
 

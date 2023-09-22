@@ -1,0 +1,15 @@
+[
+  {
+    "id": 7153,
+    "version": 5410723,
+    "content": {
+      "name": "Corepo Cisterne Worldcat",
+      "description": "Høster PIDer ud af Corepo cisterne og sender dem til en RR worldcat høster",
+      "resource": "${DB_RESOURCE}",
+      "timeOfLastHarvest": ${START_TIME},
+      "enabled": true,
+      "rrHarvester": 7154
+    },
+    "type": "dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig"
+  }
+]

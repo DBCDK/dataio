@@ -9,6 +9,7 @@ import jakarta.ejb.LocalBean;
 import jakarta.ejb.Singleton;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +24,7 @@ public class RRHarvesterServiceConnectorBean {
 
     @PostConstruct
     public void initializeConnector() {
-        Client client = ClientBuilder.newClient();
+        Client client = ClientBuilder.newClient().register(new JacksonFeature());
         final String endpoint = System.getenv("RAWREPO_HARVESTER_URL");
         if (endpoint == null || endpoint.trim().isEmpty()) {
             throw new EJBException("RAWREPO_HARVESTER_URL must be set");

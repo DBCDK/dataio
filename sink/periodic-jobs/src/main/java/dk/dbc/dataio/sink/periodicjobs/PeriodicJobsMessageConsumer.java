@@ -28,6 +28,7 @@ import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.ws.rs.client.ClientBuilder;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,9 +59,9 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
     public PeriodicJobsMessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
         super(serviceHub);
         this.entityManager = entityManager;
-        this.flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FLOWSTORE_URL.asString());
-        this.fileStoreServiceConnector = new FileStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FILESTORE_URL.asString());
-        this.weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient(), SinkConfig.WEEKRESOLVER_SERVICE_URL.asString());
+        this.flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FLOWSTORE_URL.asString());
+        this.fileStoreServiceConnector = new FileStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FILESTORE_URL.asString());
+        this.weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.WEEKRESOLVER_SERVICE_URL.asString());
 
         this.proxyBean = SinkConfig.PROXY_HOSTNAME.asOptionalString()
                 .map(s -> new ProxyBean(s)

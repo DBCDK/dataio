@@ -19,6 +19,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.eclipse.microprofile.metrics.Tag;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
         super(serviceHub);
         this.entityManager = entityManager;
         ocnRepo = new OcnRepo(entityManager);
-        flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FLOWSTORE_URL.asString());
+        flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FLOWSTORE_URL.asString());
         worldCatConfigBean = new WorldCatConfigBean(flowStoreServiceConnector);
     }
 

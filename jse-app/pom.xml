@@ -250,9 +250,15 @@
                                 <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
                                 <build>
                                     <from>${java.image}</from>
+                                    <user>gfish</user>
+                                    <env>
+                                        <LOG_FORMAT default-value="json"/>
+                                        <LOG_LEVEL default-value="INFO"/>
+                                        <TZ default-value="Europe/Copenhagen"/>
+                                    </env>
                                     <assemblies>
                                         <assembly>
-                                            <descriptorRef>dependencies</descriptorRef>
+                                            <descriptorRef>artifact</descriptorRef>
                                             <targetDir>/work</targetDir>
                                         </assembly>
                                     </assemblies>

@@ -55,22 +55,6 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <configuration>
-                    <tagName>devel</tagName>
-                    <images>
-                        <image>
-                            <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
-                            <build>
-                                <assemblies combine.children="override">
-                                    <assembly>
-                                        <descriptorRef>artifact</descriptorRef>
-                                        <targetDir>/work</targetDir>
-                                    </assembly>
-                                </assemblies>
-                            </build>
-                        </image>
-                    </images>
-                </configuration>
             </plugin>
         </plugins>
     </build>

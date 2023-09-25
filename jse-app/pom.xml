@@ -121,12 +121,6 @@
                 <scope>compile</scope>
                 <version>${jackson.version}</version>
             </dependency>
-<!--            <dependency>-->
-<!--                <groupId>com.fasterxml.jackson.module</groupId>-->
-<!--                <artifactId>jackson-module-jaxb-annotations</artifactId>-->
-<!--                <scope>compile</scope>-->
-<!--                <version>${jackson.version}</version>-->
-<!--            </dependency>-->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
@@ -191,15 +185,16 @@
                             <goal>enforce</goal>
                         </goals>
                         <configuration combine.self="override">
-                            <skip>true</skip>
-<!--                            <rules>-->
-<!--                                <bannedDependencies>-->
-<!--                                    <level>ERROR</level>-->
-<!--                                    <excludes>-->
-<!--                                        <exclude>com.fasterxml.jackson.module:jackson-module-jaxb-annotations:*:jar:*</exclude>-->
-<!--                                    </excludes>-->
-<!--                                </bannedDependencies>-->
-<!--                            </rules>-->
+                            <rules>
+                                <bannedDependencies>
+                                    <level>ERROR</level>
+                                    <excludes>
+                                        <exclude>com.fasterxml.jackson.module:jackson-module-jaxb-annotations:*:jar:*</exclude>
+                                        <exclude>com.fasterxml.jackson.module:jackson-jaxrs-json-provider:*:jar:*</exclude>
+                                        <exclude>com.fasterxml.jackson.module:jackson-jaxrs-xml-provider:*:jar:*</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
                         </configuration>
                     </execution>
                 </executions>

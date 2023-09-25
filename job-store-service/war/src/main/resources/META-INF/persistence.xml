@@ -65,7 +65,7 @@
     <class>dk.dbc.dataio.jobstore.service.entity.RerunStateConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.RerunEntity</class>
     <properties>
-      <property name="javax.persistence.schema-generation.database.action" value="none"/>
+      <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
       <property name="eclipselink.jdbc.batch-writing" value="JDBC" />
       <property name="eclipselink.jdbc.batch-writing.size" value="1000" />
       <property name="eclipselink.logging.file" value="target/output.log"/>

@@ -577,6 +577,11 @@
                 <version>4.0.0</version>
             </dependency>
             <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dbc-commons-proxy</artifactId>
                 <version>1.1-SNAPSHOT</version>

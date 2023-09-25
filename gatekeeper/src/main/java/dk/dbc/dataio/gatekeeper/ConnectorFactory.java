@@ -5,6 +5,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.registry.JMXMetricRegistry;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.invariant.InvariantUtil;
+import jakarta.ws.rs.client.Client;
 import org.apache.http.client.config.RequestConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
@@ -13,8 +14,6 @@ import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.client.Client;
 
 public class ConnectorFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorFactory.class);

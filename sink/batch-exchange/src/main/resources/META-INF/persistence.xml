@@ -2,28 +2,28 @@
 <persistence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              version="3.0" xmlns="https://jakarta.ee/xml/ns/persistence"
              xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
-<persistence-unit name="batchExchangePU" transaction-type="RESOURCE_LOCAL">
-    <class>dk.dbc.batchexchange.dto.BatchStatusConverter</class>
-    <class>dk.dbc.batchexchange.dto.Batch</class>
-    <class>dk.dbc.batchexchange.dto.BatchEntryDiagnosticsConverter</class>
-    <class>dk.dbc.batchexchange.dto.BatchEntryMetadataConverter</class>
-    <class>dk.dbc.batchexchange.dto.BatchEntryStatusConverter</class>
-    <class>dk.dbc.batchexchange.dto.BatchEntry</class>
-    <properties>
-      <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
-    </properties>
-  </persistence-unit>
-  <persistence-unit name="batchExchangeIT" transaction-type="RESOURCE_LOCAL">
-    <class>dk.dbc.batchexchange.dto.BatchStatusConverter</class>
-    <class>dk.dbc.batchexchange.dto.Batch</class>
-    <class>dk.dbc.batchexchange.dto.BatchEntryDiagnosticsConverter</class>
-    <class>dk.dbc.batchexchange.dto.BatchEntryMetadataConverter</class>
-    <class>dk.dbc.batchexchange.dto.BatchEntryStatusConverter</class>
-    <class>dk.dbc.batchexchange.dto.BatchEntry</class>
-    <properties>
-      <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
-      <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
-      <property name="eclipselink.logging.level" value="FINE"/>
-    </properties>
-  </persistence-unit>
+    <persistence-unit name="batchExchangePU" transaction-type="RESOURCE_LOCAL">
+        <class>dk.dbc.batchexchange.dto.BatchStatusConverter</class>
+        <class>dk.dbc.batchexchange.dto.Batch</class>
+        <class>dk.dbc.batchexchange.dto.BatchEntryDiagnosticsConverter</class>
+        <class>dk.dbc.batchexchange.dto.BatchEntryMetadataConverter</class>
+        <class>dk.dbc.batchexchange.dto.BatchEntryStatusConverter</class>
+        <class>dk.dbc.batchexchange.dto.BatchEntry</class>
+        <properties>
+            <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
+        </properties>
+    </persistence-unit>
+    <persistence-unit name="batchExchangeIT" transaction-type="RESOURCE_LOCAL">
+        <class>dk.dbc.batchexchange.dto.BatchStatusConverter</class>
+        <class>dk.dbc.batchexchange.dto.Batch</class>
+        <class>dk.dbc.batchexchange.dto.BatchEntryDiagnosticsConverter</class>
+        <class>dk.dbc.batchexchange.dto.BatchEntryMetadataConverter</class>
+        <class>dk.dbc.batchexchange.dto.BatchEntryStatusConverter</class>
+        <class>dk.dbc.batchexchange.dto.BatchEntry</class>
+        <properties>
+            <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
+            <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
+            <property name="eclipselink.logging.level" value="FINE"/>
+        </properties>
+    </persistence-unit>
 </persistence>

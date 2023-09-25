@@ -1,12 +1,12 @@
 package dk.dbc.dataio.gatekeeper.wal;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.PersistenceException;
+import jakarta.persistence.Query;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.PersistenceException;
-import javax.persistence.Query;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

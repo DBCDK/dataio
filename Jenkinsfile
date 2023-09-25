@@ -62,8 +62,8 @@ pipeline {
                         echo Fast branch deployment skip all tests
                         FAST=" -P !integration-test -Dmaven.test.skip=true "
                     fi
-                    mvn -B -T 4 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" verify || exit 1
-                    test -n \${FAST} && echo "**** Running integration tests ****" && mvn -B -T 6 -P !integration-test pmd:pmd
+                    mvn -B -T 4 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install || exit 1
+                    test -n \${FAST} && echo "**** Running PMD ****" && mvn -B -T 6 -P !integration-test pmd:pmd
                     echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
                     ./cli/build_docker_image.sh
                 """

@@ -1,6 +1,5 @@
 package dk.dbc.dataio.harvester.task.connector;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.rest.HarvesterServiceConstants;
 import dk.dbc.dataio.harvester.types.HarvestRequest;
@@ -29,7 +28,6 @@ import java.time.Duration;
  */
 public class HarvesterTaskServiceConnector {
     private static final Logger log = LoggerFactory.getLogger(HarvesterTaskServiceConnector.class);
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
             .handle(ProcessingException.class)

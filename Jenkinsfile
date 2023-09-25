@@ -64,8 +64,6 @@ pipeline {
                     fi
                     mvn -B -T 4 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install || exit 1
                     test -n \${FAST} && echo "**** Running PMD ****" && mvn -B -T 6 -P !integration-test pmd:pmd
-                    echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
-                    ./cli/build_docker_image.sh
                 """
                 script {
                     junit allowEmptyResults: true, testResults: '**/target/*-reports/*.xml'
@@ -84,22 +82,6 @@ pipeline {
                 }
             }
         }
-        stage("docker push") {
-            when {
-                branch "master"
-            }
-            steps {
-                sh """
-                cat docker-images.log | parallel -j 3 docker push {}:master-${env.BUILD_NUMBER}
-                docker tag docker-metascrum.artifacts.dbccloud.dk/gatekeeper-jmx-exporter:devel docker-metascrum.artifacts.dbccloud.dk/gatekeeper-jmx-exporter:DIT-${env.BUILD_NUMBER}
-                docker push docker-metascrum.artifacts.dbccloud.dk/gatekeeper-jmx-exporter:DIT-${env.BUILD_NUMBER}
-            """
-                script {
-                    stash includes: "docker-images.log", name: docker_images_log_stash_tag
-                    archiveArtifacts "docker-images.log"
-                }
-            }
-        }
         stage("deploy to mavenrepo.dbc.dk") {
             when {
                 branch "master"
@@ -109,20 +91,6 @@ pipeline {
                 mvn install -T 6 -B -Dmaven.test.skip=true -Pdocker-push
                 mvn deploy -T 6 -B -Dmaven.test.skip=true -pl "${DEPLOY_ARTIFACTS}"
             """
-            }
-        }
-        stage("promote to DIT") {
-            when {
-                branch "master"
-            }
-            steps {
-                dir("docker") {
-                    unstash docker_images_log_stash_tag
-                    sh """
-                    cat docker-images.log | parallel -j 3 docker tag {}:master-${env.BUILD_NUMBER} {}:DIT-${env.BUILD_NUMBER}
-                    cat docker-images.log | parallel -j 3 docker push {}:DIT-${env.BUILD_NUMBER}
-                """
-                }
             }
         }
         stage("Clean up docker images") {
@@ -184,10 +152,9 @@ pipeline {
                 script {
                     if (DEPLOY_TO_STAGING_CANDIDATE) {
                         sh """
-                        echo "Gogo staging gadget!!!"
-                        mvn install -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
-                        cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
-                """
+                            echo "Gogo staging gadget!!!"
+                            mvn install -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+                        """
                     }
                 }
             }

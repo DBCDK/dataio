@@ -161,6 +161,8 @@
                     </executions>
                     <configuration>
                         <tagName>devel</tagName>
+                        <!--suppress UnresolvedMavenProperty -->
+                        <skip>${docker.skip}</skip>
                         <images>
                             <image>
                                 <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>

@@ -63,7 +63,10 @@ pipeline {
                         FAST=" -P !integration-test -Dmaven.test.skip=true "
                     fi
                     mvn -B -T 4 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install || exit 1
-                    test -n "\${FAST}" && mvn -B -T 6 -P !integration-test pmd:pmd
+                    if [ -n "\${FAST}" ]; then
+                        echo Run integration tests 
+                        mvn -B -T 6 -P !integration-test pmd:pmd
+                    fi
                 """
                 script {
                     junit allowEmptyResults: true, testResults: '**/target/*-reports/*.xml'

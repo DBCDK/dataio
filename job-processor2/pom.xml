@@ -41,6 +41,10 @@
             <artifactId>dataio-commons-utils-test</artifactId>
         </dependency>
         <dependency>
+            <groupId>ch.qos.logback.db</groupId>
+            <artifactId>logback-classic-db</artifactId>
+        </dependency>
+        <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>jscommon</artifactId>
             <version>2012.1-SNAPSHOT</version>
@@ -57,7 +61,6 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-
             </plugin>
         </plugins>
     </build>

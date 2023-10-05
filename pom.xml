@@ -106,17 +106,16 @@
     <module>file-store-service</module>
     <module>flow-store-service</module>
     <module>gatekeeper</module>
-    <module>gui</module>
     <module>harvester</module>
     <module>integration-test</module>
     <module>job-store-service</module>
     <module>log-store-service</module>
     <module>sink</module>
-    <module>commons/utils/openupdate-service-connector</module>
     <module>job-processor2</module>
     <module>dlq-errorhandler</module>
     <module>jse-app</module>
     <module>p6</module>
+    <module>buildstuff</module>
   </modules>
 
 

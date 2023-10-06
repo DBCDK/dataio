@@ -38,6 +38,7 @@
     <module>rr-harvester-service-connector</module>
     <module>tickle-harvester-service-connector</module>
     <module>periodic-jobs-harvester-service-connector</module>
+    <module>openupdate-service-connector</module>
     <module>io</module>
     <module>svn</module>
     <module>service</module>

@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: dataio-diff-sink-service
+    app.dbc.dk/team: metascrum
+    app.kubernetes.io/component: service
+    app.kubernetes.io/name: diff-sink
+    app.kubernetes.io/part-of: dataio
+  name: dataio-diff-sink-service
+spec:
+  progressDeadlineSeconds: 300
+  replicas: 1
+  selector:
+    matchLabels: {app: dataio-diff-sink-service}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: dataio-diff-sink-service
+        app.dbc.dk/team: metascrum
+        app.kubernetes.io/component: service
+        app.kubernetes.io/name: diff-sink
+        app.kubernetes.io/part-of: dataio
+        network-policy-dmzproxy-outgoing: 'yes'
+        network-policy-http-incoming: 'yes'
+        network-policy-http-outgoing: 'yes'
+        network-policy-artemis-outgoing: 'yes'
+        network-policy-payara-incoming: 'yes'
+        network-policy-postgres-outgoing: "yes"
+        promaas.enable: "true"
+      annotations:
+        promaas.scrape.port: "8080"
+    spec:
+      containers:
+      - env:
+        - name: ARTEMIS_MQ_HOST
+          value: jms.test
+        - name: ARTEMIS_ADMIN_PORT
+          value: '8161'
+        - name: ARTEMIS_USER
+          value: admin
+        - name: ARTEMIS_PASSWORD
+          value: test
+        - {name: QUEUE, value: sink::diff}
+        - name: CONSUMER_THREADS
+          value: '1'
+        - name: MAX_HEAP
+          value: 512m
+        - name: FILESTORE_URL
+          value: http://dataio-filestore-service.test/dataio/job-store-service
+        - name: JOBSTORE_URL
+          value: http://dataio-jobstore-service.test/dataio/job-store-service
+        image: docker-metascrum.artifacts.dbccloud.dk/test-v0
+        name: dataio-diff-sink-service
+        resources:
+          requests:
+            cpu: "0.1"
+            memory: "2Gi"
+        ports:
+        - {containerPort: 8080, protocol: TCP}
+        startupProbe:
+          failureThreshold: 120
+          httpGet:
+            path: /health
+            port: 8080
+          periodSeconds: 1
+        livenessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: dataio-diff-sink-service
+    app.dbc.dk/team: metascrum
+    app.kubernetes.io/component: service
+    app.kubernetes.io/name: diff-sink
+    app.kubernetes.io/part-of: dataio
+    healthcheck.type: http
+  name: dataio-diff-sink-service
+spec:
+  ports:
+  - {name: http, port: 80, protocol: TCP, targetPort: 8080}
+  selector: {app: dataio-diff-sink-service}
+  type: ClusterIP

@@ -42,7 +42,7 @@ spec:
         - name: ARTEMIS_USER
           value: admin
         - name: ARTEMIS_PASSWORD
-          value: GoFish
+          value: test
         - {name: QUEUE, value: sink::diff}
         - name: CONSUMER_THREADS
           value: '1'

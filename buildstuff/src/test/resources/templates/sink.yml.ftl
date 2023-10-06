@@ -45,7 +45,7 @@ spec:
         - name: ARTEMIS_USER
           value: admin
         - name: ARTEMIS_PASSWORD
-          value: GoFish
+          value: test
         - {name: QUEUE, value: ${queue}}
         - name: CONSUMER_THREADS
           value: '${consumerThreads!1}'

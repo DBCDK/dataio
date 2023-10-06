@@ -1,0 +1,60 @@
+<application xmlns="http://buildstuff.dbc.dk" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" template-dir="templates" xsi:schemaLocation="http://buildstuff.dbc.dk file:://buildstuff.xsd">
+    <namespaces>
+        <map short="t0" namespace="test0"/>
+        <map short="t1" namespace="test1"/>
+        <map short="f0" namespace="testf0"/>
+        <map short="f1" namespace="testf1"/>
+    </namespaces>
+    <version>
+        <env ns="t0">${file://version.txt}</env>
+        <env ns="t1">test1</env>
+        <env ns="f0">testf0</env>
+    </version>
+    <deploy name="diff-sink" template="sink.yml.ftl">
+        <p name="image" default="dataio-sink-diff:${version}"/>
+        <p name="queue" default="sink::diff"/>
+        <p name="maxHeap" default="512m"/>
+        <p name="mem" default="2Gi"/>
+        <p name="deploymentType" default="Recreate"/>
+    </deploy>
+    <deploy name="diff-sink-no-queue" template="sink.yml.ftl" filter="f0">
+        <p name="image" default="dataio-sink-diff:${version}"/>
+        <p name="maxHeap" default="512m"/>
+        <p name="mem" default="2Gi"/>
+        <p name="deploymentType" default="Recreate"/>
+    </deploy>
+    <deploy name="diff-sink-no-queue-for-env" template="sink.yml.ftl" filter="f1">
+        <p name="image" default="dataio-sink-diff:${version}"/>
+        <p name="queue">
+            <env ns="t0">sink::diff</env>
+        </p>
+        <p name="maxHeap" default="512m"/>
+        <p name="mem" default="2Gi"/>
+        <p name="deploymentType" default="Recreate"/>
+    </deploy>
+    <global>
+        <p name="serviceName" default="dataio-${name}-service"/>
+        <p name="jmsHost" default="jms.test">
+            <env ns="t1">jms-p.test</env>
+        </p>
+        <p name="jmsAdminPort" default="80">
+            <env ns="t1">8161</env>
+        </p>
+        <p name="replicas" default="1"/>
+        <p name="jobstore" default="http://dataio-jobstore-service.test/dataio/job-store-service"/>
+        <p name="filestore" default="http://dataio-filestore-service.test/dataio/job-store-service"/>
+        <p name="mailHost">
+            <env ns="t0">mailhost0.test</env>
+            <env ns="t1">mailhost1.test</env>
+            <env ns="f0">mailhost1.test</env>
+        </p>
+        <p name="consumerThreads" default="1"/>
+        <p name="serviceHealthcheck">
+            <env ns="t0">false</env>
+            <env ns="t1">true</env>
+            <env ns="f0">false</env>
+        </p>
+        <p name="progressDeadline" default="300"/>
+        <p name="cpu" default="0.1"/>
+    </global>
+</application>

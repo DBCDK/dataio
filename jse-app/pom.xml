@@ -176,6 +176,26 @@
                 <version>1.57</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>com.ongres</groupId>
+                <artifactId>fluent-process</artifactId>
+                <version>1.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>info.picocli</groupId>
+                <artifactId>picocli</artifactId>
+                <version>4.7.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>2.3.32</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jgit</groupId>
+                <artifactId>org.eclipse.jgit</artifactId>
+                <version>6.7.0.202309050840-r</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

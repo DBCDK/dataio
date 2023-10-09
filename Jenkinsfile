@@ -62,9 +62,9 @@ pipeline {
                         echo Fast branch deployment skip all tests
                         FAST=" -P !integration-test -Dmaven.test.skip=true "
                     fi
-                    mvn -B -T 4 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install || exit 1
+                    mvn -B -T 1 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install || exit 1
                     if [ -n "\${FAST}" ]; then
-                        echo Run integration tests 
+                        echo Run PMD 
                         mvn -B -T 6 -P !integration-test pmd:pmd
                     fi
                 """

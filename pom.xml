@@ -87,7 +87,7 @@
         <es-sink.context>/dataio/sink/es</es-sink.context>
         <batch-exchange-sink.context>/dataio/sink/batch-exchange</batch-exchange-sink.context>
         <dmat-sink.context>/dataio/sink/dmat</dmat-sink.context>
-        <flyway.version>8.0.2</flyway.version>
+        <flyway.version>9.22.2</flyway.version>
 
         <sink.context>/dataio/sink</sink.context>
 

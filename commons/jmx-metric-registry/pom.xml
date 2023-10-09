@@ -5,17 +5,11 @@
     <parent>
         <artifactId>dataio-commons</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>2.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jmx-metric-registry</artifactId>
-
-    <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -26,7 +20,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>invariant-utils</artifactId>
-            <version>0.1.0</version>
         </dependency>
     </dependencies>
 </project>

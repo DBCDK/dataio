@@ -6,16 +6,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>p6</artifactId>
+    <artifactId>dataio-harvester-utils</artifactId>
     <groupId>dk.dbc</groupId>
     <version>2.0-SNAPSHOT</version>
-    <relativePath>../../../p6</relativePath>
   </parent>
 
   <artifactId>dataio-harvester-utils-harvester-job-builder</artifactId>
 
   <dependencies>
-
     <dependency>
       <groupId>jakarta.platform</groupId>
       <artifactId>jakarta.jakartaee-web-api</artifactId>
@@ -62,5 +60,4 @@
       <artifactId>jackson-annotations</artifactId>
     </dependency>
   </dependencies>
-
 </project>

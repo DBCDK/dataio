@@ -6,17 +6,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>jse-app</artifactId>
+        <artifactId>dataio-sink</artifactId>
         <groupId>dk.dbc</groupId>
         <version>2.0-SNAPSHOT</version>
-        <relativePath>../../jse-app</relativePath>
     </parent>
 
     <artifactId>dataio-sink-diff</artifactId>
+
     <properties>
         <main-class>dk.dbc.dataio.sink.diff.DiffSinkApp</main-class>
     </properties>
-
 
     <dependencies>
         <dependency>

@@ -4,10 +4,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>p6</artifactId>
+    <artifactId>dataio-integration-test</artifactId>
     <groupId>dk.dbc</groupId>
     <version>2.0-SNAPSHOT</version>
-    <relativePath>../../p6</relativePath>
   </parent>
 
   <artifactId>dataio-integration-test-file-store-service</artifactId>
@@ -91,7 +90,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>${maven-failsafe-plugin.version}</version>
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>

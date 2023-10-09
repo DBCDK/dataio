@@ -5,17 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>p6</artifactId>
+        <artifactId>dataio-integration-test</artifactId>
         <groupId>dk.dbc</groupId>
         <version>2.0-SNAPSHOT</version>
-        <relativePath>../../p6</relativePath>
     </parent>
 
     <artifactId>dataio-integration-test-flow-store-service</artifactId>
-    <name>dataio-integration-test-flow-store-service</name>
 
     <dependencies>
-
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-web-api</artifactId>

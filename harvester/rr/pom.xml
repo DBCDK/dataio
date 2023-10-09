@@ -6,10 +6,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>p6</artifactId>
+        <artifactId>dataio-harvester</artifactId>
         <groupId>dk.dbc</groupId>
         <version>2.0-SNAPSHOT</version>
-        <relativePath>../../p6</relativePath>
     </parent>
 
     <artifactId>dataio-harvester-rr</artifactId>
@@ -116,11 +115,9 @@
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-impl</artifactId>
         </dependency>
-        <!-- Hmmm -->
         <dependency>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>jaxws-rt</artifactId>
-            <version>4.0.0</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>

@@ -22,13 +22,13 @@
         <module>flow-store-service</module>
         <module>gatekeeper</module>
         <module>harvester</module>
-        <module>integration-test</module>
         <module>job-store-service</module>
         <module>log-store-service</module>
         <module>sink</module>
         <module>job-processor2</module>
         <module>dlq-errorhandler</module>
         <module>jse-app</module>
+        <module>integration-test</module>
     </modules>
 
     <properties>

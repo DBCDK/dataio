@@ -37,9 +37,9 @@ import java.util.concurrent.Callable;
 public class Main implements Callable<Integer> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private static Path basePath;
-    @CommandLine.Parameters(index = "0")
+    @CommandLine.Parameters(index = "0", description = "The action you want to perform. Valid options are: [APPLY | GENERATE | VERSION]")
     private Command command;
-    @CommandLine.Parameters(index = "1")
+    @CommandLine.Parameters(index = "1", description = "The xml file containing your application config (template and output path is relative to this file)")
     private String filename;
     @CommandLine.Option(names = "-n", description = "namespace", defaultValue = "metascrum-staging")
     private String namespace;
@@ -51,7 +51,7 @@ public class Main implements Callable<Integer> {
     private String version;
     @CommandLine.Option(names = "-r", description = "git repository", defaultValue = "https://gitlab.dbc.dk/metascrum/dataio-secrets.git")
     private String repository;
-    @CommandLine.Option(names = "-b", description = "git branch", defaultValue = "test")
+    @CommandLine.Option(names = "-b", description = "git branch", defaultValue = "main")
     private String branch;
 
     public Main() {
@@ -157,6 +157,6 @@ public class Main implements Callable<Integer> {
     }
 
     public enum Command {
-        APPLY, DELETE, GENERATE, VERSION
+        APPLY, GENERATE, VERSION
     }
 }

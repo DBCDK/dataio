@@ -37,19 +37,22 @@ public class ValueResolver implements TokenResolver {
             String token = matcher.group(1);
             if(token.startsWith("file://")) {
                 try {
-                    value = Files.readString(Main.getBasePath().resolve(token.substring(7))).trim();
+                    value = insertValue(matcher, Files.readString(Main.getBasePath().resolve(token.substring(7))).trim());
                     return !hasTokens();
                 } catch (IOException e) {
                     throw new IllegalArgumentException("Unable to read file reference " + token, e);
                 }
             }
-            ValueResolver kv = scope.get(token);
-            if(kv != null) {
-                String start = value.substring(0, matcher.start());
-                String end = value.substring(matcher.end());
-                value =  start + kv.value + end;
-            }
+            ValueResolver resolver = scope.get(token);
+            if(resolver != null) value = insertValue(matcher, resolver.value);
         }
         return !hasTokens();
+    }
+
+    private String insertValue(Matcher matcher, String insert) {
+        if(insert == null) return value;
+        String start = value.substring(0, matcher.start());
+        String end = value.substring(matcher.end());
+        return start + insert + end;
     }
 }

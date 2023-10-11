@@ -130,7 +130,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        java -jar buildstuff/target/buildstuff.jar version dataio.xml -t ${env.GITLAB_PRIVATE_TOKEN}
+                        java -jar buildstuff/target/buildstuff.jar version dataio.xml -t ${env.GITLAB_PRIVATE_TOKEN} -v DIT-${env.BUILD_NUMBER}
                     """
                 }
             }

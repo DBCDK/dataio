@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -37,7 +38,7 @@ import java.util.concurrent.Callable;
 public class Main implements Callable<Integer> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private static Path basePath;
-    @CommandLine.Parameters(index = "0", description = "The action you want to perform. Valid options are: [APPLY | GENERATE | VERSION]")
+    @CommandLine.Parameters(index = "0", description = "The action you want to perform. Valid options are: <APPLY | GENERATE | VERSION>")
     private Command command;
     @CommandLine.Parameters(index = "1", description = "The xml file containing your application config (template and output path is relative to this file)")
     private String filename;
@@ -98,6 +99,7 @@ public class Main implements Callable<Integer> {
     }
 
     private void updateVersion() throws GitAPIException, IOException, TemplateException, JAXBException, SAXException {
+        Objects.requireNonNull(version, "Please specify a version with -v <version>");
         Path temp = Files.createTempDirectory("buildstuff_");
         Git git = checkOut(temp);
         Path xmlConfig = temp.resolve(filename);

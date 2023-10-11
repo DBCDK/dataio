@@ -11,6 +11,7 @@ import jakarta.xml.bind.Unmarshaller;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -33,6 +34,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @CommandLine.Command(name = "deploy", mixinStandardHelpOptions = true, showDefaultValues = true, version = "1.0")
 public class Main implements Callable<Integer> {
@@ -111,10 +114,11 @@ public class Main implements Callable<Integer> {
 
     private void checkIn(Git git) throws GitAPIException {
         LOGGER.info("Pushing files to {}", branch);
-        Set<String> untracked = git.status().call().getUntracked();
-        if(!untracked.isEmpty()) {
+        Status status = git.status().call();
+        Set<String> changeset = Stream.concat(status.getUntracked().stream(), status.getModified().stream()).collect(Collectors.toSet());
+        if(!changeset.isEmpty()) {
             AddCommand add = git.add();
-            untracked.forEach(add::addFilepattern);
+            changeset.forEach(add::addFilepattern);
             add.call();
         }
         git.commit().setAuthor("Buildstuff Versioning", "").setMessage("Auto generated").call();

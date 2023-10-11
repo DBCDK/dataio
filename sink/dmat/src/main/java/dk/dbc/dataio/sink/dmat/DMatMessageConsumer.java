@@ -129,7 +129,7 @@ public class DMatMessageConsumer extends MessageConsumerAdapter {
                     } // Other exceptions bubbles out to the outer try-catch
             }
         } catch (Exception e) {
-            LOGGER.error("An unexpected exception was thrown for chunk id {}: {}", id, e.getMessage());
+            LOGGER.error("An unexpected exception was thrown for chunk id {}", id, e);
             DMatSinkMetrics.UNEXPECTED_EXCEPTIONS.counter().inc();
             return result
                     .withStatus(ChunkItem.Status.FAILURE)

@@ -1,9 +1,8 @@
 package dk.dbc.dataio.harvester.task.entity;
 
 import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
-
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 @Converter
 public class HarvestTaskSelectorConverter implements AttributeConverter<HarvestTaskSelector, String> {

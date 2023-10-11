@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("unused")
 public class JseProxySelector extends ProxySelector {
     private static final Logger LOGGER = LoggerFactory.getLogger(JseProxySelector.class);
     private final String host;

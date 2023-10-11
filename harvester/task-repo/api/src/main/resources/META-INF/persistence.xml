@@ -1,25 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_1.xsd"
-             version="2.1">
-  <persistence-unit name="taskrepo_PU" transaction-type="JTA">
-    <jta-data-source>jdbc/dataio/harvester/tasks</jta-data-source>
-    <class>dk.dbc.dataio.harvester.task.entity.AddiMetaDataListConverter</class>
-    <class>dk.dbc.dataio.harvester.task.entity.HarvestTaskSelectorConverter</class>
-    <class>dk.dbc.dataio.harvester.task.entity.HarvestTask</class>
-    <properties>
-      <property name="javax.persistence.schema-generation.database.action" value="none"/>
-    </properties>
-  </persistence-unit>
-  <persistence-unit name="taskrepoIT_PU" transaction-type="RESOURCE_LOCAL">
-    <class>dk.dbc.dataio.harvester.task.entity.AddiMetaDataListConverter</class>
-    <class>dk.dbc.dataio.harvester.task.entity.HarvestTaskSelectorConverter</class>
-    <class>dk.dbc.dataio.harvester.task.entity.HarvestTask</class>
-    <properties>
-      <property name="javax.persistence.schema-generation.database.action" value="none"/>
-      <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
-      <property name="eclipselink.logging.level" value="FINE"/>
-    </properties>
-  </persistence-unit>
+<persistence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             version="3.0" xmlns="https://jakarta.ee/xml/ns/persistence"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
+    <persistence-unit name="taskrepo_PU" transaction-type="JTA">
+        <jta-data-source>jdbc/dataio/harvester/tasks</jta-data-source>
+        <class>dk.dbc.dataio.harvester.task.entity.AddiMetaDataListConverter</class>
+        <class>dk.dbc.dataio.harvester.task.entity.HarvestTaskSelectorConverter</class>
+        <class>dk.dbc.dataio.harvester.task.entity.HarvestTask</class>
+        <properties>
+            <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
+        </properties>
+    </persistence-unit>
+    <persistence-unit name="taskrepoIT_PU" transaction-type="RESOURCE_LOCAL">
+        <class>dk.dbc.dataio.harvester.task.entity.AddiMetaDataListConverter</class>
+        <class>dk.dbc.dataio.harvester.task.entity.HarvestTaskSelectorConverter</class>
+        <class>dk.dbc.dataio.harvester.task.entity.HarvestTask</class>
+        <properties>
+            <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
+            <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
+            <property name="eclipselink.logging.level" value="FINE"/>
+        </properties>
+    </persistence-unit>
 </persistence>

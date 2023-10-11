@@ -15,6 +15,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.opensearch.commons.repository.RepositoryException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import jakarta.ws.rs.client.ClientBuilder;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -125,7 +126,7 @@ public class HarvestOperationTest {
     @Test
     public void rrConnectorTest() throws HarvesterTaskServiceConnectorException, JsonProcessingException {
         String baseUrl = wireMockServer.baseUrl() + "/dataio/harvester/";
-        HarvesterTaskServiceConnector connector = new HarvesterTaskServiceConnector(ClientBuilder.newClient(), baseUrl);
+        HarvesterTaskServiceConnector connector = new HarvesterTaskServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), baseUrl);
         AddiMetaData data = new AddiMetaData()
                 .withBibliographicRecordId("12356789")
                 .withSubmitterNumber(191919)

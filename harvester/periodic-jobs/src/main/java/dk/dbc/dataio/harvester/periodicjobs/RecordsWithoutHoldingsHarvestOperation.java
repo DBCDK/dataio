@@ -16,7 +16,7 @@ import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
-import dk.dbc.weekresolver.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
 
 import java.util.Set;
 import java.util.concurrent.ExecutorService;

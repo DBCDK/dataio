@@ -6,10 +6,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>jse-app</artifactId>
+        <artifactId>dataio-sink</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>1.0-SNAPSHOT</version>
-        <relativePath>../../jse-app</relativePath>
+        <version>2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>dataio-sink-openupdate</artifactId>
@@ -21,13 +20,15 @@
     <dependencies>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>artemis-jse-app</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-openupdate-service-connector</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-sink-util</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -35,21 +36,17 @@
             <type>ejb</type>
         </dependency>
         <dependency>
-            <groupId>com.sun.org.apache.xml.internal</groupId>
-            <artifactId>resolver</artifactId>
-            <version>20050927</version>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
-            <version>1.57</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-matchers</artifactId>
-            <version>2.0.0</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -97,6 +94,7 @@
         <profile>
             <id>docker-push</id>
             <properties>
+                <!--suppress UnresolvedMavenProperty -->
                 <tag>DIT-${BUILD_NUMBER}</tag>
             </properties>
             <build>

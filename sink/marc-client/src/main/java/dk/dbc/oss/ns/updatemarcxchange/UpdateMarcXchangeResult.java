@@ -1,11 +1,11 @@
 
 package dk.dbc.oss.ns.updatemarcxchange;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
@@ -13,19 +13,19 @@ import javax.xml.bind.annotation.XmlType;
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
- * <pre>
- * &lt;complexType name="UpdateMarcXchangeResult"&gt;
- *   &lt;complexContent&gt;
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
- *       &lt;sequence&gt;
- *         &lt;element name="updateMarcXchangeStatus" type="{http://oss.dbc.dk/ns/updateMarcXchange}updateMarcXchangeStatusEnum"/&gt;
- *         &lt;element ref="{http://oss.dbc.dk/ns/updateMarcXchange}updateMarcXchangeMessage" minOccurs="0"/&gt;
- *         &lt;element ref="{http://oss.dbc.dk/ns/updateMarcXchange}MarcXchangeRecordId"/&gt;
- *       &lt;/sequence&gt;
- *     &lt;/restriction&gt;
- *   &lt;/complexContent&gt;
- * &lt;/complexType&gt;
- * </pre>
+ * <pre>{@code
+ * <complexType name="UpdateMarcXchangeResult">
+ *   <complexContent>
+ *     <restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *       <sequence>
+ *         <element name="updateMarcXchangeStatus" type="{http://oss.dbc.dk/ns/updateMarcXchange}updateMarcXchangeStatusEnum"/>
+ *         <element ref="{http://oss.dbc.dk/ns/updateMarcXchange}updateMarcXchangeMessage" minOccurs="0"/>
+ *         <element ref="{http://oss.dbc.dk/ns/updateMarcXchange}MarcXchangeRecordId"/>
+ *       </sequence>
+ *     </restriction>
+ *   </complexContent>
+ * </complexType>
+ * }</pre>
  * 
  * 
  */

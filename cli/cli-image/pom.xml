@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>dk.dbc</groupId>
+        <artifactId>dataio-cli</artifactId>
+        <version>2.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>cli-image</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-cli-acceptance-test</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-cli-datafile-exporter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-cli-job-replicator</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-cli-lhr-retriever</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <configuration combine.self="override">
+                    <tagName>devel</tagName>
+                    <images>
+                        <image>
+                            <name>docker-metascrum.artifacts.dbccloud.dk/dataio-cli:${tag}</name>
+                            <build>
+                                <from>${java.image}</from>
+                                <user>gfish</user>
+                                <env>
+                                    <TZ default-value="Europe/Copenhagen"/>
+                                </env>
+                                <workdir>/work</workdir>
+                                <assemblies>
+                                    <assembly>
+                                        <mode>dir</mode>
+                                        <targetDir>/work</targetDir>
+                                        <inline>
+                                            <dependencySets>
+                                                <dependencySet>
+                                                    <includes>
+                                                        <include>dk.dbc:dataio-cli-acceptance-test</include>
+                                                    </includes>
+                                                    <outputFileNameMapping>dataio-cli-acceptance-test.jar</outputFileNameMapping>
+                                                </dependencySet>
+                                                <dependencySet>
+                                                    <includes>
+                                                        <include>dk.dbc:dataio-cli-datafile-exporter</include>
+                                                    </includes>
+                                                    <outputFileNameMapping>dataio-cli-datafile-exporter.jar</outputFileNameMapping>
+                                                </dependencySet>
+                                                <dependencySet>
+                                                    <includes>
+                                                        <include>dk.dbc:dataio-cli-job-replicator</include>
+                                                    </includes>
+                                                    <outputFileNameMapping>dataio-cli-job-replicator.jar</outputFileNameMapping>
+                                                </dependencySet>
+                                                <dependencySet>
+                                                    <includes>
+                                                        <include>dk.dbc:dataio-cli-lhr-retriever</include>
+                                                    </includes>
+                                                    <outputFileNameMapping>dataio-cli-lhr-retriever.jar</outputFileNameMapping>
+                                                </dependencySet>
+                                            </dependencySets>
+                                        </inline>
+                                    </assembly>
+                                </assemblies>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-256m} -XX:+ExitOnOutOfMemoryError -jar /work/${project.build.finalName}.jar</cmd>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>docker-push</id>
+            <properties>
+                <!--suppress UnresolvedMavenProperty -->
+                <tag>DIT-${BUILD_NUMBER}</tag>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>push</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>push</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

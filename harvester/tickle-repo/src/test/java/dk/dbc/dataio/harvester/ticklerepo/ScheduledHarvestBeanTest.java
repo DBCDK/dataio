@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 
 public class ScheduledHarvestBeanTest {
     private final HarvesterBean harvesterBean = mock(HarvesterBean.class);
-    private List<TickleRepoHarvesterConfig> configs = new ArrayList<>();
+    private final List<TickleRepoHarvesterConfig> configs = new ArrayList<>();
 
     @Before
     public void resetConfigs() {

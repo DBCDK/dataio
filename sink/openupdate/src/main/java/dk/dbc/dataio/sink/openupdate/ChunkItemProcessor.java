@@ -9,9 +9,9 @@ import dk.dbc.dataio.sink.util.AddiUtil;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
+import jakarta.xml.ws.WebServiceException;
 import org.eclipse.microprofile.metrics.Tag;
 
-import javax.xml.ws.WebServiceException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;

@@ -1,5 +1,7 @@
 package dk.dbc.dataio.sink.dpf;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.DpfSinkConfig;
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
@@ -7,7 +9,6 @@ import dk.dbc.dataio.sink.dpf.transform.BibliographicRecordFactory;
 import dk.dbc.dataio.sink.dpf.transform.BibliographicRecordFactoryException;
 import dk.dbc.dataio.sink.dpf.transform.MarcRecordFactory;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
-import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.LobbyConnector;
 import dk.dbc.lobby.LobbyConnectorException;
 import dk.dbc.marc.binding.DataField;
@@ -25,13 +26,14 @@ import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
-import dk.dbc.weekresolver.WeekResolverConnector;
-import dk.dbc.weekresolver.WeekResolverConnectorException;
-import dk.dbc.weekresolver.WeekResolverResult;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
+import dk.dbc.weekresolver.model.WeekResolverResult;
+import jakarta.ws.rs.client.ClientBuilder;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.client.ClientBuilder;
 import java.util.Collections;
 import java.util.List;
 
@@ -58,11 +60,11 @@ public class ServiceBroker {
 
     public ServiceBroker() {
         configBean = new ConfigBean();
-        lobbyConnector = new LobbyConnector(ClientBuilder.newClient(), LOBBY_SERVICE_URL.asString());
-        doubleRecordCheckConnector = new UpdateServiceDoubleRecordCheckConnector(ClientBuilder.newClient(), UPDATE_SERVICE_URL.asString());
-        recordServiceConnector = new RecordServiceConnector(ClientBuilder.newClient(), RAWREPO_RECORD_SERVICE_URL.asString());
-        weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient(), WEEKRESOLVER_SERVICE_URL.asString());
-        opennumberRollConnector = new OpennumberRollConnector(ClientBuilder.newClient(), OPENNUMBERROLL_SERVICE_URL.asString());
+        lobbyConnector = new LobbyConnector(ClientBuilder.newClient().register(new JacksonFeature()), LOBBY_SERVICE_URL.asString());
+        doubleRecordCheckConnector = new UpdateServiceDoubleRecordCheckConnector(ClientBuilder.newClient().register(new JacksonFeature()), UPDATE_SERVICE_URL.asString());
+        recordServiceConnector = new RecordServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), RAWREPO_RECORD_SERVICE_URL.asString());
+        weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient().register(new JacksonFeature()), WEEKRESOLVER_SERVICE_URL.asString());
+        opennumberRollConnector = new OpennumberRollConnector(ClientBuilder.newClient().register(new JacksonFeature()), OPENNUMBERROLL_SERVICE_URL.asString());
     }
 
     public ServiceBroker(WeekResolverConnector weekResolverConnector) {
@@ -74,12 +76,11 @@ public class ServiceBroker {
         opennumberRollConnector = null;
     }
 
-    public void sendToLobby(DpfRecord dpfRecord) throws LobbyConnectorException, JSONBException {
+    public void sendToLobby(DpfRecord dpfRecord) throws LobbyConnectorException, JsonProcessingException {
         lobbyConnector.createOrReplaceApplicant(dpfRecord.toLobbyApplicant());
     }
 
-    public UpdateRecordResponseDTO isDoubleRecord(DpfRecord dpfRecord)
-            throws UpdateServiceDoubleRecordCheckConnectorException, JSONBException {
+    public UpdateRecordResponseDTO isDoubleRecord(DpfRecord dpfRecord) throws UpdateServiceDoubleRecordCheckConnectorException, JSONBException {
         byte[] content = MarcRecordFactory.toMarcXchange(dpfRecord.getBody());
         RecordDataDTO recordDataDTO = new RecordDataDTO();
         recordDataDTO.setContent(Collections.singletonList(new String(content)));

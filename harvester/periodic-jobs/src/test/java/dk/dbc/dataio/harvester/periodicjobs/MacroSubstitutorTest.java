@@ -9,17 +9,15 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.testee.NonContainerManagedExecutorService;
 import dk.dbc.testee.SameThreadExecutorService;
-import dk.dbc.weekresolver.WeekResolverConnector;
-import dk.dbc.weekresolver.WeekResolverConnectorException;
-import dk.dbc.weekresolver.WeekResolverResult;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
+import dk.dbc.weekresolver.model.WeekResolverResult;
+import jakarta.enterprise.concurrent.ManagedExecutorService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.enterprise.concurrent.ManagedExecutorService;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -38,9 +36,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MacroSubstitutorTest {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MacroSubstitutorTest.class);
-
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
@@ -56,13 +51,13 @@ public class MacroSubstitutorTest {
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Before
-    public void setup() throws WeekResolverConnectorException {
+    public void setup() {
         environmentVariables.set("TZ", "Europe/Copenhagen");
         harvestOperation = newHarvestOperation();
     }
 
     @Test
-    public void testNextweekPattern() {
+    public void testNextWeekPattern() {
         // Note: This pattern does not use the week-resolver, it only calculates weeks from the given date
 
         final String inputQuery = "term.kk:${__NEXTWEEK_BKM__} OR term.kk:${__NEXTWEEK_ACC__} OR term.kk:${__NEXTWEEK_DPF__}";
@@ -80,15 +75,15 @@ public class MacroSubstitutorTest {
 
         WeekResolverResult resultDbf = new WeekResolverResult();
         resultDbf.setWeekCode("DBF202316");
-        when(weekResolverConnector.getCurrentWeekCode(eq("DBF"), any(LocalDate.class))).thenReturn(resultDbf);
+        when(weekResolverConnector.getCurrentWeekCodeForDate(eq("DBF"), any(LocalDate.class))).thenReturn(resultDbf);
 
         WeekResolverResult resultGbf = new WeekResolverResult();
         resultGbf.setWeekCode("GBF202316");
-        when(weekResolverConnector.getCurrentWeekCode(eq("GBF"), any(LocalDate.class))).thenReturn(resultGbf);
+        when(weekResolverConnector.getCurrentWeekCodeForDate(eq("GBF"), any(LocalDate.class))).thenReturn(resultGbf);
 
         WeekResolverResult resultDlf = new WeekResolverResult();
         resultDlf.setWeekCode("DLF202316");
-        when(weekResolverConnector.getCurrentWeekCode(eq("DLF"), any(LocalDate.class))).thenReturn(resultDlf);
+        when(weekResolverConnector.getCurrentWeekCodeForDate(eq("DLF"), any(LocalDate.class))).thenReturn(resultDlf);
 
         final String inputQuery = "term.kk:${__WEEKCODE_DBF_MINUS_3__} OR term.kk:${__WEEKCODE_GBF_MINUS_3__} OR term.kk:${__WEEKCODE_DLF_MINUS_3__}";
         final String expectedQuery = "term.kk:DBF202316 OR term.kk:GBF202316 OR term.kk:DLF202316";
@@ -108,10 +103,10 @@ public class MacroSubstitutorTest {
         // Check that we call the getCurrentWeekCode() endpoint, NOT the getWeekCode() endpoint.
         // Also check that the date is calculated correctly and used with the call.
         ZonedDateTime then = Instant.parse("2023-04-19T15:29:00Z").atZone(ZoneId.of(System.getenv("TZ")));
-        verify(weekResolverConnector, times(2)).getCurrentWeekCode("DBF", then.toLocalDate());
-        verify(weekResolverConnector, times(2)).getCurrentWeekCode("GBF", then.toLocalDate());
-        verify(weekResolverConnector, times(2)).getCurrentWeekCode("DLF", then.toLocalDate());
-        verify(weekResolverConnector, never()).getWeekCode(anyString(), any(LocalDate.class));
+        verify(weekResolverConnector, times(2)).getCurrentWeekCodeForDate("DBF", then.toLocalDate());
+        verify(weekResolverConnector, times(2)).getCurrentWeekCodeForDate("GBF", then.toLocalDate());
+        verify(weekResolverConnector, times(2)).getCurrentWeekCodeForDate("DLF", then.toLocalDate());
+        verify(weekResolverConnector, never()).getWeekCodeForDate(anyString(), any(LocalDate.class));
     }
 
     @Test
@@ -126,7 +121,7 @@ public class MacroSubstitutorTest {
         assertThat(macroSubstitutor.replace(inputQuery), is(expectedQuery));
     }
 
-    private HarvestOperation newHarvestOperation() throws WeekResolverConnectorException {
+    private HarvestOperation newHarvestOperation() {
         PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withDestination("-destination-")

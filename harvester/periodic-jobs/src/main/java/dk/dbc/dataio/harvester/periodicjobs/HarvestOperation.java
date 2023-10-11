@@ -21,14 +21,14 @@ import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
-import dk.dbc.weekresolver.WeekResolverConnector;
-import dk.dbc.weekresolver.WeekResolverConnectorException;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
+import jakarta.ws.rs.ProcessingException;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.ProcessingException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -309,7 +309,7 @@ public class HarvestOperation {
 
     public String catalogueCodeToWeekCode(String catalogueCode, LocalDate localDate) {
         try {
-            return weekResolverConnector.getCurrentWeekCode(catalogueCode, localDate).getWeekCode();
+            return weekResolverConnector.getCurrentWeekCodeForDate(catalogueCode, localDate).getWeekCode();
         } catch (WeekResolverConnectorException e) {
             throw new ProcessingException(e);
         }

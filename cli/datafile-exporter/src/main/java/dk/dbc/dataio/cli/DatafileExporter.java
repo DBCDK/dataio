@@ -3,13 +3,13 @@ package dk.dbc.dataio.cli;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnector;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
 import dk.dbc.httpclient.HttpClient;
+import jakarta.ws.rs.client.Client;
 import net.sourceforge.argparse4j.helper.HelpScreenException;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
-import javax.ws.rs.client.Client;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Scanner;

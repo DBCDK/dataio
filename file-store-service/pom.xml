@@ -6,10 +6,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>p6</artifactId>
+        <artifactId>dataio</artifactId>
         <groupId>dk.dbc</groupId>
         <version>2.0-SNAPSHOT</version>
-        <relativePath>../p6</relativePath>
     </parent>
 
     <artifactId>dataio-file-store-service</artifactId>
@@ -62,7 +61,6 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>

@@ -1,10 +1,10 @@
 
 package info.lc.xmlns.marcxchange_v1;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlElementDecl;
-import javax.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.annotation.XmlElementDecl;
+import jakarta.xml.bind.annotation.XmlRegistry;
 
 
 /**
@@ -24,8 +24,8 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _Collection_QNAME = new QName("info:lc/xmlns/marcxchange-v1", "collection");
-    private final static QName _Record_QNAME = new QName("info:lc/xmlns/marcxchange-v1", "record");
+    private static final QName _Collection_QNAME = new QName("info:lc/xmlns/marcxchange-v1", "collection");
+    private static final QName _Record_QNAME = new QName("info:lc/xmlns/marcxchange-v1", "record");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: info.lc.xmlns.marcxchange_v1
@@ -37,6 +37,8 @@ public class ObjectFactory {
     /**
      * Create an instance of {@link CollectionType }
      * 
+     * @return
+     *     the new instance of {@link CollectionType }
      */
     public CollectionType createCollectionType() {
         return new CollectionType();
@@ -45,6 +47,8 @@ public class ObjectFactory {
     /**
      * Create an instance of {@link RecordType }
      * 
+     * @return
+     *     the new instance of {@link RecordType }
      */
     public RecordType createRecordType() {
         return new RecordType();
@@ -53,6 +57,8 @@ public class ObjectFactory {
     /**
      * Create an instance of {@link LeaderFieldType }
      * 
+     * @return
+     *     the new instance of {@link LeaderFieldType }
      */
     public LeaderFieldType createLeaderFieldType() {
         return new LeaderFieldType();
@@ -61,6 +67,8 @@ public class ObjectFactory {
     /**
      * Create an instance of {@link ControlFieldType }
      * 
+     * @return
+     *     the new instance of {@link ControlFieldType }
      */
     public ControlFieldType createControlFieldType() {
         return new ControlFieldType();
@@ -69,6 +77,8 @@ public class ObjectFactory {
     /**
      * Create an instance of {@link DataFieldType }
      * 
+     * @return
+     *     the new instance of {@link DataFieldType }
      */
     public DataFieldType createDataFieldType() {
         return new DataFieldType();
@@ -77,6 +87,8 @@ public class ObjectFactory {
     /**
      * Create an instance of {@link SubfieldatafieldType }
      * 
+     * @return
+     *     the new instance of {@link SubfieldatafieldType }
      */
     public SubfieldatafieldType createSubfieldatafieldType() {
         return new SubfieldatafieldType();
@@ -92,7 +104,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "info:lc/xmlns/marcxchange-v1", name = "collection")
     public JAXBElement<CollectionType> createCollection(CollectionType value) {
-        return new JAXBElement<CollectionType>(_Collection_QNAME, CollectionType.class, null, value);
+        return new JAXBElement<>(_Collection_QNAME, CollectionType.class, null, value);
     }
 
     /**
@@ -105,7 +117,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "info:lc/xmlns/marcxchange-v1", name = "record")
     public JAXBElement<RecordType> createRecord(RecordType value) {
-        return new JAXBElement<RecordType>(_Record_QNAME, RecordType.class, null, value);
+        return new JAXBElement<>(_Record_QNAME, RecordType.class, null, value);
     }
 
 }

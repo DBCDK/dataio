@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>dataio-sink</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>2.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>marc-client</artifactId>
 
@@ -15,23 +16,22 @@
         <dependency>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>jaxws-rt</artifactId>
-            <version>2.3.3</version>
         </dependency>
         <dependency>
             <groupId>jakarta.xml.ws</groupId>
             <artifactId>jakarta.xml.ws-api</artifactId>
-            <version>2.3.3</version>
         </dependency>
     </dependencies>
+
     <profiles>
         <profile>
             <id>generate-source</id>
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
+                        <groupId>com.sun.xml.ws</groupId>
                         <artifactId>jaxws-maven-plugin</artifactId>
-                        <version>2.6</version>
+                        <version>4.0.1</version>
                         <executions>
                             <execution>
                                 <phase>generate-resources</phase>
@@ -44,7 +44,7 @@
                                         <vmArg>-Djavax.xml.accessExternalStylesheet=all</vmArg>
                                         <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
                                     </vmArgs>
-                                    <target>2.2</target>
+                                    <target>3.0</target>
                                     <wsdlLocation>http://localhost/wsdl/updateMarcXchange.wsdl</wsdlLocation>
                                     <wsdlDirectory>${basedir}/src/main/resources/META-INF/wsdl</wsdlDirectory>
                                     <sourceDestDir>${basedir}/src/main/java</sourceDestDir>

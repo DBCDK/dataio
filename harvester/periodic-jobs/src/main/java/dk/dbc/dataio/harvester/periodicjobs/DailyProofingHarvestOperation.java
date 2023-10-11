@@ -15,11 +15,11 @@ import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.rawrepo.dto.RecordDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
-import dk.dbc.weekresolver.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import jakarta.enterprise.concurrent.ManagedExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.concurrent.ManagedExecutorService;
 import java.util.Map;
 
 /**

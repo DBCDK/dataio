@@ -62,10 +62,11 @@ pipeline {
                         echo Fast branch deployment skip all tests
                         FAST=" -P !integration-test -Dmaven.test.skip=true "
                     fi
-                    mvn -B -T 4 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" verify || exit 1
-                    test -n \${FAST} && mvn -B -T 6 -P !integration-test pmd:pmd
-                    echo Build CLI for \$BRANCH_NAME \$BUILD_NUMBER
-                    ./cli/build_docker_image.sh
+                    mvn -B -T 4 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install || exit 1
+                    if [ -n "\${FAST}" ]; then
+                        echo Run PMD 
+                        mvn -B -T 6 -P !integration-test pmd:pmd
+                    fi
                 """
                 script {
                     junit allowEmptyResults: true, testResults: '**/target/*-reports/*.xml'
@@ -78,25 +79,6 @@ pipeline {
 
                     def spotbugs = scanForIssues tool: [$class: 'SpotBugs']
                     publishIssues issues: [spotbugs], unstableTotalAll: 1
-
-                    archiveArtifacts artifacts: "docker-images.log,cli/acceptance-test/target/dataio-cli-acctest.jar,gatekeeper/target/dataio-gatekeeper*.jar,cli/dataio-cli",
-                            fingerprint: true
-                }
-            }
-        }
-        stage("docker push") {
-            when {
-                branch "master"
-            }
-            steps {
-                sh """
-                cat docker-images.log | parallel -j 3 docker push {}:master-${env.BUILD_NUMBER}
-                docker tag docker-metascrum.artifacts.dbccloud.dk/gatekeeper-jmx-exporter:devel docker-metascrum.artifacts.dbccloud.dk/gatekeeper-jmx-exporter:DIT-${env.BUILD_NUMBER}
-                docker push docker-metascrum.artifacts.dbccloud.dk/gatekeeper-jmx-exporter:DIT-${env.BUILD_NUMBER}
-            """
-                script {
-                    stash includes: "docker-images.log", name: docker_images_log_stash_tag
-                    archiveArtifacts "docker-images.log"
                 }
             }
         }
@@ -106,23 +88,9 @@ pipeline {
             }
             steps {
                 sh """
-                mvn install -T 6 -B -Dmaven.test.skip=true -Pdocker-push
-                mvn deploy -T 6 -B -Dmaven.test.skip=true -pl "${DEPLOY_ARTIFACTS}"
+                mvn install -T 1 -B -Dmaven.test.skip=true -Pdocker-push
+                mvn deploy -T 6 -B -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}"
             """
-            }
-        }
-        stage("promote to DIT") {
-            when {
-                branch "master"
-            }
-            steps {
-                dir("docker") {
-                    unstash docker_images_log_stash_tag
-                    sh """
-                    cat docker-images.log | parallel -j 3 docker tag {}:master-${env.BUILD_NUMBER} {}:DIT-${env.BUILD_NUMBER}
-                    cat docker-images.log | parallel -j 3 docker push {}:DIT-${env.BUILD_NUMBER}
-                """
-                }
             }
         }
         stage("Clean up docker images") {
@@ -136,22 +104,15 @@ pipeline {
             """
             }
         }
-        stage("bump docker tags in dataio-secrets") {
-            agent {
-                docker {
-                    label workerNode
-                    image "docker-dbc.artifacts.dbccloud.dk/build-env:latest"
-                    alwaysPull true
-                }
-            }
+        stage("bump version in dataio-secrets") {
             when {
-                branch "DISABLEDmaster" // No autodeploy while we are migrating to Payara 6
+                branch "master"
             }
             steps {
                 script {
                     sh """
-                    set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets DIT-${env.BUILD_NUMBER} -b staging
-                """
+                        java -jar buildstuff/target/buildstuff.jar version dataio.xml -t ${env.GITLAB_PRIVATE_TOKEN} -v DIT-${env.BUILD_NUMBER}
+                    """
                 }
             }
         }
@@ -184,10 +145,10 @@ pipeline {
                 script {
                     if (DEPLOY_TO_STAGING_CANDIDATE) {
                         sh """
-                        echo "Gogo staging gadget!!!"
-                        mvn install -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
-                        cat docker-images.log | parallel -j 3  docker push {}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}
-                """
+                            echo "Gogo staging gadget!!!"
+                            mvn install -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+                            mvn deploy -T 6 -B -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}"
+                        """
                     }
                 }
             }

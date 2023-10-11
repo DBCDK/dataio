@@ -16,57 +16,31 @@ public class HarvesterJobBuilderFactoryTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final JobSpecification jobSpecificationTemplate = getJobSpecificationTemplate();
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void newHarvesterJobBuilder_binaryFileStoreArgIsNull_throws() throws HarvesterException {
-        final HarvesterJobBuilderFactory harvesterJobBuilderFactory =
-                new HarvesterJobBuilderFactory(null, fileStoreServiceConnector, jobStoreServiceConnector);
-        try {
-            harvesterJobBuilderFactory.newHarvesterJobBuilder(jobSpecificationTemplate);
-        } catch (NullPointerException e) {
-        }
+        HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(null, fileStoreServiceConnector, jobStoreServiceConnector);
+        harvesterJobBuilderFactory.newHarvesterJobBuilder(jobSpecificationTemplate);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void newHarvesterJobBuilder_fileStoreServiceConnectorArgIsNull_throws() throws HarvesterException {
-        final HarvesterJobBuilderFactory harvesterJobBuilderFactory =
-                new HarvesterJobBuilderFactory(binaryFileStore, null, jobStoreServiceConnector);
-        try {
-            harvesterJobBuilderFactory.newHarvesterJobBuilder(jobSpecificationTemplate);
-        } catch (NullPointerException e) {
-        }
+        HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStore, null, jobStoreServiceConnector);
+        harvesterJobBuilderFactory.newHarvesterJobBuilder(jobSpecificationTemplate);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void newHarvesterJobBuilder_jobStoreServiceConnectorArgIsNull_throws() throws HarvesterException {
-        final HarvesterJobBuilderFactory harvesterJobBuilderFactory =
-                new HarvesterJobBuilderFactory(binaryFileStore, fileStoreServiceConnector, null);
-        try {
-            harvesterJobBuilderFactory.newHarvesterJobBuilder(jobSpecificationTemplate);
-        } catch (NullPointerException e) {
-        }
+        HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStore, fileStoreServiceConnector, null);
+        harvesterJobBuilderFactory.newHarvesterJobBuilder(jobSpecificationTemplate);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void newHarvesterJobBuilder_jobSpecificationArgIsNull_throws() throws HarvesterException {
-        final HarvesterJobBuilderFactory harvesterJobBuilderFactory =
-                new HarvesterJobBuilderFactory(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector);
-        try {
-            harvesterJobBuilderFactory.newHarvesterJobBuilder(null);
-        } catch (NullPointerException e) {
-        }
+        HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector);
+        harvesterJobBuilderFactory.newHarvesterJobBuilder(null);
     }
 
     private JobSpecification getJobSpecificationTemplate() {
-        return new JobSpecification()
-                .withPackaging("packaging")
-                .withFormat("format")
-                .withCharset("utf8")
-                .withDestination("destination")
-                .withSubmitterId(222)
-                .withMailForNotificationAboutVerification(EMPTY)
-                .withMailForNotificationAboutProcessing(EMPTY)
-                .withResultmailInitials(EMPTY)
-                .withDataFile("datafile")
-                .withType(JobSpecification.Type.TEST);
+        return new JobSpecification().withPackaging("packaging").withFormat("format").withCharset("utf8").withDestination("destination").withSubmitterId(222).withMailForNotificationAboutVerification(EMPTY).withMailForNotificationAboutProcessing(EMPTY).withResultmailInitials(EMPTY).withDataFile("datafile").withType(JobSpecification.Type.TEST);
     }
 }

@@ -56,7 +56,7 @@ import static jakarta.ws.rs.core.Response.Status.NO_CONTENT;
  * </p>
  */
 public class FlowStoreServiceConnector {
-    private static final Logger log = LoggerFactory.getLogger(FlowStoreServiceConnector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FlowStoreServiceConnector.class);
 
     private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
             .handle(ProcessingException.class)
@@ -102,7 +102,7 @@ public class FlowStoreServiceConnector {
     public Sink createSink(SinkContent sinkContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: createSink(\"{}\");",
+            LOGGER.trace("FlowStoreServiceConnector: createSink(\"{}\");",
                     InvariantUtil.checkNotNullOrThrow(sinkContent, "sinkContent").getName());
             try (Response response = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
@@ -113,7 +113,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, Sink.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: createSink took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: createSink took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -128,7 +128,7 @@ public class FlowStoreServiceConnector {
     public Sink getSink(long sinkId) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: getSink({});", sinkId);
+            LOGGER.trace("FlowStoreServiceConnector: getSink({});", sinkId);
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SINK)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, sinkId);
             try (Response response = new HttpGet(failSafeHttpClient)
@@ -139,7 +139,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, Sink.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: getSink took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: getSink took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -153,17 +153,16 @@ public class FlowStoreServiceConnector {
     public List<Sink> findAllSinks() throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: findAllSinks();");
+            LOGGER.trace("FlowStoreServiceConnector: findAllSinks();");
             try (Response response = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
                     .withPathElements(FlowStoreServiceConstants.SINKS)
                     .execute()) {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseGenericTypeEntity(response, new GenericType<List<Sink>>() {
-                });
+                return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: findAllSinks took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: findAllSinks took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -180,7 +179,7 @@ public class FlowStoreServiceConnector {
     public Sink updateSink(SinkContent sinkContent, long sinkId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: updateSink({}, {});", sinkId, version);
+            LOGGER.trace("FlowStoreServiceConnector: updateSink({}, {});", sinkId, version);
             InvariantUtil.checkNotNullOrThrow(sinkContent, "sinkContent");
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SINK_CONTENT)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(sinkId));
@@ -195,7 +194,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, Sink.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: updateSink took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: updateSink took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -210,7 +209,7 @@ public class FlowStoreServiceConnector {
     public void deleteSink(long sinkId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: deleteSink({})", sinkId);
+            LOGGER.trace("FlowStoreServiceConnector: deleteSink({})", sinkId);
             final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.SINK)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(sinkId));
 
@@ -222,7 +221,7 @@ public class FlowStoreServiceConnector {
                 verifyResponseStatus(response, NO_CONTENT);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: deleteSink took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: deleteSink took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -239,7 +238,7 @@ public class FlowStoreServiceConnector {
     public void deleteSubmitter(long submitterId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: deleteSubmitter({})", submitterId);
+            LOGGER.trace("FlowStoreServiceConnector: deleteSubmitter({})", submitterId);
             final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.SUBMITTER)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(submitterId));
 
@@ -251,7 +250,7 @@ public class FlowStoreServiceConnector {
                 verifyResponseStatus(response, NO_CONTENT);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: deleteSubmitter took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: deleteSubmitter took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -268,7 +267,7 @@ public class FlowStoreServiceConnector {
     public Submitter createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: createSubmitter(\"{}\");",
+            LOGGER.trace("FlowStoreServiceConnector: createSubmitter(\"{}\");",
                     InvariantUtil.checkNotNullOrThrow(submitterContent, "submitterContent").getName());
             try (Response response = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
@@ -279,7 +278,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, Submitter.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: createSubmitter took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: createSubmitter took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -294,7 +293,7 @@ public class FlowStoreServiceConnector {
     public Submitter getSubmitter(long submitterId) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: getSubmitter({});", submitterId);
+            LOGGER.trace("FlowStoreServiceConnector: getSubmitter({});", submitterId);
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, submitterId);
 
@@ -306,7 +305,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, Submitter.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: getSubmitter took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: getSubmitter took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -321,7 +320,7 @@ public class FlowStoreServiceConnector {
     public Submitter getSubmitterBySubmitterNumber(long submitterNumber) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: getSubmitterBySubmitterNumber({});", submitterNumber);
+            LOGGER.trace("FlowStoreServiceConnector: getSubmitterBySubmitterNumber({});", submitterNumber);
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER_SEARCHES_NUMBER)
                     .bind(FlowStoreServiceConstants.SUBMITTER_NUMBER_VARIABLE, submitterNumber);
 
@@ -333,7 +332,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, Submitter.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: getSubmitterBySubmitterNumber took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: getSubmitterBySubmitterNumber took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -350,7 +349,7 @@ public class FlowStoreServiceConnector {
     public Submitter updateSubmitter(SubmitterContent submitterContent, long submitterId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: updateSubmitter({}, {});", submitterId, version);
+            LOGGER.trace("FlowStoreServiceConnector: updateSubmitter({}, {});", submitterId, version);
             InvariantUtil.checkNotNullOrThrow(submitterContent, "submitterContent");
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER_CONTENT)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, submitterId);
@@ -365,7 +364,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, Submitter.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: updateSubmitter took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: updateSubmitter took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -379,17 +378,16 @@ public class FlowStoreServiceConnector {
     public List<Submitter> findAllSubmitters() throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: findAllSubmitters();");
+            LOGGER.trace("FlowStoreServiceConnector: findAllSubmitters();");
             try (Response response = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
                     .withPathElements(FlowStoreServiceConstants.SUBMITTERS)
                     .execute()) {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseGenericTypeEntity(response, new GenericType<List<Submitter>>() {
-                });
+                return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: findAllSubmitters took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: findAllSubmitters took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -408,10 +406,9 @@ public class FlowStoreServiceConnector {
                 .withData(query, MediaType.TEXT_PLAIN)
                 .execute()) {
             verifyResponseStatus(response, Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<Submitter>>() {
-            });
+            return readResponseGenericTypeEntity(response, new GenericType<>() {});
         } finally {
-            log.debug("FlowStoreServiceConnector: querySubmitters took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: querySubmitters took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -435,12 +432,10 @@ public class FlowStoreServiceConnector {
                     .withPathElements(path.build())
                     .execute()) {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseGenericTypeEntity(response,
-                        new GenericType<List<FlowBinderIdent>>() {
-                        });
+                return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
-            log.debug("getFlowBindersForSubmitter took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("getFlowBindersForSubmitter took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -459,7 +454,7 @@ public class FlowStoreServiceConnector {
     public FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: createFlowComponent(\"{}\");",
+            LOGGER.trace("FlowStoreServiceConnector: createFlowComponent(\"{}\");",
                     InvariantUtil.checkNotNullOrThrow(flowComponentContent, "flowComponentContent").getName());
             try (Response response = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
@@ -470,7 +465,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, FlowComponent.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: createFlowComponent took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: createFlowComponent took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -489,10 +484,9 @@ public class FlowStoreServiceConnector {
                 .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS)
                 .execute()) {
             verifyResponseStatus(response, Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<FlowComponentView>>() {
-            });
+            return readResponseGenericTypeEntity(response, new GenericType<>() {});
         } finally {
-            log.debug("FlowStoreServiceConnector: findAllFlowComponents took {} milliseconds",
+            LOGGER.debug("FlowStoreServiceConnector: findAllFlowComponents took {} milliseconds",
                     stopWatch.getElapsedTime());
         }
     }
@@ -508,7 +502,7 @@ public class FlowStoreServiceConnector {
     public FlowComponent getFlowComponent(long flowComponentId) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: getFlowComponent({});", flowComponentId);
+            LOGGER.trace("FlowStoreServiceConnector: getFlowComponent({});", flowComponentId);
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, flowComponentId);
 
@@ -520,7 +514,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, FlowComponent.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: getFlowComponent took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: getFlowComponent took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -537,7 +531,7 @@ public class FlowStoreServiceConnector {
     public FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, long flowComponentId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: updateFlowComponent({}, {});", flowComponentId, version);
+            LOGGER.trace("FlowStoreServiceConnector: updateFlowComponent({}, {});", flowComponentId, version);
             InvariantUtil.checkNotNullOrThrow(flowComponentContent, "flowComponentContent");
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, flowComponentId);
@@ -552,7 +546,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, FlowComponent.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: updateFlowComponent took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: updateFlowComponent took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -569,7 +563,7 @@ public class FlowStoreServiceConnector {
     public FlowComponent updateNext(FlowComponentContent next, long flowComponentId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: updateNext({}, {});", flowComponentId, version);
+            LOGGER.trace("FlowStoreServiceConnector: updateNext({}, {});", flowComponentId, version);
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT_NEXT)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, flowComponentId);
 
@@ -583,7 +577,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, FlowComponent.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: updateNext took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: updateNext took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -598,7 +592,7 @@ public class FlowStoreServiceConnector {
     public void deleteFlowComponent(long flowComponentId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: deleteFlowComponent({})", flowComponentId);
+            LOGGER.trace("FlowStoreServiceConnector: deleteFlowComponent({})", flowComponentId);
             final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(flowComponentId));
 
@@ -610,7 +604,7 @@ public class FlowStoreServiceConnector {
                 verifyResponseStatus(response, NO_CONTENT);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: deleteFlowComponent took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: deleteFlowComponent took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -630,7 +624,7 @@ public class FlowStoreServiceConnector {
     public Flow createFlow(FlowContent flowContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: createFlow({});",
+            LOGGER.trace("FlowStoreServiceConnector: createFlow({});",
                     InvariantUtil.checkNotNullOrThrow(flowContent, "flowContent").getName());
             try (Response response = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
@@ -641,7 +635,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, Flow.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: createFlow took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: createFlow took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -656,7 +650,7 @@ public class FlowStoreServiceConnector {
     public Flow getFlow(long flowId) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: getFlow({});", flowId);
+            LOGGER.trace("FlowStoreServiceConnector: getFlow({});", flowId);
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, flowId);
 
@@ -668,7 +662,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, Flow.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: getFlow took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: getFlow took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -691,11 +685,10 @@ public class FlowStoreServiceConnector {
 
             try (Response response = httpGet.execute()) {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseGenericTypeEntity(response, new GenericType<List<Flow>>() {
-                });
+                return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
-            log.debug("findFlows took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("findFlows took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -715,11 +708,10 @@ public class FlowStoreServiceConnector {
 
             try (Response response = httpGet.execute()) {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseGenericTypeEntity(response, new GenericType<List<FlowView>>() {
-                });
+                return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
-            log.debug("findAllFlows took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("findAllFlows took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -751,7 +743,7 @@ public class FlowStoreServiceConnector {
     public Flow refreshFlowComponents(long flowId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: refreshFlowComponents({}, {});", flowId, version);
+            LOGGER.trace("FlowStoreServiceConnector: refreshFlowComponents({}, {});", flowId, version);
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_CONTENT)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, flowId);
 
@@ -768,7 +760,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, Flow.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: refreshFlowComponents took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: refreshFlowComponents took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -785,7 +777,7 @@ public class FlowStoreServiceConnector {
     public Flow updateFlow(FlowContent flowContent, long flowId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: updateFlow({}, {});", flowId, version);
+            LOGGER.trace("FlowStoreServiceConnector: updateFlow({}, {});", flowId, version);
             InvariantUtil.checkNotNullOrThrow(flowContent, "flowContent");
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_CONTENT)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, flowId);
@@ -801,7 +793,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, Flow.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: updateFlow took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: updateFlow took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -816,7 +808,7 @@ public class FlowStoreServiceConnector {
     public void deleteFlow(long flowId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: deleteFlow({})", flowId);
+            LOGGER.trace("FlowStoreServiceConnector: deleteFlow({})", flowId);
             final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.FLOW)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(flowId));
 
@@ -828,7 +820,7 @@ public class FlowStoreServiceConnector {
                 verifyResponseStatus(response, NO_CONTENT);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: deleteFlow took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: deleteFlow took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -848,7 +840,7 @@ public class FlowStoreServiceConnector {
     public FlowBinder createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: createFlowBinder(\"{}\");",
+            LOGGER.trace("FlowStoreServiceConnector: createFlowBinder(\"{}\");",
                     InvariantUtil.checkNotNullOrThrow(flowBinderContent, "flowBinderContent").getName());
             try (Response response = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
@@ -859,7 +851,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, FlowBinder.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: createFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: createFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -873,17 +865,16 @@ public class FlowStoreServiceConnector {
     public List<FlowBinder> findAllFlowBinders() throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: findAllFlowBinders();");
+            LOGGER.trace("FlowStoreServiceConnector: findAllFlowBinders();");
             try (Response response = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
                     .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS)
                     .execute()) {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseGenericTypeEntity(response, new GenericType<List<FlowBinder>>() {
-                });
+                return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: findAllFlowBinders took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: findAllFlowBinders took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -900,7 +891,7 @@ public class FlowStoreServiceConnector {
     public FlowBinder updateFlowBinder(FlowBinderContent flowBinderContent, long flowBinderId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: updateFlowBinder({}, {});", flowBinderId, version);
+            LOGGER.trace("FlowStoreServiceConnector: updateFlowBinder({}, {});", flowBinderId, version);
             InvariantUtil.checkNotNullOrThrow(flowBinderContent, "flowBinderContent");
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER_CONTENT)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, flowBinderId);
@@ -915,7 +906,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, FlowBinder.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: updateFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: updateFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -930,7 +921,7 @@ public class FlowStoreServiceConnector {
     public void deleteFlowBinder(long flowBinderId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: deleteFlowBinder({})", flowBinderId);
+            LOGGER.trace("FlowStoreServiceConnector: deleteFlowBinder({})", flowBinderId);
             final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(flowBinderId));
 
@@ -942,7 +933,7 @@ public class FlowStoreServiceConnector {
                 verifyResponseStatus(response, NO_CONTENT);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: deleteFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: deleteFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -957,7 +948,7 @@ public class FlowStoreServiceConnector {
     public FlowBinder getFlowBinder(long flowBinderId) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: getFlowBinder({});", flowBinderId);
+            LOGGER.trace("FlowStoreServiceConnector: getFlowBinder({});", flowBinderId);
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, flowBinderId);
 
@@ -969,7 +960,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, FlowBinder.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: getFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: getFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -987,7 +978,7 @@ public class FlowStoreServiceConnector {
     public FlowBinder getFlowBinder(String packaging, String format, String charset, long submitterNumber, String destination) throws FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: getFlowBinder(\"{}\", \"{}\", \"{}\", {}, \"{}\");",
+            LOGGER.trace("FlowStoreServiceConnector: getFlowBinder(\"{}\", \"{}\", \"{}\", {}, \"{}\");",
                     packaging, format, charset, submitterNumber, destination);
             try (Response response = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
@@ -1002,7 +993,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, FlowBinder.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: getFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: getFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -1021,10 +1012,9 @@ public class FlowStoreServiceConnector {
                 .withData(query, MediaType.TEXT_PLAIN)
                 .execute()) {
             verifyResponseStatus(response, Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<FlowBinder>>() {
-            });
+            return readResponseGenericTypeEntity(response, new GenericType<>() {});
         } finally {
-            log.debug("FlowStoreServiceConnector: queryFlowBinders took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: queryFlowBinders took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -1044,7 +1034,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(gatekeeperDestination, "gatekeeperDestination");
-            log.trace("FlowStoreServiceConnector: createGatekeeperDestination({}, {}, {}, {})",
+            LOGGER.trace("FlowStoreServiceConnector: createGatekeeperDestination({}, {}, {}, {})",
                     gatekeeperDestination.getSubmitterNumber(),
                     gatekeeperDestination.getDestination(),
                     gatekeeperDestination.getPackaging(),
@@ -1058,7 +1048,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, GatekeeperDestination.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: createGatekeeperDestination took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: createGatekeeperDestination took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -1072,17 +1062,16 @@ public class FlowStoreServiceConnector {
     public List<GatekeeperDestination> findAllGatekeeperDestinations() throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: findAllGatekeeperDestinations();");
+            LOGGER.trace("FlowStoreServiceConnector: findAllGatekeeperDestinations();");
             try (Response response = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
                     .withPathElements(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS)
                     .execute()) {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseGenericTypeEntity(response, new GenericType<List<GatekeeperDestination>>() {
-                });
+                return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: findAllGatekeeperDestinations took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: findAllGatekeeperDestinations took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -1096,7 +1085,7 @@ public class FlowStoreServiceConnector {
     public void deleteGatekeeperDestination(long id) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: deleteGatekeeperDestination({})", id);
+            LOGGER.trace("FlowStoreServiceConnector: deleteGatekeeperDestination({})", id);
             final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
 
@@ -1107,7 +1096,7 @@ public class FlowStoreServiceConnector {
                 verifyResponseStatus(response, NO_CONTENT);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: deleteGatekeeperDestination took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: deleteGatekeeperDestination took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -1122,7 +1111,7 @@ public class FlowStoreServiceConnector {
     public GatekeeperDestination updateGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: updateGatekeeperDestination()");
+            LOGGER.trace("FlowStoreServiceConnector: updateGatekeeperDestination()");
             InvariantUtil.checkNotNullOrThrow(gatekeeperDestination, "gatekeeperDestination");
 
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
@@ -1137,7 +1126,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, GatekeeperDestination.class);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: updateGatekeeperDestination took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: updateGatekeeperDestination took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -1159,7 +1148,7 @@ public class FlowStoreServiceConnector {
     public <T> T createHarvesterConfig(Object configContent, Class<T> type) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: createHarvesterConfig called with content='{}', type='{}'",
+            LOGGER.trace("FlowStoreServiceConnector: createHarvesterConfig called with content='{}', type='{}'",
                     InvariantUtil.checkNotNullOrThrow(configContent, "configContent"), type);
 
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
@@ -1174,7 +1163,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, type);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: createHarvesterConfig took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: createHarvesterConfig took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -1190,7 +1179,7 @@ public class FlowStoreServiceConnector {
     public <T extends HarvesterConfig> T updateHarvesterConfig(T harvesterConfig) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: updateHarvesterConfig called with harvesterConfig='{}'",
+            LOGGER.trace("FlowStoreServiceConnector: updateHarvesterConfig called with harvesterConfig='{}'",
                     InvariantUtil.checkNotNullOrThrow(harvesterConfig, "harvesterConfig"));
 
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIG)
@@ -1204,10 +1193,11 @@ public class FlowStoreServiceConnector {
                     .withJsonData(harvesterConfig.getContent())
                     .execute()) {
                 verifyResponseStatus(response, Response.Status.OK);
+                //noinspection unchecked
                 return (T) readResponseEntity(response, harvesterConfig.getClass());
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: updateHarvesterConfig took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: updateHarvesterConfig took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -1226,7 +1216,7 @@ public class FlowStoreServiceConnector {
     public <T> T getHarvesterConfig(long id, Class<T> type) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("FlowStoreServiceConnector: getHarvesterConfig called with id={}, type='{}'",
+            LOGGER.trace("FlowStoreServiceConnector: getHarvesterConfig called with id={}, type='{}'",
                     id, InvariantUtil.checkNotNullOrThrow(type, "type"));
 
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIG)
@@ -1240,7 +1230,7 @@ public class FlowStoreServiceConnector {
                 return readResponseEntity(response, type);
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: getHarvesterConfig took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: getHarvesterConfig took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -1256,7 +1246,7 @@ public class FlowStoreServiceConnector {
     public void deleteHarvesterConfig(long id, long version) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            log.trace("deleteHarvesterConfig({}, {})", id, version);
+            LOGGER.trace("deleteHarvesterConfig({}, {})", id, version);
 
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIG)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
@@ -1269,7 +1259,7 @@ public class FlowStoreServiceConnector {
                 verifyResponseStatus(response, NO_CONTENT);
             }
         } finally {
-            log.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -1289,15 +1279,16 @@ public class FlowStoreServiceConnector {
             final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE_ENABLED)
                     .bind(FlowStoreServiceConstants.TYPE_VARIABLE, type.getName());
 
-            try (Response response = new HttpGet(failSafeHttpClient)
+            HttpGet httpGet = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
-                    .withPathElements(path.build())
-                    .execute()) {
+                    .withPathElements(path.build());
+            LOGGER.info("Retrieving harvester config from, {}", httpGet);
+            try (Response response = httpGet.execute()) {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseGenericTypeEntity(response, new GenericType<>(createListGenericType(type)));
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: findEnabledHarvesterConfigsByType took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: findEnabledHarvesterConfigsByType took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -1325,7 +1316,7 @@ public class FlowStoreServiceConnector {
                 return readResponseGenericTypeEntity(response, new GenericType<>(createListGenericType(type)));
             }
         } finally {
-            log.debug("FlowStoreServiceConnector: findHarvesterConfigsByType took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("FlowStoreServiceConnector: findHarvesterConfigsByType took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -1343,12 +1334,12 @@ public class FlowStoreServiceConnector {
                     exception.setFlowStoreError(readResponseEntity(response, FlowStoreError.class));
                 } catch (FlowStoreServiceConnectorException | ProcessingException e) {
                     try {
-                        log.error("request sent to {} returned: {}",
+                        LOGGER.error("request sent to {} returned: {}",
                                 HttpClient.getRemoteHostAddress(baseUrl), readResponseEntity(response, String.class));
                     } catch (FlowStoreServiceConnectorException fssce) {
-                        log.warn("Unable to extract entity from response", e);
+                        LOGGER.warn("Unable to extract entity from response", e);
                     }
-                    log.warn("Unable to extract flow-store error from response", e);
+                    LOGGER.warn("Unable to extract flow-store error from response", e);
                 }
             }
             throw exception;
@@ -1379,6 +1370,7 @@ public class FlowStoreServiceConnector {
         return failSafeHttpClient.getClient();
     }
 
+    @SuppressWarnings("unused")
     public String getBaseUrl() {
         return baseUrl;
     }

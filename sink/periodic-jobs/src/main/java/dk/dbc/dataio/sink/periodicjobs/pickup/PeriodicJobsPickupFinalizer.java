@@ -11,12 +11,12 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
-import dk.dbc.weekresolver.WeekResolverConnector;
-import dk.dbc.weekresolver.WeekResolverConnectorException;
-import dk.dbc.weekresolver.WeekResolverResult;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
+import dk.dbc.weekresolver.model.WeekResolverResult;
+import jakarta.persistence.EntityManager;
+import jakarta.ws.rs.ProcessingException;
 
-import javax.persistence.EntityManager;
-import javax.ws.rs.ProcessingException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -48,13 +48,13 @@ public abstract class PeriodicJobsPickupFinalizer {
         // timestamp is carried through the entire dataIO
         // infrastructure for each job.
         return new MacroSubstitutor(delivery.getConfig().getContent().getTimeOfLastHarvest().toInstant(),
-                this::getWeekcode)
+                this::getWeekCode)
                 .add("__JOBID__", delivery.getJobId().toString())
                 .add("__TODAY__", LocalDate.now().toString())
                 .add("__JOBNAME__", delivery.getConfig().getContent().getName());
     }
 
-    private boolean isIgnoredJob(long jobId) throws InvalidMessageException {
+    private boolean isIgnoredJob(long jobId) {
         final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshot(jobId);
         if (jobInfoSnapshot != null) {
             final State state = jobInfoSnapshot.getState();
@@ -101,9 +101,9 @@ public abstract class PeriodicJobsPickupFinalizer {
         return null;
     }
 
-    private String getWeekcode(String catalogueCode, LocalDate localDate) {
+    private String getWeekCode(String catalogueCode, LocalDate localDate) {
         try {
-            final WeekResolverResult weekResolverResult = weekResolverConnector.getCurrentWeekCode(catalogueCode, localDate);
+            final WeekResolverResult weekResolverResult = weekResolverConnector.getCurrentWeekCodeForDate(catalogueCode, localDate);
             return String.format("%d%02d", weekResolverResult.getYear(), weekResolverResult.getWeekNumber());
         } catch (WeekResolverConnectorException e) {
             throw new ProcessingException(e);

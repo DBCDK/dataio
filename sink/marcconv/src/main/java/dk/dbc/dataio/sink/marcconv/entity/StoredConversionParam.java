@@ -1,8 +1,13 @@
 package dk.dbc.dataio.sink.marcconv.entity;
 
 import dk.dbc.dataio.commons.conversion.ConversionParam;
-
-import javax.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "param")

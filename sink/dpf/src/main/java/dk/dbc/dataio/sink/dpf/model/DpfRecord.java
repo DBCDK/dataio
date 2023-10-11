@@ -1,7 +1,7 @@
 package dk.dbc.dataio.sink.dpf.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.dbc.dataio.sink.dpf.transform.MarcRecordFactory;
-import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.Applicant;
 import dk.dbc.lobby.ApplicantState;
 import dk.dbc.marc.binding.DataField;
@@ -45,7 +45,7 @@ public class DpfRecord extends AbstractMarcRecord {
         return body;
     }
 
-    public Applicant toLobbyApplicant() throws JSONBException {
+    public Applicant toLobbyApplicant() throws JsonProcessingException {
         final Applicant applicant = new Applicant();
         applicant.setId(getId());
         applicant.setCategory("dpf");

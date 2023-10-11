@@ -4,13 +4,13 @@ import dk.dbc.dataio.sink.openupdate.bindings.BibliographicRecordExtraData;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import org.junit.Test;
 import org.w3c.dom.Element;
 import org.xmlunit.matchers.CompareMatcher;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.TransformerException;
 import java.nio.charset.StandardCharsets;
 

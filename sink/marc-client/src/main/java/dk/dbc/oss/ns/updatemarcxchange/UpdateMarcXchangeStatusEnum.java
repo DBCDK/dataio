@@ -1,26 +1,25 @@
 
 package dk.dbc.oss.ns.updatemarcxchange;
 
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlEnumValue;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlEnum;
+import jakarta.xml.bind.annotation.XmlEnumValue;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * <p>Java class for updateMarcXchangeStatusEnum.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- * <p>
- * <pre>
- * &lt;simpleType name="updateMarcXchangeStatusEnum"&gt;
- *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string"&gt;
- *     &lt;enumeration value="ok"/&gt;
- *     &lt;enumeration value="update_failed_please_resend_later"/&gt;
- *     &lt;enumeration value="update_failed_invalid_record"/&gt;
- *     &lt;enumeration value="update_failed_fatal_internal_error"/&gt;
- *   &lt;/restriction&gt;
- * &lt;/simpleType&gt;
- * </pre>
+ * <pre>{@code
+ * <simpleType name="updateMarcXchangeStatusEnum">
+ *   <restriction base="{http://www.w3.org/2001/XMLSchema}string">
+ *     <enumeration value="ok"/>
+ *     <enumeration value="update_failed_please_resend_later"/>
+ *     <enumeration value="update_failed_invalid_record"/>
+ *     <enumeration value="update_failed_fatal_internal_error"/>
+ *   </restriction>
+ * </simpleType>
+ * }</pre>
  * 
  */
 @XmlType(name = "updateMarcXchangeStatusEnum")

@@ -3,10 +3,10 @@ package dk.dbc.dataio.sink.batchexchange;
 import dk.dbc.dataio.jse.artemis.common.Health;
 import dk.dbc.dataio.jse.artemis.common.service.HealthService;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
+import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.Executors;

@@ -2,10 +2,10 @@ package dk.dbc.dataio.sink.worldcat;
 
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
-import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.ocnrepo.OcnRepoDatabaseMigrator;
 import org.junit.Before;
+
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;

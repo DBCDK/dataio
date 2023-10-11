@@ -10,27 +10,26 @@ import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvestRequest;
 import dk.dbc.dataio.harvester.types.HarvestSelectorRequest;
 import dk.dbc.invariant.InvariantUtil;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Stateless;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 
 @Stateless
 @Path("/")
 public class HarvestTasksBean {
+    private final JSONBContext jsonbContext = new JSONBContext();
     @EJB
     TaskRepo taskRepo;
-
-    private JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Creates a new harvest task
@@ -50,7 +49,7 @@ public class HarvestTasksBean {
                                       @PathParam(HarvesterServiceConstants.HARVEST_ID_VARIABLE) long harvestId,
                                       String request) {
         try {
-            final HarvestTask task = toHarvestTask(parseRequest(request));
+            HarvestTask task = toHarvestTask(parseRequest(request));
             task.setConfigId(harvestId);
             taskRepo.getEntityManager().persist(task);
             taskRepo.getEntityManager().flush();
@@ -61,15 +60,15 @@ public class HarvestTasksBean {
         }
     }
 
-    private HarvestRequest parseRequest(String request) throws JSONBException {
+    private HarvestRequest<?> parseRequest(String request) throws JSONBException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(request, "request");
         return jsonbContext.unmarshall(request, HarvestRequest.class);
     }
 
-    private HarvestTask toHarvestTask(HarvestRequest harvestRequest) throws IllegalStateException {
-        final HarvestTask task = new HarvestTask();
+    private HarvestTask toHarvestTask(HarvestRequest<?> harvestRequest) throws IllegalStateException {
+        HarvestTask task = new HarvestTask();
         if (harvestRequest instanceof HarvestRecordsRequest) {
-            final HarvestRecordsRequest request = (HarvestRecordsRequest) harvestRequest;
+            HarvestRecordsRequest request = (HarvestRecordsRequest) harvestRequest;
             task.setRecords(request.getRecords());
             task.setNumberOfRecords(request.getRecords().size());
             task.setBasedOnJob(request.getBasedOnJob());

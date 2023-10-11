@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -222,8 +223,10 @@ public abstract class AbstractJobStoreServiceContainerTest {
     }
 
     static void migrateJobstore(DataSource dataSource) {
+        Path path = Path.of("../../job-store-service/war/target/classes/db/migration");
+        LOGGER.info("Running flyway migration scripts in {}, which are {}", path.toAbsolutePath().normalize(), Files.isDirectory(path) ? "present" : "missing");
         Flyway flyway = Flyway.configure()
-                .locations("filesystem:../../job-store-service/war/target/classes/db/migration")
+                .locations("filesystem:" + path)
                 .table("schema_version_2")
                 .baselineOnMigrate(true)
                 .baselineVersion("1")

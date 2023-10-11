@@ -24,7 +24,7 @@ import static dk.dbc.dataio.jse.artemis.common.Config.ARTEMIS_USER;
 
 public class ZombieWatch {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZombieWatch.class);
-    private AdminClient adminClient;
+    private final AdminClient adminClient;
     private final HealthService healthService;
     private final Map<QueueKey, AtomicLong> monitors = new HashMap<>();
     private final Map<String, Runnable> checks = new ConcurrentHashMap<>();
@@ -37,6 +37,7 @@ public class ZombieWatch {
                 .map(port -> new AdminClient("http://" + host + ":" + port, ARTEMIS_USER.toString(), ARTEMIS_PASSWORD.toString()))).orElse(null);
     }
 
+    @SuppressWarnings("unused")
     public void addCheck(String name, Runnable runnable) {
         checks.putIfAbsent(name, runnable);
     }

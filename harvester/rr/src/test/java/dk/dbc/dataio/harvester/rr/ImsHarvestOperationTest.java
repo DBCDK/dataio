@@ -25,8 +25,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -39,9 +37,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ImsHarvestOperationTest extends HarvestOperationTest {
-    private final static Set<Integer> IMS_LIBRARIES = Stream.of(710100, 737000, 775100, 785100)
-            .collect(Collectors.toSet());
-
+    private final static Set<Integer> IMS_LIBRARIES = Set.of(710100, 737000, 775100, 785100);
     private final VipCoreConnection vipCoreConnection = mock(VipCoreConnection.class);
     private final HoldingsItemsConnector holdingsItemsConnector = mock(HoldingsItemsConnector.class);
 
@@ -107,7 +103,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         record.setDeleted(true);
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(DBC_RECORD_ID.getBibliographicRecordId(), record);
                 }});
 

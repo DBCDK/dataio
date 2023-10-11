@@ -6,10 +6,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>jse-app</artifactId>
+        <artifactId>dataio-sink</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>1.0-SNAPSHOT</version>
-        <relativePath>../../jse-app</relativePath>
+        <version>2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>dataio-sink-dmat</artifactId>
@@ -21,9 +20,25 @@
     <dependencies>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dmat-connector</artifactId>
-            <version>1.28-SNAPSHOT</version>
+            <artifactId>artemis-jse-app</artifactId>
         </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-addi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dmat-connector</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-test</artifactId>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.fasterxml.jackson.datatype</groupId>-->
+<!--            <artifactId>jackson-datatype-jsr310</artifactId>-->
+<!--            <version>${jackson.version}</version>-->
+<!--        </dependency>-->
     </dependencies>
 
     <build>
@@ -43,6 +58,7 @@
         <profile>
             <id>docker-push</id>
             <properties>
+                <!--suppress UnresolvedMavenProperty -->
                 <tag>DIT-${BUILD_NUMBER}</tag>
             </properties>
             <build>

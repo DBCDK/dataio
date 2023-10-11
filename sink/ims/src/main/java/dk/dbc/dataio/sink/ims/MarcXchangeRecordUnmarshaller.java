@@ -3,11 +3,11 @@ package dk.dbc.dataio.sink.ims;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.oss.ns.updatemarcxchange.MarcXchangeRecord;
 import info.lc.xmlns.marcxchange_v1.CollectionType;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayInputStream;
 

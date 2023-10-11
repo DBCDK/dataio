@@ -4,10 +4,10 @@ import dk.dbc.batchexchange.BatchExchangeDatabaseMigrator;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.jse.artemis.common.db.JPAHelper;
+import jakarta.persistence.EntityManager;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
-import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;

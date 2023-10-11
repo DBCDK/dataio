@@ -3,8 +3,8 @@ package dk.dbc.dataio.sink.batchexchange;
 import dk.dbc.dataio.jse.artemis.common.app.MessageConsumerApp;
 import dk.dbc.dataio.jse.artemis.common.db.JPAHelper;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
+import jakarta.persistence.EntityManager;
 
-import javax.persistence.EntityManager;
 import java.util.function.Supplier;
 
 public class BatchExchangeSinkApp extends MessageConsumerApp {

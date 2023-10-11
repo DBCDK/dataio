@@ -1,26 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <artifactId>p6</artifactId>
-    <groupId>dk.dbc</groupId>
-    <version>2.0-SNAPSHOT</version>
-    <relativePath>../p6</relativePath>
-  </parent>
+    <parent>
+        <artifactId>dataio</artifactId>
+        <groupId>dk.dbc</groupId>
+        <version>2.0-SNAPSHOT</version>
+    </parent>
 
-  <artifactId>dataio-job-store-service</artifactId>
-  <name>dataio-job-store-service</name>
-  <packaging>pom</packaging>
+    <artifactId>dataio-job-store-service</artifactId>
+    <packaging>pom</packaging>
 
-  <modules>
-    <module>test</module>
-    <module>types</module>
-    <module>war</module>
-<!--    <module>developer-tools</module> Wants to use javax.jms -->
-  </modules>
+    <modules>
+        <module>test</module>
+        <module>types</module>
+        <module>war</module>
+        <module>developer-tools</module>
+    </modules>
 
 </project>

@@ -1,15 +1,15 @@
 package dk.dbc.oclc.wciru;
 
 import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
+import jakarta.xml.ws.Binding;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.EndpointReference;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.ws.Binding;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.EndpointReference;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;

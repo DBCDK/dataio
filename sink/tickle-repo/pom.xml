@@ -6,10 +6,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>jse-app</artifactId>
+        <artifactId>dataio-sink</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>1.0-SNAPSHOT</version>
-        <relativePath>../../jse-app</relativePath>
+        <version>2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>dataio-sink-tickle-repo</artifactId>
@@ -22,12 +21,10 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>artemis-jse-db-app</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-cache</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -36,19 +33,16 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-sink-testutil</artifactId>
-            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-jdbc-util</artifactId>
-            <version>1.3-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>dk.dbc</groupId>
           <artifactId>tickle-repo-api</artifactId>
-          <version>1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -62,11 +56,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-testcontainers</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>json-binding</artifactId>
-            <version>0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
@@ -102,6 +91,7 @@
         <profile>
             <id>docker-push</id>
             <properties>
+                <!--suppress UnresolvedMavenProperty -->
                 <tag>DIT-${BUILD_NUMBER}</tag>
             </properties>
             <build>

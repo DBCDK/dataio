@@ -2,10 +2,9 @@ package dk.dbc.dataio.harvester.dmat;
 
 import dk.dbc.dataio.harvester.AbstractHarvesterConfigurationBean;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
+import jakarta.ejb.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ejb.Singleton;
 
 @Singleton
 public class HarvesterConfigurationBean extends AbstractHarvesterConfigurationBean<DMatHarvesterConfig> {

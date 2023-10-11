@@ -15,13 +15,14 @@ import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import jakarta.ws.rs.client.ClientBuilder;
 import org.eclipse.microprofile.metrics.Tag;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.ws.rs.client.ClientBuilder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -41,7 +42,7 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
         super(serviceHub);
         this.entityManager = entityManager;
         ocnRepo = new OcnRepo(entityManager);
-        flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FLOWSTORE_URL.asString());
+        flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FLOWSTORE_URL.asString());
         worldCatConfigBean = new WorldCatConfigBean(flowStoreServiceConnector);
     }
 

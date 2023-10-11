@@ -3,9 +3,9 @@ package dk.dbc.dataio.jse.artemis.common.service;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.jse.artemis.common.Config;
 import dk.dbc.dataio.registry.PrometheusMetricRegistry;
+import jakarta.ws.rs.client.ClientBuilder;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-
-import javax.ws.rs.client.ClientBuilder;
+import org.glassfish.jersey.jackson.JacksonFeature;
 
 
 public class ServiceHub implements AutoCloseable {
@@ -25,6 +25,7 @@ public class ServiceHub implements AutoCloseable {
         this.jobStoreServiceConnector = jobStoreServiceConnector;
     }
 
+    @SuppressWarnings("unused")
     public static ServiceHub defaultHub() {
         return new ServiceHub.Builder().build();
     }
@@ -41,7 +42,7 @@ public class ServiceHub implements AutoCloseable {
         private HealthService healthService = null;
         private MetricsService metricsService = null;
         private ZombieWatch zombieWatch = null;
-        private JobStoreServiceConnector jobStoreServiceConnector = Config.JOBSTORE_URL.asOptionalString().map(js -> new JobStoreServiceConnector(ClientBuilder.newClient(), js)).orElse(null);
+        private JobStoreServiceConnector jobStoreServiceConnector = Config.JOBSTORE_URL.asOptionalString().map(js -> new JobStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), js)).orElse(null);
 
         public ServiceHub build() {
             if(httpService == null) httpService = new HttpService(Config.WEB_PORT.asInteger());

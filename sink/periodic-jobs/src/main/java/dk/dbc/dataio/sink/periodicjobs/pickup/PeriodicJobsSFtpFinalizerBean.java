@@ -2,6 +2,7 @@ package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import dk.dbc.commons.sftpclient.SFTPConfig;
 import dk.dbc.commons.sftpclient.SFtpClient;
+import dk.dbc.commons.sftpclient.SFtpClientException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
@@ -91,7 +92,7 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
         try (BufferedInputStream dataBlockStream = new BufferedInputStream(new FileInputStream(local), 1024);
              SFtpClient sFtpClient = open(sFtpPickup)) {
              sFtpClient.putContent(remote, dataBlockStream);
-        } catch (IOException e) {
+        } catch (IOException | SFtpClientException e) {
             throw new InvalidMessageException(String.format("Unable to upload file to: %s@%s",
                     sFtpPickup.getsFtpUser(), sFtpPickup.getsFtpHost()), e);
         }

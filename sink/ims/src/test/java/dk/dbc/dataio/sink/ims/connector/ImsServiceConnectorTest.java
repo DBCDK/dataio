@@ -6,12 +6,12 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.sink.ims.MarcXchangeRecordUnmarshaller;
 import dk.dbc.oss.ns.updatemarcxchange.MarcXchangeRecord;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.ws.WebServiceException;
 import net.jodah.failsafe.RetryPolicy;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.ws.WebServiceException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

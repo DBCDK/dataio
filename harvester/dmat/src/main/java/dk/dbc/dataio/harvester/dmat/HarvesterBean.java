@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.dmat;
 
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -7,16 +8,14 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Singleton;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ejb.EJB;
-import javax.ejb.Singleton;
-import javax.inject.Inject;
 
 @Singleton
 public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarvesterConfig> {

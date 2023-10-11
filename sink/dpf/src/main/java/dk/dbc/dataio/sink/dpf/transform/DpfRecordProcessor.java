@@ -1,9 +1,10 @@
 package dk.dbc.dataio.sink.dpf.transform;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.sink.dpf.ServiceBroker;
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
-import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.LobbyConnectorException;
 import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.Field;
@@ -18,7 +19,7 @@ import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.weekresolver.WeekResolverConnectorException;
+import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -90,7 +91,7 @@ public class DpfRecordProcessor {
         try {
             serviceBroker.sendToLobby(dpfRecord);
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.SENT_TO_LOBBY));
-        } catch (LobbyConnectorException | JSONBException e) {
+        } catch (LobbyConnectorException | JsonProcessingException e) {
             throw new DpfRecordProcessorException(
                     "Unable to send DPF record '" + dpfRecord.getId() + "' to lobby", e);
         }

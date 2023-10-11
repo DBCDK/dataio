@@ -36,6 +36,7 @@ import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnectorFactory;
 import dk.dbc.vipcore.marshallers.LibraryRule;
 import dk.dbc.vipcore.marshallers.LibraryRules;
+import jakarta.ws.rs.client.Client;
 import org.apache.commons.codec.binary.Base64;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -44,7 +45,6 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import javax.sql.DataSource;
-import javax.ws.rs.client.Client;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;

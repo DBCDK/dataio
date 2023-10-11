@@ -1,8 +1,8 @@
 package dk.dbc.dataio.sink.dpf.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.dataio.sink.dpf.transform.MarcRecordFactory;
-import dk.dbc.jsonb.JSONBContext;
-import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.Applicant;
 import dk.dbc.lobby.ApplicantState;
 import dk.dbc.marc.binding.DataField;
@@ -21,7 +21,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class DpfRecordTest {
-    private final JSONBContext jsonbContext = new JSONBContext();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
     public void hasErrors() {
@@ -34,7 +34,7 @@ public class DpfRecordTest {
     }
 
     @Test
-    public void toLobbyApplicant() throws JSONBException {
+    public void toLobbyApplicant() throws JsonProcessingException {
         final ProcessingInstructions expectedProcessingInstructions = newProcessingInstructions()
                 .withErrors(Arrays.asList("err1", "err2"));
         final MarcRecord expectedMarcRecord = newMarcRecord()
@@ -63,7 +63,7 @@ public class DpfRecordTest {
         assertThat("applicant body", new String(applicant.getBody(), StandardCharsets.UTF_8),
                 is(new String(MarcRecordFactory.toMarcXchange(expectedMarcRecord), StandardCharsets.UTF_8)));
         assertThat("applicant additional info", applicant.getAdditionalInfo().toString(),
-                is(jsonbContext.marshall(expectedProcessingInstructions)));
+                is(mapper.writeValueAsString(expectedProcessingInstructions)));
     }
 
     @Test

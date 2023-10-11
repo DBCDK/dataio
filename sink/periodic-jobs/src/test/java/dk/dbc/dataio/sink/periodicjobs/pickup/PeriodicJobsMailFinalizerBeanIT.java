@@ -10,9 +10,9 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.sink.periodicjobs.IntegrationTest;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlock;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
-import dk.dbc.weekresolver.WeekResolverConnector;
-import dk.dbc.weekresolver.WeekResolverConnectorException;
-import dk.dbc.weekresolver.WeekResolverResult;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
+import dk.dbc.weekresolver.model.WeekResolverResult;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
@@ -22,7 +22,6 @@ import jakarta.mail.internet.MimeMultipart;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
-
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -175,7 +174,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(31);
-        when(weekResolverConnector.getCurrentWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
+        when(weekResolverConnector.getCurrentWeekCodeForDate(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
 
         final int jobId = 42;
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
@@ -202,7 +201,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(41);
-        when(weekResolverConnector.getCurrentWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
+        when(weekResolverConnector.getCurrentWeekCodeForDate(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
@@ -253,7 +252,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(41);
-        when(weekResolverConnector.getCurrentWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
+        when(weekResolverConnector.getCurrentWeekCodeForDate(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
@@ -314,7 +313,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(41);
-        when(weekResolverConnector.getCurrentWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
+        when(weekResolverConnector.getCurrentWeekCodeForDate(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));

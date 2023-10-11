@@ -3,8 +3,8 @@ package dk.dbc.dataio.sink.dmat;
 import dk.dbc.dataio.jse.artemis.common.app.MessageConsumerApp;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
+import dk.dbc.dmat.service.connector.DMatServiceConnectorFactory;
 
-import javax.ws.rs.client.ClientBuilder;
 import java.util.function.Supplier;
 
 /**
@@ -13,7 +13,7 @@ import java.util.function.Supplier;
  */
 public class DMatSinkApp extends MessageConsumerApp {
     private static final ServiceHub serviceHub = ServiceHub.defaultHub();
-    private static final DMatServiceConnector DMAT_SERVICE_CONNECTOR = new DMatServiceConnector(ClientBuilder.newClient(), SinkConfig.DMAT_SERVICE_URL.asString());
+    private static final DMatServiceConnector DMAT_SERVICE_CONNECTOR = DMatServiceConnectorFactory.createWithoutRetryPolicy(SinkConfig.DMAT_SERVICE_URL.asString());
     private static final Supplier<DMatMessageConsumer> messageConsumer = () -> new DMatMessageConsumer(serviceHub, DMAT_SERVICE_CONNECTOR);
 
     public static void main(String[] args) {

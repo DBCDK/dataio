@@ -1,6 +1,7 @@
 package dk.dbc.dataio.sink.periodicjobs;
 
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.function.Function;

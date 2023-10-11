@@ -3,12 +3,12 @@ package dk.dbc.dataio.urlresolver.service.connector;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.invariant.InvariantUtil;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
 import java.util.Map;
 
 public class UrlResolverServiceConnector {

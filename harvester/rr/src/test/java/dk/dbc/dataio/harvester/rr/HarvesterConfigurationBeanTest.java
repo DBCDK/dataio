@@ -1,6 +1,5 @@
 package dk.dbc.dataio.harvester.rr;
 
-import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
@@ -23,7 +22,7 @@ import static org.mockito.Mockito.when;
 public class HarvesterConfigurationBeanTest {
     private final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private final Class rrHarvesterConfigurationType = RRHarvesterConfig.class;
+    private final Class<RRHarvesterConfig> rrHarvesterConfigurationType = RRHarvesterConfig.class;
 
     @Before
     public void setupMocks() {
@@ -31,21 +30,19 @@ public class HarvesterConfigurationBeanTest {
     }
 
     @Test
-    public void reload_flowStoreLookupThrows_throws() throws FlowStoreServiceConnectorException, HarvesterException {
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType))
-                .thenThrow(new FlowStoreServiceConnectorException("Died"));
+    public void reload_flowStoreLookupThrows_throws() throws FlowStoreServiceConnectorException {
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType)).thenThrow(new FlowStoreServiceConnectorException("Died"));
 
-        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
         assertThat(bean::reload, isThrowing(HarvesterException.class));
     }
 
     @Test
     public void reload_flowStoreLookupReturns_setsConfigs() throws FlowStoreServiceConnectorException, HarvesterException {
-        final List<RRHarvesterConfig> configs = new ArrayList<>(0);
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType))
-                .thenReturn(configs);
+        List<RRHarvesterConfig> configs = new ArrayList<>(0);
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType)).thenReturn(configs);
 
-        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
         bean.configs = new ArrayList<>(Collections.singletonList(new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content())));
         bean.reload();
         assertThat("config after initialize", bean.configs, is(configs));
@@ -53,20 +50,20 @@ public class HarvesterConfigurationBeanTest {
 
     @Test
     public void get_returnsEmptyListOnNullConfigs() {
-        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
         assertThat(bean.get(), is(Collections.emptyList()));
     }
 
     @Test
-    public void get_returnsConfigs() throws JSONBException {
-        final List<RRHarvesterConfig> configs = Collections.singletonList(new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()));
-        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+    public void get_returnsConfigs() {
+        List<RRHarvesterConfig> configs = Collections.singletonList(new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()));
+        HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
         bean.configs = configs;
         assertThat(bean.get(), is(configs));
     }
 
     private HarvesterConfigurationBean newHarvesterConfigurationBean() {
-        final HarvesterConfigurationBean harvesterConfigurationBean = new HarvesterConfigurationBean();
+        HarvesterConfigurationBean harvesterConfigurationBean = new HarvesterConfigurationBean();
         harvesterConfigurationBean.flowStoreServiceConnectorBean = flowStoreServiceConnectorBean;
         return harvesterConfigurationBean;
     }

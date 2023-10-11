@@ -60,9 +60,7 @@ public class CreateCommand extends Command<CreateOptions> {
             testSuites.addAll(TestSuite.findAllTestSuites(getCurrentWorkingDirectory()));
         } else {
             final Optional<TestSuite> testSuite = TestSuite.findTestSuite(getCurrentWorkingDirectory(), options.testsuite);
-            if (testSuite.isPresent()) {
-                testSuites.add(testSuite.get());
-            }
+            testSuite.ifPresent(testSuites::add);
         }
         return testSuites;
     }

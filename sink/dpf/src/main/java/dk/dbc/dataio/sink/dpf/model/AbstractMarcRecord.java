@@ -30,7 +30,7 @@ public class AbstractMarcRecord {
     void setSubfieldValue(String tag, char code, String value) {
         DataField dataField = null;
 
-        for (Field field : body.getFields()) {
+        for (Field<?> field : body.getFields()) {
             if (tag.equals(field.getTag())) {
                 dataField = (DataField) field;
             }
@@ -52,7 +52,7 @@ public class AbstractMarcRecord {
         body.addField(dataField);
     }
 
-    public void addField(Field field) {
+    public void addField(Field<?> field) {
         body.addField(field);
     }
 

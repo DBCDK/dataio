@@ -19,14 +19,14 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.testee.NonContainerManagedExecutorService;
 import dk.dbc.testee.SameThreadExecutorService;
-import dk.dbc.weekresolver.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import jakarta.enterprise.concurrent.ManagedExecutorService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.rules.TemporaryFolder;
 
-import javax.enterprise.concurrent.ManagedExecutorService;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -61,8 +61,7 @@ public class HarvestOperationTest {
     private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
     private final WeekResolverConnector weekResolverConnector = mock(WeekResolverConnector.class);
     private final RecordSearcher recordSearcher = mock(RecordSearcher.class);
-    private final ManagedExecutorService managedExecutorService = new NonContainerManagedExecutorService(
-            new SameThreadExecutorService());
+    private final ManagedExecutorService managedExecutorService = new NonContainerManagedExecutorService(new SameThreadExecutorService());
     private FileStoreServiceConnector fileStoreServiceConnector;
     private BinaryFileStore binaryFileStore;
 

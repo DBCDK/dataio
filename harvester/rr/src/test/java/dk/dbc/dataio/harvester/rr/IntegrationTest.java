@@ -5,8 +5,8 @@ import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.harvester.task.TaskRepoDatabaseMigrator;
 import org.junit.After;
+
 import javax.sql.DataSource;
-import java.util.Map;
 
 public abstract class IntegrationTest extends JpaIntegrationTest implements PostgresContainerJPAUtils {
 
@@ -36,10 +36,6 @@ public abstract class IntegrationTest extends JpaIntegrationTest implements Post
 
     private DataSource getDataSource() {
         return dbContainer.datasource();
-    }
-
-    private Map<String, String> getEntityManagerFactoryProperties() {
-        return dbContainer.entityManagerProperties();
     }
 
     private void migrateDatabase(DataSource datasource) {

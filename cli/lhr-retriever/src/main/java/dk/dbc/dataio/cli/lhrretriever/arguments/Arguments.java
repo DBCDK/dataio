@@ -12,7 +12,7 @@ public class Arguments {
     public String outputPath;
 
     public static Arguments parseArgs(String[] args) throws ArgParseException {
-        ArgumentParser parser = ArgumentParsers.newArgumentParser("lhr-retriever");
+        ArgumentParser parser = ArgumentParsers.newFor("lhr-retriever").build();
         parser.addArgument("config-path")
                 .help("path to config file with values for open agency and " +
                         "rawrepo connections");

@@ -7,13 +7,14 @@ import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
+import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,23 +33,23 @@ public class HarvesterTaskServiceConnectorTest {
 
     @Test
     public void createHarvestTask_harvestTaskCreated_returnsUri() throws HarvesterTaskServiceConnectorException {
-        final String taskId = createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(Response.Status.CREATED.getStatusCode(), "123");
+        String taskId = createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(Response.Status.CREATED.getStatusCode(), "123");
         assertThat(taskId, is("123"));
     }
 
     private String createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(int statusCode, Object returnValue) throws HarvesterTaskServiceConnectorException {
-        final AddiMetaData addiMetaData = new AddiMetaData().withOcn("ocn").withPid("pid");
-        final HarvestRecordsRequest harvestRecordsRequest = new HarvestRecordsRequest(Collections.singletonList(addiMetaData))
+        AddiMetaData addiMetaData = new AddiMetaData().withOcn("ocn").withPid("pid");
+        HarvestRecordsRequest harvestRecordsRequest = new HarvestRecordsRequest(Collections.singletonList(addiMetaData))
                 .withBasedOnJob(1);
-        final PathBuilder path = new PathBuilder(HarvesterServiceConstants.HARVEST_TASKS)
+        PathBuilder path = new PathBuilder(HarvesterServiceConstants.HARVEST_TASKS)
                 .bind(HarvesterServiceConstants.HARVEST_ID_VARIABLE, 12L);
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
+        HttpPost httpPost = new HttpPost(failSafeHttpClient)
                 .withBaseUrl(SERVICE_URL)
                 .withPathElements(path.build())
                 .withJsonData(harvestRecordsRequest);
 
-        when(failSafeHttpClient.execute(httpPost))
+        when(failSafeHttpClient.execute(any()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
 
         return rrHarvesterServiceConnector.createHarvestTask(12L, harvestRecordsRequest);

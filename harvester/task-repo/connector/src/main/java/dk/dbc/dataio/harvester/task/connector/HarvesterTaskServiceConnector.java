@@ -58,24 +58,29 @@ public class HarvesterTaskServiceConnector {
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 
-    public String createHarvestTask(long harvestId, HarvestRequest request)
-            throws ProcessingException, HarvesterTaskServiceConnectorException {
+    public String createHarvestTask(long harvestId, HarvestRequest request) throws ProcessingException, HarvesterTaskServiceConnectorException {
         log.trace("createHarvestTask({});", harvestId);
         final StopWatch stopWatch = new StopWatch();
         try {
             final PathBuilder path = new PathBuilder(HarvesterServiceConstants.HARVEST_TASKS)
                     .bind(HarvesterServiceConstants.HARVEST_ID_VARIABLE, harvestId);
-            final Response response = new HttpPost(failSafeHttpClient)
-                    .withBaseUrl(baseUrl)
-                    .withPathElements(path.build())
-                    .withJsonData(request)
-                    .execute();
+            HttpPost post = null;
             try {
-                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
-                log.info("HarvestTask created with location header {}.", response.getLocation().toString());
-                return response.getLocation().toString();
-            } finally {
-                response.close();
+                post = new HttpPost(failSafeHttpClient)
+                        .withBaseUrl(baseUrl)
+                        .withPathElements(path.build())
+                        .withJsonData(request);
+                try (Response response = post.execute()) {
+                    verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+                    log.info("HarvestTask created with location header {}.", response.getLocation().toString());
+                    return response.getLocation().toString();
+                }
+            } catch (HarvesterTaskServiceConnectorException he) {
+                log.error("Harvester request failed: {}", post);
+                throw he;
+            } catch (RuntimeException e) {
+                if(post != null) log.error("Harvester request failed: {}", post);
+                throw new ProcessingException(e);
             }
         } finally {
             log.debug("createHarvestTask() took {} milliseconds", stopWatch.getElapsedTime());

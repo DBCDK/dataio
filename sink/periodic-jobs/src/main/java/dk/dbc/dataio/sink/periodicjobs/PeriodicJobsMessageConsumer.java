@@ -1,5 +1,7 @@
 package dk.dbc.dataio.sink.periodicjobs;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -20,17 +22,16 @@ import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsFtpFinalizerBean;
 import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsHttpFinalizerBean;
 import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsMailFinalizerBean;
 import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsSFtpFinalizerBean;
-import dk.dbc.jsonb.JSONBContext;
-import dk.dbc.jsonb.JSONBException;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.proxy.ProxyBean;
-import dk.dbc.weekresolver.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import jakarta.ws.rs.client.ClientBuilder;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.ws.rs.client.ClientBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -43,7 +44,7 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     private final ConversionFactory conversionFactory = new ConversionFactory();
-    private final JSONBContext jsonbContext = new JSONBContext();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final FileStoreServiceConnector fileStoreServiceConnector;
 
@@ -58,9 +59,9 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
     public PeriodicJobsMessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
         super(serviceHub);
         this.entityManager = entityManager;
-        this.flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FLOWSTORE_URL.asString());
-        this.fileStoreServiceConnector = new FileStoreServiceConnector(ClientBuilder.newClient(), SinkConfig.FILESTORE_URL.asString());
-        this.weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient(), SinkConfig.WEEKRESOLVER_SERVICE_URL.asString());
+        this.flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FLOWSTORE_URL.asString());
+        this.fileStoreServiceConnector = new FileStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FILESTORE_URL.asString());
+        this.weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.WEEKRESOLVER_SERVICE_URL.asString());
 
         this.proxyBean = SinkConfig.PROXY_HOSTNAME.asOptionalString()
                 .map(s -> new ProxyBean(s)
@@ -274,9 +275,8 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
     private PeriodicJobsConversionParam getConversionParam(AddiRecord addiRecord) {
         try {
             // Extract parameters from ADDI metadata
-            return jsonbContext.unmarshall(
-                    StringUtil.asString(addiRecord.getMetaData()), PeriodicJobsConversionParam.class);
-        } catch (JSONBException e) {
+            return MAPPER.readValue(StringUtil.asString(addiRecord.getMetaData()), PeriodicJobsConversionParam.class);
+        } catch (JsonProcessingException e) {
             throw new ConversionException(e);
         }
     }

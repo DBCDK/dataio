@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.marcconv.jms;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import dk.dbc.commons.addi.AddiReader;
@@ -13,7 +14,6 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
@@ -21,12 +21,10 @@ import dk.dbc.dataio.sink.marcconv.SinkConfig;
 import dk.dbc.dataio.sink.marcconv.entity.ConversionBlock;
 import dk.dbc.dataio.sink.marcconv.entity.ConversionFinalizer;
 import dk.dbc.dataio.sink.marcconv.entity.StoredConversionParam;
-import dk.dbc.jsonb.JSONBContext;
-import dk.dbc.jsonb.JSONBException;
 import dk.dbc.log.DBCTrackedLogContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,7 +34,7 @@ import java.time.Duration;
 public class MessageConsumer extends MessageConsumerAdapter {
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
-    private final JSONBContext jsonbContext = new JSONBContext();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     private final ConversionFactory conversionFactory = new ConversionFactory();
     private final Cache<Integer, Conversion> conversionCache = CacheBuilder.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(10).build();
     private final EntityManager entityManager;
@@ -154,12 +152,12 @@ public class MessageConsumer extends MessageConsumerAdapter {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             while (addiReader.hasNext()) {
                 AddiRecord addiRecord = addiReader.next();
-                ConversionParam conversionParam = jsonbContext.unmarshall(StringUtil.asString(addiRecord.getMetaData()), ConversionParam.class);
+                ConversionParam conversionParam = MAPPER.readValue(new String(addiRecord.getMetaData(), StandardCharsets.UTF_8), ConversionParam.class);
                 Conversion conversion = getConversion(jobId, conversionParam);
                 appendToBuffer(buffer, conversion.apply(addiRecord.getContentData()));
             }
             return buffer.toByteArray();
-        } catch (IOException | JSONBException e) {
+        } catch (IOException e) {
             throw new ConversionException(e);
         }
     }

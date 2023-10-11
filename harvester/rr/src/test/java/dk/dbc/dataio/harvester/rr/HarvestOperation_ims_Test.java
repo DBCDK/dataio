@@ -21,6 +21,7 @@ import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
+import jakarta.persistence.EntityManager;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -31,7 +32,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -59,23 +59,26 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class HarvestOperation_ims_Test {
+    public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
     private static final Date QUEUED_TIME = new Date(1467277697583L); // 2016-06-30 11:08:17.583
     private static final String CONSUMER_ID = "consumerId";
     private static final int IMS_LIBRARY = 775100;
-
+    final RecordServiceConnector rawRepoRecordServiceConnector = mock(RecordServiceConnector.class);
     private final EntityManager entityManager = mock(EntityManager.class);
     private final TaskRepo taskRepo = new TaskRepo(entityManager);
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
-    final RecordServiceConnector rawRepoRecordServiceConnector = mock(RecordServiceConnector.class);
     private final VipCoreConnection vipCoreConnection = mock(VipCoreConnection.class);
     private final HoldingsItemsConnector holdingsItemsConnector = mock(HoldingsItemsConnector.class);
-
+    private final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
+    private final SimpleTimer timer = mock(SimpleTimer.class);
+    private final Counter counter = mock(Counter.class);
+    @Rule
+    public TemporaryFolder tmpFolder = new TemporaryFolder();
     private MockedJobStoreServiceConnector mockedJobStoreServiceConnector;
     private MockedFileStoreServiceConnector mockedFileStoreServiceConnector;
     private File harvesterDataFileWith710100;
     private File harvesterDataFileWith737000;
     private File harvesterDataFileWith775100;
-
     private List<AddiMetaData> addiMetaDataExpectationsFor710100;
     private List<AddiMetaData> addiMetaDataExpectationsFor737000;
     private List<AddiMetaData> addiMetaDataExpectationsFor775100;
@@ -83,25 +86,15 @@ public class HarvestOperation_ims_Test {
     private List<XmlExpectation> recordsExpectationsFor737000;
     private List<XmlExpectation> recordsExpectationsFor775100;
 
-    private final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
-
-    public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
-    private final SimpleTimer timer = mock(SimpleTimer.class);
-    private final Counter counter = mock(Counter.class);
-
-    @Rule
-    public TemporaryFolder tmpFolder = new TemporaryFolder();
-
     @Before
     public void setupMocks() throws IOException, HarvesterException {
         // Mock agency-connection and holdings-items lookup
-        final Set<Integer> imsLibraries = Stream.of(710100, 737000, 775100, 785100).collect(Collectors.toSet());
-        final Set<Integer> hasHoldingsResponse = new LinkedHashSet<>();
+        Set<Integer> imsLibraries = Stream.of(710100, 737000, 775100, 785100).collect(Collectors.toSet());
+        Set<Integer> hasHoldingsResponse = new LinkedHashSet<>();
         hasHoldingsResponse.add(710100);
         hasHoldingsResponse.add(737000);
         hasHoldingsResponse.add(123456);
-        when(holdingsItemsConnector.hasHoldings("dbc", imsLibraries))
-                .thenReturn(hasHoldingsResponse);
+        when(holdingsItemsConnector.hasHoldings("dbc", imsLibraries)).thenReturn(hasHoldingsResponse);
         when(vipCoreConnection.getFbsImsLibraries()).thenReturn(imsLibraries);
         when(metricRegistry.simpleTimer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
@@ -132,221 +125,158 @@ public class HarvestOperation_ims_Test {
     }
 
     @Test
-    public void harvest_multipleAgencyIdsHarvested_agencyIdsInSeparateJobs()
-            throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
+    public void harvest_multipleAgencyIdsHarvested_agencyIdsInSeparateJobs() throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
 
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("dbc", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcRecord = new RecordDTO();
+        RecordIdDTO dbcRecordId = new RecordIdDTO("dbc", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(dbcRecordId).getBytes(StandardCharsets.UTF_8));
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("dbc-head", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcHeadRecord = new RecordDTO();
+        RecordIdDTO dbcHeadRecordId = new RecordIdDTO("dbc-head", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcHeadRecord = new RecordDTO();
         dbcHeadRecord.setRecordId(dbcHeadRecordId);
         dbcHeadRecord.setCreated(Instant.now().toString());
         dbcHeadRecord.setContent(HarvestOperationTest.getRecordContent(dbcHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO dbcSectionRecordId = new RecordIdDTO("dbc-section", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcSectionRecord = new RecordDTO();
+        RecordIdDTO dbcSectionRecordId = new RecordIdDTO("dbc-section", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcSectionRecord = new RecordDTO();
         dbcSectionRecord.setRecordId(dbcSectionRecordId);
         dbcSectionRecord.setCreated(Instant.now().toString());
         dbcSectionRecord.setContent(HarvestOperationTest.getRecordContent(dbcSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsRecordId = new RecordIdDTO("ims", IMS_LIBRARY);
-        final RecordDTO imsRecord = new RecordDTO();
+        RecordIdDTO imsRecordId = new RecordIdDTO("ims", IMS_LIBRARY);
+        RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
 
         // Mock rawrepo return values
-        when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueItem(dbcRecordId, QUEUED_TIME))
-                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
-                .thenReturn(null);
+        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(dbcRecordId, QUEUED_TIME)).thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME)).thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
-                    put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
-                    put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
-                    put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
-                }})
-                .thenReturn(new HashMap<String, RecordDTO>() {{
-                    put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
-                    put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
-                    put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
-                }})
-                .thenReturn(new HashMap<String, RecordDTO>() {{
-                    put(imsRecordId.getBibliographicRecordId(), imsRecord);
-                }});
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class))).thenReturn(new HashMap<>() {{
+            put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
+            put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
+            put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
+        }}).thenReturn(new HashMap<>() {{
+            put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
+            put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
+            put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
+        }}).thenReturn(new HashMap<>() {{
+            put(imsRecordId.getBibliographicRecordId(), imsRecord);
+        }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class)))
-                .thenReturn(dbcRecord)
-                .thenReturn(dbcRecord)
-                .thenReturn(dbcRecord)
-                .thenReturn(dbcRecord)
-                .thenReturn(imsRecord)
-                .thenReturn(imsRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class))).thenReturn(dbcRecord).thenReturn(dbcRecord).thenReturn(dbcRecord).thenReturn(dbcRecord).thenReturn(imsRecord).thenReturn(imsRecord);
 
         // Setup harvester datafile content expectations
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
-        addiMetaDataExpectationsFor710100.add(new AddiMetaData()
-                .withBibliographicRecordId(dbcRecord.getRecordId().getBibliographicRecordId())
-                .withSubmitterNumber(710100)
-                .withFormat("katalog")
-                .withCreationDate(Date.from(Instant.parse(dbcRecord.getCreated())))
-                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
-                .withTrackingId(dbcRecord.getTrackingId())
-                .withDeleted(false)
-                .withLibraryRules(new AddiMetaData.LibraryRules()));
+        addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(dbcRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(dbcRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(dbcRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation737000 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation737000 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation737000.records.add(getMarcExchangeRecord(dbcHeadRecordId));
         marcExchangeCollectionExpectation737000.records.add(getMarcExchangeRecord(dbcSectionRecordId));
         marcExchangeCollectionExpectation737000.records.add(getMarcExchangeRecord(dbcRecordId));
         recordsExpectationsFor737000.add(marcExchangeCollectionExpectation737000);
-        addiMetaDataExpectationsFor737000.add(new AddiMetaData()
-                .withBibliographicRecordId(dbcRecord.getRecordId().getBibliographicRecordId())
-                .withSubmitterNumber(737000)
-                .withFormat("katalog")
-                .withCreationDate(Date.from(Instant.parse(dbcRecord.getCreated())))
-                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
-                .withTrackingId(dbcRecord.getTrackingId())
-                .withDeleted(false)
-                .withLibraryRules(new AddiMetaData.LibraryRules()));
+        addiMetaDataExpectationsFor737000.add(new AddiMetaData().withBibliographicRecordId(dbcRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(737000).withFormat("katalog").withCreationDate(Date.from(Instant.parse(dbcRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(dbcRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation775100 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation775100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation775100.records.add(getMarcExchangeRecord(imsRecordId));
         recordsExpectationsFor775100.add(marcExchangeCollectionExpectation775100);
-        addiMetaDataExpectationsFor775100.add(new AddiMetaData()
-                .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
-                .withSubmitterNumber(775100)
-                .withFormat("katalog")
-                .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
-                .withEnrichmentTrail(imsRecord.getEnrichmentTrail())
-                .withTrackingId(imsRecord.getTrackingId())
-                .withDeleted(false)
-                .withLibraryRules(new AddiMetaData.LibraryRules()));
+        addiMetaDataExpectationsFor775100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(775100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(imsRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        final ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
         addiFileVerifier.verify(harvesterDataFileWith737000, addiMetaDataExpectationsFor737000, recordsExpectationsFor737000);
         addiFileVerifier.verify(harvesterDataFileWith775100, addiMetaDataExpectationsFor775100, recordsExpectationsFor775100);
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                newImsHarvestOperation().getJobSpecificationTemplate(710100));
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                newImsHarvestOperation().getJobSpecificationTemplate(737000));
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                newImsHarvestOperation().getJobSpecificationTemplate(775100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(710100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(737000));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(775100));
     }
 
     @Test
-    public void imsRecordIsDeleted_870970RecordUsedInstead()
-            throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
-        final RecordIdDTO imsRecordId = new RecordIdDTO("faust", IMS_LIBRARY);
-        final RecordDTO imsRecord = new RecordDTO();
+    public void imsRecordIsDeleted_870970RecordUsedInstead() throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
+        RecordIdDTO imsRecordId = new RecordIdDTO("faust", IMS_LIBRARY);
+        RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
         imsRecord.setDeleted(true);
 
-        final RecordIdDTO recordId191919 = new RecordIdDTO("faust", 191919);
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("faust", 870970);
-        final RecordDTO dbcRecord = new RecordDTO();
+        RecordIdDTO recordId191919 = new RecordIdDTO("faust", 191919);
+        RecordIdDTO dbcRecordId = new RecordIdDTO("faust", 870970);
+        RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(recordId191919).getBytes(StandardCharsets.UTF_8));
 
-        final HashSet<Integer> hasHoldings = new HashSet<>(Collections.singletonList(IMS_LIBRARY));
-        when(holdingsItemsConnector.hasHoldings("faust", hasHoldings))
-                .thenReturn(hasHoldings);
+        HashSet<Integer> hasHoldings = new HashSet<>(Collections.singletonList(IMS_LIBRARY));
+        when(holdingsItemsConnector.hasHoldings("faust", hasHoldings)).thenReturn(hasHoldings);
 
         // Mock rawrepo return values
-        when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
-                .thenReturn(null);
+        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME)).thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(eq(imsRecordId), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
-                    put(imsRecordId.getBibliographicRecordId(), imsRecord);
-                }});
-        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(eq(dbcRecordId), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
-                    put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
-                }});
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(eq(imsRecordId), any(RecordServiceConnector.Params.class))).thenReturn(new HashMap<>() {{
+            put(imsRecordId.getBibliographicRecordId(), imsRecord);
+        }});
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(eq(dbcRecordId), any(RecordServiceConnector.Params.class))).thenReturn(new HashMap<>() {{
+            put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
+        }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(imsRecordId))
-                .thenReturn(imsRecord);
-        when(rawRepoRecordServiceConnector.recordFetch(dbcRecordId))
-                .thenReturn(dbcRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(imsRecordId)).thenReturn(imsRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(dbcRecordId)).thenReturn(dbcRecord);
 
-        when(rawRepoRecordServiceConnector.recordExists(dbcRecordId.getAgencyId(), imsRecordId.getBibliographicRecordId()))
-                .thenReturn(true);
+        when(rawRepoRecordServiceConnector.recordExists(dbcRecordId.getAgencyId(), imsRecordId.getBibliographicRecordId())).thenReturn(true);
 
         mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();
         mockedFileStoreServiceConnector.destinations.add(harvesterDataFileWith775100.toPath());
 
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation775100 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation775100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation775100.records.add(getMarcExchangeRecord(recordId191919));
         recordsExpectationsFor775100.add(marcExchangeCollectionExpectation775100);
-        addiMetaDataExpectationsFor775100.add(new AddiMetaData()
-                .withBibliographicRecordId(dbcRecord.getRecordId().getBibliographicRecordId())
-                .withSubmitterNumber(775100)
-                .withFormat("katalog")
-                .withCreationDate(Date.from(Instant.parse(dbcRecord.getCreated())))
-                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
-                .withTrackingId(dbcRecord.getTrackingId())
-                .withDeleted(false)
-                .withLibraryRules(new AddiMetaData.LibraryRules()));
+        addiMetaDataExpectationsFor775100.add(new AddiMetaData().withBibliographicRecordId(dbcRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(775100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(dbcRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(dbcRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        final ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith775100, addiMetaDataExpectationsFor775100, recordsExpectationsFor775100);
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                newImsHarvestOperation().getJobSpecificationTemplate(775100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(775100));
     }
 
     @Test
-    public void imsRecordIsDeletedAndNoHoldingExists_recordIsSkipped()
-            throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
-        final RecordIdDTO imsRecordId = new RecordIdDTO("faust", IMS_LIBRARY);
-        final RecordDTO imsRecord = new RecordDTO();
+    public void imsRecordIsDeletedAndNoHoldingExists_recordIsSkipped() throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
+        RecordIdDTO imsRecordId = new RecordIdDTO("faust", IMS_LIBRARY);
+        RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
         imsRecord.setDeleted(true);
 
-        final RecordIdDTO recordId191919 = new RecordIdDTO("faust", 191919);
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("faust", 870970);
-        final RecordDTO dbcRecord = new RecordDTO();
+        RecordIdDTO recordId191919 = new RecordIdDTO("faust", 191919);
+        RecordIdDTO dbcRecordId = new RecordIdDTO("faust", 870970);
+        RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(recordId191919).getBytes(StandardCharsets.UTF_8));
 
-        when(holdingsItemsConnector.hasHoldings("faust", new HashSet<>(Collections.singletonList(IMS_LIBRARY))))
-                .thenReturn(Collections.emptySet());
+        when(holdingsItemsConnector.hasHoldings("faust", new HashSet<>(Collections.singletonList(IMS_LIBRARY)))).thenReturn(Collections.emptySet());
 
         // Mock rawrepo return values
-        when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
-                .thenReturn(null);
+        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME)).thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.recordFetch(imsRecordId))
-                .thenReturn(imsRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(imsRecordId)).thenReturn(imsRecord);
 
         mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();
         mockedFileStoreServiceConnector.destinations.add(harvesterDataFileWith775100.toPath());
 
-        final ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith775100, addiMetaDataExpectationsFor775100, recordsExpectationsFor775100);
@@ -359,72 +289,58 @@ public class HarvestOperation_ims_Test {
     @Test
     public void localSectionIsActive() throws SQLException, QueueException, RecordServiceConnectorException, HarvesterException {
         // Records section
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcRecord = new RecordDTO();
+        RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(dbcRecordId).getBytes(StandardCharsets.UTF_8));
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("33333", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcHeadRecord = new RecordDTO();
+        RecordIdDTO dbcHeadRecordId = new RecordIdDTO("33333", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcHeadRecord = new RecordDTO();
         dbcHeadRecord.setRecordId(dbcHeadRecordId);
         dbcHeadRecord.setCreated(Instant.now().toString());
         dbcHeadRecord.setContent(HarvestOperationTest.getRecordContent(dbcHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsSectionRecordId = new RecordIdDTO("22222", 710100);
-        final RecordDTO imsSectionRecord = new RecordDTO();
+        RecordIdDTO imsSectionRecordId = new RecordIdDTO("22222", 710100);
+        RecordDTO imsSectionRecord = new RecordDTO();
         imsSectionRecord.setRecordId(imsSectionRecordId);
         imsSectionRecord.setCreated(Instant.now().toString());
         imsSectionRecord.setContent(HarvestOperationTest.getRecordContent(imsSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
-        final RecordDTO imsRecord = new RecordDTO();
+        RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
+        RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
 
         // Mock section
-        when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
-                .thenReturn(null);
+        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME)).thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
-                    put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
-                    put(imsSectionRecordId.getBibliographicRecordId(), imsSectionRecord);
-                    put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
-                }});
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class))).thenReturn(new HashMap<>() {{
+            put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
+            put(imsSectionRecordId.getBibliographicRecordId(), imsSectionRecord);
+            put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
+        }});
 
 
-        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId)))
-                .thenReturn(imsRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId))).thenReturn(imsRecord);
 
         // Expected result section
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
-        addiMetaDataExpectationsFor710100.add(new AddiMetaData()
-                .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
-                .withSubmitterNumber(710100)
-                .withFormat("katalog")
-                .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
-                .withEnrichmentTrail(imsRecord.getEnrichmentTrail())
-                .withTrackingId(imsRecord.getTrackingId())
-                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
-                .withDeleted(false)
-                .withLibraryRules(new AddiMetaData.LibraryRules()));
+        addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(imsRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
-        final ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                newImsHarvestOperation().getJobSpecificationTemplate(710100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(710100));
     }
 
     /**
@@ -433,70 +349,57 @@ public class HarvestOperation_ims_Test {
     @Test
     public void localHeadIsActive() throws RecordServiceConnectorException, SQLException, QueueException, HarvesterException {
         // Records section
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcRecord = new RecordDTO();
+        RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(dbcRecordId).getBytes(StandardCharsets.UTF_8));
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordIdDTO imsHeadRecordId = new RecordIdDTO("33333", 710100);
-        final RecordDTO imsHeadRecord = new RecordDTO();
+        RecordIdDTO imsHeadRecordId = new RecordIdDTO("33333", 710100);
+        RecordDTO imsHeadRecord = new RecordDTO();
         imsHeadRecord.setRecordId(imsHeadRecordId);
         imsHeadRecord.setCreated(Instant.now().toString());
         imsHeadRecord.setContent(HarvestOperationTest.getRecordContent(imsHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO dbcSectionRecordId = new RecordIdDTO("22222", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcSectionRecord = new RecordDTO();
+        RecordIdDTO dbcSectionRecordId = new RecordIdDTO("22222", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcSectionRecord = new RecordDTO();
         dbcSectionRecord.setRecordId(dbcSectionRecordId);
         dbcSectionRecord.setCreated(Instant.now().toString());
         dbcSectionRecord.setContent(HarvestOperationTest.getRecordContent(dbcSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
-        final RecordDTO imsRecord = new RecordDTO();
+        RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
+        RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
 
         // Mock section
-        when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
-                .thenReturn(null);
+        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME)).thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
-                    put(imsHeadRecordId.getBibliographicRecordId(), imsHeadRecord);
-                    put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
-                    put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
-                }});
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class))).thenReturn(new HashMap<>() {{
+            put(imsHeadRecordId.getBibliographicRecordId(), imsHeadRecord);
+            put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
+            put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
+        }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId)))
-                .thenReturn(imsRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId))).thenReturn(imsRecord);
 
         // Expected result section
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
-        addiMetaDataExpectationsFor710100.add(new AddiMetaData()
-                .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
-                .withSubmitterNumber(710100)
-                .withFormat("katalog")
-                .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
-                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
-                .withTrackingId(imsRecord.getTrackingId())
-                .withDeleted(false)
-                .withLibraryRules(new AddiMetaData.LibraryRules()));
+        addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
-        final ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                newImsHarvestOperation().getJobSpecificationTemplate(710100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(710100));
     }
 
     /**
@@ -505,70 +408,57 @@ public class HarvestOperation_ims_Test {
     @Test
     public void localHeadAndSectionIsActive() throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
         // Records section
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcRecord = new RecordDTO();
+        RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(dbcRecordId).getBytes(StandardCharsets.UTF_8));
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordIdDTO imsHeadRecordId = new RecordIdDTO("33333", 710100);
-        final RecordDTO imsHeadRecord = new RecordDTO();
+        RecordIdDTO imsHeadRecordId = new RecordIdDTO("33333", 710100);
+        RecordDTO imsHeadRecord = new RecordDTO();
         imsHeadRecord.setRecordId(imsHeadRecordId);
         imsHeadRecord.setCreated(Instant.now().toString());
         imsHeadRecord.setContent(HarvestOperationTest.getRecordContent(imsHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsSectionRecordId = new RecordIdDTO("22222", 710100);
-        final RecordDTO imsSectionRecord = new RecordDTO();
+        RecordIdDTO imsSectionRecordId = new RecordIdDTO("22222", 710100);
+        RecordDTO imsSectionRecord = new RecordDTO();
         imsSectionRecord.setRecordId(imsSectionRecordId);
         imsSectionRecord.setCreated(Instant.now().toString());
         imsSectionRecord.setContent(HarvestOperationTest.getRecordContent(imsSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
-        final RecordDTO imsRecord = new RecordDTO();
+        RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
+        RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
 
         // Mock section
-        when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
-                .thenReturn(null);
+        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME)).thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
-                    put(imsHeadRecordId.getBibliographicRecordId(), imsHeadRecord);
-                    put(imsSectionRecordId.getBibliographicRecordId(), imsSectionRecord);
-                    put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
-                }});
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class))).thenReturn(new HashMap<>() {{
+            put(imsHeadRecordId.getBibliographicRecordId(), imsHeadRecord);
+            put(imsSectionRecordId.getBibliographicRecordId(), imsSectionRecord);
+            put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
+        }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId)))
-                .thenReturn(imsRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId))).thenReturn(imsRecord);
 
         // Expected result section
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
-        addiMetaDataExpectationsFor710100.add(new AddiMetaData()
-                .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
-                .withSubmitterNumber(710100)
-                .withFormat("katalog")
-                .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
-                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
-                .withTrackingId(imsRecord.getTrackingId())
-                .withDeleted(false)
-                .withLibraryRules(new AddiMetaData.LibraryRules()));
+        addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
-        final ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                newImsHarvestOperation().getJobSpecificationTemplate(710100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(710100));
     }
 
     /**
@@ -577,78 +467,64 @@ public class HarvestOperation_ims_Test {
     @Test
     public void localSectionIsDeletedFetchDBCInstead() throws RecordServiceConnectorException, SQLException, QueueException, HarvesterException {
         // Records section
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcRecord = new RecordDTO();
+        RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(dbcRecordId).getBytes(StandardCharsets.UTF_8));
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("33333", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcHeadRecord = new RecordDTO();
+        RecordIdDTO dbcHeadRecordId = new RecordIdDTO("33333", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcHeadRecord = new RecordDTO();
         dbcHeadRecord.setRecordId(dbcHeadRecordId);
         dbcHeadRecord.setCreated(Instant.now().toString());
         dbcHeadRecord.setContent(HarvestOperationTest.getRecordContent(dbcHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO dbcSectionRecordId = new RecordIdDTO("22222", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcSectionRecord = new RecordDTO();
+        RecordIdDTO dbcSectionRecordId = new RecordIdDTO("22222", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcSectionRecord = new RecordDTO();
         dbcSectionRecord.setRecordId(dbcSectionRecordId);
         dbcSectionRecord.setCreated(Instant.now().toString());
         dbcSectionRecord.setContent(HarvestOperationTest.getRecordContent(dbcSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsSectionRecordId = new RecordIdDTO("22222", 710100);
-        final RecordDTO imsSectionRecord = new RecordDTO();
+        RecordIdDTO imsSectionRecordId = new RecordIdDTO("22222", 710100);
+        RecordDTO imsSectionRecord = new RecordDTO();
         imsSectionRecord.setRecordId(imsSectionRecordId);
         imsSectionRecord.setCreated(Instant.now().toString());
         imsSectionRecord.setContent(HarvestOperationTest.getDeleteRecordContent(imsSectionRecordId, 's').getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
-        final RecordDTO imsRecord = new RecordDTO();
+        RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
+        RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
 
         // Mock section
-        when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
-                .thenReturn(null);
+        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME)).thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
-                    put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
-                    put(imsSectionRecordId.getBibliographicRecordId(), imsSectionRecord);
-                    put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
-                }});
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class))).thenReturn(new HashMap<>() {{
+            put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
+            put(imsSectionRecordId.getBibliographicRecordId(), imsSectionRecord);
+            put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
+        }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(eq(dbcSectionRecordId), any(RecordServiceConnector.Params.class)))
-                .thenReturn(dbcSectionRecord);
-        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId)))
-                .thenReturn(imsRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(eq(dbcSectionRecordId), any(RecordServiceConnector.Params.class))).thenReturn(dbcSectionRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId))).thenReturn(imsRecord);
 
         // Expected result section
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
-        addiMetaDataExpectationsFor710100.add(new AddiMetaData()
-                .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
-                .withSubmitterNumber(710100)
-                .withFormat("katalog")
-                .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
-                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
-                .withTrackingId(imsRecord.getTrackingId())
-                .withDeleted(false)
-                .withLibraryRules(new AddiMetaData.LibraryRules()));
+        addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
-        final ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                newImsHarvestOperation().getJobSpecificationTemplate(710100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(710100));
     }
 
     /**
@@ -657,70 +533,56 @@ public class HarvestOperation_ims_Test {
     @Test
     public void localHeadIsDeletedFetchDBCInstead() throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
         // Records section
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcRecord = new RecordDTO();
+        RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(dbcRecordId).getBytes(StandardCharsets.UTF_8));
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("33333", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcHeadRecord = new RecordDTO();
+        RecordIdDTO dbcHeadRecordId = new RecordIdDTO("33333", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcHeadRecord = new RecordDTO();
         dbcHeadRecord.setRecordId(dbcHeadRecordId);
         dbcHeadRecord.setCreated(Instant.now().toString());
         dbcHeadRecord.setContent(HarvestOperationTest.getRecordContent(dbcHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsHeadRecordId = new RecordIdDTO("33333", 710100);
-        final RecordDTO imsHeadRecord = new RecordDTO();
+        RecordIdDTO imsHeadRecordId = new RecordIdDTO("33333", 710100);
+        RecordDTO imsHeadRecord = new RecordDTO();
         imsHeadRecord.setRecordId(imsHeadRecordId);
         imsHeadRecord.setCreated(Instant.now().toString());
         imsHeadRecord.setContent(HarvestOperationTest.getDeleteRecordContent(imsHeadRecordId, 'h').getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
-        final RecordDTO imsRecord = new RecordDTO();
+        RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
+        RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
 
         // Mock section
-        when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
-                .thenReturn(null);
+        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME)).thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
-                    put(imsHeadRecordId.getBibliographicRecordId(), imsHeadRecord);
-                    put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
-                }});
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class))).thenReturn(new HashMap<>() {{
+            put(imsHeadRecordId.getBibliographicRecordId(), imsHeadRecord);
+            put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
+        }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(eq(dbcHeadRecordId), any(RecordServiceConnector.Params.class)))
-                .thenReturn(dbcHeadRecord);
-        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId)))
-                .thenReturn(imsRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(eq(dbcHeadRecordId), any(RecordServiceConnector.Params.class))).thenReturn(dbcHeadRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId))).thenReturn(imsRecord);
 
         // Expected result section
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
-        addiMetaDataExpectationsFor710100.add(new AddiMetaData()
-                .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
-                .withSubmitterNumber(710100)
-                .withFormat("katalog")
-                .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
-                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
-                .withTrackingId(imsRecord.getTrackingId())
-                .withDeleted(false)
-                .withLibraryRules(new AddiMetaData.LibraryRules()));
+        addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
-        final ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                newImsHarvestOperation().getJobSpecificationTemplate(710100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(710100));
     }
 
     /**
@@ -729,108 +591,84 @@ public class HarvestOperation_ims_Test {
     @Test
     public void localHeadAndSectionIsDeletedFetchDBCInstead() throws SQLException, QueueException, RecordServiceConnectorException, HarvesterException {
         // Records section
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcRecord = new RecordDTO();
+        RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(dbcRecordId).getBytes(StandardCharsets.UTF_8));
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("33333", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcHeadRecord = new RecordDTO();
+        RecordIdDTO dbcHeadRecordId = new RecordIdDTO("33333", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcHeadRecord = new RecordDTO();
         dbcHeadRecord.setRecordId(dbcHeadRecordId);
         dbcHeadRecord.setCreated(Instant.now().toString());
         dbcHeadRecord.setContent(HarvestOperationTest.getRecordContent(dbcHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO dbcSectionRecordId = new RecordIdDTO("22222", HarvestOperation.DBC_LIBRARY);
-        final RecordDTO dbcSectionRecord = new RecordDTO();
+        RecordIdDTO dbcSectionRecordId = new RecordIdDTO("22222", HarvestOperation.DBC_LIBRARY);
+        RecordDTO dbcSectionRecord = new RecordDTO();
         dbcSectionRecord.setRecordId(dbcSectionRecordId);
         dbcSectionRecord.setCreated(Instant.now().toString());
         dbcSectionRecord.setContent(HarvestOperationTest.getRecordContent(dbcSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsHeadRecordId = new RecordIdDTO("33333", 710100);
-        final RecordDTO imsHeadRecord = new RecordDTO();
+        RecordIdDTO imsHeadRecordId = new RecordIdDTO("33333", 710100);
+        RecordDTO imsHeadRecord = new RecordDTO();
         imsHeadRecord.setRecordId(imsHeadRecordId);
         imsHeadRecord.setCreated(Instant.now().toString());
         imsHeadRecord.setContent(HarvestOperationTest.getDeleteRecordContent(imsHeadRecordId, 'h').getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsSectionRecordId = new RecordIdDTO("22222", 710100);
-        final RecordDTO imsSectionRecord = new RecordDTO();
+        RecordIdDTO imsSectionRecordId = new RecordIdDTO("22222", 710100);
+        RecordDTO imsSectionRecord = new RecordDTO();
         imsSectionRecord.setRecordId(imsSectionRecordId);
         imsSectionRecord.setCreated(Instant.now().toString());
         imsSectionRecord.setContent(HarvestOperationTest.getDeleteRecordContent(imsSectionRecordId, 's').getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
-        final RecordDTO imsRecord = new RecordDTO();
+        RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
+        RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
 
         // Mock section
-        when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
-                .thenReturn(null);
+        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME)).thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
-                    put(imsHeadRecordId.getBibliographicRecordId(), imsHeadRecord);
-                    put(imsSectionRecordId.getBibliographicRecordId(), imsSectionRecord);
-                    put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
-                }});
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class))).thenReturn(new HashMap<>() {{
+            put(imsHeadRecordId.getBibliographicRecordId(), imsHeadRecord);
+            put(imsSectionRecordId.getBibliographicRecordId(), imsSectionRecord);
+            put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
+        }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(eq(dbcSectionRecordId), any(RecordServiceConnector.Params.class)))
-                .thenReturn(dbcSectionRecord);
-        when(rawRepoRecordServiceConnector.recordFetch(eq(dbcHeadRecordId), any(RecordServiceConnector.Params.class)))
-                .thenReturn(dbcHeadRecord);
-        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId)))
-                .thenReturn(imsRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(eq(dbcSectionRecordId), any(RecordServiceConnector.Params.class))).thenReturn(dbcSectionRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(eq(dbcHeadRecordId), any(RecordServiceConnector.Params.class))).thenReturn(dbcHeadRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId))).thenReturn(imsRecord);
 
         // Expected result section
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
-        addiMetaDataExpectationsFor710100.add(new AddiMetaData()
-                .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
-                .withSubmitterNumber(710100)
-                .withFormat("katalog")
-                .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
-                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
-                .withTrackingId(imsRecord.getTrackingId())
-                .withDeleted(false)
-                .withLibraryRules(new AddiMetaData.LibraryRules()));
+        addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
-        final ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                newImsHarvestOperation().getJobSpecificationTemplate(710100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(710100));
     }
 
     private ImsHarvestOperation newImsHarvestOperation() {
-        final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
+        HarvesterJobBuilderFactory harvesterJobBuilderFactory;
         try {
-            harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
-                    new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath()),
-                    mockedFileStoreServiceConnector,
-                    mockedJobStoreServiceConnector);
+            harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath()), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
-        config.getContent()
-                .withConsumerId(CONSUMER_ID)
-                .withFormat("katalog")
-                .withIncludeRelations(true)
-                .withHarvesterType(RRHarvesterConfig.HarvesterType.IMS);
+        RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
+        config.getContent().withConsumerId(CONSUMER_ID).withFormat("katalog").withIncludeRelations(true).withHarvesterType(RRHarvesterConfig.HarvesterType.IMS);
         try {
-            return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
-                    vipCoreConnection, rawRepoConnector, holdingsItemsConnector,
-                    rawRepoRecordServiceConnector, metricRegistry);
+            return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, vipCoreConnection, rawRepoConnector, holdingsItemsConnector, rawRepoRecordServiceConnector, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }

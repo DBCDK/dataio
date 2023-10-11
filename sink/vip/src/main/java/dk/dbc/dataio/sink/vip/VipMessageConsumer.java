@@ -18,8 +18,9 @@ import dk.dbc.dataio.sink.vip.connector.VipCoreConnector;
 import dk.dbc.dataio.sink.vip.connector.VipCoreConnectorException;
 import dk.dbc.dataio.sink.vip.connector.VipCoreConnectorUnexpectedStatusCodeException;
 import dk.dbc.log.DBCTrackedLogContext;
+import jakarta.ws.rs.client.ClientBuilder;
+import org.glassfish.jersey.jackson.JacksonFeature;
 
-import javax.ws.rs.client.ClientBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -129,6 +130,6 @@ public class VipMessageConsumer extends MessageConsumerAdapter {
         if (vipCoreConnector != null) {
             vipCoreConnector.close();
         }
-        return new VipCoreConnector(ClientBuilder.newClient(), config.getEndpoint());
+        return new VipCoreConnector(ClientBuilder.newClient().register(new JacksonFeature()), config.getEndpoint());
     }
 }

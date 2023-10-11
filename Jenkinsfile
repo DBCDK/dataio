@@ -123,6 +123,18 @@ pipeline {
                 }
             }
         }
+        stage("bump version in dataio-secrets") {
+//            when {
+//                branch "master"
+//            }
+            steps {
+                script {
+                    sh """
+                        java -jar buildstuff/target/buildstuff.jar version dataio.xml -t ${env.GITLAB_PRIVATE_TOKEN}
+                    """
+                }
+            }
+        }
         stage("bump docker tags in dit-gitops-secrets") {
             agent {
                 docker {

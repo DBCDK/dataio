@@ -52,7 +52,7 @@ spec:
           value: http://dataio-filestore-service.test/dataio/job-store-service
         - name: JOBSTORE_URL
           value: http://dataio-jobstore-service.test/dataio/job-store-service
-        image: docker-metascrum.artifacts.dbccloud.dk/test-v0
+        image: docker-metascrum.artifacts.dbccloud.dk/dataio-sink-diff:test-v0
         name: dataio-diff-sink-service
         resources:
           requests:

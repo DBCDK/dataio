@@ -172,7 +172,7 @@ pipeline {
                     if (DEPLOY_TO_STAGING_CANDIDATE) {
                         sh """
                             echo "Gogo version gadget!!!"
-                            set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets ${env.BRANCH_NAME}-${env.BUILD_NUMBER} -b staging
+                            java -jar buildstuff/target/buildstuff.jar version dataio.xml -t ${env.GITLAB_PRIVATE_TOKEN} -v ${env.BRANCH_NAME}-${env.BUILD_NUMBER}
                     """
                     }
                 }

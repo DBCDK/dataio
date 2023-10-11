@@ -16,7 +16,7 @@
 
     <properties>
         <jetty.server.version>9.4.44.v20210927</jetty.server.version>
-        <jetty.http.version>9.4.44.v20210927</jetty.http.version>
+        <jetty.http.version>9.4.53.v20231009</jetty.http.version>
         <jetty.util.version>9.4.44.v20210927</jetty.util.version>
     </properties>
 

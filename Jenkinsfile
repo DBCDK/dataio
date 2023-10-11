@@ -104,29 +104,10 @@ pipeline {
             """
             }
         }
-        stage("bump docker tags in dataio-secrets") {
-            agent {
-                docker {
-                    label workerNode
-                    image "docker-dbc.artifacts.dbccloud.dk/build-env:latest"
-                    alwaysPull true
-                }
-            }
-            when {
-                branch "DISABLEDmaster" // No autodeploy while we are migrating to Payara 6
-            }
-            steps {
-                script {
-                    sh """
-                    set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets DIT-${env.BUILD_NUMBER} -b staging
-                """
-                }
-            }
-        }
         stage("bump version in dataio-secrets") {
-//            when {
-//                branch "master"
-//            }
+            when {
+                branch "master"
+            }
             steps {
                 script {
                     sh """

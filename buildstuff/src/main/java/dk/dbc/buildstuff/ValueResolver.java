@@ -18,7 +18,7 @@ public class ValueResolver implements TokenResolver {
     }
 
     public String getValue() {
-        return value;
+        return value.trim();
     }
 
     public boolean hasTokens() {
@@ -44,7 +44,7 @@ public class ValueResolver implements TokenResolver {
                 }
             }
             ValueResolver resolver = scope.get(token);
-            if(resolver != null) value = insertValue(matcher, resolver.value);
+            if(resolver != null) value = insertValue(matcher, resolver.getValue());
         }
         return !hasTokens();
     }

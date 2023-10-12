@@ -15,6 +15,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
             <type>ejb</type>

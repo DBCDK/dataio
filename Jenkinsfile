@@ -79,6 +79,8 @@ pipeline {
 
                     def spotbugs = scanForIssues tool: [$class: 'SpotBugs']
                     publishIssues issues: [spotbugs], unstableTotalAll: 1
+                    archiveArtifacts artifacts: "cli/acceptance-test/target/dataio-cli-acctest.jar,gatekeeper/target/dataio-gatekeeper*.jar,cli/dataio-cli",
+                            fingerprint: true
                 }
             }
         }

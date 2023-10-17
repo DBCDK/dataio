@@ -19,18 +19,16 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @XmlRootElement
 @XmlSeeAlso({Alert.class})
-public class Deploy extends NamedBaseObject {
+public class Deploy extends ResolvingObject {
     private static final Logger LOGGER = LoggerFactory.getLogger(Deploy.class);
     @XmlAttribute
     private String template;
@@ -38,18 +36,14 @@ public class Deploy extends NamedBaseObject {
     private Boolean enabled;
     @XmlAttribute
     private String filter;
-    @XmlElement(name = "p")
-    private List<Property> properties = new ArrayList<>();
     @XmlElement
     private List<DynamicList> list = new ArrayList<>();
-    private Map<String, ValueResolver> map;
-    private Set<String> unresolved;
-    private Namespace namespace;
     private static final Map<Object, Object> RECASTS = Map.of("true", true, "false", false);
 
     public void process(Namespace namespace, Map<String, ValueResolver> globalValues, Configuration configuration, String templateDir) throws IOException {
         if(isEnabled() && (getFilter().isEmpty() || getFilter().contains(namespace.getShortName()))) {
-            resolveTokens(namespace, globalValues);
+            resolveTokens(name, namespace, globalValues);
+            for (DynamicList dynamicList : list) dynamicList.resolveTokens(name + "." + dynamicList.name, namespace, map);
             processTemplate(configuration, templateDir);
         }
     }
@@ -58,26 +52,16 @@ public class Deploy extends NamedBaseObject {
         return "deploy-" + name + ".yml";
     }
 
-    private void resolveTokens(Namespace namespace, Map<String, ValueResolver> globalValues) {
-        this.namespace = namespace;
-        Map<String, ValueResolver> localValues = Stream.of(properties.stream(), list.stream().map(DynamicList::getProperties).flatMap(Collection::stream))
-                .flatMap(l -> l)
-                .collect(Collectors.toMap(l -> l.name, l -> l.getValue(namespace)));
-        map = new HashMap<>(globalValues);
-        map.putAll(localValues);
-        map.put("name", new ValueResolver(name));
-        unresolved = map.entrySet().stream().filter(e -> e.getValue().hasTokens(name, e.getKey(), namespace)).map(Map.Entry::getKey).collect(Collectors.toSet());
-        resolve(20);
-    }
-
     private void processTemplate(Configuration configuration, String templateDir) throws IOException {
         Template ftl = configuration.getTemplate((templateDir == null ? "" : templateDir + "/") + template);
         Path targetDirectory = Files.createDirectories(Main.getBasePath().resolve(namespace.getNamespace()));
         Path file = targetDirectory.resolve(getFilename());
         Map<String, Object> model = new HashMap<>();
         for (DynamicList dynamicList : list) {
-            Map<String, Object> freeMarkerProperties = dynamicList.getProperties().stream().collect(Collectors.toMap(p -> p.name, p -> map.get(p.name).getValue()));
-            model.put(dynamicList.name, freeMarkerProperties);
+            if(dynamicList.getProperties() != null) {
+                Map<String, String> dm = dynamicList.getProperties().stream().collect(Collectors.toMap(e -> e.name, e -> dynamicList.map.get(e.name).getValue()));
+                model.put(dynamicList.name, dm);
+            }
         }
         model.putAll(map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getValue())));
         model = model.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> recastValue(e.getValue())));
@@ -101,16 +85,5 @@ public class Deploy extends NamedBaseObject {
 
     private Object recastValue(Object value) {
         return RECASTS.getOrDefault(value, value);
-    }
-
-    private void resolve(int loopMax) {
-        if(loopMax < 1) throw new IllegalStateException("Token resolver exceeded its maximum attempts while resolving deployment " + name + ". Please ensure that you have no looping references in these variables " + unresolved);
-        Set<String> done = new HashSet<>();
-        for (String s : unresolved) {
-            ValueResolver valueResolver = map.get(s);
-            if (valueResolver.resolve(map)) done.add(s);
-        }
-        unresolved.removeAll(done);
-        if (!unresolved.isEmpty()) resolve(loopMax - 1);
     }
 }

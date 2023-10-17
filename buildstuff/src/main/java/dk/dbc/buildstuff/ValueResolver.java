@@ -18,6 +18,7 @@ public class ValueResolver implements TokenResolver {
     }
 
     public String getValue() {
+        if(value == null) return null;
         return value.trim();
     }
 
@@ -54,5 +55,16 @@ public class ValueResolver implements TokenResolver {
         String start = value.substring(0, matcher.start());
         String end = value.substring(matcher.end());
         return start + insert + end;
+    }
+
+    @Override
+    public String toString() {
+        return "ValueResolver{" +
+                "value='" + value + '\'' +
+                '}';
+    }
+
+    public ValueResolver copy() {
+        return new ValueResolver(value);
     }
 }

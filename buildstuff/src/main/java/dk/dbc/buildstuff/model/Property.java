@@ -13,11 +13,21 @@ public class Property extends NamedBaseObject {
     @XmlElement
     private List<EnvValue> env;
 
-    public ValueResolver getValue(Namespace ns) {
+    public ValueResolver getValue(Namespace ns) {//, ValueResolver fromScope) {
         if(env == null) return new ValueResolver(defaultValue);
         List<String> list = env.stream().filter(e -> ns.getShortName().equals(e.getNs())).map(EnvValue::getValue).collect(Collectors.toList());
         if(list.size() > 1) throw new IllegalStateException("Property " + name + " must be unique in its scope");
         String value = list.stream().findFirst().orElse(defaultValue);
+        //if(value == null && fromScope != null) return fromScope;
         return new ValueResolver(value);
+    }
+
+    @Override
+    public String toString() {
+        return "Property{" +
+                "defaultValue='" + defaultValue + '\'' +
+                ", env=" + env +
+                ", name='" + name + '\'' +
+                "} " + super.toString();
     }
 }

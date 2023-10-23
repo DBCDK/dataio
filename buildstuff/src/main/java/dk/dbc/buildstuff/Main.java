@@ -110,9 +110,9 @@ public class Main implements Callable<Integer> {
             args = Stream.concat(args, enabledDeployments.stream().flatMap(d -> Stream.of("-f", d.getPath().toString())));
         }
         String[] param = args.toArray(String[]::new);
-        LOGGER.info("Executing kubectl " + String.join(" ", param));
+        LOGGER.info("Executing: kubectl " + String.join(" ", param));
         try(FluentProcess process = FluentProcess.start("kubectl", param)) {
-            process.stream().forEach(l -> LOGGER.info("Running: " + l));
+            process.stream().forEach(l -> LOGGER.info("KUBECTL: " + l));
         }
     }
 

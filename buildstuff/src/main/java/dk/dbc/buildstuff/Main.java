@@ -158,7 +158,8 @@ public class Main implements Callable<Integer> {
         LOGGER.info("Processing deployments for " + ns.getNamespace());
         Map<String, ValueResolver> globalValues = application.getGlobalValues(ns);
         Set<String> deployNames = deployment == null || deployment.isBlank() ? Set.of() : Set.of(deployment.split("[, ]+"));
-        application.process(deployNames, globalValues, ns, cfg);
+        application.setupResolvers(deployNames, ns, globalValues);
+        application.process(deployNames, ns, cfg);
         return ns;
     }
 

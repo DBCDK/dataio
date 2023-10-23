@@ -10,13 +10,19 @@
         <env ns="t1">test1</env>
         <env ns="f0">testf0</env>
     </version>
-    <deploy name="diff-sink" template="sink.yml.ftl">
-        <p name="image" default="dataio-sink-diff:${version}"/>
-        <p name="queue" default="sink::diff"/>
+    <defaults name="common stuff">
+        <deploy name="diff-sink" template="sink.yml.ftl">
+            <p name="image" default="dataio-sink-diff:${version}"/>
+            <p name="queue" default="sink::diff"/>
+        </deploy>
+        <deploy name="dummy-sink" template="sink.yml.ftl">
+            <p name="image" default="dataio-sink-dummy:${version}"/>
+            <p name="queue" default="sink::dummy"/>
+        </deploy>
         <p name="maxHeap" default="512m"/>
         <p name="mem" default="2Gi"/>
         <p name="deploymentType" default="Recreate"/>
-    </deploy>
+    </defaults>
     <deploy name="diff-sink-no-queue" template="sink.yml.ftl" filter="f0">
         <p name="image" default="dataio-sink-diff:${version}"/>
         <p name="maxHeap" default="512m"/>

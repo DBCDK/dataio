@@ -2,7 +2,6 @@ package dk.dbc.buildstuff.model;
 
 import dk.dbc.buildstuff.ValueResolver;
 import freemarker.template.Configuration;
-import freemarker.template.TemplateException;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementRef;
@@ -22,36 +21,40 @@ import java.util.stream.Stream;
 @XmlRootElement
 @XmlType(propOrder = {"mappings", "version", "deployments", "global"})
 public class Application {
-    @XmlElementWrapper(name = "namespaces")
-    @XmlElement(name = "map")
+    @XmlElementWrapper(name = "namespaces", required = true)
+    @XmlElement(name = "map", required = true)
     private Set<Namespace> mappings;
-    @XmlElement
-    private Property version;
-    @XmlElementRefs({@XmlElementRef(name = "deploy", type=Deploy.class), @XmlElementRef(name = "alert", type=Alert.class)})
-    private List<Deploy> deployments;
+    @XmlElement(required = true)
+    private Version version;
+    @XmlElementRefs({
+            @XmlElementRef(name = "deploy", type=Deploy.class),
+            @XmlElementRef(name = "alert", type=Alert.class),
+            @XmlElementRef(name = "defaults", type=ScopedDefaults.class)
+    })
+    private List<ResolvingObject> deployments;
     @XmlElementWrapper(name = "global")
     @XmlElement(name = "p")
     private List<Property> global;
     @XmlAttribute(name = "template-dir")
     private String templateDir;
 
-    public void process(Set<String> deployNames, Map<String, ValueResolver> globalValues, Namespace namespace, Configuration configuration) throws TemplateException, IOException {
-        List<Deploy> deps = deployNames.isEmpty() ? deployments : deployments.stream()
-                .filter(d -> deployNames.contains(d.name))
-                .collect(Collectors.toList());
-        for (Deploy deployment : deps) deployment.process(namespace, globalValues, configuration, templateDir);
+    public void setupResolvers(Set<String> deployNames, Namespace ns, Map<String, ValueResolver> scope) {
+        for (ResolvingObject deployment : deployments) deployment.setupResolvers(deployNames, ns, scope);
+    }
+
+    public void process(Set<String> deployNames, Namespace namespace, Configuration configuration) throws IOException {
+        for (ResolvingObject deployment : deployments) deployment.process(deployNames, namespace, null, configuration, templateDir);
     }
 
     public Map<String, ValueResolver> getGlobalValues(Namespace ns) {
-        version.name = "version";
-        return Stream.concat(Stream.of(version), global.stream()).collect(Collectors.toMap(p -> p.name, p -> p.getValue(ns)));
+        return Stream.concat(Stream.of(version), global.stream()).collect(Collectors.toMap(NamedBaseObject::getName, p -> p.getValue(ns, null)));
     }
 
     public Set<Namespace> getMappings() {
         return mappings;
     }
 
-    public List<Deploy> getDeployments() {
+    public List<ResolvingObject> getDeployments() {
         return deployments;
     }
 

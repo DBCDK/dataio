@@ -484,6 +484,16 @@
                 <version>0.1.0</version>
             </dependency>
             <dependency>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>4.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>4.0.3</version>
+            </dependency>
+            <dependency>
                 <groupId>com.j256.simplemagic</groupId>
                 <artifactId>simplemagic</artifactId>
                 <version>1.12</version>

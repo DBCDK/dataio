@@ -1,7 +1,6 @@
 package dk.dbc.buildstuff.model;
 
 import dk.dbc.buildstuff.Main;
-import dk.dbc.buildstuff.ValueResolver;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -9,6 +8,7 @@ import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlSeeAlso;
+import jakarta.xml.bind.annotation.XmlType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,25 +24,37 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @XmlRootElement
 @XmlSeeAlso({Alert.class})
+@XmlType(propOrder = {"properties", "list"})
 public class Deploy extends ResolvingObject {
     private static final Logger LOGGER = LoggerFactory.getLogger(Deploy.class);
-    @XmlAttribute
+    @XmlAttribute(required = true)
     private String template;
     @XmlAttribute
     private Boolean enabled;
     @XmlAttribute
     private String filter;
-    @XmlElement
-    private List<DynamicList> list = new ArrayList<>();
     private static final Map<Object, Object> RECASTS = Map.of("true", true, "false", false);
+    @Override
+    @XmlElement(name = "p")
+    public List<Property> getProperties() {
+        return properties;
+    }
 
-    public void process(Namespace namespace, Map<String, ValueResolver> globalValues, Configuration configuration, String templateDir) throws IOException {
-        if(isEnabled() && (getFilter().isEmpty() || getFilter().contains(namespace.getShortName()))) {
-            resolveTokens(name, namespace, globalValues);
-            for (DynamicList dynamicList : list) dynamicList.resolveTokens(name + "." + dynamicList.name, namespace, map);
+    @Override
+    @XmlElement
+    public List<DynamicList> getList() {
+        return super.getList();
+    }
+
+    public void process(Set<String> deployNames, Namespace namespace, ResolvingObject parent, Configuration configuration, String templateDir) throws IOException {
+        if(isEnabled(deployNames, namespace)) {
+            resolveTokens(name);
+            list = getListsInScope().map(l -> l.clone(this)).collect(Collectors.toList());
+            list.forEach(l -> l.resolveTokens(name + "." + l.name));
             processTemplate(configuration, templateDir);
         }
     }
@@ -52,12 +63,20 @@ public class Deploy extends ResolvingObject {
         return "deploy-" + name + ".yml";
     }
 
+    public Path getPath() {
+        try {
+            Path targetDirectory = Files.createDirectories(Main.getBasePath().resolve(namespace.getNamespace()));
+            return targetDirectory.resolve(getFilename());
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to create target directory for " + namespace.getNamespace(), e);
+        }
+    }
+
     private void processTemplate(Configuration configuration, String templateDir) throws IOException {
         Template ftl = configuration.getTemplate((templateDir == null ? "" : templateDir + "/") + template);
-        Path targetDirectory = Files.createDirectories(Main.getBasePath().resolve(namespace.getNamespace()));
-        Path file = targetDirectory.resolve(getFilename());
+        Path file = getPath();
         Map<String, Object> model = new HashMap<>();
-        for (DynamicList dynamicList : list) {
+        for (DynamicList dynamicList : getList()) {
             if(dynamicList.getProperties() != null) {
                 Map<String, String> dm = dynamicList.getProperties().stream().collect(Collectors.toMap(e -> e.name, e -> dynamicList.map.get(e.name).getValue()));
                 model.put(dynamicList.name, dm);
@@ -78,6 +97,15 @@ public class Deploy extends ResolvingObject {
         return enabled == null || enabled;
     }
 
+    @Override
+    public boolean isEnabled(Set<String> deployNames, Namespace ns) {
+        return isEnabled() && isEmptyOrContains(deployNames, name) && isEmptyOrContains(getFilter(), ns.getShortName());
+    }
+
+    private boolean isEmptyOrContains(Set<String> set, String s) {
+        return set.isEmpty() || set.contains(s);
+    }
+
     public Set<String> getFilter() {
         if(filter == null || filter.isEmpty()) return Set.of();
         return new HashSet<>(Arrays.asList(filter.split("[ ,]+")));
@@ -85,5 +113,11 @@ public class Deploy extends ResolvingObject {
 
     private Object recastValue(Object value) {
         return RECASTS.getOrDefault(value, value);
+    }
+
+    @Override
+    public Stream<Deploy> getDeployments(Set<String> deployNames, Namespace namespace) {
+        if(isEnabled(deployNames, namespace)) return Stream.of(this);
+        return Stream.of();
     }
 }

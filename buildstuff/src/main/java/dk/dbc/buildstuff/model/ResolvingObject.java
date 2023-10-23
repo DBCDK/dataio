@@ -45,8 +45,6 @@ public abstract class ResolvingObject extends NamedBaseObject {
 
     public abstract boolean isEnabled(Set<String> deployNames, Namespace ns);
 
-    public abstract boolean isResolving();
-
     protected void resolve(int loopMax) {
         if (loopMax < 1) throw new IllegalStateException("Token resolver exceeded its maximum attempts while resolving deployment "
                 + name + ". Please ensure that you have no looping references in these variables " + unresolved);

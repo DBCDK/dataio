@@ -49,11 +49,6 @@ public class ScopedDefaults extends ResolvingObject {
     }
 
     @Override
-    public boolean isResolving() {
-        return false;
-    }
-
-    @Override
     public boolean setupResolvers(Set<String> deployNames, Namespace namespace, Map<String, ValueResolver> scope) {
         if(super.setupResolvers(deployNames, namespace, scope)) {
             deployments.forEach(d -> d.setupResolvers(deployNames, namespace, this));

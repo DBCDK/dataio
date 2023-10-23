@@ -97,11 +97,6 @@ public class Deploy extends ResolvingObject {
         return set.isEmpty() || set.contains(s);
     }
 
-    @Override
-    public boolean isResolving() {
-        return true;
-    }
-
     public Set<String> getFilter() {
         if(filter == null || filter.isEmpty()) return Set.of();
         return new HashSet<>(Arrays.asList(filter.split("[ ,]+")));

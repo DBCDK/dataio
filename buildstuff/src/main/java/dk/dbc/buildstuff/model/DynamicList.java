@@ -41,11 +41,4 @@ public class DynamicList extends ResolvingObject {
     public boolean isEnabled(Set<String> deployNames, Namespace ns) {
         return true;
     }
-
-    @Override
-    public boolean isResolving() {
-        return parent.isResolving();
-    }
-
-
 }

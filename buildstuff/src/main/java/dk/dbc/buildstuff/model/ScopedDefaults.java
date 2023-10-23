@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @XmlRootElement(name = "defaults")
 @XmlType(propOrder = {"deployments", "properties", "list"})
@@ -64,5 +65,11 @@ public class ScopedDefaults extends ResolvingObject {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public Stream<Deploy> getDeployments(Set<String> deployNames, Namespace namespace) {
+        if(deployments == null) return Stream.of();
+        return deployments.stream().flatMap(r -> r.getDeployments(deployNames, namespace));
     }
 }

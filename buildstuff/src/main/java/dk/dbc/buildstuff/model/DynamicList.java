@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DynamicList extends ResolvingObject {
     @Override
@@ -40,5 +41,10 @@ public class DynamicList extends ResolvingObject {
     @Override
     public boolean isEnabled(Set<String> deployNames, Namespace ns) {
         return true;
+    }
+
+    @Override
+    public Stream<Deploy> getDeployments(Set<String> deployNames, Namespace namespace) {
+        return Stream.of();
     }
 }

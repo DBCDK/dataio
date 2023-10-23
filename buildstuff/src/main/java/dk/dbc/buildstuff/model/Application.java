@@ -65,4 +65,8 @@ public class Application {
     public Property getVersion() {
         return version;
     }
+
+    public List<Deploy> getEnabledDeployments(Namespace namespace, Set<String> deployments) {
+        return this.deployments.stream().flatMap(r -> r.getDeployments(deployments, namespace)).collect(Collectors.toList());
+    }
 }

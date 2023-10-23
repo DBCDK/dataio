@@ -2,6 +2,7 @@ package dk.dbc.buildstuff;
 
 import com.ongres.process.FluentProcess;
 import dk.dbc.buildstuff.model.Application;
+import dk.dbc.buildstuff.model.Deploy;
 import dk.dbc.buildstuff.model.Namespace;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
@@ -86,17 +87,31 @@ public class Main implements Callable<Integer> {
         return basePath;
     }
 
-    public Namespace generate() throws TemplateException, IOException, JAXBException, SAXException {
-        Path xmlConfig = Path.of(filename);
-        basePath = xmlConfig.toAbsolutePath().getParent();
-        return generateAppConfig(xmlConfig);
+    public Namespace generate() throws IOException, JAXBException, SAXException {
+        return generateAppConfig(readConfig(getConfigPath()));
     }
 
-    private void apply() throws TemplateException, IOException, JAXBException, SAXException {
-        Namespace ns = generate();
-        List<String> args = List.of("kubectl", "apply", basePath.resolve(ns.getNamespace()).toString(), "-n", ns.getNamespace());
-        LOGGER.info("Executing kubectl " + String.join(" ", args));
-        try(FluentProcess process = FluentProcess.start("echo", args.toArray(new String[0]))) {
+    private Path getConfigPath() {
+        Path xmlConfig = Path.of(filename);
+        basePath = xmlConfig.toAbsolutePath().getParent();
+        return xmlConfig;
+    }
+
+    private void apply() throws IOException, JAXBException, SAXException {
+        Path xmlConfig = Path.of(filename);
+        basePath = xmlConfig.toAbsolutePath().getParent();
+        Application application = readConfig(getConfigPath());
+        Namespace ns = generateAppConfig(application);
+        Stream<String> args = Stream.of("apply", "-n", ns.getNamespace());
+        if(getDeployments().isEmpty()) {
+            args = Stream.concat(args, Stream.of("-f", basePath.resolve(ns.getNamespace()).toString()));
+        } else {
+            List<Deploy> enabledDeployments = application.getEnabledDeployments(ns, getDeployments());
+            args = Stream.concat(args, enabledDeployments.stream().flatMap(d -> Stream.of("-f", d.getPath().toString())));
+        }
+        String[] param = args.toArray(String[]::new);
+        LOGGER.info("Executing kubectl " + String.join(" ", param));
+        try(FluentProcess process = FluentProcess.start("kubectl", param)) {
             process.stream().forEach(l -> LOGGER.info("Running: " + l));
         }
     }
@@ -108,7 +123,7 @@ public class Main implements Callable<Integer> {
         Path xmlConfig = temp.resolve(filename);
         basePath = xmlConfig.toAbsolutePath().getParent();
         updateVersionDocument();
-        generateAppConfig(xmlConfig);
+        generateAppConfig(readConfig(xmlConfig));
         checkIn(git);
     }
 
@@ -144,12 +159,15 @@ public class Main implements Callable<Integer> {
         Files.writeString(versionFile, version, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
-    private Namespace generateAppConfig(Path xmlConfig) throws IOException, TemplateException, SAXException, JAXBException {
+    private Application readConfig(Path xmlConfig) throws JAXBException, SAXException {
         Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(getClass().getClassLoader().getResource("buildstuff.xsd"));
         Unmarshaller unmarshaller = JAXBContext.newInstance(Application.class).createUnmarshaller();
         unmarshaller.setSchema(schema);
-        Application application = unmarshaller.unmarshal(new StreamSource(xmlConfig.toFile()), Application.class).getValue();
-        Configuration cfg = new Configuration(Configuration.VERSION_2_3_32);
+        return unmarshaller.unmarshal(new StreamSource(xmlConfig.toFile()), Application.class).getValue();
+    }
+
+    private Namespace generateAppConfig(Application application) throws IOException {
+       Configuration cfg = new Configuration(Configuration.VERSION_2_3_32);
         cfg.setDefaultEncoding(StandardCharsets.UTF_8.displayName());
         cfg.setDirectoryForTemplateLoading(basePath.toFile());
         cfg.setFallbackOnNullLoopVariable(false);
@@ -157,10 +175,14 @@ public class Main implements Callable<Integer> {
         Namespace ns = application.getMappings().stream().filter(m -> namespace.equals(m.getShortName()) || namespace.equals(m.getNamespace())).findFirst().orElseThrow(() -> new IllegalArgumentException("I do not know the namespace " + namespace));
         LOGGER.info("Processing deployments for " + ns.getNamespace());
         Map<String, ValueResolver> globalValues = application.getGlobalValues(ns);
-        Set<String> deployNames = deployment == null || deployment.isBlank() ? Set.of() : Set.of(deployment.split("[, ]+"));
-        application.setupResolvers(deployNames, ns, globalValues);
+        Set<String> deployNames = getDeployments();
+        application.setupResolvers(getDeployments(), ns, globalValues);
         application.process(deployNames, ns, cfg);
         return ns;
+    }
+
+    private Set<String> getDeployments() {
+        return deployment == null || deployment.isBlank() ? Set.of() : Set.of(deployment.split("[, ]+"));
     }
 
     public enum Command {

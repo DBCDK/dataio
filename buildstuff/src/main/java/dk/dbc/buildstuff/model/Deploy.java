@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @XmlRootElement
 @XmlSeeAlso({Alert.class})
@@ -62,10 +63,18 @@ public class Deploy extends ResolvingObject {
         return "deploy-" + name + ".yml";
     }
 
+    public Path getPath() {
+        try {
+            Path targetDirectory = Files.createDirectories(Main.getBasePath().resolve(namespace.getNamespace()));
+            return targetDirectory.resolve(getFilename());
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to create target directory for " + namespace.getNamespace(), e);
+        }
+    }
+
     private void processTemplate(Configuration configuration, String templateDir) throws IOException {
         Template ftl = configuration.getTemplate((templateDir == null ? "" : templateDir + "/") + template);
-        Path targetDirectory = Files.createDirectories(Main.getBasePath().resolve(namespace.getNamespace()));
-        Path file = targetDirectory.resolve(getFilename());
+        Path file = getPath();
         Map<String, Object> model = new HashMap<>();
         for (DynamicList dynamicList : getList()) {
             if(dynamicList.getProperties() != null) {
@@ -104,5 +113,11 @@ public class Deploy extends ResolvingObject {
 
     private Object recastValue(Object value) {
         return RECASTS.getOrDefault(value, value);
+    }
+
+    @Override
+    public Stream<Deploy> getDeployments(Set<String> deployNames, Namespace namespace) {
+        if(isEnabled(deployNames, namespace)) return Stream.of(this);
+        return Stream.of();
     }
 }

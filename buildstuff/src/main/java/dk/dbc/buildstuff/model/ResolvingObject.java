@@ -90,4 +90,6 @@ public abstract class ResolvingObject extends NamedBaseObject {
         this.parent = parent;
         return setupResolvers(deployNames, namespace, parent.map);
     }
+
+    public abstract Stream<Deploy> getDeployments(Set<String> deployNames, Namespace namespace);
 }

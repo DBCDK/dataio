@@ -3,7 +3,7 @@ package dk.dbc.dataio.sink.ims;
 import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 
 public enum SinkConfig implements EnvConfig {
-    QUEUE("sink::dummy"),
+    QUEUE("sink::ims"),
     MESSAGE_FILTER,
     FLOWSTORE_URL,
     PROXY;

@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 public class TickleRepoSinkApp extends MessageConsumerApp {
     private static final ServiceHub SERVICE_HUB = ServiceHub.defaultHub();
     private static final Supplier<TickleMessageConsumer> MESSAGE_CONSUMER = () -> new TickleMessageConsumer(SERVICE_HUB,
-            JPAHelper.makeEntityManager("tickleRepoPU", SinkConfig.TICKLE_REPO_DB_URL));
+            JPAHelper.makeEntityManagerFactory("tickleRepoPU", SinkConfig.TICKLE_REPO_DB_URL));
 
     public TickleRepoSinkApp() {
         JPAHelper.migrate(SinkConfig.TICKLE_REPO_DB_URL);

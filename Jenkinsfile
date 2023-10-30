@@ -21,6 +21,7 @@ pipeline {
             gatekeeper, \
             harvester/utils/rawrepo-connector, \
             harvester/utils/harvester-job-builder, \
+            commons/utils, \
             commons/utils/binary-file-store"
     }
     triggers {
@@ -91,7 +92,7 @@ pipeline {
             steps {
                 sh """
                 mvn install -T 1 -B -Dmaven.test.skip=true -Pdocker-push
-                mvn deploy -T 6 -B -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}"
+                mvn deploy -T 6 -B -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS} -am"
             """
             }
         }

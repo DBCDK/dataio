@@ -40,6 +40,7 @@ public class JseProxySelector extends ProxySelector {
 
     @Override
     public List<Proxy> select(URI uri) {
+        if(uri.getHost().indexOf('.') < 0) return NO_PROXY;
         Matcher matcher = nonProxyHosts.matcher(uri.getHost());
         if(matcher.matches()) return NO_PROXY;
         return List.of(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port)));

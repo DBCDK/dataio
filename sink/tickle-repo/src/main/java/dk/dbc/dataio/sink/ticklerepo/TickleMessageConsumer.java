@@ -51,9 +51,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(TickleMessageConsumer.class);
     private final Batch.Type tickleBehaviour = Batch.Type.valueOf(SinkConfig.TICKLE_BEHAVIOUR.asString().toUpperCase());
     static final Cache<Integer, Batch> batchCache = CacheBuilder.newBuilder().maximumSize(50).expireAfterAccess(Duration.ofHours(1)).build();
-    TickleRepo tickleRepo;
     private final EntityManagerFactory entityManagerFactory;
-    private EntityManager entityManager;
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     private static final AtomicLong evictCounter = new AtomicLong();
@@ -63,12 +61,11 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
     public TickleMessageConsumer(ServiceHub serviceHub, EntityManagerFactory entityManagerFactory) {
         super(serviceHub);
         this.entityManagerFactory = entityManagerFactory;
-        entityManager = entityManagerFactory.createEntityManager();
         registerMetrics(PrometheusMetricRegistry.create());
     }
 
     public void registerMetrics(MetricRegistry metricRegistry) {
-        Query query = entityManager.createNativeQuery("SELECT * FROM dataset", DataSet.class);
+        Query query = entityManagerFactory.createEntityManager().createNativeQuery("SELECT * FROM dataset", DataSet.class);
         List<DataSet> dataSets = query.getResultList();
         for (DataSet dataSet : dataSets) {
             Tag dataSetTag = new Tag("dataset_name", dataSet.getName());
@@ -93,10 +90,10 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         Chunk chunk = unmarshallPayload(consumedMessage);
-        entityManager = entityManagerFactory.createEntityManager();
-        tickleRepo = new TickleRepo(entityManager);
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        TickleRepo tickleRepo = new TickleRepo(entityManager);
         EntityTransaction transaction = entityManager.getTransaction();
-        Batch batch = getBatch(chunk);
+        Batch batch = getBatch(chunk, entityManager);
         try {
             transaction.begin();
             Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
@@ -114,11 +111,11 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                result.insertItem(handleJobEnd(chunk.getItems().get(0), batch));
+                result.insertItem(handleJobEnd(chunk.getItems().get(0), batch, tickleRepo));
             } else {
                 IdentityHashMap<ChunkItem, List<ExpandedChunkItem>> expandChunkItems = expandChunkItems(chunk);
-                Map<String, Record> records = extractRecordsFrom(expandChunkItems.values().stream().flatMap(Collection::stream), batch);
-                chunk.getItems().forEach(chunkItem -> result.insertItem(handleChunkItem(chunkItem, batch, records, expandChunkItems)));
+                Map<String, Record> records = extractRecordsFrom(expandChunkItems.values().stream().flatMap(Collection::stream), batch, tickleRepo);
+                chunk.getItems().forEach(chunkItem -> result.insertItem(handleChunkItem(chunkItem, batch, records, expandChunkItems, tickleRepo)));
             }
 
             transaction.commit();
@@ -133,15 +130,11 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         }
     }
 
-    public EntityManager getEntityManager() {
-        return entityManager;
-    }
-
     public IdentityHashMap<ChunkItem, List<ExpandedChunkItem>> expandChunkItems(Chunk chunk) {
         return chunk.getItems().stream().collect(Collectors.toMap(ci -> ci, ExpandedChunkItem::safeFrom, (l1, l2) -> l1, IdentityHashMap::new));
     }
 
-    public Map<String, Record> extractRecordsFrom(Stream<ExpandedChunkItem> expandChunkItems, Batch batch) {
+    public Map<String, Record> extractRecordsFrom(Stream<ExpandedChunkItem> expandChunkItems, Batch batch, TickleRepo tickleRepo) {
         if(batch == null) return Map.of();
         List<String> recordIds = expandChunkItems
                 .map(ExpandedChunkItem::getTickleAttributes)
@@ -154,10 +147,11 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
 
     @Override
     public void abortJob(int jobId) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
         try {
-            Batch batch = getBatch(jobId);
+            Batch batch = getBatch(jobId, new TickleRepo(entityManager));
             entityManager.remove(batch);
             batchCache.invalidate(jobId);
         } finally {
@@ -175,25 +169,26 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         return ADDRESS;
     }
 
-    public Batch getBatch(Chunk chunk) {
+    public Batch getBatch(Chunk chunk, EntityManager entityManager) {
         int jobId = chunk.getJobId();
         Batch batch = batchCache.getIfPresent(jobId);
         if(batch != null) return batch;
         synchronized (TickleMessageConsumer.class) {
             batch = batchCache.getIfPresent(jobId);
             if(batch != null) return batch;
-            batch = tickleRepo.lookupBatch(new Batch().withBatchKey(jobId), true).orElse(null);
-            if(batch == null) batch = createBatch(chunk);
+            batch = new TickleRepo(entityManager).lookupBatch(new Batch().withBatchKey(jobId), true).orElse(null);
+            if(batch == null) batch = createBatch(chunk, entityManager);
             if(batch != null) batchCache.put(jobId, batch);
             return batch;
         }
     }
 
-    protected Batch getBatch(int jobId) {
+    protected Batch getBatch(int jobId, TickleRepo tickleRepo) {
         return tickleRepo.lookupBatch(new Batch().withBatchKey(jobId)).orElse(null);
     }
 
-    private Batch createBatch(Chunk chunk) {
+    private Batch createBatch(Chunk chunk, EntityManager entityManager) {
+        TickleRepo tickleRepo = new TickleRepo(entityManager);
         TickleAttributes tickleAttributes = findFirstTickleAttributes(chunk).orElse(null);
         if(tickleAttributes == null) return null;
         // find dataset or else create it
@@ -242,7 +237,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
                 .findFirst();
     }
 
-    private ChunkItem handleJobEnd(ChunkItem chunkItem, Batch batch) {
+    private ChunkItem handleJobEnd(ChunkItem chunkItem, Batch batch, TickleRepo tickleRepo) {
         ChunkItem result = ChunkItem.successfulChunkItem()
                 .withId(chunkItem.getId())
                 .withTrackingId(chunkItem.getTrackingId())
@@ -263,14 +258,14 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         return result;
     }
 
-    private ChunkItem handleChunkItem(ChunkItem chunkItem, Batch batch, Map<String, Record> records, IdentityHashMap<ChunkItem, List<ExpandedChunkItem>> expandChunkItems) {
+    private ChunkItem handleChunkItem(ChunkItem chunkItem, Batch batch, Map<String, Record> records, IdentityHashMap<ChunkItem, List<ExpandedChunkItem>> expandChunkItems, TickleRepo tickleRepo) {
         try {
             DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
 
             switch (chunkItem.getStatus()) {
                 case SUCCESS:
                     long handleChunkItemStartTime = System.currentTimeMillis();
-                    ChunkItem item = putInTickleBatch(batch, chunkItem, records, expandChunkItems);
+                    ChunkItem item = putInTickleBatch(batch, chunkItem, records, expandChunkItems, tickleRepo);
                     Metric.HANDLE_CHUNK_ITEM.simpleTimer().update(Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime));
                     return item;
                 case FAILURE:
@@ -307,7 +302,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         }
     }
 
-    private ChunkItem putInTickleBatch(Batch batch, ChunkItem chunkItem, Map<String, Record> records, IdentityHashMap<ChunkItem, List<ExpandedChunkItem>> expandChunkItems) {
+    private ChunkItem putInTickleBatch(Batch batch, ChunkItem chunkItem, Map<String, Record> records, IdentityHashMap<ChunkItem, List<ExpandedChunkItem>> expandChunkItems, TickleRepo tickleRepo) {
         ChunkItem result = new ChunkItem()
                 .withId(chunkItem.getId())
                 .withTrackingId(chunkItem.getTrackingId())
@@ -342,7 +337,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
                                         " since checksum indicates no change", "OK"));
                     }
                 } else {
-                    tickleRecord = createTickleRecord(batch, tickleAttributes, item, content, recordNo, dataBuffer);
+                    tickleRecord = createTickleRecord(batch, tickleAttributes, item, content, recordNo, dataBuffer, tickleRepo);
                 }
 
                 LOGGER.debug("Handled record {} in dataset {}", tickleRecord.getLocalId(), tickleRecord.getDataset());
@@ -356,7 +351,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         return result.withData(dataBuffer.toString().getBytes(StandardCharsets.UTF_8));
     }
 
-    private Record createTickleRecord(Batch batch, TickleAttributes tickleAttributes, ChunkItem item, byte[] content, int recordNo, StringBuilder dataBuffer) {
+    private Record createTickleRecord(Batch batch, TickleAttributes tickleAttributes, ChunkItem item, byte[] content, int recordNo, StringBuilder dataBuffer, TickleRepo tickleRepo) {
         Record tickleRecord = new Record()
                 .withBatch(batch.getId())
                 .withDataset(batch.getDataset())

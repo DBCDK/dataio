@@ -87,11 +87,16 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         return ChronoUnit.HOURS.between(then, now);
     }
 
+
+
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
+        handleConsumedMessage(consumedMessage, new TickleRepo(entityManagerFactory.createEntityManager()));
+    }
+
+    public void handleConsumedMessage(ConsumedMessage consumedMessage, TickleRepo tickleRepo) throws InvalidMessageException {
         Chunk chunk = unmarshallPayload(consumedMessage);
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        TickleRepo tickleRepo = new TickleRepo(entityManager);
+        EntityManager entityManager = tickleRepo.getEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
         Batch batch = getBatch(chunk, entityManager);
         try {

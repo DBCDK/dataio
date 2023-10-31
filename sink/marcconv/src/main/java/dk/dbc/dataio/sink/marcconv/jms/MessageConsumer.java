@@ -23,6 +23,7 @@ import dk.dbc.dataio.sink.marcconv.entity.ConversionFinalizer;
 import dk.dbc.dataio.sink.marcconv.entity.StoredConversionParam;
 import dk.dbc.log.DBCTrackedLogContext;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 
 import java.io.ByteArrayInputStream;
@@ -37,18 +38,19 @@ public class MessageConsumer extends MessageConsumerAdapter {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private final ConversionFactory conversionFactory = new ConversionFactory();
     private final Cache<Integer, Conversion> conversionCache = CacheBuilder.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(10).build();
-    private final EntityManager entityManager;
+    private final EntityManagerFactory entityManagerFactory;
     private final ConversionFinalizer conversionFinalizer;
 
-    public MessageConsumer(ServiceHub serviceHub, FileStoreServiceConnector fileStore, EntityManager entityManager) {
+    public MessageConsumer(ServiceHub serviceHub, FileStoreServiceConnector fileStore, EntityManagerFactory entityManagerFactory) {
         super(serviceHub);
-        this.entityManager = entityManager;
-        conversionFinalizer = new ConversionFinalizer(serviceHub, fileStore, entityManager);
+        this.entityManagerFactory = entityManagerFactory;
+        conversionFinalizer = new ConversionFinalizer(serviceHub, fileStore);
     }
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         Chunk chunk = unmarshallPayload(consumedMessage);
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
         try {
             Chunk result;
@@ -66,9 +68,9 @@ public class MessageConsumer extends MessageConsumerAdapter {
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                result = conversionFinalizer.handleTerminationChunk(chunk);
+                result = conversionFinalizer.handleTerminationChunk(chunk, entityManager);
             } else {
-                result = handleChunk(chunk);
+                result = handleChunk(chunk, entityManager);
             }
             sendResultToJobStore(result);
             transaction.commit();
@@ -79,9 +81,10 @@ public class MessageConsumer extends MessageConsumerAdapter {
 
     @Override
     public void abortJob(int jobId) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
-        conversionFinalizer.deleteJob(jobId);
+        conversionFinalizer.deleteJob(jobId, entityManager);
         transaction.commit();
     }
 
@@ -95,7 +98,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
         return ADDRESS;
     }
 
-    Chunk handleChunk(Chunk chunk) {
+    Chunk handleChunk(Chunk chunk, EntityManager entityManager) {
         Integer jobId = Math.toIntExact(chunk.getJobId());
         long chunkId = chunk.getChunkId();
         Chunk result = new Chunk(jobId, chunkId, Chunk.Type.DELIVERED);
@@ -105,12 +108,12 @@ public class MessageConsumer extends MessageConsumerAdapter {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                 result.insertItem(handleChunkItem(jobId, chunkItem, buffer));
             }
-            storeConversion(jobId, Math.toIntExact(chunkId), buffer.toByteArray());
+            storeConversion(jobId, Math.toIntExact(chunkId), buffer.toByteArray(), entityManager);
             Conversion cachedConversion = conversionCache.getIfPresent(jobId);
             if (cachedConversion != null) {
                 ConversionParam param = cachedConversion.getParam();
                 if (param != null) {
-                    storeConversionParam(jobId, param);
+                    storeConversionParam(jobId, param, entityManager);
                 }
             }
         } finally {
@@ -166,7 +169,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
         return conversionCache.asMap().computeIfAbsent(jobId, id -> conversionFactory.newConversion(conversionParam));
     }
 
-    private void storeConversion(Integer jobId, Integer chunkId, byte[] conversionBytes) {
+    private void storeConversion(Integer jobId, Integer chunkId, byte[] conversionBytes, EntityManager entityManager) {
         if (conversionBytes.length != 0) {
             ConversionBlock.Key key = new ConversionBlock.Key(jobId, chunkId);
             ConversionBlock conversionBlock = entityManager.find(ConversionBlock.class, key);
@@ -184,7 +187,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
         }
     }
 
-    private void storeConversionParam(Integer jobId, ConversionParam param) {
+    private void storeConversionParam(Integer jobId, ConversionParam param, EntityManager entityManager) {
         StoredConversionParam storedConversionParam = entityManager.find(StoredConversionParam.class, jobId);
         if (storedConversionParam == null) {
             storedConversionParam = new StoredConversionParam(jobId);

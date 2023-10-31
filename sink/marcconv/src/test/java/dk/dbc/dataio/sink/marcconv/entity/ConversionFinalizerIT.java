@@ -100,7 +100,7 @@ public class ConversionFinalizerIT extends IntegrationTest {
         ConversionFinalizer conversionFinalizer = newConversionFinalizerBean();
         Chunk chunk = new Chunk(jobInfoSnapshot.getJobId(), 3, Chunk.Type.DELIVERED);
         Chunk result = env().getPersistenceContext().run(() ->
-                conversionFinalizer.handleTerminationChunk(chunk));
+                conversionFinalizer.handleTerminationChunk(chunk, env().getEntityManager()));
 
         InOrder orderVerifier = Mockito.inOrder(fileStoreServiceConnector);
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, block1.getBytes());
@@ -149,7 +149,7 @@ public class ConversionFinalizerIT extends IntegrationTest {
 
         ConversionFinalizer conversionFinalizer = newConversionFinalizerBean();
         Chunk chunk = new Chunk(jobInfoSnapshot.getJobId(), 0, Chunk.Type.DELIVERED);
-        env().getPersistenceContext().run(() -> conversionFinalizer.handleTerminationChunk(chunk));
+        env().getPersistenceContext().run(() -> conversionFinalizer.handleTerminationChunk(chunk, env().getEntityManager()));
 
         StoredConversionParam storedConversionParam = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(StoredConversionParam.class, Math.toIntExact(chunk.getJobId())));
@@ -176,7 +176,7 @@ public class ConversionFinalizerIT extends IntegrationTest {
         ConversionFinalizer conversionFinalizer = newConversionFinalizerBean();
         Chunk chunk = new Chunk(jobInfoSnapshot.getJobId(), 3, Chunk.Type.DELIVERED);
         env().getPersistenceContext().run(() ->
-                conversionFinalizer.handleTerminationChunk(chunk));
+                conversionFinalizer.handleTerminationChunk(chunk, env().getEntityManager()));
 
         // verify no uploading to file-store
         verify(fileStoreServiceConnector, times(0)).addFile(any());
@@ -199,7 +199,7 @@ public class ConversionFinalizerIT extends IntegrationTest {
         Chunk chunk = new Chunk(jobInfoSnapshot.getJobId(), 3, Chunk.Type.DELIVERED);
         try {
             env().getPersistenceContext().run(() ->
-                    conversionFinalizer.handleTerminationChunk(chunk));
+                    conversionFinalizer.handleTerminationChunk(chunk, env().getEntityManager()));
             fail("no RuntimeException thrown");
         } catch (RuntimeException ignored) {
         }
@@ -222,7 +222,7 @@ public class ConversionFinalizerIT extends IntegrationTest {
         Chunk chunk = new Chunk(jobInfoSnapshot.getJobId(), 3, Chunk.Type.DELIVERED);
         try {
             env().getPersistenceContext().run(() ->
-                    conversionFinalizer.handleTerminationChunk(chunk));
+                    conversionFinalizer.handleTerminationChunk(chunk, env().getEntityManager()));
             fail("no RuntimeException thrown");
         } catch (RuntimeException ignored) {
         }
@@ -232,6 +232,6 @@ public class ConversionFinalizerIT extends IntegrationTest {
 
     private ConversionFinalizer newConversionFinalizerBean() {
         ServiceHub hub = new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build();
-        return new ConversionFinalizer(hub, fileStoreServiceConnector, env().getEntityManager());
+        return new ConversionFinalizer(hub, fileStoreServiceConnector);
     }
 }

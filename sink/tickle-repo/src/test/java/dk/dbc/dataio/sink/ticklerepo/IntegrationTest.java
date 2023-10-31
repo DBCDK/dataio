@@ -2,9 +2,7 @@ package dk.dbc.dataio.sink.ticklerepo;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
-import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.ticklerepo.TickleRepoDatabaseMigrator;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import org.junit.Before;
@@ -20,12 +18,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 public abstract class IntegrationTest implements PostgresContainerJPAUtils {
-    private static EntityManagerFactory entityManagerFactory;
+    protected static EntityManagerFactory entityManagerFactory;
 
     private static DataSource datasource = dbContainer.datasource();
-
-    protected EntityManager entityManager;
-    protected TransactionScopedPersistenceContext persistenceContext;
 
     @BeforeClass
     public static void migrateDatabase() {
@@ -69,15 +64,14 @@ public abstract class IntegrationTest implements PostgresContainerJPAUtils {
         }
     }
 
-    @Before
-    public void createEntityManager() {
-        entityManager = entityManagerFactory.createEntityManager(dbContainer.entityManagerProperties());
-        persistenceContext = new TransactionScopedPersistenceContext(entityManager);
-    }
+//    @Before
+//    public void createEntityManager() {
+//        entityManager = entityManagerFactory.createEntityManager(dbContainer.entityManagerProperties());
+//        persistenceContext = new TransactionScopedPersistenceContext(entityManager);
+//    }
 
     @Before
     public void clearEntityManagerCache() {
-        entityManager.clear();
-        entityManager.getEntityManagerFactory().getCache().evictAll();
+        entityManagerFactory.getCache().evictAll();
     }
 }

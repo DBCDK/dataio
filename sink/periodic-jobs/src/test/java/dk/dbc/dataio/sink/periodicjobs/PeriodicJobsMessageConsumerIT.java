@@ -37,7 +37,7 @@ public class PeriodicJobsMessageConsumerIT extends IntegrationTest {
         final int jobId = 42;
         Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(jobId).setChunkId(0L).setItems(chunkItems).build();
 
-        Chunk result = env().getPersistenceContext().run(() -> periodicJobsMessageConsumer.handleChunk(chunk));
+        Chunk result = env().getPersistenceContext().run(() -> periodicJobsMessageConsumer.handleChunk(chunk, env().getEntityManager()));
         assertThat("number of chunk items", result.size(), is(5));
         assertThat("1st chunk item", result.getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("2nd chunk item", result.getItems().get(1).getStatus(), is(ChunkItem.Status.SUCCESS));
@@ -88,7 +88,7 @@ public class PeriodicJobsMessageConsumerIT extends IntegrationTest {
 
         PeriodicJobsMessageConsumer periodicJobsMessageConsumer = newMessageConsumerBean();
 
-        Chunk result = env().getPersistenceContext().run(() -> periodicJobsMessageConsumer.handleChunk(chunk));
+        Chunk result = env().getPersistenceContext().run(() -> periodicJobsMessageConsumer.handleChunk(chunk, env().getEntityManager()));
 
         assertThat("1st chunk item", result.getItems().get(0).getStatus(), is(ChunkItem.Status.SUCCESS));
     }
@@ -100,7 +100,7 @@ public class PeriodicJobsMessageConsumerIT extends IntegrationTest {
         List<ChunkItem> chunkItems = Collections.singletonList(new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.SUCCESS).setData(newAddiRecord(new ConversionParam(), "").getBytes()).build());
         Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(jobId).setChunkId(0L).setItems(chunkItems).build();
 
-        Chunk result = env().getPersistenceContext().run(() -> periodicJobsMessageConsumer.handleChunk(chunk));
+        Chunk result = env().getPersistenceContext().run(() -> periodicJobsMessageConsumer.handleChunk(chunk, env().getEntityManager()));
         assertThat("1st chunk item", result.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
 
         PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(jobId, 0, 0);
@@ -109,7 +109,7 @@ public class PeriodicJobsMessageConsumerIT extends IntegrationTest {
     }
 
     private PeriodicJobsMessageConsumer newMessageConsumerBean() {
-        PeriodicJobsMessageConsumer periodicJobsMessageConsumer = new PeriodicJobsMessageConsumer(new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build(), env().getEntityManager());
+        PeriodicJobsMessageConsumer periodicJobsMessageConsumer = new PeriodicJobsMessageConsumer(new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build(), env().getEntityManagerFactory());
         return periodicJobsMessageConsumer;
     }
 

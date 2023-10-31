@@ -22,47 +22,46 @@ import org.slf4j.LoggerFactory;
 public class PeriodicJobsFinalizerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsFinalizerBean.class);
 
-    EntityManager entityManager;
     PeriodicJobsConfigurationBean periodicJobsConfigurationBean;
     PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean;
     PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean;
     PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean;
     PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean;
 
-    public Chunk handleTerminationChunk(Chunk chunk) throws InvalidMessageException {
+    public Chunk handleTerminationChunk(Chunk chunk, EntityManager entityManager) throws InvalidMessageException {
         LOGGER.info("Finalizing periodic job {}", chunk.getJobId());
 
-        PeriodicJobsDelivery delivery = periodicJobsConfigurationBean.getDelivery(chunk);
+        PeriodicJobsDelivery delivery = periodicJobsConfigurationBean.getDelivery(chunk, entityManager);
         Pickup pickup = delivery.getConfig().getContent().getPickup();
         Chunk result;
 
         if (pickup instanceof HttpPickup) {
-            result = periodicJobsHttpFinalizerBean.deliver(chunk, delivery);
+            result = periodicJobsHttpFinalizerBean.deliver(chunk, delivery, entityManager);
         } else if (pickup instanceof MailPickup) {
-            result = periodicJobsMailFinalizerBean.deliver(chunk, delivery);
+            result = periodicJobsMailFinalizerBean.deliver(chunk, delivery, entityManager);
         } else if (pickup instanceof FtpPickup) {
-            result = periodicJobsFtpFinalizerBean.deliver(chunk, delivery);
+            result = periodicJobsFtpFinalizerBean.deliver(chunk, delivery, entityManager);
         } else if (pickup instanceof SFtpPickup) {
-            result = periodicJobsSFtpFinalizerBean.deliver(chunk, delivery);
+            result = periodicJobsSFtpFinalizerBean.deliver(chunk, delivery, entityManager);
         } else {
             result = getUnhandledPickupTypeResult(chunk, pickup);
         }
 
         LOGGER.info("Deleted {} data blocks for job {}",
-                deleteDataBlocks(delivery.getJobId()), delivery.getJobId());
+                deleteDataBlocks(delivery.getJobId(), entityManager), delivery.getJobId());
         LOGGER.info("Deleted {} delivery entry for job {}",
-                deleteDelivery(delivery.getJobId()), delivery.getJobId());
+                deleteDelivery(delivery.getJobId(), entityManager), delivery.getJobId());
         return result;
     }
 
-    public int deleteDataBlocks(Integer jobId) {
+    public int deleteDataBlocks(Integer jobId, EntityManager entityManager) {
         return entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.DELETE_DATA_BLOCKS_QUERY_NAME)
                 .setParameter("jobId", jobId)
                 .executeUpdate();
     }
 
-    public int deleteDelivery(Integer jobId) {
+    public int deleteDelivery(Integer jobId, EntityManager entityManager) {
         return entityManager
                 .createNamedQuery(PeriodicJobsDelivery.DELETE_DELIVERY_QUERY_NAME)
                 .setParameter("jobId", jobId)
@@ -98,11 +97,6 @@ public class PeriodicJobsFinalizerBean {
     }
     public PeriodicJobsFinalizerBean withPeriodicJobsSFtpFinalizerBean(PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean) {
         this.periodicJobsSFtpFinalizerBean = periodicJobsSFtpFinalizerBean;
-        return this;
-    }
-
-    public PeriodicJobsFinalizerBean withEntityManager(EntityManager entityManager) {
-        this.entityManager = entityManager;
         return this;
     }
 }

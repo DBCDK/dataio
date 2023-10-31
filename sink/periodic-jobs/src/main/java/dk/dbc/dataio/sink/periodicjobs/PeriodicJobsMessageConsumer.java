@@ -26,6 +26,7 @@ import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.proxy.ProxyBean;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -48,7 +49,7 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final FileStoreServiceConnector fileStoreServiceConnector;
 
-    EntityManager entityManager;
+    EntityManagerFactory entityManagerFactory;
 
     PeriodicJobsFinalizerBean periodicJobsFinalizerBean;
 
@@ -56,9 +57,9 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
 
     WeekResolverConnector weekResolverConnector;
 
-    public PeriodicJobsMessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
+    public PeriodicJobsMessageConsumer(ServiceHub serviceHub, EntityManagerFactory entityManagerFactory) {
         super(serviceHub);
-        this.entityManager = entityManager;
+        this.entityManagerFactory = entityManagerFactory;
         this.flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FLOWSTORE_URL.asString());
         this.fileStoreServiceConnector = new FileStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FILESTORE_URL.asString());
         this.weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.WEEKRESOLVER_SERVICE_URL.asString());
@@ -77,14 +78,12 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
 
     void initializeFinalizers(ServiceHub serviceHub) {
         periodicJobsFinalizerBean = new PeriodicJobsFinalizerBean()
-                .withEntityManager(entityManager)
                 .withPeriodicJobsHttpFinalizerBean(new PeriodicJobsHttpFinalizerBean()
                         .withFileStoreServiceConnector(fileStoreServiceConnector))
                 .withPeriodicJobsFtpFinalizerBean(new PeriodicJobsFtpFinalizerBean().withProxyBean(proxyBean))
                 .withPeriodicJobsSFtpFinalizerBean(new PeriodicJobsSFtpFinalizerBean().withProxyBean(proxyBean))
                 .withPeriodicJobsMailFinalizerBean(new PeriodicJobsMailFinalizerBean().withSession(MailSession.make()))
                 .withPeriodicJobsConfigurationBean(new PeriodicJobsConfigurationBean()
-                        .withEntityManager(entityManager)
                         .withFlowstoreConnector(flowStoreServiceConnector)
                         .withJobstoreConnector(jobStoreServiceConnector));
 
@@ -93,7 +92,6 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
                 periodicJobsFinalizerBean.periodicJobsSFtpFinalizerBean,
                 periodicJobsFinalizerBean.periodicJobsMailFinalizerBean).forEach(finalizer ->
                 finalizer.withJobStoreServiceConnector(serviceHub.jobStoreServiceConnector)
-                        .withEntityManager(entityManager)
                         .withWeekResolverConnector(weekResolverConnector));
     }
 
@@ -102,6 +100,7 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
     public void handleConsumedMessage(ConsumedMessage consumedMessage)
             throws InvalidMessageException, NullPointerException {
         Chunk chunk = unmarshallPayload(consumedMessage);
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
         try {
             Chunk result;
@@ -119,9 +118,9 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                result = periodicJobsFinalizerBean.handleTerminationChunk(chunk);
+                result = periodicJobsFinalizerBean.handleTerminationChunk(chunk, entityManager);
             } else {
-                result = handleChunk(chunk);
+                result = handleChunk(chunk, entityManager);
             }
             sendResultToJobStore(result);
             transaction.commit();
@@ -132,11 +131,12 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
 
     @Override
     public void abortJob(int jobId) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
         try {
-            periodicJobsFinalizerBean.deleteDelivery(jobId);
-            periodicJobsFinalizerBean.deleteDataBlocks(jobId);
+            periodicJobsFinalizerBean.deleteDelivery(jobId, entityManager);
+            periodicJobsFinalizerBean.deleteDataBlocks(jobId, entityManager);
             LOGGER.info("Aborted job {}", jobId);
         } finally {
             if(transaction.isActive()) transaction.commit();
@@ -153,12 +153,12 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
         return ADDRESS;
     }
 
-    Chunk handleChunk(Chunk chunk) {
+    Chunk handleChunk(Chunk chunk, EntityManager entityManager) {
         Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         try {
             for (ChunkItem chunkItem : chunk.getItems()) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                result.insertItem(handleChunkItem(chunkItem, chunk));
+                result.insertItem(handleChunkItem(chunkItem, chunk, entityManager));
             }
         } finally {
             DBCTrackedLogContext.remove();
@@ -166,7 +166,7 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
         return result;
     }
 
-    private ChunkItem handleChunkItem(ChunkItem chunkItem, Chunk chunk) {
+    private ChunkItem handleChunkItem(ChunkItem chunkItem, Chunk chunk, EntityManager entityManager) {
         ChunkItem result = new ChunkItem()
                 .withId(chunkItem.getId())
                 .withTrackingId(chunkItem.getTrackingId())
@@ -183,7 +183,7 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
                             .withStatus(ChunkItem.Status.IGNORE)
                             .withData("Ignored by processor");
                 default:
-                    convertChunkItem(chunkItem, chunk);
+                    convertChunkItem(chunkItem, chunk, entityManager);
                     return result
                             .withStatus(ChunkItem.Status.SUCCESS)
                             .withData("Converted");
@@ -196,7 +196,7 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
         }
     }
 
-    private void convertChunkItem(ChunkItem chunkItem, Chunk chunk) {
+    private void convertChunkItem(ChunkItem chunkItem, Chunk chunk, EntityManager entityManager) {
         try {
             AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
             byte[] data;
@@ -235,7 +235,7 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
                 datablock.setBytes(data);
                 datablock.setGroupHeader(groupHeader);
 
-                storeDataBlock(datablock);
+                storeDataBlock(datablock, entityManager);
 
                 recordPart++;
             }
@@ -290,7 +290,7 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
         return String.format("%09d", recordNumber);
     }
 
-    private void storeDataBlock(PeriodicJobsDataBlock datablock) {
+    private void storeDataBlock(PeriodicJobsDataBlock datablock, EntityManager entityManager) {
         PeriodicJobsDataBlock existingDatablock =
                 entityManager.find(PeriodicJobsDataBlock.class, datablock.getKey());
         if (existingDatablock == null) {

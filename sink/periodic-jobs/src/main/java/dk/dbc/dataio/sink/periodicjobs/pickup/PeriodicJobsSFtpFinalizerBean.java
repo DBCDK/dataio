@@ -11,6 +11,7 @@ import dk.dbc.dataio.sink.periodicjobs.DatablocksLocalFileBuffer;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
 import dk.dbc.proxy.ProxyBean;
 import dk.dbc.util.Timed;
+import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,11 +30,11 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     @Timed
     @Override
-    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws InvalidMessageException {
+    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery, EntityManager entityManager) throws InvalidMessageException {
         if (isEmptyJob(chunk)) {
             return deliverEmptyFile(chunk, delivery);
         }
-        return deliverDatablocks(chunk, delivery);
+        return deliverDatablocks(chunk, delivery, entityManager);
     }
 
     private Chunk deliverEmptyFile(Chunk chunk, PeriodicJobsDelivery delivery) {
@@ -46,7 +47,7 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
                 String.format("Empty file %s uploaded to sftp host '%s'", remoteFile, sFtpPickup.getsFtpHost()));
     }
 
-    private Chunk deliverDatablocks(Chunk chunk, PeriodicJobsDelivery delivery) throws InvalidMessageException {
+    private Chunk deliverDatablocks(Chunk chunk, PeriodicJobsDelivery delivery, EntityManager entityManager) throws InvalidMessageException {
         final String remoteFile = getRemoteFilename(delivery);
         final SFtpPickup sftpPickup = (SFtpPickup) delivery.getConfig().getContent().getPickup();
         File localFile = null;

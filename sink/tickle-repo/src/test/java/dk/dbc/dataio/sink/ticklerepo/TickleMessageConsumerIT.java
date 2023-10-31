@@ -13,6 +13,7 @@ import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumer;
@@ -22,6 +23,7 @@ import dk.dbc.ticklerepo.TickleRepo;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -68,6 +70,11 @@ public class TickleMessageConsumerIT extends IntegrationTest {
             .withCompareRecord("chksum2")
             .withDatasetName("dataset1")
             .withDeleted(true);
+
+    @Before
+    public void clearCache() {
+        TickleMessageConsumer.batchCache.invalidateAll();
+    }
 
     /*  When: handling valid chunk items referencing non-existing dataset
      *  Then: dataset is created as dictated by chunk item tickle attributes
@@ -205,6 +212,7 @@ public class TickleMessageConsumerIT extends IntegrationTest {
 
         messageConsumer.handleConsumedMessage(message);
 
+        TransactionScopedPersistenceContext persistenceContext = new TransactionScopedPersistenceContext(messageConsumer.getEntityManager());
         TickleRepo.ResultSet<Record> rs = persistenceContext.run(() ->
                 messageConsumer.tickleRepo.getRecordsInBatch(messageConsumer.batchCache.getIfPresent(chunk.getJobId())));
 
@@ -303,7 +311,7 @@ public class TickleMessageConsumerIT extends IntegrationTest {
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
         MessageConsumer messageConsumer = createMessageConsumerBean();
 
-         messageConsumer.handleConsumedMessage(message);
+        messageConsumer.handleConsumedMessage(message);
 
         ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), eq(chunk.getJobId()), eq(chunk.getChunkId()));
@@ -335,7 +343,7 @@ public class TickleMessageConsumerIT extends IntegrationTest {
         item = result.getItems().get(3);
         assertThat("4th item status", item.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("4th item type", item.getType(), is(List.of(ChunkItem.Type.STRING)));
-        assertThat("4th item data contains Exception", StringUtil.asString(item.getData()).contains("Exception"), is(true));
+        assertThat("4th item data contains Error", StringUtil.asString(item.getData()).contains("ERROR"), is(true));
         assertThat("4th item tracking ID", item.getTrackingId(), is(chunk.getItems().get(3).getTrackingId()));
         assertThat("4th item diagnostics", item.getDiagnostics().size(), is(1));
         assertThat("4th item 1st diagnostic level", item.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
@@ -349,7 +357,7 @@ public class TickleMessageConsumerIT extends IntegrationTest {
 
     private TickleMessageConsumer createMessageConsumerBean() {
         ServiceHub hub = new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build();
-        TickleMessageConsumer messageConsumer = new TickleMessageConsumer(hub, entityManager);
+        TickleMessageConsumer messageConsumer = new TickleMessageConsumer(hub, entityManagerFactory);
         return messageConsumer;
     }
 

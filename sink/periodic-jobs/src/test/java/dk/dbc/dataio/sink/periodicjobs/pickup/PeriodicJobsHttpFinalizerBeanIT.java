@@ -94,7 +94,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
 
         final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsHttpFinalizerBean.deliver(chunk, delivery));
+                periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
 
         final InOrder orderVerifier = Mockito.inOrder(fileStoreServiceConnector);
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, block1.getBytes());
@@ -131,7 +131,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
 
         final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsHttpFinalizerBean.deliver(chunk, delivery));
+                periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
 
         final ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
                 .withJobId(delivery.getJobId())
@@ -157,7 +157,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
 
         final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsHttpFinalizerBean.deliver(chunk, delivery));
+                periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
 
         final ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
                 .withJobId(delivery.getJobId())
@@ -214,7 +214,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
 
         final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsHttpFinalizerBean.deliver(chunk, delivery));
+                periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
 
         final InOrder orderVerifier = Mockito.inOrder(fileStoreServiceConnector);
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, block1.getBytes());
@@ -235,7 +235,6 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
 
     private PeriodicJobsHttpFinalizerBean newPeriodicJobsHttpFinalizerBean() {
         final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = new PeriodicJobsHttpFinalizerBean();
-        periodicJobsHttpFinalizerBean.entityManager = env().getEntityManager();
         periodicJobsHttpFinalizerBean.fileStoreServiceConnector = fileStoreServiceConnector;
         periodicJobsHttpFinalizerBean.jobStoreServiceConnector = jobStoreServiceConnector;
         periodicJobsHttpFinalizerBean.weekResolverConnector = weekResolverConnector;

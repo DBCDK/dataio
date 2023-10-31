@@ -16,6 +16,7 @@ import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.eclipse.microprofile.metrics.Tag;
@@ -35,31 +36,22 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     FlowStoreServiceConnector flowStoreServiceConnector;
-    EntityManager entityManager;
-
-
-    public WorldcatMessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
-        super(serviceHub);
-        this.entityManager = entityManager;
-        ocnRepo = new OcnRepo(entityManager);
-        flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FLOWSTORE_URL.asString());
-        worldCatConfigBean = new WorldCatConfigBean(flowStoreServiceConnector);
-    }
-
+    EntityManagerFactory entityManagerFactory;
     WorldCatConfigBean worldCatConfigBean;
-
-    OcnRepo ocnRepo;
-
     WorldCatSinkConfig config;
     WciruServiceConnector connector;
     WciruServiceBroker wciruServiceBroker;
-
     Metric WCIRU_CHUNK_UPDATE = Metric.WCIRU_CHUNK_UPDATE;
     Metric WCIRU_UPDATE = Metric.WCIRU_UPDATE;
     Metric UNHANDLED_EXCEPTIONS = Metric.UNHANDLED_EXCEPTIONS;
     Metric WCIRU_SERVICE_REQUESTS = Metric.WCIRU_SERVICE_REQUESTS;
 
-
+    public WorldcatMessageConsumer(ServiceHub serviceHub, EntityManagerFactory entityManagerFactory) {
+        super(serviceHub);
+        this.entityManagerFactory = entityManagerFactory;
+        flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FLOWSTORE_URL.asString());
+        worldCatConfigBean = new WorldCatConfigBean(flowStoreServiceConnector);
+    }
 
     @Stopwatch
     @Override
@@ -67,7 +59,7 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
         try {
             final Chunk chunk = unmarshallPayload(consumedMessage);
             LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
-
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
             refreshConfigIfOutdated(consumedMessage);
 
             final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
@@ -93,7 +85,7 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
                                     .withData("Ignored by job-processor"));
                             break;
                         default:
-                            result.insertItem(handleChunkItem(chunkItem));
+                            result.insertItem(handleChunkItem(chunkItem, new OcnRepo(entityManager)));
                     }
                 }
                 Duration duration = Duration.between(chunkStart, Instant.now());
@@ -147,14 +139,14 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
                 retryScheme);
     }
 
-    ChunkItem handleChunkItem(ChunkItem chunkItem) {
+    ChunkItem handleChunkItem(ChunkItem chunkItem, OcnRepo ocnRepo) {
         EntityTransaction transaction = ocnRepo.getEntityManager().getTransaction();
         try {
             transaction.begin();
             final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
                     ChunkItemWithWorldCatAttributes.of(chunkItem);
             final Pid pid = Pid.of(chunkItemWithWorldCatAttributes.getWorldCatAttributes().getPid());
-            final WorldCatEntity worldCatEntity = getWorldCatEntity(pid);
+            final WorldCatEntity worldCatEntity = getWorldCatEntity(pid, ocnRepo);
 
             chunkItemWithWorldCatAttributes.addDiscontinuedHoldings(worldCatEntity.getActiveHoldingSymbols());
 
@@ -196,7 +188,7 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
         }
     }
 
-    private WorldCatEntity getWorldCatEntity(Pid pid) {
+    private WorldCatEntity getWorldCatEntity(Pid pid, OcnRepo ocnRepo) {
         final WorldCatEntity worldCatEntity = new WorldCatEntity().withPid(pid.toString());
         final List<WorldCatEntity> worldCatEntities = ocnRepo.lookupWorldCatEntity(worldCatEntity);
         if (worldCatEntities == null || worldCatEntities.isEmpty()) {

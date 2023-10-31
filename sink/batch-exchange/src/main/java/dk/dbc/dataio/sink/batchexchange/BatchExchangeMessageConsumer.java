@@ -15,6 +15,7 @@ import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.log.DBCTrackedLogContext;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Query;
 import org.slf4j.Logger;
@@ -32,20 +33,21 @@ public class BatchExchangeMessageConsumer extends MessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BatchExchangeMessageConsumer.class);
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
-    private final EntityManager entityManager;
+    private final EntityManagerFactory entityManagerFactory;
 
-    public BatchExchangeMessageConsumer(ServiceHub serviceHub, EntityManager entityManager) {
+    public BatchExchangeMessageConsumer(ServiceHub serviceHub, EntityManagerFactory entityManagerFactory) {
         super(serviceHub);
-        this.entityManager = entityManager;
+        this.entityManagerFactory = entityManagerFactory;
     }
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         Chunk chunk = unmarshallPayload(consumedMessage);
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
         try {
             transaction.begin();
-            Batch batch = createBatch(chunk);
+            Batch batch = createBatch(chunk, entityManager);
             LOGGER.info("Adding chunk {}/{} to batch {}", chunk.getJobId(), chunk.getChunkId(), batch);
             for (ChunkItem chunkItem : chunk) {
                 String trackingId = getTrackingId(chunkItem, batch);
@@ -58,7 +60,7 @@ public class BatchExchangeMessageConsumer extends MessageConsumerAdapter {
 
                 LOGGER.info("Adding chunk item {} to batch {}", chunkItem.getId(), batch.getId());
             }
-            completeIfBatchHasNoPendingEntries(batch);
+            completeIfBatchHasNoPendingEntries(batch, entityManager);
             transaction.commit();
         } finally {
             DBCTrackedLogContext.remove();
@@ -68,10 +70,11 @@ public class BatchExchangeMessageConsumer extends MessageConsumerAdapter {
 
     @Override
     public void abortJob(int jobId) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
         try {
-            deleteBatch(jobId);
+            deleteBatch(jobId, entityManager);
             LOGGER.warn("Aborted job {}", jobId);
         } finally {
             if(transaction.isActive()) transaction.commit();
@@ -89,7 +92,7 @@ public class BatchExchangeMessageConsumer extends MessageConsumerAdapter {
         return ADDRESS;
     }
 
-    private Batch createBatch(Chunk chunk) {
+    private Batch createBatch(Chunk chunk, EntityManager entityManager) {
         Batch batch = new Batch().withName(BatchName.fromChunk(chunk).toString());
         entityManager.persist(batch);
         entityManager.flush();
@@ -126,7 +129,7 @@ public class BatchExchangeMessageConsumer extends MessageConsumerAdapter {
         return entries;
     }
 
-    private int deleteBatch(int jobId) {
+    private int deleteBatch(int jobId, EntityManager entityManager) {
         Query query = entityManager.createQuery("delete from Batch b where b.name like :jobId");
         query.setParameter("jobId", jobId + "-%");
         return query.executeUpdate();
@@ -162,7 +165,7 @@ public class BatchExchangeMessageConsumer extends MessageConsumerAdapter {
         return trackingId;
     }
 
-    private void completeIfBatchHasNoPendingEntries(Batch batch) {
+    private void completeIfBatchHasNoPendingEntries(Batch batch, EntityManager entityManager) {
         entityManager.flush();
         entityManager.refresh(batch);
         if (batch.getIncompleteEntries() == 0) {

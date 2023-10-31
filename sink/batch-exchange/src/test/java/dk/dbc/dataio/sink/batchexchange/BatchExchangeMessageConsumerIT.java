@@ -14,6 +14,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.testutil.ObjectFactory;
+import jakarta.persistence.EntityManager;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -41,6 +42,7 @@ public class BatchExchangeMessageConsumerIT extends IntegrationTest {
      */
     @Test
     public void handleConsumedMessage() throws IOException, InvalidMessageException {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         // Given...
         AddiRecord addiRecordX = new AddiRecord(addiMetadata.getBytes(), "contentX".getBytes());
         AddiRecord addiRecordY = new AddiRecord(addiMetadata.getBytes(), "contentY".getBytes());
@@ -179,6 +181,7 @@ public class BatchExchangeMessageConsumerIT extends IntegrationTest {
     @Test
     public void handleConsumedMessage_completesBatchWhenNoIncompleteEntriesExist() throws InvalidMessageException {
         // Given...
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
 
         List<ChunkItem> chunkItems = new ArrayList<>();
 
@@ -224,6 +227,6 @@ public class BatchExchangeMessageConsumerIT extends IntegrationTest {
 
     private BatchExchangeMessageConsumer createMessageConsumerBean() {
         ServiceHub hub = new ServiceHub.Builder().withJobStoreServiceConnector(mock(JobStoreServiceConnector.class)).test();
-        return new BatchExchangeMessageConsumer(hub, entityManager);
+        return new BatchExchangeMessageConsumer(hub, entityManagerFactory);
     }
 }

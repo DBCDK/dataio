@@ -64,12 +64,6 @@ public abstract class IntegrationTest implements PostgresContainerJPAUtils {
         }
     }
 
-//    @Before
-//    public void createEntityManager() {
-//        entityManager = entityManagerFactory.createEntityManager(dbContainer.entityManagerProperties());
-//        persistenceContext = new TransactionScopedPersistenceContext(entityManager);
-//    }
-
     @Before
     public void clearEntityManagerCache() {
         entityManagerFactory.getCache().evictAll();

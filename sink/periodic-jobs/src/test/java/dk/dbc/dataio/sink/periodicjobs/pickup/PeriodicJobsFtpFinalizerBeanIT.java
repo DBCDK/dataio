@@ -69,7 +69,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsFtpFinalizerBean.deliver(chunk, delivery));
+                periodicJobsFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         FtpClient ftpClient = new FtpClient()
                 .withHost("localhost")
                 .withPort(fakeFtpServer.getServerControlPort())
@@ -120,7 +120,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsFtpFinalizerBean.deliver(chunk, delivery));
+                periodicJobsFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         FtpClient ftpClient = new FtpClient()
                 .withHost("localhost")
                 .withPort(fakeFtpServer.getServerControlPort())
@@ -150,7 +150,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
 
         env().getPersistenceContext().run(() ->
-                periodicJobsFtpFinalizerBean.deliver(chunk, delivery));
+                periodicJobsFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
 
         final FtpClient ftpClient = new FtpClient()
                 .withHost("localhost")
@@ -182,7 +182,6 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
 
     private PeriodicJobsFtpFinalizerBean newPeriodicJobsFtpFinalizerBean() {
         final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = new PeriodicJobsFtpFinalizerBean();
-        periodicJobsFtpFinalizerBean.entityManager = env().getEntityManager();
         periodicJobsFtpFinalizerBean.jobStoreServiceConnector = jobStoreServiceConnector;
         return periodicJobsFtpFinalizerBean;
     }

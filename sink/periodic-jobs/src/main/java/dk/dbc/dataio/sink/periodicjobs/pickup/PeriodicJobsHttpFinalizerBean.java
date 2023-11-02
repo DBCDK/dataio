@@ -16,6 +16,7 @@ import dk.dbc.dataio.sink.periodicjobs.GroupHeaderIncludePredicate;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlock;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDataBlockResultSetMapping;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
     public FileStoreServiceConnector fileStoreServiceConnector;
 
     @Override
-    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws InvalidMessageException {
+    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery, EntityManager entityManager) throws InvalidMessageException {
         boolean isEmptyJob = isEmptyJob(chunk);
         HttpPickup httpPickup = (HttpPickup) delivery.getConfig().getContent().getPickup();
         ConversionMetadata fileMetadata = new ConversionMetadata(ORIGIN)
@@ -56,7 +57,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
             if (isEmptyJob) {
                 fileId = uploadEmptyFile(fileStoreServiceConnector, delivery);
             } else {
-                fileId = uploadDatablocks(fileStoreServiceConnector, delivery);
+                fileId = uploadDatablocks(fileStoreServiceConnector, delivery, entityManager);
             }
             if (fileId != null) {
                 uploadMetadata(fileStoreServiceConnector, fileId, fileMetadata, delivery);
@@ -94,7 +95,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
         }
     }
 
-    private String uploadDatablocks(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery) {
+    private String uploadDatablocks(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery, EntityManager entityManager) {
         MacroSubstitutor macroSubstitutor = getMacroSubstitutor(delivery);
         String contentHeader = delivery.getConfig().getContent().getPickup().getContentHeader();
         String contentFooter = delivery.getConfig().getContent().getPickup().getContentFooter();

@@ -14,7 +14,7 @@ public class MarcConvSinkApp extends MessageConsumerApp {
     private static final ServiceHub serviceHub = ServiceHub.defaultHub();
     private static final FileStoreServiceConnector fileStore = new FileStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FILESTORE_URL.asString());
     private static final Supplier<MessageConsumer> messageConsumer = () -> new MessageConsumer(serviceHub, fileStore,
-            JPAHelper.makeEntityManager("marcconv_PU", SinkConfig.MARCCONV_DB_URL));
+            JPAHelper.makeEntityManagerFactory("marcconv_PU", SinkConfig.MARCCONV_DB_URL));
 
     public MarcConvSinkApp() {
         JPAHelper.migrate(SinkConfig.MARCCONV_DB_URL);

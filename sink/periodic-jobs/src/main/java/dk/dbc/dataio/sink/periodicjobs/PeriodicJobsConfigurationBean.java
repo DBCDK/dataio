@@ -20,7 +20,6 @@ public class PeriodicJobsConfigurationBean {
     final Cache<Integer, PeriodicJobsDelivery> deliveryCache = CacheBuilder.newBuilder()
             .maximumSize(20)
             .expireAfterAccess(1, TimeUnit.HOURS).build();
-    EntityManager entityManager;
 
     FlowStoreServiceConnector flowStoreServiceConnector;
     JobStoreServiceConnector jobStoreServiceConnector;
@@ -31,7 +30,7 @@ public class PeriodicJobsConfigurationBean {
      * @param chunk {@link Chunk} for which get delivery configuration
      * @return delivery configuration as {@link PeriodicJobsDelivery}
      */
-    public PeriodicJobsDelivery getDelivery(Chunk chunk) {
+    public PeriodicJobsDelivery getDelivery(Chunk chunk, EntityManager entityManager) {
         Integer jobId = Math.toIntExact(chunk.getJobId());
         PeriodicJobsDelivery periodicJobsDelivery = deliveryCache.getIfPresent(jobId);
         if (periodicJobsDelivery != null) {
@@ -82,11 +81,6 @@ public class PeriodicJobsConfigurationBean {
     /* The LRU cache is not thread-safe in itself */
     private synchronized void updateDeliveryCache(Integer jobId, PeriodicJobsDelivery delivery) {
         deliveryCache.put(jobId, delivery);
-    }
-
-    public PeriodicJobsConfigurationBean withEntityManager(EntityManager entityManager) {
-        this.entityManager = entityManager;
-        return this;
     }
 
     public PeriodicJobsConfigurationBean withFlowstoreConnector(FlowStoreServiceConnector flowStoreServiceConnector) {

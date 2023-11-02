@@ -43,7 +43,7 @@ public class MessageConsumerIT extends IntegrationTest {
         List<ChunkItem> chunkItems = Arrays.asList(new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.FAILURE).build(), new ChunkItemBuilder().setId(1L).setStatus(ChunkItem.Status.SUCCESS).build(), new ChunkItemBuilder().setId(2L).setStatus(ChunkItem.Status.IGNORE).build(), new ChunkItemBuilder().setId(3L).setStatus(ChunkItem.Status.SUCCESS).setData(addiRecord1.getBytes()).build(), new ChunkItemBuilder().setId(4L).setStatus(ChunkItem.Status.SUCCESS).setData(addiRecord2.getBytes()).build());
         Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setChunkId(0L).setItems(chunkItems).build();
 
-        Chunk result = env().getPersistenceContext().run(() -> messageConsumer.handleChunk(chunk));
+        Chunk result = env().getPersistenceContext().run(() -> messageConsumer.handleChunk(chunk, env().getEntityManager()));
         assertThat("number of chunk items", result.size(), is(5));
         assertThat("1st chunk item", result.getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("2nd chunk item", result.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
@@ -80,7 +80,7 @@ public class MessageConsumerIT extends IntegrationTest {
 
         MessageConsumer messageConsumer = newMessageConsumerBean();
 
-        env().getPersistenceContext().run(() -> messageConsumer.handleChunk(chunk));
+        env().getPersistenceContext().run(() -> messageConsumer.handleChunk(chunk, env().getEntityManager()));
 
         ConversionBlock updatedBlock = env().getPersistenceContext().run(() -> env().getEntityManager().find(ConversionBlock.class, existingBlock.getKey()));
 
@@ -99,7 +99,7 @@ public class MessageConsumerIT extends IntegrationTest {
         Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setChunkId(0L).setItems(Collections.singletonList(new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.SUCCESS).setData(addiRecord.getBytes()).build())).build();
 
         MessageConsumer messageConsumer = newMessageConsumerBean();
-        env().getPersistenceContext().run(() -> messageConsumer.handleChunk(chunk));
+        env().getPersistenceContext().run(() -> messageConsumer.handleChunk(chunk, env().getEntityManager()));
 
         ConversionBlock block = env().getPersistenceContext().run(() -> env().getEntityManager().find(ConversionBlock.class, new ConversionBlock.Key(chunk.getJobId(), chunk.getChunkId())));
 
@@ -108,7 +108,7 @@ public class MessageConsumerIT extends IntegrationTest {
 
     private MessageConsumer newMessageConsumerBean() {
         ServiceHub hub = new ServiceHub.Builder().withJobStoreServiceConnector(Mockito.mock(JobStoreServiceConnector.class)).build();
-        return new MessageConsumer(hub, Mockito.mock(FileStoreServiceConnector.class), env().getEntityManager());
+        return new MessageConsumer(hub, Mockito.mock(FileStoreServiceConnector.class), env().getEntityManagerFactory());
     }
 
     private AddiRecord newAddiRecord(ConversionParam conversionParam, String resourceFile) {

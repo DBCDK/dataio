@@ -141,7 +141,7 @@ public class BatchFinalizerIT extends IntegrationTest {
     }
 
     private BatchFinalizer createBatchFinalizerBean() {
-        return new BatchFinalizer(entityManager, jobStoreServiceConnector);
+        return new BatchFinalizer(entityManagerFactory, jobStoreServiceConnector);
     }
 
     public static class MockScheduledBatchFinalizer extends ScheduledBatchFinalizer {

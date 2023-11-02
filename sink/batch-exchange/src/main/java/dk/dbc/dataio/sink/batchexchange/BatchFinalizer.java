@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.log.DBCTrackedLogContext;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,11 +23,11 @@ import java.util.List;
  */
 public class BatchFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(BatchFinalizer.class);
-    private final EntityManager entityManager;
+    private final EntityManagerFactory entityManagerFactory;
     private final JobStoreServiceConnector jobStoreServiceConnector;
 
-    public BatchFinalizer(EntityManager entityManager, JobStoreServiceConnector jobStoreServiceConnector) {
-        this.entityManager = entityManager;
+    public BatchFinalizer(EntityManagerFactory entityManagerFactory, JobStoreServiceConnector jobStoreServiceConnector) {
+        this.entityManagerFactory = entityManagerFactory;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
     }
 
@@ -40,7 +41,8 @@ public class BatchFinalizer {
      * @return true if batch was finalized, false if not.
      */
     public boolean finalizeNextCompletedBatch() {
-        Batch batch = findCompletedBatch();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        Batch batch = findCompletedBatch(entityManager);
         if (batch == null) {
             return false;
         }
@@ -51,7 +53,7 @@ public class BatchFinalizer {
             LOGGER.info("Finalizing batch {} for chunk {}/{}",
                     batch.getId(), batchName.getJobId(), batchName.getChunkId());
 
-            List<BatchEntry> batchEntries = getBatchEntries(batch);
+            List<BatchEntry> batchEntries = getBatchEntries(batch, entityManager);
             Chunk chunk = createChunkFromBatchEntries(batchName.getJobId(), batchName.getChunkId(), batchEntries);
             uploadChunk(chunk);
             entityManager.remove(batch);
@@ -70,7 +72,7 @@ public class BatchFinalizer {
         return true;
     }
 
-    private Batch findCompletedBatch() {
+    private Batch findCompletedBatch(EntityManager entityManager) {
         @SuppressWarnings("unchecked") List<Batch> batch = entityManager
                 .createNamedQuery(Batch.GET_COMPLETED_BATCH_QUERY_NAME)
                 .getResultList();
@@ -81,7 +83,7 @@ public class BatchFinalizer {
     }
 
     @SuppressWarnings("unchecked")
-    private List<BatchEntry> getBatchEntries(Batch batch) {
+    private List<BatchEntry> getBatchEntries(Batch batch, EntityManager entityManager) {
         /* The eclipselink.refresh hint below breaks portability, the
            alternative is to do a refresh on each entity returned, but
            this entails suboptimal performance.

@@ -19,6 +19,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.testutil.ObjectFactory;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
+import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
 import org.junit.Before;
 import org.junit.Test;
@@ -102,7 +103,7 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = bean.handleChunkItem(chunkItem);
+        final ChunkItem result = bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyPush();
 
@@ -131,7 +132,7 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result =  bean.handleChunkItem(chunkItem);
+        final ChunkItem result =  bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyNoPush();
 
@@ -164,7 +165,7 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                 .find(WorldCatEntity.class, pid.toString()).getChecksum();
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = bean.handleChunkItem(chunkItem);
+        final ChunkItem result = bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyPush();
 
@@ -197,7 +198,7 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result =  bean.handleChunkItem(chunkItem);
+        final ChunkItem result =  bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyPush();
 
@@ -228,7 +229,7 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = bean.handleChunkItem(chunkItem);
+        final ChunkItem result = bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyPush();
 
@@ -254,7 +255,7 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = bean.handleChunkItem(chunkItem);
+        final ChunkItem result = bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyPush();
 
@@ -284,7 +285,7 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                         .withAction(Holding.Action.INSERT))));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-         bean.handleChunkItem(chunkItem);
+         bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         final ArgumentCaptor<ChunkItemWithWorldCatAttributes> chunkItemArgumentCaptor =
                 ArgumentCaptor.forClass(ChunkItemWithWorldCatAttributes.class);
@@ -322,7 +323,7 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                         .withAction(Holding.Action.INSERT))));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        bean.handleChunkItem(chunkItem);
+        bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyPush();
 
@@ -414,7 +415,7 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
 
     private WorldcatMessageConsumer newMessageConsumerBean() {
         final WorldcatMessageConsumer worldcatMessageConsumer = new WorldcatMessageConsumer(
-                new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build(), jpaTestEnvironment.getEntityManager());
+                new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build(), jpaTestEnvironment.getEntityManagerFactory());
         worldcatMessageConsumer.wciruServiceBroker = wciruServiceBroker;
         worldcatMessageConsumer.worldCatConfigBean = worldCatConfigBean;
         worldcatMessageConsumer.config = config;

@@ -41,15 +41,13 @@ public class ConversionFinalizer {
     public static final String ORIGIN = "dataio/sink/marcconv";
     FileStoreServiceConnector fileStoreServiceConnector;
     JobStoreServiceConnector jobStoreServiceConnector;
-    private final EntityManager entityManager;// = Persistence.createEntityManagerFactory("marcconv_PU").createEntityManager();
 
-    public ConversionFinalizer(ServiceHub serviceHub, FileStoreServiceConnector fileStoreServiceConnector, EntityManager entityManager) {
+    public ConversionFinalizer(ServiceHub serviceHub, FileStoreServiceConnector fileStoreServiceConnector) {
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
-        this.entityManager = entityManager;
     }
 
-    public Chunk handleTerminationChunk(Chunk chunk) {
+    public Chunk handleTerminationChunk(Chunk chunk, EntityManager entityManager) {
         Integer jobId = Math.toIntExact(chunk.getJobId());
         LOGGER.info("Finalizing conversion job {}", jobId);
         JobListCriteria findJobCriteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
@@ -60,7 +58,7 @@ public class ConversionFinalizer {
         } catch (JobStoreServiceConnectorException e) {
             throw new RuntimeException(format("Failed to find job %d", jobId), e);
         }
-        int agencyId = getConversionParam(jobId).getSubmitter().orElse(Math.toIntExact(jobInfoSnapshot.getSpecification().getSubmitterId()));
+        int agencyId = getConversionParam(jobId, entityManager).getSubmitter().orElse(Math.toIntExact(jobInfoSnapshot.getSpecification().getSubmitterId()));
         ConversionMetadata conversionMetadata = new ConversionMetadata(ORIGIN).withJobId(jobInfoSnapshot.getJobId()).withAgencyId(agencyId).withFilename(getConversionFilename(jobInfoSnapshot));
 
         Optional<ExistingFile> existingFile = fileAlreadyExists(fileStoreServiceConnector, jobId, conversionMetadata);
@@ -68,20 +66,20 @@ public class ConversionFinalizer {
         if (existingFile.isPresent()) {
             fileId = existingFile.get().getId();
         } else {
-            fileId = uploadFile(fileStoreServiceConnector, chunk);
+            fileId = uploadFile(fileStoreServiceConnector, chunk, entityManager);
             if (fileId != null) {
                 uploadMetadata(fileStoreServiceConnector, chunk, fileId, conversionMetadata);
             }
         }
-        LOGGER.info("Deleted {} conversion blocks for job {}", deleteConversionBlocks(jobId), jobId);
-        LOGGER.info("Deleted {} conversion params for job {}", deleteConversionParam(jobId), jobId);
+        LOGGER.info("Deleted {} conversion blocks for job {}", deleteConversionBlocks(jobId, entityManager), jobId);
+        LOGGER.info("Deleted {} conversion params for job {}", deleteConversionParam(jobId, entityManager), jobId);
 
         return newResultChunk(fileStoreServiceConnector, chunk, fileId);
     }
 
-    public void deleteJob(int jobId) {
-        deleteConversionBlocks(jobId);
-        deleteConversionParam(jobId);
+    public void deleteJob(int jobId, EntityManager entityManager) {
+        deleteConversionBlocks(jobId, entityManager);
+        deleteConversionParam(jobId, entityManager);
     }
 
     private Optional<ExistingFile> fileAlreadyExists(FileStoreServiceConnector fileStoreServiceConnector, Integer jobId, ConversionMetadata metadata) {
@@ -100,7 +98,7 @@ public class ConversionFinalizer {
         }
     }
 
-    private String uploadFile(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk) {
+    private String uploadFile(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk, EntityManager entityManager) {
         Query getConversionBlocksQuery = entityManager.createNamedQuery(ConversionBlock.GET_CONVERSION_BLOCKS_QUERY_NAME).setParameter(1, chunk.getJobId());
 
         String fileId = null;
@@ -133,7 +131,7 @@ public class ConversionFinalizer {
         }
     }
 
-    private ConversionParam getConversionParam(Integer jobId) {
+    private ConversionParam getConversionParam(Integer jobId, EntityManager entityManager) {
         StoredConversionParam storedConversionParam = entityManager.find(StoredConversionParam.class, jobId);
         if (storedConversionParam == null || storedConversionParam.getParam() == null) {
             return new ConversionParam();
@@ -149,11 +147,11 @@ public class ConversionFinalizer {
         return jobSpecification.getAncestry().getDatafile();
     }
 
-    private int deleteConversionBlocks(Integer jobId) {
+    private int deleteConversionBlocks(Integer jobId, EntityManager entityManager) {
         return entityManager.createNamedQuery(ConversionBlock.DELETE_CONVERSION_BLOCKS_QUERY_NAME).setParameter("jobId", jobId).executeUpdate();
     }
 
-    private int deleteConversionParam(Integer jobId) {
+    private int deleteConversionParam(Integer jobId, EntityManager entityManager) {
         return entityManager.createNamedQuery(StoredConversionParam.DELETE_CONVERSION_PARAM_QUERY_NAME).setParameter("jobId", jobId).executeUpdate();
     }
 

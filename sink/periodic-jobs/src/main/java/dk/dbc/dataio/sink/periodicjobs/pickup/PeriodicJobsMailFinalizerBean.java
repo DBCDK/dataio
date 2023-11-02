@@ -27,6 +27,7 @@ import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.util.ByteArrayDataSource;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     @Timed
     @Override
-    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws InvalidMessageException {
+    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery, EntityManager entityManager) throws InvalidMessageException {
         final MacroSubstitutor macroSubstitutor = getMacroSubstitutor(delivery);
         final MailPickup mailPickup = (MailPickup) delivery.getConfig().getContent().getPickup();
 
@@ -56,7 +57,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
             content = I18n.get("mail.empty_job.body");
         } else {
             try {
-                content = datablocksMailBody(delivery, macroSubstitutor);
+                content = datablocksMailBody(delivery, macroSubstitutor, entityManager);
             } catch (IllegalStateException e) {
                 return newFailedResultChunk(chunk, "IllegalStateException: " + e.getMessage());
             }
@@ -70,7 +71,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         return newResultChunk(chunk, mailPickup);
     }
 
-    private String datablocksMailBody(PeriodicJobsDelivery delivery, MacroSubstitutor macroSubstitutor) throws InvalidMessageException {
+    private String datablocksMailBody(PeriodicJobsDelivery delivery, MacroSubstitutor macroSubstitutor, EntityManager entityManager) throws InvalidMessageException {
         final GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
         final MailPickup mailPickup = (MailPickup) delivery.getConfig().getContent().getPickup();
         String contentHeader = delivery.getConfig().getContent().getPickup().getContentHeader();

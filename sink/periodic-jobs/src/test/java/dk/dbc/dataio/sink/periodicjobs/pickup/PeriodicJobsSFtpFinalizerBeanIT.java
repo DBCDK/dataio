@@ -19,8 +19,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Date;
@@ -56,7 +54,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
     }
 
     @Test @Ignore("Not working with upgraded jcraft lib")
-    public void deliver_onNonEmptyJobNoDataBlocks() throws SocketException, UnknownHostException {
+    public void deliver_onNonEmptyJobNoDataBlocks() {
         final int jobId = 42;
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
 
@@ -69,7 +67,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = newPeriodicJobsSFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsSFtpFinalizerBean.deliver(chunk, delivery));
+                periodicJobsSFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         final String fileName = String.format("%s/periodisk-job-%d.data", testDir, jobId);
         assertThat("File is NOT present", fakeSFtpServer.existsFile(fileName), is(false));
     }
@@ -89,7 +87,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = newPeriodicJobsSFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsSFtpFinalizerBean.deliver(chunk, delivery));
+                periodicJobsSFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
 
         String dataSentUsingSFtp = fakeSFtpServer.getFileContent(String
                 .format("%s/%s", testDir, String.
@@ -113,7 +111,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = newPeriodicJobsSFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsSFtpFinalizerBean.deliver(chunk, delivery));
+                periodicJobsSFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
 
         String dataSentUsingSFtp = fakeSFtpServer.getFileContent(
                 String.format("%s/%s", testDir, "testMyNewFileName.data"), StandardCharsets.UTF_8);
@@ -142,7 +140,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = newPeriodicJobsSFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsSFtpFinalizerBean.deliver(chunk, delivery));
+                periodicJobsSFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
 
         String dataSentUsingSFtp = fakeSFtpServer.getFileContent(
                 String.format("%s/%s", testDir, "testMyNewFileName202041.data"), StandardCharsets.UTF_8);
@@ -156,7 +154,6 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
 
     private PeriodicJobsSFtpFinalizerBean newPeriodicJobsSFtpFinalizerBean() {
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = new PeriodicJobsSFtpFinalizerBean();
-        periodicJobsSFtpFinalizerBean.entityManager = env().getEntityManager();
         periodicJobsSFtpFinalizerBean.jobStoreServiceConnector = jobStoreServiceConnector;
         periodicJobsSFtpFinalizerBean.proxyBean = new ProxyBean(PROXY_HOST, PROXY_PORT)
                 .withProxyUsername(PROXY_USER)
@@ -165,7 +162,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
         return periodicJobsSFtpFinalizerBean;
     }
 
-    private SFtpPickup getPickup() throws SocketException, UnknownHostException {
+    private SFtpPickup getPickup() {
         return new SFtpPickup()
                 .withSFtpHost(SFTP_SERVER)
                 .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))

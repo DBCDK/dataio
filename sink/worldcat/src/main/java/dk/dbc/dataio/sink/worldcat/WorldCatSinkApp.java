@@ -14,7 +14,7 @@ public class WorldCatSinkApp extends MessageConsumerApp {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorldCatEntity.class);
     private static final ServiceHub serviceHub = ServiceHub.defaultHub();
     private static final Supplier<WorldcatMessageConsumer> messageConsumer = () -> new WorldcatMessageConsumer(serviceHub,
-            JPAHelper.makeEntityManager("ocnRepoPU", SinkConfig.OCN_REPO_DB_URL));
+            JPAHelper.makeEntityManagerFactory("ocnRepoPU", SinkConfig.OCN_REPO_DB_URL));
 
     public WorldCatSinkApp() {
         LOGGER.info("Migrating db");

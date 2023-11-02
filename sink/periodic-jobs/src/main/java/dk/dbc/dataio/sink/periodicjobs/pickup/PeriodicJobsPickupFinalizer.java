@@ -21,8 +21,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 public abstract class PeriodicJobsPickupFinalizer {
-    EntityManager entityManager;
-
     WeekResolverConnector weekResolverConnector;
 
     JobStoreServiceConnector jobStoreServiceConnector;
@@ -110,12 +108,7 @@ public abstract class PeriodicJobsPickupFinalizer {
         }
     }
 
-    public abstract Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws InvalidMessageException;
-    
-    public PeriodicJobsPickupFinalizer withEntityManager(EntityManager entityManager) {
-        this.entityManager = entityManager;
-        return this;
-    }
+    public abstract Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery, EntityManager entityManager) throws InvalidMessageException;
 
     public PeriodicJobsPickupFinalizer withJobStoreServiceConnector(JobStoreServiceConnector jobStoreServiceConnector) {
         this.jobStoreServiceConnector = jobStoreServiceConnector;

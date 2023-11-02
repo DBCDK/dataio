@@ -55,7 +55,7 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
                 .thenReturn(Collections.emptyList());
 
         final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
-        assertThat(() -> periodicJobsConfigurationBean.getDelivery(chunk), isThrowing(RuntimeException.class));
+        assertThat(() -> periodicJobsConfigurationBean.getDelivery(chunk, env().getEntityManager()), isThrowing(RuntimeException.class));
     }
 
     @Test
@@ -75,7 +75,7 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
                 .thenThrow(new FlowStoreServiceConnectorException("DIED"));
 
         PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
-        assertThat(() -> periodicJobsConfigurationBean.getDelivery(chunk), isThrowing(RuntimeException.class));
+        assertThat(() -> periodicJobsConfigurationBean.getDelivery(chunk, env().getEntityManager()), isThrowing(RuntimeException.class));
     }
 
     @Test
@@ -101,7 +101,7 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
 
         final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
         PeriodicJobsDelivery delivery = env().getPersistenceContext().run(() ->
-                periodicJobsConfigurationBean.getDelivery(chunk));
+                periodicJobsConfigurationBean.getDelivery(chunk, env().getEntityManager()));
 
         assertThat("delivery.jobId", delivery.getJobId(), is(chunk.getJobId()));
         assertThat("delivery.config", delivery.getConfig(), is(periodicJobsHarvesterConfig));
@@ -137,7 +137,7 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
 
         final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
         PeriodicJobsDelivery delivery = env().getPersistenceContext().run(() ->
-                periodicJobsConfigurationBean.getDelivery(chunk));
+                periodicJobsConfigurationBean.getDelivery(chunk, env().getEntityManager()));
 
         assertThat("delivery.jobId", delivery.getJobId(), is(chunk.getJobId()));
         assertThat("delivery.config", delivery.getConfig(), is(periodicJobsHarvesterConfig));
@@ -163,7 +163,7 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
 
         final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
         periodicJobsConfigurationBean.deliveryCache.put(chunk.getJobId(), expectedDelivery);
-        assertThat(periodicJobsConfigurationBean.getDelivery(chunk), is(expectedDelivery));
+        assertThat(periodicJobsConfigurationBean.getDelivery(chunk, env().getEntityManager()), is(expectedDelivery));
     }
 
     @Test
@@ -181,14 +181,13 @@ public class PeriodicJobsConfigurationBeanIT extends IntegrationTest {
                 env().getEntityManager().persist(expectedDelivery));
 
         final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = newPeriodicJobsConfigurationBean();
-        assertThat(periodicJobsConfigurationBean.getDelivery(chunk), is(expectedDelivery));
+        assertThat(periodicJobsConfigurationBean.getDelivery(chunk, env().getEntityManager()), is(expectedDelivery));
         assertThat("delivery is cached",
                 periodicJobsConfigurationBean.deliveryCache.getIfPresent(chunk.getJobId()), is(notNullValue()));
     }
 
     private PeriodicJobsConfigurationBean newPeriodicJobsConfigurationBean() {
         final PeriodicJobsConfigurationBean periodicJobsConfigurationBean = new PeriodicJobsConfigurationBean();
-        periodicJobsConfigurationBean.entityManager = env().getEntityManager();
         periodicJobsConfigurationBean.flowStoreServiceConnector = flowStoreServiceConnector;
         periodicJobsConfigurationBean.jobStoreServiceConnector = jobStoreServiceConnector;
         return periodicJobsConfigurationBean;

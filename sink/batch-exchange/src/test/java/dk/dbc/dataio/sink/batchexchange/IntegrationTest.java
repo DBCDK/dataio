@@ -4,7 +4,7 @@ import dk.dbc.batchexchange.BatchExchangeDatabaseMigrator;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.jse.artemis.common.db.JPAHelper;
-import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
@@ -18,7 +18,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public abstract class IntegrationTest implements PostgresContainerJPAUtils {
-    protected final EntityManager entityManager = JPAHelper.makeEntityManager("batchExchangeIT", dbContainer.entityManagerProperties());
+    protected final EntityManagerFactory entityManagerFactory = JPAHelper.makeEntityManagerFactory("batchExchangeIT", dbContainer.entityManagerProperties());
 
     @BeforeClass
     public static void migrateDatabase() {
@@ -55,7 +55,6 @@ public abstract class IntegrationTest implements PostgresContainerJPAUtils {
 
     @Before
     public void clearEntityManagerCache() {
-        entityManager.clear();
-        entityManager.getEntityManagerFactory().getCache().evictAll();
+        entityManagerFactory.getCache().evictAll();
     }
 }

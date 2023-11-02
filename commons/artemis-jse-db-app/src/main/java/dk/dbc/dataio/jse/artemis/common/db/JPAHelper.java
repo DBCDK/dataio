@@ -1,7 +1,7 @@
 package dk.dbc.dataio.jse.artemis.common.db;
 
 import dk.dbc.dataio.jse.artemis.common.EnvConfig;
-import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import org.flywaydb.core.Flyway;
 import org.postgresql.ds.PGSimpleDataSource;
@@ -16,22 +16,22 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.TRANSACTI
 
 public class JPAHelper {
 
-    public static EntityManager makeEntityManager(String persistenceUnit, EnvConfig config) {
-        return makeEntityManager(persistenceUnit, config.asPGJDBCUrl());
+    public static EntityManagerFactory makeEntityManagerFactory(String persistenceUnit, EnvConfig config) {
+        return makeEntityManagerFactory(persistenceUnit, config.asPGJDBCUrl());
     }
 
-    public static EntityManager makeEntityManager(String persistenceUnit, String jdbcUrl) {
+    public static EntityManagerFactory makeEntityManagerFactory(String persistenceUnit, String jdbcUrl) {
         Map<String, String> config = Map.of(
                 TRANSACTION_TYPE, "RESOURCE_LOCAL",
                 "provider", "org.eclipse.persistence.jpa.PersistenceProvider",
                 SCHEMA_GENERATION_DATABASE_ACTION, "none",
                 JDBC_DRIVER, "org.postgresql.Driver",
                 JDBC_URL, jdbcUrl);
-        return makeEntityManager(persistenceUnit, config);
+        return makeEntityManagerFactory(persistenceUnit, config);
     }
 
-    public static EntityManager makeEntityManager(String persistenceUnit, Map<String, String> config) {
-        return Persistence.createEntityManagerFactory(persistenceUnit, config).createEntityManager();
+    public static EntityManagerFactory makeEntityManagerFactory(String persistenceUnit, Map<String, String> config) {
+        return Persistence.createEntityManagerFactory(persistenceUnit, config);
     }
 
     public static void migrate(EnvConfig config) {

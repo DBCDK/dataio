@@ -72,7 +72,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         Mailbox inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat("Inbox size", inbox.size(), is(0));
     }
@@ -114,7 +114,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         Mailbox inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat("Inbox size", inbox.size(), is(1));
         Message receivedMail = inbox.get(0);
@@ -139,7 +139,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         Mailbox inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat("Inbox size", inbox.size(), is(1));
         Message receivedMail = inbox.get(0);
@@ -165,7 +165,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         final Chunk result = env().getPersistenceContext().run(() ->
-                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         assertThat(result.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
@@ -189,7 +189,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         final List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat("Inbox size", inbox.size(), is(1));
         final Message receivedMail = inbox.get(0);
@@ -238,7 +238,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat("Inbox size", inbox.size(), is(1));
         Message receivedMail = inbox.get(0);
@@ -290,7 +290,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat("Inbox size", inbox.size(), is(1));
         Message receivedMail = inbox.get(0);
@@ -338,7 +338,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         final List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat("Inbox size", inbox.size(), is(1));
         Message receivedMail = inbox.get(0);
@@ -356,7 +356,6 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
 
     private PeriodicJobsMailFinalizerBean newPeriodicJobsMailFinalizerBean() {
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = new PeriodicJobsMailFinalizerBean();
-        periodicJobsMailFinalizerBean.entityManager = env().getEntityManager();
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.from", mailFrom);
         periodicJobsMailFinalizerBean.mailSession = Session.getDefaultInstance(mailSessionProperties);
@@ -399,7 +398,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         final Chunk result = env().getPersistenceContext().run(() ->
-                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat(result.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(result.getItems().get(0).getData(),

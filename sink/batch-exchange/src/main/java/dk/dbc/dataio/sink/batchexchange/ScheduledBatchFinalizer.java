@@ -3,7 +3,7 @@ package dk.dbc.dataio.sink.batchexchange;
 import dk.dbc.dataio.jse.artemis.common.Health;
 import dk.dbc.dataio.jse.artemis.common.service.HealthService;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
-import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,8 +28,8 @@ public class ScheduledBatchFinalizer {
     private final HealthService healthService;
     private final AtomicInteger THREAD_ID = new AtomicInteger();
 
-    public ScheduledBatchFinalizer(ServiceHub serviceHub, EntityManager entityManager) {
-        batchFinalizer = new BatchFinalizer(entityManager, serviceHub.jobStoreServiceConnector);
+    public ScheduledBatchFinalizer(ServiceHub serviceHub, EntityManagerFactory entityManagerFactory) {
+        batchFinalizer = new BatchFinalizer(entityManagerFactory, serviceHub.jobStoreServiceConnector);
         healthService = serviceHub.healthService;
         serviceHub.zombieWatch.addCheck("batch-finalizer", this::healthcheck);
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "batch-finalizer-" + THREAD_ID.getAndIncrement()));

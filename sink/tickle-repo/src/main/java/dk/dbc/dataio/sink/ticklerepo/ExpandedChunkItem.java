@@ -6,19 +6,21 @@ import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class ExpandedChunkItem extends ChunkItem {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExpandedChunkItem.class);
     private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
 
     private TickleAttributes tickleAttributes = null;
 
-    public static List<ExpandedChunkItem> from(ChunkItem chunkItem) throws IOException, JSONBException {
+    public static List<ExpandedChunkItem> from(ChunkItem chunkItem) throws IOException {
         final ArrayList<ExpandedChunkItem> items = new ArrayList<>();
 
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
@@ -32,8 +34,13 @@ public class ExpandedChunkItem extends ChunkItem {
 
             final AddiRecord addiRecord = addiReader.next();
             expandedChunkItem.withData(addiRecord.getContentData());
-            expandedChunkItem.withTickleAttributes(
-                    JSONB_CONTEXT.unmarshall(StringUtil.asString(addiRecord.getMetaData()), TickleAttributes.class));
+            try {
+                expandedChunkItem.withTickleAttributes(
+                        JSONB_CONTEXT.unmarshall(StringUtil.asString(addiRecord.getMetaData()), TickleAttributes.class));
+            } catch (JSONBException je) {
+                LOGGER.warn("Unable to unmarshall tickle attributes for chunk item {}", chunkItem.getTrackingId(), je);
+                expandedChunkItem.withTickleAttributes(new TickleAttributes());
+            }
 
             items.add(expandedChunkItem);
         }
@@ -45,7 +52,7 @@ public class ExpandedChunkItem extends ChunkItem {
         try {
             return from(chunkItem);
         } catch (Exception e) {
-            return Collections.emptyList();
+            return List.of();
         }
     }
 

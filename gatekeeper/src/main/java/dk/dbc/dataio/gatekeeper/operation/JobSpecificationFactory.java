@@ -3,13 +3,17 @@ package dk.dbc.dataio.gatekeeper.operation;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.gatekeeper.Util;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.invariant.InvariantUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Factory class for the creation of job specifications from trans file entries
  */
 public class JobSpecificationFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobSpecificationFactory.class);
     public static final String DESTINATION_MARCKONV = "marckonv";
     public static final String DESTINATION_DANBIB = "danbib";
     public static final String PACKAGING_DANBIB_DEFAULT = "iso";
@@ -38,8 +42,8 @@ public class JobSpecificationFactory {
         InvariantUtil.checkNotNullOrThrow(line, "line");
         InvariantUtil.checkNotNullNotEmptyOrThrow(transfileName, "transfileName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileStoreId, "fileStoreId");
-
-        final String destination = getFieldValue(line, "b", Constants.MISSING_FIELD_VALUE);
+        String ccMail = Util.CommandLineOption.CC_MAIL_ADDRESS.get();
+        String destination = getFieldValue(line, "b", Constants.MISSING_FIELD_VALUE);
 
         String defaultPackaging = Constants.MISSING_FIELD_VALUE;
         String defaultEncoding = Constants.MISSING_FIELD_VALUE;
@@ -61,9 +65,9 @@ public class JobSpecificationFactory {
         }
 
 
-        final String packaging = getFieldValue(line, "t", defaultPackaging);
-        final String format = getFieldValue(line, "o", Constants.MISSING_FIELD_VALUE);
-        final String encoding = getFieldValue(line, "c", defaultEncoding);
+        String packaging = getFieldValue(line, "t", defaultPackaging);
+        String format = getFieldValue(line, "o", Constants.MISSING_FIELD_VALUE);
+        String encoding = getFieldValue(line, "c", defaultEncoding);
 
         return new JobSpecification()
                 .withPackaging(packaging)
@@ -71,8 +75,8 @@ public class JobSpecificationFactory {
                 .withCharset(encoding)
                 .withDestination(destination)
                 .withSubmitterId(getSubmitterIdOrMissing(transfileName))
-                .withMailForNotificationAboutVerification(getFieldValue(line, "m", Constants.MISSING_FIELD_VALUE))
-                .withMailForNotificationAboutProcessing(getFieldValue(line, "M", Constants.MISSING_FIELD_VALUE))
+                .withMailForNotificationAboutVerification(addCC(getFieldValue(line, "m", Constants.MISSING_FIELD_VALUE), ccMail))
+                .withMailForNotificationAboutProcessing(addCC(getFieldValue(line, "M", Constants.MISSING_FIELD_VALUE), ccMail))
                 .withResultmailInitials(getFieldValue(line, "i", Constants.MISSING_FIELD_VALUE))
                 .withDataFile(getFileStoreUrnOrMissing(line, fileStoreId))
                 .withType(jobType)
@@ -86,15 +90,29 @@ public class JobSpecificationFactory {
             return Constants.MISSING_SUBMITTER_VALUE;
         }
         try {
-            final String submitter = transfileName.substring(0, 6);
+            String submitter = transfileName.substring(0, 6);
             return Long.parseLong(submitter);
         } catch (IndexOutOfBoundsException | NumberFormatException e) {
             return Constants.MISSING_SUBMITTER_VALUE;
         }
     }
+    private static String addCC(String address, String cc) {
+        if (Constants.MISSING_FIELD_VALUE.equals(address)) {
+            return Constants.MISSING_FIELD_VALUE;
+        }
+        if (address.toLowerCase().contains("dbc.dk")) {
+            return address;
+        }
+        if (cc != null) {
+            LOGGER.info("Added cc address:{}", cc);
+            return address + ";" + cc;
+        } else {
+            return address;
+        }
+    }
 
     private static String getFieldValue(TransFile.Line line, String fieldName, String defaultValue) {
-        final String fieldValue = line.getField(fieldName);
+        String fieldValue = line.getField(fieldName);
         if (fieldValue == null || fieldValue.trim().isEmpty()) {
             return defaultValue;
         }
@@ -102,7 +120,7 @@ public class JobSpecificationFactory {
     }
 
     private static String getFileStoreUrnOrMissing(TransFile.Line line, String fileStoreId) throws IllegalArgumentException {
-        final String fieldValue = getFieldValue(line, "f", Constants.MISSING_FIELD_VALUE);
+        String fieldValue = getFieldValue(line, "f", Constants.MISSING_FIELD_VALUE);
         if (Constants.MISSING_FIELD_VALUE.equals(fieldValue)) {
             return Constants.MISSING_FIELD_VALUE;
         }
@@ -113,8 +131,8 @@ public class JobSpecificationFactory {
     }
 
     private static JobSpecification.Ancestry getAncestry(String transfileName, TransFile.Line line, byte[] rawTransfile) {
-        final String datafileName = getFieldValue(line, "f", Constants.MISSING_FIELD_VALUE);
-        final String batchId = getBatchId(datafileName);
+        String datafileName = getFieldValue(line, "f", Constants.MISSING_FIELD_VALUE);
+        String batchId = getBatchId(datafileName);
         return new JobSpecification.Ancestry()
                 .withTransfile(transfileName)
                 .withDatafile(datafileName)
@@ -123,7 +141,7 @@ public class JobSpecificationFactory {
     }
 
     private static String getBatchId(String datafileName) {
-        final String[] split = datafileName.split("\\.");
+        String[] split = datafileName.split("\\.");
         if (split.length > 2) {
             return split[1];
         }

@@ -12,7 +12,11 @@ import jakarta.mail.internet.InternetAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.commons.types.Constants.CALL_OPEN_AGENCY;
 import static dk.dbc.dataio.commons.types.Constants.MISSING_FIELD_VALUE;
@@ -30,8 +34,20 @@ public class MailDestination {
         setDestination(notification);
     }
 
-    public InternetAddress[] getToAddresses() throws AddressException {
-        return new InternetAddress[]{new InternetAddress(destination)};
+    public InternetAddress[] getToAddresses() {
+        List<InternetAddress> addressList = Arrays.stream(destination.split(";")).distinct().map(s -> {
+            try {
+                return new InternetAddress(s, true);
+            } catch (AddressException e) {
+                LOGGER.error("Illegal address:{}", s, e);
+                return null;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+        InternetAddress[] addresses = new InternetAddress[addressList.size()];
+        for (int i = 0; i < addressList.size(); i++) {
+            addresses[i] = addressList.get(i);
+        }
+        return addresses;
     }
 
     public Session getMailSession() {

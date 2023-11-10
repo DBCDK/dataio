@@ -81,7 +81,7 @@ public class JobSpecificationFactoryTest {
     }
 
     @Test
-    public void createJobSpecification_Skip_CC() throws ParseException {
+    public void createJobSpecification_Skip_CC_if_dbc_mail() throws ParseException {
         Util.parseCommandLine(new String[]{"-m dataio@dbc.dk","-c http://flowstore.svc",
                 "-f http://filestore.svc", "-j http://jobstore.svc", "-d ftpdatadir"});
         String batchId = "001";
@@ -100,7 +100,7 @@ public class JobSpecificationFactoryTest {
     }
 
     @Test
-    public void createJobSpecification_Skip_CC_if_dbc_mail() throws ParseException {
+    public void createJobSpecification_Skip_CC() throws ParseException {
         Util.parseCommandLine(new String[]{"-c http://flowstore.svc",
                 "-f http://filestore.svc", "-j http://jobstore.svc", "-d ftpdatadir"});
         String batchId = "001";

@@ -41,7 +41,6 @@ public class Util {
         HelpFormatter helpFormatter = new HelpFormatter();
         Options options = getCommandLineOptions();
         try {
-            parser.parse(options, args);
             Arrays.stream(parser.parse(options, args).getOptions())
                     .forEach(option -> commandLineProps.put(option.getOpt(), option.getValue()));
             LOGGER.info("Command line properties: {}", commandLineProps);

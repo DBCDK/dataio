@@ -96,7 +96,6 @@ public class JobSpecificationFactoryTest {
                 .createJobSpecification(new TransFile.Line(rawTransfileLine), transfileName, "42", rawTransfile);
 
         assertThat("JobSpecification", jobSpecification, is(jobSpecificationTemplate));
-        Util.commandLine = null;
     }
 
     @Test

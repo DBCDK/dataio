@@ -1,6 +1,5 @@
 package dk.dbc.dataio.gatekeeper;
 
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -8,9 +7,16 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.Properties;
 
 public class Util {
-    protected static CommandLine commandLine;
+    private static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
+    protected static Properties commandLineProps = new Properties();
+
 
     public enum CommandLineOption {
         GUARDED_DIR("d"),
@@ -20,24 +26,25 @@ public class Util {
         CC_MAIL_ADDRESS("m");
 
         private final String option;
+
         CommandLineOption(String option) {
             this.option = option;
         }
+
         public String get() {
-            if (commandLine != null) {
-                return commandLine.getOptionValue(option);
-            }
-            return null;
+            return (String) commandLineProps.get(option);
         }
 
     }
-    public static CommandLine parseCommandLine(String[] args) throws ParseException {
+    public static void parseCommandLine(String[] args) throws ParseException {
         CommandLineParser parser = new GnuParser();
         HelpFormatter helpFormatter = new HelpFormatter();
         Options options = getCommandLineOptions();
         try {
-            commandLine = parser.parse(options, args);
-            return commandLine;
+            parser.parse(options, args);
+            Arrays.stream(parser.parse(options, args).getOptions())
+                    .forEach(option -> commandLineProps.put(option.getOpt(), option.getValue()));
+            LOGGER.info("Command line properties: {}", commandLineProps);
         } catch (ParseException e) {
             helpFormatter.printHelp("java -jar <jarfile>", options);
             throw e;

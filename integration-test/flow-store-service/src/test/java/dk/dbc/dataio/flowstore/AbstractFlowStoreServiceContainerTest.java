@@ -1,5 +1,6 @@
 package dk.dbc.dataio.flowstore;
 
+import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.testcontainers.Containers;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
@@ -12,6 +13,11 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
@@ -44,6 +50,16 @@ public abstract class AbstractFlowStoreServiceContainerTest implements PostgresC
         flowStoreServiceConnector = new FlowStoreServiceConnector(
                 FailSafeHttpClient.create(HttpClient.newClient(), new RetryPolicy().withMaxRetries(0)),
                 flowStoreServiceBaseUrl);
+    }
+
+    protected static void initializeDB() {
+        URL resource = HarvesterConfigsIT.class.getResource("/initial_state.sql");
+        try {
+            JDBCUtil.executeScript(flowStoreDbConnection,
+                    new File(resource.toURI()), StandardCharsets.UTF_8.name());
+        } catch (IOException | URISyntaxException | SQLException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     static Connection connectToFlowStoreDB() throws SQLException {

@@ -1,19 +1,11 @@
 package dk.dbc.dataio.flowstore;
 
-import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.harvester.types.OaiHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.util.List;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
@@ -24,15 +16,10 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.fail;
 
 public class HarvesterConfigsIT extends AbstractFlowStoreServiceContainerTest {
+
     @BeforeClass
     public static void loadInitialState() {
-        final URL resource = HarvesterConfigsIT.class.getResource("/initial_state.sql");
-        try {
-            JDBCUtil.executeScript(flowStoreDbConnection,
-                    new File(resource.toURI()), StandardCharsets.UTF_8.name());
-        } catch (IOException | URISyntaxException | SQLException e) {
-            throw new IllegalStateException(e);
-        }
+        initializeDB();
     }
 
     /**

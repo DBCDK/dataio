@@ -8,6 +8,7 @@ public class FlowStoreServiceConstants {
     public static final String SINKS = "sinks";
 
     public static final String ID_VARIABLE = "id";
+    public static final String PARM_VARIABLE = "parm";
     public static final String TYPE_VARIABLE = "type";
 
     public static final String SINK = "sinks/{id}";
@@ -44,6 +45,7 @@ public class FlowStoreServiceConstants {
 
     public static final String GATEKEEPER_DESTINATIONS = "gatekeeper/destinations";
     public static final String GATEKEEPER_DESTINATION = "gatekeeper/destinations/{id}";
+    public static final String PARAMETERS = "parameter/suggester/{parm}";
 
     private FlowStoreServiceConstants() {
     }

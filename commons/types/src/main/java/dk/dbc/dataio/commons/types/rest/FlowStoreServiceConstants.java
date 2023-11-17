@@ -1,6 +1,20 @@
 package dk.dbc.dataio.commons.types.rest;
 
 public class FlowStoreServiceConstants {
+    public enum ParameterSuggestionNames {
+        PACKAGING("packaging"),
+        FORMAT("format"),
+        DESTINATION("destination"),
+        CHARSET("charset");
+
+        private final String value;
+        ParameterSuggestionNames(String value) {
+            this.value = value;
+        }
+        public String getValue() {
+            return value;
+        }
+    }
     public static final String FLOWS = "flows";
     public static final String FLOW_BINDERS = "binders";
     public static final String FLOW_COMPONENTS = "components";

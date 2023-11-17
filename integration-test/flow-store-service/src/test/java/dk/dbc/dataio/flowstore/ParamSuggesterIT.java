@@ -75,22 +75,22 @@ public class ParamSuggesterIT extends AbstractFlowStoreServiceContainerTest {
 
     @Test
     public void parameterSuggestions() throws JSONBException {
-        assertThat("packaging", getSuggestion("packaging"),
+        assertThat("packaging", getSuggestion("PACKAGING"),
                 is(new TestingSuggestion()
                         .withName("packaging").withValues(List.of("iso", "json", "XML"))));
 
-        assertThat("destination", getSuggestion("destination"),
+        assertThat("destination", getSuggestion("DESTINATION"),
                 is(new TestingSuggestion()
                         .withName("destination")
                         .withValues(List.of("basis", "broend3", "broend3-exttest", "broend3-loadtest",
                                 "destination-1", "destination-2", "destination-3", "E4X", "XMLDOM"))));
 
-        assertThat("charset", getSuggestion("charset"),
+        assertThat("charset", getSuggestion("CHARSET"),
                 is(new TestingSuggestion()
                         .withName("charset")
                         .withValues(List.of("utf-128", "utf-16", "utf-8"))));
 
-        assertThat("format", getSuggestion("format"),
+        assertThat("format", getSuggestion("FORMAT"),
                 is(new TestingSuggestion()
                         .withName("format")
                         .withValues(List.of("basis", "format-1", "format-2", "format-3", "katalog"))));

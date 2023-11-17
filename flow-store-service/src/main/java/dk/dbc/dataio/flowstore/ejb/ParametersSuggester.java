@@ -35,21 +35,21 @@ public class ParametersSuggester extends AbstractResourceBean{
     @GET
     @Path(FlowStoreServiceConstants.PARAMETERS)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getParameter(@PathParam(FlowStoreServiceConstants.PARM_VARIABLE) String parm) throws JSONBException {
-        LOGGER.info("Get all '{}'", parm);
+    public Response getParameter(@PathParam(FlowStoreServiceConstants.PARM_VARIABLE) FlowStoreServiceConstants.ParameterSuggestionNames parm) throws JSONBException {
+        LOGGER.info("Get all '{}' from flowBinders and HarvesterConfigs", parm);
         ParameterSuggestion parameterSuggestion = queryForParameter(parm);
         return Response.ok().entity(jsonbContext.marshall(parameterSuggestion)).build();
 
     }
 
-    private ParameterSuggestion queryForParameter(String parm) {
+    private ParameterSuggestion queryForParameter(FlowStoreServiceConstants.ParameterSuggestionNames parm) {
         List<String> parameters = new ArrayList<>();
         for (String table : List.of("FLOW_BINDERS", "HARVESTER_CONFIGS")) {
-            Query query = entityManager.createNativeQuery("SELECT content ->> '" + parm + "' FROM " + table);
+            Query query = entityManager.createNativeQuery("SELECT content ->> '" + parm.getValue() + "' FROM " + table);
             parameters.addAll(query.getResultList());
         }
         return new ParameterSuggestion()
-                .withName(parm)
+                .withName(parm.getValue())
                 .withValues(parameters.stream().filter(Objects::nonNull).filter(s -> !s.trim()
                         .isEmpty()).distinct()
                         .sorted(Comparator.comparing(String::toLowerCase))

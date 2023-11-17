@@ -2,6 +2,8 @@ package dk.dbc.buildstuff.model;
 
 import dk.dbc.buildstuff.ValueResolver;
 import freemarker.template.Configuration;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementRef;
 import jakarta.xml.bind.annotation.XmlElementRefs;
@@ -16,6 +18,7 @@ import java.util.stream.Stream;
 
 @XmlRootElement(name = "defaults")
 @XmlType(propOrder = {"deployments", "properties", "list"})
+@XmlAccessorType(XmlAccessType.FIELD)
 public class ScopedDefaults extends ResolvingObject {
     @XmlElementRefs({
             @XmlElementRef(name = "deploy", type=Deploy.class),

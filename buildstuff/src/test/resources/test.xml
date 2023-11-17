@@ -23,13 +23,13 @@
         <p name="mem" default="2Gi"/>
         <p name="deploymentType" default="Recreate"/>
     </defaults>
-    <deploy name="diff-sink-no-queue" template="sink.yml.ftl" filter="f0">
+    <deploy name="diff-sink-no-queue" template="sink.yml.ftl" include="f0">
         <p name="image" default="dataio-sink-diff:${version}"/>
         <p name="maxHeap" default="512m"/>
         <p name="mem" default="2Gi"/>
         <p name="deploymentType" default="Recreate"/>
     </deploy>
-    <deploy name="diff-sink-no-queue-for-env" template="sink.yml.ftl" filter="f1">
+    <deploy name="diff-sink-no-queue-for-env" template="sink.yml.ftl" include="f1">
         <p name="image" default="dataio-sink-diff:${version}"/>
         <p name="queue">
             <env ns="t0">sink::diff</env>

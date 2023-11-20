@@ -18,23 +18,24 @@ import java.util.stream.Stream;
 @XmlRootElement
 @XmlSeeAlso({Alert.class, Deploy.class, ScopedDefaults.class})
 public abstract class ResolvingObject extends NamedBaseObject {
+    public static final String LIST_SPLITTER = "[, ]+";
     protected List<Property> properties = new ArrayList<>();
     protected Map<String, ValueResolver> map = new HashMap<>();
     private Set<String> unresolved;
     protected Namespace namespace;
-    protected List<DynamicList> list = new ArrayList<>();
+    public List<DynamicList> list = new ArrayList<>();
     protected ResolvingObject parent;
 
     public ResolvingObject() {}
 
     public List<DynamicList> getList() {
         if(list == null) return List.of();
-        return list;
+        return list.stream().filter(l -> l.isEnabled(null, namespace)).collect(Collectors.toList());
     }
 
     protected Stream<DynamicList> getListsInScope() {
-        if(parent == null) return list.stream();
-        return Stream.concat(list.stream(), parent.getListsInScope());
+        if(parent == null) return getList().stream();
+        return Stream.concat(getList().stream(), parent.getListsInScope());
     }
 
     public List<Property> getProperties() {
@@ -55,6 +56,22 @@ public abstract class ResolvingObject extends NamedBaseObject {
         }
         unresolved.removeAll(done);
         if (!unresolved.isEmpty()) resolve(loopMax - 1);
+    }
+
+    protected boolean isEmptyOrContains(Set<String> set, String s) {
+        return set.isEmpty() || set.contains(s);
+    }
+
+    public boolean getFilter(Namespace ns) {
+        return isEmptyOrContains(getInclude(), ns.getShortName()) && (getExclude().isEmpty() || !getExclude().contains(ns.getShortName()));
+    }
+
+    public Set<String> getInclude() {
+        return Set.of();
+    }
+
+    public Set<String> getExclude() {
+        return Set.of();
     }
 
     protected Map<String, ValueResolver> getResolverMap(Namespace namespace, Map<String, ValueResolver> scope) {

@@ -1,6 +1,5 @@
 package dk.dbc.buildstuff.model;
 
-import dk.dbc.buildstuff.Main;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -36,14 +35,15 @@ public class Deploy extends ResolvingObject {
     @XmlAttribute
     private Boolean enabled;
     @XmlAttribute
-    private String filter;
+    private String include;
+    @XmlAttribute
+    private String exclude;
     private static final Map<Object, Object> RECASTS = Map.of("true", true, "false", false);
     @Override
     @XmlElement(name = "p")
     public List<Property> getProperties() {
         return properties;
     }
-
     @Override
     @XmlElement
     public List<DynamicList> getList() {
@@ -65,8 +65,9 @@ public class Deploy extends ResolvingObject {
 
     public Path getPath() {
         try {
-            Path targetDirectory = Files.createDirectories(Main.getBasePath().resolve(namespace.getNamespace()));
-            return targetDirectory.resolve(getFilename());
+            Path path = namespace.getTargetPath();
+            Files.createDirectories(path);
+            return path.resolve(getFilename());
         } catch (IOException e) {
             throw new IllegalStateException("Unable to create target directory for " + namespace.getNamespace(), e);
         }
@@ -74,7 +75,6 @@ public class Deploy extends ResolvingObject {
 
     private void processTemplate(Configuration configuration, String templateDir) throws IOException {
         Template ftl = configuration.getTemplate((templateDir == null ? "" : templateDir + "/") + template);
-        Path file = getPath();
         Map<String, Object> model = new HashMap<>();
         for (DynamicList dynamicList : getList()) {
             if(dynamicList.getProperties() != null) {
@@ -84,6 +84,11 @@ public class Deploy extends ResolvingObject {
         }
         model.putAll(map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getValue())));
         model = model.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> recastValue(e.getValue())));
+        writeFile(ftl, model);
+    }
+
+    private void writeFile(Template ftl, Map<String, Object> model) throws IOException {
+        Path file = getPath();
         try (FileWriter writer = new FileWriter(file.toFile())) {
             ftl.process(model, writer);
         } catch (TemplateException te) {
@@ -99,16 +104,17 @@ public class Deploy extends ResolvingObject {
 
     @Override
     public boolean isEnabled(Set<String> deployNames, Namespace ns) {
-        return isEnabled() && isEmptyOrContains(deployNames, name) && isEmptyOrContains(getFilter(), ns.getShortName());
+        return isEnabled() && isEmptyOrContains(deployNames, name) && getFilter(ns);
     }
 
-    private boolean isEmptyOrContains(Set<String> set, String s) {
-        return set.isEmpty() || set.contains(s);
+    public Set<String> getInclude() {
+        if(include == null || include.isEmpty()) return Set.of();
+        return new HashSet<>(Arrays.asList(include.split(LIST_SPLITTER)));
     }
 
-    public Set<String> getFilter() {
-        if(filter == null || filter.isEmpty()) return Set.of();
-        return new HashSet<>(Arrays.asList(filter.split("[ ,]+")));
+    public Set<String> getExclude() {
+        if(exclude == null || exclude.isEmpty()) return Set.of();
+        return new HashSet<>(Arrays.asList(exclude.split(LIST_SPLITTER)));
     }
 
     private Object recastValue(Object value) {

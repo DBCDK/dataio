@@ -3,6 +3,7 @@ package dk.dbc.buildstuff.model;
 import dk.dbc.buildstuff.Main;
 import freemarker.template.TemplateException;
 import jakarta.xml.bind.JAXBException;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
@@ -16,7 +17,7 @@ class MainTest {
     private Path xmlConfig = path("test.xml");
 
     @Test
-    void testGenerateOk() throws TemplateException, JAXBException, IOException, SAXException {
+    void testGenerateOk() throws TemplateException, JAXBException, IOException, SAXException, GitAPIException {
         new Main(Main.Command.GENERATE, xmlConfig.toString(), "t0", "").generate();
         Path path = xmlConfig.getParent().resolve("test0/deploy-diff-sink.yml");
         List<String> result = Files.readAllLines(path);

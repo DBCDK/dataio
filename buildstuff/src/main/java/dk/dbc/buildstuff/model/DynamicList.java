@@ -2,10 +2,13 @@ package dk.dbc.buildstuff.model;
 
 import dk.dbc.buildstuff.ValueResolver;
 import freemarker.template.Configuration;
+import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,6 +21,10 @@ public class DynamicList extends ResolvingObject {
     public List<Property> getProperties() {
         return properties;
     }
+    @XmlAttribute
+    private String include;
+    @XmlAttribute
+    private String exclude;
 
     public DynamicList() {}
 
@@ -35,12 +42,21 @@ public class DynamicList extends ResolvingObject {
 
     @Override
     public void process(Set<String> deployNames, Namespace namespace, ResolvingObject parent, Configuration configuration, String templateDir) throws IOException {
+    }
 
+    public Set<String> getInclude() {
+        if(include == null || include.isEmpty()) return Set.of();
+        return new HashSet<>(Arrays.asList(include.split(LIST_SPLITTER)));
+    }
+
+    public Set<String> getExclude() {
+        if(exclude == null || exclude.isEmpty()) return Set.of();
+        return new HashSet<>(Arrays.asList(exclude.split(LIST_SPLITTER)));
     }
 
     @Override
     public boolean isEnabled(Set<String> deployNames, Namespace ns) {
-        return true;
+        return getFilter(ns);
     }
 
     @Override

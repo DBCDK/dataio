@@ -39,8 +39,11 @@
 
   <xs:complexType name="namespace">
     <xs:sequence/>
-    <xs:attribute name="short" type="xs:string"/>
-    <xs:attribute name="namespace" type="xs:string"/>
+    <xs:attribute name="short" type="xs:string" use="required"/>
+    <xs:attribute name="namespace" type="xs:string" use="required"/>
+    <xs:attribute name="git-repo" type="xs:string"/>
+    <xs:attribute name="path" type="xs:string"/>
+    <xs:attribute name="branch" type="xs:string"/>
   </xs:complexType>
 
   <xs:complexType name="version">
@@ -84,7 +87,8 @@
         </xs:sequence>
         <xs:attribute name="template" type="xs:string" use="required"/>
         <xs:attribute name="enabled" type="xs:boolean"/>
-        <xs:attribute name="filter" type="xs:string"/>
+        <xs:attribute name="include" type="xs:string"/>
+        <xs:attribute name="exclude" type="xs:string"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -103,6 +107,8 @@
         <xs:sequence>
           <xs:element name="p" type="tns:property" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
+        <xs:attribute name="include" type="xs:string"/>
+        <xs:attribute name="exclude" type="xs:string"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>

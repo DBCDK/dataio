@@ -5,17 +5,11 @@ import dk.dbc.buildstuff.model.Application;
 import dk.dbc.buildstuff.model.Deploy;
 import dk.dbc.buildstuff.model.Namespace;
 import freemarker.template.Configuration;
-import freemarker.template.TemplateException;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.transport.CredentialsProvider;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -35,7 +29,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @CommandLine.Command(name = "deploy", mixinStandardHelpOptions = true, showDefaultValues = true, version = "1.0")
@@ -76,9 +69,15 @@ public class Main implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         switch (command) {
-            case GENERATE: generate(); break;
-            case VERSION: updateVersion(); break;
-            case APPLY: apply(); break;
+            case GENERATE:
+                generate();
+                break;
+            case VERSION:
+                updateVersion();
+                break;
+            case APPLY:
+                apply();
+                break;
         }
         return 0;
     }
@@ -87,7 +86,7 @@ public class Main implements Callable<Integer> {
         return basePath;
     }
 
-    public Namespace generate() throws IOException, JAXBException, SAXException {
+    public Namespace generate() throws IOException, JAXBException, SAXException, GitAPIException {
         return generateAppConfig(readConfig(getConfigPath()));
     }
 
@@ -97,13 +96,13 @@ public class Main implements Callable<Integer> {
         return xmlConfig;
     }
 
-    private void apply() throws IOException, JAXBException, SAXException {
+    private void apply() throws IOException, JAXBException, SAXException, GitAPIException {
         Path xmlConfig = Path.of(filename);
         basePath = xmlConfig.toAbsolutePath().getParent();
         Application application = readConfig(getConfigPath());
         Namespace ns = generateAppConfig(application);
         Stream<String> args = Stream.of("apply", "-n", ns.getNamespace());
-        if(getDeployments().isEmpty()) {
+        if (getDeployments().isEmpty()) {
             args = Stream.concat(args, Stream.of("-f", basePath.resolve(ns.getNamespace()).toString()));
         } else {
             List<Deploy> enabledDeployments = application.getEnabledDeployments(ns, getDeployments());
@@ -111,47 +110,20 @@ public class Main implements Callable<Integer> {
         }
         String[] param = args.toArray(String[]::new);
         LOGGER.info("Executing: kubectl " + String.join(" ", param));
-        try(FluentProcess process = FluentProcess.start("kubectl", param)) {
+        try (FluentProcess process = FluentProcess.start("kubectl", param)) {
             process.stream().forEach(l -> LOGGER.info("KUBECTL: " + l));
         }
     }
 
-    private void updateVersion() throws GitAPIException, IOException, TemplateException, JAXBException, SAXException {
+    private void updateVersion() throws GitAPIException, IOException, JAXBException, SAXException {
         Objects.requireNonNull(version, "Please specify a version with -v <version>");
         Path temp = Files.createTempDirectory("buildstuff_");
-        Git git = checkOut(temp);
+        Git git = GitHelper.checkOut(temp, repository, branch, token);
         Path xmlConfig = temp.resolve(filename);
         basePath = xmlConfig.toAbsolutePath().getParent();
         updateVersionDocument();
         generateAppConfig(readConfig(xmlConfig));
-        checkIn(git);
-    }
-
-    private void checkIn(Git git) throws GitAPIException {
-        LOGGER.info("Pushing files to {}", branch);
-        Status status = git.status().call();
-        Set<String> changeset = Stream.concat(status.getUntracked().stream(), status.getModified().stream()).collect(Collectors.toSet());
-        if(!changeset.isEmpty()) {
-            AddCommand add = git.add();
-            changeset.forEach(add::addFilepattern);
-            add.call();
-        }
-        git.commit().setAuthor("Buildstuff Versioning", "").setMessage("Auto generated").call();
-        git.push().setCredentialsProvider(makeCredentials()).call();
-    }
-
-    private Git checkOut(Path dir) throws GitAPIException {
-        LOGGER.info("Cloning repository {} and setting branch {}", repository, branch);
-        CloneCommand cloneCommand = Git.cloneRepository()
-                .setURI(repository)
-                .setCredentialsProvider(makeCredentials())
-                .setBranch("refs/heads/" + branch);
-        cloneCommand.setDirectory(dir.toFile());
-        return cloneCommand.call();
-    }
-
-    private CredentialsProvider makeCredentials() {
-        return new UsernamePasswordCredentialsProvider("PRIVATE-TOKEN", token);
+        GitHelper.checkIn(git, branch, token);
     }
 
     private void updateVersionDocument() throws IOException {
@@ -166,8 +138,8 @@ public class Main implements Callable<Integer> {
         return unmarshaller.unmarshal(new StreamSource(xmlConfig.toFile()), Application.class).getValue();
     }
 
-    private Namespace generateAppConfig(Application application) throws IOException {
-       Configuration cfg = new Configuration(Configuration.VERSION_2_3_32);
+    private Namespace generateAppConfig(Application application) throws IOException, GitAPIException {
+        Configuration cfg = new Configuration(Configuration.VERSION_2_3_32);
         cfg.setDefaultEncoding(StandardCharsets.UTF_8.displayName());
         cfg.setDirectoryForTemplateLoading(basePath.toFile());
         cfg.setFallbackOnNullLoopVariable(false);
@@ -177,7 +149,9 @@ public class Main implements Callable<Integer> {
         Map<String, ValueResolver> globalValues = application.getGlobalValues(ns);
         Set<String> deployNames = getDeployments();
         application.setupResolvers(getDeployments(), ns, globalValues);
+        Git git = ns.checkout(token);
         application.process(deployNames, ns, cfg);
+        ns.checkin(git, token);
         return ns;
     }
 

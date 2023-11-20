@@ -5,6 +5,7 @@ import dk.dbc.dataio.flowstore.ejb.FlowComponentsBean;
 import dk.dbc.dataio.flowstore.ejb.FlowsBean;
 import dk.dbc.dataio.flowstore.ejb.GatekeeperDestinationsBean;
 import dk.dbc.dataio.flowstore.ejb.HarvestersBean;
+import dk.dbc.dataio.flowstore.ejb.ParametersSuggester;
 import dk.dbc.dataio.flowstore.ejb.SinksBean;
 import dk.dbc.dataio.flowstore.ejb.SubmittersBean;
 import jakarta.ws.rs.ApplicationPath;
@@ -38,6 +39,7 @@ public class FlowStoreApplication extends Application {
         classes.add(JsonExceptionMapper.class);
         classes.add(PersistenceExceptionMapper.class);
         classes.add(ReferencedEntityNotFoundExceptionMapper.class);
+        classes.add(ParametersSuggester.class);
         for (Class<?> clazz : classes) {
             log.info("Registered {} resource", clazz.getName());
         }

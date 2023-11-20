@@ -1,6 +1,20 @@
 package dk.dbc.dataio.commons.types.rest;
 
 public class FlowStoreServiceConstants {
+    public enum ParameterSuggestionNames {
+        PACKAGING("packaging"),
+        FORMAT("format"),
+        DESTINATION("destination"),
+        CHARSET("charset");
+
+        private final String value;
+        ParameterSuggestionNames(String value) {
+            this.value = value;
+        }
+        public String getValue() {
+            return value;
+        }
+    }
     public static final String FLOWS = "flows";
     public static final String FLOW_BINDERS = "binders";
     public static final String FLOW_COMPONENTS = "components";
@@ -8,6 +22,7 @@ public class FlowStoreServiceConstants {
     public static final String SINKS = "sinks";
 
     public static final String ID_VARIABLE = "id";
+    public static final String PARM_VARIABLE = "parm";
     public static final String TYPE_VARIABLE = "type";
 
     public static final String SINK = "sinks/{id}";
@@ -44,6 +59,7 @@ public class FlowStoreServiceConstants {
 
     public static final String GATEKEEPER_DESTINATIONS = "gatekeeper/destinations";
     public static final String GATEKEEPER_DESTINATION = "gatekeeper/destinations/{id}";
+    public static final String PARAMETERS = "parameter/suggester/{parm}";
 
     private FlowStoreServiceConstants() {
     }

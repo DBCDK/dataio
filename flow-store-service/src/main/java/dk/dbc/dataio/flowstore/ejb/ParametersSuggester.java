@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 public class ParametersSuggester extends AbstractResourceBean{
     private static final Logger LOGGER = LoggerFactory.getLogger(ParametersSuggester.class);
     JSONBContext jsonbContext = new JSONBContext();
+
     @PersistenceContext
     EntityManager entityManager;
 

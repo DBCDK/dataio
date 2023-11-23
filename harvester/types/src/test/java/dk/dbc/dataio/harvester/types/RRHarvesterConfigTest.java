@@ -2,7 +2,7 @@ package dk.dbc.dataio.harvester.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

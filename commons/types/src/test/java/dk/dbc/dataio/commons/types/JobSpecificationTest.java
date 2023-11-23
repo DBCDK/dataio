@@ -1,7 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -9,6 +9,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * JobSpecification unit tests
@@ -117,26 +118,23 @@ public class JobSpecificationTest {
 
     @Test
     public void hasNotificationDestination_returnsFalseOnEmptyMailAddr() {
-        final JobSpecification jobSpecification = newJobSpecificationInstance().withMailForNotificationAboutVerification("  ").withMailForNotificationAboutProcessing("  ");
+        JobSpecification jobSpecification = newJobSpecificationInstance().withMailForNotificationAboutVerification("  ").withMailForNotificationAboutProcessing("  ");
         assertThat(jobSpecification.hasNotificationDestination(), is(false));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void ancestryWithEmptyValuedTransFile_throws() {
-        new JobSpecification.Ancestry()
-                .withTransfile(" ");
+        assertThrows(IllegalArgumentException.class, () -> new JobSpecification.Ancestry().withTransfile(" "));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void ancestryWithEmptyValuedDataFile_throws() {
-        new JobSpecification.Ancestry()
-                .withDatafile(" ");
+        assertThrows(IllegalArgumentException.class, () -> new JobSpecification.Ancestry().withDatafile(" "));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void ancestryWithEmptyValuedHarvesterToken_throws() {
-        new JobSpecification.Ancestry()
-                .withHarvesterToken(" ");
+        assertThrows(IllegalArgumentException.class, () -> new JobSpecification.Ancestry().withHarvesterToken(" "));
     }
 
     public static JobSpecification newJobSpecificationInstance() {
@@ -159,7 +157,7 @@ public class JobSpecificationTest {
                         "    \"type\" : \"TEST\"" +
                         "}";
 
-        final JobSpecification jobSpecification = jsonbContext.unmarshall(json, JobSpecification.class);
+        JobSpecification jobSpecification = jsonbContext.unmarshall(json, JobSpecification.class);
         assertThat(jobSpecification.getPackaging(), is("packaging"));
         assertThat(jobSpecification.getType(), is(TYPE));
         assertThat(jobSpecification.getAncestry(), is(nullValue()));
@@ -186,10 +184,10 @@ public class JobSpecificationTest {
                         "    }\n" +
                         "}";
 
-        final JobSpecification jobSpecification = jsonbContext.unmarshall(json, JobSpecification.class);
+        JobSpecification jobSpecification = jsonbContext.unmarshall(json, JobSpecification.class);
         assertThat(jobSpecification.getPackaging(), is("packaging"));
         assertThat(jobSpecification.getType(), is(TYPE));
-        final JobSpecification.Ancestry ancestry = jobSpecification.getAncestry();
+        JobSpecification.Ancestry ancestry = jobSpecification.getAncestry();
         assertThat(ancestry, is(notNullValue()));
         assertThat(ancestry.getTransfile(), is("file.trans"));
         assertThat(ancestry.getDatafile(), is("file.dat"));

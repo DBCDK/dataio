@@ -2,7 +2,7 @@ package dk.dbc.dataio.commons.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -26,7 +26,7 @@ public class EsSinkConfigTest {
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstanceWithDefaultValuesSet() {
-        final EsSinkConfig esSinkConfig = new EsSinkConfig().withUserId(USER_ID).withDatabaseName(DATABASE_NAME);
+        EsSinkConfig esSinkConfig = new EsSinkConfig().withUserId(USER_ID).withDatabaseName(DATABASE_NAME);
         assertThat(esSinkConfig.getUserId(), is(USER_ID));
         assertThat(esSinkConfig.getDatabaseName(), is(DATABASE_NAME));
         assertThat(esSinkConfig.getEsAction(), is("INSERT"));
@@ -34,9 +34,9 @@ public class EsSinkConfigTest {
 
     @Test
     public void marshalling() throws JSONBException {
-        final JSONBContext jsonbContext = new JSONBContext();
-        final EsSinkConfig esSinkConfig = new EsSinkConfig();
-        final EsSinkConfig unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(esSinkConfig), EsSinkConfig.class);
+        JSONBContext jsonbContext = new JSONBContext();
+        EsSinkConfig esSinkConfig = new EsSinkConfig();
+        EsSinkConfig unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(esSinkConfig), EsSinkConfig.class);
         assertThat(unmarshalled, is(esSinkConfig));
     }
 }

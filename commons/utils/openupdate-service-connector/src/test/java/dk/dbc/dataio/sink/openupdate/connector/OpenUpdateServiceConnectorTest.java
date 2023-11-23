@@ -6,7 +6,7 @@ import dk.dbc.marc.binding.SubField;
 import dk.dbc.oss.ns.catalogingupdate.MessageEntry;
 import dk.dbc.oss.ns.catalogingupdate.Messages;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,21 +19,21 @@ public class OpenUpdateServiceConnectorTest {
 
     @Test
     public void toErrorFields_whenResultContainsNoErrors() {
-        final UpdateRecordResult result = new UpdateRecordResult();
+        UpdateRecordResult result = new UpdateRecordResult();
         assertThat(connector.toErrorFields("e01", result, null),
                 is(Collections.emptyList()));
     }
 
     @Test
     public void toErrorFields_noMarcRecord() {
-        final MessageEntry messageEntry1 = new MessageEntry();
+        MessageEntry messageEntry1 = new MessageEntry();
         messageEntry1.setMessage("err1");
-        final MessageEntry messageEntry2 = new MessageEntry();
+        MessageEntry messageEntry2 = new MessageEntry();
         messageEntry2.setMessage("err2");
-        final Messages messages = new Messages();
+        Messages messages = new Messages();
         messages.getMessageEntry().add(messageEntry1);
         messages.getMessageEntry().add(messageEntry2);
-        final UpdateRecordResult result = new UpdateRecordResult();
+        UpdateRecordResult result = new UpdateRecordResult();
         result.setMessages(messages);
 
         assertThat(connector.toErrorFields("e01", result, null),
@@ -58,15 +58,15 @@ public class OpenUpdateServiceConnectorTest {
 
     @Test
     public void toErrorFields_datafieldOrdinalOnly() {
-        final MessageEntry messageEntry = new MessageEntry();
+        MessageEntry messageEntry = new MessageEntry();
         messageEntry.setMessage("err");
         messageEntry.setOrdinalPositionOfField(1);
-        final Messages messages = new Messages();
+        Messages messages = new Messages();
         messages.getMessageEntry().add(messageEntry);
-        final UpdateRecordResult result = new UpdateRecordResult();
+        UpdateRecordResult result = new UpdateRecordResult();
         result.setMessages(messages);
 
-        final MarcRecord marcRecord = new MarcRecord()
+        MarcRecord marcRecord = new MarcRecord()
                 .addField(new DataField().setTag("001"))
                 .addField(new DataField().setTag("002"))
                 .addField(new DataField().setTag("003"));
@@ -89,16 +89,16 @@ public class OpenUpdateServiceConnectorTest {
 
     @Test
     public void toErrorFields_datafieldOrdinalOnlyAndSubfieldOrdinal() {
-        final MessageEntry messageEntry = new MessageEntry();
+        MessageEntry messageEntry = new MessageEntry();
         messageEntry.setMessage("err");
         messageEntry.setOrdinalPositionOfField(0);
         messageEntry.setOrdinalPositionOfSubfield(1);
-        final Messages messages = new Messages();
+        Messages messages = new Messages();
         messages.getMessageEntry().add(messageEntry);
-        final UpdateRecordResult result = new UpdateRecordResult();
+        UpdateRecordResult result = new UpdateRecordResult();
         result.setMessages(messages);
 
-        final MarcRecord marcRecord = new MarcRecord()
+        MarcRecord marcRecord = new MarcRecord()
                 .addField(new DataField().setTag("001")
                         .addSubField(new SubField().setCode('a'))
                         .addSubField(new SubField().setCode('b'))

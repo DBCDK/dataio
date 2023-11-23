@@ -1,7 +1,7 @@
 package dk.dbc.dataio.harvester.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 

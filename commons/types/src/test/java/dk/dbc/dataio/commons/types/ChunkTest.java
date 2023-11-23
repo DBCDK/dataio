@@ -2,19 +2,17 @@ package dk.dbc.dataio.commons.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ChunkTest {
     private static final ChunkItem CHUNK_ITEM = ChunkItem.successfulChunkItem()
@@ -23,19 +21,19 @@ public class ChunkTest {
     private Chunk chunk;
     private final JSONBContext jsonbContext = new JSONBContext();
 
-    @Before
+    @BeforeEach
     public void newChunk() {
         chunk = new Chunk(1, 1L, Chunk.Type.PARTITIONED);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_negativeJobId_throws() {
-        new Chunk(-1, 1L, Chunk.Type.PARTITIONED);
+        assertThrows(IllegalArgumentException.class, () -> new Chunk(-1, 1L, Chunk.Type.PARTITIONED));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_negativeChunkId_throws() {
-        new Chunk(1, -1L, Chunk.Type.PARTITIONED);
+        assertThrows(IllegalArgumentException.class, () -> new Chunk(1, -1L, Chunk.Type.PARTITIONED));
     }
 
     @Test
@@ -46,14 +44,14 @@ public class ChunkTest {
         assertThat("type", chunk.getType(), is(Chunk.Type.PARTITIONED));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void insertItem_itemArgIsNull_throws() {
-        chunk.insertItem(null);
+        assertThrows(IllegalArgumentException.class, () -> chunk.insertItem(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void insertItem_outOfOrderItemId_throws() {
-        chunk.insertItem(ChunkItem.ignoredChunkItem().withId(1).withData("data"));
+        assertThrows(IllegalArgumentException.class, () -> chunk.insertItem(ChunkItem.ignoredChunkItem().withId(1).withData("data")));
     }
 
     @Test
@@ -63,9 +61,9 @@ public class ChunkTest {
         assertThat("chunk has next items?", chunk.hasNextItems(), is(false));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void insertItem_2arg_currentItemArgIsNull_throws() {
-        chunk.insertItem(ChunkItem.UNDEFINED, CHUNK_ITEM);
+        assertThrows(IllegalArgumentException.class, () -> chunk.insertItem(ChunkItem.UNDEFINED, CHUNK_ITEM));
     }
 
     @Test
@@ -84,10 +82,10 @@ public class ChunkTest {
         assertThat("chunk has next items?", chunk.hasNextItems(), is(true));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void insertItem_2arg_nextItemIdDiffersFromCurrentItemId_throws() {
-        final ChunkItem nextChunkItem = ChunkItem.successfulChunkItem().withId(1).withData("data");
-        chunk.insertItem(CHUNK_ITEM, nextChunkItem);
+        ChunkItem nextChunkItem = ChunkItem.successfulChunkItem().withId(1).withData("data");
+        assertThrows(IllegalArgumentException.class, () -> chunk.insertItem(CHUNK_ITEM, nextChunkItem));
     }
 
     @Test
@@ -114,25 +112,25 @@ public class ChunkTest {
         assertThat("chunk has next items?", chunk.hasNextItems(), is(false));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void addAllItems_2arg_listsDifferInSize_throws() {
-        final ChunkItem firstItem = ChunkItem.ignoredChunkItem().withId(0).withData("First");
-        final ChunkItem secondItem = ChunkItem.successfulChunkItem().withId(1).withData("Second");
-        chunk.addAllItems(Arrays.asList(firstItem, secondItem), Collections.singletonList(firstItem));
+        ChunkItem firstItem = ChunkItem.ignoredChunkItem().withId(0).withData("First");
+        ChunkItem secondItem = ChunkItem.successfulChunkItem().withId(1).withData("Second");
+        assertThrows(IllegalArgumentException.class, () -> chunk.addAllItems(List.of(firstItem, secondItem), List.of(firstItem)));
     }
 
     @Test
     public void chunk_iterator() {
-        final ChunkItem firstItem = ChunkItem.ignoredChunkItem().withId(0).withData("First");
-        final ChunkItem secondItem = ChunkItem.successfulChunkItem().withId(1).withData("Second");
-        final ChunkItem thirdItem = ChunkItem.failedChunkItem().withId(2).withData("Third");
+        ChunkItem firstItem = ChunkItem.ignoredChunkItem().withId(0).withData("First");
+        ChunkItem secondItem = ChunkItem.successfulChunkItem().withId(1).withData("Second");
+        ChunkItem thirdItem = ChunkItem.failedChunkItem().withId(2).withData("Third");
         chunk.insertItem(firstItem);
         chunk.insertItem(secondItem);
         chunk.insertItem(thirdItem);
 
         assertThat("chunk size", chunk.size(), is(3));
 
-        final Iterator<ChunkItem> it = chunk.iterator();
+        Iterator<ChunkItem> it = chunk.iterator();
         assertThat("chunk has first item", it.hasNext(), is(true));
         assertThat("first item", it.next(), is(firstItem));
         assertThat("chunk has second item", it.hasNext(), is(true));
@@ -144,15 +142,15 @@ public class ChunkTest {
 
     @Test
     public void convertToJsonAndBackAgain() throws JSONBException {
-        final ChunkItem firstItem = ChunkItem.ignoredChunkItem().withId(0).withData("First");
-        final ChunkItem secondItem = ChunkItem.successfulChunkItem().withId(1).withData("Second");
-        final ChunkItem thirdItem = ChunkItem.failedChunkItem().withId(2).withData("Third");
+        ChunkItem firstItem = ChunkItem.ignoredChunkItem().withId(0).withData("First");
+        ChunkItem secondItem = ChunkItem.successfulChunkItem().withId(1).withData("Second");
+        ChunkItem thirdItem = ChunkItem.failedChunkItem().withId(2).withData("Third");
         chunk.insertItem(firstItem);
         chunk.insertItem(secondItem);
         chunk.insertItem(thirdItem);
 
-        final Chunk unmarshalledChunk = jsonbContext.unmarshall(jsonbContext.marshall(chunk), Chunk.class);
-        final Iterator<ChunkItem> it = unmarshalledChunk.iterator();
+        Chunk unmarshalledChunk = jsonbContext.unmarshall(jsonbContext.marshall(chunk), Chunk.class);
+        Iterator<ChunkItem> it = unmarshalledChunk.iterator();
         assertThat("chunk has first item", it.hasNext(), is(true));
         assertThat("first item", it.next(), is(firstItem));
         assertThat("chunk has second item", it.hasNext(), is(true));
@@ -162,33 +160,16 @@ public class ChunkTest {
         assertThat("chunk has fourth item", it.hasNext(), is(false));
     }
 
-    @Test(expected = JSONBException.class)
-    public void unmarshallFromJsonWhichDoNotUpholdInvariant() throws JSONBException {
+    @Test
+    public void unmarshallFromJsonWhichDoNotUpholdInvariant() {
         final String illegalJson = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":1,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"},{\"id\":0,\"data\":\"Second\",\"status\":\"SUCCESS\"}]}";
-        jsonbContext.unmarshall(illegalJson, Chunk.class);
+        assertThrows(JSONBException.class, () -> jsonbContext.unmarshall(illegalJson, Chunk.class));
     }
 
     @Test
     public void unmarshallFromJsonWithoutNext() throws JSONBException {
         final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\", \"type\":[\"UNKNOWN\"],\"encoding\":\"UTF-8\"}]}";
-        final Chunk chunk = jsonbContext.unmarshall(json, Chunk.class);
+        Chunk chunk = jsonbContext.unmarshall(json, Chunk.class);
         assertThat(chunk, is(notNullValue()));
-    }
-
-    private void assertStatus(Chunk chunk, long itemIdToStatusMatch, ChunkItem.Status expectedStatus) {
-        final ChunkItem ITEM_NOT_FOUND = null;
-        ChunkItem itemToMatch = ITEM_NOT_FOUND;
-        for (ChunkItem item : chunk) {
-            if (item.getId() == itemIdToStatusMatch) {
-                itemToMatch = item;
-            }
-        }
-
-        if (itemToMatch == null) {
-            fail("Matching ChunkItem expected with itemId: " + itemIdToStatusMatch);
-        } else {
-            assertTrue(itemToMatch.getId() == itemIdToStatusMatch);
-            assertEquals(expectedStatus, itemToMatch.getStatus());
-        }
     }
 }

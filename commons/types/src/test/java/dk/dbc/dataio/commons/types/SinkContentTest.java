@@ -1,10 +1,11 @@
 package dk.dbc.dataio.commons.types;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * SinkContent unit tests
@@ -33,14 +34,14 @@ public class SinkContentTest {
         return new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, SINK_CONFIG, SEQUENCE_ANALYSIS_OPTION, 1);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_nameArgIsNull_throws() {
-        new SinkContent(null, QUEUE, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
+        assertThrows(NullPointerException.class, () -> new SinkContent(null, QUEUE, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_nameArgIsEmpty_throws() {
-        new SinkContent("", QUEUE, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION);
+        assertThrows(IllegalArgumentException.class, () -> new SinkContent("", QUEUE, DESCRIPTION, SEQUENCE_ANALYSIS_OPTION));
     }
 
     @Test
@@ -63,9 +64,9 @@ public class SinkContentTest {
         new SinkContent(NAME, QUEUE, DESCRIPTION, SINK_TYPE, null, SEQUENCE_ANALYSIS_OPTION, 1);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_sequenceAnalysisOptionArgIsNull_throws() {
-        new SinkContent(NAME, QUEUE, DESCRIPTION, null);
+        assertThrows(NullPointerException.class, () -> new SinkContent(NAME, QUEUE, DESCRIPTION, null));
     }
 
     @Test

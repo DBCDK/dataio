@@ -2,12 +2,12 @@ package dk.dbc.dataio.commons.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
-import static org.hamcrest.CoreMatchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ImsSinkConfigTest {
 
@@ -20,15 +20,15 @@ public class ImsSinkConfigTest {
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstanceWithDefaultValuesSet() {
-        final ImsSinkConfig sinkConfig = new ImsSinkConfig().withEndpoint(ENDPOINT);
-        Assert.assertThat(sinkConfig.getEndpoint(), is(ENDPOINT));
+        ImsSinkConfig sinkConfig = new ImsSinkConfig().withEndpoint(ENDPOINT);
+        assertEquals(sinkConfig.getEndpoint(), ENDPOINT);
     }
 
     @Test
     public void marshalling() throws JSONBException {
-        final JSONBContext jsonbContext = new JSONBContext();
-        final ImsSinkConfig sinkConfig = new ImsSinkConfig();
-        final ImsSinkConfig unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(sinkConfig), ImsSinkConfig.class);
-        Assert.assertThat(unmarshalled, is(sinkConfig));
+        JSONBContext jsonbContext = new JSONBContext();
+        ImsSinkConfig sinkConfig = new ImsSinkConfig();
+        ImsSinkConfig unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(sinkConfig), ImsSinkConfig.class);
+        Assertions.assertEquals(unmarshalled, sinkConfig);
     }
 }

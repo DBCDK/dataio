@@ -3,7 +3,7 @@ package dk.dbc.dataio.jobstore.types;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.SinkContent;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.Set;
@@ -20,14 +20,14 @@ public class MarcRecordInfoTest {
 
     @Test
     public void constructor_parentRelationArgIsNull_parentRelationIsNull() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, null);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, null);
         assertThat("getParentRelation()", recordInfo.getParentRelation(), is(nullValue()));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
     }
 
     @Test
     public void constructor_parentRelationArgIsEmpty_parentRelationIsNull() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, "  ");
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, "  ");
         assertThat("getParentRelation()", recordInfo.getParentRelation(), is(nullValue()));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
     }
@@ -40,7 +40,7 @@ public class MarcRecordInfoTest {
 
     @Test
     public void constructor_typeArgIsStandalone() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.STANDALONE, false, parentRelation);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.STANDALONE, false, parentRelation);
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
         assertThat("isHead()", recordInfo.isHead(), is(false));
         assertThat("isSection()", recordInfo.isSection(), is(false));
@@ -49,7 +49,7 @@ public class MarcRecordInfoTest {
 
     @Test
     public void constructor_typeArgIsVolume() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.VOLUME, false, parentRelation);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.VOLUME, false, parentRelation);
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.VOLUME));
         assertThat("isHead()", recordInfo.isHead(), is(false));
         assertThat("isSection()", recordInfo.isSection(), is(false));
@@ -58,7 +58,7 @@ public class MarcRecordInfoTest {
 
     @Test
     public void constructor_typeArgIsHead() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.HEAD, false, parentRelation);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.HEAD, false, parentRelation);
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.HEAD));
         assertThat("isHead()", recordInfo.isHead(), is(true));
         assertThat("isSection()", recordInfo.isSection(), is(false));
@@ -67,7 +67,7 @@ public class MarcRecordInfoTest {
 
     @Test
     public void constructor_typeArgIsSection() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.SECTION, false, parentRelation);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.SECTION, false, parentRelation);
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.SECTION));
         assertThat("isHead()", recordInfo.isHead(), is(false));
         assertThat("isSection()", recordInfo.isSection(), is(true));
@@ -81,20 +81,20 @@ public class MarcRecordInfoTest {
 
     @Test
     public void constructor_isDeleteArgIsTrue() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, true, parentRelation);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, true, parentRelation);
         assertThat("isDelete()", recordInfo.isDelete(), is(true));
     }
 
     @Test
     public void getKeys_idIsNullAndParentRelationIsNull_returnsEmptySet() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, null);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, null);
         Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ALL);
         assertThat("keys", keys, is(Collections.emptySet()));
     }
 
     @Test
     public void getKeys_idIsNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsAll_returnsSetWithParentRelationAsKey() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, parentRelation);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, parentRelation);
         Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ALL);
         assertThat("keys.size", keys.size(), is(1));
         assertThat("keys.parentRelation", keys.contains(parentRelation), is(true));
@@ -102,21 +102,21 @@ public class MarcRecordInfoTest {
 
     @Test
     public void getKeys_idIsNullAndParentRelationIsNotNullAndSequenceAnalysisIsNull_returnsEmptySet() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, parentRelation);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, parentRelation);
         Set<String> keys = recordInfo.getKeys(null);
         assertThat("keys", keys, is(Collections.emptySet()));
     }
 
     @Test
     public void getKeys_idIsNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsIdOnly_returnsEmptySet() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, parentRelation);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, parentRelation);
         Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ID_ONLY);
         assertThat("keys", keys, is(Collections.emptySet()));
     }
 
     @Test
     public void getKeys_idIsNotNullAndParentRelationIsNull_returnsSetWithIdAsKey() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, null);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, null);
         Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ALL);
         assertThat("keys.size", keys.size(), is(1));
         assertThat("keys.id", keys.contains(id), is(true));
@@ -124,7 +124,7 @@ public class MarcRecordInfoTest {
 
     @Test
     public void getKeys_idIsNotNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsAll_returnsSetWithIdAndParentRelationAsKeys() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, parentRelation);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, parentRelation);
         Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ALL);
         assertThat("keys.size", keys.size(), is(2));
         assertThat("keys.id", keys.contains(id), is(true));
@@ -133,7 +133,7 @@ public class MarcRecordInfoTest {
 
     @Test
     public void getKeys_idIsNotNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsIdOnly_returnsSetWithIdAsKey() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, parentRelation);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, parentRelation);
         Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ID_ONLY);
         assertThat("keys.size", keys.size(), is(1));
         assertThat("keys.id", keys.contains(id), is(true));
@@ -141,7 +141,7 @@ public class MarcRecordInfoTest {
 
     @Test
     public void getKeys_idIsNotNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsNull_returnsSetWithIdAsKey() {
-        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, parentRelation);
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, parentRelation);
         Set<String> keys = recordInfo.getKeys(null);
         assertThat("keys.size", keys.size(), is(1));
         assertThat("keys.id", keys.contains(id), is(true));
@@ -149,15 +149,15 @@ public class MarcRecordInfoTest {
 
     @Test
     public void marshalling() throws JSONBException {
-        final JSONBContext jsonbContext = new JSONBContext();
-        final MarcRecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), MarcRecordInfo.class);
+        JSONBContext jsonbContext = new JSONBContext();
+        MarcRecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), MarcRecordInfo.class);
         assertThat(unmarshalled, is(recordInfo));
     }
 
     @Test
     public void marshalling_marcRecordInfoCanBeUnmarshalledAsRecordInfo() throws JSONBException {
-        final JSONBContext jsonbContext = new JSONBContext();
-        final RecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), RecordInfo.class);
+        JSONBContext jsonbContext = new JSONBContext();
+        RecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), RecordInfo.class);
         assertThat(unmarshalled, is(recordInfo));
     }
 }

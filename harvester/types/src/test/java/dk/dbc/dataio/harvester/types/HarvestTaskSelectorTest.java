@@ -1,6 +1,6 @@
 package dk.dbc.dataio.harvester.types;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;

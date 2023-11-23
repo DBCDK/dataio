@@ -1,6 +1,6 @@
 package dk.dbc.dataio.common.utils.io;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

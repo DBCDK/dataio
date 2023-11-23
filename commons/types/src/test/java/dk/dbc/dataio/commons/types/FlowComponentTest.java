@@ -1,10 +1,11 @@
 package dk.dbc.dataio.commons.types;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * FlowComponent unit tests
@@ -17,30 +18,30 @@ public class FlowComponentTest {
     private static final FlowComponentContent CONTENT = FlowComponentContentTest.newFlowComponentContentInstance();
     private static final FlowComponentContent NEXT = FlowComponentContentTest.newFlowComponentContentInstance();
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_contentArgIsNull_throws() {
-        new FlowComponent(ID, VERSION, null, NEXT);
+        assertThrows(NullPointerException.class, () -> new FlowComponent(ID, VERSION, null, NEXT));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_idArgIsBelowBound_throws() {
-        new FlowComponent(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, VERSION, CONTENT, NEXT);
+        assertThrows(IllegalArgumentException.class, () -> new FlowComponent(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, VERSION, CONTENT, NEXT));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_versionArgIsBelowBound_throws() {
-        new FlowComponent(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND - 1, CONTENT, NEXT);
+        assertThrows(IllegalArgumentException.class, () -> new FlowComponent(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND - 1, CONTENT, NEXT));
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final FlowComponent instance = new FlowComponent(ID, VERSION, CONTENT, NEXT);
+        FlowComponent instance = new FlowComponent(ID, VERSION, CONTENT, NEXT);
         assertThat(instance, is(notNullValue()));
     }
 
     @Test
     public void constructor_nextArgCanBeNull_returnsNewInstance() {
-        final FlowComponent instance = new FlowComponent(ID, VERSION, CONTENT, FlowComponent.UNDEFINED_NEXT);
+        FlowComponent instance = new FlowComponent(ID, VERSION, CONTENT, FlowComponent.UNDEFINED_NEXT);
         assertThat(instance, is(notNullValue()));
     }
 

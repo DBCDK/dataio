@@ -3,7 +3,7 @@ package dk.dbc.dataio.commons.types.exceptions;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import org.hamcrest.CoreMatchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -15,7 +15,7 @@ public class DataIoExceptionTest {
 
     @Test
     public void zeroArgConstructor_setsProperties() {
-        final DataIoException dataIoException = new DataIoException();
+        DataIoException dataIoException = new DataIoException();
         assertThat(dataIoException.getType(), is(DataIoException.class.getName()));
         assertThat(dataIoException.getCause(), is(nullValue()));
         assertThat(dataIoException.getMessage(), is(nullValue()));
@@ -26,7 +26,7 @@ public class DataIoExceptionTest {
     @Test
     public void oneArgConstructor_setsProperties() {
         final String message = "message";
-        final DataIoException dataIoException = new DataIoException(message);
+        DataIoException dataIoException = new DataIoException(message);
         assertThat(dataIoException.getType(), is(DataIoException.class.getName()));
         assertThat(dataIoException.getCause(), is(nullValue()));
         assertThat(dataIoException.getMessage(), is(message));
@@ -38,10 +38,10 @@ public class DataIoExceptionTest {
     public void twoArgConstructor_setsProperties() {
         final String message = "message";
         final String causedByDetail = "detail";
-        final NullPointerException cause = new NullPointerException(causedByDetail);
-        final DataIoException dataIoException = new DataIoException(message, cause);
+        NullPointerException cause = new NullPointerException(causedByDetail);
+        DataIoException dataIoException = new DataIoException(message, cause);
         assertThat(dataIoException.getType(), is(DataIoException.class.getName()));
-        assertThat(dataIoException.getCause(), CoreMatchers.<Throwable>is(cause));
+        assertThat(dataIoException.getCause(), CoreMatchers.is(cause));
         assertThat(dataIoException.getMessage(), is(message));
         assertThat(dataIoException.getCausedBy(), is(cause.getClass().getName()));
         assertThat(dataIoException.getCausedByDetail(), is(causedByDetail));
@@ -52,7 +52,7 @@ public class DataIoExceptionTest {
         DataIoException dataIoException;
         final String message = "message";
         final String causedByDetail = "detail";
-        final NullPointerException cause = new NullPointerException(causedByDetail);
+        NullPointerException cause = new NullPointerException(causedByDetail);
         try {
             throw new TestException(message, cause);
         } catch (DataIoException e) {

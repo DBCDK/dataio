@@ -3,8 +3,9 @@ package dk.dbc.dataio.bfs.api;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -20,266 +21,299 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.zip.GZIPOutputStream;
 
+import static junitx.framework.FileAssert.assertBinaryEquals;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.Assert.fail;
 
 public class BinaryFileFsImplTest {
-    private static final String DATA = "8 bytes!";
-    private static final byte[] BYTES = DATA.getBytes();
+    private static final byte[] DATA = "8 bytes!".getBytes();
 
+    @Rule
+    public TemporaryFolder mountPoint = new TemporaryFolder();
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_pathArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new BinaryFileFsImpl(null));
+        new BinaryFileFsImpl(null);
     }
 
     @Test
     public void constructor_pathArgIsValid_returnsNewInstance() throws IOException {
-        Path filePath = tempPath();
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(filePath);
+        final Path filePath = mountPoint.newFile().toPath();
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(filePath);
         assertThat(binaryFileFs, is(notNullValue()));
         assertThat(binaryFileFs.getPath(), is(filePath));
     }
 
     @Test
     public void write_isArgIsNull_throws() throws IOException {
-        Path filePath = tempPath();
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(filePath);
-        assertThrows(NullPointerException.class, () -> binaryFileFs.write(null));
-
+        final Path filePath = mountPoint.newFile().toPath();
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(filePath);
+        try {
+            binaryFileFs.write(null);
+            fail("No Exception thrown");
+        } catch (NullPointerException e) {
+        }
     }
 
     @Test
     public void write_pathAlreadyExists_throws() throws IOException {
-        Path existingFile = tempPath();
+        final Path existingFile = mountPoint.newFile().toPath();
         writeFile(existingFile);
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(existingFile);
-        assertThrows(IllegalStateException.class, () -> binaryFileFs.write(getInputStreamForFile(existingFile)));
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(existingFile);
+        try {
+            binaryFileFs.write(getInputStreamForFile(existingFile));
+            fail("No Exception thrown");
+        } catch (IllegalStateException e) {
+        }
     }
 
     @Test
     public void write_writesData() throws IOException {
-        Path sourceFile = tempPath();
+        final Path sourceFile = mountPoint.newFile().toPath();
         writeFile(sourceFile);
-        Path destinationFile = tempPath();
+        final Path destinationFile = mountPoint.newFile().toPath();
         Files.delete(destinationFile);
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(destinationFile);
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(destinationFile);
         binaryFileFs.write(getInputStreamForFile(sourceFile));
-        assertBinaryEquals(sourceFile, destinationFile);
-    }
-
-    private void assertBinaryEquals(Path p1, Path p2) throws IOException {
-        byte[] b1 = Files.readAllBytes(p1);
-        byte[] b2 = Files.readAllBytes(p2);
-        Assertions.assertArrayEquals(b1, b2);
+        assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
     }
 
     @Test
     public void append_pathDoesNotExist_throws() {
-        Path file = Paths.get("file");
-        BinaryFileFsImpl binaryFile = new BinaryFileFsImpl(file);
-        assertThrows(IllegalStateException.class, () -> binaryFile.append(new byte[]{}));
+        final Path file = Paths.get("file");
+        final BinaryFileFsImpl binaryFile = new BinaryFileFsImpl(file);
+        try {
+            binaryFile.append(new byte[]{});
+            fail("No IllegalStateException thrown");
+        } catch (IllegalStateException e) {
+        }
     }
 
     @Test
     public void append() throws IOException {
-        Path destinationFile = tempPath();
+        final Path destinationFile = mountPoint.newFile().toPath();
         Files.delete(destinationFile);
-        BinaryFileFsImpl binaryFile = new BinaryFileFsImpl(destinationFile);
+        final BinaryFileFsImpl binaryFile = new BinaryFileFsImpl(destinationFile);
         binaryFile.write(new ByteArrayInputStream("foo".getBytes()));
         binaryFile.append("bar".getBytes());
-        ByteArrayOutputStream sink = new ByteArrayOutputStream();
+        final ByteArrayOutputStream sink = new ByteArrayOutputStream();
         binaryFile.read(sink);
-        assertThat(sink.toString(), is("foobar"));
+        assertThat(new String(sink.toByteArray()), is("foobar"));
     }
 
     @Test
     public void openOutputStream_pathAlreadyExists_throws() throws IOException {
-        Path existingFile = tempPath();
+        final Path existingFile = mountPoint.newFile().toPath();
         writeFile(existingFile);
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(existingFile);
-        assertThrows(IllegalStateException.class, binaryFileFs::openOutputStream);
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(existingFile);
+        try {
+            binaryFileFs.openOutputStream();
+            fail("No Exception thrown");
+        } catch (IllegalStateException e) {
+        }
     }
 
     @Test
     public void openOutputStream_returnsStreamForWriting() throws IOException {
-        Path sourceFile = tempPath();
+        final Path sourceFile = mountPoint.newFile().toPath();
         writeFile(sourceFile);
-        Path destinationFile = tempPath();
+        final Path destinationFile = mountPoint.newFile().toPath();
         Files.delete(destinationFile);
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(destinationFile);
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(destinationFile);
         try (OutputStream os = binaryFileFs.openOutputStream()) {
             FileUtils.copyFile(sourceFile.toFile(), os);
         }
-        assertBinaryEquals(sourceFile, destinationFile);
+        assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
     }
 
     @Test
     public void openOutputStream_returnsStreamForWriting_withAppend() throws IOException {
-        Path sourceFile = tempPath();
+        final Path sourceFile = mountPoint.newFile().toPath();
         writeFile(sourceFile);
-        Path destinationFile = tempPath();
+        final Path destinationFile = mountPoint.newFile().toPath();
         writeFile(destinationFile);
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(destinationFile);
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(destinationFile);
         try (OutputStream os = binaryFileFs.openOutputStream(true)) {
             FileUtils.copyFile(sourceFile.toFile(), os);
         }
-        Files.writeString(sourceFile, DATA + DATA);
-        assertBinaryEquals(sourceFile, destinationFile);
+        assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
     }
 
     @Test
     public void delete_pathDoesNotExist_returns() {
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(Paths.get("/no/such/file"));
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(Paths.get("/no/such/file"));
         binaryFileFs.delete();
     }
 
     @Test
     public void delete_pathDoesExist_deletesFile() throws IOException {
-        Path filePath = tempPath();
+        final Path filePath = mountPoint.newFile().toPath();
         assertThat(Files.exists(filePath), is(true));
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(filePath);
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(filePath);
         binaryFileFs.delete();
         assertThat(Files.exists(filePath), is(false));
     }
 
     @Test
+    public void exists_pathExists_returnsTrue() throws IOException {
+        final Path filePath = mountPoint.newFile().toPath();
+        assertThat(Files.exists(filePath), is(true));
+    }
+
+    @Test
+    public void exists_pathDoesNotExist_returnsFalse() throws IOException {
+        final Path filePath = mountPoint.newFile().toPath();
+        Files.delete(filePath);
+        assertThat(Files.exists(filePath), is(false));
+    }
+
+    @Test
     public void read_osArgIsNull_throws() throws IOException {
-        Path sourceFile = tempPath();
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
-        assertThrows(NullPointerException.class, () -> binaryFileFs.read(null));
+        final Path sourceFile = mountPoint.newFile().toPath();
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
+        try {
+            binaryFileFs.read(null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
     }
 
     @Test
     public void read_pathDoesNotExist_throws() throws IOException {
-        Path sourceFile = tempPath();
+        final Path sourceFile = mountPoint.newFile().toPath();
         Files.delete(sourceFile);
-        Path destinationFile = tempPath();
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
-        assertThrows(IllegalStateException.class, () -> binaryFileFs.read(getOutputStreamForFile(destinationFile)));
+        final Path destinationFile = mountPoint.newFile().toPath();
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
+        try {
+            binaryFileFs.read(getOutputStreamForFile(destinationFile));
+            fail("No exception thrown");
+        } catch (IllegalStateException e) {
+        }
     }
 
     @Test
     public void read_readsData() throws IOException {
-        Path sourceFile = tempPath();
+        final Path sourceFile = mountPoint.newFile().toPath();
         writeFile(sourceFile);
-        Path destinationFile = tempPath();
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
+        final Path destinationFile = mountPoint.newFile().toPath();
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
         binaryFileFs.read(getOutputStreamForFile(destinationFile));
-        assertBinaryEquals(sourceFile, destinationFile);
+        assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
     }
 
     @Test
     public void read_gz() throws IOException {
-        ByteArrayOutputStream gzData = new ByteArrayOutputStream();
-        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(gzData);
-        gzipOutputStream.write(BYTES, 0, BYTES.length);
+        final ByteArrayOutputStream gzData = new ByteArrayOutputStream();
+        final GZIPOutputStream gzipOutputStream = new GZIPOutputStream(gzData);
+        gzipOutputStream.write(DATA, 0, DATA.length);
         gzipOutputStream.close();
-        assertThat("verify gz", gzData.toByteArray(), is(not(BYTES)));
+        assertThat("verify gz", gzData.toByteArray(), is(not(DATA)));
 
-        Path gzFile = tempPath();
+        final Path gzFile = mountPoint.newFile().toPath();
         writeFile(gzFile, gzData.toByteArray());
 
-        BinaryFileFsImpl gzBinaryFile = new BinaryFileFsImpl(gzFile);
+        final BinaryFileFsImpl gzBinaryFile = new BinaryFileFsImpl(gzFile);
 
-        ByteArrayOutputStream compressedBytesRead = new ByteArrayOutputStream();
+        final ByteArrayOutputStream compressedBytesRead = new ByteArrayOutputStream();
         gzBinaryFile.read(compressedBytesRead);
-        assertThat("read compressed", compressedBytesRead.toByteArray(), is(gzData.toByteArray()));
+        assertThat("read compressed", compressedBytesRead.toByteArray(),
+                is(gzData.toByteArray()));
 
-        ByteArrayOutputStream decompressedBytesRead = new ByteArrayOutputStream();
+        final ByteArrayOutputStream decompressedBytesRead = new ByteArrayOutputStream();
         gzBinaryFile.read(decompressedBytesRead, true);
-        assertThat("read decompressed", decompressedBytesRead.toByteArray(), is(BYTES));
-    }
-
-    private void writeFile(Path file, byte[] byteArray) throws IOException {
-        Files.write(file, byteArray);
+        assertThat("read decompressed", decompressedBytesRead.toByteArray(),
+                is(DATA));
     }
 
     @Test
     public void size_gz() throws IOException {
-        ByteArrayOutputStream gzData = new ByteArrayOutputStream();
-        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(gzData);
-
-        gzipOutputStream.write(BYTES, 0, BYTES.length);
+        final ByteArrayOutputStream gzData = new ByteArrayOutputStream();
+        final GZIPOutputStream gzipOutputStream = new GZIPOutputStream(gzData);
+        gzipOutputStream.write(DATA, 0, DATA.length);
         gzipOutputStream.close();
         assertThat("verify gz", gzData.toByteArray(), is(not(DATA)));
 
-        Path gzFile = tempPath();
+        final Path gzFile = mountPoint.newFile().toPath();
         writeFile(gzFile, gzData.toByteArray());
 
-        BinaryFileFsImpl gzBinaryFile = new BinaryFileFsImpl(gzFile);
+        final BinaryFileFsImpl gzBinaryFile = new BinaryFileFsImpl(gzFile);
 
         assertThat("size compressed", gzBinaryFile.size(false),
                 is((long) gzData.toByteArray().length));
 
         assertThat("size decompressed", gzBinaryFile.size(true),
-                is((long) BYTES.length));
+                is((long) DATA.length));
     }
 
     @Test
     public void read_bz2() throws IOException {
-        ByteArrayOutputStream bz2Data = new ByteArrayOutputStream();
-        BZip2CompressorOutputStream bz2Out = new BZip2CompressorOutputStream(bz2Data);
-        bz2Out.write(BYTES, 0, BYTES.length);
+        final ByteArrayOutputStream bz2Data = new ByteArrayOutputStream();
+        final BZip2CompressorOutputStream bz2Out = new BZip2CompressorOutputStream(bz2Data);
+        bz2Out.write(DATA, 0, DATA.length);
         bz2Out.close();
-        assertThat("verify bz2", bz2Data.toByteArray(), is(not(BYTES)));
+        assertThat("verify bz2", bz2Data.toByteArray(), is(not(DATA)));
 
-        Path bz2File = tempPath();
+        final Path bz2File = mountPoint.newFile().toPath();
         writeFile(bz2File, bz2Data.toByteArray());
 
-        BinaryFileFsImpl bz2BinaryFile = new BinaryFileFsImpl(bz2File);
+        final BinaryFileFsImpl bz2BinaryFile = new BinaryFileFsImpl(bz2File);
 
-        ByteArrayOutputStream compressedBytesRead = new ByteArrayOutputStream();
+        final ByteArrayOutputStream compressedBytesRead = new ByteArrayOutputStream();
         bz2BinaryFile.read(compressedBytesRead);
         assertThat("read compressed", compressedBytesRead.toByteArray(),
                 is(bz2Data.toByteArray()));
 
-        ByteArrayOutputStream decompressedBytesRead = new ByteArrayOutputStream();
+        final ByteArrayOutputStream decompressedBytesRead = new ByteArrayOutputStream();
         bz2BinaryFile.read(decompressedBytesRead, true);
         assertThat("read decompressed", decompressedBytesRead.toByteArray(),
-                is(BYTES));
+                is(DATA));
     }
 
     @Test
     public void size_bz2() throws IOException {
-        ByteArrayOutputStream bz2Data = new ByteArrayOutputStream();
-        BZip2CompressorOutputStream bz2Out = new BZip2CompressorOutputStream(bz2Data);
-        bz2Out.write(BYTES, 0, BYTES.length);
+        final ByteArrayOutputStream bz2Data = new ByteArrayOutputStream();
+        final BZip2CompressorOutputStream bz2Out = new BZip2CompressorOutputStream(bz2Data);
+        bz2Out.write(DATA, 0, DATA.length);
         bz2Out.close();
         assertThat("verify bz2", bz2Data.toByteArray(), is(not(DATA)));
 
-        Path bz2File = tempPath();
+        final Path bz2File = mountPoint.newFile().toPath();
         writeFile(bz2File, bz2Data.toByteArray());
 
-        BinaryFileFsImpl bz2BinaryFile = new BinaryFileFsImpl(bz2File);
+        final BinaryFileFsImpl bz2BinaryFile = new BinaryFileFsImpl(bz2File);
 
         assertThat("size compressed", bz2BinaryFile.size(false),
                 is((long) bz2Data.toByteArray().length));
 
-        assertThat("size decompressed", bz2BinaryFile.size(true), is(-4_348_520L));
+        assertThat("size decompressed", bz2BinaryFile.size(true),
+                is(-4_348_520L));
     }
 
     @Test
     public void openInputStream_pathDoesNotExist_throws() throws IOException {
-        Path sourceFile = tempPath();
+        final Path sourceFile = mountPoint.newFile().toPath();
         Files.delete(sourceFile);
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
-        assertThrows(IllegalStateException.class, binaryFileFs::openInputStream);
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
+        try {
+            binaryFileFs.openInputStream();
+            fail("No Exception thrown");
+        } catch (IllegalStateException e) {
+        }
     }
 
     @Test
     public void openInputStream_opensStreamForReading() throws IOException {
-        Path sourceFile = tempPath();
+        final Path sourceFile = mountPoint.newFile().toPath();
         writeFile(sourceFile);
-        Path destinationFile = tempPath();
-        BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
-        try (InputStream is = binaryFileFs.openInputStream(); OutputStream os = getOutputStreamForFile(destinationFile)) {
-            IOUtils.copy(is, os);
+        final Path destinationFile = mountPoint.newFile().toPath();
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
+        try (InputStream is = binaryFileFs.openInputStream()) {
+            IOUtils.copy(is, getOutputStreamForFile(destinationFile));
         }
-        assertBinaryEquals(sourceFile, destinationFile);
+        assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
     }
 
     private InputStream getInputStreamForFile(Path file) throws IOException {
@@ -290,11 +324,21 @@ public class BinaryFileFsImplTest {
         return new BufferedOutputStream(new FileOutputStream(file.toFile()));
     }
 
-    private Path tempPath() throws IOException {
-        return Files.createTempFile("bfs_test", "");
+    private void writeFile(Path path) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
+            int iterations = (2 * BinaryFileFsImpl.BUFFER_SIZE) / DATA.length;
+            while (iterations > 0) {
+                fos.write(DATA, 0, DATA.length);
+                iterations--;
+            }
+            fos.flush();
+        }
     }
 
-    private void writeFile(Path path) throws IOException {
-        Files.writeString(path, DATA);
+    private void writeFile(Path path, byte[] bytes) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
+            fos.write(bytes, 0, bytes.length);
+            fos.flush();
+        }
     }
 }

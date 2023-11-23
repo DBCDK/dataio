@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.types;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

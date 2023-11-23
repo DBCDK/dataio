@@ -1,11 +1,10 @@
 package dk.dbc.dataio.commons.types;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Submitter unit tests
@@ -19,24 +18,24 @@ public class SubmitterTest {
     private static final long VERSION = 1L;
     private static final SubmitterContent CONTENT = SubmitterContentTest.newSubmitterContentInstance();
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_contentArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new Submitter(ID, VERSION, null));
+        new Submitter(ID, VERSION, null);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void constructor_idArgIsLessThanLowerBound_throws() {
-        assertThrows(IllegalArgumentException.class, () -> new Submitter(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, VERSION, CONTENT));
+        new Submitter(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, VERSION, CONTENT);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void constructor_versionArgIsLessThanLowerBound_throws() {
-        assertThrows(IllegalArgumentException.class, () -> new Submitter(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND - 1, CONTENT));
+        new Submitter(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND - 1, CONTENT);
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        Submitter instance = new Submitter(ID, VERSION, CONTENT);
+        final Submitter instance = new Submitter(ID, VERSION, CONTENT);
         assertThat(instance, is(notNullValue()));
     }
 

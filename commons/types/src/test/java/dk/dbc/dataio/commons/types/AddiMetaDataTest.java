@@ -2,7 +2,7 @@ package dk.dbc.dataio.commons.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -23,7 +23,7 @@ public class AddiMetaDataTest {
 
     @Test
     public void emptyAddiMetaDataReturnsNull() {
-        AddiMetaData addiMetaData = new AddiMetaData();
+        final AddiMetaData addiMetaData = new AddiMetaData();
         assertThat("submitterNumber()", addiMetaData.submitterNumber(), is(nullValue()));
         assertThat("format()", addiMetaData.format(), is(nullValue()));
         assertThat("bibliographicRecordId()", addiMetaData.bibliographicRecordId(), is(nullValue()));
@@ -37,7 +37,7 @@ public class AddiMetaDataTest {
     public void accessors() {
         Map<String, Integer> statusMap = new HashMap<>();
         statusMap.put("OnShelf", 32);
-        AddiMetaData addiMetaData = new AddiMetaData()
+        final AddiMetaData addiMetaData = new AddiMetaData()
                 .withSubmitterNumber(42)
                 .withFormat("marc2")
                 .withBibliographicRecordId("id")
@@ -58,7 +58,7 @@ public class AddiMetaDataTest {
     public void canBeMarshalledUnmarshalled() throws JSONBException {
         Map<String, Integer> statusMap = new HashMap<>();
         statusMap.put("OnShelf", 32);
-        AddiMetaData addiMetaData = new AddiMetaData()
+        final AddiMetaData addiMetaData = new AddiMetaData()
                 .withCreationDate(new Date())
                 .withSubmitterNumber(42)
                 .withFormat("marc2")
@@ -72,7 +72,7 @@ public class AddiMetaDataTest {
                 .withOcn("ocn")
                 .withHoldingsStatusMap(statusMap);
 
-        AddiMetaData unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(addiMetaData), AddiMetaData.class);
+        final AddiMetaData unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(addiMetaData), AddiMetaData.class);
         assertThat(unmarshalled, is(addiMetaData));
         assertThat("formattedCreationDate", addiMetaData.formattedCreationDate(), is(notNullValue()));
     }

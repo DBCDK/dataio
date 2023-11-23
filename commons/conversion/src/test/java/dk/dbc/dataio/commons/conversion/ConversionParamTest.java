@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.Marc8Charset;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 
@@ -17,7 +17,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class ConversionParamTest {
     @Test
     public void getEncoding() {
-        ConversionParam param = new ConversionParam();
+        final ConversionParam param = new ConversionParam();
         assertThat("null", param.getEncoding().orElse(null),
                 is(nullValue()));
         assertThat("danmarc2", param.withEncoding("danmarc2").getEncoding().orElse(null),
@@ -32,7 +32,7 @@ public class ConversionParamTest {
 
     @Test
     public void getEncoding_unknownEncoding() {
-        ConversionParam param = new ConversionParam();
+        final ConversionParam param = new ConversionParam();
         assertThat(() -> param.withEncoding("unknown").getEncoding(), isThrowing(ConversionException.class));
     }
 
@@ -40,7 +40,7 @@ public class ConversionParamTest {
     public void unmarshalling() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         final String json = "{\"encoding\": \"utf8\", \"magicNumber\": 42, \"submitter\": 123456}";
-        ConversionParam param = mapper.readValue(json, ConversionParam.class);
+        final ConversionParam param = mapper.readValue(json, ConversionParam.class);
         assertThat("encoding", param.getEncoding().orElse(null), is(StandardCharsets.UTF_8));
         assertThat("submitter", param.getSubmitter().orElse(null), is(123456));
     }

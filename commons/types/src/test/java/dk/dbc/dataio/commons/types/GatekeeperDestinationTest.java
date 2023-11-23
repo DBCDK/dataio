@@ -1,11 +1,10 @@
 package dk.dbc.dataio.commons.types;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * GatekeeperDestination unit tests
@@ -21,49 +20,49 @@ public class GatekeeperDestinationTest {
     private static final String PACKAGING = "lin";
     private static final String FORMAT = "marc2";
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_submitterNumberArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new GatekeeperDestination(ID, null, DESTINATION, PACKAGING, FORMAT));
+        new GatekeeperDestination(ID, null, DESTINATION, PACKAGING, FORMAT);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void constructor_submitterNumberArgIsEmpty_throws() {
-        assertThrows(IllegalArgumentException.class, () -> new GatekeeperDestination(ID, "", DESTINATION, PACKAGING, FORMAT));
+        new GatekeeperDestination(ID, "", DESTINATION, PACKAGING, FORMAT);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_destinationArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new GatekeeperDestination(ID, SUBMITTER_NUMBER, null, PACKAGING, FORMAT));
+        new GatekeeperDestination(ID, SUBMITTER_NUMBER, null, PACKAGING, FORMAT);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void constructor_destinationArgIsEmpty_throws() {
-        assertThrows(IllegalArgumentException.class, () -> new GatekeeperDestination(ID, SUBMITTER_NUMBER, "", PACKAGING, FORMAT));
+        new GatekeeperDestination(ID, SUBMITTER_NUMBER, "", PACKAGING, FORMAT);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_packagingArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, null, FORMAT));
+        new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, null, FORMAT);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void constructor_packagingArgIsEmpty_throws() {
-        assertThrows(IllegalArgumentException.class, () -> new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, "", FORMAT));
+        new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, "", FORMAT);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_formatArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, null));
+        new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, null);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void constructor_formatArgIsEmpty_throws() {
-        assertThrows(IllegalArgumentException.class, () -> new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, ""));
+        new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, "");
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        GatekeeperDestination instance = new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, FORMAT);
+        final GatekeeperDestination instance = new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, FORMAT);
         assertThat(instance, is(notNullValue()));
     }
 

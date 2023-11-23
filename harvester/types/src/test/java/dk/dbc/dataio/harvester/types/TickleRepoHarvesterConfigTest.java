@@ -2,7 +2,7 @@ package dk.dbc.dataio.harvester.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -12,11 +12,11 @@ public class TickleRepoHarvesterConfigTest {
 
     @Test
     public void defaultJsonEncodeDecode() throws Exception {
-        TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2,
+        final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2,
                 new TickleRepoHarvesterConfig.Content());
-        String configAsString = jsonbContext.marshall(config);
+        final String configAsString = jsonbContext.marshall(config);
 
-        TickleRepoHarvesterConfig configFromString =
+        final TickleRepoHarvesterConfig configFromString =
                 jsonbContext.unmarshall(configAsString, TickleRepoHarvesterConfig.class);
         assertThat("config unmarshalling", configFromString,
                 is(config));
@@ -30,7 +30,7 @@ public class TickleRepoHarvesterConfigTest {
 
     @Test
     public void complexEncodeDecode() throws Exception {
-        TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2,
+        final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2,
                 new TickleRepoHarvesterConfig.Content()
                         .withId("-id-")
                         .withDatasetName("-name")
@@ -41,15 +41,15 @@ public class TickleRepoHarvesterConfigTest {
                         .withEnabled(true)
                         .withNotificationsEnabled(true)
         );
-        String configAsString = jsonbContext.marshall(config);
+        final String configAsString = jsonbContext.marshall(config);
 
-        TickleRepoHarvesterConfig configFromString = jsonbContext.unmarshall(configAsString, TickleRepoHarvesterConfig.class);
+        final TickleRepoHarvesterConfig configFromString = jsonbContext.unmarshall(configAsString, TickleRepoHarvesterConfig.class);
         assertThat(configFromString, is(config));
     }
 
     @Test
     public void getHarvesterToken() {
-        TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2, new TickleRepoHarvesterConfig.Content());
+        final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2, new TickleRepoHarvesterConfig.Content());
         assertThat(config.getHarvesterToken(42), is("tickle-repo:1:2:42"));
         assertThat(config.getHarvesterToken(0), is("tickle-repo:1:2"));
     }

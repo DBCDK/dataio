@@ -43,6 +43,10 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-io</artifactId>
         </dependency>
         <dependency>

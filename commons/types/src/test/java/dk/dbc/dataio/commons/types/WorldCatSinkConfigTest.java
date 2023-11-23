@@ -2,7 +2,7 @@ package dk.dbc.dataio.commons.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,7 +29,7 @@ public class WorldCatSinkConfigTest {
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstanceWithValuesSet() {
-        WorldCatSinkConfig worldCatSinkConfig = new WorldCatSinkConfig()
+        final WorldCatSinkConfig worldCatSinkConfig = new WorldCatSinkConfig()
                 .withUserId(USER_ID)
                 .withPassword(PASSWORD)
                 .withProjectId(PROJECT_ID)
@@ -45,9 +45,9 @@ public class WorldCatSinkConfigTest {
 
     @Test
     public void marshalling() throws JSONBException {
-        JSONBContext jsonbContext = new JSONBContext();
-        WorldCatSinkConfig worldCatSinkConfig = new WorldCatSinkConfig();
-        WorldCatSinkConfig unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(worldCatSinkConfig), WorldCatSinkConfig.class);
+        final JSONBContext jsonbContext = new JSONBContext();
+        final WorldCatSinkConfig worldCatSinkConfig = new WorldCatSinkConfig();
+        final WorldCatSinkConfig unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(worldCatSinkConfig), WorldCatSinkConfig.class);
         assertThat(unmarshalled, is(worldCatSinkConfig));
     }
 }

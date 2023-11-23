@@ -1,13 +1,12 @@
 package dk.dbc.dataio.commons.types;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Flow unit tests
@@ -21,24 +20,24 @@ public class FlowTest {
     private static final long VERSION = 1L;
     private static final FlowContent CONTENT = FlowContentTest.newFlowContentInstance().withTimeOfFlowComponentUpdate(new Date());
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_contentArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new Flow(ID, VERSION, null));
+        new Flow(ID, VERSION, null);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void constructor_idArgIsLessThanLowerBound_throws() {
-        assertThrows(IllegalArgumentException.class, () -> new Flow(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, VERSION, CONTENT));
+        new Flow(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, VERSION, CONTENT);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void constructor_versionArgIsLessThanLowerBound_throws() {
-        assertThrows(IllegalArgumentException.class, () -> new Flow(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND - 1, CONTENT));
+        new Flow(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND - 1, CONTENT);
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        Flow instance = new Flow(ID, VERSION, CONTENT);
+        final Flow instance = new Flow(ID, VERSION, CONTENT);
         assertThat(instance, is(notNullValue()));
     }
 

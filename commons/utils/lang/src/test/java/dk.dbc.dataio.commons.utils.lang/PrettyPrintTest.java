@@ -1,14 +1,14 @@
 package dk.dbc.dataio.commons.utils.lang;
 
 import dk.dbc.commons.jsonb.JSONBException;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.Assert.fail;
 
 public class PrettyPrintTest {
 

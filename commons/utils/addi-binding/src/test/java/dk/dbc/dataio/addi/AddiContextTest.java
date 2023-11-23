@@ -2,7 +2,7 @@ package dk.dbc.dataio.addi;
 
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.addi.bindings.EsReferenceData;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 
@@ -35,20 +35,20 @@ public class AddiContextTest {
     }
 
     @Test
-    public void getEsReferenceData_addiRecordContainsMetaDataWithInvalidXml_throws() {
-        AddiRecord addiRecord = createAddiRecord("not xml");
+    public void getEsReferenceData_addiRecordContainsMetaDataWithInvalidXml_throws() throws AddiException {
+        final AddiRecord addiRecord = createAddiRecord("not xml");
         assertThat(() -> objectUnderTest.getEsReferenceData(addiRecord), isThrowing(AddiException.class));
     }
 
     @Test
-    public void getEsReferenceData_addiRecordContains_throws() {
-        AddiRecord addiRecord = createAddiRecord(String.format(ES_REFERENCE_DATA_XML_TEMPLATE, "<unknown-element />", "", ""));
+    public void getEsReferenceData_addiRecordContains_throws() throws AddiException {
+        final AddiRecord addiRecord = createAddiRecord(String.format(ES_REFERENCE_DATA_XML_TEMPLATE, "<unknown-element />", "", ""));
         assertThat(() -> objectUnderTest.getEsReferenceData(addiRecord), isThrowing(AddiException.class));
     }
 
     @Test
     public void getEsReferenceData_addiRecordContainsEsReferenceData_returns() throws AddiException {
-        EsReferenceData esReferenceData = objectUnderTest.getEsReferenceData(addiRecord);
+        final EsReferenceData esReferenceData = objectUnderTest.getEsReferenceData(addiRecord);
         assertThat("EsReferenceData", esReferenceData, is(notNullValue()));
         assertThat("EsDirectives", esReferenceData.esDirectives, is(notNullValue()));
         assertThat("SinkDirectives", esReferenceData.sinkDirectives, is(notNullValue()));

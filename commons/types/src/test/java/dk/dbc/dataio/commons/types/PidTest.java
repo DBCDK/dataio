@@ -1,6 +1,6 @@
 package dk.dbc.dataio.commons.types;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -47,7 +47,7 @@ public class PidTest {
     @Test
     public void pidOfTypeUnit() {
         final String value = "unit:1354373";
-        Pid pid = Pid.of(value);
+        final Pid pid = Pid.of(value);
         assertThat("type", pid.getType(), is(Pid.Type.UNIT));
         assertThat("value", pid.toString(), is(value));
         assertThat("agencyId", pid.getAgencyId(), is(nullValue()));
@@ -58,7 +58,7 @@ public class PidTest {
     @Test
     public void pidOfTypeWork() {
         final String value = "work:995029";
-        Pid pid = Pid.of(value);
+        final Pid pid = Pid.of(value);
         assertThat("type", pid.getType(), is(Pid.Type.WORK));
         assertThat("value", pid.toString(), is(value));
         assertThat("agencyId", pid.getAgencyId(), is(nullValue()));
@@ -69,7 +69,7 @@ public class PidTest {
     @Test
     public void pidOfTypeBibliographicObject() {
         final String value = "870970-basis:23142546";
-        Pid pid = Pid.of(value);
+        final Pid pid = Pid.of(value);
         assertThat("type", pid.getType(), is(Pid.Type.BIBLIOGRAPHIC_OBJECT));
         assertThat("value", pid.toString(), is(value));
         assertThat("agencyId", pid.getAgencyId(), is(870970));
@@ -80,7 +80,7 @@ public class PidTest {
     @Test
     public void pidIsMultipart() {
         final String value = "870970-basis:23142546_1";
-        Pid pid = Pid.of(value);
+        final Pid pid = Pid.of(value);
         assertThat("type", pid.getType(), is(Pid.Type.BIBLIOGRAPHIC_OBJECT));
         assertThat("value", pid.toString(), is(value));
         assertThat("agencyId", pid.getAgencyId(), is(870970));

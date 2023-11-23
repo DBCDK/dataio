@@ -3,7 +3,7 @@ package dk.dbc.dataio.jobstore.types;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.SinkContent;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.Collections;
 
@@ -16,16 +16,16 @@ public class RecordInfoTest {
 
     @Test
     public void marshalling() throws JSONBException {
-        JSONBContext jsonbContext = new JSONBContext();
-        RecordInfo recordInfo = new RecordInfo("42");
+        final JSONBContext jsonbContext = new JSONBContext();
+        final RecordInfo recordInfo = new RecordInfo("42");
         recordInfo.withPid("pid");
-        RecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), RecordInfo.class);
+        final RecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), RecordInfo.class);
         assertThat(unmarshalled, is(recordInfo));
     }
 
     @Test
     public void removesWhitespaces() {
-        RecordInfo recordInfo = new RecordInfo(" 4 2 ");
+        final RecordInfo recordInfo = new RecordInfo(" 4 2 ");
         assertThat(recordInfo.getId(), is(id));
     }
 

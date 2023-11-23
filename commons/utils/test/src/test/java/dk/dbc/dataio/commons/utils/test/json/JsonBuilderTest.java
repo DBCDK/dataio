@@ -16,7 +16,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class JsonBuilderTest {
 

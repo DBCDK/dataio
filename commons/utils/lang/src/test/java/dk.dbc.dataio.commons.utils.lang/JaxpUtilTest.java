@@ -1,6 +1,6 @@
 package dk.dbc.dataio.commons.utils.lang;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -10,7 +10,6 @@ import java.io.StringReader;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * JaxpUtil unit tests
@@ -23,14 +22,14 @@ public class JaxpUtilTest {
     private final String xmlRecord = "<data/>";
     private final String xmlRecordWithNamespace = "<ns:data xmlns:ns=\"http://test.dbc.dk/ns\"/>";
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void parseDocumentTakingInputSourceParameter_xmlArgIsNull_throwsNullPointerException() throws Exception {
-        assertThrows(NullPointerException.class, () -> JaxpUtil.parseDocument((InputSource) null));
+        JaxpUtil.parseDocument((InputSource) null);
     }
 
-    @Test
+    @Test(expected = SAXException.class)
     public void parseDocumentTakingInputSourceParameter_xmlArgIsInvalidXml_throwsSAXException() throws Exception {
-        assertThrows(SAXException.class, () -> JaxpUtil.parseDocument(stringToInputSource("not xml")));
+        JaxpUtil.parseDocument(stringToInputSource("not xml"));
     }
 
     @Test
@@ -45,19 +44,20 @@ public class JaxpUtilTest {
         assertThat(doc, is(notNullValue()));
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void parseDocumentTakingStringParameter_xmlArgIsNull_throwsNullPointerException() throws Exception {
-        assertThrows(NullPointerException.class, () -> JaxpUtil.parseDocument((String)null));
+        String xml = null;
+        JaxpUtil.parseDocument(xml);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void parseDocumentTakingStringParameter_xmlArgIsEmpty_throwsIllegalArgumentException() throws Exception {
-        assertThrows(IllegalArgumentException.class, () -> JaxpUtil.parseDocument(""));
+        JaxpUtil.parseDocument("");
     }
 
-    @Test
+    @Test(expected = SAXException.class)
     public void parseDocumentTakingStringParameter_xmlArgIsInvalidXml_throwsSAXException() throws Exception {
-        assertThrows(SAXException.class, () -> JaxpUtil.parseDocument("not xml"));
+        JaxpUtil.parseDocument("not xml");
     }
 
     @Test
@@ -72,9 +72,9 @@ public class JaxpUtilTest {
         assertThat(doc, is(notNullValue()));
     }
 
-    @Test
-    public void asString_nodeArgIsNull_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> JaxpUtil.asString(null));
+    @Test(expected = NullPointerException.class)
+    public void asString_nodeArgIsNull_throwsNullPointerException() throws Exception {
+        JaxpUtil.asString(null);
     }
 
     @Test

@@ -2,7 +2,7 @@ package dk.dbc.dataio.commons.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,6 +54,7 @@ public class OpenUpdateSinkConfigTest {
     @Test
     public void withEndpoint_webUrlArgIsEmpty_throws() {
         assertThat(() -> new OpenUpdateSinkConfig().withEndpoint(""), isThrowing(IllegalArgumentException.class));
+        ;
     }
 
     @Test
@@ -69,9 +70,9 @@ public class OpenUpdateSinkConfigTest {
 
     @Test
     public void marshalling() throws JSONBException {
-        JSONBContext jsonbContext = new JSONBContext();
-        OpenUpdateSinkConfig openUpdateSinkConfig = new OpenUpdateSinkConfig();
-        OpenUpdateSinkConfig unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(openUpdateSinkConfig), OpenUpdateSinkConfig.class);
+        final JSONBContext jsonbContext = new JSONBContext();
+        final OpenUpdateSinkConfig openUpdateSinkConfig = new OpenUpdateSinkConfig();
+        final OpenUpdateSinkConfig unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(openUpdateSinkConfig), OpenUpdateSinkConfig.class);
         assertThat(unmarshalled, is(openUpdateSinkConfig));
     }
 

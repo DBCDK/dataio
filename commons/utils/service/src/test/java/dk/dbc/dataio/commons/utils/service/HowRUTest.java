@@ -1,6 +1,6 @@
 package dk.dbc.dataio.commons.utils.service;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;

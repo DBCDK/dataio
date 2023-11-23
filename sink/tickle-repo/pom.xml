@@ -23,6 +23,10 @@
             <artifactId>artemis-jse-db-app</artifactId>
         </dependency>
         <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-cache</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>

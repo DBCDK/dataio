@@ -4,7 +4,7 @@ package dk.dbc.dataio.commons.types;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.ChunkItem.Type;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -23,20 +23,20 @@ public class ChunkItemTest {
 
     @Test
     public void withData_dataArgIsNull_throws() {
-        ChunkItem chunkItem = new ChunkItem();
+        final ChunkItem chunkItem = new ChunkItem();
         assertThat(() -> chunkItem.withData((byte[]) null), isThrowing(NullPointerException.class));
     }
 
     @Test
     public void withDiagnostics_diagnosticsArgCanBeNull() {
-        ChunkItem chunkItem = new ChunkItem()
+        final ChunkItem chunkItem = new ChunkItem()
                 .withDiagnostics((Diagnostic[]) null);
         assertThat(chunkItem.getDiagnostics(), is(nullValue()));
     }
 
     @Test
     public void withDiagnostics_diagnosticsCanBeAppended() {
-        ChunkItem chunkItem = new ChunkItem();
+        final ChunkItem chunkItem = new ChunkItem();
         assertThat("diagnostics before append", chunkItem.getDiagnostics(), is(nullValue()));
 
         chunkItem.withDiagnostics(ObjectFactory.buildFatalDiagnostic("Test Fatal"));
@@ -51,47 +51,47 @@ public class ChunkItemTest {
 
     @Test
     public void withEncoding_encodingArgCanBeNull() {
-        ChunkItem chunkItem = new ChunkItem()
+        final ChunkItem chunkItem = new ChunkItem()
                 .withEncoding(null);
         assertThat(chunkItem.getEncoding(), is(nullValue()));
     }
 
     @Test
     public void withId_idArgIsInvalid_throws() {
-        ChunkItem chunkItem = new ChunkItem();
+        final ChunkItem chunkItem = new ChunkItem();
         assertThat(() -> chunkItem.withId(Constants.CHUNK_ITEM_ID_LOWER_BOUND - 1), isThrowing(IllegalArgumentException.class));
     }
 
     @Test
     public void withStatus_statusArgIsNull_throws() {
-        ChunkItem chunkItem = new ChunkItem();
+        final ChunkItem chunkItem = new ChunkItem();
         assertThat(() -> chunkItem.withStatus(null), isThrowing(NullPointerException.class));
     }
 
     @Test
     public void withTrackingId_trackingIdArgCanBeNull() {
-        ChunkItem chunkItem = new ChunkItem()
+        final ChunkItem chunkItem = new ChunkItem()
                 .withTrackingId(null);
         assertThat(chunkItem.getTrackingId(), is(nullValue()));
     }
 
     @Test
     public void withTrackingId_trackingIdArgCanBeEmpty() {
-        ChunkItem chunkItem = new ChunkItem()
+        final ChunkItem chunkItem = new ChunkItem()
                 .withTrackingId("");
         assertThat(chunkItem.getTrackingId(), is(""));
     }
 
     @Test
     public void withType_typeArgCanBeNull() {
-        ChunkItem chunkItem = new ChunkItem()
+        final ChunkItem chunkItem = new ChunkItem()
                 .withType((Type[]) null);
         assertThat(chunkItem.getType(), is(nullValue()));
     }
 
     @Test
-    public void constructor5arg_allArgsAreValid_returnsNewInstance() {
-        ChunkItem instance = new ChunkItem(ID, DATA, STATUS, Arrays.asList(Type.UNKNOWN, Type.GENERICXML), StandardCharsets.UTF_8);
+    public void constructor5arg_allArgsAreValid_returnsNewInstance() throws JSONBException {
+        final ChunkItem instance = new ChunkItem(ID, DATA, STATUS, Arrays.asList(Type.UNKNOWN, Type.GENERICXML), StandardCharsets.UTF_8);
         assertThat(instance, is(notNullValue()));
         assertThat(instance.getId(), is(ID));
         assertThat(instance.getData(), is(DATA));
@@ -102,15 +102,15 @@ public class ChunkItemTest {
 
     @Test
     public void unmarshallingChunkItem() throws JSONBException {
-        String json = "{\"id\":0,\"data\":\"MQ==\",\"status\":\"SUCCESS\"}";
-        JSONBContext jsonbContext = new JSONBContext();
+        final String json = "{\"id\":0,\"data\":\"MQ==\",\"status\":\"SUCCESS\"}";
+        final JSONBContext jsonbContext = new JSONBContext();
         jsonbContext.unmarshall(json, ChunkItem.class);
     }
 
     @Test
     public void unmarshallingChunkItemWithTypeAndEncoding() throws JSONBException {
-        String json = "{\"id\":1,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\",\"type\":[\"STRING\",\"UNKNOWN\"],\"encoding\":\"UTF-8\"}";
-        JSONBContext jsonbContext = new JSONBContext();
+        final String json = "{\"id\":1,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\",\"type\":[\"STRING\",\"UNKNOWN\"],\"encoding\":\"UTF-8\"}";
+        final JSONBContext jsonbContext = new JSONBContext();
         jsonbContext.unmarshall(json, ChunkItem.class);
     }
 

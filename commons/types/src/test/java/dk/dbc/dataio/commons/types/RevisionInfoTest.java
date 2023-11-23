@@ -1,6 +1,6 @@
 package dk.dbc.dataio.commons.types;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -9,7 +9,6 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * RevisionInfo unit tests
@@ -25,40 +24,40 @@ public class RevisionInfoTest {
     private final Date date = new Date();
     private final List<RevisionInfo.ChangedItem> changedItems = new ArrayList<>(0);
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_authorArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new RevisionInfo(revision, null, date, message, changedItems));
+        new RevisionInfo(revision, null, date, message, changedItems);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_dateArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new RevisionInfo(revision, author, null, message, changedItems));
+        new RevisionInfo(revision, author, null, message, changedItems);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_messageArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new RevisionInfo(revision, author, date, null, changedItems));
+        new RevisionInfo(revision, author, date, null, changedItems);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_changedItemsArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new RevisionInfo(revision, author, date, message, null));
+        new RevisionInfo(revision, author, date, message, null);
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        RevisionInfo instance = new RevisionInfo(revision, author, date, message, changedItems);
+        final RevisionInfo instance = new RevisionInfo(revision, author, date, message, changedItems);
         assertThat(instance, is(notNullValue()));
     }
 
     @Test
     public void verify_defensiveCopyingOfChangedItemList() {
-        List<RevisionInfo.ChangedItem> changedItems = new ArrayList<>();
+        final List<RevisionInfo.ChangedItem> changedItems = new ArrayList<>();
         changedItems.add(null);
-        RevisionInfo instance = new RevisionInfo(revision, author, date, message, changedItems);
+        final RevisionInfo instance = new RevisionInfo(revision, author, date, message, changedItems);
         assertThat(instance.getChangedItems().size(), is(1));
         changedItems.add(null);
-        List<RevisionInfo.ChangedItem> returnedItems = instance.getChangedItems();
+        final List<RevisionInfo.ChangedItem> returnedItems = instance.getChangedItems();
         assertThat(returnedItems.size(), is(1));
         returnedItems.add(null);
         assertThat(instance.getChangedItems().size(), is(1));
@@ -66,11 +65,11 @@ public class RevisionInfoTest {
 
     @Test
     public void verify_defensiveCopyingOfDate() {
-        Date datestamp = new Date();
-        long expectedTime = datestamp.getTime();
-        RevisionInfo instance = new RevisionInfo(revision, author, datestamp, message, changedItems);
+        final Date datestamp = new Date();
+        final long expectedTime = datestamp.getTime();
+        final RevisionInfo instance = new RevisionInfo(revision, author, datestamp, message, changedItems);
         datestamp.setTime(42);
-        Date returnedDate = instance.getDate();
+        final Date returnedDate = instance.getDate();
         assertThat(returnedDate.getTime(), is(expectedTime));
         returnedDate.setTime(42);
         assertThat(instance.getDate().getTime(), is(expectedTime));

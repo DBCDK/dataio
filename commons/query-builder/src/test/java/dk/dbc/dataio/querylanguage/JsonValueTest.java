@@ -2,26 +2,25 @@ package dk.dbc.dataio.querylanguage;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class JsonValueTest {
     private final JSONBContext jsonbContext = new JSONBContext();
 
     @Test
     public void emptyValue() throws JSONBException {
-        JsonValue jsonValue = new JsonValue();
+        final JsonValue jsonValue = new JsonValue();
         assertThat("isEmpty()", jsonValue.isEmpty(), is(true));
         assertThat("JSON", jsonbContext.marshall(jsonValue), is("{}"));
     }
 
     @Test
     public void put() throws JSONBException {
-        JsonValue jsonValue = new JsonValue()
+        final JsonValue jsonValue = new JsonValue()
                 .put("testProperty", "before replace");
         assertThat("JSON", jsonbContext.marshall(jsonValue),
                 is("{\"testProperty\":\"before replace\"}"));
@@ -32,7 +31,7 @@ public class JsonValueTest {
 
     @Test
     public void hasProperty() {
-        JsonValue jsonValue = new JsonValue()
+        final JsonValue jsonValue = new JsonValue()
                 .put("testProperty", "test value");
         assertThat("hasProperty for existing", jsonValue.hasProperty("testProperty"),
                 is(true));
@@ -42,7 +41,7 @@ public class JsonValueTest {
 
     @Test
     public void remove() throws JSONBException {
-        JsonValue jsonValue = new JsonValue()
+        final JsonValue jsonValue = new JsonValue()
                 .put("testProperty", "test property");
         assertThat("JSON before remove", jsonbContext.marshall(jsonValue),
                 is("{\"testProperty\":\"test property\"}"));
@@ -56,7 +55,7 @@ public class JsonValueTest {
 
     @Test
     public void add() throws JSONBException {
-        JsonValue jsonValue = new JsonValue()
+        final JsonValue jsonValue = new JsonValue()
                 .add("testProperty", 1)
                 .add("testProperty", 2)
                 .add("testProperty", 3)
@@ -65,16 +64,16 @@ public class JsonValueTest {
                 is("{\"testProperty\":[1,2,3],\"another\":[42]}"));
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void addThrowsOnNonArrayProperty() {
-        assertThrows(IllegalArgumentException.class, () -> new JsonValue()
+        new JsonValue()
                 .put("testProperty", 1)
-                .add("testProperty", 2));
+                .add("testProperty", 2);
     }
 
     @Test
     public void removeArrayElement() throws JSONBException {
-        JsonValue jsonValue = new JsonValue()
+        final JsonValue jsonValue = new JsonValue()
                 .add("testProperty", 1)
                 .add("testProperty", 2)
                 .add("testProperty", 3)
@@ -95,10 +94,10 @@ public class JsonValueTest {
                 is("{\"testProperty\":[1,3]}"));
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void removeArrayElementThrowsOnNonArrayProperty() {
-        JsonValue jsonValue = new JsonValue()
+        final JsonValue jsonValue = new JsonValue()
                 .put("testProperty", 1);
-        assertThrows(IllegalArgumentException.class, () -> jsonValue.removeArrayElement("testProperty", 0));
+        jsonValue.removeArrayElement("testProperty", 0);
     }
 }

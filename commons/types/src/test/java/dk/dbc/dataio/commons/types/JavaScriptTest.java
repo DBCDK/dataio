@@ -1,11 +1,10 @@
 package dk.dbc.dataio.commons.types;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * JavaScript unit tests
@@ -18,30 +17,30 @@ public class JavaScriptTest {
     private static final String MODULE_NAME = "module";
     private static final String JAVASCRIPT = "javascript";
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_javascriptArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new JavaScript(null, MODULE_NAME));
+        new JavaScript(null, MODULE_NAME);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void constructor_javascriptArgIsEmpty_throws() {
-        assertThrows(IllegalArgumentException.class, () -> new JavaScript("", MODULE_NAME));
+        new JavaScript("", MODULE_NAME);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_moduleNameArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new JavaScript(JAVASCRIPT, null));
+        new JavaScript(JAVASCRIPT, null);
     }
 
     @Test
     public void constructor_moduleNameArgIsEmpty_returnsNewInstance() {
-        JavaScript instance = new JavaScript(JAVASCRIPT, "");
+        final JavaScript instance = new JavaScript(JAVASCRIPT, "");
         assertThat(instance, is(notNullValue()));
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        JavaScript instance = new JavaScript(JAVASCRIPT, MODULE_NAME);
+        final JavaScript instance = new JavaScript(JAVASCRIPT, MODULE_NAME);
         assertThat(instance, is(notNullValue()));
     }
 

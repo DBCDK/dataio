@@ -31,7 +31,7 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.SubmitterContentTest;
 import dk.dbc.dataio.commons.types.SubmitterTest;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -42,103 +42,103 @@ public class JsonMarshallingTest {
 
     @Test
     public void verify_jsonMarshallingForSubmitter() throws Exception {
-        String json = jsonbContext.marshall(SubmitterTest.newSubmitterInstance());
+        final String json = jsonbContext.marshall(SubmitterTest.newSubmitterInstance());
         jsonbContext.unmarshall(json, Submitter.class);
     }
 
     @Test
     public void verify_jsonMarshallingForSubmitterContent() throws Exception {
-        String json = jsonbContext.marshall(SubmitterContentTest.newSubmitterContentInstance());
+        final String json = jsonbContext.marshall(SubmitterContentTest.newSubmitterContentInstance());
         jsonbContext.unmarshall(json, SubmitterContent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForJavaScript() throws Exception {
-        String json = jsonbContext.marshall(JavaScriptTest.newJavaScriptInstance());
+        final String json = jsonbContext.marshall(JavaScriptTest.newJavaScriptInstance());
         jsonbContext.unmarshall(json, JavaScript.class);
     }
 
     @Test
     public void verify_jsonMarshallingForFlow() throws Exception {
-        String json = jsonbContext.marshall(FlowTest.newFlowInstance());
+        final String json = jsonbContext.marshall(FlowTest.newFlowInstance());
         jsonbContext.unmarshall(json, Flow.class);
     }
 
     @Test
     public void verify_jsonMarshallingForFlowContent() throws Exception {
-        String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstance().withTimeOfFlowComponentUpdate(new Date()));
+        final String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstance().withTimeOfFlowComponentUpdate(new Date()));
         jsonbContext.unmarshall(json, FlowContent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForFlowContentWithoutTimeOfFlowComponentUpdate() throws Exception {
-        String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstance());
+        final String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstance());
         jsonbContext.unmarshall(json, FlowContent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForFlowComponent() throws Exception {
-        String json = jsonbContext.marshall(FlowComponentTest.newFlowComponentInstance());
+        final String json = jsonbContext.marshall(FlowComponentTest.newFlowComponentInstance());
         jsonbContext.unmarshall(json, FlowComponent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForFlowComponentContent() throws Exception {
-        String json = jsonbContext.marshall(FlowComponentContentTest.newFlowComponentContentInstance());
+        final String json = jsonbContext.marshall(FlowComponentContentTest.newFlowComponentContentInstance());
         jsonbContext.unmarshall(json, FlowComponentContent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForFlowBinder() throws Exception {
-        String json = jsonbContext.marshall(FlowBinderTest.newFlowBinderInstance());
+        final String json = jsonbContext.marshall(FlowBinderTest.newFlowBinderInstance());
         jsonbContext.unmarshall(json, FlowBinder.class);
     }
 
     @Test
     public void verify_jsonMarshallingForFlowBinderContent() throws Exception {
-        String json = jsonbContext.marshall(FlowBinderContentTest.newFlowBinderContentInstance());
+        final String json = jsonbContext.marshall(FlowBinderContentTest.newFlowBinderContentInstance());
         jsonbContext.unmarshall(json, FlowBinderContent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForJobSpecification() throws Exception {
-        String json = jsonbContext.marshall(JobSpecificationTest.newJobSpecificationInstance());
+        final String json = jsonbContext.marshall(JobSpecificationTest.newJobSpecificationInstance());
         jsonbContext.unmarshall(json, JobSpecification.class);
     }
 
     @Test
     public void verify_jsonMarshallingForSink() throws Exception {
-        String json = jsonbContext.marshall(SinkTest.newSinkInstance());
+        final String json = jsonbContext.marshall(SinkTest.newSinkInstance());
         jsonbContext.unmarshall(json, Sink.class);
     }
 
     @Test
     public void verify_jsonMarshallingForSinkContent() throws Exception {
-        String json = jsonbContext.marshall(SinkContentTest.newSinkContentInstance());
+        final String json = jsonbContext.marshall(SinkContentTest.newSinkContentInstance());
         jsonbContext.unmarshall(json, SinkContent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForSinkContentWithType() throws Exception {
-        String json = jsonbContext.marshall(SinkContentTest.newSinkContentWithTypeInstance());
+        final String json = jsonbContext.marshall(SinkContentTest.newSinkContentWithTypeInstance());
         jsonbContext.unmarshall(json, SinkContent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForSinkContentWithTypeAndConfig() throws Exception {
-        String json = jsonbContext.marshall(SinkContentTest.newSinkContentWithTypeAndConfigInstance());
+        final String json = jsonbContext.marshall(SinkContentTest.newSinkContentWithTypeAndConfigInstance());
         jsonbContext.unmarshall(json, SinkContent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForChunkItem() throws Exception {
-        String json = jsonbContext.marshall(ChunkItemTest.newChunkItemInstance());
+        final String json = jsonbContext.marshall(ChunkItemTest.newChunkItemInstance());
         jsonbContext.unmarshall(json, ChunkItem.class);
     }
 
     @Test
     public void verify_jsonMarshallingForChunkItemWithTypeAndEncoding() throws Exception {
-        String json = jsonbContext.marshall(ChunkItem.successfulChunkItem()
+        final String json = jsonbContext.marshall(ChunkItem.successfulChunkItem()
                 .withId(42)
                 .withData("data")
                 .withType(ChunkItem.Type.UNKNOWN)
@@ -148,15 +148,15 @@ public class JsonMarshallingTest {
 
     @Test
     public void verify_jsonMarshallingForSavedGatekeeperDestination() throws Exception {
-        String json = jsonbContext.marshall(GatekeeperDestinationTest.newGatekeeperDestinationInstance());
+        final String json = jsonbContext.marshall(GatekeeperDestinationTest.newGatekeeperDestinationInstance());
         jsonbContext.unmarshall(json, GatekeeperDestination.class);
     }
 
     @Test
     public void verify_jsonMarshallingForFlowBinderWithSubmitter() throws JSONBException {
-        FlowBinderIdent flowBinderIdent =
+        final FlowBinderIdent flowBinderIdent =
                 new FlowBinderIdent("name", 1L);
-        String json = jsonbContext.marshall(flowBinderIdent);
+        final String json = jsonbContext.marshall(flowBinderIdent);
         jsonbContext.unmarshall(json, FlowBinderIdent.class);
     }
 }

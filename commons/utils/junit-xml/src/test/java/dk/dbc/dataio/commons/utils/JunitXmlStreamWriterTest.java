@@ -1,6 +1,6 @@
 package dk.dbc.dataio.commons.utils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -41,7 +41,7 @@ public class JunitXmlStreamWriterTest {
                         "</testsuite>" +
                         "</testsuites>";
 
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (JunitXmlStreamWriter junitXmlStreamWriter = new JunitXmlStreamWriter(baos)) {
             try (JunitXmlTestSuite testSuite = new JunitXmlTestSuite("MyClassTest", junitXmlStreamWriter)) {
                 testSuite.addTestCase(JunitXmlTestCase.passed("test1", "dk.dbc.dataio.MyClass")
@@ -55,6 +55,6 @@ public class JunitXmlStreamWriterTest {
             }
         }
 
-        assertThat(new String(baos.toByteArray(), StandardCharsets.UTF_8), is(expectedOutput));
+        assertThat(baos.toString(StandardCharsets.UTF_8), is(expectedOutput));
     }
 }

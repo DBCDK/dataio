@@ -8,12 +8,13 @@ import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
 import jakarta.ws.rs.core.Response;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -22,13 +23,11 @@ import static org.mockito.Mockito.when;
 public class HarvesterTaskServiceConnectorTest {
     private static final String SERVICE_URL = "http://dataio/harvester/xyz";
     private final FailSafeHttpClient failSafeHttpClient = mock(FailSafeHttpClient.class);
+    private final HarvesterTaskServiceConnector rrHarvesterServiceConnector = new HarvesterTaskServiceConnector(failSafeHttpClient, SERVICE_URL);
 
-    private final HarvesterTaskServiceConnector rrHarvesterServiceConnector =
-            new HarvesterTaskServiceConnector(failSafeHttpClient, SERVICE_URL);
-
-    @Test(expected = HarvesterTaskServiceConnectorUnexpectedStatusCodeException.class)
-    public void createHarvestTask_responseWithNotFoundStatusCode_throws() throws HarvesterTaskServiceConnectorException {
-        createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(Response.Status.NOT_FOUND.getStatusCode(), null);
+    @Test
+    public void createHarvestTask_responseWithNotFoundStatusCode_throws() {
+        assertThrows(HarvesterTaskServiceConnectorUnexpectedStatusCodeException.class, () -> createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(Response.Status.NOT_FOUND.getStatusCode(), null));
     }
 
     @Test

@@ -1,6 +1,6 @@
 package dk.dbc.dataio.common.utils.io;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class BoundedInputStreamTest {
     private final String byteString = "0123456789";
@@ -40,9 +41,9 @@ public class BoundedInputStreamTest {
         assertThat("4th stream eof", boundedInputStream4.read(), is(-1));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void boundMustBeLargerThanZero() {
-        new BoundedInputStream(asInputStream(byteString), 0);
+        assertThrows(IllegalArgumentException.class, () -> new BoundedInputStream(asInputStream(byteString), 0));
     }
 
     private InputStream asInputStream(String s) {

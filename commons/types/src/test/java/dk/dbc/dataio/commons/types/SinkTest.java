@@ -1,10 +1,11 @@
 package dk.dbc.dataio.commons.types;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Sink unit tests
@@ -18,24 +19,24 @@ public class SinkTest {
     private static final long VERSION = 1L;
     private static final SinkContent CONTENT = SinkContentTest.newSinkContentInstance();
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_contentArgIsNull_throws() {
-        new Sink(ID, VERSION, null);
+        assertThrows(NullPointerException.class, () -> new Sink(ID, VERSION, null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_idArgIsLessThanLowerBound_throws() {
-        new Sink(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, VERSION, CONTENT);
+        assertThrows(IllegalArgumentException.class, () -> new Sink(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, VERSION, CONTENT));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_versionArgIsLessThanLowerBound_throws() {
-        new Sink(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND - 1, CONTENT);
+        assertThrows(IllegalArgumentException.class, () -> new Sink(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND - 1, CONTENT));
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final Sink instance = new Sink(ID, VERSION, CONTENT);
+        Sink instance = new Sink(ID, VERSION, CONTENT);
         assertThat(instance, is(notNullValue()));
     }
 

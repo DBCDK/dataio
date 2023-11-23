@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,7 +41,7 @@ public class MacroSubstitutor {
     private final Instant now;
     private final WeekcodeSupplier weekcodeSupplier;
 
-    private final ZoneId tz = ZoneId.of(System.getenv("TZ"));
+    public static final ZoneId TZ = ZoneId.of(Optional.ofNullable(System.getenv("TZ")).orElse("Europe/Copenhagen"));
 
     static {
         Calendar.getInstance().setFirstDayOfWeek(Calendar.MONDAY);
@@ -193,7 +194,7 @@ public class MacroSubstitutor {
     }
 
     ZonedDateTime convertToUtc(Instant instant) {
-        final ZonedDateTime zonedDateTime = instant.atZone(tz);
+        final ZonedDateTime zonedDateTime = instant.atZone(TZ);
         return zonedDateTime.withZoneSameInstant(ZoneOffset.UTC);
     }
 
@@ -228,7 +229,7 @@ public class MacroSubstitutor {
     }
 
     private void setVariablesForCatalogueCodes(String str) {
-        final LocalDate localDate = now.atZone(tz).toLocalDate();
+        final LocalDate localDate = now.atZone(TZ).toLocalDate();
         final LocalDate nextWeek = localDate.plusWeeks(1);
         getCatalogueCodesToResolve(str, NEXTWEEK_PATTERN).forEach(catalogueCode -> substitutions.computeIfAbsent(
                 String.format("__NEXTWEEK_%s__", catalogueCode), key -> String.format("%s%s%02d",

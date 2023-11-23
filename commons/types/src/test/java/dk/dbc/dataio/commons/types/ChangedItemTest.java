@@ -1,10 +1,11 @@
 package dk.dbc.dataio.commons.types;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * ChangedItem unit tests
@@ -18,29 +19,29 @@ public class ChangedItemTest {
     private final String path = "path";
     private final String type = "type";
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_pathArgIsNull_throws() {
-        new RevisionInfo.ChangedItem(null, type);
+        assertThrows(NullPointerException.class, () -> new RevisionInfo.ChangedItem(null, type));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_pathArgIsEmpty_throws() {
-        new RevisionInfo.ChangedItem("", type);
+        assertThrows(IllegalArgumentException.class, () -> new RevisionInfo.ChangedItem("", type));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_typeArgIsNull_throws() {
-        new RevisionInfo.ChangedItem(path, null);
+        assertThrows(NullPointerException.class, () -> new RevisionInfo.ChangedItem(path, null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_typeArgIsEmpty_throws() {
-        new RevisionInfo.ChangedItem(path, "");
+        assertThrows(IllegalArgumentException.class, () -> new RevisionInfo.ChangedItem(path, ""));
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final RevisionInfo.ChangedItem instance = new RevisionInfo.ChangedItem(path, type);
+        RevisionInfo.ChangedItem instance = new RevisionInfo.ChangedItem(path, type);
         assertThat(instance, is(notNullValue()));
     }
 }

@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.types;
 
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,6 +14,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class StateTest {
 
@@ -62,17 +63,17 @@ public class StateTest {
         assertPhaseCompletion(state, true, false, false, false);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void updateState_changeStateIsNull_throws() {
         State state = new State();
-        state.updateState(null);
+        assertThrows(NullPointerException.class, () -> state.updateState(null));
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void updateState_PhaseIsNull_throws() {
         State state = new State();
         StateChange stateChange = new StateChange();
-        state.updateState(stateChange);
+        assertThrows(IllegalStateException.class, () -> state.updateState(stateChange));
     }
 
     //******************************************* DIAGNOSTICS ******************************************
@@ -80,8 +81,8 @@ public class StateTest {
     @Test
     public void fatalDiagnosticExists_fatalDiagnosticFound_returns() {
         State state = new State();
-        final Diagnostic warningDiagnostic = new DiagnosticBuilder().setLevel(Diagnostic.Level.WARNING).build();
-        final Diagnostic fatalDiagnostic = new DiagnosticBuilder().build();
+        Diagnostic warningDiagnostic = new DiagnosticBuilder().setLevel(Diagnostic.Level.WARNING).build();
+        Diagnostic fatalDiagnostic = new DiagnosticBuilder().build();
 
         state.getDiagnostics().add(warningDiagnostic);
         assertThat(state.fatalDiagnosticExists(), is(false));
@@ -197,12 +198,11 @@ public class StateTest {
 
     //******************************************* PROCESSING ******************************************
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void updateProcessing_processingEndDateGiven_partitioningNotCompletedThrows() {
         State state = new State();
         StateChange stateChange = getStateChangeWithStartAndEndDate(PROCESSING);
-
-        state.updateState(stateChange);
+        assertThrows(IllegalStateException.class, () -> state.updateState(stateChange));
     }
 
     @Test
@@ -343,12 +343,11 @@ public class StateTest {
 
     //******************************************* DELIVERING ******************************************
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void updateDelivering_deliveringEndDateGiven_partitioningNotCompletedThrows() {
         State state = new State();
         StateChange stateChange = getStateChangeWithStartAndEndDate(DELIVERING);
-
-        state.updateState(stateChange);
+        assertThrows(IllegalStateException.class, () -> state.updateState(stateChange));
     }
 
     @Test

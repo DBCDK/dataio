@@ -5,8 +5,8 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.jse.artemis.common.db.JPAHelper;
 import jakarta.persistence.EntityManagerFactory;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +20,7 @@ import java.sql.Statement;
 public abstract class IntegrationTest implements PostgresContainerJPAUtils {
     protected final EntityManagerFactory entityManagerFactory = JPAHelper.makeEntityManagerFactory("batchExchangeIT", dbContainer.entityManagerProperties());
 
-    @BeforeClass
+    @BeforeAll
     public static void migrateDatabase() {
         BatchExchangeDatabaseMigrator dbMigrator = new BatchExchangeDatabaseMigrator(dbContainer.datasource());
         dbMigrator.migrate();
@@ -43,7 +43,7 @@ public abstract class IntegrationTest implements PostgresContainerJPAUtils {
         }
     }
 
-    @Before
+    @BeforeEach
     public void resetDatabase() throws SQLException {
         try (Connection conn = dbContainer.createConnection(); Statement statement = conn.createStatement()) {
             statement.executeUpdate("DELETE FROM entry");
@@ -53,7 +53,7 @@ public abstract class IntegrationTest implements PostgresContainerJPAUtils {
         }
     }
 
-    @Before
+    @BeforeEach
     public void clearEntityManagerCache() {
         entityManagerFactory.getCache().evictAll();
     }

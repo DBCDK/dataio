@@ -1,11 +1,12 @@
 package dk.dbc.dataio.commons.types;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * SubmitterContent unit tests
@@ -19,40 +20,40 @@ public class SubmitterContentTest {
     private static final String NAME = "NAME";
     private static final String DESCRIPTION = "description";
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_numberArgIsLessThanLowerBound_throws() {
-        new SubmitterContent(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, NAME, DESCRIPTION, Priority.NORMAL, true);
+        assertThrows(IllegalArgumentException.class, () -> new SubmitterContent(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, NAME, DESCRIPTION, Priority.NORMAL, true));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_nameArgIsNull_throws() {
-        new SubmitterContent(NUMBER, null, DESCRIPTION, Priority.NORMAL, true);
+        assertThrows(NullPointerException.class, () -> new SubmitterContent(NUMBER, null, DESCRIPTION, Priority.NORMAL, true));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_nameArgIsEmpty_throws() {
-        new SubmitterContent(NUMBER, "", DESCRIPTION, Priority.NORMAL, true);
+        assertThrows(IllegalArgumentException.class, () -> new SubmitterContent(NUMBER, "", DESCRIPTION, Priority.NORMAL, true));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_descriptionArgIsNull_throws() {
-        new SubmitterContent(NUMBER, NAME, null, Priority.NORMAL, true);
+        assertThrows(NullPointerException.class, () -> new SubmitterContent(NUMBER, NAME, null, Priority.NORMAL, true));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_descriptionArgIsEmpty_throws() {
-        new SubmitterContent(NUMBER, NAME, "", Priority.NORMAL, true);
+        assertThrows(IllegalArgumentException.class, () -> new SubmitterContent(NUMBER, NAME, "", Priority.NORMAL, true));
     }
 
     @Test
     public void constructor_priorityArgIsNull_priorityIsNull() {
-        final SubmitterContent content = new SubmitterContent(NUMBER, NAME, DESCRIPTION, null, true);
+        SubmitterContent content = new SubmitterContent(NUMBER, NAME, DESCRIPTION, null, true);
         assertThat(content.getPriority(), is(nullValue()));
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final SubmitterContent content = new SubmitterContent(NUMBER, NAME, DESCRIPTION, Priority.NORMAL, true);
+        SubmitterContent content = new SubmitterContent(NUMBER, NAME, DESCRIPTION, Priority.NORMAL, true);
         assertThat(content, is(notNullValue()));
         assertThat(content.getNumber(), is(NUMBER));
         assertThat(content.getName(), is(NAME));

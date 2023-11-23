@@ -1,6 +1,6 @@
 package dk.dbc.dataio.commons.types;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -11,7 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class HarvesterTokenTest {
     @Test
     public void tokenOK() {
-        final HarvesterToken token = HarvesterToken.of("raw-repo:42:1:re:main:der");
+        HarvesterToken token = HarvesterToken.of("raw-repo:42:1:re:main:der");
         assertThat("variant", token.getHarvesterVariant(), is(HarvesterToken.HarvesterVariant.RAW_REPO));
         assertThat("id", token.getId(), is(42L));
         assertThat("version", token.getVersion(), is(1L));
@@ -20,7 +20,7 @@ public class HarvesterTokenTest {
 
     @Test
     public void tokenWithoutRemainder() {
-        final HarvesterToken token = HarvesterToken.of("raw-repo:42:1");
+        HarvesterToken token = HarvesterToken.of("raw-repo:42:1");
         assertThat("remainder", token.getRemainder(), is(nullValue()));
     }
 
@@ -46,7 +46,7 @@ public class HarvesterTokenTest {
 
     @Test
     public void builder() {
-        final HarvesterToken token = new HarvesterToken()
+        HarvesterToken token = new HarvesterToken()
                 .withHarvesterVariant(HarvesterToken.HarvesterVariant.RAW_REPO)
                 .withId(42L)
                 .withVersion(1L)

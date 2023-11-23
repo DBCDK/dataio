@@ -22,10 +22,20 @@ public class RRHarvesterServiceConnectorBean {
 
     HarvesterTaskServiceConnector harvesterTaskServiceConnector;
 
+    public RRHarvesterServiceConnectorBean() {
+    }
+
+    public RRHarvesterServiceConnectorBean(String rawRepoHarvesterUrl) {
+        init(rawRepoHarvesterUrl);
+    }
+
     @PostConstruct
     public void initializeConnector() {
+        init(System.getenv("RAWREPO_HARVESTER_URL"));
+    }
+
+    private void init(String endpoint) {
         Client client = ClientBuilder.newClient().register(new JacksonFeature());
-        final String endpoint = System.getenv("RAWREPO_HARVESTER_URL");
         if (endpoint == null || endpoint.trim().isEmpty()) {
             throw new EJBException("RAWREPO_HARVESTER_URL must be set");
         }

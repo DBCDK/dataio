@@ -1,12 +1,14 @@
 package dk.dbc.dataio.jobstore.types;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class StateChangeTest {
 
@@ -16,28 +18,28 @@ public class StateChangeTest {
         assertNewStateChange(stateChange);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void setSucceeded_lessThanZeroNotAllowed_throws() {
         StateChange stateChange = new StateChange();
-        stateChange.setSucceeded(-1);
+        assertThrows(IllegalArgumentException.class, () -> stateChange.setSucceeded(-1));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void setFailed_lessThanZeroNotAllowed_throws() {
         StateChange stateChange = new StateChange();
-        stateChange.setFailed(-1);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> stateChange.setFailed(-1));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void setIgnored_lessThanZeroNotAllowed_throws() {
         StateChange stateChange = new StateChange();
-        stateChange.setIgnored(-1);
+        assertThrows(IllegalArgumentException.class, () -> stateChange.setIgnored(-1));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void incSucceeded_lessThanZeroNotAllowed_throws() {
         StateChange stateChange = new StateChange();
-        stateChange.incSucceeded(-1);
+        assertThrows(IllegalArgumentException.class, () -> stateChange.incSucceeded(-1));
     }
 
     @Test
@@ -49,10 +51,10 @@ public class StateChangeTest {
         assertThat(stateChange.getSucceeded(), is(10));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void incFailed_lessThanZeroNotAllowed_throws() {
         StateChange stateChange = new StateChange();
-        stateChange.incFailed(-1);
+        assertThrows(IllegalArgumentException.class, () -> stateChange.incFailed(-1));
     }
 
     @Test
@@ -64,10 +66,10 @@ public class StateChangeTest {
         assertThat(stateChange.getFailed(), is(10));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void incIgnored_lessThanZeroNotAllowed_throws() {
         StateChange stateChange = new StateChange();
-        stateChange.incIgnored(-1);
+        assertThrows(IllegalArgumentException.class, () -> stateChange.incIgnored(-1));
     }
 
     @Test
@@ -81,7 +83,7 @@ public class StateChangeTest {
 
     @Test
     public void setAllValues_allValuesAreSet_valuesAreCorrect() {
-        final Date DATE = new Date(System.currentTimeMillis());
+        Date DATE = new Date(System.currentTimeMillis());
         StateChange stateChange = new StateChange();
         stateChange.setBeginDate(DATE);
         stateChange.setEndDate(DATE);

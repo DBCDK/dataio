@@ -1,6 +1,8 @@
 package dk.dbc.dataio.jobstore.types;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class WorkflowNoteTest {
 
@@ -8,14 +10,14 @@ public class WorkflowNoteTest {
     final static String ASSIGNEE = "initials";
     final static String DESCRIPTION = "description";
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_assigneeArgIsNull_throws() {
-        new WorkflowNote(PROCESSED, null, DESCRIPTION);
+        assertThrows(NullPointerException.class, () -> new WorkflowNote(PROCESSED, null, DESCRIPTION));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_assigneeArgIsEmpty_throws() {
-        new WorkflowNote(PROCESSED, "", DESCRIPTION);
+        assertThrows(IllegalArgumentException.class, () -> new WorkflowNote(PROCESSED, "", DESCRIPTION));
     }
 
     @Test

@@ -32,9 +32,15 @@
       <groupId>dk.dbc</groupId>
       <artifactId>invariant-utils</artifactId>
     </dependency>
+<!--    <dependency>-->
+<!--      <groupId>junit-addons</groupId>-->
+<!--      <artifactId>junit-addons</artifactId>-->
+<!--    </dependency>-->
     <dependency>
-      <groupId>junit-addons</groupId>
-      <artifactId>junit-addons</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${junit5.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>

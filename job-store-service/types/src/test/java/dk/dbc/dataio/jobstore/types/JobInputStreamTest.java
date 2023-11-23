@@ -1,7 +1,7 @@
 package dk.dbc.dataio.jobstore.types;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;

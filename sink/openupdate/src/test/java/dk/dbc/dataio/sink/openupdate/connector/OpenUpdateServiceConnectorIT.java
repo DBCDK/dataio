@@ -1,14 +1,14 @@
 package dk.dbc.dataio.sink.openupdate.connector;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.sink.openupdate.AbstractOpenUpdateSinkTestBase;
 import dk.dbc.dataio.sink.openupdate.AddiRecordPreprocessor;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -18,22 +18,18 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+@WireMockTest
 public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase {
 
     private final String groupId = "010100";
     private final String updateTemplate = "dbc";
     private final String queueProvider = "queue";
-    private WireMockServer wireMockServer = makeWireMockServer();
-    private final String updateServiceEndpoint = "http://localhost:" + wireMockServer.port() + "/UpdateService/2.0";
-    public OpenUpdateServiceConnector openUpdateServiceConnector = new OpenUpdateServiceConnector(updateServiceEndpoint);
+    public static OpenUpdateServiceConnector openUpdateServiceConnector;
 
-    private WireMockServer makeWireMockServer() {
-        WireMockServer server = new WireMockServer(new WireMockConfiguration().dynamicPort());
-        server.start();
-        WireMock.configureFor(server.port());
-        return server;
+    @BeforeAll
+    public static void init(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        openUpdateServiceConnector = new OpenUpdateServiceConnector(wireMockRuntimeInfo.getHttpBaseUrl() + "/UpdateService/2.0");
     }
-
 
     @Test
     public void updateRecord_ok() {

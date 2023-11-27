@@ -1,8 +1,7 @@
 package dk.dbc.dataio.sink.ims;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Chunk;
@@ -27,23 +26,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@WireMockTest
 public class ImsMessageConsumerTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final ImsConfig imsConfig = mock(ImsConfig.class);
     private final ImsMessageConsumer imsMessageConsumer = new ImsMessageConsumer(new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).test(), imsConfig);
     private final JSONBContext jsonbContext = new JSONBContext();
-    public WireMockServer wireMockServer = makeWireMock();
-
-    private WireMockServer makeWireMock() {
-        WireMockServer server = new WireMockServer(new WireMockConfiguration().dynamicPort());
-        server.start();
-        WireMock.configureFor(server.port());
-        return server;
-    }
 
     @BeforeEach
-    public void setupMocks() {
-        when(imsConfig.getConfig(any(ConsumedMessage.class))).thenReturn(new ImsSinkConfig().withEndpoint(getWireMockEndpoint()));
+    public void setupMocks(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        when(imsConfig.getConfig(any(ConsumedMessage.class))).thenReturn(new ImsSinkConfig().withEndpoint(wireMockRuntimeInfo.getHttpBaseUrl()));
     }
 
     @Test
@@ -68,9 +60,5 @@ public class ImsMessageConsumerTest {
         return new ChunkBuilder(Chunk.Type.PROCESSED).setItems(Collections.singletonList(
                         new ChunkItemBuilder().setStatus(ChunkItem.Status.IGNORE).build()))
                 .build();
-    }
-
-    private String getWireMockEndpoint() {
-        return String.format("http://localhost:%d/", wireMockServer.port());
     }
 }

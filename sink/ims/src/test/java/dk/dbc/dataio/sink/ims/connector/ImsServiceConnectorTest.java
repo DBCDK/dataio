@@ -1,8 +1,7 @@
 package dk.dbc.dataio.sink.ims.connector;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.sink.ims.MarcXchangeRecordUnmarshaller;
 import dk.dbc.oss.ns.updatemarcxchange.MarcXchangeRecord;
@@ -10,6 +9,7 @@ import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.ws.WebServiceException;
 import net.jodah.failsafe.RetryPolicy;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -25,8 +25,14 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@WireMockTest
 public class ImsServiceConnectorTest {
-    public WireMockServer wireMockServer = makeWireMockServer();
+    private static String wireMockEndpoint;
+
+    @BeforeAll
+    public static void init(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        wireMockEndpoint = wireMockRuntimeInfo.getHttpBaseUrl();
+    }
 
     @Test
     public void constructor_endpointArgIsNull_throws() {
@@ -38,19 +44,12 @@ public class ImsServiceConnectorTest {
         assertThrows(IllegalArgumentException.class, () -> new ImsServiceConnector(" "));
     }
 
-    private static WireMockServer makeWireMockServer() {
-        WireMockServer server = new WireMockServer(new WireMockConfiguration().dynamicPort());
-        server.start();
-        WireMock.configureFor(server.port());
-        return server;
-    }
-
     @Test
     public void updateMarcXchange_returnsServiceResults() {
         MarcXchangeRecordsTwoOkOneFail requestResponse = new MarcXchangeRecordsTwoOkOneFail();
         requestResponse.stub();
 
-        ImsServiceConnector imsServiceConnector = new ImsServiceConnector(getWireMockEndpoint());
+        ImsServiceConnector imsServiceConnector = new ImsServiceConnector(wireMockEndpoint);
         List<UpdateMarcXchangeResult> results = imsServiceConnector.updateMarcXchange(requestResponse.getTrackingId(), requestResponse.getMarcXchangeRecordsForRequest());
         assertThat("Number of results returned", results.size(), is(3));
         int id = 0;
@@ -68,7 +67,7 @@ public class ImsServiceConnectorTest {
         MarcXchangeRecordsTwoOkOneFail requestResponse = new MarcXchangeRecordsTwoOkOneFail();
         // No stubbing provokes WebServiceException
 
-        ImsServiceConnector imsServiceConnector = new ImsServiceConnector(getWireMockEndpoint()).withRetryPolicy(new RetryPolicy<>().withMaxRetries(0));
+        ImsServiceConnector imsServiceConnector = new ImsServiceConnector(wireMockEndpoint).withRetryPolicy(new RetryPolicy<>().withMaxRetries(0));
         assertThrows(WebServiceException.class, () -> imsServiceConnector.updateMarcXchange(requestResponse.getTrackingId(), requestResponse.getMarcXchangeRecordsForRequest()));
     }
 
@@ -223,9 +222,5 @@ public class ImsServiceConnectorTest {
                     .withStatus(ChunkItem.Status.SUCCESS));
             return chunkItems;
         }
-    }
-
-    private String getWireMockEndpoint() {
-        return "http://localhost:" + wireMockServer.port() + "/";
     }
 }

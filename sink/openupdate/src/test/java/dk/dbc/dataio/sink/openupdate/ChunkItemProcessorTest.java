@@ -1,8 +1,7 @@
 package dk.dbc.dataio.sink.openupdate;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.ResourceReader;
@@ -44,6 +43,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@WireMockTest
 public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     private final OpenUpdateServiceConnector mockedOpenUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
@@ -55,25 +55,16 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private final String updateTemplate = "bog";
     private final String queueProvider = "queue";
     private final SimpleTimer mockedTimer = mock(SimpleTimer.class);
-    public WireMockServer wireMockServer = makeWireMockServer();
 
     private final AddiRecord addiRecord = newAddiRecord(
             getMetaXml(updateTemplate, submitter),
             StringUtil.asString(readTestRecord(MARC_EXCHANGE_WEBSERVICE_OK), StandardCharsets.UTF_8));
 
-    private WireMockServer makeWireMockServer() {
-        WireMockServer server = new WireMockServer(new WireMockConfiguration().dynamicPort());
-        server.start();
-        WireMock.configureFor(server.port());
-        return server;
-    }
-
     private final ChunkItem chunkItemWithMultipleAddiRecords = buildChunkItemWithMultipleValidAddiRecords(addiRecord);
 
     @BeforeEach
-    public void setupMocks() {
-        wiredOpenUpdateServiceConnector = new OpenUpdateServiceConnector(String.format(
-                "http://localhost:%s%s", wireMockServer.port(), WIREDENDPOINTURL), "", "");
+    public void setupMocks(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        wiredOpenUpdateServiceConnector = new OpenUpdateServiceConnector(wireMockRuntimeInfo.getHttpBaseUrl() +  WIREDENDPOINTURL);
         doNothing().when(mockedTimer).update(any(Duration.class));
     }
 

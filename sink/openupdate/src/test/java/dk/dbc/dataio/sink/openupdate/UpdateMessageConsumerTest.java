@@ -22,8 +22,8 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import org.eclipse.microprofile.metrics.Counter;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.nio.charset.StandardCharsets;
@@ -35,7 +35,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -70,7 +70,7 @@ public class UpdateMessageConsumerTest {
         return addi.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws FlowStoreServiceConnectorException {
         when(flowStoreServiceConnector.getFlowBinder(flowBinder.getId())).thenReturn(flowBinder);
         when(openUpdateConfig.getConfig(any(ConsumedMessage.class))).thenReturn(config);

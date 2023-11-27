@@ -3,11 +3,12 @@ package dk.dbc.dataio.sink.openupdate.bindings;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class BibliographicRecordExtraDataMarshallerTest {
     private final BibliographicRecordExtraDataMarshaller marshaller = new BibliographicRecordExtraDataMarshaller();
@@ -17,9 +18,9 @@ public class BibliographicRecordExtraDataMarshallerTest {
         return unmarshaller.unmarshal(document.getDocumentElement(), BibliographicRecordExtraData.class).getValue();
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void toXmlDocument_dataArgIsNull_throws() throws JAXBException {
-        marshaller.toXmlDocument(null);
+    @Test
+    public void toXmlDocument_dataArgIsNull_throws() {
+        assertThrows(IllegalArgumentException.class, () -> marshaller.toXmlDocument(null));
     }
 
     @Test

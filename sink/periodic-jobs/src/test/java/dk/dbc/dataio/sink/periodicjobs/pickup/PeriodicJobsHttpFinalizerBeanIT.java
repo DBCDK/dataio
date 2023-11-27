@@ -60,16 +60,16 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
     @Test
     public void deliver_onNonEmptyJob() throws FileStoreServiceConnectorUnexpectedStatusCodeException {
         final int jobId = 42;
-        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
         block0.setSortkey("000000000");
         block0.setBytes(StringUtil.asBytes("0\n"));
         block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
-        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
         block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
         block1.setSortkey("000000001");
         block1.setBytes(StringUtil.asBytes("1\n"));
-        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
         block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
         block2.setSortkey("000000002");
         block2.setBytes(StringUtil.asBytes("2\n"));
@@ -82,7 +82,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         });
 
         final int receivingAgency = 12344321;
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(new Date())
@@ -90,17 +90,17 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
                         .withSubmitterNumber("111111")
                         .withPickup(new HttpPickup()
                                 .withReceivingAgency(String.valueOf(receivingAgency)))));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
 
-        final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
+        PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
 
-        final InOrder orderVerifier = Mockito.inOrder(fileStoreServiceConnector);
+        InOrder orderVerifier = Mockito.inOrder(fileStoreServiceConnector);
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, block1.getBytes());
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, StringUtil.asBytes("groupB\n2\n"));
 
-        final ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
+        ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
                 .withJobId(delivery.getJobId())
                 .withAgencyId(receivingAgency)
                 .withFilename("deliver_test." + delivery.getJobId());
@@ -110,7 +110,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
     @Test
     public void deliver_autoprintJob() throws FileStoreServiceConnectorUnexpectedStatusCodeException {
         final int jobId = 42;
-        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
         block0.setSortkey("0");
         block0.setBytes(StringUtil.asBytes("0\n"));
@@ -118,7 +118,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         env().getPersistenceContext().run(() -> env().getEntityManager().persist(block0));
 
         final int receivingAgency = 123456;
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(new Date())
@@ -127,13 +127,13 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
                         .withPickup(new HttpPickup()
                                 .withReceivingAgency(String.valueOf(receivingAgency))
                                 .withOverrideFilename("autoprint"))));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
 
-        final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
+        PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
 
-        final ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
+        ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
                 .withJobId(delivery.getJobId())
                 .withAgencyId(receivingAgency)
                 .withFilename("autoprint.deliver_test." + delivery.getJobId());
@@ -145,7 +145,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         final int jobId = 42;
 
         final int receivingAgency = 12344321;
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(new Date())
@@ -153,13 +153,13 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
                         .withSubmitterNumber("111111")
                         .withPickup(new HttpPickup()
                                 .withReceivingAgency(String.valueOf(receivingAgency)))));
-        final Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
+        Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
 
-        final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
+        PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
 
-        final ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
+        ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
                 .withJobId(delivery.getJobId())
                 .withAgencyId(receivingAgency)
                 .withFilename("no_content.deliver_test." + delivery.getJobId());
@@ -169,8 +169,8 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
     @Test
     public void deliver_file_with_header_and_footer() throws FileStoreServiceConnectorException,
             WeekResolverConnectorException {
-        final WeekResolverResult weekResolverResult = new WeekResolverResult();
-        final ArgumentCaptor<InputStream> inputStreamArgumentCaptor =
+        WeekResolverResult weekResolverResult = new WeekResolverResult();
+        ArgumentCaptor<InputStream> inputStreamArgumentCaptor =
                 ArgumentCaptor.forClass(InputStream.class);
 
         weekResolverResult.setYear(2020);
@@ -178,16 +178,16 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         when(weekResolverConnector.getCurrentWeekCodeForDate(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
 
         final int jobId = 42;
-        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
         block0.setSortkey("000000000");
         block0.setBytes(StringUtil.asBytes("0\n"));
         block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
-        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
         block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
         block1.setSortkey("000000001");
         block1.setBytes(StringUtil.asBytes("1\n"));
-        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
         block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
         block2.setSortkey("000000002");
         block2.setBytes(StringUtil.asBytes("2\n"));
@@ -200,7 +200,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         });
 
         final int receivingAgency = 12344321;
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(new Date())
@@ -210,31 +210,31 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
                                 .withReceivingAgency(String.valueOf(receivingAgency))
                                 .withContentHeader("Ugekorrektur uge ${__WEEKCODE_EMO__}\n")
                                 .withContentFooter("\nslut uge ${__WEEKCODE_EMO__}"))));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
 
-        final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
+        PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
 
-        final InOrder orderVerifier = Mockito.inOrder(fileStoreServiceConnector);
+        InOrder orderVerifier = Mockito.inOrder(fileStoreServiceConnector);
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, block1.getBytes());
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, StringUtil.asBytes("groupB\n2\n"));
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, StringUtil.asBytes("\nslut uge 202041"));
 
-        final ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
+        ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
                 .withJobId(delivery.getJobId())
                 .withAgencyId(receivingAgency)
                 .withFilename("deliver_test." + delivery.getJobId());
         verify(fileStoreServiceConnector).addMetadata(FILE_ID, expectedMetadata);
         verify(fileStoreServiceConnector).addFile(inputStreamArgumentCaptor.capture());
-        final String actualAddFileData = StringUtil.asString(inputStreamArgumentCaptor.getValue(), StandardCharsets.UTF_8);
+        String actualAddFileData = StringUtil.asString(inputStreamArgumentCaptor.getValue(), StandardCharsets.UTF_8);
         assertThat("AddFile is called with data from contentHeader",
                 actualAddFileData, is("Ugekorrektur uge 202041\n"));
 
     }
 
     private PeriodicJobsHttpFinalizerBean newPeriodicJobsHttpFinalizerBean() {
-        final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = new PeriodicJobsHttpFinalizerBean();
+        PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = new PeriodicJobsHttpFinalizerBean();
         periodicJobsHttpFinalizerBean.fileStoreServiceConnector = fileStoreServiceConnector;
         periodicJobsHttpFinalizerBean.jobStoreServiceConnector = jobStoreServiceConnector;
         periodicJobsHttpFinalizerBean.weekResolverConnector = weekResolverConnector;

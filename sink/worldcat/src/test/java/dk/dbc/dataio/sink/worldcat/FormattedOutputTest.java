@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.oclc.wciru.Diagnostic;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -26,25 +26,25 @@ public class FormattedOutputTest {
 
     @Test
     public void fromWciruServiceBrokerResult() {
-        final ChunkItem chunkItem = FormattedOutput.of(pid, brokerResult);
+        ChunkItem chunkItem = FormattedOutput.of(pid, brokerResult);
         assertThat("chunk item status", chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("chunk item type", chunkItem.getType(), is(Collections.singletonList(ChunkItem.Type.STRING)));
         assertThat("chunk item encoding", chunkItem.getEncoding(), is(StandardCharsets.UTF_8));
         assertThat("chunk item data", new String(chunkItem.getData(), chunkItem.getEncoding()),
-                is(ResourceReader.getResourceAsString(this.getClass(), "formatted_output.txt")));
+                is(ResourceReader.getResourceAsString(getClass(), "formatted_output.txt")));
     }
 
     @Test
     public void fromWciruServiceBrokerResultwithException() {
-        final WciruServiceBroker.Result brokerResult = getBrokerResult().withException(exception);
-        final ChunkItem chunkItem = FormattedOutput.of(pid, brokerResult);
+        WciruServiceBroker.Result brokerResult = getBrokerResult().withException(exception);
+        ChunkItem chunkItem = FormattedOutput.of(pid, brokerResult);
         assertThat("chunk item status", chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("chunk item type", chunkItem.getType(), is(Collections.singletonList(ChunkItem.Type.STRING)));
         assertThat("chunk item encoding", chunkItem.getEncoding(), is(StandardCharsets.UTF_8));
         assertThat("chunk item data", new String(chunkItem.getData(), chunkItem.getEncoding()),
-                is(ResourceReader.getResourceAsString(this.getClass(), "formatted_output.txt") +
+                is(ResourceReader.getResourceAsString(getClass(), "formatted_output.txt") +
                         "\n\n" + StringUtil.getStackTraceString(exception, "")));
-        final dk.dbc.dataio.commons.types.Diagnostic diagnostic = chunkItem.getDiagnostics().get(0);
+        dk.dbc.dataio.commons.types.Diagnostic diagnostic = chunkItem.getDiagnostics().get(0);
         assertThat("diagnostic level", diagnostic.getLevel(),
                 is(dk.dbc.dataio.commons.types.Diagnostic.Level.FATAL));
         assertThat("diagnostic message", diagnostic.getMessage(), is(exception.getMessage()));
@@ -52,13 +52,13 @@ public class FormattedOutputTest {
 
     @Test
     public void fromException() {
-        final ChunkItem chunkItem = FormattedOutput.of(exception);
+        ChunkItem chunkItem = FormattedOutput.of(exception);
         assertThat("chunk item status", chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("chunk item type", chunkItem.getType(), is(Collections.singletonList(ChunkItem.Type.STRING)));
         assertThat("chunk item encoding", chunkItem.getEncoding(), is(StandardCharsets.UTF_8));
         assertThat("chunk item data", new String(chunkItem.getData(), chunkItem.getEncoding()),
                 is(exception.getMessage()));
-        final dk.dbc.dataio.commons.types.Diagnostic diagnostic = chunkItem.getDiagnostics().get(0);
+        dk.dbc.dataio.commons.types.Diagnostic diagnostic = chunkItem.getDiagnostics().get(0);
         assertThat("diagnostic level", diagnostic.getLevel(),
                 is(dk.dbc.dataio.commons.types.Diagnostic.Level.FATAL));
         assertThat("diagnostic message", diagnostic.getMessage(), is(exception.getMessage()));
@@ -84,7 +84,7 @@ public class FormattedOutputTest {
     }
 
     private Diagnostic getWarning() {
-        final Diagnostic warning = new Diagnostic();
+        Diagnostic warning = new Diagnostic();
         warning.setMessage("a warning");
         warning.setDetails("details about the warning");
         warning.setUri("uri:warning");
@@ -92,7 +92,7 @@ public class FormattedOutputTest {
     }
 
     private Diagnostic getError() {
-        final Diagnostic error = new Diagnostic();
+        Diagnostic error = new Diagnostic();
         error.setMessage("an error");
         error.setDetails("details about the error");
         error.setUri("uri:error");

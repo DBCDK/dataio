@@ -6,7 +6,7 @@ import dk.dbc.dataio.sink.openupdate.bindings.BibliographicRecordExtraDataMarsha
 import dk.dbc.dataio.sink.util.DocumentTransformer;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import jakarta.xml.bind.JAXBException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -17,7 +17,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
     private final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
@@ -27,15 +28,15 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
     private final String queueProvider = null;
     private final AddiRecord addiRecord = newAddiRecord(getMetaXml(updateTemplate, submitter), getContentXml());
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void preprocess_addiArgIsNull_throws() {
-        addiRecordPreprocessor.preprocess(null, queueProvider);
+        assertThrows(NullPointerException.class, () -> addiRecordPreprocessor.preprocess(null, queueProvider));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void preprocess_addiArgIsInvalid_throws() {
         AddiRecord addiRecord = newAddiRecord("", getContentXml());
-        addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
+        assertThrows(IllegalArgumentException.class, () -> addiRecordPreprocessor.preprocess(addiRecord, queueProvider));
     }
 
     @Test

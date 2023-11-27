@@ -6,8 +6,8 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,7 +37,7 @@ public class SinkResultTest {
     private final ChunkItem ignoredItem = new ChunkItem().withStatus(ChunkItem.Status.IGNORE);
     private final ChunkItem invalidDataItem = new ChunkItem().withData("invalid").withStatus(ChunkItem.Status.SUCCESS);
 
-    @Before
+    @BeforeEach
     public void setup() {
         chunkBuilder = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(new ArrayList<>());
     }
@@ -54,7 +54,7 @@ public class SinkResultTest {
 
     @Test
     public void constructor_allArgsAreValid_returns() {
-        final Chunk chunk = chunkBuilder.setItems(Arrays.asList(successfulItem1.withId(0), failedItem.withId(1), ignoredItem.withId(2), invalidDataItem.withId(3))).build();
+        Chunk chunk = chunkBuilder.setItems(Arrays.asList(successfulItem1.withId(0), failedItem.withId(1), ignoredItem.withId(2), invalidDataItem.withId(3))).build();
 
         // Subject under test
         SinkResult sinkResult = new SinkResult(chunk, unmarshaller);
@@ -67,20 +67,20 @@ public class SinkResultTest {
         assertThat(sinkResult.chunkItems[0], is(nullValue()));
         assertThat(sinkResult.chunkItems[1].getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat(sinkResult.chunkItems[2].getStatus(), is(ChunkItem.Status.IGNORE));
-        final ChunkItem chunkItem3 = sinkResult.chunkItems[3];
+        ChunkItem chunkItem3 = sinkResult.chunkItems[3];
         assertThat(chunkItem3.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(chunkItem3.getDiagnostics().size(), is(1));
     }
 
     @Test
     public void toChunk_itemListContainsNull_throws() {
-        final Chunk chunk = chunkBuilder.appendItem(successfulItem1).build();
+        Chunk chunk = chunkBuilder.appendItem(successfulItem1).build();
         assertThat(() -> new SinkResult(chunk, unmarshaller).toChunk(), isThrowing(IllegalArgumentException.class));
     }
 
     @Test
     public void toChunk_itemListDoesNotContainNull_returns() {
-        final Chunk chunk = chunkBuilder.appendItem(ignoredItem).build();
+        Chunk chunk = chunkBuilder.appendItem(ignoredItem).build();
         SinkResult sinkResult = new SinkResult(chunk, unmarshaller);
 
         // Subject under test
@@ -95,7 +95,7 @@ public class SinkResultTest {
     public void update_updateMarcXchangeResultRecordIdIsNull_insertsFailedItem() {
         SinkResult sinkResult = new SinkResult(chunkBuilder.appendItem(successfulItem1).build(), unmarshaller);
 
-        final UpdateMarcXchangeResult updateMarcXchangeResult = new UpdateMarcXchangeResult();
+        UpdateMarcXchangeResult updateMarcXchangeResult = new UpdateMarcXchangeResult();
         updateMarcXchangeResult.setUpdateMarcXchangeStatus(UpdateMarcXchangeStatusEnum.UPDATE_FAILED_INVALID_RECORD);
         updateMarcXchangeResult.setUpdateMarcXchangeMessage("message");
 
@@ -113,7 +113,7 @@ public class SinkResultTest {
     public void update_unexpectedNumberOfUpdateMarcXchangeResults_insertsFailedItems() {
         SinkResult sinkResult = new SinkResult(chunkBuilder.setItems(Arrays.asList(successfulItem1.withId(0), successfulItem2.withId(1), ignoredItem.withId(2))).build(), unmarshaller);
 
-        final UpdateMarcXchangeResult updateMarcXchangeResult = new UpdateMarcXchangeResult();
+        UpdateMarcXchangeResult updateMarcXchangeResult = new UpdateMarcXchangeResult();
         updateMarcXchangeResult.setMarcXchangeRecordId("0");
         updateMarcXchangeResult.setUpdateMarcXchangeStatus(UpdateMarcXchangeStatusEnum.UPDATE_FAILED_PLEASE_RESEND_LATER);
         updateMarcXchangeResult.setUpdateMarcXchangeMessage("message");
@@ -122,18 +122,18 @@ public class SinkResultTest {
         sinkResult.update(Collections.singletonList(updateMarcXchangeResult));
 
         // Verification
-        final ChunkItem chunkItem0 = sinkResult.chunkItems[0];
+        ChunkItem chunkItem0 = sinkResult.chunkItems[0];
         assertThat(StringUtil.asString(chunkItem0.getData()).contains(UpdateMarcXchangeStatusEnum.UPDATE_FAILED_PLEASE_RESEND_LATER.value()), is(false));
         assertThat(chunkItem0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(chunkItem0.getDiagnostics().size(), is(1));
 
-        final ChunkItem chunkItem1 = sinkResult.chunkItems[1];
+        ChunkItem chunkItem1 = sinkResult.chunkItems[1];
         assertThat(StringUtil.asString(chunkItem1.getData()).contains(UpdateMarcXchangeStatusEnum.UPDATE_FAILED_PLEASE_RESEND_LATER.value()), is(false));
         assertThat(chunkItem1.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(chunkItem1.getDiagnostics().size(), is(1));
 
         // third item not overwritten
-        final ChunkItem chunkItem2 = sinkResult.chunkItems[2];
+        ChunkItem chunkItem2 = sinkResult.chunkItems[2];
         assertThat(chunkItem2.getStatus(), is(ChunkItem.Status.IGNORE));
     }
 
@@ -141,11 +141,11 @@ public class SinkResultTest {
     public void update_expectedNumberOfUpdateMarcXchangeResults_insertsItems() {
         SinkResult sinkResult = new SinkResult(chunkBuilder.setItems(Arrays.asList(successfulItem1.withId(0), successfulItem2.withId(1))).build(), unmarshaller);
 
-        final UpdateMarcXchangeResult updateMarcXchangeResult1 = new UpdateMarcXchangeResult();
+        UpdateMarcXchangeResult updateMarcXchangeResult1 = new UpdateMarcXchangeResult();
         updateMarcXchangeResult1.setMarcXchangeRecordId("0");
         updateMarcXchangeResult1.setUpdateMarcXchangeStatus(UpdateMarcXchangeStatusEnum.UPDATE_FAILED_PLEASE_RESEND_LATER);
 
-        final UpdateMarcXchangeResult updateMarcXchangeResult2 = new UpdateMarcXchangeResult();
+        UpdateMarcXchangeResult updateMarcXchangeResult2 = new UpdateMarcXchangeResult();
         updateMarcXchangeResult2.setMarcXchangeRecordId("1");
         updateMarcXchangeResult2.setUpdateMarcXchangeStatus(UpdateMarcXchangeStatusEnum.OK);
 
@@ -153,12 +153,12 @@ public class SinkResultTest {
         sinkResult.update(Arrays.asList(updateMarcXchangeResult1, updateMarcXchangeResult2));
 
         // Verification
-        final ChunkItem chunkItem0 = sinkResult.chunkItems[0];
+        ChunkItem chunkItem0 = sinkResult.chunkItems[0];
         assertThat(StringUtil.asString(chunkItem0.getData()).contains(UpdateMarcXchangeStatusEnum.UPDATE_FAILED_PLEASE_RESEND_LATER.value()), is(true));
         assertThat(chunkItem0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(chunkItem0.getDiagnostics().size(), is(1));
 
-        final ChunkItem chunkItem1 = sinkResult.chunkItems[1];
+        ChunkItem chunkItem1 = sinkResult.chunkItems[1];
         assertThat(StringUtil.asString(chunkItem1.getData()).contains(UpdateMarcXchangeStatusEnum.OK.value()), is(true));
         assertThat(chunkItem1.getStatus(), is(ChunkItem.Status.SUCCESS));
     }

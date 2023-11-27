@@ -14,8 +14,8 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +25,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -43,14 +43,14 @@ public class WorldCatConfigBeanTest {
 
     private WorldCatConfigBean worldCatConfigBean;
 
-    @Before
+    @BeforeEach
     public void setup() {
         worldCatConfigBean = newWorldCatConfigBean();
     }
 
     @Test
     public void getConfig_sinkNotFound_throws() throws FlowStoreServiceConnectorException {
-        final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
+        ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
         final String message = "Error message from flowStore";
         when(flowStoreServiceConnector.getSink(anyLong())).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException(message, 404));
 
@@ -64,10 +64,10 @@ public class WorldCatConfigBeanTest {
 
     @Test
     public void getConfig() throws FlowStoreServiceConnectorException {
-        final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
+        ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
         when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(sink);
 
-        final WorldCatSinkConfig config = worldCatConfigBean.getConfig(consumedMessage);
+        WorldCatSinkConfig config = worldCatConfigBean.getConfig(consumedMessage);
         assertThat(config, is(sink.getContent().getSinkConfig()));
         verify(flowStoreServiceConnector).getSink(sink.getId());
     }
@@ -76,10 +76,10 @@ public class WorldCatConfigBeanTest {
     public void getConfig_configRefreshesOnlyWhenVersionChanges() throws FlowStoreServiceConnectorException {
         when(flowStoreServiceConnector.getSink(10L)).thenReturn(sink);
 
-        final WorldCatSinkConfig config = worldCatConfigBean.getConfig(newConsumedMessage(10, 1));
+        WorldCatSinkConfig config = worldCatConfigBean.getConfig(newConsumedMessage(10, 1));
         assertThat("1st refresh", config, is(sink.getContent().getSinkConfig()));
 
-        final WorldCatSinkConfig configUnchanged = worldCatConfigBean.getConfig(newConsumedMessage(10, 1));
+        WorldCatSinkConfig configUnchanged = worldCatConfigBean.getConfig(newConsumedMessage(10, 1));
         assertThat("no refresh", config, is(sameInstance(configUnchanged)));
 
         when(flowStoreServiceConnector.getSink(10L)).thenReturn(newSink(new WorldCatSinkConfig()
@@ -87,27 +87,27 @@ public class WorldCatConfigBeanTest {
                 .withUserId("userId")
                 .withPassword("password")));
 
-        final WorldCatSinkConfig configChanged = worldCatConfigBean.getConfig(newConsumedMessage(10, 2));
+        WorldCatSinkConfig configChanged = worldCatConfigBean.getConfig(newConsumedMessage(10, 2));
         assertThat("2nd refresh", configChanged, is(not(sameInstance(config))));
 
         verify(flowStoreServiceConnector, times(2)).getSink(10L);
     }
 
     private WorldCatConfigBean newWorldCatConfigBean() {
-        final WorldCatConfigBean worldCatConfigBean = new WorldCatConfigBean();
+        WorldCatConfigBean worldCatConfigBean = new WorldCatConfigBean();
         worldCatConfigBean.flowStoreServiceConnector = flowStoreServiceConnector;
         return worldCatConfigBean;
     }
 
     private ConsumedMessage newConsumedMessage(long sinkId, long sinkVersion) {
-        final Map<String, Object> headers = new HashMap<>();
+        Map<String, Object> headers = new HashMap<>();
         headers.put(JmsConstants.SINK_ID_PROPERTY_NAME, sinkId);
         headers.put(JmsConstants.SINK_VERSION_PROPERTY_NAME, sinkVersion);
         return new ConsumedMessage("messageId", headers, payload);
     }
 
     private Sink newSink(WorldCatSinkConfig config) {
-        final SinkContent sinkContent = new SinkContentBuilder()
+        SinkContent sinkContent = new SinkContentBuilder()
                 .setSinkType(SinkContent.SinkType.WORLDCAT)
                 .setSinkConfig(config)
                 .build();

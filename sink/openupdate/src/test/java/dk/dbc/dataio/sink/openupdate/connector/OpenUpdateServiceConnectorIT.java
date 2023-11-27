@@ -1,14 +1,15 @@
 package dk.dbc.dataio.sink.openupdate.connector;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.sink.openupdate.AbstractOpenUpdateSinkTestBase;
 import dk.dbc.dataio.sink.openupdate.AddiRecordPreprocessor;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 
@@ -18,29 +19,21 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase {
-    private static final String WIREMOCK_PORT = System.getProperty("wiremock.port", "8998");
 
     private final String groupId = "010100";
     private final String updateTemplate = "dbc";
     private final String queueProvider = "queue";
-    private final String updateServiceEndpoint = "http://localhost:" + WIREMOCK_PORT + "/UpdateService/2.0";
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(Integer.parseInt(WIREMOCK_PORT));
-    OpenUpdateServiceConnector openUpdateServiceConnector = new OpenUpdateServiceConnector(updateServiceEndpoint);
+    private WireMockServer wireMockServer = makeWireMockServer();
+    private final String updateServiceEndpoint = "http://localhost:" + wireMockServer.port() + "/UpdateService/2.0";
+    public OpenUpdateServiceConnector openUpdateServiceConnector = new OpenUpdateServiceConnector(updateServiceEndpoint);
 
-    /*
-    // To enable debug on wiremock:
-    @Before
-    public void debugWireMock() {
-        wireMockRule.addMockServiceRequestListener((request, response) -> {
-            System.out.println("URL Requested => " + request.getAbsoluteUrl());
-            System.out.println("Request Body => " + request.getBodyAsString());
-            System.out.println("Request Headers => " + request.getAllHeaderKeys());
-            System.out.println("Response Status => " + response.getStatus());
-            System.out.println("Response Body => " + response.getBodyAsString());
-        });
+    private WireMockServer makeWireMockServer() {
+        WireMockServer server = new WireMockServer(new WireMockConfiguration().dynamicPort());
+        server.start();
+        WireMock.configureFor(server.port());
+        return server;
     }
-    */
+
 
     @Test
     public void updateRecord_ok() {

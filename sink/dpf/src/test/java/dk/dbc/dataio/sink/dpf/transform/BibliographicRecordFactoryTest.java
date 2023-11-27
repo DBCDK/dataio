@@ -7,7 +7,7 @@ import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Element;
 import org.xmlunit.matchers.CompareMatcher;
 

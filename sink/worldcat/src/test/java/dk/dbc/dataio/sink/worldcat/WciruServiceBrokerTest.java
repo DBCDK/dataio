@@ -7,8 +7,8 @@ import dk.dbc.oclc.wciru.UpdateResponseType;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.oclc.wciru.WciruServiceConnectorException;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Element;
 
 import java.util.Arrays;
@@ -25,7 +25,7 @@ public class WciruServiceBrokerTest {
     private WciruServiceConnector wciruServiceConnector;
     private WciruServiceBroker wciruServiceBroker;
 
-    @Before
+    @BeforeEach
     public void createWciruServiceBroker() {
         wciruServiceConnector = mock(WciruServiceConnector.class);
         wciruServiceBroker = new WciruServiceBroker(wciruServiceConnector);
@@ -35,7 +35,7 @@ public class WciruServiceBrokerTest {
     public void suppressedErrorsDoNotCauseBrokerFailure() throws WciruServiceConnectorException {
         // Setup broker arguments
 
-        final List<Holding> holdings = Arrays.asList(
+        List<Holding> holdings = Arrays.asList(
                 new Holding()
                         .withSymbol(WciruServiceBroker.PRIMARY_HOLDING_SYMBOL)
                         .withAction(Holding.Action.DELETE),
@@ -43,13 +43,13 @@ public class WciruServiceBrokerTest {
                         .withSymbol("DKB")
                         .withAction(Holding.Action.DELETE));
 
-        final ChunkItemWithWorldCatAttributes chunkItem =
+        ChunkItemWithWorldCatAttributes chunkItem =
                 (ChunkItemWithWorldCatAttributes) new ChunkItemWithWorldCatAttributes()
                         .withWorldCatAttributes(new WorldCatAttributes()
                                 .withHoldings(holdings))
                         .withData("<record/>");
 
-        final WorldCatEntity worldCatEntity = new WorldCatEntity().withOcn("xyz");
+        WorldCatEntity worldCatEntity = new WorldCatEntity().withOcn("xyz");
 
         // Setup mocked service responses:
         //      1st: Successful response for replaceRecord call for the primary
@@ -58,7 +58,7 @@ public class WciruServiceBrokerTest {
         //           replaceRecord call for an unknown holding symbol.
         //      3rd: Successful response for deleteRecord call.
 
-        final UpdateResponseType successResponse = new UpdateResponseType();
+        UpdateResponseType successResponse = new UpdateResponseType();
         successResponse.setOperationStatus(OperationStatusType.SUCCESS);
         successResponse.setRecordIdentifier(worldCatEntity.getOcn());
 
@@ -69,14 +69,14 @@ public class WciruServiceBrokerTest {
                 eq(holdings.get(0).getAction().getWciruValue())))
                 .thenReturn(successResponse);
 
-        final DiagnosticsType diagnostics = new DiagnosticsType();
-        final Diagnostic diagnostic = new Diagnostic();
+        DiagnosticsType diagnostics = new DiagnosticsType();
+        Diagnostic diagnostic = new Diagnostic();
         diagnostic.setUri("uri: info:srw/diagnostic/12/13");
         diagnostic.setMessage("Invalid data structure: component rejected");
         diagnostic.setDetails("SRU_RemoveLSN_Failures_No_LSN_Found. The PPN [800010-katalog:99122974111405763] was not found in the database record.:Unspecified error(100)");
         diagnostics.getDiagnostic().add(diagnostic);
 
-        final UpdateResponseType failResponse = new UpdateResponseType();
+        UpdateResponseType failResponse = new UpdateResponseType();
         failResponse.setOperationStatus(OperationStatusType.FAIL);
         failResponse.setDiagnostics(diagnostics);
 
@@ -94,7 +94,7 @@ public class WciruServiceBrokerTest {
 
         // Call broker
 
-        final WciruServiceBroker.Result brokerResult = wciruServiceBroker.push(chunkItem, worldCatEntity);
+        WciruServiceBroker.Result brokerResult = wciruServiceBroker.push(chunkItem, worldCatEntity);
         assertThat(brokerResult.isFailed(), is(false));
     }
 }

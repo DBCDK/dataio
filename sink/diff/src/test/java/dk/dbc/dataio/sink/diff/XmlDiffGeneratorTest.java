@@ -1,34 +1,36 @@
 package dk.dbc.dataio.sink.diff;
 
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
 
-    // xmllint + diff cannot handle default >< explicit namespaces
-    @Ignore
+    @Disabled("xmllint + diff cannot handle default >< explicit namespaces")
     @Test
     public void testGetDiff_semanticEqual_returnsEmptyString() throws DiffGeneratorException, InvalidMessageException {
         ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-        String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
-                getXml(), getXmlSemanticEquals());
+        String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, getXml(), getXmlSemanticEquals());
         assertThat(diff, is(""));
     }
 
     @Test
     public void testGetDiff_different_returnsDiffString() throws DiffGeneratorException, InvalidMessageException {
         if (canXmlDiff()) {
-            final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-            final String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, getXml(), getXmlNext());
+            ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
+            String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, getXml(), getXmlNext());
             assertThat(diff, not(""));
         }
     }
@@ -36,8 +38,8 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void testGetDiff_bug18965() throws DiffGeneratorException, IOException, URISyntaxException, InvalidMessageException {
         if (canXmlDiff()) {
-            final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-            final String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
+            ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
+            String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
                     readTestRecord("bug_18956.xml"),
                     readTestRecord("bug_18956-differences.xml"));
             assertThat(diff, not(""));
@@ -48,8 +50,8 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void testGetDiff_output() throws DiffGeneratorException, IOException, URISyntaxException, InvalidMessageException {
         if (canXmlDiff()) {
-            final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-            final String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
+            ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
+            String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
                     readTestRecord("small-current.xml"),
                     readTestRecord("small-next.xml"));
             assertThat(diff, not(""));
@@ -59,21 +61,17 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void testGetDiff_contentEquals_returnsEmptyString() throws DiffGeneratorException, InvalidMessageException {
         if (canXmlDiff()) {
-            final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-            final String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, getXml(), getXml());
+            ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
+            String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, getXml(), getXml());
             assertThat(diff, is(""));
         }
     }
 
     @Test
-    public void testGetDiff_failureComparingInput_throws() throws InvalidMessageException {
+    public void testGetDiff_failureComparingInput_throws() {
         if (canXmlDiff()) {
-            try {
-                final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-                xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, "<INVALID>".getBytes(), "<INVALID>".getBytes());
-                fail("No DiffGeneratorException thrown");
-            } catch (DiffGeneratorException e) {
-            }
+            ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
+            assertThrows(DiffGeneratorException.class, () -> xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, "<INVALID>".getBytes(), "<INVALID>".getBytes()));
         }
     }
 
@@ -111,10 +109,14 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
 
 
     static byte[] readTestRecord(String resourceName) throws IOException, URISyntaxException {
-        final java.net.URL url = XmlDiffGeneratorTest.class.getResource("/" + resourceName);
-        final java.nio.file.Path resPath;
-        resPath = java.nio.file.Paths.get(url.toURI());
-        return java.nio.file.Files.readAllBytes(resPath);
+        URL url = XmlDiffGeneratorTest.class.getResource("/" + resourceName);
+        Path resPath;
+        resPath = Paths.get(url.toURI());
+        return Files.readAllBytes(resPath);
+    }
+
+    static byte[] readTestRecord(Path resourcePath) throws IOException, URISyntaxException {
+        return Files.readAllBytes(resourcePath);
     }
 
 }

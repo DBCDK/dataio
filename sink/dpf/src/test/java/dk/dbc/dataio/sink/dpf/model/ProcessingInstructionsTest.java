@@ -2,7 +2,7 @@ package dk.dbc.dataio.sink.dpf.model;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
@@ -17,13 +17,13 @@ public class ProcessingInstructionsTest {
         final String json =
                 "{\"submitter\":424242,\"title\":\"A title\",\"updateTemplate\":\"dbcperiodica\",\"recordState\":\"NEW\",\"unknownKey\":\"foo\"}";
 
-        final ProcessingInstructions expected = new ProcessingInstructions()
+        ProcessingInstructions expected = new ProcessingInstructions()
                 .withSubmitter(424242)
                 .withTitle("A title")
                 .withUpdateTemplate("dbcperiodica")
                 .withRecordState(DpfRecord.State.NEW);
 
-        final ProcessingInstructions unmarshalled =
+        ProcessingInstructions unmarshalled =
                 jsonbContext.unmarshall(json, ProcessingInstructions.class);
         assertThat(unmarshalled, is(expected));
     }
@@ -33,21 +33,21 @@ public class ProcessingInstructionsTest {
         final String json =
                 "{\"submitter\":424242,\"title\":\"A title\",\"updateTemplate\":\"dbcperiodica\",\"recordState\":\"MODIFIED\",\"errors\":[\"err1\",\"err2\"]}";
 
-        final ProcessingInstructions expected = new ProcessingInstructions()
+        ProcessingInstructions expected = new ProcessingInstructions()
                 .withSubmitter(424242)
                 .withTitle("A title")
                 .withUpdateTemplate("dbcperiodica")
                 .withRecordState(DpfRecord.State.MODIFIED)
                 .withErrors(Arrays.asList("err1", "err2"));
 
-        final ProcessingInstructions unmarshalled =
+        ProcessingInstructions unmarshalled =
                 jsonbContext.unmarshall(json, ProcessingInstructions.class);
         assertThat(unmarshalled, is(expected));
     }
 
     @Test
     public void jsonMarshalling() throws JSONBException {
-        final ProcessingInstructions processingInstructions = new ProcessingInstructions()
+        ProcessingInstructions processingInstructions = new ProcessingInstructions()
                 .withSubmitter(424242)
                 .withId("test")
                 .withTitle("A title")

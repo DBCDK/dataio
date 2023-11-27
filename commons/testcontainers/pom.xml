@@ -35,6 +35,9 @@
             <artifactId>dbc-commons-testcontainers-postgres</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-jdbc-util</artifactId>
+        </dependency>
     </dependencies>
-
 </project>

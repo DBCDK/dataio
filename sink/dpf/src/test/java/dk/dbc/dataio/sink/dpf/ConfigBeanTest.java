@@ -18,8 +18,8 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,7 +29,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -49,7 +49,7 @@ public class ConfigBeanTest {
 
     private ConfigBean configBean;
 
-    @Before
+    @BeforeEach
     public void setup() {
         configBean = newConfigBean();
     }
@@ -58,15 +58,8 @@ public class ConfigBeanTest {
     public void sinkNotFoundOnRefresh() throws FlowStoreServiceConnectorException {
         ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
         final String message = "Error message from flowStore";
-        when(flowStore.getSink(anyLong()))
-                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException(message, 404));
-
-        try {
-            configBean.refresh(consumedMessage);
-            fail();
-        } catch (RuntimeException e) {
-            assertThat(e.getMessage(), is(message));
-        }
+        when(flowStore.getSink(anyLong())).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException(message, 404));
+        assertThrows(RuntimeException.class, () -> configBean.refresh(consumedMessage));
     }
 
     @Test
@@ -74,15 +67,8 @@ public class ConfigBeanTest {
         ConsumedMessage consumedMessage = newConsumedMessage(10, 1);
         final String message = "Error message from flowStore";
         when(flowStore.getSink(10L)).thenReturn(sink);
-        when(flowStore.getFlowBinder(anyLong()))
-                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException(message, 404));
-
-        try {
-            configBean.refresh(consumedMessage);
-            fail();
-        } catch (RuntimeException e) {
-            assertThat(e.getMessage(), is(message));
-        }
+        when(flowStore.getFlowBinder(anyLong())).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException(message, 404));
+        assertThrows(RuntimeException.class, () -> configBean.refresh(consumedMessage));
     }
 
     @Test

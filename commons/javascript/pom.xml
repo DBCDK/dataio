@@ -28,6 +28,18 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-types</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-svn</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-stopwatch</artifactId>
+        </dependency>
     </dependencies>
 
     <properties>

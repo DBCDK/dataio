@@ -8,6 +8,7 @@ import dk.dbc.dataio.flowstore.ejb.HarvestersBean;
 import dk.dbc.dataio.flowstore.ejb.ParametersSuggester;
 import dk.dbc.dataio.flowstore.ejb.SinksBean;
 import dk.dbc.dataio.flowstore.ejb.SubmittersBean;
+import dk.dbc.dataio.flowstore.ejb.SubversionFetcher;
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
 import org.slf4j.Logger;
@@ -40,6 +41,7 @@ public class FlowStoreApplication extends Application {
         classes.add(PersistenceExceptionMapper.class);
         classes.add(ReferencedEntityNotFoundExceptionMapper.class);
         classes.add(ParametersSuggester.class);
+        classes.add(SubversionFetcher.class);
         for (Class<?> clazz : classes) {
             log.info("Registered {} resource", clazz.getName());
         }

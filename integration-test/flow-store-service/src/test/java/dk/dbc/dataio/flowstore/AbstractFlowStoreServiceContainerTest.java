@@ -1,6 +1,5 @@
 package dk.dbc.dataio.flowstore;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -9,10 +8,8 @@ import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
 import net.jodah.failsafe.RetryPolicy;
-import org.junit.jupiter.api.AfterAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -26,8 +23,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 public abstract class AbstractFlowStoreServiceContainerTest implements PostgresContainerJPAUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFlowStoreServiceContainerTest.class);
@@ -74,5 +69,5 @@ public abstract class AbstractFlowStoreServiceContainerTest implements PostgresC
     static Connection connectToFlowStoreDB() throws SQLException {
         return dbContainer.datasource().getConnection();
     }
-    
+
 }

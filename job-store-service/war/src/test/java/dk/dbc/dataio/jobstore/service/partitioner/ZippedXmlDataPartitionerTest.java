@@ -1,7 +1,9 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -19,16 +21,15 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 
 public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void partitioning() {
-
-        final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
+        DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
                 getResourceAsStream("test-records-ebsco-zipped.zip"), "UTF-8");
-        final List<DataPartitionerResult> results = getResults(partitioner);
+        List<DataPartitionerResult> results = getResults(partitioner);
 
         assertThat("Number of iterations", results.size(), is(5));
         assertThat("Number of bytes read", partitioner.getBytesRead(),
@@ -36,11 +37,12 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     }
 
     // Check that the xml document gets copied with all childnode subtrees
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void childNodeSubtree() {
-        final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
+        DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
                 getResourceAsStream("test-records-ebsco-zipped.zip"), "UTF-8");
-        final List<DataPartitionerResult> results = getResults(partitioner);
+        List<DataPartitionerResult> results = getResults(partitioner);
         ByteArrayInputStream chunkStream = getRecordStream(results.get(0).getChunkItem());
 
         try {
@@ -74,22 +76,23 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
             assertThat("Has subitem with name=NAICCode", nodeList.getLength(), is(1));
             assertThat("Subitem has text value '611310'", nodeList.item(0).getTextContent(), is("611310"));
         } catch (ParserConfigurationException pce) {
-            fail("Caught ParserConfigurationException: " + pce.getMessage());
+            Assertions.fail("Caught ParserConfigurationException: " + pce.getMessage());
         } catch (SAXException se) {
-            fail("Caught SAXException: " + se.getMessage());
+            Assertions.fail("Caught SAXException: " + se.getMessage());
         } catch (IOException ioe) {
-            fail("Caught IOException: " + ioe.getMessage());
+            Assertions.fail("Caught IOException: " + ioe.getMessage());
         } catch (XPathExpressionException xpe) {
-            fail("Caught XPathExpressionException: " + xpe.getMessage());
+            Assertions.fail("Caught XPathExpressionException: " + xpe.getMessage());
         }
     }
 
     // Check that we get all 5 items, in the right order
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void sequence() {
-        final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
+        DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
                 getResourceAsStream("test-records-ebsco-zipped.zip"), "UTF-8");
-        final List<DataPartitionerResult> results = getResults(partitioner);
+        List<DataPartitionerResult> results = getResults(partitioner);
 
         /*
         The xml doc. contains this xml fragment..
@@ -122,32 +125,34 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 assertThat("Is correct id", nodeList.item(0).getTextContent(), is(anValues[itemNo]));
             }
         } catch (ParserConfigurationException pce) {
-            fail("Caught ParserConfigurationException: " + pce.getMessage());
+            Assertions.fail("Caught ParserConfigurationException: " + pce.getMessage());
         } catch (SAXException se) {
-            fail("Caught SAXException: " + se.getMessage());
+            Assertions.fail("Caught SAXException: " + se.getMessage());
         } catch (IOException ioe) {
-            fail("Caught IOException: " + ioe.getMessage());
+            Assertions.fail("Caught IOException: " + ioe.getMessage());
         } catch (XPathExpressionException xpe) {
-            fail("Caught XPathExpressionException: " + xpe.getMessage());
+            Assertions.fail("Caught XPathExpressionException: " + xpe.getMessage());
         }
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void partitioningWithEmpty() {
 
-        final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
+        DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
                 getResourceAsStream("test-empty-records-ebsco-zipped.zip"), "UTF-8");
-        final List<DataPartitionerResult> results = getResults(partitioner);
+        List<DataPartitionerResult> results = getResults(partitioner);
 
         assertThat("Number of iterations", results.size(), is(5));
     }
 
     // Check that the items is numbered correctly
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void positionInDatafile() {
-        final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
+        DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
                 getResourceAsStream("test-records-ebsco-zipped.zip"), "UTF-8");
-        final List<DataPartitionerResult> results = getResults(partitioner);
+        List<DataPartitionerResult> results = getResults(partitioner);
 
         for (int itemNo = 0; itemNo < results.size(); itemNo++) {
             DataPartitionerResult item = results.get(itemNo);
@@ -156,11 +161,12 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     }
 
     // Check that the items is numbered correctly when having empty items
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void positionInDatafileWithEmpty() {
-        final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
+        DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
                 getResourceAsStream("test-empty-records-ebsco-zipped.zip"), "UTF-8");
-        final List<DataPartitionerResult> results = getResults(partitioner);
+        List<DataPartitionerResult> results = getResults(partitioner);
 
         for (int itemNo = 0; itemNo < results.size(); itemNo++) {
             DataPartitionerResult item = results.get(itemNo);

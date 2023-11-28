@@ -21,15 +21,15 @@ import dk.dbc.dataio.jse.artemis.common.Metric;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.registry.PrometheusMetricRegistry;
 import jakarta.jms.JMSException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.Map;
 
 import static dk.dbc.dataio.jobprocessor2.Metric.ATag.rollback;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -47,7 +47,7 @@ public class JobStoreMessageConsumerBeanTest {
             JmsConstants.ADDITIONAL_ARGS, "{}"
     );
 
-    @Before
+    @BeforeEach
     public void init() {
         ((PrometheusMetricRegistry)SERVICE_HUB.metricRegistry).resetAll();
         ChunkProcessor.clearFlowCache();
@@ -61,29 +61,21 @@ public class JobStoreMessageConsumerBeanTest {
         JMSHeader.jobId.addHeader(textMessage, 0);
         textMessage.setText("{'invalid': 'instance'}");
         jobStoreMessageConsumer.onMessage(textMessage);
-        Assert.assertEquals(0, Metric.dataio_message_count.counter(rollback.is("true")).getCount());
+        Assertions.assertEquals(0, Metric.dataio_message_count.counter(rollback.is("true")).getCount());
     }
 
     @Test
     public void handleConsumedMessage_messageArgPayloadIsInvalidNewJob_throws() throws JobProcessorException {
         ConsumedMessage consumedMessage = new ConsumedMessage("id", headers, "{'invalid': 'instance'}");
         JobStoreMessageConsumer jobStoreMessageConsumer = new JobStoreMessageConsumer(SERVICE_HUB);
-        try {
-            jobStoreMessageConsumer.handleConsumedMessage(consumedMessage);
-            fail("No exception thrown");
-        } catch (InvalidMessageException ignored) {
-        }
+        assertThrows(InvalidMessageException.class, () -> jobStoreMessageConsumer.handleConsumedMessage(consumedMessage));
     }
 
     @Test
     public void handleConsumedMessage_messagePayloadCanNotBeUnmarshalledToJson_throws() throws JobProcessorException {
         ConsumedMessage message = new ConsumedMessage("id", headers, "invalid");
         JobStoreMessageConsumer jobStoreMessageConsumer = new JobStoreMessageConsumer(SERVICE_HUB);
-        try {
-            jobStoreMessageConsumer.handleConsumedMessage(message);
-            fail("No exception thrown");
-        } catch (InvalidMessageException ignored) {
-        }
+        assertThrows(InvalidMessageException.class, () -> jobStoreMessageConsumer.handleConsumedMessage(message));
     }
 
     @Test
@@ -95,11 +87,7 @@ public class JobStoreMessageConsumerBeanTest {
 
         JobStoreMessageConsumer jobStoreMessageConsumer = new JobStoreMessageConsumer(SERVICE_HUB);
         ConsumedMessage message = new ConsumedMessage("id", headers, jsonChunk);
-        try {
-            jobStoreMessageConsumer.handleConsumedMessage(message);
-            fail("No exception thrown");
-        } catch (InvalidMessageException ignored) {
-        }
+        assertThrows(InvalidMessageException.class, () -> jobStoreMessageConsumer.handleConsumedMessage(message));
     }
 
     @Test

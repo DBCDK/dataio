@@ -5,9 +5,8 @@ import dk.dbc.dataio.commons.utils.test.model.GatekeeperDestinationBuilder;
 import dk.dbc.dataio.gatekeeper.operation.Opcode;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.dataio.gatekeeper.wal.Modification;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -19,38 +18,39 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ModificationFactoryTest {
-    @Rule
-    public TemporaryFolder testFolder = new TemporaryFolder();
+    @TempDir
+    public Path testFolder;
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_transfileArgIsNull_throws() {
-        new ModificationFactory(null);
+        assertThrows(NullPointerException.class, () -> new ModificationFactory(null));
     }
 
     @Test
     public void getModifications_transfileHasNoLines_returnsModifications() throws IOException {
-        final TransFile transfile = createTransfile("123456.trans", "slut");
-        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
-        final List<Modification> modifications = modificationFactory.getModifications();
+        TransFile transfile = createTransfile("123456.trans", "slut");
+        ModificationFactory modificationFactory = new ModificationFactory(transfile);
+        List<Modification> modifications = modificationFactory.getModifications();
         assertThat("Number of modifications", modifications.size(), is(2));
         assertThat("Modification opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_INVALID_TRANSFILE_NOTIFICATION));
         assertThat("Modification opcode", modifications.get(1).getOpcode(), is(Opcode.DELETE_FILE));
         assertThat("Modification arg", modifications.get(0).getArg(), is("Transfil har intet indhold"));
         assertThat("Modification trans file name", modifications.get(0).getTransfileName(), is(transfile.getPath().getFileName().toString()));
-
     }
 
     @Test
     public void getModifications_transfileIsInvalid_returnsModifications() throws IOException {
-        final TransFile transfile = createTransfile("123456.trans", "b=danbib,t=lin,c=latin-1,o=marc2");
-        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
-        final List<Modification> modifications = modificationFactory.getModifications();
+        TransFile transfile = createTransfile("123456.trans", "b=danbib,t=lin,c=latin-1,o=marc2");
+        ModificationFactory modificationFactory = new ModificationFactory(transfile);
+        List<Modification> modifications = modificationFactory.getModifications();
         assertThat("Number of modifications", modifications.size(), is(2));
         assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_INVALID_TRANSFILE_NOTIFICATION));
         assertThat("Modification 1 arg", modifications.get(0).getArg(), is("Transfil mangler slut-linje"));
@@ -61,9 +61,9 @@ public class ModificationFactoryTest {
     @Test
     public void getModifications_singleDataioExclusiveLineWithoutDatafile_returnsModifications() throws IOException {
         final String line = "b=danbib,t=lin,c=latin-1,o=marc2";
-        final TransFile transfile = createTransfile("820011.trans", line + "\nslut");
-        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
-        final List<Modification> modifications = modificationFactory.getModifications();
+        TransFile transfile = createTransfile("820011.trans", line + "\nslut");
+        ModificationFactory modificationFactory = new ModificationFactory(transfile);
+        List<Modification> modifications = modificationFactory.getModifications();
         assertThat("Number of modifications", modifications.size(), is(2));
         assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_INVALID_TRANSFILE_NOTIFICATION));
         assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.DELETE_FILE));
@@ -74,11 +74,11 @@ public class ModificationFactoryTest {
 
     @Test
     public void getModifications_singleDataioExclusiveLineWithDatafile_returnsModifications() throws IOException {
-        testFolder.newFile("820011.file");
+        Files.createFile(testFolder.resolve("820011.file"));
         final String line = "b=danbib,f=820011.file,t=lin,c=latin-1,o=marc2";
-        final TransFile transfile = createTransfile("820011.trans", line + "\nslut");
-        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
-        final List<Modification> modifications = modificationFactory.getModifications();
+        TransFile transfile = createTransfile("820011.trans", line + "\nslut");
+        ModificationFactory modificationFactory = new ModificationFactory(transfile);
+        List<Modification> modifications = modificationFactory.getModifications();
         assertThat("Number of modifications", modifications.size(), is(3));
         assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
         assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.DELETE_FILE));
@@ -91,9 +91,9 @@ public class ModificationFactoryTest {
 
     @Test
     public void processLine_dataioExclusiveContainsDatafile_returnsModifications() throws IOException {
-        final TransFile transfile = createTransfile("820011.trans", "b=danbib,f=820011.file,t=lin,c=latin-1,o=marc2");
-        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
-        final List<Modification> modifications = modificationFactory.processLine(transfile.getLines().get(0));
+        TransFile transfile = createTransfile("820011.trans", "b=danbib,f=820011.file,t=lin,c=latin-1,o=marc2");
+        ModificationFactory modificationFactory = new ModificationFactory(transfile);
+        List<Modification> modifications = modificationFactory.processLine(transfile.getLines().get(0));
         assertThat("Number of modifications", modifications.size(), is(2));
         assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
         assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.DELETE_FILE));
@@ -101,33 +101,33 @@ public class ModificationFactoryTest {
 
     @Test
     public void getDataFilename_lineContainsNoDatafile_returnsEmptyString() {
-        final TransFile.Line line = new TransFile.Line("foo");
-        final ModificationFactory modificationFactory = new ModificationFactory();
+        TransFile.Line line = new TransFile.Line("foo");
+        ModificationFactory modificationFactory = new ModificationFactory();
         assertThat(modificationFactory.getDataFilename(line), is(""));
     }
 
     @Test
     public void getDataFilename_lineContainsEmptyDatafile_returnsEmptyString() {
-        final TransFile.Line line = new TransFile.Line("f=  ,g=foo");
-        final ModificationFactory modificationFactory = new ModificationFactory();
+        TransFile.Line line = new TransFile.Line("f=  ,g=foo");
+        ModificationFactory modificationFactory = new ModificationFactory();
         assertThat(modificationFactory.getDataFilename(line), is(""));
     }
 
     @Test
     public void getDataFilename_lineContainsDatafile_returnsDatafile() {
-        final TransFile.Line line = new TransFile.Line("f=foo");
-        final ModificationFactory modificationFactory = new ModificationFactory();
+        TransFile.Line line = new TransFile.Line("f=foo");
+        ModificationFactory modificationFactory = new ModificationFactory();
         assertThat(modificationFactory.getDataFilename(line), is("foo"));
     }
 
     @Test
     public void getFileDeleteModification_returnsModification() throws IOException {
-        final Path transfilePath = testFolder.newFile().toPath();
-        final TransFile transfile = new TransFile(transfilePath);
+        Path transfilePath = testFolder.resolve(UUID.randomUUID() + ".tmp");
+        TransFile transfile = new TransFile(transfilePath);
         final String filename = "file";
 
-        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
-        final Modification fileDeleteModification = modificationFactory.getFileDeleteModification(filename);
+        ModificationFactory modificationFactory = new ModificationFactory(transfile);
+        Modification fileDeleteModification = modificationFactory.getFileDeleteModification(filename);
         assertThat("fileDeleteModification", fileDeleteModification, is(notNullValue()));
         assertThat("fileDeleteModification.getOpcode()", fileDeleteModification.getOpcode(), is(Opcode.DELETE_FILE));
         assertThat("fileDeleteModification.getArg()", fileDeleteModification.getArg(), is(filename));
@@ -137,12 +137,12 @@ public class ModificationFactoryTest {
 
     @Test
     public void getCreateJobModification_returnsModification() throws IOException {
-        final Path transfilePath = testFolder.newFile().toPath();
-        final TransFile transfile = new TransFile(transfilePath);
+        Path transfilePath = testFolder.resolve(UUID.randomUUID() + ".tmp");
+        TransFile transfile = new TransFile(transfilePath);
         final String arg = "data";
 
-        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
-        final Modification createJobModification = modificationFactory.getCreateJobModification(arg);
+        ModificationFactory modificationFactory = new ModificationFactory(transfile);
+        Modification createJobModification = modificationFactory.getCreateJobModification(arg);
         assertThat("createJobModification", createJobModification, is(notNullValue()));
         assertThat("createJobModification.getOpcode()", createJobModification.getOpcode(), is(Opcode.CREATE_JOB));
         assertThat("createJobModification.getArg()", createJobModification.getArg(), is(arg));
@@ -154,7 +154,7 @@ public class ModificationFactoryTest {
      * Package private methods
      */
     static List<GatekeeperDestination> getGatekeeperDestinationsForTest() {
-        final GatekeeperDestination gatekeeperDestinationIsDataioExclusive = new GatekeeperDestinationBuilder()
+        GatekeeperDestination gatekeeperDestinationIsDataioExclusive = new GatekeeperDestinationBuilder()
                 .setId(0L)
                 .setSubmitterNumber("820011")
                 .setDestination("danbib")
@@ -177,7 +177,7 @@ public class ModificationFactoryTest {
     }
 
     private TransFile createTransfile(String transfileName, String content) throws IOException {
-        final Path transfilePath = testFolder.newFile(transfileName).toPath();
+        Path transfilePath = Files.createFile(testFolder.resolve(transfileName));
         writeFile(transfilePath, content);
         Files.setLastModifiedTime(transfilePath, FileTime.from(Instant.now().minus(1, ChronoUnit.HOURS)));
         return new TransFile(transfilePath);

@@ -24,10 +24,10 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
 import dk.dbc.dataio.jse.artemis.common.service.HealthService;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public class ChunkProcessorTest {
     private final String format = "DasFormat";
     private final String additionalArgs = String.format("{\"format\":\"%s\",\"submitter\":%s}", format, submitter);
 
-    @Before
+    @BeforeEach
     public void initCache() {
         ChunkProcessor.clearFlowCache();
     }
@@ -232,7 +232,7 @@ public class ChunkProcessorTest {
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
 
-    @Ignore("Testing better handling of ClassCastException")
+    @Disabled("Testing better handling of ClassCastException")
     @Test
     public void javascriptReturnsWithNoResult_chunkItemFailed() throws JobStoreServiceConnectorException {
         ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase, getJavaScript(getJavaScriptReturnUpperCaseFunction()));
@@ -398,7 +398,7 @@ public class ChunkProcessorTest {
 
         ChunkProcessor chunkProcessor = makeChunkProcessor(chunk, flow);
         chunkProcessor.process(chunk, flow.getId(), flow.getVersion(), null);
-        Assert.assertTrue("Cache should contain our flow", chunkProcessor.getCacheView().values().stream().anyMatch(f -> f.flow.equals(flow)));
+        Assertions.assertTrue(chunkProcessor.getCacheView().values().stream().anyMatch(f -> f.flow.equals(flow)), "Cache should contain our flow");
     }
 
     private void assertProcessedChunk(Chunk chunk, int jobID, long chunkId, int chunkSize) {

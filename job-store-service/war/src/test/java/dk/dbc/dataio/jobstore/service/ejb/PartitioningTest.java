@@ -3,7 +3,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import jakarta.ejb.EJBTransactionRolledbackException;
 import jakarta.ejb.TransactionRolledbackLocalException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
@@ -14,13 +14,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class PartitioningTest {
     @Test
     public void partitioningFailedWithPrematureEndOfDataExceptionWithCause() {
-        final IOException ioException = new IOException();
-        final PrematureEndOfDataException prematureEndOfDataException =
+        IOException ioException = new IOException();
+        PrematureEndOfDataException prematureEndOfDataException =
                 new PrematureEndOfDataException(ioException);
-        final EJBTransactionRolledbackException ejbTransactionRolledbackException =
+        EJBTransactionRolledbackException ejbTransactionRolledbackException =
                 new EJBTransactionRolledbackException("test", prematureEndOfDataException);
 
-        final Partitioning partitioning = new Partitioning()
+        Partitioning partitioning = new Partitioning()
                 .withFailure(ejbTransactionRolledbackException);
         assertThat("hasFailedUnexpectedly", partitioning.hasFailedUnexpectedly(), is(true));
         assertThat("premature end of data failure",
@@ -30,12 +30,12 @@ public class PartitioningTest {
 
     @Test
     public void partitioningFailedWithPrematureEndOfDataExceptionWithoutCause() {
-        final PrematureEndOfDataException prematureEndOfDataException =
+        PrematureEndOfDataException prematureEndOfDataException =
                 new PrematureEndOfDataException(null);
-        final EJBTransactionRolledbackException ejbTransactionRolledbackException =
+        EJBTransactionRolledbackException ejbTransactionRolledbackException =
                 new EJBTransactionRolledbackException("test", prematureEndOfDataException);
 
-        final Partitioning partitioning = new Partitioning()
+        Partitioning partitioning = new Partitioning()
                 .withFailure(ejbTransactionRolledbackException);
         assertThat("hasFailedUnexpectedly", partitioning.hasFailedUnexpectedly(), is(true));
         assertThat("premature end of data failure",
@@ -45,12 +45,12 @@ public class PartitioningTest {
 
     @Test
     public void partitioningFailedWithTransactionRolledBackLocalException() {
-        final TransactionRolledbackLocalException transactionRolledbackLocalException =
+        TransactionRolledbackLocalException transactionRolledbackLocalException =
                 new TransactionRolledbackLocalException("Something terrible happened");
-        final EJBTransactionRolledbackException ejbTransactionRolledbackException =
+        EJBTransactionRolledbackException ejbTransactionRolledbackException =
                 new EJBTransactionRolledbackException("test", transactionRolledbackLocalException);
 
-        final Partitioning partitioning = new Partitioning()
+        Partitioning partitioning = new Partitioning()
                 .withFailure(ejbTransactionRolledbackException);
         assertThat("hasFailedUnexpectedly", partitioning.hasFailedUnexpectedly(), is(true));
         assertThat("transaction rolled back local",
@@ -60,11 +60,11 @@ public class PartitioningTest {
 
     @Test
     public void partitioningFailedWithoutKnownCause() {
-        final IOException ioException = new IOException();
-        final EJBTransactionRolledbackException ejbTransactionRolledbackException =
+        IOException ioException = new IOException();
+        EJBTransactionRolledbackException ejbTransactionRolledbackException =
                 new EJBTransactionRolledbackException("test", ioException);
 
-        final Partitioning partitioning = new Partitioning()
+        Partitioning partitioning = new Partitioning()
                 .withFailure(ejbTransactionRolledbackException);
         assertThat("hasFailedUnexpectedly", partitioning.hasFailedUnexpectedly(), is(true));
         assertThat("hasKnownFailure", partitioning.hasKnownFailure(), is(false));
@@ -73,10 +73,10 @@ public class PartitioningTest {
 
     @Test
     public void partitioningFailedWithoutCause() {
-        final EJBTransactionRolledbackException ejbTransactionRolledbackException =
+        EJBTransactionRolledbackException ejbTransactionRolledbackException =
                 new EJBTransactionRolledbackException("test", null);
 
-        final Partitioning partitioning = new Partitioning()
+        Partitioning partitioning = new Partitioning()
                 .withFailure(ejbTransactionRolledbackException);
         assertThat("hasFailedUnexpectedly", partitioning.hasFailedUnexpectedly(), is(true));
         assertThat("hasKnownFailure", partitioning.hasKnownFailure(), is(false));
@@ -85,7 +85,7 @@ public class PartitioningTest {
 
     @Test
     public void nullValuedFailure() {
-        final Partitioning partitioning = new Partitioning()
+        Partitioning partitioning = new Partitioning()
                 .withFailure(null);
         assertThat("hasFailedUnexpectedly", partitioning.hasFailedUnexpectedly(), is(false));
         assertThat("hasKnownFailure", partitioning.hasKnownFailure(), is(false));

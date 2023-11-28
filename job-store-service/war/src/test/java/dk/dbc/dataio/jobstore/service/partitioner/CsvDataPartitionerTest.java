@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,9 +24,9 @@ import static org.mockito.Mockito.when;
 public class CsvDataPartitionerTest {
     @Test
     public void readingNextRecordFromEmptyStream() {
-        final CsvDataPartitioner partitioner = newCsvDataPartitionerFor("");
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
-        final DataPartitionerResult dataPartitionerResult = iterator.next();
+        CsvDataPartitioner partitioner = newCsvDataPartitionerFor("");
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        DataPartitionerResult dataPartitionerResult = iterator.next();
         assertThat(dataPartitionerResult, is(DataPartitionerResult.EMPTY));
     }
 
@@ -37,9 +37,9 @@ public class CsvDataPartitionerTest {
                         "\"d has unbalanced\"\",and,fails\n" +
                         "\"\"\"g\"\"\",\"h contains<p><a href=\"\"url\"\">html</a>\"";
 
-        final CsvDataPartitioner partitioner = newCsvDataPartitionerFor(csvRecords);
+        CsvDataPartitioner partitioner = newCsvDataPartitionerFor(csvRecords);
 
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
 
         assertThat("has 1st result", iterator.hasNext(), is(true));
         DataPartitionerResult result = iterator.next();
@@ -85,10 +85,10 @@ public class CsvDataPartitionerTest {
                         "e,f\n" +
                         "g,h\n";
 
-        final CsvDataPartitioner partitioner = newCsvDataPartitionerFor(csvRecords);
+        CsvDataPartitioner partitioner = newCsvDataPartitionerFor(csvRecords);
         partitioner.drainItems(3);
 
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
 
         assertThat("has 4th result", iterator.hasNext(), is(true));
         DataPartitionerResult result = iterator.next();
@@ -101,12 +101,12 @@ public class CsvDataPartitionerTest {
 
     @Test
     public void prematureEndOfData() throws IOException {
-        final InputStream is = mock(InputStream.class);
+        InputStream is = mock(InputStream.class);
         when(is.read(any(byte[].class), anyInt(), anyInt()))
                 .thenThrow(new IOException());
 
-        final CsvDataPartitioner partitioner = CsvDataPartitioner.newInstance(is, StandardCharsets.UTF_8.name());
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        CsvDataPartitioner partitioner = CsvDataPartitioner.newInstance(is, StandardCharsets.UTF_8.name());
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
         assertThat("hasNext() defers handling of IOException", iterator.hasNext(), is(true));
         assertThat(iterator::next, isThrowing(PrematureEndOfDataException.class));
     }

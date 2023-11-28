@@ -5,7 +5,8 @@ import dk.dbc.marc.binding.ControlField;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +18,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ViafDataPartitionerTest extends AbstractPartitionerTestBase {
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void partitioning() throws MarcReaderException {
         final DataPartitioner partitioner = ViafDataPartitioner.newInstance(
                 getResourceAsStream("test-records-100-viaf.iso"), "UTF-8");
@@ -49,7 +51,8 @@ public class ViafDataPartitionerTest extends AbstractPartitionerTestBase {
         assertThat("3rd record info", dbcRecords.get(2).getRecordInfo().getId(), is(thirdRecordId));
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void drain() {
         final DataPartitioner partitioner = ViafDataPartitioner.newInstance(
                 getResourceAsStream("test-records-100-viaf.iso"), "UTF-8");
@@ -71,7 +74,8 @@ public class ViafDataPartitionerTest extends AbstractPartitionerTestBase {
         assertThat("2nd record pos", dbcRecords.get(1).getPositionInDatafile(), is(86));
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void skippedCount() {
         final DataPartitioner partitioner = ViafDataPartitioner.newInstance(
                 getResourceAsStream("test-records-100-viaf.iso"), "UTF-8");

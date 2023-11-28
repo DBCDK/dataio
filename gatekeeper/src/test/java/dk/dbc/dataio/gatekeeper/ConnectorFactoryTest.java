@@ -1,26 +1,28 @@
 package dk.dbc.dataio.gatekeeper;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ConnectorFactoryTest {
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_fileStoreServiceEndpointArgIsNull_throws() {
-        new ConnectorFactory(null, "jobStoreServiceEndpoint");
+        assertThrows(NullPointerException.class, () -> new ConnectorFactory(null, "jobStoreServiceEndpoint"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_fileStoreServiceEndpointArgIsEmpty_throws() {
-        new ConnectorFactory(" ", "jobStoreServiceEndpoint");
+        assertThrows(IllegalArgumentException.class, () -> new ConnectorFactory(" ", "jobStoreServiceEndpoint"));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_jobStoreServiceEndpointArgIsNull_throws() {
-        new ConnectorFactory("fileStoreServiceEndpoint", null);
+        assertThrows(NullPointerException.class, () -> new ConnectorFactory("fileStoreServiceEndpoint", null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_jobStoreServiceEndpointArgIsEmpty_throws() {
-        new ConnectorFactory("fileStoreServiceEndpoint", " ");
+        assertThrows(IllegalArgumentException.class, () -> new ConnectorFactory("fileStoreServiceEndpoint", " "));
     }
 
 }

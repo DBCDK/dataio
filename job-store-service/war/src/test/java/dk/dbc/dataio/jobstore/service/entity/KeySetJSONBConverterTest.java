@@ -1,7 +1,7 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.postgresql.util.PGobject;
 
 import java.util.HashSet;

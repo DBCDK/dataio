@@ -11,22 +11,24 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorExcept
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -39,60 +41,60 @@ public class CreateJobOperationTest {
     private final String fileStoreId = "42";
     private final String transfileName = "123456.001.trans";
 
-    @Rule
-    public TemporaryFolder testFolder = new TemporaryFolder();
+    @TempDir
+    public Path testFolder;
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws FileStoreServiceConnectorException {
         when(fileStoreServiceConnector.addFile(any(InputStream.class))).thenReturn(fileStoreId);
         jobStoreServiceConnector.jobInfoSnapshots.clear();
         jobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshot());
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_jobStoreServiceConnectorArgIsNull_throws() {
-        new CreateJobOperation(null, fileStoreServiceConnector, Paths.get("wd"), transfileName, "foo");
+        assertThrows(NullPointerException.class, () -> new CreateJobOperation(null, fileStoreServiceConnector, Paths.get("wd"), transfileName, "foo"));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_fileStoreServiceConnectorArgIsNull_throws() {
-        new CreateJobOperation(jobStoreServiceConnector, null, Paths.get("wd"), transfileName, "foo");
+        assertThrows(NullPointerException.class, () -> new CreateJobOperation(jobStoreServiceConnector, null, Paths.get("wd"), transfileName, "foo"));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_workingDirArgIsNull_throws() {
-        new CreateJobOperation(jobStoreServiceConnector, fileStoreServiceConnector, null, transfileName, "foo");
+        assertThrows(NullPointerException.class, () -> new CreateJobOperation(jobStoreServiceConnector, fileStoreServiceConnector, null, transfileName, "foo"));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_transfileNameArgIsNull_throws() {
-        new CreateJobOperation(jobStoreServiceConnector, fileStoreServiceConnector, Paths.get("wd"), null, "foo");
+        assertThrows(NullPointerException.class, () -> new CreateJobOperation(jobStoreServiceConnector, fileStoreServiceConnector, Paths.get("wd"), null, "foo"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_transfileNameArgIsEmpty_throws() {
-        new CreateJobOperation(jobStoreServiceConnector, fileStoreServiceConnector, Paths.get("wd"), "  ", "foo");
+        assertThrows(IllegalArgumentException.class, () -> new CreateJobOperation(jobStoreServiceConnector, fileStoreServiceConnector, Paths.get("wd"), "  ", "foo"));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_transfileDataArgIsNull_throws() {
-        new CreateJobOperation(jobStoreServiceConnector, fileStoreServiceConnector, Paths.get("wd"), transfileName, null);
+        assertThrows(NullPointerException.class, () -> new CreateJobOperation(jobStoreServiceConnector, fileStoreServiceConnector, Paths.get("wd"), transfileName, null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_transfileDataArgIsEmpty_throws() {
-        new CreateJobOperation(jobStoreServiceConnector, fileStoreServiceConnector, Paths.get("wd"), transfileName, "  ");
+        assertThrows(IllegalArgumentException.class, () -> new CreateJobOperation(jobStoreServiceConnector, fileStoreServiceConnector, Paths.get("wd"), transfileName, "  "));
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() throws IOException {
-        final Path workingDir = testFolder.getRoot().toPath();
+        Path workingDir = Files.createDirectory(testFolder.resolve(UUID.randomUUID().toString()));
 
         final String transfileData = "foo";
-        final CreateJobOperation createJobOperation = new CreateJobOperation(
+        CreateJobOperation createJobOperation = new CreateJobOperation(
                 jobStoreServiceConnector, fileStoreServiceConnector, workingDir, transfileName, transfileData);
         assertThat("instance", createJobOperation, is(notNullValue()));
-        assertThat("getJobStoreServiceConnector()", createJobOperation.getJobStoreServiceConnector(), is((JobStoreServiceConnector) jobStoreServiceConnector));
+        assertThat("getJobStoreServiceConnector()", createJobOperation.getJobStoreServiceConnector(), is(jobStoreServiceConnector));
         assertThat("getFileStoreServiceConnector()", createJobOperation.getFileStoreServiceConnector(), is(fileStoreServiceConnector));
         assertThat("getWorkingDir()", createJobOperation.getWorkingDir(), is(workingDir));
         assertThat("getTransfileData()", createJobOperation.getTransfileData(), is(transfileData));
@@ -100,14 +102,14 @@ public class CreateJobOperationTest {
 
     @Test
     public void execute_datafileIsUndefined_createsJobWithMissingDataFilePlaceHolder() throws OperationExecutionException, FileStoreServiceConnectorException, IOException {
-        testFolder.newFile(transfileName);
+        Files.createFile(testFolder.resolve(transfileName));
         final String transfileData = "foo";
-        final CreateJobOperation createJobOperation = new CreateJobOperation(
-                jobStoreServiceConnector, fileStoreServiceConnector, testFolder.getRoot().toPath(), transfileName, transfileData);
+        CreateJobOperation createJobOperation = new CreateJobOperation(
+                jobStoreServiceConnector, fileStoreServiceConnector, testFolder, transfileName, transfileData);
 
         createJobOperation.execute();
 
-        final JobInputStream jobInputStream = jobStoreServiceConnector.jobInputStreams.remove();
+        JobInputStream jobInputStream = jobStoreServiceConnector.jobInputStreams.remove();
         assertThat(jobInputStream.getJobSpecification().getDataFile(), is(Constants.MISSING_FIELD_VALUE));
 
         verify(fileStoreServiceConnector, times(0)).addFile(any(InputStream.class));
@@ -115,14 +117,14 @@ public class CreateJobOperationTest {
 
     @Test
     public void execute_datafileDoesNotExist_createsJobWithOriginalDataFileName() throws OperationExecutionException, FileStoreServiceConnectorException, IOException {
-        testFolder.newFile(transfileName);
+        Files.createFile(testFolder.resolve(transfileName));
         final String transfileData = "f=123456.file";
-        final CreateJobOperation createJobOperation = new CreateJobOperation(
-                jobStoreServiceConnector, fileStoreServiceConnector, testFolder.getRoot().toPath(), transfileName, transfileData);
+        CreateJobOperation createJobOperation = new CreateJobOperation(
+                jobStoreServiceConnector, fileStoreServiceConnector, testFolder, transfileName, transfileData);
 
         createJobOperation.execute();
 
-        final JobInputStream jobInputStream = jobStoreServiceConnector.jobInputStreams.remove();
+        JobInputStream jobInputStream = jobStoreServiceConnector.jobInputStreams.remove();
         assertThat(jobInputStream.getJobSpecification().getAncestry().getDatafile(), is("123456.file"));
         assertThat(jobInputStream.getJobSpecification().getDataFile(), is(Constants.MISSING_FIELD_VALUE));
 
@@ -131,15 +133,14 @@ public class CreateJobOperationTest {
 
     @Test
     public void execute_dataFileReadFails_throws() throws IOException {
-        testFolder.newFile(transfileName);
-        testFolder.newFolder("123456.file");
+        Files.createFile(testFolder.resolve(transfileName));
+        Files.createDirectory(testFolder.resolve("123456.file"));
 
         final String transfileData = "f=123456.file";
-        final CreateJobOperation createJobOperation = new CreateJobOperation(
-                jobStoreServiceConnector, fileStoreServiceConnector, testFolder.getRoot().toPath(), transfileName, transfileData);
+        CreateJobOperation createJobOperation = new CreateJobOperation(jobStoreServiceConnector, fileStoreServiceConnector, testFolder, transfileName, transfileData);
         try {
             createJobOperation.execute();
-            fail("No OperationExecutionException thrown");
+            Assertions.fail("No OperationExecutionException thrown");
         } catch (OperationExecutionException e) {
             assertThat(e.getCause() instanceof IOException, is(true));
         }
@@ -147,18 +148,18 @@ public class CreateJobOperationTest {
 
     @Test
     public void execute_fileStoreServiceConnectorThrows_throws() throws FileStoreServiceConnectorException, IOException {
-        testFolder.newFile(transfileName);
-        testFolder.newFile("123456.file");
+        Files.createFile(testFolder.resolve(transfileName));
+        Files.createFile(testFolder.resolve("123456.file"));
 
-        final Exception exception = new FileStoreServiceConnectorException("DIED");
+        Exception exception = new FileStoreServiceConnectorException("DIED");
         when(fileStoreServiceConnector.addFile(any(InputStream.class))).thenThrow(exception);
 
         final String transfileData = "f=123456.file";
-        final CreateJobOperation createJobOperation = new CreateJobOperation(
-                jobStoreServiceConnector, fileStoreServiceConnector, testFolder.getRoot().toPath(), transfileName, transfileData);
+        CreateJobOperation createJobOperation = new CreateJobOperation(
+                jobStoreServiceConnector, fileStoreServiceConnector, testFolder, transfileName, transfileData);
         try {
             createJobOperation.execute();
-            fail("No OperationExecutionException thrown");
+            Assertions.fail("No OperationExecutionException thrown");
         } catch (OperationExecutionException e) {
             assertThat((Exception) e.getCause(), is(exception));
         }
@@ -166,16 +167,16 @@ public class CreateJobOperationTest {
 
     @Test
     public void execute_dataFileExists_uploadsToFileStore() throws IOException, OperationExecutionException, FileStoreServiceConnectorException {
-        testFolder.newFile(transfileName);
-        testFolder.newFile("123456.file");
+        Files.createFile(testFolder.resolve(transfileName));
+        Files.createFile(testFolder.resolve("123456.file"));
 
         final String transfileData = "f=123456.file";
-        final CreateJobOperation createJobOperation = new CreateJobOperation(
-                jobStoreServiceConnector, fileStoreServiceConnector, testFolder.getRoot().toPath(), transfileName, transfileData);
+        CreateJobOperation createJobOperation = new CreateJobOperation(
+                jobStoreServiceConnector, fileStoreServiceConnector, testFolder, transfileName, transfileData);
 
         createJobOperation.execute();
 
-        final JobInputStream jobInputStream = jobStoreServiceConnector.jobInputStreams.remove();
+        JobInputStream jobInputStream = jobStoreServiceConnector.jobInputStreams.remove();
         assertThat(jobInputStream.getJobSpecification().getDataFile(), is(FileStoreUrn.create(fileStoreId).toString()));
 
         verify(fileStoreServiceConnector, times(1)).addFile(any(InputStream.class));
@@ -183,19 +184,19 @@ public class CreateJobOperationTest {
 
     @Test
     public void execute_jobStoreServiceConnectorThrows_removesFileFromFileStoreAndThrows() throws IOException, JobStoreServiceConnectorException, FileStoreServiceConnectorException {
-        testFolder.newFile(transfileName);
-        testFolder.newFile("123456.file");
+        Files.createFile(testFolder.resolve(transfileName));
+        Files.createFile(testFolder.resolve("123456.file"));
 
-        final Exception exception = new JobStoreServiceConnectorException("DIED");
-        final JobStoreServiceConnector jssc = mock(JobStoreServiceConnector.class);
+        Exception exception = new JobStoreServiceConnectorException("DIED");
+        JobStoreServiceConnector jssc = mock(JobStoreServiceConnector.class);
         when(jssc.addJob(any(JobInputStream.class))).thenThrow(exception);
 
         final String transfileData = "f=123456.file";
-        final CreateJobOperation createJobOperation = new CreateJobOperation(
-                jssc, fileStoreServiceConnector, testFolder.getRoot().toPath(), transfileName, transfileData);
+        CreateJobOperation createJobOperation = new CreateJobOperation(
+                jssc, fileStoreServiceConnector, testFolder, transfileName, transfileData);
         try {
             createJobOperation.execute();
-            fail("No OperationExecutionException thrown");
+            Assertions.fail("No OperationExecutionException thrown");
         } catch (OperationExecutionException e) {
             assertThat((Exception) e.getCause(), is(exception));
         }
@@ -205,20 +206,20 @@ public class CreateJobOperationTest {
 
     @Test
     public void execute_jobStoreServiceConnectorThrowsWithInternalServerError_throws() throws IOException, JobStoreServiceConnectorException, FileStoreServiceConnectorException {
-        testFolder.newFile(transfileName);
-        testFolder.newFile("123456.file");
+        Files.createFile(testFolder.resolve(transfileName));
+        Files.createFile(testFolder.resolve("123456.file"));
 
-        final Exception exception = new JobStoreServiceConnectorUnexpectedStatusCodeException(
+        Exception exception = new JobStoreServiceConnectorUnexpectedStatusCodeException(
                 "DIED", Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        final JobStoreServiceConnector jssc = mock(JobStoreServiceConnector.class);
+        JobStoreServiceConnector jssc = mock(JobStoreServiceConnector.class);
         when(jssc.addJob(any(JobInputStream.class))).thenThrow(exception);
 
         final String transfileData = "f=123456.file";
-        final CreateJobOperation createJobOperation = new CreateJobOperation(
-                jssc, fileStoreServiceConnector, testFolder.getRoot().toPath(), transfileName, transfileData);
+        CreateJobOperation createJobOperation = new CreateJobOperation(
+                jssc, fileStoreServiceConnector, testFolder, transfileName, transfileData);
         try {
             createJobOperation.execute();
-            fail("No OperationExecutionException thrown");
+            Assertions.fail("No OperationExecutionException thrown");
         } catch (OperationExecutionException e) {
             assertThat((Exception) e.getCause(), is(exception));
         }
@@ -228,8 +229,8 @@ public class CreateJobOperationTest {
 
     @Test
     public void execute_transfileDoesNotExist_throws() {
-        final CreateJobOperation createJobOperation = new CreateJobOperation(
-                jobStoreServiceConnector, fileStoreServiceConnector, testFolder.getRoot().toPath(), transfileName, "foo");
+        CreateJobOperation createJobOperation = new CreateJobOperation(
+                jobStoreServiceConnector, fileStoreServiceConnector, testFolder, transfileName, "foo");
 
         assertThat(createJobOperation::execute, isThrowing(OperationExecutionException.class));
     }

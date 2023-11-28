@@ -1,54 +1,50 @@
 package dk.dbc.dataio.gatekeeper.operation;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FileDeleteOperationTest {
-    @Rule
-    public TemporaryFolder testFolder = new TemporaryFolder();
+    @TempDir
+    public Path testFolder;
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_fileArgIsNull_throws() {
-        new FileDeleteOperation(null);
+        assertThrows(NullPointerException.class, () -> new FileDeleteOperation(null));
     }
 
     @Test
     public void constructor_fileArgsIsValid_returnsNewInstance() {
-        final Path file = Paths.get("file");
-        final FileDeleteOperation fileDeleteOperation = new FileDeleteOperation(file);
+        Path file = Paths.get("file");
+        FileDeleteOperation fileDeleteOperation = new FileDeleteOperation(file);
         assertThat("instance", fileDeleteOperation, is(notNullValue()));
         assertThat("getFile()", fileDeleteOperation.getFile(), is(file));
     }
 
     @Test
     public void execute_filePathExists_deletesFile() throws IOException, OperationExecutionException {
-        final Path file = testFolder.newFile("file").toPath();
-        final FileDeleteOperation fileDeleteOperation = new FileDeleteOperation(file);
+        Path file = Files.createFile(testFolder.resolve("file"));
+        FileDeleteOperation fileDeleteOperation = new FileDeleteOperation(file);
         fileDeleteOperation.execute();
         assertThat("File exists after move", Files.exists(file), is(false));
     }
 
     @Test
-    public void execute_deleteFails_throws() throws IOException, OperationExecutionException {
-        final Path folder = testFolder.newFolder().toPath();
-        final Path file = testFolder.newFile("file").toPath();
+    public void execute_deleteFails_throws() throws IOException {
+        Path folder = Files.createDirectory(testFolder.resolve(UUID.randomUUID().toString()));
+        Path file = Files.createFile(testFolder.resolve("file"));
         Files.move(file, folder.resolve("file"));
-        final FileDeleteOperation fileDeleteOperation = new FileDeleteOperation(folder);
-        try {
-            fileDeleteOperation.execute();
-            fail("No OperationExecutionException thrown");
-        } catch (OperationExecutionException e) {
-        }
+        FileDeleteOperation fileDeleteOperation = new FileDeleteOperation(folder);
+        assertThrows(OperationExecutionException.class, fileDeleteOperation::execute);
     }
 }

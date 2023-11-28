@@ -18,8 +18,8 @@ import jakarta.jms.JMSContext;
 import jakarta.jms.JMSException;
 import jakarta.jms.JMSProducer;
 import jakarta.jms.TextMessage;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -56,7 +56,7 @@ public class SinkMessageProducerBeanTest {
 
     private final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
 
-    @Before
+    @BeforeEach
     public void setupExpectations() {
         when(jmsConnectionFactory.createContext()).thenReturn(jmsContext);
         when(jmsContext.createProducer()).thenReturn(jmsProducer);

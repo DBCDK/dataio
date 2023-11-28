@@ -3,10 +3,10 @@ package dk.dbc.dataio.filestore.service.ejb;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.filestore.service.entity.FileAttributes;
-import org.junit.Test;
-
 import jakarta.ejb.EJBException;
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.Test;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
@@ -15,7 +15,7 @@ import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -34,10 +34,10 @@ public class FileStoreBeanTest {
     private final Path path = mock(Path.class);
     private final String fileId = "42";
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void addFile_dataSourceArgIsNull_throws() {
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.addFile(null);
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(NullPointerException.class, () -> fileStoreBean.addFile(null));
     }
 
     @Test
@@ -47,7 +47,7 @@ public class FileStoreBeanTest {
         when(fileAttributes.getId()).thenReturn(Long.valueOf(fileId));
         when(binaryFile.exists()).thenReturn(false);
 
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
 
         assertThat(fileStoreBean.addFile(inputStream), is(fileId));
         verify(fileAttributes).setByteSize(anyLong());
@@ -61,7 +61,7 @@ public class FileStoreBeanTest {
         when(fileAttributes.getId()).thenReturn(Long.valueOf(fileId));
         when(binaryFile.exists()).thenReturn(true);
 
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
 
         assertThat(fileStoreBean.addFile(inputStream), is(fileId));
         verify(fileAttributes).setByteSize(anyLong());
@@ -80,54 +80,54 @@ public class FileStoreBeanTest {
                 is("{\"meta\": \"data\"}"));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void addMetadata_argumentIdIsNull_throws() {
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.addMetaData(null, "metadata");
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(NullPointerException.class, () -> fileStoreBean.addMetaData(null, "metadata"));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void getFile_fileIdArgIsNull_throws() {
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.getFile(null, outputStream, false);
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(NullPointerException.class, () -> fileStoreBean.getFile(null, outputStream, false));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getFile_fileIdArgIsEmpty_throws() {
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.getFile("", outputStream, false);
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(IllegalArgumentException.class, () -> fileStoreBean.getFile("", outputStream, false));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void getFile_dataDestinationArgIsNull_throws() {
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.getFile(fileId, null, false);
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(NullPointerException.class, () -> fileStoreBean.getFile(fileId, null, false));
     }
 
-    @Test(expected = EJBException.class)
+    @Test
     public void getFile_fileAttributesCanNotBeFound_throws() {
         when(entityManager.find(eq(FileAttributes.class), eq(Long.valueOf(fileId)))).thenReturn(null);
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.getFile(fileId, outputStream, false);
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(EJBException.class, () -> fileStoreBean.getFile(fileId, outputStream, false));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void deleteFile_fileIdArgIsNull_throws() {
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.deleteFile(null);
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(NullPointerException.class, () -> fileStoreBean.deleteFile(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void deleteFile_fileIdArgIsEmpty_throws() {
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.deleteFile("");
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(IllegalArgumentException.class, () -> fileStoreBean.deleteFile(""));
     }
 
-    @Test(expected = EJBException.class)
+    @Test
     public void deleteFile_fileAttributesCanNotBeFound_throws() {
         when(entityManager.find(eq(FileAttributes.class), eq(Long.valueOf(fileId)))).thenReturn(null);
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.deleteFile(fileId);
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(EJBException.class, () -> fileStoreBean.deleteFile(fileId));
     }
 
     @Test
@@ -138,94 +138,79 @@ public class FileStoreBeanTest {
         when(fileAttributes.getLocation()).thenReturn(path);
         when(path.resolve(fileId)).thenReturn(path);
 
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         fileStoreBean.deleteFile(fileId);
         verify(binaryFile).delete();
         verify(entityManager).remove(fileAttributes);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void fileExists_fileIdArgIsNull_throws() {
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.fileExists(null);
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(NullPointerException.class, () -> fileStoreBean.fileExists(null));
     }
 
     @Test
     public void fileExists_fileIdArgIsEmpty_returnsFalse() {
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         assertThat(fileStoreBean.fileExists(""), is(false));
     }
 
     @Test
     public void fileExists_fileIdArgIsNaN_returnsFalse() {
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         assertThat(fileStoreBean.fileExists("not-a-number"), is(false));
     }
 
     @Test
     public void fileExists_fileDoesNotExist_returnsFalse() {
         when(entityManager.find(eq(FileAttributes.class), eq(Long.valueOf(fileId)))).thenReturn(null);
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         assertThat(fileStoreBean.fileExists(fileId), is(false));
     }
 
     @Test
     public void fileExists_fileDoesExist_returnsTrue() {
         when(entityManager.find(eq(FileAttributes.class), eq(Long.valueOf(fileId)))).thenReturn(fileAttributes);
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         assertThat(fileStoreBean.fileExists(fileId), is(true));
     }
 
     @Test
     public void getByteSize_fileIdIsEmpty_throws() throws IllegalArgumentException {
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        try {
-            fileStoreBean.getByteSize("", true);
-            fail("getByteSize: Invalid file ID was not detected");
-        } catch (IllegalArgumentException e) {
-        }
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(IllegalArgumentException.class, () -> fileStoreBean.getByteSize("", true), "getByteSize: Invalid file ID was not detected");
     }
 
     @Test
     public void getByteSize_fileIdIsNull_throws() throws IllegalArgumentException {
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        try {
-            fileStoreBean.getByteSize(null, true);
-            fail("getByteSize: Invalid file ID was not detected");
-        } catch (NullPointerException e) {
-        }
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(NullPointerException.class, () -> fileStoreBean.getByteSize(null, true), "getByteSize: Invalid file ID was not detected");
     }
 
     @Test
     public void getByteSize_fileIdNotANumber_throws() {
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        try {
-            fileStoreBean.getByteSize("notANumber", true);
-            fail("getByteSize: Invalid file ID was not detected");
-        } catch (IllegalArgumentException e) {
-        }
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(NullPointerException.class, () -> fileStoreBean.getByteSize("notANumber", true), "getByteSize: Invalid file ID was not detected");
     }
 
     @Test
     public void getByteSize_filAttributesNotFound_throws() throws IllegalArgumentException {
         when(entityManager.find(eq(FileAttributes.class), eq(Long.valueOf(fileId)))).thenReturn(null);
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        try {
-            fileStoreBean.getByteSize(fileId, true);
-        } catch (EJBException e) {
-        }
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        assertThrows(EJBException.class, () -> fileStoreBean.getByteSize(fileId, true));
     }
 
     @Test
     public void getByteSize_fileAttributesExist_returnsByteSize() throws IllegalArgumentException {
         FileAttributes fileAttributes = new FileAttributes(new Date(), path);
         when(entityManager.find(FileAttributes.class, Long.parseLong(fileId))).thenReturn(fileAttributes);
-        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         assertThat(fileStoreBean.getByteSize(fileId, false), is(0L));
     }
 
     private FileStoreBean newFileStoreBeanInstance() {
-        final FileStoreBean fileStoreBean = new FileStoreBean();
+        FileStoreBean fileStoreBean = new FileStoreBean();
         fileStoreBean.entityManager = entityManager;
         fileStoreBean.binaryFileStore = binaryFileStoreBean;
         return fileStoreBean;

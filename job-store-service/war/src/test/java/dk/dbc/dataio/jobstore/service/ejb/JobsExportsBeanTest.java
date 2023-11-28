@@ -7,8 +7,8 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -17,13 +17,14 @@ import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class JobsExportsBeanTest {
     private JobsExportsBean jobsExportsBean;
 
-    @Before
+    @BeforeEach
     public void setup() {
         jobsExportsBean = new JobsExportsBean();
         jobsExportsBean.jobStoreRepository = mock(PgJobStoreRepository.class);
@@ -57,8 +58,8 @@ public class JobsExportsBeanTest {
         assertThat("Response status", response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
     }
 
-    @Test(expected = JobStoreException.class)
-    public void exportItemsPartitioned_internalServerError() throws URISyntaxException, JobStoreException {
+    @Test
+    public void exportItemsPartitioned_internalServerError() throws JobStoreException {
         final int jobId = 42;
         when(jobsExportsBean.jobStoreRepository.exportItemsToFileStore(
                 jobId, State.Phase.PARTITIONING, jobsExportsBean.fileStoreServiceConnectorBean.getConnector()))
@@ -66,7 +67,7 @@ public class JobsExportsBeanTest {
 
         when(jobsExportsBean.jobStoreRepository.jobExists(jobId)).thenReturn(true);
 
-        jobsExportsBean.exportItemsPartitioned(jobId);
+        assertThrows(JobStoreException.class, () -> jobsExportsBean.exportItemsPartitioned(jobId));
     }
 
     @Test
@@ -98,7 +99,7 @@ public class JobsExportsBeanTest {
         assertThat("Response status", response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
     }
 
-    @Test(expected = JobStoreException.class)
+    @Test
     public void exportItemsFailedDuringPartitioning_internalServerError() throws JobStoreException {
         final int jobId = 42;
         when(jobsExportsBean.jobStoreRepository.exportFailedItems(
@@ -107,7 +108,7 @@ public class JobsExportsBeanTest {
 
         when(jobsExportsBean.jobStoreRepository.jobExists(jobId)).thenReturn(true);
 
-        jobsExportsBean.exportItemsFailedDuringPartitioning(jobId, ChunkItem.Type.BYTES);
+        assertThrows(JobStoreException.class, () -> jobsExportsBean.exportItemsFailedDuringPartitioning(jobId, ChunkItem.Type.BYTES));
     }
 
     @Test
@@ -136,8 +137,8 @@ public class JobsExportsBeanTest {
         assertThat("Response status", response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
     }
 
-    @Test(expected = JobStoreException.class)
-    public void exportItemsProcessed_internalServerError() throws URISyntaxException, JobStoreException {
+    @Test
+    public void exportItemsProcessed_internalServerError() throws JobStoreException {
         final int jobId = 42;
         when(jobsExportsBean.jobStoreRepository.exportItemsToFileStore(
                 jobId, State.Phase.PROCESSING, jobsExportsBean.fileStoreServiceConnectorBean.getConnector()))
@@ -145,7 +146,7 @@ public class JobsExportsBeanTest {
 
         when(jobsExportsBean.jobStoreRepository.jobExists(jobId)).thenReturn(true);
 
-        jobsExportsBean.exportItemsProcessed(jobId);
+        assertThrows(JobStoreException.class, () -> jobsExportsBean.exportItemsProcessed(jobId));
     }
 
     @Test
@@ -177,7 +178,7 @@ public class JobsExportsBeanTest {
         assertThat("Response status", response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
     }
 
-    @Test(expected = JobStoreException.class)
+    @Test
     public void exportItemsFailedDuringProcessing_internalServerError() throws JobStoreException {
         final int jobId = 42;
         when(jobsExportsBean.jobStoreRepository.exportFailedItems(
@@ -186,7 +187,7 @@ public class JobsExportsBeanTest {
 
         when(jobsExportsBean.jobStoreRepository.jobExists(jobId)).thenReturn(true);
 
-        jobsExportsBean.exportItemsFailedDuringProcessing(jobId, ChunkItem.Type.BYTES);
+        assertThrows(JobStoreException.class, () -> jobsExportsBean.exportItemsFailedDuringProcessing(jobId, ChunkItem.Type.BYTES));
     }
 
     @Test
@@ -215,8 +216,8 @@ public class JobsExportsBeanTest {
         assertThat("Response status", response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
     }
 
-    @Test(expected = JobStoreException.class)
-    public void exportItemsDelivered_internalServerError() throws URISyntaxException, JobStoreException {
+    @Test
+    public void exportItemsDelivered_internalServerError() throws JobStoreException {
         final int jobId = 42;
         when(jobsExportsBean.jobStoreRepository.exportItemsToFileStore(
                 jobId, State.Phase.DELIVERING, jobsExportsBean.fileStoreServiceConnectorBean.getConnector()))
@@ -224,7 +225,7 @@ public class JobsExportsBeanTest {
 
         when(jobsExportsBean.jobStoreRepository.jobExists(jobId)).thenReturn(true);
 
-        jobsExportsBean.exportItemsDelivered(jobId);
+        assertThrows(JobStoreException.class, () -> jobsExportsBean.exportItemsDelivered(jobId));
     }
 
     @Test
@@ -256,7 +257,7 @@ public class JobsExportsBeanTest {
         assertThat("Response status", response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
     }
 
-    @Test(expected = JobStoreException.class)
+    @Test
     public void exportItemsFailedDuringDelivery_internalServerError() throws JobStoreException {
         final int jobId = 42;
         when(jobsExportsBean.jobStoreRepository.exportFailedItems(
@@ -265,7 +266,7 @@ public class JobsExportsBeanTest {
 
         when(jobsExportsBean.jobStoreRepository.jobExists(jobId)).thenReturn(true);
 
-        jobsExportsBean.exportItemsFailedDuringDelivery(jobId, ChunkItem.Type.BYTES);
+        assertThrows(JobStoreException.class, () -> jobsExportsBean.exportItemsFailedDuringDelivery(jobId, ChunkItem.Type.BYTES));
     }
 
     private String getStreamingOutputFromResponse(Response response) throws IOException {

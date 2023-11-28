@@ -5,8 +5,9 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +19,6 @@ import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
 
 @SuppressWarnings("Duplicates")
 public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
@@ -27,7 +27,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     @Test
     public void emptyRootElement_returnsNoXMLStrings() {
         final String xml = XML_HEADER + "<topLevel></topLevel>";
-        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml), StandardCharsets.UTF_8.name());
+        DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         assertThat(dataPartitioner.iterator().hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is((long) xml.getBytes(StandardCharsets.UTF_8).length));
@@ -36,7 +36,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     @Test
     public void emptyCollapsedRootElement_returnsNoXMLStrings() {
         final String xml = XML_HEADER + "<topLevel/>";
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
 
         assertThat(dataPartitioner.iterator().hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is((long) xml.getBytes(StandardCharsets.UTF_8).length));
@@ -54,12 +54,12 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "</record>"
                 + "</collection>"
                 + "</topLevel>";
-        final ChunkItem expectedResult = new ChunkItemBuilder().setData(xml).build();
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        ChunkItem expectedResult = new ChunkItemBuilder().setData(xml).build();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
 
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        final DataPartitionerResult dataPartitionerResult = iterator.next();
+        DataPartitionerResult dataPartitionerResult = iterator.next();
         assertThat(dataPartitionerResult.getChunkItem(), is(expectedResult));
         assertThat(dataPartitionerResult.getRecordInfo(), is(nullValue()));
         assertThat(iterator.hasNext(), is(false));
@@ -68,10 +68,10 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     @Test
     public void singleXMLChild_givesOneStringWithXML() {
         final String xml = XML_HEADER + "<topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child></topLevel>";
-        final ChunkItem expectedResult = new ChunkItemBuilder().setData(xml).build();
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        ChunkItem expectedResult = new ChunkItemBuilder().setData(xml).build();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
 
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expectedResult));
         assertThat(iterator.hasNext(), is(false));
@@ -83,17 +83,17 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child>"
                 + "<child><grandChild>Pirate so brave on the seven seas</grandChild></child>"
                 + "</topLevel>";
-        final ChunkItem expectedResult1 = new ChunkItemBuilder().setData(XML_HEADER +
+        ChunkItem expectedResult1 = new ChunkItemBuilder().setData(XML_HEADER +
                 "<topLevel>"
                 + "<child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child>"
                 + "</topLevel>").build();
-        final ChunkItem expectedResult2 = new ChunkItemBuilder().setData(XML_HEADER +
+        ChunkItem expectedResult2 = new ChunkItemBuilder().setData(XML_HEADER +
                 "<topLevel>"
                 + "<child><grandChild>Pirate so brave on the seven seas</grandChild></child>"
                 + "</topLevel>").build();
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat("has 1st", iterator.hasNext(), is(true));
         DataPartitionerResult result = iterator.next();
@@ -107,17 +107,18 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         assertThat("bytes read", dataPartitioner.getBytesRead(), is((long) xml.getBytes(StandardCharsets.UTF_8).length));
     }
 
-    @Test @Ignore
+    @Test
+    @Disabled
     public void missingXMLHeaderInInput_xmlHeaderIsInsertedInResult() {
         final String xml = "<topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child></topLevel>";
-        final ChunkItem expectedResult = new ChunkItemBuilder()
+        ChunkItem expectedResult = new ChunkItemBuilder()
                 .setData(XML_HEADER
                         + "<topLevel>"
                         + "<child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child></topLevel>")
                 .build();
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item = iterator.next().getChunkItem();
@@ -129,15 +130,15 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     @Test
     public void erroneousXMLContainingOnlyRootStartElement_throws() {
         final String xml = XML_HEADER + "<topLevel>";
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
     @Test
     public void erroneousXMLContainingUnfinishedFirstChild_throws() {
         final String xml = "<topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</grand";
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator::next, isThrowing(InvalidDataException.class));
     }
@@ -145,9 +146,9 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     @Test
     public void erroneousXMLWrongNesting_throws() {
         final String xml = "<topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</child></grandChild></topLevel>";
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
 
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator::next, isThrowing(InvalidDataException.class));
     }
@@ -157,12 +158,12 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         final String xml = XML_HEADER + "<topLevel>"
                 + "<child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child>"
                 + "<child><grandChild>Pirate so brave on the seven seas</grand";
-        final ChunkItem expectedResult = new ChunkItemBuilder().setData(XML_HEADER + "<topLevel>"
+        ChunkItem expectedResult = new ChunkItemBuilder().setData(XML_HEADER + "<topLevel>"
                 + "<child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child>"
                 + "</topLevel>").build();
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expectedResult));
@@ -177,10 +178,10 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1 id=\"1\">default ns</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
 
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expected));
@@ -195,10 +196,10 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                         + "<test>"
                         + "<child1>æøå</child1>"
                         + "</test>";
-        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml, StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8.name());
+        DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml, StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8.name());
         try {
             dataPartitioner.iterator();
-            fail("No InvalidEncodingException thrown");
+            Assertions.fail("No InvalidEncodingException thrown");
         } catch (InvalidEncodingException e) {
         }
     }
@@ -210,9 +211,9 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1>æøå</child1>"
                 + "</ns:test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expected));
@@ -227,8 +228,8 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1>This is a single Ampersand: & which is not legal</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator::next, isThrowing(InvalidDataException.class));
@@ -241,8 +242,8 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1>This is a Less Than sign: < which is not legal</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator::next, isThrowing(InvalidDataException.class));
@@ -254,12 +255,12 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<test>"
                 + "<child1>This is a Larger Than sign: &gt; which is legal</child1>"
                 + "</test>";
-        final ChunkItem expectedXml = new ChunkItemBuilder()
+        ChunkItem expectedXml = new ChunkItemBuilder()
                 .setData(xml)
                 .build();
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item = iterator.next().getChunkItem();
@@ -275,9 +276,9 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1>This is a Quotation Mark: \" which is legal</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expected));
@@ -292,9 +293,9 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1>This is an Aprostroph: ' which is legal</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expected));
@@ -309,9 +310,9 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1>child text</child1>"
                 + "</_test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final ChunkItem expceted = new ChunkItemBuilder().setData(xml).build();
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        ChunkItem expceted = new ChunkItemBuilder().setData(xml).build();
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expceted));
@@ -326,9 +327,9 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1>child text</child1>"
                 + "</_-.9>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expected));
@@ -343,7 +344,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1>This is a good test</child1>"
                 + "</test is good>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
@@ -357,7 +358,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<!-- comment in sub level -->"
                 + "</test>"
                 + "<!-- trailing comment -->";
-        final ChunkItem expectedXml = new ChunkItemBuilder()
+        ChunkItem expectedXml = new ChunkItemBuilder()
                 .setData(XML_HEADER
                         + "<!-- declarations for <head> & <body> -->"
                         + "<test>"
@@ -367,8 +368,8 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                         + "</test>")  // The trailing comment is removed
                 .build();
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expectedXml));
@@ -384,8 +385,8 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<!-- Dash Dash -- is not legal -->"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator::next, isThrowing(InvalidDataException.class));
@@ -399,8 +400,8 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<!-- Dash Dash Larger Than used as a comment end is not legal: --->"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator::next, isThrowing(InvalidDataException.class));
@@ -413,9 +414,9 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1 size=\"2\">What is the size here?</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expected));
@@ -429,15 +430,15 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<test>"
                 + "<child1 size='2'>What is the size here?</child1>"
                 + "</test>";
-        final ChunkItem expectedXml = new ChunkItemBuilder()
+        ChunkItem expectedXml = new ChunkItemBuilder()
                 .setData(XML_HEADER
                         + "<test>"
                         + "<child1 size=\"2\">What is the size here?</child1>"
                         + "</test>")
                 .build();
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
         //<?xml version="1.0" encoding="UTF-8" standalone="no"?><test><child1 size="2">What is the size here?</child1></test>
 
         assertThat(iterator.hasNext(), is(true));
@@ -454,7 +455,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1 size=2>What is the size here?</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
@@ -465,7 +466,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1 size=2\">What is the size here?</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
@@ -476,7 +477,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1 size=\"2>What is the size here?</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
@@ -487,7 +488,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1 2size=\"2\">What is the size here?</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
@@ -498,7 +499,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1 size=\"Ampersand: & \">What is this?</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
@@ -509,7 +510,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1 size=\"Less than: < \">What is this?</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
@@ -519,12 +520,12 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<test>"
                 + "<child1 size=\"Larger than: &gt; \">What is this?</child1>"
                 + "</test>";
-        final ChunkItem expectedXml = new ChunkItemBuilder()
+        ChunkItem expectedXml = new ChunkItemBuilder()
                 .setData(xml)
                 .build();
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expectedXml));
@@ -539,7 +540,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1 size=\"Quotation Mark: \" \">What is this?</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
@@ -550,9 +551,9 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1 size=\"Apostroph: ' \">What is this?</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expected));
@@ -566,13 +567,13 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<test>"
                 + "<child1 size='Quotation Mark: \" '>What is this?</child1>"
                 + "</test>";
-        final ChunkItem expectedXml = new ChunkItemBuilder().setData(XML_HEADER
+        ChunkItem expectedXml = new ChunkItemBuilder().setData(XML_HEADER
                 + "<test>"
                 + "<child1 size=\"Quotation Mark: &quot; \">What is this?</child1>"
                 + "</test>").build();
         //<?xml version="1.0" encoding="UTF-8" standalone="no"?><test><child1 size="2">What is the size here?</child1></test>
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expectedXml));
@@ -587,7 +588,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1 size='Apostroph: ' '>What is this?</child1>"
                 + "</test>";
 
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+        DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
@@ -597,7 +598,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<test>"
                 + "<child1>data</child1>"
                 + "</test>";
-        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml), StandardCharsets.ISO_8859_1.name());
+        DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml), StandardCharsets.ISO_8859_1.name());
         assertThat(dataPartitioner::iterator, isThrowing(InvalidEncodingException.class));
     }
 
@@ -607,13 +608,13 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<test>"
                 + "<child1>data</child1>"
                 + "</test>";
-        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml), StandardCharsets.ISO_8859_1.name());
+        DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml), StandardCharsets.ISO_8859_1.name());
         assertThat(dataPartitioner::iterator, isThrowing(InvalidEncodingException.class));
     }
 
     @Test
     public void getEncoding_returnsUTF8() {
-        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(getEmptyInputStream(), "latin1");
+        DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(getEmptyInputStream(), "latin1");
         assertThat(dataPartitioner.getEncoding(), is(StandardCharsets.UTF_8));
     }
 
@@ -625,8 +626,8 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
 
     @Test
     public void iterator_next_returnsChunkItemsWithoutTrackingId() {
-        final DataPartitioner dataPartitioner = newPartitionerInstance(getDataContainerXmlWithMarcExchangeAndTrackingIds());
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        DataPartitioner dataPartitioner = newPartitionerInstance(getDataContainerXmlWithMarcExchangeAndTrackingIds());
+        Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem chunkItem0 = iterator.next().getChunkItem();
@@ -644,25 +645,25 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
 
     @Test
     public void ioExceptionWhileReadingInputStream_throws() {
-        final InputStream is = new InputStream() {
+        InputStream is = new InputStream() {
             @Override
             public int read() throws IOException {
                 throw new IOException("Connection lost");
             }
         };
 
-        final DefaultXmlDataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(is, StandardCharsets.UTF_8.name());
+        DefaultXmlDataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(is, StandardCharsets.UTF_8.name());
         assertThat(dataPartitioner::iterator, isThrowing(PrematureEndOfDataException.class));
     }
 
     @Test
     public void convertsDocumentsWithNonUtf8Encoding() {
-        final DefaultXmlDataPartitioner partitioner = DefaultXmlDataPartitioner
+        DefaultXmlDataPartitioner partitioner = DefaultXmlDataPartitioner
                 .newInstance(getResourceAsStream("iso8859-1.xml"), "latin1");
 
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
         assertThat("has 1st result", iterator.hasNext(), is(true));
-        final DataPartitionerResult next = iterator.next();
+        DataPartitionerResult next = iterator.next();
         assertThat("content of 1st result chunk item", new String(next.getChunkItem().getData(), StandardCharsets.UTF_8),
                 is(XML_HEADER + "<records><record>æÆ</record></records>"));
     }

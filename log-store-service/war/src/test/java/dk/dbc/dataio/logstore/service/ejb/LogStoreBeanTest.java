@@ -3,7 +3,7 @@ package dk.dbc.dataio.logstore.service.ejb;
 import dk.dbc.dataio.logstore.service.entity.LogEntryEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.util.Arrays;

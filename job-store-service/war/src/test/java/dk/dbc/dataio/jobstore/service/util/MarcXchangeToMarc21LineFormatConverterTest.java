@@ -13,8 +13,9 @@ import dk.dbc.marc.binding.SubField;
 import dk.dbc.marc.reader.DanMarc2LineFormatReader;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -23,7 +24,6 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.fail;
 
 public class MarcXchangeToMarc21LineFormatConverterTest {
     private final List<Diagnostic> diagnostics = Collections.emptyList();
@@ -41,7 +41,7 @@ public class MarcXchangeToMarc21LineFormatConverterTest {
 
     private MarcXchangeToMarc21LineFormatConverter converter;
 
-    @Before
+    @BeforeEach
     public void newInstance() {
         converter = new MarcXchangeToMarc21LineFormatConverter();
     }
@@ -51,7 +51,7 @@ public class MarcXchangeToMarc21LineFormatConverterTest {
         final ChunkItem chunkItem = buildChunkItem("invalid", ChunkItem.Status.FAILURE);
         try {
             converter.convert(chunkItem, StandardCharsets.UTF_8, diagnostics);
-            fail("No JobStoreException thrown");
+            Assertions.fail("No JobStoreException thrown");
         } catch (JobStoreException e) {
             assertThat(e.getCause() instanceof MarcReaderException, is(true));
         }

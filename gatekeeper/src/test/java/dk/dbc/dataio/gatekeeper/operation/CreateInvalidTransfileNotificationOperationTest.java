@@ -9,10 +9,9 @@ import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.httpclient.HttpClient;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -27,6 +26,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -38,40 +38,40 @@ public class CreateInvalidTransfileNotificationOperationTest {
     private final String transfileName = "123456.001.trans";
     private final String transfileCauseForInvalidation = "cause";
 
-    @Rule
-    public TemporaryFolder testFolder = new TemporaryFolder();
+    @TempDir
+    public Path testFolder;
 
-    @Before
+    @BeforeEach
     public void setupMocks() {
         jobStoreServiceConnector.addNotificationRequests.clear();
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_jobStoreServiceConnectorArgIsNull_throws() {
-        new CreateInvalidTransfileNotificationOperation(null, workingDir, transfileName, transfileCauseForInvalidation);
+        assertThrows(NullPointerException.class, () -> new CreateInvalidTransfileNotificationOperation(null, workingDir, transfileName, transfileCauseForInvalidation));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_workingDirArgIsNull_throws() {
-        new CreateInvalidTransfileNotificationOperation(jobStoreServiceConnector, null, transfileName, transfileCauseForInvalidation);
+        assertThrows(NullPointerException.class, () -> new CreateInvalidTransfileNotificationOperation(jobStoreServiceConnector, null, transfileName, transfileCauseForInvalidation));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_transfileNameArgIsNull_throws() {
-        new CreateInvalidTransfileNotificationOperation(jobStoreServiceConnector, workingDir, null, transfileCauseForInvalidation);
+        assertThrows(NullPointerException.class, () -> new CreateInvalidTransfileNotificationOperation(jobStoreServiceConnector, workingDir, null, transfileCauseForInvalidation));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_transfileNameArgIsEmpty_throws() {
-        new CreateInvalidTransfileNotificationOperation(jobStoreServiceConnector, workingDir, " ", transfileCauseForInvalidation);
+        assertThrows(IllegalArgumentException.class, () -> new CreateInvalidTransfileNotificationOperation(jobStoreServiceConnector, workingDir, " ", transfileCauseForInvalidation));
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
+        CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
                 jobStoreServiceConnector, workingDir, transfileName, transfileCauseForInvalidation);
         assertThat("instance", operation, is(notNullValue()));
-        assertThat("getJobStoreServiceConnector()", operation.getJobStoreServiceConnector(), is((JobStoreServiceConnector) jobStoreServiceConnector));
+        assertThat("getJobStoreServiceConnector()", operation.getJobStoreServiceConnector(), is(jobStoreServiceConnector));
         assertThat("getWorkingDir()", operation.getWorkingDir(), is(workingDir));
         assertThat("getTransfileName()", operation.getTransfileName(), is(transfileName));
         assertThat("getTransfileName()", operation.getCauseForInvalidation(), is(transfileCauseForInvalidation));
@@ -79,12 +79,12 @@ public class CreateInvalidTransfileNotificationOperationTest {
 
     @Test
     public void execute_jobStoreServiceConnectorThrows_throws() throws JobStoreServiceConnectorException, IOException, OperationExecutionException {
-        final Exception exception = new JobStoreServiceConnectorUnexpectedStatusCodeException(
+        Exception exception = new JobStoreServiceConnectorUnexpectedStatusCodeException(
                 "DIED", Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+        JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
         when(jobStoreServiceConnector.addNotification(any(AddNotificationRequest.class))).thenThrow(exception);
 
-        final CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
+        CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
                 jobStoreServiceConnector, workingDir, transfileName, transfileCauseForInvalidation);
         try {
             operation.execute();
@@ -96,15 +96,15 @@ public class CreateInvalidTransfileNotificationOperationTest {
 
     @Test
     public void execute_noTransfileContent_issuesRequest() throws OperationExecutionException {
-        final CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
+        CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
                 jobStoreServiceConnector, workingDir, transfileName, transfileCauseForInvalidation);
         operation.execute();
 
         assertThat("Number of requests created", jobStoreServiceConnector.addNotificationRequests.size(), is(1));
-        final AddNotificationRequest request = jobStoreServiceConnector.addNotificationRequests.remove();
+        AddNotificationRequest request = jobStoreServiceConnector.addNotificationRequests.remove();
         assertThat("Notification destination", request.getDestinationEmail(), is(Constants.MISSING_FIELD_VALUE));
         assertThat("Notification type", request.getNotificationType(), is(Notification.Type.INVALID_TRANSFILE));
-        final InvalidTransfileNotificationContext context = (InvalidTransfileNotificationContext) request.getContext();
+        InvalidTransfileNotificationContext context = (InvalidTransfileNotificationContext) request.getContext();
         assertThat("Notification context", context, is(notNullValue()));
         assertThat("Context transfile name", context.getTransfileName(), is(transfileName));
         assertThat("Context transfile invalidation cause", context.getCause(), is(transfileCauseForInvalidation));
@@ -113,32 +113,31 @@ public class CreateInvalidTransfileNotificationOperationTest {
     @Test
     public void execute_transfileHasSmallLetterM_issuesRequest() throws OperationExecutionException, IOException {
         final String destination = "example@compny.com";
-        final Path transfile = testFolder.newFile(transfileName).toPath();
+        Path transfile = Files.createFile(testFolder.resolve(transfileName));
         appendToFile(transfile, "f=test.dat,m=" + System.lineSeparator());
         appendToFile(transfile, "m=" + destination);
 
-        final CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
-                jobStoreServiceConnector, testFolder.getRoot().toPath(), transfileName, transfileCauseForInvalidation);
+        CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(jobStoreServiceConnector, testFolder, transfileName, transfileCauseForInvalidation);
         operation.execute();
 
         assertThat("Number of requests created", jobStoreServiceConnector.addNotificationRequests.size(), is(1));
-        final AddNotificationRequest request = jobStoreServiceConnector.addNotificationRequests.remove();
+        AddNotificationRequest request = jobStoreServiceConnector.addNotificationRequests.remove();
         assertThat("Notification destination", request.getDestinationEmail(), is(destination));
     }
 
     @Test
     public void execute_transfileHasOnlyCapitalLetterM_issuesRequest() throws OperationExecutionException, IOException {
         final String destination = "example@compny.com";
-        final Path transfile = testFolder.newFile(transfileName).toPath();
+        Path transfile = Files.createFile(testFolder.resolve(transfileName));
         appendToFile(transfile, "f=test.dat,m=" + System.lineSeparator());
         appendToFile(transfile, "M=" + destination);
 
-        final CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
-                jobStoreServiceConnector, testFolder.getRoot().toPath(), transfileName, transfileCauseForInvalidation);
+        CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
+                jobStoreServiceConnector, testFolder, transfileName, transfileCauseForInvalidation);
         operation.execute();
 
         assertThat("Number of requests created", jobStoreServiceConnector.addNotificationRequests.size(), is(1));
-        final AddNotificationRequest request = jobStoreServiceConnector.addNotificationRequests.remove();
+        AddNotificationRequest request = jobStoreServiceConnector.addNotificationRequests.remove();
         assertThat("Notification destination", request.getDestinationEmail(), is(destination));
     }
 

@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -20,55 +20,56 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AddiDataPartitionerTest {
     private final static InputStream EMPTY_STREAM = StringUtil.asInputStream("");
     private final static String UTF_8_ENCODING = "UTF-8";
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_inputStreamArgIsNull_throws() {
-        AddiDataPartitioner.newInstance(null, UTF_8_ENCODING);
+        assertThrows(NullPointerException.class, () -> AddiDataPartitioner.newInstance(null, UTF_8_ENCODING));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_encodingNameArgIsNull_throws() {
-        AddiDataPartitioner.newInstance(EMPTY_STREAM, null);
+        assertThrows(NullPointerException.class, () -> AddiDataPartitioner.newInstance(EMPTY_STREAM, null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_encodingNameArgIsEmpty_throws() {
-        AddiDataPartitioner.newInstance(EMPTY_STREAM, " ");
+        assertThrows(IllegalArgumentException.class, () -> AddiDataPartitioner.newInstance(EMPTY_STREAM, " "));
     }
 
-    @Test(expected = InvalidEncodingException.class)
+    @Test
     public void constructor_encodingNameArgIsInvalid_throws() {
-        AddiDataPartitioner.newInstance(EMPTY_STREAM, "no-such-encoding");
+        assertThrows(InvalidEncodingException.class, () -> AddiDataPartitioner.newInstance(EMPTY_STREAM, "no-such-encoding"));
     }
 
     @Test
     public void partitioner_readingNextRecordFromEmptyStream_returnsEmptyResult() {
-        final AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(EMPTY_STREAM, UTF_8_ENCODING);
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
-        final DataPartitionerResult dataPartitionerResult = iterator.next();
+        AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(EMPTY_STREAM, UTF_8_ENCODING);
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        DataPartitionerResult dataPartitionerResult = iterator.next();
         assertThat(dataPartitionerResult, is(DataPartitionerResult.EMPTY));
     }
 
     @Test
     public void partitioner_readingInvalidAddiFormat_throws() {
-        final InputStream addiStream = StringUtil.asInputStream("2\n{}\n");
-        final AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        InputStream addiStream = StringUtil.asInputStream("2\n{}\n");
+        AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
         assertThat(iterator::next, isThrowing(PrematureEndOfDataException.class));
     }
 
     @Test
     public void partitioner_readingValidRecord_returnsResultWithChunkItemWithStatusSuccess() {
         final String addiRecord = "2\n{}\n7\ncontent\n";
-        final InputStream addiStream = StringUtil.asInputStream(addiRecord);
-        final AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
-        final DataPartitionerResult dataPartitionerResult = iterator.next();
-        final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
+        InputStream addiStream = StringUtil.asInputStream(addiRecord);
+        AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        DataPartitionerResult dataPartitionerResult = iterator.next();
+        ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
         assertThat("chunkItem", chunkItem, is(notNullValue()));
         assertThat("chunkItem.getStatus()", chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("chunkItem.getDiagnostics()", chunkItem.getDiagnostics(), is(nullValue()));
@@ -79,11 +80,11 @@ public class AddiDataPartitionerTest {
 
     @Test
     public void partitioner_readingEmptyRecord_returnsResultWithChunkItemWithStatusIgnore() {
-        final InputStream addiStream = StringUtil.asInputStream("0\n\n0\n\n");
-        final AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
-        final DataPartitionerResult dataPartitionerResult = iterator.next();
-        final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
+        InputStream addiStream = StringUtil.asInputStream("0\n\n0\n\n");
+        AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        DataPartitionerResult dataPartitionerResult = iterator.next();
+        ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
         assertThat("chunkItem", chunkItem, is(notNullValue()));
         assertThat("chunkItem.getStatus()", chunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("chunkItem.getType()", chunkItem.getType(), is(Collections.singletonList(ChunkItem.Type.STRING)));
@@ -91,12 +92,12 @@ public class AddiDataPartitionerTest {
 
     @Test
     public void partitioner_readingRecordWithInvalidMetaData_returnsResultWithChunkItemWithStatusFailure() {
-        final InputStream addiStream = StringUtil.asInputStream("8\nnot json\n7\ncontent\n");
-        final AddiRecord expectedContent = new AddiRecord(StringUtil.asBytes("not json"), StringUtil.asBytes("content"));
-        final AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
-        final DataPartitionerResult dataPartitionerResult = iterator.next();
-        final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
+        InputStream addiStream = StringUtil.asInputStream("8\nnot json\n7\ncontent\n");
+        AddiRecord expectedContent = new AddiRecord(StringUtil.asBytes("not json"), StringUtil.asBytes("content"));
+        AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        DataPartitionerResult dataPartitionerResult = iterator.next();
+        ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
         assertThat("chunkItem", chunkItem, is(notNullValue()));
         assertThat("chunkItem.getStatus()", chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("chunkItem.getDiagnostics()", chunkItem.getDiagnostics(), is(notNullValue()));
@@ -107,36 +108,36 @@ public class AddiDataPartitionerTest {
 
     @Test
     public void partitioner_metaDataContainsTrackingId_returnsResultWithChunkItemWithTrackingId() {
-        final InputStream addiStream = StringUtil.asInputStream("27\n{\"trackingId\": \"trackedAs\"}\n7\ncontent\n");
-        final AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
-        final DataPartitionerResult dataPartitionerResult = iterator.next();
-        final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
+        InputStream addiStream = StringUtil.asInputStream("27\n{\"trackingId\": \"trackedAs\"}\n7\ncontent\n");
+        AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        DataPartitionerResult dataPartitionerResult = iterator.next();
+        ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
         assertThat("chunkItem", chunkItem, is(notNullValue()));
         assertThat("chunkItem.getTrackingId()", chunkItem.getTrackingId(), is("trackedAs"));
     }
 
     @Test
     public void partitioner_metaDataContainsPid_returnsRecordInfoWithPid() {
-        final InputStream addiStream = StringUtil.asInputStream(
+        InputStream addiStream = StringUtil.asInputStream(
                 "14\n{\"pid\": \"pid\"}\n7\ncontent\n");
-        final AddiDataPartitioner partitioner = AddiDataPartitioner
+        AddiDataPartitioner partitioner = AddiDataPartitioner
                 .newInstance(addiStream, UTF_8_ENCODING);
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
-        final DataPartitionerResult dataPartitionerResult = iterator.next();
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        DataPartitionerResult dataPartitionerResult = iterator.next();
         assertThat("pid", dataPartitionerResult.getRecordInfo().getPid(),
                 is("pid"));
     }
 
     @Test
     public void partitioner_metaDataContainsDiagnostic_returnsResultWithChunkItemWithStatusFailure() {
-        final AddiRecord addiRecord = new AddiRecord(
+        AddiRecord addiRecord = new AddiRecord(
                 "{\"diagnostic\":{\"level\":\"FATAL\",\"message\":\"error\"}}".getBytes(StandardCharsets.UTF_8),
                 "content".getBytes(StandardCharsets.UTF_8));
-        final AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(new ByteArrayInputStream(addiRecord.getBytes()), UTF_8_ENCODING);
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
-        final DataPartitionerResult dataPartitionerResult = iterator.next();
-        final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
+        AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(new ByteArrayInputStream(addiRecord.getBytes()), UTF_8_ENCODING);
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        DataPartitionerResult dataPartitionerResult = iterator.next();
+        ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
         assertThat("chunkItem", chunkItem, is(notNullValue()));
         assertThat("chunkItem.getStatus()", chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("chunkItem.getDiagnostics()", chunkItem.getDiagnostics(), is(notNullValue()));
@@ -148,8 +149,8 @@ public class AddiDataPartitionerTest {
 
     @Test
     public void partitioner_multipleIterations() {
-        final InputStream addiStream = StringUtil.asInputStream("2\n{}\n8\ncontent1\n1\n{\n6\nfailed\n2\n{}\n8\ncontent2\n");
-        final AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
+        InputStream addiStream = StringUtil.asInputStream("2\n{}\n8\ncontent1\n1\n{\n6\nfailed\n2\n{}\n8\ncontent2\n");
+        AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
         int chunkItemNo = 0;
         for (DataPartitionerResult dataPartitionerResult : partitioner) {
             assertThat("result" + chunkItemNo + " position in datafile",
@@ -162,10 +163,10 @@ public class AddiDataPartitionerTest {
 
     @Test
     public void drainItems() {
-        final InputStream addiStream = StringUtil.asInputStream("2\n{}\n8\ncontent1\n1\n{\n6\nfailed\n2\n{}\n8\ncontent2\n");
-        final AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
+        InputStream addiStream = StringUtil.asInputStream("2\n{}\n8\ncontent1\n1\n{\n6\nfailed\n2\n{}\n8\ncontent2\n");
+        AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
         partitioner.drainItems(2);
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
         assertThat("position in datafile", iterator.next().getPositionInDatafile(), is(2));
     }
 }

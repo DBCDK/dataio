@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;

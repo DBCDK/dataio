@@ -9,7 +9,8 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,22 +18,22 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FlowTrimmerTest {
     private final JSONBContext jsonbContext = new JSONBContext();
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_jsonbContextArgIsNull_throws() {
-        new FlowTrimmer(null);
+        assertThrows(NullPointerException.class, () -> new FlowTrimmer(null));
     }
 
     @Test
     public void trim_flowJsonArgDoesNotRepresentJsonObject_throws() throws JSONBException {
-        final FlowTrimmer flowTrimmer = new FlowTrimmer(jsonbContext);
+        FlowTrimmer flowTrimmer = new FlowTrimmer(jsonbContext);
         try {
             flowTrimmer.trim("[]");
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (IllegalArgumentException e) {
         }
     }
@@ -42,27 +43,27 @@ public class FlowTrimmerTest {
         // the "returnsUnchanged" part is not strictly true, since
         // any whitespaces between key/value pairs will actually be stripped.
         final String expectedOutput = "{\"type\":\"NOT_FLOW\"}";
-        final FlowTrimmer flowTrimmer = new FlowTrimmer(jsonbContext);
+        FlowTrimmer flowTrimmer = new FlowTrimmer(jsonbContext);
         assertThat(flowTrimmer.trim(expectedOutput), is(expectedOutput));
     }
 
     @Test
     public void trim_flowJsonArgHasComponentsWithNext_returnsFlowWithNextComponentsRemoved() throws JSONBException {
-        final FlowContent flowContent = new FlowContentBuilder()
+        FlowContent flowContent = new FlowContentBuilder()
                 .setComponents(Arrays.asList(
                         new FlowComponentBuilder().setNext(new FlowComponentContentBuilder().setName("next1").build()).build(),
                         new FlowComponentBuilder().setNext(new FlowComponentContentBuilder().setName("next1").build()).build(),
                         new FlowComponentBuilder().setNext(FlowComponent.UNDEFINED_NEXT).build()
                 ))
                 .build();
-        final Flow flow = new FlowBuilder()
+        Flow flow = new FlowBuilder()
                 .setContent(flowContent)
                 .build();
 
-        final FlowTrimmer flowTrimmer = new FlowTrimmer(jsonbContext);
-        final String trimmedFlowJson = flowTrimmer.trim(jsonbContext.marshall(flow));
-        final Flow trimmedFlow = jsonbContext.unmarshall(trimmedFlowJson, Flow.class);
-        final List<FlowComponent> components = trimmedFlow.getContent().getComponents();
+        FlowTrimmer flowTrimmer = new FlowTrimmer(jsonbContext);
+        String trimmedFlowJson = flowTrimmer.trim(jsonbContext.marshall(flow));
+        Flow trimmedFlow = jsonbContext.unmarshall(trimmedFlowJson, Flow.class);
+        List<FlowComponent> components = trimmedFlow.getContent().getComponents();
         assertThat("Number of trimmed components", components.size(), is(3));
         for (FlowComponent flowComponent : components) {
             assertThat("FlowComponent next property", flowComponent.getNext(), is(nullValue()));

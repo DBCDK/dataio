@@ -191,7 +191,7 @@ public class FileStoreBeanTest {
     @Test
     public void getByteSize_fileIdNotANumber_throws() {
         FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        assertThrows(NullPointerException.class, () -> fileStoreBean.getByteSize("notANumber", true), "getByteSize: Invalid file ID was not detected");
+        assertThrows(IllegalArgumentException.class, () -> fileStoreBean.getByteSize("notANumber", true), "getByteSize: Invalid file ID was not detected");
     }
 
     @Test

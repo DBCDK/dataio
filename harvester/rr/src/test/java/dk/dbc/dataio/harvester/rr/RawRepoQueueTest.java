@@ -7,8 +7,8 @@ import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.rawrepo.MockedQueueItem;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.QueueException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -31,7 +31,7 @@ public class RawRepoQueueTest {
 
     private RawRepoQueue queue;
 
-    @Before
+    @BeforeEach
     public void createQueue() {
         queue = new RawRepoQueue(config, rawRepoConnector, 200, ChronoUnit.MILLIS);
     }

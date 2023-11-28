@@ -28,15 +28,16 @@ import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
@@ -44,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -99,21 +101,21 @@ public class HarvestOperation_fbs_Test {
     private final TaskRepo taskRepo = new TaskRepo(entityManager);
     private final SimpleTimer timer = mock(SimpleTimer.class);
     private final Counter counter = mock(Counter.class);
-    @Rule
-    public TemporaryFolder tmpFolder = new TemporaryFolder();
+    @TempDir
+    public Path tmpFolder;
     private MockedJobStoreServiceConnector mockedJobStoreServiceConnector;
     private MockedFileStoreServiceConnector mockedFileStoreServiceConnector;
     private File harvesterDataFile;
     private List<AddiMetaData> recordsAddiMetaDataExpectations;
     private List<XmlExpectation> recordsExpectations;
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws SQLException, IOException, QueueException {
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR.dequeue(CONSUMER_ID)).thenReturn(FIRST_QUEUE_ITEM).thenReturn(SECOND_QUEUE_ITEM).thenReturn(THIRD_QUEUE_ITEM).thenReturn(null);
 
         // Intercept harvester data files with mocked FileStoreServiceConnector
-        harvesterDataFile = tmpFolder.newFile();
+        harvesterDataFile = Files.createFile(tmpFolder.resolve(UUID.randomUUID() + ".tmp")).toFile();
         mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();
         mockedFileStoreServiceConnector.destinations.add(harvesterDataFile.toPath());
 
@@ -231,7 +233,8 @@ public class HarvestOperation_fbs_Test {
     private HarvestOperation newHarvestOperation() {
         HarvesterJobBuilderFactory harvesterJobBuilderFactory;
         try {
-            harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath()), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
+            Path dir = Files.createDirectory(tmpFolder.resolve(UUID.randomUUID().toString()));
+            harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(new BinaryFileStoreFsImpl(dir), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

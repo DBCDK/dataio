@@ -29,15 +29,15 @@ import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
@@ -53,7 +53,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class HarvestOperation_datawell_Test {
+public class HarvestOperation_datawell_Test implements TempFiles {
     private static final Date QUEUED_TIME = new Date(1467277697583L); // 2016-06-30 11:08:17.583
     private static final String CONSUMER_ID = "consumerId";
     private static final int LOCAL_LIBRARY = 700000;
@@ -139,17 +139,17 @@ public class HarvestOperation_datawell_Test {
     private List<XmlExpectation> dbcRecordsExpectations;
     private List<XmlExpectation> localRecordsExpectations;
 
-    private AddiMetaData.LibraryRules localLibraryRules = new AddiMetaData.LibraryRules()
+    private final AddiMetaData.LibraryRules localLibraryRules = new AddiMetaData.LibraryRules()
             .withLibraryRule("rule1", true);
 
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
     private final Counter counter = mock(Counter.class);
     private final SimpleTimer timer = mock(SimpleTimer.class);
 
-    @Rule
-    public TemporaryFolder tmpFolder = new TemporaryFolder();
+    @TempDir
+    public Path tmpFolder;
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws SQLException, IOException, ConfigurationException, QueueException {
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR.dequeue(CONSUMER_ID))
@@ -159,8 +159,8 @@ public class HarvestOperation_datawell_Test {
                 .thenReturn(null);
 
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean
-        harvesterDataFileWithDbcRecords = tmpFolder.newFile();
-        harvesterDataFileWithLocalRecords = tmpFolder.newFile();
+        harvesterDataFileWithDbcRecords = createFile(tmpFolder);
+        harvesterDataFileWithLocalRecords = createFile(tmpFolder);
         mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();
         mockedFileStoreServiceConnector.destinations.add(harvesterDataFileWithDbcRecords.toPath());
         mockedFileStoreServiceConnector.destinations.add(harvesterDataFileWithLocalRecords.toPath());
@@ -211,7 +211,7 @@ public class HarvestOperation_datawell_Test {
                 .thenReturn(THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL);
 
         // Setup harvester datafile content expectations
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_HEAD_ID));
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_SECTION_ID));
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
@@ -226,7 +226,7 @@ public class HarvestOperation_datawell_Test {
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
         dbcRecordsExpectations.add(marcExchangeCollectionExpectation2);
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
@@ -238,7 +238,7 @@ public class HarvestOperation_datawell_Test {
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation3.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
         localRecordsExpectations.add(marcExchangeCollectionExpectation3);
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
@@ -259,7 +259,7 @@ public class HarvestOperation_datawell_Test {
     @Test
     public void harvest_recordCollectionContainsInvalidEntry_recordIsFailed()
             throws HarvesterException, RecordServiceConnectorException {
-        final RecordDTO invalidRecord = new RecordDTO();
+        RecordDTO invalidRecord = new RecordDTO();
         invalidRecord.setRecordId(FIRST_RECORD_HEAD_ID);
         invalidRecord.setCreated(Instant.now().toString());
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
@@ -292,7 +292,7 @@ public class HarvestOperation_datawell_Test {
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
         localRecordsExpectations.add(marcExchangeCollectionExpectation1);
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
@@ -303,7 +303,7 @@ public class HarvestOperation_datawell_Test {
                 .withDeleted(false)
                 .withLibraryRules(localLibraryRules));
 
-        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
+        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
         dbcRecordsExpectations.add(marcExchangeCollectionExpectation2);
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
@@ -315,7 +315,7 @@ public class HarvestOperation_datawell_Test {
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        final HarvestOperation harvestOperation = newHarvestOperation();
+        HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
         verifyHarvesterDataFiles();
@@ -323,16 +323,16 @@ public class HarvestOperation_datawell_Test {
     }
 
     private HarvestOperation newHarvestOperation() {
-        final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
+        HarvesterJobBuilderFactory harvesterJobBuilderFactory;
         try {
             harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
-                    new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath()),
+                    new BinaryFileStoreFsImpl(createDir(tmpFolder)),
                     mockedFileStoreServiceConnector,
                     mockedJobStoreServiceConnector);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
+        RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent()
                 .withConsumerId(CONSUMER_ID)
                 .withFormat("katalog")
@@ -347,7 +347,7 @@ public class HarvestOperation_datawell_Test {
     }
 
     private void verifyHarvesterDataFiles() {
-        final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
+        AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
         addiFileVerifier.verify(harvesterDataFileWithDbcRecords, dbcRecordsAddiMetaDataExpectations, dbcRecordsExpectations);
         addiFileVerifier.verify(harvesterDataFileWithLocalRecords, localRecordsAddiMetaDataExpectations, localRecordsExpectations);
     }

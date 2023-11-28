@@ -1,6 +1,12 @@
 package dk.dbc.dataio.commons.types;
 
+import java.time.ZoneId;
+import java.util.Optional;
+
 public class Constants {
+    public static final String CPH = "Europe/Copenhagen";
+    public static final ZoneId ZONE_CPH = ZoneId.of(CPH);
+    public static final ZoneId ZONE_ID = ZoneId.of(Optional.ofNullable(System.getenv("TZ")).orElse(CPH));
     public static final short CHUNK_MAX_SIZE = 10;
 
     public static final String SINK_ID_ENV_VARIABLE = "SINK_ID";

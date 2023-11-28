@@ -5,8 +5,8 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -26,7 +26,7 @@ public class ConfigUpdaterTest {
     private InfomediaHarvesterConfig config = new InfomediaHarvesterConfig(
             1, 2, new InfomediaHarvesterConfig.Content());
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws FlowStoreServiceConnectorException {
         when(flowStoreServiceConnector.updateHarvesterConfig(config))
                 .thenReturn(config);
@@ -35,7 +35,7 @@ public class ConfigUpdaterTest {
                 .thenReturn(config);
     }
 
-    @Before
+    @BeforeEach
     public void resetConfig() {
         config = new InfomediaHarvesterConfig(
                 1, 2, new InfomediaHarvesterConfig.Content());

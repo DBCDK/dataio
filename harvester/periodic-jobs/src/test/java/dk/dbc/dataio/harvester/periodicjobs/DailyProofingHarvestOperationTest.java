@@ -10,7 +10,7 @@ import dk.dbc.rawrepo.dto.RecordDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -73,7 +73,7 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
         when(recordServiceConnector.getRecordDataCollectionDataIO(
                 eq(new RecordIdDTO(recordIdVolume.getBibliographicRecordId(), recordIdVolume.getAgencyId())),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new LinkedHashMap<String, RecordDTO>() {{
+                .thenReturn(new LinkedHashMap<>() {{
                     put(recordIdVolume.getBibliographicRecordId(), recordDataVolume);
                     put(recordIdSection.getBibliographicRecordId(), recordDataSection);
                     put(recordIdHead.getBibliographicRecordId(), recordDataHead);

@@ -14,8 +14,8 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorExcept
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,7 +48,7 @@ public class AbstractHarvesterJobBuilderTest {
     private final AddiRecord addiRecord = newAddiRecord();
     private final JobSpecification jobSpecificationTemplate = getJobSpecificationTemplate();
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws FileStoreServiceConnectorException, JobStoreServiceConnectorException {
         when(binaryFileStore.getBinaryFile(any(Path.class))).thenReturn(binaryFile);
         when(binaryFile.openOutputStream()).thenReturn(os);

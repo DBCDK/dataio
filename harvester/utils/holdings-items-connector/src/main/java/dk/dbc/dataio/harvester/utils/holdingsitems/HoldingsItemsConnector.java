@@ -23,8 +23,12 @@ public class HoldingsItemsConnector {
     private final String appId;
 
     public HoldingsItemsConnector(String solrServerEndpoint) throws NullPointerException, IllegalArgumentException {
+        this(solrServerEndpoint, System.getenv("SOLR_APPID"));
+    }
+
+    public HoldingsItemsConnector(String solrServerEndpoint, String appId) throws NullPointerException, IllegalArgumentException {
         client = new HttpSolrClient.Builder(InvariantUtil.checkNotNullNotEmptyOrThrow(solrServerEndpoint, "solrServerEndpoint")).build();
-        appId = System.getenv("SOLR_APPID");
+        this.appId = appId;
     }
 
     public void close() {

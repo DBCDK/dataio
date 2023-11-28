@@ -21,11 +21,9 @@ import dk.dbc.testee.NonContainerManagedExecutorService;
 import dk.dbc.testee.SameThreadExecutorService;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import jakarta.enterprise.concurrent.ManagedExecutorService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,10 +34,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.UUID;
 
+import static dk.dbc.dataio.commons.types.Constants.ZONE_CPH;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -65,20 +64,16 @@ public class HarvestOperationTest {
     private FileStoreServiceConnector fileStoreServiceConnector;
     private BinaryFileStore binaryFileStore;
 
-    @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+    @TempDir
+    public Path tmpFolder;
 
-    @Rule
-    public TemporaryFolder tmpFolder = new TemporaryFolder();
-
-    @Before
+    @BeforeEach
     public void setupMocks() {
         try {
-            environmentVariables.set("TZ", "Europe/Copenhagen");
-            binaryFileStore = new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath());
+            binaryFileStore = new BinaryFileStoreFsImpl(Files.createDirectory(tmpFolder.resolve("fs-" + UUID.randomUUID())));
             fileStoreServiceConnector = new MockedFileStoreServiceConnector();
             ((MockedFileStoreServiceConnector) fileStoreServiceConnector)
-                    .destinations.add(tmpFolder.newFile().toPath());
+                    .destinations.add(Files.createFile(tmpFolder.resolve(UUID.randomUUID() + ".tmp")));
             when(jobStoreServiceConnector.addJob(any(JobInputStream.class)))
                     .thenReturn(new JobInfoSnapshot());
             when(jobStoreServiceConnector.addEmptyJob(any(JobInputStream.class)))
@@ -90,15 +85,14 @@ public class HarvestOperationTest {
 
     @Test
     public void executeWithSolrSearch() throws HarvesterException {
-        final ZonedDateTime timeOfLastHarvest = Instant.parse("2019-01-14T07:00:00.00Z")
-                .atZone(ZoneId.of(System.getenv("TZ")));
-        final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
+        ZonedDateTime timeOfLastHarvest = Instant.parse("2019-01-14T07:00:00.00Z").atZone(ZONE_CPH);
+        PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withCollection(SOLR_COLLECTION)
                         .withQuery("datefield:[${__TIME_OF_LAST_HARVEST__} TO *]")
                         .withTimeOfLastHarvest(Date.from(timeOfLastHarvest.toInstant())));
 
-        final HarvestOperation harvestOperation = newHarvestOperation(config);
+        HarvestOperation harvestOperation = newHarvestOperation(config);
         doReturn(42).when(harvestOperation).execute(any(BinaryFile.class));
 
         assertThat("number of records harvested", harvestOperation.execute(), is(42));
@@ -111,17 +105,16 @@ public class HarvestOperationTest {
 
     @Test
     public void executeWithSolrSearchFromFile() throws HarvesterException, FileNotFoundException, FileStoreServiceConnectorException {
-        final File fileStoreFile = new File("src/test/resources/solr-queries.txt");
-        final String fileId = fileStoreServiceConnector.addFile(new FileInputStream(fileStoreFile));
-        final ZonedDateTime timeOfLastHarvest = Instant.parse("2019-01-14T07:00:00.00Z")
-                .atZone(ZoneId.of(System.getenv("TZ")));
-        final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
+        File fileStoreFile = new File("src/test/resources/solr-queries.txt");
+        String fileId = fileStoreServiceConnector.addFile(new FileInputStream(fileStoreFile));
+        ZonedDateTime timeOfLastHarvest = Instant.parse("2019-01-14T07:00:00.00Z").atZone(ZONE_CPH);
+        PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withCollection(SOLR_COLLECTION)
                         .withQueryFileId(fileId)
                         .withTimeOfLastHarvest(Date.from(timeOfLastHarvest.toInstant())));
 
-        final HarvestOperation harvestOperation = newHarvestOperation(config);
+        HarvestOperation harvestOperation = newHarvestOperation(config);
         doReturn(2).when(harvestOperation).execute(any(BinaryFile.class));
 
         assertThat("number of records harvested", harvestOperation.execute(), is(2));
@@ -136,20 +129,20 @@ public class HarvestOperationTest {
     @Test
     public void executeWithRecordIdsFile() throws HarvesterException, IOException, JobStoreServiceConnectorException,
             FlowStoreServiceConnectorException {
-        final Path originalFile = Paths.get("src/test/resources/record-ids.txt");
-        final Path copy = Paths.get("target/record-ids.txt");
+        Path originalFile = Paths.get("src/test/resources/record-ids.txt");
+        Path copy = Paths.get("target/record-ids.txt");
         Files.copy(originalFile, copy, StandardCopyOption.REPLACE_EXISTING);
-        final BinaryFileFsImpl recordsIdFile = new BinaryFileFsImpl(copy);
+        BinaryFileFsImpl recordsIdFile = new BinaryFileFsImpl(copy);
 
-        final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
+        PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withDestination("-destination-")
                         .withFormat("-format-")
                         .withSubmitterNumber("123456"));
 
-        final Date timeOfSearch = new Date();
+        Date timeOfSearch = new Date();
 
-        final HarvestOperation harvestOperation = newHarvestOperation(config);
+        HarvestOperation harvestOperation = newHarvestOperation(config);
         HarvestOperation.MAX_NUMBER_OF_TASKS = 3;
         harvestOperation.timeOfSearch = timeOfSearch;
         doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
@@ -166,18 +159,18 @@ public class HarvestOperationTest {
     public void executeWithRecordIdsFileWhenTimeOfSearchIsNotDefined()
             throws HarvesterException, IOException, JobStoreServiceConnectorException,
             FlowStoreServiceConnectorException {
-        final Path originalFile = Paths.get("src/test/resources/record-ids.txt");
-        final Path copy = Paths.get("target/record-ids.txt");
+        Path originalFile = Paths.get("src/test/resources/record-ids.txt");
+        Path copy = Paths.get("target/record-ids.txt");
         Files.copy(originalFile, copy, StandardCopyOption.REPLACE_EXISTING);
-        final BinaryFileFsImpl recordsIdFile = new BinaryFileFsImpl(copy);
+        BinaryFileFsImpl recordsIdFile = new BinaryFileFsImpl(copy);
 
-        final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
+        PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withDestination("-destination-")
                         .withFormat("-format-")
                         .withSubmitterNumber("123456"));
 
-        final HarvestOperation harvestOperation = newHarvestOperation(config);
+        HarvestOperation harvestOperation = newHarvestOperation(config);
         doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
 
         assertThat("records harvested", harvestOperation.execute(recordsIdFile), is(10));
@@ -191,15 +184,15 @@ public class HarvestOperationTest {
     @Test
     public void executeWhenNoRecordIdsFound() throws IOException, HarvesterException,
             JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
-        final BinaryFile emptyFile = new BinaryFileFsImpl(tmpFolder.newFile().toPath());
+        BinaryFile emptyFile = new BinaryFileFsImpl(Files.createFile(tmpFolder.resolve(UUID.randomUUID() + ".tmp")));
 
-        final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
+        PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withDestination("-destination-")
                         .withFormat("-format-")
                         .withSubmitterNumber("123456"));
 
-        final HarvestOperation harvestOperation = newHarvestOperation(config);
+        HarvestOperation harvestOperation = newHarvestOperation(config);
         harvestOperation.timeOfSearch = new Date();
         doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
 
@@ -210,7 +203,7 @@ public class HarvestOperationTest {
     }
 
     private HarvestOperation newHarvestOperation(PeriodicJobsHarvesterConfig config) throws HarvesterException {
-        final HarvestOperation harvestOperation = spy(new HarvestOperation(config,
+        HarvestOperation harvestOperation = spy(new HarvestOperation(config,
                 binaryFileStore,
                 fileStoreServiceConnector,
                 flowStoreServiceConnector,

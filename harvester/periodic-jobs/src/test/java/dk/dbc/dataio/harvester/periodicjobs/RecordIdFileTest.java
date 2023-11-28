@@ -2,7 +2,7 @@ package dk.dbc.dataio.harvester.periodicjobs;
 
 import dk.dbc.dataio.bfs.api.BinaryFileFsImpl;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -14,10 +14,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class RecordIdFileTest {
     @Test
     public void iterator() {
-        final BinaryFileFsImpl file = new BinaryFileFsImpl(
+        BinaryFileFsImpl file = new BinaryFileFsImpl(
                 Paths.get("src/test/resources/record-ids.txt"));
 
-        final List<RecordIdDTO> expectedRecordIds = Arrays.asList(
+        List<RecordIdDTO> expectedRecordIds = Arrays.asList(
                 new RecordIdDTO("id1", 123456),
                 new RecordIdDTO("id2", 123456),
                 new RecordIdDTO("id3", 123456),

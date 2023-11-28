@@ -16,9 +16,9 @@ import dk.dbc.opensearch.commons.repository.RepositoryException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.jackson.JacksonFeature;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -48,7 +48,7 @@ public class HarvestOperationTest {
 
     CoRepoHarvesterConfig config;
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws FlowStoreServiceConnectorException, RepositoryException {
         config = new CoRepoHarvesterConfig(1, 1, new CoRepoHarvesterConfig.Content()
                 .withEnabled(true)
@@ -141,7 +141,7 @@ public class HarvestOperationTest {
         connector.createHarvestTask(rrHarvester, recordsRequest);
         String body = wireMockServer.getServeEvents().getServeEvents().get(0).getRequest().getBodyAsString();
         HarvestRecordsRequest request = new ObjectMapper().readValue(body, HarvestRecordsRequest.class);
-        Assert.assertEquals(records, request.getRecords());
+        Assertions.assertEquals(records, request.getRecords());
     }
 
     private HarvestOperation newHarvestOperation() throws HarvesterException {

@@ -5,8 +5,8 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +29,7 @@ public class AbstractHarvesterConfigurationBeanTest {
     private final CoRepoHarvesterConfig config2 = new CoRepoHarvesterConfig(2, 1, new CoRepoHarvesterConfig.Content());
 
 
-    @Before
+    @BeforeEach
     public void setupMocks() {
         when(flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
     }
@@ -39,30 +39,30 @@ public class AbstractHarvesterConfigurationBeanTest {
         when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(CoRepoHarvesterConfig.class))
                 .thenThrow(new FlowStoreServiceConnectorException("Died"));
 
-        final AbstractHarvesterConfigurationBeanImpl harvesterConfigurationBean = getImplementation();
+        AbstractHarvesterConfigurationBeanImpl harvesterConfigurationBean = getImplementation();
         assertThat(harvesterConfigurationBean::reload, isThrowing(HarvesterException.class));
     }
 
     @Test
     public void reloadingConfigurations() throws FlowStoreServiceConnectorException, HarvesterException {
-        final List<CoRepoHarvesterConfig> expectedConfigs = Collections.singletonList(config);
+        List<CoRepoHarvesterConfig> expectedConfigs = Collections.singletonList(config);
         when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(CoRepoHarvesterConfig.class))
                 .thenReturn(expectedConfigs);
 
-        final AbstractHarvesterConfigurationBeanImpl harvesterConfigurationBean = getImplementation();
+        AbstractHarvesterConfigurationBeanImpl harvesterConfigurationBean = getImplementation();
         harvesterConfigurationBean.reload();
         assertThat(harvesterConfigurationBean.getConfigs(), is(expectedConfigs));
     }
 
     @Test
     public void getConfigWithId() throws FlowStoreServiceConnectorException, HarvesterException {
-        final List<CoRepoHarvesterConfig> configList = Arrays.asList(config, config2);
+        List<CoRepoHarvesterConfig> configList = Arrays.asList(config, config2);
         when(flowStoreServiceConnector.findHarvesterConfigsByType(CoRepoHarvesterConfig.class))
                 .thenReturn(configList);
 
-        final AbstractHarvesterConfigurationBeanImpl harvesterConfigurationBean = getImplementation();
+        AbstractHarvesterConfigurationBeanImpl harvesterConfigurationBean = getImplementation();
         harvesterConfigurationBean.reload();
-        Optional configFromId = harvesterConfigurationBean.getConfig(1);
+        Optional<CoRepoHarvesterConfig> configFromId = harvesterConfigurationBean.getConfig(1);
         assertThat("Config is present", configFromId.isPresent(), is(true));
         assertThat(configFromId.get(), is(config));
     }

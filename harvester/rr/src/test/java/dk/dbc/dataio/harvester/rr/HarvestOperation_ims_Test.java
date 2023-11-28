@@ -27,15 +27,15 @@ import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
@@ -58,7 +58,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class HarvestOperation_ims_Test {
+public class HarvestOperation_ims_Test implements TempFiles {
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
     private static final Date QUEUED_TIME = new Date(1467277697583L); // 2016-06-30 11:08:17.583
     private static final String CONSUMER_ID = "consumerId";
@@ -72,8 +72,8 @@ public class HarvestOperation_ims_Test {
     private final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
     private final SimpleTimer timer = mock(SimpleTimer.class);
     private final Counter counter = mock(Counter.class);
-    @Rule
-    public TemporaryFolder tmpFolder = new TemporaryFolder();
+    @TempDir
+    public Path tmpFolder;
     private MockedJobStoreServiceConnector mockedJobStoreServiceConnector;
     private MockedFileStoreServiceConnector mockedFileStoreServiceConnector;
     private File harvesterDataFileWith710100;
@@ -86,7 +86,7 @@ public class HarvestOperation_ims_Test {
     private List<XmlExpectation> recordsExpectationsFor737000;
     private List<XmlExpectation> recordsExpectationsFor775100;
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws IOException, HarvesterException {
         // Mock agency-connection and holdings-items lookup
         Set<Integer> imsLibraries = Stream.of(710100, 737000, 775100, 785100).collect(Collectors.toSet());
@@ -102,9 +102,9 @@ public class HarvestOperation_ims_Test {
         doNothing().when(counter).inc();
 
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean
-        harvesterDataFileWith710100 = tmpFolder.newFile();
-        harvesterDataFileWith737000 = tmpFolder.newFile();
-        harvesterDataFileWith775100 = tmpFolder.newFile();
+        harvesterDataFileWith710100 = createFile(tmpFolder);
+        harvesterDataFileWith737000 = createFile(tmpFolder);
+        harvesterDataFileWith775100 = createFile(tmpFolder);
         mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();
         mockedFileStoreServiceConnector.destinations.add(harvesterDataFileWith710100.toPath());
         mockedFileStoreServiceConnector.destinations.add(harvesterDataFileWith737000.toPath());
@@ -661,7 +661,7 @@ public class HarvestOperation_ims_Test {
     private ImsHarvestOperation newImsHarvestOperation() {
         HarvesterJobBuilderFactory harvesterJobBuilderFactory;
         try {
-            harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath()), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
+            harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(new BinaryFileStoreFsImpl(createDir(tmpFolder)), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

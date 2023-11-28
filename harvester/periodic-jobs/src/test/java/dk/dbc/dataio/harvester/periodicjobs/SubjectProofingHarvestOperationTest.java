@@ -10,7 +10,7 @@ import dk.dbc.rawrepo.dto.RecordDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -34,15 +34,15 @@ public class SubjectProofingHarvestOperationTest extends HarvestOperationTest {
     @Test
     public void addiRecord() throws RecordServiceConnectorException, HarvesterException, JSONBException {
 
-        final Instant creationTime = Instant.now();
+        Instant creationTime = Instant.now();
         final String trackingId = "-trackingId-";
 
-        final RecordIdDTO recordId191919 = new RecordIdDTO("id191919", 191919);
-        final RecordDTO recordData191919 = new RecordDTO();
+        RecordIdDTO recordId191919 = new RecordIdDTO("id191919", 191919);
+        RecordDTO recordData191919 = new RecordDTO();
         recordData191919.setContent(asCollection(getRecordContent(recordId191919)).getBytes());
 
-        final RecordIdDTO recordId190004 = new RecordIdDTO("id190004", 190004);
-        final RecordDTO recordData190004 = new RecordDTO();
+        RecordIdDTO recordId190004 = new RecordIdDTO("id190004", 190004);
+        RecordDTO recordData190004 = new RecordDTO();
         recordData190004.setCreated(creationTime.toString());
         recordData190004.setEnrichmentTrail("190004,191919");
         recordData190004.setTrackingId(trackingId);
@@ -53,21 +53,21 @@ public class SubjectProofingHarvestOperationTest extends HarvestOperationTest {
         when(recordServiceConnector.getRecordDataCollection(
                 eq(new RecordIdDTO(recordId190004.getBibliographicRecordId(), 191919)),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(recordId190004.getBibliographicRecordId(), recordData190004);
                 }});
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId191919),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(recordId191919.getBibliographicRecordId(), recordData191919);
                 }});
 
-        final AddiRecord addiRecord = new SubjectProofingHarvestOperation.RecordFetcher(
+        AddiRecord addiRecord = new SubjectProofingHarvestOperation.RecordFetcher(
                 recordId190004, recordServiceConnector, config)
                 .call();
 
-        final AddiMetaData addiMetaData = jsonbContext.unmarshall(
+        AddiMetaData addiMetaData = jsonbContext.unmarshall(
                 new String(addiRecord.getMetaData(), StandardCharsets.UTF_8), AddiMetaData.class);
 
         assertThat("Addi metadata", addiMetaData, is(new AddiMetaData()

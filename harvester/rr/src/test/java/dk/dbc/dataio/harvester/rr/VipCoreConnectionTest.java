@@ -7,7 +7,8 @@ import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import dk.dbc.vipcore.marshallers.LibraryRule;
 import dk.dbc.vipcore.marshallers.LibraryRules;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,9 +17,7 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.mockito.ArgumentMatchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -33,26 +32,26 @@ public class VipCoreConnectionTest {
             throws VipCoreException {
         when(connector.getLibraryRulesByAgencyId("123456", null))
                 .thenThrow(new AgencyNotFoundException());
-        assertNull(newVipCoreConnection().getLibraryRules(123456, null));
+        Assertions.assertNull(newVipCoreConnection().getLibraryRules(123456, null));
     }
 
     @Test
     public void getLibraryRules_connectorReturnsNonEmptyResponse_returnsLibraryRules() throws VipCoreException {
-        final LibraryRule firstLibraryRule = new LibraryRule();
+        LibraryRule firstLibraryRule = new LibraryRule();
         firstLibraryRule.setName("1st rule");
         firstLibraryRule.setBool(true);
-        final LibraryRule secondLibraryRule = new LibraryRule();
+        LibraryRule secondLibraryRule = new LibraryRule();
         secondLibraryRule.setName("2nd rule");
         secondLibraryRule.setBool(false);
-        final LibraryRule thirdLibraryRule = new LibraryRule();
+        LibraryRule thirdLibraryRule = new LibraryRule();
         thirdLibraryRule.setName("3rd rule");
         thirdLibraryRule.setString("value");
 
-        final LibraryRules libraryRules = new LibraryRules();
+        LibraryRules libraryRules = new LibraryRules();
         libraryRules.setAgencyType("myType");
         libraryRules.setLibraryRule(Arrays.asList(firstLibraryRule, secondLibraryRule, thirdLibraryRule));
 
-        final AddiMetaData.LibraryRules expectedLibraryRules = new AddiMetaData.LibraryRules()
+        AddiMetaData.LibraryRules expectedLibraryRules = new AddiMetaData.LibraryRules()
                 .withAgencyType(libraryRules.getAgencyType())
                 .withLibraryRule(firstLibraryRule.getName(), firstLibraryRule.getBool())
                 .withLibraryRule(secondLibraryRule.getName(), secondLibraryRule.getBool())
@@ -77,14 +76,13 @@ public class VipCoreConnectionTest {
     @Test
     public void getLibraryRules_connectorReturnsNonEmptyResponse_cachesLibraryRules()
             throws VipCoreException {
-        final LibraryRules emptyLibraryRules = new LibraryRules();
+        LibraryRules emptyLibraryRules = new LibraryRules();
         emptyLibraryRules.setLibraryRule(new ArrayList<>());
 
         when(connector.getLibraryRulesByAgencyId("123456", null))
                 .thenReturn(emptyLibraryRules);
-        final VipCoreConnection vipCoreConnection = newVipCoreConnection();
-        assertSame(vipCoreConnection.getLibraryRules(123456, null),
-                vipCoreConnection.getLibraryRules(123456, null));
+        VipCoreConnection vipCoreConnection = newVipCoreConnection();
+        Assertions.assertSame(vipCoreConnection.getLibraryRules(123456, null), vipCoreConnection.getLibraryRules(123456, null));
 
         verify(connector, times(1)).getLibraryRulesByAgencyId("123456", null);
     }
@@ -94,7 +92,7 @@ public class VipCoreConnectionTest {
             throws VipCoreException {
         when(connector.getLibraryRulesByAgencyId("123456", null))
                 .thenThrow(new AgencyNotFoundException());
-        final VipCoreConnection agencyConnection = newVipCoreConnection();
+        VipCoreConnection agencyConnection = newVipCoreConnection();
         agencyConnection.getLibraryRules(123456, null);
         agencyConnection.getLibraryRules(123456, null);
 
@@ -104,7 +102,7 @@ public class VipCoreConnectionTest {
     @Test
     public void getFbsImsLibraries_connectorThrows_throws()
             throws VipCoreException {
-        when(connector.getLibraries(anyObject()))
+        when(connector.getLibraries(any()))
                 .thenThrow(new VipCoreException("died"));
         assertThat(() -> newVipCoreConnection().getFbsImsLibraries(),
                 isThrowing(HarvesterException.class));

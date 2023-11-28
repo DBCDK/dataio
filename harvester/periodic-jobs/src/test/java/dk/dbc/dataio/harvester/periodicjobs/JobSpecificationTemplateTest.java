@@ -3,7 +3,7 @@ package dk.dbc.dataio.harvester.periodicjobs;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -12,14 +12,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class JobSpecificationTemplateTest {
     @Test
     public void template() throws HarvesterException {
-        final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
+        PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withDestination("-destination-")
                         .withFormat("-format-")
                         .withSubmitterNumber("123456")
         );
 
-        final JobSpecification template = JobSpecificationTemplate.create(config);
+        JobSpecification template = JobSpecificationTemplate.create(config);
         assertThat("template", template,
                 is(notNullValue()));
         assertThat("template packaging", template.getPackaging(),

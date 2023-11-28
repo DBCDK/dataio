@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.promat;
 
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.harvester.AbstractScheduledHarvestBean;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
 import dk.dbc.util.RunSchedule;
@@ -10,7 +11,6 @@ import jakarta.ejb.Startup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.ZoneId;
 import java.util.Date;
 
 /**
@@ -55,7 +55,7 @@ public class ScheduledHarvestBean extends AbstractScheduledHarvestBean<Harvester
     public boolean canRun(PromatHarvesterConfig config) {
         try {
             final RunSchedule runSchedule = new RunSchedule(config.getContent().getSchedule())
-                    .withTimezone(ZoneId.of(System.getenv("TZ")));
+                    .withTimezone(Constants.ZONE_ID);
             final Date now = new Date();
             return runSchedule.isSatisfiedBy(now, config.getContent().getTimeOfLastHarvest())
                     || runSchedule.isOverdue(now, config.getContent().getTimeOfLastHarvest());

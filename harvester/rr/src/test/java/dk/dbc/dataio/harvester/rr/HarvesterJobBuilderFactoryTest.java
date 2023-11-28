@@ -5,7 +5,8 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.mock;
 
@@ -16,28 +17,28 @@ public class HarvesterJobBuilderFactoryTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final JobSpecification jobSpecificationTemplate = getJobSpecificationTemplate();
 
-    @Test(expected = NullPointerException.class)
-    public void newHarvesterJobBuilder_binaryFileStoreArgIsNull_throws() throws HarvesterException {
+    @Test
+    public void newHarvesterJobBuilder_binaryFileStoreArgIsNull_throws() {
         HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(null, fileStoreServiceConnector, jobStoreServiceConnector);
-        harvesterJobBuilderFactory.newHarvesterJobBuilder(jobSpecificationTemplate);
+        Assertions.assertThrows(NullPointerException.class, () -> harvesterJobBuilderFactory.newHarvesterJobBuilder(jobSpecificationTemplate));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void newHarvesterJobBuilder_fileStoreServiceConnectorArgIsNull_throws() throws HarvesterException {
         HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStore, null, jobStoreServiceConnector);
-        harvesterJobBuilderFactory.newHarvesterJobBuilder(jobSpecificationTemplate);
+        Assertions.assertThrows(NullPointerException.class, () -> harvesterJobBuilderFactory.newHarvesterJobBuilder(jobSpecificationTemplate));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void newHarvesterJobBuilder_jobStoreServiceConnectorArgIsNull_throws() throws HarvesterException {
         HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStore, fileStoreServiceConnector, null);
-        harvesterJobBuilderFactory.newHarvesterJobBuilder(jobSpecificationTemplate);
+        Assertions.assertThrows(NullPointerException.class, () -> harvesterJobBuilderFactory.newHarvesterJobBuilder(jobSpecificationTemplate));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void newHarvesterJobBuilder_jobSpecificationArgIsNull_throws() throws HarvesterException {
         HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector);
-        harvesterJobBuilderFactory.newHarvesterJobBuilder(null);
+        Assertions.assertThrows(NullPointerException.class, () -> harvesterJobBuilderFactory.newHarvesterJobBuilder(null));
     }
 
     private JobSpecification getJobSpecificationTemplate() {

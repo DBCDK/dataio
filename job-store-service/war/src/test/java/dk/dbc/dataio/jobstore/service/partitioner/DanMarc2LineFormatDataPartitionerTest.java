@@ -29,31 +29,31 @@ public class DanMarc2LineFormatDataPartitionerTest {
 
     @Test
     public void specifiedUtf8Encoding_ok() {
-        assertThrows(InvalidEncodingException.class, () -> DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, StandardCharsets.UTF_8.name()));
+         DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, StandardCharsets.UTF_8.name());
     }
 
     @Test
     public void specifiedEncodingIdenticalToActualEncoding_ok() {
         DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, SPECIFIED_ENCODING);
-        assertThrows(InvalidEncodingException.class, dataPartitioner::iterator);
+        dataPartitioner.iterator();
     }
 
     @Test
     public void specifiedEncodingIdenticalToActualEncodingInLowerCase_ok() {
         DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, "LATIN1");
-        assertThrows(InvalidEncodingException.class, dataPartitioner::iterator);
+        dataPartitioner.iterator();
     }
 
     @Test
     public void specifiedEncodingIdenticalToActualEncodingAfterTrim_ok() {
         DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, " latin1 ");
-        assertThrows(InvalidEncodingException.class, dataPartitioner::iterator);
+        dataPartitioner.iterator();
     }
 
     @Test
     public void specifiedEncodingIdenticalToActualEncodingAfterDashReplace_ok() {
         DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, "latin-1");
-        assertThrows(InvalidEncodingException.class, dataPartitioner::iterator);
+        dataPartitioner.iterator();
     }
 
     @Test

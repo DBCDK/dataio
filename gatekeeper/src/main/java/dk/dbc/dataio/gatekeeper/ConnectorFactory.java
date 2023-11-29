@@ -39,7 +39,7 @@ public class ConnectorFactory {
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 8 * 1024);
         client = HttpClient.newClient(config);
         fileStoreServiceConnector = new FileStoreServiceConnector(client, fileStoreServiceEndpoint);
-        jobStoreServiceConnector = new JobStoreServiceConnector(client, jobStoreServiceEndpoint, JMXMetricRegistry.create());
+        jobStoreServiceConnector = new JobStoreServiceConnector(HttpClient.create(client), jobStoreServiceEndpoint, JMXMetricRegistry.create());
     }
 
     public FileStoreServiceConnector getFileStoreServiceConnector() {

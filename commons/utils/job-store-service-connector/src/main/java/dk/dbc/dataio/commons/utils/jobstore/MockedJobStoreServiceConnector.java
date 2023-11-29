@@ -3,7 +3,6 @@ package dk.dbc.dataio.commons.utils.jobstore;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.httpclient.HttpClient;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -19,7 +18,7 @@ public class MockedJobStoreServiceConnector extends JobStoreServiceConnector {
     public Queue<Chunk> chunks;
 
     public MockedJobStoreServiceConnector() throws NullPointerException, IllegalArgumentException {
-        super(HttpClient.newClient(), "baseurl", null);
+        super("baseurl", null);
         jobInputStreams = new LinkedList<>();
         jobInfoSnapshots = new LinkedList<>();
         chunks = new LinkedList<>();

@@ -91,7 +91,7 @@ pipeline {
             }
             steps {
                 sh """
-                mvn install -T 1 -B -Dmaven.test.skip=true -Pdocker-push
+                mvn install -T 3 -B -Dmaven.test.skip=true -Pdocker-push
                 mvn deploy -T 6 -B -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}" -am
             """
             }

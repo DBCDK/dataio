@@ -49,7 +49,7 @@ public class HarvestOperation {
 
     static int MAX_NUMBER_OF_TASKS = 10;
 
-    private final PeriodicJobsHarvesterConfig config;
+    protected PeriodicJobsHarvesterConfig config;
     private final BinaryFileStore binaryFileStore;
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
@@ -105,22 +105,24 @@ public class HarvestOperation {
      * @throws HarvesterException on failure to complete harvest operation
      */
     public int execute() throws HarvesterException {
-        final BinaryFile searchResultFile = getTmpFileForSearchResult();
-        final List<String> queries = getQueries();
+        BinaryFile searchResultFile = getTmpFileForSearchResult();
+        return execute(searchAndPersist(searchResultFile));
+    }
 
+    protected BinaryFile searchAndPersist(BinaryFile searchResultFile) throws HarvesterException {
         try (RecordSearcher recordSearcher = createRecordSearcher()) {
-            for (String queryString : queries) {
-                final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(this::catalogueCodeToWeekCode)
+            for (String queryString : getQueries()) {
+                MacroSubstitutor macroSubstitutor = new MacroSubstitutor(this::catalogueCodeToWeekCode)
                         .addUTC("__TIME_OF_LAST_HARVEST__", config.getContent().getTimeOfLastHarvest());
-                final String query = macroSubstitutor.replace(queryString);
-                LOGGER.info("Executing Solr query: {}", query);
-                final long numberOfDocsFound = recordSearcher.search(
+                String query = macroSubstitutor.replace(queryString);
+                LOGGER.info("Executing Solr query (rawrepo): {}", query);
+                long numberOfDocsFound = recordSearcher.search(
                         config.getContent().getCollection(), query, searchResultFile);
                 LOGGER.info("Solr query found {} documents", numberOfDocsFound);
                 this.timeOfSearch = macroSubstitutor.getNow();
             }
         }
-        return execute(searchResultFile);
+        return searchResultFile;
     }
 
     /**
@@ -131,17 +133,17 @@ public class HarvestOperation {
      */
     public String validateQuery() throws HarvesterException {
         String status;
-        final StringBuilder result = new StringBuilder();
+        StringBuilder result = new StringBuilder();
         result.append("Solr søgning: ")
                 .append("\n");
-        final List<String> queries = getQueries();
+        List<String> queries = getQueries();
         int numberOfResultsTotal = 0;
 
         try (RecordSearcher recordSearcher = createRecordSearcher()) {
             for (String queryString : queries) {
-                final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(this::catalogueCodeToWeekCode)
+                MacroSubstitutor macroSubstitutor = new MacroSubstitutor(this::catalogueCodeToWeekCode)
                         .addUTC("__TIME_OF_LAST_HARVEST__", config.getContent().getTimeOfLastHarvest());
-                final String query = macroSubstitutor.replace(queryString);
+                String query = macroSubstitutor.replace(queryString);
                 result.append(query)
                         .append("\n");
                 numberOfResultsTotal += recordSearcher.validate(
@@ -159,15 +161,15 @@ public class HarvestOperation {
             result.append(e.getMessage());
         }
 
-        return status + result.toString();
+        return status + result;
     }
 
-    private List<String> getQueries() throws HarvesterException {
-        final List<String> queries = new ArrayList<>();
+    protected List<String> getQueries() throws HarvesterException {
+        List<String> queries = new ArrayList<>();
 
         if (config.getContent().getQueryFileId() != null) {
             LOGGER.info("Found FileStore id {} so using file", config.getContent().getQueryFileId());
-            final String fileId = config.getContent().getQueryFileId();
+            String fileId = config.getContent().getQueryFileId();
             try (InputStream queryFileInputStream = fileStoreServiceConnector.getFile(fileId);
                  BufferedReader reader = new BufferedReader(new InputStreamReader(queryFileInputStream))) {
                 String line;
@@ -202,14 +204,14 @@ public class HarvestOperation {
         try (RecordIdFile recordIdFile = new RecordIdFile(recordIds);
              JobBuilder jobBuilder = createJobBuilder()) {
             recordServiceConnector = createRecordServiceConnector();
-            final Iterator<RecordIdDTO> recordIdsIterator = recordIdFile.iterator();
+            Iterator<RecordIdDTO> recordIdsIterator = recordIdFile.iterator();
             if (recordIdsIterator.hasNext()) {
                 List<RecordFetcher> fetchRecordTasks;
                 do {
                     fetchRecordTasks = getNextTasks(recordIdsIterator, recordServiceConnector, MAX_NUMBER_OF_TASKS);
-                    final List<Future<AddiRecord>> addiRecords = executor.invokeAll(fetchRecordTasks);
+                    List<Future<AddiRecord>> addiRecords = executor.invokeAll(fetchRecordTasks);
                     for (Future<AddiRecord> addiRecordFuture : addiRecords) {
-                        final AddiRecord addiRecord = addiRecordFuture.get();
+                        AddiRecord addiRecord = addiRecordFuture.get();
                         if (addiRecord != null) {
                             jobBuilder.addRecord(addiRecordFuture.get());
                         }
@@ -244,7 +246,7 @@ public class HarvestOperation {
 
     RecordSearcher createRecordSearcher() throws HarvesterException {
         try {
-            final String solrZkHost = rawRepoConnector.getSolrZkHost();
+            String solrZkHost = rawRepoConnector.getSolrZkHost();
             LOGGER.info("Using Solr zookeeper host: {}", solrZkHost);
             return new RecordSearcher(solrZkHost);
         } catch (QueueException | SQLException | ConfigurationException e) {
@@ -254,7 +256,7 @@ public class HarvestOperation {
 
     RecordServiceConnector createRecordServiceConnector() throws HarvesterException {
         try {
-            final String recordServiceUrl = rawRepoConnector.getRecordServiceUrl();
+            String recordServiceUrl = rawRepoConnector.getRecordServiceUrl();
             LOGGER.info("Using record service URL: {}", recordServiceUrl);
             return RecordServiceConnectorFactory.create(recordServiceUrl);
         } catch (SQLException | QueueException | ConfigurationException e) {
@@ -268,15 +270,15 @@ public class HarvestOperation {
     }
 
     void createEmptyJob(JobBuilder jobBuilder) throws JobStoreServiceConnectorException {
-        final JobSpecification jobSpecification = jobBuilder.createJobSpecification(
+        JobSpecification jobSpecification = jobBuilder.createJobSpecification(
                 FileStoreUrn.EMPTY_JOB_FILE.getFileId());
-        final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addEmptyJob(
+        JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addEmptyJob(
                 new JobInputStream(jobSpecification, true, 0));
         LOGGER.info("Created empty job in job-store with ID {}", jobInfoSnapshot.getJobId());
     }
 
-    private BinaryFile getTmpFileForSearchResult() {
-        final BinaryFile binaryFile = binaryFileStore.getBinaryFile(
+    protected BinaryFile getTmpFileForSearchResult() {
+        BinaryFile binaryFile = binaryFileStore.getBinaryFile(
                 Paths.get(config.getId() + ".record-ids.txt"));
         if (binaryFile.exists()) {
             binaryFile.delete();
@@ -286,9 +288,9 @@ public class HarvestOperation {
 
     private List<RecordFetcher> getNextTasks(Iterator<RecordIdDTO> recordIdsIterator,
                                              RecordServiceConnector recordServiceConnector, int maxNumberOfTasks) {
-        final List<RecordFetcher> tasks = new ArrayList<>(maxNumberOfTasks);
+        List<RecordFetcher> tasks = new ArrayList<>(maxNumberOfTasks);
         while (recordIdsIterator.hasNext() && tasks.size() < maxNumberOfTasks) {
-            final RecordIdDTO recordId = recordIdsIterator.next();
+            RecordIdDTO recordId = recordIdsIterator.next();
             if (recordId != null) {
                 tasks.add(getRecordFetcher(recordId, recordServiceConnector, config));
             }

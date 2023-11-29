@@ -18,6 +18,7 @@ import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -25,7 +26,7 @@ import java.util.concurrent.ExecutorService;
  * Specialized harvest operation for only records which doesn't have holdings
  */
 public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
-    private final HoldingsItemsConnector holdingsItemsConnector;
+    protected HoldingsItemsConnector holdingsItemsConnector;
 
     public RecordsWithoutHoldingsHarvestOperation(PeriodicJobsHarvesterConfig config,
                                                   BinaryFileStore binaryFileStore,
@@ -60,6 +61,35 @@ public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
     }
 
     @Override
+    public String validateQuery() throws HarvesterException {
+        int found = 0;
+        try (RecordIdFile recordIdFile = new RecordIdFile(searchAndPersist(getTmpFileForSearchResult()))) {
+            Iterator<RecordIdDTO> recordIdDTOIterator = recordIdFile.iterator();
+            if (recordIdDTOIterator.hasNext()) {
+                do {
+                    RecordIdDTO recordIdDTO = recordIdDTOIterator.next();
+                    found = validateAndIncrement(recordIdDTO, found);
+
+                } while (recordIdDTOIterator.hasNext());
+            }
+        }
+        return String.format("Found %d record by combined rawrepo solr search and holdingssolr search.", found);
+    }
+
+    private int validateAndIncrement(RecordIdDTO recordIdDTO, int foundSoFar) {
+        if (recordIdDTO == null) return foundSoFar;
+        int submitter = Integer.parseInt(config.getContent().getSubmitterNumber());
+        boolean found = holdingsItemsConnector.hasAnyHoldings(recordIdDTO.getBibliographicRecordId(), Set.of(submitter));
+        if (found && config.getContent().getHoldingsFilter() == PeriodicJobsHarvesterConfig.HoldingsFilter.WITH_HOLDINGS) {
+            return ++foundSoFar;
+        }
+        if (!found && config.getContent().getHoldingsFilter() == PeriodicJobsHarvesterConfig.HoldingsFilter.WITHOUT_HOLDINGS) {
+            return ++foundSoFar;
+        }
+        return foundSoFar;
+    }
+
+    @Override
     RecordFetcher getRecordFetcher(RecordIdDTO recordId, RecordServiceConnector recordServiceConnector,
                                    PeriodicJobsHarvesterConfig config) {
         return new RecordFetcher(recordId, recordServiceConnector, holdingsItemsConnector, config);
@@ -77,23 +107,24 @@ public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
             this.holdingsItemsConnector = holdingsItemsConnector;
         }
 
+
         @Override
         public AddiRecord call() throws HarvesterException {
             final AddiMetaData addiMetaData = new AddiMetaData()
                     .withBibliographicRecordId(recordId.getBibliographicRecordId());
             try {
-                final Set<Integer> agenciesWithHoldings = holdingsItemsConnector
-                        .hasHoldings(recordId.getBibliographicRecordId(), Set.of(870970));
+                int submitter = Integer.parseInt(config.getContent().getSubmitterNumber());
+                boolean hasHoldings = holdingsItemsConnector.hasAnyHoldings(recordId.getBibliographicRecordId(), Set.of(submitter));
 
-                // If zero is returned and WITH_HOLDINGS is specified no job is created
+                // If there are no holdings and WITH_HOLDINGS filter is specified, no addirecord is created
                 if (config.getContent().getHoldingsFilter() == PeriodicJobsHarvesterConfig.HoldingsFilter.WITH_HOLDINGS &&
-                        agenciesWithHoldings.isEmpty()) {
+                        !hasHoldings) {
                     return null;
                 }
 
-                // If zero is returned and WITHOUT_HOLDINGS is specified job is created
+                // If there are holdings and WITHOUT_HOLDINGS filter is specified, no addirecord  is created
                 if (config.getContent().getHoldingsFilter() == PeriodicJobsHarvesterConfig.HoldingsFilter.WITHOUT_HOLDINGS &&
-                        !agenciesWithHoldings.isEmpty()) {
+                        hasHoldings) {
                     return null;
                 }
 

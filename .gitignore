@@ -1,12 +1,12 @@
 # git ls-files --others --exclude-from=.git/info/exclude
 # Lines that start with '#' are comments.
+*.env
 *.log
 *.swp
 *.iml
 *.pyc
 .idea
 target
-**/.env
 # jenv
 .java-version
 **/.iml

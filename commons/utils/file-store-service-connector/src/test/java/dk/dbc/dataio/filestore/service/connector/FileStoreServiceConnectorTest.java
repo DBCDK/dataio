@@ -9,7 +9,8 @@ import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.core.Response;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 
@@ -17,7 +18,6 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -67,7 +67,7 @@ public class FileStoreServiceConnectorTest {
 
         try {
             fileStoreServiceConnector.addFile(is);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
             assertThat(e.getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
         }
@@ -80,7 +80,7 @@ public class FileStoreServiceConnectorTest {
 
         try {
             fileStoreServiceConnector.addFile(is);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (FileStoreServiceConnectorException e) {
             assertThat(e instanceof FileStoreServiceConnectorUnexpectedStatusCodeException, is(false));
         }
@@ -114,7 +114,7 @@ public class FileStoreServiceConnectorTest {
 
         try {
             fileStoreServiceConnector.getFile(FILE_ID);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
             assertThat(e.getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
         }
@@ -127,7 +127,7 @@ public class FileStoreServiceConnectorTest {
 
         try {
             fileStoreServiceConnector.getFile(FILE_ID);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (FileStoreServiceConnectorException e) {
             assertThat(e instanceof FileStoreServiceConnectorUnexpectedStatusCodeException, is(false));
         }
@@ -166,7 +166,7 @@ public class FileStoreServiceConnectorTest {
 
         try {
             fileStoreServiceConnector.deleteFile(FILE_ID);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
             assertThat(e.getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
         }
@@ -197,7 +197,7 @@ public class FileStoreServiceConnectorTest {
 
         try {
             fileStoreServiceConnector.getByteSize(FILE_ID);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
             assertThat(e.getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
         }
@@ -210,7 +210,7 @@ public class FileStoreServiceConnectorTest {
 
         try {
             fileStoreServiceConnector.getByteSize(FILE_ID);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (FileStoreServiceConnectorException e) {
             assertThat(e instanceof FileStoreServiceConnectorUnexpectedStatusCodeException, is(false));
         }

@@ -3,7 +3,6 @@ package dk.dbc.dataio.harvester.connector.ejb;
 import dk.dbc.dataio.harvester.connector.TickleHarvesterServiceConnector;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
 import dk.dbc.httpclient.HttpClient;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Singleton;
@@ -20,15 +19,16 @@ import org.slf4j.LoggerFactory;
 public class TickleHarvesterServiceConnectorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(TickleHarvesterServiceConnectorBean.class);
 
-    TickleHarvesterServiceConnector connector;
+    private final TickleHarvesterServiceConnector connector;
 
-    @PostConstruct
-    public void initializeConnector() {
-        final Client client = HttpClient.newClient(new ClientConfig()
-                .register(new JacksonFeature()));
-        final String endpoint = System.getenv("TICKLE_REPO_HARVESTER_URL");
-        connector = new TickleHarvesterServiceConnector(client, endpoint);
-        LOGGER.info("Using service endpoint {}", endpoint);
+    public TickleHarvesterServiceConnectorBean() {
+        this(System.getenv("TICKLE_REPO_HARVESTER_URL"));
+    }
+
+    public TickleHarvesterServiceConnectorBean(String tickleRepoHarvesterUrl) {
+        Client client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
+        connector = new TickleHarvesterServiceConnector(client, tickleRepoHarvesterUrl);
+        LOGGER.info("Using service endpoint {}", tickleRepoHarvesterUrl);
     }
 
     public HarvesterTaskServiceConnector getConnector() {

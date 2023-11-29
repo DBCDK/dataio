@@ -32,7 +32,8 @@ import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.core.Response;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.Date;
@@ -43,7 +44,7 @@ import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -72,7 +73,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addJob_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
-        final JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
+        JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
         try {
             callAddJobWithMockedHttpResponse(getNewJobInputStream(), Response.Status.BAD_REQUEST, jobError);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -83,28 +84,23 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addJob_onProcessingException_throws() {
-        final JobInputStream jobInputStream = getNewJobInputStream();
+        JobInputStream jobInputStream = getNewJobInputStream();
         when(httpClient.execute(any(HttpPost.class)))
                 .thenThrow(new ProcessingException("Connection reset"));
-
-        try {
-            jobStoreServiceConnector.addJob(jobInputStream);
-            fail("No exception thrown");
-        } catch (JobStoreServiceConnectorException e) {
-        }
+        assertThrows(JobStoreServiceConnectorException.class, () -> jobStoreServiceConnector.addJob(jobInputStream));
     }
 
     @Test
     public void addJob_jobIsAdded_returnsJobInfoSnapshot() throws JobStoreServiceConnectorException {
-        final JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshot();
-        final JobInfoSnapshot jobInfoSnapshot = callAddJobWithMockedHttpResponse(getNewJobInputStream(), Response.Status.CREATED, expectedJobInfoSnapshot);
+        JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshot();
+        JobInfoSnapshot jobInfoSnapshot = callAddJobWithMockedHttpResponse(getNewJobInputStream(), Response.Status.CREATED, expectedJobInfoSnapshot);
         assertThat(jobInfoSnapshot, is(expectedJobInfoSnapshot));
     }
 
     private JobInfoSnapshot callAddJobWithMockedHttpResponse(JobInputStream jobInputStream, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
 
-        final HttpPost httpPost = new HttpPost(httpClient)
+        HttpPost httpPost = new HttpPost(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(JobStoreServiceConstants.JOB_COLLECTION)
                 .withJsonData(jobInputStream);
@@ -125,7 +121,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addAccTestJob_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
-        final JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
+        JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
         try {
             callAddAccTestJobWithMockedHttpResponse(getNewAccTestJobInputStream(), Response.Status.BAD_REQUEST, jobError);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -136,28 +132,23 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addAccTestJob_onProcessingException_throws() {
-        final AccTestJobInputStream jobInputStream = getNewAccTestJobInputStream();
+        AccTestJobInputStream jobInputStream = getNewAccTestJobInputStream();
         when(httpClient.execute(any(HttpPost.class)))
                 .thenThrow(new ProcessingException("Connection reset"));
-
-        try {
-            jobStoreServiceConnector.addAccTestJob(jobInputStream);
-            fail("No exception thrown");
-        } catch (JobStoreServiceConnectorException e) {
-        }
+        assertThrows(JobStoreServiceConnectorException.class, () -> jobStoreServiceConnector.addAccTestJob(jobInputStream));
     }
 
     @Test
     public void addAccTestJob_jobIsAdded_returnsJobInfoSnapshot() throws JobStoreServiceConnectorException {
-        final JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshot();
-        final JobInfoSnapshot jobInfoSnapshot = callAddAccTestJobWithMockedHttpResponse(getNewAccTestJobInputStream(), Response.Status.CREATED, expectedJobInfoSnapshot);
+        JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshot();
+        JobInfoSnapshot jobInfoSnapshot = callAddAccTestJobWithMockedHttpResponse(getNewAccTestJobInputStream(), Response.Status.CREATED, expectedJobInfoSnapshot);
         assertThat(jobInfoSnapshot, is(expectedJobInfoSnapshot));
     }
 
     private JobInfoSnapshot callAddAccTestJobWithMockedHttpResponse(AccTestJobInputStream jobInputStream, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
 
-        final HttpPost httpPost = new HttpPost(httpClient)
+        HttpPost httpPost = new HttpPost(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(JobStoreServiceConstants.JOB_COLLECTION_ACCTESTS)
                 .withJsonData(jobInputStream);
@@ -172,7 +163,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addEmptyJob_onUnexpectedStatusCode() throws JobStoreServiceConnectorException {
-        final JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
+        JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
         try {
             callAddEmptyJobWithMockedHttpResponse(getNewJobInputStream(), Response.Status.BAD_REQUEST, jobError);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -185,20 +176,16 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addEmptyJob_onProcessingException() {
-        final JobInputStream jobInputStream = getNewJobInputStream();
+        JobInputStream jobInputStream = getNewJobInputStream();
         when(httpClient.execute(any(HttpPost.class)))
                 .thenThrow(new ProcessingException("Connection reset"));
-        try {
-            jobStoreServiceConnector.addEmptyJob(jobInputStream);
-            fail("No exception thrown");
-        } catch (JobStoreServiceConnectorException e) {
-        }
+        assertThrows(JobStoreServiceConnectorException.class, () -> jobStoreServiceConnector.addEmptyJob(jobInputStream));
     }
 
     @Test
     public void addEmptyJob() throws JobStoreServiceConnectorException {
-        final JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshot();
-        final JobInfoSnapshot jobInfoSnapshot = callAddEmptyJobWithMockedHttpResponse(
+        JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshot();
+        JobInfoSnapshot jobInfoSnapshot = callAddEmptyJobWithMockedHttpResponse(
                 getNewJobInputStream(), Response.Status.CREATED, expectedJobInfoSnapshot);
         assertThat(jobInfoSnapshot, is(expectedJobInfoSnapshot));
     }
@@ -206,7 +193,7 @@ public class JobStoreServiceConnectorTest {
     private JobInfoSnapshot callAddEmptyJobWithMockedHttpResponse(JobInputStream jobInputStream,
                                                                   Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
-        final HttpPost httpPost = new HttpPost(httpClient)
+        HttpPost httpPost = new HttpPost(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(JobStoreServiceConstants.JOB_COLLECTION_EMPTY)
                 .withJsonData(jobInputStream);
@@ -221,15 +208,15 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunk_chunkTypePartitioned_throws() throws JobStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).build();
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).build();
         assertThat(() -> jobStoreServiceConnector.addChunk(chunk, JOB_ID, CHUNK_ID), isThrowing(IllegalArgumentException.class));
     }
 
     @Test
     public void addChunk_chunkTypeProcessed_chunkIsAdded() throws JobStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
-        final JobInfoSnapshot expected = new JobInfoSnapshot().withJobId(JOB_ID);
-        final JobInfoSnapshot jobInfoSnapshot = callAddChunkWithMockedHttpResponse(
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
+        JobInfoSnapshot expected = new JobInfoSnapshot().withJobId(JOB_ID);
+        JobInfoSnapshot jobInfoSnapshot = callAddChunkWithMockedHttpResponse(
                 chunk, Response.Status.CREATED, expected);
 
         assertThat(jobInfoSnapshot, is(expected));
@@ -237,9 +224,9 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunk_chunkTypeDelivering_chunkIsAdded() throws JobStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.DELIVERED).build();
-        final JobInfoSnapshot expected = new JobInfoSnapshot().withJobId(JOB_ID);
-        final JobInfoSnapshot jobInfoSnapshot = callAddChunkWithMockedHttpResponse(
+        Chunk chunk = new ChunkBuilder(Chunk.Type.DELIVERED).build();
+        JobInfoSnapshot expected = new JobInfoSnapshot().withJobId(JOB_ID);
+        JobInfoSnapshot jobInfoSnapshot = callAddChunkWithMockedHttpResponse(
                 chunk, Response.Status.CREATED, expected);
 
         assertThat(jobInfoSnapshot, is(expected));
@@ -247,8 +234,8 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunk_badRequestResponse_throws() throws JobStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
-        final JobError jobError = new JobError(JobError.Code.INVALID_CHUNK_IDENTIFIER, "description", null);
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
+        JobError jobError = new JobError(JobError.Code.INVALID_CHUNK_IDENTIFIER, "description", null);
         try {
             callAddChunkWithMockedHttpResponse(chunk, Response.Status.BAD_REQUEST, jobError);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -260,7 +247,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunk_acceptedRequestResponse_throws() throws JobStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
         try {
             callAddChunkWithMockedHttpResponse(chunk, Response.Status.ACCEPTED, null);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -270,16 +257,16 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunk_responseWithNullValuedEntity_throws() throws JobStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.DELIVERED).build();
+        Chunk chunk = new ChunkBuilder(Chunk.Type.DELIVERED).build();
         assertThat(() -> callAddChunkWithMockedHttpResponse(chunk, Response.Status.INTERNAL_SERVER_ERROR, null),
                 isThrowing(JobStoreServiceConnectorException.class));
     }
 
     private JobInfoSnapshot callAddChunkWithMockedHttpResponse(Chunk chunk, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
-        final String[] path = buildAddChunkPath(chunk.getJobId(), chunk.getChunkId(), getAddChunkBasePath(chunk));
+        String[] path = buildAddChunkPath(chunk.getJobId(), chunk.getChunkId(), getAddChunkBasePath(chunk));
 
-        final HttpPost httpPost = new HttpPost(httpClient)
+        HttpPost httpPost = new HttpPost(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(path)
                 .withJsonData(chunk);
@@ -294,15 +281,15 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunkIgnoreDuplicates_chunkTypePartitioned_throws() throws JobStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).build();
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).build();
         assertThat(() -> jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, JOB_ID, CHUNK_ID), isThrowing(IllegalArgumentException.class));
     }
 
     @Test
     public void addChunkIgnoreDuplicates_acceptedRequestResponse_lookupJobInfoSnapshot() throws JobStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
-        final JobInfoSnapshot expected = new JobInfoSnapshot().withJobId(JOB_ID);
-        final JobInfoSnapshot jobInfoSnapshot = callAddChunkIgnoreDuplicatesWithMockedHttpResponse(
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
+        JobInfoSnapshot expected = new JobInfoSnapshot().withJobId(JOB_ID);
+        JobInfoSnapshot jobInfoSnapshot = callAddChunkIgnoreDuplicatesWithMockedHttpResponse(
                 chunk, Response.Status.ACCEPTED, expected);
 
         assertThat(jobInfoSnapshot, is(expected));
@@ -310,8 +297,8 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunkIgnoreDuplicates_badRequestResponse_throws() throws JobStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
-        final JobError jobError = new JobError(JobError.Code.INVALID_CHUNK_IDENTIFIER, "description", null);
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
+        JobError jobError = new JobError(JobError.Code.INVALID_CHUNK_IDENTIFIER, "description", null);
         try {
             callAddChunkIgnoreDuplicatesWithMockedHttpResponse(chunk, Response.Status.BAD_REQUEST, jobError);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -323,9 +310,9 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunkIgnoreDuplicates_noneDuplicateChunk_chunkIsAdded() throws JobStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
-        final JobInfoSnapshot expected = new JobInfoSnapshot().withJobId(JOB_ID);
-        final JobInfoSnapshot jobInfoSnapshot = callAddChunkIgnoreDuplicatesWithMockedHttpResponse(
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
+        JobInfoSnapshot expected = new JobInfoSnapshot().withJobId(JOB_ID);
+        JobInfoSnapshot jobInfoSnapshot = callAddChunkIgnoreDuplicatesWithMockedHttpResponse(
                 chunk, Response.Status.CREATED, expected);
 
         assertThat(jobInfoSnapshot, is(expected));
@@ -357,21 +344,21 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void listJobs_serviceReturnsEmptyListEntity_returnsEmptyList() throws JobStoreServiceConnectorException {
-        final List<JobInfoSnapshot> snapshots = callListJobsWithMockedHttpResponse(new JobListCriteria(), Response.Status.OK, Collections.emptyList());
+        List<JobInfoSnapshot> snapshots = callListJobsWithMockedHttpResponse(new JobListCriteria(), Response.Status.OK, Collections.emptyList());
         assertThat(snapshots, is(Collections.emptyList()));
     }
 
     @Test
     public void listJobs_serviceReturnsNonEmptyListEntity_returnsNonEmptyList() throws JobStoreServiceConnectorException {
-        final List<JobInfoSnapshot> expected = Collections.singletonList(new JobInfoSnapshot());
-        final List<JobInfoSnapshot> snapshots = callListJobsWithMockedHttpResponse(new JobListCriteria(), Response.Status.OK, expected);
+        List<JobInfoSnapshot> expected = Collections.singletonList(new JobInfoSnapshot());
+        List<JobInfoSnapshot> snapshots = callListJobsWithMockedHttpResponse(new JobListCriteria(), Response.Status.OK, expected);
         assertThat(snapshots, is(expected));
     }
 
     private List<JobInfoSnapshot> callListJobsWithMockedHttpResponse(JobListCriteria criteria, Response.Status statusCode, List<JobInfoSnapshot> responseEntity)
             throws JobStoreServiceConnectorException {
 
-        final HttpPost httpPost = new HttpPost(httpClient)
+        HttpPost httpPost = new HttpPost(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(JobStoreServiceConstants.JOB_COLLECTION_SEARCHES)
                 .withJsonData(criteria);
@@ -398,21 +385,21 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void listItems_serviceReturnsEmptyListEntity_returnsEmptyList() throws JobStoreServiceConnectorException {
-        final List<ItemInfoSnapshot> snapshots = callListItemsWithMockedHttpResponse(new ItemListCriteria(), Response.Status.OK, Collections.emptyList());
+        List<ItemInfoSnapshot> snapshots = callListItemsWithMockedHttpResponse(new ItemListCriteria(), Response.Status.OK, Collections.emptyList());
         assertThat(snapshots, is(Collections.emptyList()));
     }
 
     @Test
     public void listItems_serviceReturnsNonEmptyListEntity_returnsNonEmptyList() throws JobStoreServiceConnectorException {
-        final List<ItemInfoSnapshot> expected = Collections.singletonList(new ItemInfoSnapshotBuilder().build());
-        final List<ItemInfoSnapshot> snapshots = callListItemsWithMockedHttpResponse(new ItemListCriteria(), Response.Status.OK, expected);
+        List<ItemInfoSnapshot> expected = Collections.singletonList(new ItemInfoSnapshotBuilder().build());
+        List<ItemInfoSnapshot> snapshots = callListItemsWithMockedHttpResponse(new ItemListCriteria(), Response.Status.OK, expected);
         assertThat(snapshots, is(expected));
     }
 
     private List<ItemInfoSnapshot> callListItemsWithMockedHttpResponse(ItemListCriteria criteria, Response.Status statusCode, List<ItemInfoSnapshot> responseEntity)
             throws JobStoreServiceConnectorException {
 
-        final HttpPost httpPost = new HttpPost(httpClient)
+        HttpPost httpPost = new HttpPost(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES)
                 .withJsonData(criteria);
@@ -428,9 +415,9 @@ public class JobStoreServiceConnectorTest {
     @Test
     public void countJobs_parseNumber() throws Exception {
         final long expected = 123;
-        final JobListCriteria criteria = new JobListCriteria();
+        JobListCriteria criteria = new JobListCriteria();
 
-        final HttpPost httpPost = new HttpPost(httpClient)
+        HttpPost httpPost = new HttpPost(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(JobStoreServiceConstants.JOB_COLLECTION_SEARCHES_COUNT)
                 .withJsonData(criteria);
@@ -438,16 +425,16 @@ public class JobStoreServiceConnectorTest {
         when(httpClient.execute(httpPost))
                 .thenReturn(new MockedResponse<>(200, expected));
 
-        final long count = jobStoreServiceConnector.countJobs(criteria);
+        long count = jobStoreServiceConnector.countJobs(criteria);
         assertThat(count, is(expected));
     }
 
     @Test
     public void countItems_parseNumber() throws Exception {
         final long expected = 123;
-        final ItemListCriteria criteria = new ItemListCriteria();
+        ItemListCriteria criteria = new ItemListCriteria();
 
-        final HttpPost httpPost = new HttpPost(httpClient)
+        HttpPost httpPost = new HttpPost(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES_COUNT)
                 .withJsonData(criteria);
@@ -455,7 +442,7 @@ public class JobStoreServiceConnectorTest {
         when(httpClient.execute(httpPost))
                 .thenReturn(new MockedResponse<>(200, expected));
 
-        final long count = jobStoreServiceConnector.countItems(criteria);
+        long count = jobStoreServiceConnector.countItems(criteria);
         assertThat(count, is(expected));
     }
 
@@ -469,17 +456,17 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void getCachedFlow_jobEntityFound_returns() throws JobStoreServiceConnectorException {
-        final Flow expected = new FlowBuilder().build();
-        final Flow flow = callGetCachedFlowWithMockedHttpResponse(JOB_ID, Response.Status.OK, expected);
+        Flow expected = new FlowBuilder().build();
+        Flow flow = callGetCachedFlowWithMockedHttpResponse(JOB_ID, Response.Status.OK, expected);
         assertThat("Flow", flow, is(expected));
     }
 
     private Flow callGetCachedFlowWithMockedHttpResponse(int jobId, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CACHED_FLOW)
+        PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CACHED_FLOW)
                 .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
 
-        final HttpGet httpGet = new HttpGet(httpClient)
+        HttpGet httpGet = new HttpGet(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(path.build());
 
@@ -505,7 +492,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void getChunkItem_partitioningPhase_partitionedDataReturned() throws JobStoreServiceConnectorException {
-        final ChunkItem chunkItem = callGetChunkItemWithMockedHttpResponse(
+        ChunkItem chunkItem = callGetChunkItemWithMockedHttpResponse(
                 JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING, Response.Status.OK, CHUNK_ITEM);
 
         assertThat(chunkItem, is(CHUNK_ITEM));
@@ -513,7 +500,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void getChunkItem_processingPhase_processedDataReturned() throws JobStoreServiceConnectorException {
-        final ChunkItem chunkItem = callGetChunkItemWithMockedHttpResponse(
+        ChunkItem chunkItem = callGetChunkItemWithMockedHttpResponse(
                 JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING, Response.Status.OK, CHUNK_ITEM);
 
         assertThat(chunkItem, is(CHUNK_ITEM));
@@ -521,7 +508,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void getChunkItem_deliveredPhase_deliveredDataReturned() throws JobStoreServiceConnectorException {
-        final ChunkItem chunkItem = callGetChunkItemWithMockedHttpResponse(
+        ChunkItem chunkItem = callGetChunkItemWithMockedHttpResponse(
                 JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.DELIVERING, Response.Status.OK, CHUNK_ITEM);
 
         assertThat(chunkItem, is(CHUNK_ITEM));
@@ -529,7 +516,7 @@ public class JobStoreServiceConnectorTest {
 
     private ChunkItem callGetChunkItemWithMockedHttpResponse(int jobId, int chunkId, short itemId, State.Phase phase, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
-        final String basePath;
+        String basePath;
         switch (phase) {
             case PARTITIONING:
                 basePath = JobStoreServiceConstants.CHUNK_ITEM_PARTITIONED;
@@ -544,7 +531,7 @@ public class JobStoreServiceConnectorTest {
                 basePath = "";
         }
 
-        final HttpGet httpGet = new HttpGet(httpClient)
+        HttpGet httpGet = new HttpGet(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(buildGetChunkItemPath(jobId, chunkId, itemId, basePath));
 
@@ -564,7 +551,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void getProcessedNextResult_itemFound_returnsProcessedNextResult() throws JobStoreServiceConnectorException {
-        final ChunkItem chunkItem = callProcessedNextResultWithMockedHttpResponse(
+        ChunkItem chunkItem = callProcessedNextResultWithMockedHttpResponse(
                 JOB_ID, CHUNK_ID, ITEM_ID, Response.Status.OK, CHUNK_ITEM);
 
         assertThat(chunkItem, is(CHUNK_ITEM));
@@ -573,7 +560,7 @@ public class JobStoreServiceConnectorTest {
     private ChunkItem callProcessedNextResultWithMockedHttpResponse(int jobId, int chunkId, short itemId, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
 
-        final HttpGet httpGet = new HttpGet(httpClient)
+        HttpGet httpGet = new HttpGet(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(buildGetChunkItemPath(jobId, chunkId, itemId, JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT));
 
@@ -599,13 +586,13 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void listJobNotificationsForJob_serviceReturnsEmptyListEntity_returnsEmptyList() throws JobStoreServiceConnectorException {
-        final List<Notification> snapshots = callListJobNotificationForJobIdWithMockedHttpResponse(123, Response.Status.OK, Collections.emptyList());
+        List<Notification> snapshots = callListJobNotificationForJobIdWithMockedHttpResponse(123, Response.Status.OK, Collections.emptyList());
         assertThat(snapshots, is(Collections.emptyList()));
     }
 
     @Test
     public void listJobNotificationsForJob_serviceReturnsNonEmptyListEntity_returnsNonEmptyList() throws JobStoreServiceConnectorException {
-        final Notification jobNotification = new Notification()
+        Notification jobNotification = new Notification()
                 .withId(234)
                 .withTimeOfCreation(new Date())
                 .withTimeOfLastModification(new Date())
@@ -615,17 +602,17 @@ public class JobStoreServiceConnectorTest {
                 .withDestination("destination")
                 .withContent("content")
                 .withJobId(345);
-        final List<Notification> expected = Collections.singletonList(jobNotification);
-        final List<Notification> snapshots = callListJobNotificationForJobIdWithMockedHttpResponse(123, Response.Status.OK, expected);
+        List<Notification> expected = Collections.singletonList(jobNotification);
+        List<Notification> snapshots = callListJobNotificationForJobIdWithMockedHttpResponse(123, Response.Status.OK, expected);
         assertThat(snapshots, is(expected));
     }
 
     private List<Notification> callListJobNotificationForJobIdWithMockedHttpResponse(int jobId, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
 
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_NOTIFICATIONS)
+        PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_NOTIFICATIONS)
                 .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
-        final HttpGet httpGet = new HttpGet(httpClient)
+        HttpGet httpGet = new HttpGet(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(path.build());
 
@@ -651,15 +638,15 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void getSinkStatusList_serviceReturnsNonEmptyListEntity_returnsNonEmptyList() throws JobStoreServiceConnectorException {
-        final List<SinkStatusSnapshot> expected = Collections.singletonList(new SinkStatusSnapshot().withName("name").withSinkType(SinkContent.SinkType.ES).withNumberOfChunks(1).withNumberOfJobs(1));
-        final List<SinkStatusSnapshot> snapshots = callGetSinkStatusListWithMockedHttpResponse(Response.Status.OK, expected);
+        List<SinkStatusSnapshot> expected = Collections.singletonList(new SinkStatusSnapshot().withName("name").withSinkType(SinkContent.SinkType.ES).withNumberOfChunks(1).withNumberOfJobs(1));
+        List<SinkStatusSnapshot> snapshots = callGetSinkStatusListWithMockedHttpResponse(Response.Status.OK, expected);
         assertThat(snapshots, is(expected));
     }
 
     private List<SinkStatusSnapshot> callGetSinkStatusListWithMockedHttpResponse(Response.Status statusCode, List<SinkStatusSnapshot> responseEntity)
             throws JobStoreServiceConnectorException {
 
-        final HttpGet httpGet = new HttpGet(httpClient)
+        HttpGet httpGet = new HttpGet(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(JobStoreServiceConstants.SINKS_STATUS);
 
@@ -673,17 +660,17 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void getSinkStatus_returns() throws JobStoreServiceConnectorException {
-        final SinkStatusSnapshot expected = new SinkStatusSnapshot().withName("name").withSinkType(SinkContent.SinkType.ES);
-        final SinkStatusSnapshot snapshot = callGetSinkStatusWithMockedHttpResponse(1, Response.Status.OK, expected);
+        SinkStatusSnapshot expected = new SinkStatusSnapshot().withName("name").withSinkType(SinkContent.SinkType.ES);
+        SinkStatusSnapshot snapshot = callGetSinkStatusWithMockedHttpResponse(1, Response.Status.OK, expected);
         assertThat(snapshot, is(expected));
     }
 
     private SinkStatusSnapshot callGetSinkStatusWithMockedHttpResponse(int sinkId, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
 
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.SINK_STATUS)
+        PathBuilder path = new PathBuilder(JobStoreServiceConstants.SINK_STATUS)
                 .bind(JobStoreServiceConstants.SINK_ID_VARIABLE, sinkId);
-        final HttpGet httpGet = new HttpGet(httpClient)
+        HttpGet httpGet = new HttpGet(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(path.build());
 
@@ -703,7 +690,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addNotification_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
-        final JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
+        JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
         try {
             callAddNotificationWithMockedHttpResponse(getAddNotificationRequest(), Response.Status.BAD_REQUEST, jobError);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -715,15 +702,15 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addNotification_notificationIsAdded_returnsJobNotification() throws JobStoreServiceConnectorException {
-        final Notification expected = new Notification();
-        final Notification jobNotification = callAddNotificationWithMockedHttpResponse(getAddNotificationRequest(), Response.Status.OK, expected);
+        Notification expected = new Notification();
+        Notification jobNotification = callAddNotificationWithMockedHttpResponse(getAddNotificationRequest(), Response.Status.OK, expected);
         assertThat(jobNotification, is(expected));
     }
 
     private Notification callAddNotificationWithMockedHttpResponse(AddNotificationRequest request, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
 
-        final HttpPost httpPost = new HttpPost(httpClient)
+        HttpPost httpPost = new HttpPost(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(JobStoreServiceConstants.NOTIFICATIONS)
                 .withJsonData(request);
@@ -744,7 +731,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void setWorkflowNoteOnJob_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
-        final JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
+        JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
         try {
             callSetWorkflowNoteWithMockedHttpResponse(new WorkflowNoteBuilder().build(), JOB_ID, Response.Status.BAD_REQUEST, jobError);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -756,18 +743,18 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void setWorkflowNoteOnJob_workflowNoteIsAdded_returnsJobInfoSnapshot() throws JobStoreServiceConnectorException {
-        final WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
-        final JobInfoSnapshot expected = new JobInfoSnapshot().withWorkflowNote(workflowNote);
-        final JobInfoSnapshot snapshot = callSetWorkflowNoteWithMockedHttpResponse(workflowNote, JOB_ID, Response.Status.OK, expected);
+        WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
+        JobInfoSnapshot expected = new JobInfoSnapshot().withWorkflowNote(workflowNote);
+        JobInfoSnapshot snapshot = callSetWorkflowNoteWithMockedHttpResponse(workflowNote, JOB_ID, Response.Status.OK, expected);
         assertThat(snapshot, is(expected));
     }
 
     private JobInfoSnapshot callSetWorkflowNoteWithMockedHttpResponse(WorkflowNote workflowNote, int jobId, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
 
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_WORKFLOW_NOTE)
+        PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_WORKFLOW_NOTE)
                 .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
-        final HttpPost httpPost = new HttpPost(httpClient)
+        HttpPost httpPost = new HttpPost(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(path.build())
                 .withJsonData(workflowNote);
@@ -789,7 +776,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void setWorkflowNoteOnItem_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
-        final JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
+        JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
         try {
             callSetWorkflowNoteWithMockedHttpResponse(
                     new WorkflowNoteBuilder().build(), JOB_ID, CHUNK_ID, ITEM_ID, Response.Status.BAD_REQUEST, jobError);
@@ -802,9 +789,9 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void setWorkflowNoteOnItem_workflowNoteIsAdded_returnsItemInfoSnapshot() throws JobStoreServiceConnectorException {
-        final WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
-        final ItemInfoSnapshot expected = new ItemInfoSnapshotBuilder().setWorkflowNote(workflowNote).build();
-        final ItemInfoSnapshot snapshot = callSetWorkflowNoteWithMockedHttpResponse(
+        WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
+        ItemInfoSnapshot expected = new ItemInfoSnapshotBuilder().setWorkflowNote(workflowNote).build();
+        ItemInfoSnapshot snapshot = callSetWorkflowNoteWithMockedHttpResponse(
                 workflowNote, JOB_ID, CHUNK_ID, ITEM_ID, Response.Status.OK, expected);
         assertThat(snapshot, is(expected));
     }
@@ -812,12 +799,12 @@ public class JobStoreServiceConnectorTest {
     private ItemInfoSnapshot callSetWorkflowNoteWithMockedHttpResponse(WorkflowNote workflowNote, int jobId, int chunkId, short itemId, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
 
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.ITEM_WORKFLOW_NOTE)
+        PathBuilder path = new PathBuilder(JobStoreServiceConstants.ITEM_WORKFLOW_NOTE)
                 .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId))
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, Long.toString(chunkId))
                 .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, Long.toString(itemId));
 
-        final HttpPost httpPost = new HttpPost(httpClient)
+        HttpPost httpPost = new HttpPost(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(path.build())
                 .withJsonData(workflowNote);
@@ -830,27 +817,27 @@ public class JobStoreServiceConnectorTest {
 
     private static JobInputStream getNewJobInputStream() {
         try {
-            final JobSpecification jobSpecification = new JobSpecification();
+            JobSpecification jobSpecification = new JobSpecification();
             return new JobInputStream(jobSpecification, false, PART_NUMBER);
         } catch (Exception e) {
-            fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
+            Assertions.fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
             throw new IllegalStateException(e);
         }
     }
 
     private static AccTestJobInputStream getNewAccTestJobInputStream() {
         try {
-            final JobSpecification jobSpecification = new JobSpecification();
-            final Flow flow = new FlowBuilder().build();
+            JobSpecification jobSpecification = new JobSpecification();
+            Flow flow = new FlowBuilder().build();
             return new AccTestJobInputStream(jobSpecification, flow, RecordSplitterConstants.RecordSplitter.XML);
         } catch (Exception e) {
-            fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
+            Assertions.fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
             throw new IllegalStateException(e);
         }
     }
 
     private String getAddChunkBasePath(Chunk chunk) {
-        final String basePath;
+        String basePath;
         switch (chunk.getType()) {
             case PROCESSED:
                 basePath = JobStoreServiceConstants.JOB_CHUNK_PROCESSED;
@@ -880,10 +867,10 @@ public class JobStoreServiceConnectorTest {
 
     private static AddNotificationRequest getAddNotificationRequest() {
         try {
-            final InvalidTransfileNotificationContext context = new InvalidTransfileNotificationContext("name", "content", "cause");
+            InvalidTransfileNotificationContext context = new InvalidTransfileNotificationContext("name", "content", "cause");
             return new AddNotificationRequest("mail@company.com", context, Notification.Type.INVALID_TRANSFILE);
         } catch (Exception e) {
-            fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
+            Assertions.fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
             throw new IllegalStateException(e);
         }
     }

@@ -14,12 +14,6 @@
     <artifactId>dataio-harvester-periodic-jobs</artifactId>
     <packaging>war</packaging>
 
-    <properties>
-        <jetty.server.version>9.4.44.v20210927</jetty.server.version>
-        <jetty.http.version>9.4.44.v20210927</jetty.http.version>
-        <jetty.util.version>9.4.44.v20210927</jetty.util.version>
-    </properties>
-
     <dependencies>
 
         <dependency>

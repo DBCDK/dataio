@@ -132,14 +132,107 @@ public class HarvestOperationTest {
         when(autoNomenConnector.getSuggestions(articleThree.getArticleId())).thenReturn(emptySuggestions);
 
         List<AddiMetaData> addiMetadataExpectations = new ArrayList<>();
-        addiMetadataExpectations.add(new AddiMetaData().withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER).withFormat("test-format").withBibliographicRecordId("one").withTrackingId("Infomedia.test.one").withDeleted(false));
-        addiMetadataExpectations.add(new AddiMetaData().withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER).withFormat("test-format").withBibliographicRecordId("two").withTrackingId("Infomedia.test.two").withDeleted(false).withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format("Getting author name suggestions failed for article %s: died", articleTwo.getArticleId()))));
-        addiMetadataExpectations.add(new AddiMetaData().withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER).withFormat("test-format").withBibliographicRecordId("three").withTrackingId("Infomedia.test.three").withDeleted(false));
+        addiMetadataExpectations.add(new AddiMetaData()
+                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
+                .withFormat("test-format").withBibliographicRecordId("one")
+                .withTrackingId("Infomedia.test.one").withDeleted(false));
+        addiMetadataExpectations.add(new AddiMetaData()
+                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
+                .withFormat("test-format")
+                .withBibliographicRecordId("two")
+                .withTrackingId("Infomedia.test.two")
+                .withDeleted(false)
+                .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format("Getting author name suggestions failed for article %s: died", articleTwo.getArticleId()))));
+        addiMetadataExpectations.add(new AddiMetaData()
+                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
+                .withFormat("test-format")
+                .withBibliographicRecordId("three")
+                .withTrackingId("Infomedia.test.three")
+                .withDeleted(false));
 
-        List<Expectation> addiContentExpectations = new ArrayList<>();
-        addiContentExpectations.add(new Expectation("<record>" + "<infomedia>" + "<article>" + "<Heading/>" + "<SubHeading/>" + "<BodyText/>" + "<PublishDate>" + articleOne.getPublishDate() + "</PublishDate>" + "<Authors>" + "<Author>" + articleOne.getAuthors().get(0) + "</Author>" + "<Author>" + articleOne.getAuthors().get(1) + "</Author>" + "</Authors>" + "<ArticleUrl/>" + "<Paragraph/>" + "<Source/>" + "<WordCount/>" + "<ArticleId>one</ArticleId>" + "<Section/>" + "<Lead/>" + "</article>" + "</infomedia>" + "<author-name-suggestions>" + "<author-name-suggestion>" + "<aut-names>" + "<aut-name>" + "<input-name>" + articleOneSuggestions.getAutNames().get(0).getInputName() + "</input-name>" + "<authority>" + articleOneSuggestions.getAutNames().get(0).getAuthority() + "</authority>" + "</aut-name>" + "<aut-name>" + "<input-name>" + articleOneSuggestions.getAutNames().get(1).getInputName() + "</input-name>" + "<authority>" + articleOneSuggestions.getAutNames().get(1).getAuthority() + "</authority>" + "</aut-name>" + "</aut-names>" + "<ner-names>" + "<ner-name>" + "<input-name>" + articleOneSuggestions.getAutNames().get(0).getInputName() + "</input-name>" + "<authority>" + articleOneSuggestions.getAutNames().get(0).getAuthority() + "</authority>" + "</ner-name>" + "<ner-name>" + "<input-name>" + articleOneSuggestions.getAutNames().get(1).getInputName() + "</input-name>" + "<authority>" + articleOneSuggestions.getAutNames().get(1).getAuthority() + "</authority>" + "</ner-name>" + "</ner-names>" + "</author-name-suggestion>" + "</author-name-suggestions>" + "</record>"));
-        addiContentExpectations.add(new Expectation("<record>" + "<infomedia>" + "<article>" + "<Heading/>" + "<SubHeading/>" + "<BodyText/>" + "<PublishDate>" + articleTwo.getPublishDate() + "</PublishDate>" + "<ArticleUrl/>" + "<Paragraph/>" + "<Source/>" + "<WordCount/>" + "<ArticleId>two</ArticleId>" + "<Section/>" + "<Lead/>" + "</article>" + "</infomedia>" + "</record>"));
-        addiContentExpectations.add(new Expectation("<record>" + "<infomedia>" + "<article>" + "<Heading/>" + "<SubHeading/>" + "<BodyText/>" + "<PublishDate>" + articleThree.getPublishDate() + "</PublishDate>" + "<ArticleUrl/>" + "<Paragraph/>" + "<Source/>" + "<WordCount/>" + "<ArticleId>three</ArticleId>" + "<Section/>" + "<Lead/>" + "</article>" + "</infomedia>" + "</record>"));
+        final List<Expectation> addiContentExpectations = new ArrayList<>();
+        addiContentExpectations.add(new Expectation(
+                "<record>" +
+                        "<infomedia>" +
+                        "<article>" +
+                        "<Heading/>" +
+                        "<SubHeading/>" +
+                        "<BodyText/>" +
+                        "<PublishDate>" + articleOne.getPublishDate() + "</PublishDate>" +
+                        "<Authors>" +
+                        "<Author>" + articleOne.getAuthors().get(0) + "</Author>" +
+                        "<Author>" + articleOne.getAuthors().get(1) + "</Author>" +
+                        "</Authors>" +
+                        "<ArticleUrl/>" +
+                        "<Paragraph/>" +
+                        "<Source/>" +
+                        "<WordCount/>" +
+                        "<ArticleId>one</ArticleId>" +
+                        "<Section/>" +
+                        "<Lead/>" +
+                        "</article>" +
+                        "</infomedia>" +
+                        "<author-name-suggestions>" +
+                        "<author-name-suggestion>" +
+                        "<aut-names>" +
+                        "<aut-name>" +
+                        "<input-name>" + articleOneSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
+                        "<authority>" + articleOneSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
+                        "</aut-name>" +
+                        "<aut-name>" +
+                        "<input-name>" + articleOneSuggestions.getAutNames().get(1).getInputName() + "</input-name>" +
+                        "<authority>" + articleOneSuggestions.getAutNames().get(1).getAuthority() + "</authority>" +
+                        "</aut-name>" +
+                        "</aut-names>" +
+                        "<ner-names>" +
+                        "<ner-name>" +
+                        "<input-name>" + articleOneSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
+                        "<authority>" + articleOneSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
+                        "</ner-name>" +
+                        "<ner-name>" +
+                        "<input-name>" + articleOneSuggestions.getAutNames().get(1).getInputName() + "</input-name>" +
+                        "<authority>" + articleOneSuggestions.getAutNames().get(1).getAuthority() + "</authority>" +
+                        "</ner-name>" +
+                        "</ner-names>" +
+                        "</author-name-suggestion>" +
+                        "</author-name-suggestions>" +
+                        "</record>"));
+        addiContentExpectations.add(new Expectation(
+                "<record>" +
+                        "<infomedia>" +
+                        "<article>" +
+                        "<Heading/>" +
+                        "<SubHeading/>" +
+                        "<BodyText/>" +
+                        "<PublishDate>" + articleTwo.getPublishDate() + "</PublishDate>" +
+                        "<ArticleUrl/>" +
+                        "<Paragraph/>" +
+                        "<Source/>" +
+                        "<WordCount/>" +
+                        "<ArticleId>two</ArticleId>" +
+                        "<Section/>" +
+                        "<Lead/>" +
+                        "</article>" +
+                        "</infomedia>" +
+                        "</record>"));
+        addiContentExpectations.add(new Expectation(
+                "<record>" +
+                        "<infomedia>" +
+                        "<article>" +
+                        "<Heading/>" +
+                        "<SubHeading/>" +
+                        "<BodyText/>" +
+                        "<PublishDate>" + articleThree.getPublishDate() + "</PublishDate>" +
+                        "<ArticleUrl/>" +
+                        "<Paragraph/>" +
+                        "<Source/>" +
+                        "<WordCount/>" +
+                        "<ArticleId>three</ArticleId>" +
+                        "<Section/>" +
+                        "<Lead/>" +
+                        "</article>" +
+                        "</infomedia>" +
+                        "</record>"));
 
         createHarvestOperation(config).execute();
 
@@ -195,8 +288,29 @@ public class HarvestOperationTest {
         List<AddiMetaData> addiMetadataExpectations = new ArrayList<>();
         addiMetadataExpectations.add(new AddiMetaData().withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER).withFormat("test-format").withBibliographicRecordId("no-authors").withTrackingId("Infomedia.test.no-authors").withDeleted(false));
 
-        List<Expectation> addiContentExpectations = new ArrayList<>();
-        addiContentExpectations.add(new Expectation("<record>" + "<infomedia>" + "<article>" + "<Heading/>" + "<SubHeading/>" + "<BodyText/>" + "<PublishDate>" + articleNoAuthors.getPublishDate() + "</PublishDate>" + "<Authors>" + "<Author></Author>" + "<Author></Author>" + "</Authors>" + "<ArticleUrl/>" + "<Paragraph/>" + "<Source/>" + "<WordCount/>" + "<ArticleId>no-authors</ArticleId>" + "<Section/>" + "<Lead/>" + "</article>" + "</infomedia>" + "</record>"));
+        final List<Expectation> addiContentExpectations = new ArrayList<>();
+        addiContentExpectations.add(new Expectation(
+                "<record>" +
+                        "<infomedia>" +
+                        "<article>" +
+                        "<Heading/>" +
+                        "<SubHeading/>" +
+                        "<BodyText/>" +
+                        "<PublishDate>" + articleNoAuthors.getPublishDate() + "</PublishDate>" +
+                        "<Authors>" +
+                        "<Author></Author>" +
+                        "<Author></Author>" +
+                        "</Authors>" +
+                        "<ArticleUrl/>" +
+                        "<Paragraph/>" +
+                        "<Source/>" +
+                        "<WordCount/>" +
+                        "<ArticleId>no-authors</ArticleId>" +
+                        "<Section/>" +
+                        "<Lead/>" +
+                        "</article>" +
+                        "</infomedia>" +
+                        "</record>"));
 
         createHarvestOperation(config).execute();
 

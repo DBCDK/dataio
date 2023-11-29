@@ -6,7 +6,7 @@
 *.pyc
 .idea
 target
-
+**/.env
 # jenv
 .java-version
 **/.iml

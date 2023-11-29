@@ -503,11 +503,6 @@
                 <version>${slf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>commons-fileupload</groupId>
-                <artifactId>commons-fileupload</artifactId>
-                <version>1.4</version>
-            </dependency>
-            <dependency>
                 <groupId>javax.json</groupId>
                 <artifactId>javax.json-api</artifactId>
                 <version>1.0</version>

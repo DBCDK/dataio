@@ -178,8 +178,7 @@ public class AbstractHarvesterJobBuilderTest {
     }
 
     @Test
-    public void build_harvesterRecordsAdded_createsJobUsingJobSpecificationTemplate()
-            throws FileStoreServiceConnectorException, HarvesterException, JobStoreServiceConnectorException {
+    public void build_harvesterRecordsAdded_createsJobUsingJobSpecificationTemplate() throws HarvesterException {
         final MockedJobStoreServiceConnector mockedJobStoreServiceConnector = new MockedJobStoreServiceConnector();
         mockedJobStoreServiceConnector.jobInfoSnapshots.add(jobInfoSnapshot);
 

@@ -60,7 +60,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
     @Test
     public void deliver_onNonEmptyJobNoDatablocks() throws AddressException {
         final int jobId = 42;
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(new Date())
@@ -69,8 +69,8 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
                         .withPickup(new MailPickup()
                                 .withRecipients(recipients)
                                 .withSubject(subject))));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
-        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         Mailbox inbox = Mailbox.get("someone_out_there@outthere.dk");
@@ -78,18 +78,18 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
     }
 
     @Test
-    public void deliver_onNonEmptyJob() throws IOException, MessagingException, AddressException {
+    public void deliver_onNonEmptyJob() throws IOException, MessagingException {
         final int jobId = 42;
-        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
         block0.setSortkey("000000000");
         block0.setBytes(StringUtil.asBytes("0\n"));
         block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
-        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
         block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
         block1.setSortkey("000000001");
         block1.setBytes(StringUtil.asBytes("1\n"));
-        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
         block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
         block2.setSortkey("000000002");
         block2.setBytes(StringUtil.asBytes("2\n"));
@@ -101,7 +101,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
             env().getEntityManager().persist(block0);
         });
 
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(new Date())
@@ -111,8 +111,8 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
                                 .withRecipients(recipients)
                                 .withSubject(subject)
                                 .withRecordLimit(3))));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
-        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         Mailbox inbox = Mailbox.get("someone_out_there@outthere.dk");
@@ -124,10 +124,10 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
     }
 
     @Test
-    public void deliver_onEmptyJob() throws MessagingException, IOException, MessagingException {
+    public void deliver_onEmptyJob() throws IOException, MessagingException {
         final int jobId = 42;
 
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(new Date())
@@ -136,8 +136,8 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
                         .withPickup(new MailPickup()
                                 .withRecipients(recipients)
                                 .withSubject(subject))));
-        final Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
-        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
+        PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         Mailbox inbox = Mailbox.get("someone_out_there@outthere.dk");
@@ -153,7 +153,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
     public void onInvalidMailRecipients() {
         final int jobId = 42;
 
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(new Date())
@@ -162,22 +162,22 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
                         .withPickup(new MailPickup()
                                 .withRecipients("not a valid email address")
                                 .withSubject(subject))));
-        final Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
-        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
-        final Chunk result = env().getPersistenceContext().run(() ->
+        Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
+        PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        Chunk result = env().getPersistenceContext().run(() ->
                 periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         assertThat(result.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
     @Test
     public void weekcodeInMailSubject() throws WeekResolverConnectorException, MessagingException {
-        final WeekResolverResult weekResolverResult = new WeekResolverResult();
+        WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(31);
         when(weekResolverConnector.getCurrentWeekCodeForDate(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
 
         final int jobId = 42;
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(new Date())
@@ -186,33 +186,33 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
                         .withPickup(new MailPickup()
                                 .withRecipients(recipients)
                                 .withSubject("mail for week ${__WEEKCODE_EMO__}"))));
-        final Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
-        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
+        PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
-        final List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
+        List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat("Inbox size", inbox.size(), is(1));
-        final Message receivedMail = inbox.get(0);
+        Message receivedMail = inbox.get(0);
         assertThat("mail subject", receivedMail.getSubject(), is("mail for week 202031"));
     }
 
     @Test
     public void deliver_file_with_header_and_footer() throws MessagingException, IOException, WeekResolverConnectorException {
-        final WeekResolverResult weekResolverResult = new WeekResolverResult();
+        WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(41);
         when(weekResolverConnector.getCurrentWeekCodeForDate(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
         final int jobId = 42;
-        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
         block0.setSortkey("000000000");
         block0.setBytes(StringUtil.asBytes("0\n"));
         block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
-        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
         block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
         block1.setSortkey("000000001");
         block1.setBytes(StringUtil.asBytes("1\n"));
-        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
         block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
         block2.setSortkey("000000002");
         block2.setBytes(StringUtil.asBytes("2\n"));
@@ -224,7 +224,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
             env().getEntityManager().persist(block0);
         });
 
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(new Date())
@@ -235,8 +235,8 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
                                 .withSubject(subject)
                                 .withContentHeader("Ugekorrektur uge ${__WEEKCODE_EMO__}\n")
                                 .withContentFooter("\nslut"))));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
-        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
@@ -249,21 +249,21 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
 
     @Test
     public void deliver_mail_as_attachment() throws MessagingException, IOException, WeekResolverConnectorException {
-        final WeekResolverResult weekResolverResult = new WeekResolverResult();
+        WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(41);
         when(weekResolverConnector.getCurrentWeekCodeForDate(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
         final int jobId = 42;
-        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
         block0.setSortkey("000000000");
         block0.setBytes(StringUtil.asBytes("0\n"));
         block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
-        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
         block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
         block1.setSortkey("000000001");
         block1.setBytes(StringUtil.asBytes("1\n"));
-        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
         block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
         block2.setSortkey("000000002");
         block2.setBytes(StringUtil.asBytes("2\n"));
@@ -275,7 +275,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
             env().getEntityManager().persist(block0);
         });
 
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(new Date())
@@ -287,8 +287,8 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
                                 .withMimetype("text/html")
                                 .withContentHeader("Ugekorrektur uge ${__WEEKCODE_EMO__}\n")
                                 .withContentFooter("\nslut"))));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
-        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
@@ -310,21 +310,19 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
     @Test
     public void deliver_mail_as_configured_body_with_attachment()
             throws MessagingException, IOException, WeekResolverConnectorException {
-        final WeekResolverResult weekResolverResult = new WeekResolverResult();
+        WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(41);
         when(weekResolverConnector.getCurrentWeekCodeForDate(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
         final int jobId = 42;
-        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
         block0.setSortkey("000000000");
         block0.setBytes(StringUtil.asBytes("0\n"));
 
-        env().getPersistenceContext().run(() -> {
-            env().getEntityManager().persist(block0);
-        });
+        env().getPersistenceContext().run(() -> env().getEntityManager().persist(block0));
 
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(new Date())
@@ -335,28 +333,28 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
                                 .withSubject(subject)
                                 .withMimetype("text/html")
                                 .withBody("Ugekorrektur uge ${__WEEKCODE_EMO__}"))));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
-        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
-        final List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
+        List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat("Inbox size", inbox.size(), is(1));
         Message receivedMail = inbox.get(0);
         assertThat("Recipients is ok", receivedMail.getAllRecipients(),
                 is(new InternetAddress[]{new InternetAddress(recipients)}));
 
-        final MimeMultipart mimeMultipart = (MimeMultipart) receivedMail.getContent();
+        MimeMultipart mimeMultipart = (MimeMultipart) receivedMail.getContent();
 
-        final String body = (String) mimeMultipart.getBodyPart(0).getContent();
+        String body = (String) mimeMultipart.getBodyPart(0).getContent();
         assertThat("Mail body", body, is("Ugekorrektur uge 202041"));
 
-        final String attachmentAsText = (String) mimeMultipart.getBodyPart(1).getContent();
+        String attachmentAsText = (String) mimeMultipart.getBodyPart(1).getContent();
         assertThat("Mail attachment", attachmentAsText, is("0\n"));
     }
 
     private PeriodicJobsMailFinalizerBean newPeriodicJobsMailFinalizerBean() {
-        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = new PeriodicJobsMailFinalizerBean();
-        final Properties mailSessionProperties = new Properties();
+        PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = new PeriodicJobsMailFinalizerBean();
+        Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.from", mailFrom);
         periodicJobsMailFinalizerBean.mailSession = Session.getDefaultInstance(mailSessionProperties);
         periodicJobsMailFinalizerBean.jobStoreServiceConnector = jobStoreServiceConnector;
@@ -370,12 +368,12 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
     @Test
     public void deliver_recordCountExceedsLimit() throws AddressException {
         final int jobId = 42;
-        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
         block0.setSortkey("000000000");
         block0.setBytes(StringUtil.asBytes("0\n"));
         block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
-        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
         block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
         block1.setSortkey("000000001");
         block1.setBytes(StringUtil.asBytes("1\n"));
@@ -385,7 +383,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
             env().getEntityManager().persist(block0);
         });
 
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(new Date())
@@ -395,9 +393,9 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
                                 .withRecipients(recipients)
                                 .withSubject(subject)
                                 .withRecordLimit(1))));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
-        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
-        final Chunk result = env().getPersistenceContext().run(() ->
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        Chunk result = env().getPersistenceContext().run(() ->
                 periodicJobsMailFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
         assertThat(result.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));

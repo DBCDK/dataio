@@ -14,8 +14,8 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,7 +26,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -44,7 +44,7 @@ public class OpenUpdateConfigTest {
 
     private OpenUpdateConfig openUpdateConfig;
 
-    @Before
+    @BeforeEach
     public void setup() {
         openUpdateConfig = newOpenUpdateConfigBean();
     }
@@ -54,13 +54,7 @@ public class OpenUpdateConfigTest {
         ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
         final String message = "Unable to retrieve configuration from flowstore";
         when(flowStoreServiceConnector.getSink(anyLong())).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException(message, 404));
-
-        try {
-            openUpdateConfig.getConfig(consumedMessage);
-            fail();
-        } catch (RuntimeException e) {
-            assertThat(e.getMessage(), is(message));
-        }
+        assertThrows(RuntimeException.class, () -> openUpdateConfig.getConfig(consumedMessage));
     }
 
     @Test

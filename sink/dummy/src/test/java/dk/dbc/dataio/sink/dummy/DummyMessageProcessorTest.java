@@ -12,7 +12,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,9 +36,9 @@ public class DummyMessageProcessorTest {
     @Test
     public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws InvalidMessageException, JSONBException, JobStoreServiceConnectorException {
         final String messageId = "id";
-        final Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(0).setChunkId(0L).build();
-        final String payload = new JSONBContext().marshall(processedChunk);
-        final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, headers, payload);
+        Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(0).setChunkId(0L).build();
+        String payload = new JSONBContext().marshall(processedChunk);
+        ConsumedMessage consumedMessage = new ConsumedMessage(messageId, headers, payload);
         getDummyMessageProcessorBean().handleConsumedMessage(consumedMessage);
 
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong());
@@ -46,16 +46,16 @@ public class DummyMessageProcessorTest {
 
     @Test
     public void processPayload_chunkResultArgIsNonEmpty_returnsNonEmptyDeliveredChunk() {
-        final List<ChunkItem> processedChunkItems = Arrays.asList(
+        List<ChunkItem> processedChunkItems = Arrays.asList(
                 new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.FAILURE).setTrackingId(trackingId).build(),
                 new ChunkItemBuilder().setId(1L).setStatus(ChunkItem.Status.SUCCESS).setTrackingId(trackingId).build(),
                 new ChunkItemBuilder().setId(2L).setStatus(ChunkItem.Status.IGNORE).setTrackingId(trackingId).build()
         );
-        final Chunk chunkResult = new ChunkBuilder(Chunk.Type.PROCESSED)
+        Chunk chunkResult = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(processedChunkItems)
                 .build();
 
-        final Chunk deliveredChunk = getDummyMessageProcessorBean().processPayload(chunkResult);
+        Chunk deliveredChunk = getDummyMessageProcessorBean().processPayload(chunkResult);
         assertThat(deliveredChunk.size(), is(processedChunkItems.size()));
         Iterator<ChunkItem> iterator = deliveredChunk.iterator();
         assertThat(iterator.hasNext(), is(true));

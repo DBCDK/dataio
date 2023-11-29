@@ -43,9 +43,9 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
         fakeFtpServer.setServerControlPort(0);  // use any free port
         fakeFtpServer.addUserAccount(new UserAccount(USERNAME,
                 PASSWORD, HOME_DIR));
-        final FileSystem fileSystem = new UnixFakeFileSystem();
+        FileSystem fileSystem = new UnixFakeFileSystem();
         fileSystem.add(new DirectoryEntry(HOME_DIR));
-        final DirectoryEntry putDir = new DirectoryEntry(ABSOLUTE_PUT_DIR);
+        DirectoryEntry putDir = new DirectoryEntry(ABSOLUTE_PUT_DIR);
         fileSystem.add(putDir);
         fakeFtpServer.setFileSystem(fileSystem);
         fakeFtpServer.start();
@@ -54,7 +54,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
     @Test
     public void deliver_onNonEmptyJobNoDataBlocks() {
         final int jobId = 42;
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withName("Deliver test")
@@ -66,8 +66,8 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                                 .withFtpUser(USERNAME)
                                 .withFtpPassword(PASSWORD)
                                 .withFtpSubdirectory(PUT_DIR))));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
-        final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         FtpClient ftpClient = new FtpClient()
@@ -84,16 +84,16 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
     @Test
     public void deliver_onNonEmptyJob() throws IOException {
         final int jobId = 42;
-        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
         block0.setSortkey("000000000");
         block0.setBytes(StringUtil.asBytes("0\n"));
         block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
-        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
         block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
         block1.setSortkey("000000001");
         block1.setBytes(StringUtil.asBytes("1\n"));
-        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
         block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
         block2.setSortkey("000000002");
         block2.setBytes(StringUtil.asBytes("2"));
@@ -105,7 +105,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
             env().getEntityManager().persist(block0);
         });
 
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withName("Deliver testÆØÅ")
@@ -117,8 +117,8 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                                 .withFtpUser(USERNAME)
                                 .withFtpPassword(PASSWORD)
                                 .withFtpSubdirectory(PUT_DIR))));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
-        final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
         FtpClient ftpClient = new FtpClient()
@@ -134,7 +134,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
     @Test
     public void deliver_onEmptyJob() throws IOException {
         final int jobId = 42;
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withName("Deliver testÆØÅ")
@@ -146,13 +146,13 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                                 .withFtpUser(USERNAME)
                                 .withFtpPassword(PASSWORD)
                                 .withFtpSubdirectory(PUT_DIR))));
-        final Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
-        final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
+        Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
+        PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
 
         env().getPersistenceContext().run(() ->
                 periodicJobsFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
 
-        final FtpClient ftpClient = new FtpClient()
+        FtpClient ftpClient = new FtpClient()
                 .withHost("localhost")
                 .withPort(fakeFtpServer.getServerControlPort())
                 .withUsername(USERNAME)
@@ -181,7 +181,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
     }
 
     private PeriodicJobsFtpFinalizerBean newPeriodicJobsFtpFinalizerBean() {
-        final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = new PeriodicJobsFtpFinalizerBean();
+        PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = new PeriodicJobsFtpFinalizerBean();
         periodicJobsFtpFinalizerBean.jobStoreServiceConnector = jobStoreServiceConnector;
         return periodicJobsFtpFinalizerBean;
     }

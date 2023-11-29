@@ -28,23 +28,23 @@ public class AddiDiffGenerator {
      * @throws DiffGeneratorException on failure to create diff
      */
     public String getDiff(byte[] current, byte[] next) throws DiffGeneratorException, InvalidMessageException {
-        final AddiReader currentAddiReader = new AddiReader(new ByteArrayInputStream(current));
-        final AddiReader nextAddiReader = new AddiReader(new ByteArrayInputStream(next));
+        AddiReader currentAddiReader = new AddiReader(new ByteArrayInputStream(current));
+        AddiReader nextAddiReader = new AddiReader(new ByteArrayInputStream(next));
 
-        final StringBuilder diff = new StringBuilder();
+        StringBuilder diff = new StringBuilder();
         try {
             while (currentAddiReader.hasNext()) {
-                final AddiRecord currentAddiRecord = currentAddiReader.next();
+                AddiRecord currentAddiRecord = currentAddiReader.next();
                 AddiRecord nextAddiRecord = nextAddiReader.next();
                 if (nextAddiRecord == null) {
                     nextAddiRecord = new AddiRecord(new byte[0], new byte[0]);
                 }
-                diff.append(new AddiRecordDiff(currentAddiRecord, nextAddiRecord).toString());
+                diff.append(new AddiRecordDiff(currentAddiRecord, nextAddiRecord));
             }
             while (nextAddiReader.hasNext()) {
-                final AddiRecord currentAddiRecord = new AddiRecord(new byte[0], new byte[0]);
-                final AddiRecord nextAddiRecord = nextAddiReader.next();
-                diff.append(new AddiRecordDiff(currentAddiRecord, nextAddiRecord).toString());
+                AddiRecord currentAddiRecord = new AddiRecord(new byte[0], new byte[0]);
+                AddiRecord nextAddiRecord = nextAddiReader.next();
+                diff.append(new AddiRecordDiff(currentAddiRecord, nextAddiRecord));
             }
         } catch (RuntimeException | IOException e) {
             throw new IllegalArgumentException("byte array can not be converted to ADDI", e);
@@ -71,15 +71,12 @@ public class AddiDiffGenerator {
 
         private String getDiff(byte[] current, byte[] next) throws DiffGeneratorException, InvalidMessageException {
             if (!Arrays.equals(current, next)) {
-                final ExternalToolDiffGenerator.Kind currentKind =
-                        DiffKindDetector.getKind(current);
-                final ExternalToolDiffGenerator.Kind nextKind =
-                        DiffKindDetector.getKind(next);
+                ExternalToolDiffGenerator.Kind currentKind = DiffKindDetector.getKind(current);
+                ExternalToolDiffGenerator.Kind nextKind = DiffKindDetector.getKind(next);
                 if (currentKind == nextKind) {
                     return externalToolDiffGenerator.getDiff(currentKind, current, next);
                 }
-                return externalToolDiffGenerator.getDiff(
-                        ExternalToolDiffGenerator.Kind.PLAINTEXT, current, next);
+                return externalToolDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT, current, next);
             }
             return NO_DIFF;
         }

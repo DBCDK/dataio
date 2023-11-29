@@ -35,15 +35,15 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
         block0.setSortkey("000000000");
         block0.setBytes(StringUtil.asBytes("0"));
-        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
         block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
         block1.setSortkey("000000001");
         block1.setBytes(StringUtil.asBytes("1"));
-        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
         block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
         block2.setSortkey("000000002");
         block2.setBytes(StringUtil.asBytes("2"));
-        final PeriodicJobsDataBlock block3 = new PeriodicJobsDataBlock();
+        PeriodicJobsDataBlock block3 = new PeriodicJobsDataBlock();
         // Used to verify that delete only targets specific job ID
         block3.setKey(new PeriodicJobsDataBlock.Key(jobId + 1, 0, 0));
         block3.setSortkey("000000000");
@@ -56,15 +56,15 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
             env().getEntityManager().persist(block0);
         });
 
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withPickup(new HttpPickup())));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         when(periodicJobsConfigurationBean.getDelivery(chunk, env().getEntityManager()))
                 .thenReturn(delivery);
 
-        final PeriodicJobsFinalizerBean periodicJobsFinalizerBean = newPeriodicJobsFinalizerBean();
+        PeriodicJobsFinalizerBean periodicJobsFinalizerBean = newPeriodicJobsFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsFinalizerBean.handleTerminationChunk(chunk, env().getEntityManager()));
 
@@ -73,7 +73,7 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
                     JDBCUtil.getFirstInt(conn, "SELECT COUNT(*) FROM datablock"), is(1));
         }
 
-        final PeriodicJobsDataBlock remainingBlock = env().getPersistenceContext().run(() ->
+        PeriodicJobsDataBlock remainingBlock = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(PeriodicJobsDataBlock.class,
                         new PeriodicJobsDataBlock.Key(jobId + 1, 0, 0)));
         assertThat("remaining data block", remainingBlock, is(block3));
@@ -82,11 +82,11 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
     @Test
     public void deletesDelivery() throws SQLException {
         final int jobId = 42;
-        final PeriodicJobsDelivery delivery1 = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery1 = new PeriodicJobsDelivery(jobId);
         delivery1.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withPickup(new HttpPickup())));
-        final PeriodicJobsDelivery delivery2 = new PeriodicJobsDelivery(jobId + 1);
+        PeriodicJobsDelivery delivery2 = new PeriodicJobsDelivery(jobId + 1);
         // Used to verify that delete only targets specific job ID
         delivery2.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
@@ -97,11 +97,11 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
             env().getEntityManager().persist(delivery1);
         });
 
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         when(periodicJobsConfigurationBean.getDelivery(chunk, env().getEntityManager()))
                 .thenReturn(delivery1);
 
-        final PeriodicJobsFinalizerBean periodicJobsFinalizerBean = newPeriodicJobsFinalizerBean();
+        PeriodicJobsFinalizerBean periodicJobsFinalizerBean = newPeriodicJobsFinalizerBean();
         env().getPersistenceContext().run(() ->
                 periodicJobsFinalizerBean.handleTerminationChunk(chunk, env().getEntityManager()));
 
@@ -110,7 +110,7 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
                     JDBCUtil.getFirstInt(conn, "SELECT COUNT(*) FROM delivery"), is(1));
         }
 
-        final PeriodicJobsDelivery remainingDelivery = env().getPersistenceContext().run(() ->
+        PeriodicJobsDelivery remainingDelivery = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(PeriodicJobsDelivery.class, jobId + 1));
         assertThat("remaining delivery", remainingDelivery, is(delivery2));
     }
@@ -118,21 +118,21 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
     @Test
     public void returnsResultOfDelivery() throws InvalidMessageException {
         final int jobId = 42;
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withPickup(new HttpPickup())));
 
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         when(periodicJobsConfigurationBean.getDelivery(chunk, env().getEntityManager()))
                 .thenReturn(delivery);
 
-        final Chunk expectedResult = new Chunk(jobId, 3, Chunk.Type.DELIVERED);
+        Chunk expectedResult = new Chunk(jobId, 3, Chunk.Type.DELIVERED);
         when(periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()))
                 .thenReturn(expectedResult);
 
-        final PeriodicJobsFinalizerBean periodicJobsFinalizerBean = newPeriodicJobsFinalizerBean();
-        final Chunk result = env().getPersistenceContext().run(() ->
+        PeriodicJobsFinalizerBean periodicJobsFinalizerBean = newPeriodicJobsFinalizerBean();
+        Chunk result = env().getPersistenceContext().run(() ->
                 periodicJobsFinalizerBean.handleTerminationChunk(chunk, env().getEntityManager()));
 
         assertThat("result chunk", result, is(sameInstance(expectedResult)));

@@ -4,12 +4,11 @@ import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import jakarta.xml.ws.Binding;
 import jakarta.xml.ws.BindingProvider;
 import jakarta.xml.ws.EndpointReference;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,7 +20,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,14 +49,10 @@ public class WciruServiceConnectorTest {
     private MockedUpdateServiceProxy proxy;
     private WciruServiceConnector connector;
 
-    @Before
-    public void createProxy() {
+    @BeforeEach
+    public void init() {
         proxy = new MockedUpdateServiceProxy();
         when(updateService.getUpdate()).thenReturn(proxy);
-    }
-
-    @Before
-    public void createConnector() {
         connector = new WciruServiceConnector(updateService, baseUrl, userId, password, projectId, newRetryScheme());
     }
 
@@ -65,9 +61,9 @@ public class WciruServiceConnectorTest {
         assertThat(connector, is(notNullValue()));
     }
 
-    @Test(expected = WciruServiceConnectorException.class)
-    public void addOrUpdateRecordTakingStringParameter_recordArgIsInvalidXml_throws() throws Exception {
-        connector.addOrUpdateRecord("not XML", holdingSymbol, oclcId);
+    @Test
+    public void addOrUpdateRecordTakingStringParameter_recordArgIsInvalidXml_throws() {
+        assertThrows(WciruServiceConnectorException.class, () -> connector.addOrUpdateRecord("not XML", holdingSymbol, oclcId));
     }
 
     @Test
@@ -127,10 +123,10 @@ public class WciruServiceConnectorTest {
         assertThat(proxy.lastRequest.getRecordIdentifier(), is(oclcId));
     }
 
-    @Test(expected = WciruServiceConnectorException.class)
-    public void addOrUpdateRecordTakingStringParameter_serviceReturnsWithStatusFail_throws() throws Exception {
+    @Test
+    public void addOrUpdateRecordTakingStringParameter_serviceReturnsWithStatusFail_throws() {
         proxy.responses.add(getUpdateResponseWithStatusFail(diagnostic));
-        connector.addOrUpdateRecord(xmlRecord, holdingSymbol, oclcId);
+        assertThrows(WciruServiceConnectorException.class, () -> connector.addOrUpdateRecord(xmlRecord, holdingSymbol, oclcId));
     }
 
     @Test
@@ -164,8 +160,8 @@ public class WciruServiceConnectorTest {
         connector.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
         assertThat(proxy.lastRequest.getRecord().getRecordPacking(), is(WciruServiceConnector.RECORD_PACKING));
         assertThat(proxy.lastRequest.getRecord().getRecordSchema(), is(WciruServiceConnector.RECORD_SCHEMA));
-        final Element expectedRecordData = getXmlRecordElement();
-        final Element actualRecordData = (Element) proxy.lastRequest.getRecord().getRecordData().getContent().get(0);
+        Element expectedRecordData = getXmlRecordElement();
+        Element actualRecordData = (Element) proxy.lastRequest.getRecord().getRecordData().getContent().get(0);
         assertThat(actualRecordData.toString(), is(expectedRecordData.toString()));
     }
 
@@ -190,15 +186,15 @@ public class WciruServiceConnectorTest {
         assertThat(proxy.lastRequest.getRecordIdentifier(), is(oclcId));
     }
 
-    @Test(expected = WciruServiceConnectorException.class)
-    public void addOrUpdateRecordTakingElementParameter_serviceReturnsWithStatusFail_throws() throws Exception {
+    @Test
+    public void addOrUpdateRecordTakingElementParameter_serviceReturnsWithStatusFail_throws() {
         proxy.responses.add(getUpdateResponseWithStatusFail(diagnostic));
-        connector.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
+        assertThrows(WciruServiceConnectorException.class, () -> connector.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void replaceRecord_holdingActionArgIsInvalid_throws() throws Exception {
-        connector.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, "INVALID");
+    @Test
+    public void replaceRecord_holdingActionArgIsInvalid_throws() {
+        assertThrows(IllegalArgumentException.class, () -> connector.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, "INVALID"));
     }
 
     @Test
@@ -239,8 +235,8 @@ public class WciruServiceConnectorTest {
         connector.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
         assertThat(proxy.lastRequest.getRecord().getRecordPacking(), is(WciruServiceConnector.RECORD_PACKING));
         assertThat(proxy.lastRequest.getRecord().getRecordSchema(), is(WciruServiceConnector.RECORD_SCHEMA));
-        final Element expectedRecordData = getXmlRecordElement();
-        final Element actualRecordData = (Element) proxy.lastRequest.getRecord().getRecordData().getContent().get(0);
+        Element expectedRecordData = getXmlRecordElement();
+        Element actualRecordData = (Element) proxy.lastRequest.getRecord().getRecordData().getContent().get(0);
         assertThat(actualRecordData.toString(), is(expectedRecordData.toString()));
     }
 
@@ -251,10 +247,10 @@ public class WciruServiceConnectorTest {
         assertThat(proxy.lastRequest.getRecordIdentifier(), is(oclcId));
     }
 
-    @Test(expected = WciruServiceConnectorException.class)
-    public void replaceRecord_serviceReturnsWithStatusFail_throws() throws Exception {
+    @Test
+    public void replaceRecord_serviceReturnsWithStatusFail_throws() {
         proxy.responses.add(getUpdateResponseWithStatusFail(diagnostic));
-        connector.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
+        assertThrows(WciruServiceConnectorException.class, () -> connector.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction));
     }
 
     @Test
@@ -285,8 +281,8 @@ public class WciruServiceConnectorTest {
         connector.deleteRecord(getXmlRecordElement(), oclcId);
         assertThat(proxy.lastRequest.getRecord().getRecordPacking(), is(WciruServiceConnector.RECORD_PACKING));
         assertThat(proxy.lastRequest.getRecord().getRecordSchema(), is(WciruServiceConnector.RECORD_SCHEMA));
-        final Element expectedRecordData = getXmlRecordElement();
-        final Element actualRecordData = (Element) proxy.lastRequest.getRecord().getRecordData().getContent().get(0);
+        Element expectedRecordData = getXmlRecordElement();
+        Element actualRecordData = (Element) proxy.lastRequest.getRecord().getRecordData().getContent().get(0);
         assertThat(actualRecordData.toString(), is(expectedRecordData.toString()));
     }
 
@@ -297,10 +293,10 @@ public class WciruServiceConnectorTest {
         assertThat(proxy.lastRequest.getRecordIdentifier(), is(oclcId));
     }
 
-    @Test(expected = WciruServiceConnectorException.class)
-    public void deleteRecord_serviceReturnsWithStatusFail_throws() throws Exception {
+    @Test
+    public void deleteRecord_serviceReturnsWithStatusFail_throws() {
         proxy.responses.add(getUpdateResponseWithStatusFail(diagnostic));
-        connector.deleteRecord(getXmlRecordElement(), oclcId);
+        assertThrows(WciruServiceConnectorException.class, () -> connector.deleteRecord(getXmlRecordElement(), oclcId));
     }
 
     @Test
@@ -386,21 +382,21 @@ public class WciruServiceConnectorTest {
 
     @Test
     public void addOrUpdateRecordReturnsOnSuppressedDiagnostic()
-            throws IOException, SAXException, ParserConfigurationException, WciruServiceConnectorException {
+            throws IOException, SAXException, WciruServiceConnectorException {
         proxy.responses.add(getUpdateResponseWithStatusFail(suppressedDiagnostic));
         connector.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
     }
 
     @Test
     public void deleteRecordReturnsOnSuppressedDiagnostic()
-            throws IOException, SAXException, ParserConfigurationException, WciruServiceConnectorException {
+            throws IOException, SAXException, WciruServiceConnectorException {
         proxy.responses.add(getUpdateResponseWithStatusFail(suppressedDiagnostic));
         connector.deleteRecord(getXmlRecordElement(), oclcId);
     }
 
     @Test
     public void replaceRecordReturnsOnSuppressedDiagnostic()
-            throws IOException, SAXException, ParserConfigurationException, WciruServiceConnectorException {
+            throws IOException, SAXException, WciruServiceConnectorException {
         proxy.responses.add(getUpdateResponseWithStatusFail(suppressedDiagnostic));
         connector.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
     }
@@ -410,11 +406,11 @@ public class WciruServiceConnectorTest {
                 new HashSet<>(Collections.singletonList(retriableDiagnostic.getUri())));
     }
 
-    private Element getXmlRecordElement() throws ParserConfigurationException, SAXException, IOException {
+    private Element getXmlRecordElement() throws SAXException, IOException {
         return JaxpUtil.parseDocument(xmlRecord).getDocumentElement();
     }
 
-    private final class MockedUpdateServiceProxy implements UpdateInterface, BindingProvider {
+    private static final class MockedUpdateServiceProxy implements UpdateInterface, BindingProvider {
         public UpdateRequestType lastRequest;
         public LinkedList<UpdateResponseType> responses = new LinkedList<>();
 
@@ -462,29 +458,29 @@ public class WciruServiceConnectorTest {
     }
 
     private UpdateResponseType getUpdateResponseWithStatusFail(Diagnostic diagnostic) {
-        final UpdateResponseType response = new UpdateResponseType();
+        UpdateResponseType response = new UpdateResponseType();
         response.setOperationStatus(OperationStatusType.FAIL);
-        final DiagnosticsType diagnostics = new DiagnosticsType();
+        DiagnosticsType diagnostics = new DiagnosticsType();
         diagnostics.getDiagnostic().add(diagnostic);
         response.setDiagnostics(diagnostics);
         return response;
     }
 
     private Diagnostic createDiagnostic() {
-        final Diagnostic diagnostic = createRetriableDiagnostic();
+        Diagnostic diagnostic = createRetriableDiagnostic();
         diagnostic.setUri("diagnostic/1/61");
         return diagnostic;
     }
 
     private Diagnostic createRetriableDiagnostic() {
-        final Diagnostic diagnostic = new Diagnostic();
+        Diagnostic diagnostic = new Diagnostic();
         diagnostic.setUri("diagnostic/1/51");
         diagnostic.setMessage("failure to communicate");
         return diagnostic;
     }
 
     private Diagnostic createSuppressedDiagnotic() {
-        final Diagnostic diagnostic = new Diagnostic();
+        Diagnostic diagnostic = new Diagnostic();
         diagnostic.setUri("info:srw/diagnostic/12/13");
         diagnostic.setMessage("Invalid data structure: component rejected");
         diagnostic.setDetails("SRU_RemoveLSN_Failures_No_LSN_Found. The PPN [800010-katalog:99122974111405763] was not found in the database record.:Unspecified error(100)");

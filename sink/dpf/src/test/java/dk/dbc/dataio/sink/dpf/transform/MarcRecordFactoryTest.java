@@ -6,12 +6,13 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 import dk.dbc.marc.reader.DanMarc2LineFormatReader;
 import dk.dbc.marc.reader.MarcReaderException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class MarcRecordFactoryTest {
     private final MarcRecord simpleMarcRecord = new MarcRecord()
@@ -38,21 +39,20 @@ public class MarcRecordFactoryTest {
                     "</datafield>" +
                     "</record>";
 
-    @Test(expected = MarcReaderException.class)
-    public void fromMarcXchange_invalidXml() throws MarcReaderException {
-        MarcRecordFactory.fromMarcXchange("invalid XML".getBytes(StandardCharsets.UTF_8));
+    @Test
+    public void fromMarcXchange_invalidXml() {
+        assertThrows(MarcReaderException.class, () -> MarcRecordFactory.fromMarcXchange("invalid XML".getBytes(StandardCharsets.UTF_8)));
     }
 
     @Test
     public void fromMarcXchange() throws MarcReaderException {
-        final MarcRecord marcRecord = MarcRecordFactory
-                .fromMarcXchange(simpleMarcXchange.getBytes(StandardCharsets.UTF_8));
+        MarcRecord marcRecord = MarcRecordFactory.fromMarcXchange(simpleMarcXchange.getBytes(StandardCharsets.UTF_8));
         assertThat(marcRecord, is(simpleMarcRecord));
     }
 
     @Test
     public void toMarcXchange() {
-        final MarcRecord marcRecord = new MarcRecord()
+        MarcRecord marcRecord = new MarcRecord()
                 .setLeader(new Leader().setData(DanMarc2LineFormatReader.DEFAULT_LEADER))
                 .addField(
                         new DataField()
@@ -65,7 +65,7 @@ public class MarcRecordFactoryTest {
                                 .addSubfield(new SubField()
                                         .setCode('b')
                                         .setData("870970")));
-        final byte[] bytes = MarcRecordFactory.toMarcXchange(marcRecord);
+        byte[] bytes = MarcRecordFactory.toMarcXchange(marcRecord);
         assertThat(new String(bytes, StandardCharsets.UTF_8), is(simpleMarcXchange));
     }
 }

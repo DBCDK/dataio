@@ -10,7 +10,7 @@ import dk.dbc.marc.binding.Leader;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 import dk.dbc.marc.reader.DanMarc2LineFormatReader;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -35,17 +35,13 @@ public class DpfRecordTest {
 
     @Test
     public void toLobbyApplicant() throws JsonProcessingException {
-        final ProcessingInstructions expectedProcessingInstructions = newProcessingInstructions()
-                .withErrors(Arrays.asList("err1", "err2"));
-        final MarcRecord expectedMarcRecord = newMarcRecord()
+        ProcessingInstructions expectedProcessingInstructions = newProcessingInstructions().withErrors(Arrays.asList("err1", "err2"));
+        MarcRecord expectedMarcRecord = newMarcRecord().addField(new DataField("e99", "00")
+                        .addSubField(new SubField().setCode('b').setData("err1")))
                 .addField(new DataField("e99", "00")
-                        .addSubField(new SubField()
-                                .setCode('b').setData("err1")))
-                .addField(new DataField("e99", "00")
-                        .addSubField(new SubField()
-                                .setCode('b').setData("err2")));
+                        .addSubField(new SubField().setCode('b').setData("err2")));
 
-        final Applicant expectedApplicant = new Applicant();
+        Applicant expectedApplicant = new Applicant();
         expectedApplicant.setId("test");
         expectedApplicant.setCategory("bpf");
         expectedApplicant.setMimetype("application/xml");
@@ -53,9 +49,9 @@ public class DpfRecordTest {
         expectedApplicant.setState(ApplicantState.PENDING);
         expectedApplicant.setAdditionalInfo(expectedProcessingInstructions);
 
-        final DpfRecord dpfRecord = new DpfRecord(newProcessingInstructions()
+        DpfRecord dpfRecord = new DpfRecord(newProcessingInstructions()
                 .withErrors(Arrays.asList("err1", "err2")), newMarcRecord());
-        final Applicant applicant = dpfRecord.toLobbyApplicant();
+        Applicant applicant = dpfRecord.toLobbyApplicant();
         assertThat("applicant ID", applicant.getId(), is("test"));
         assertThat("applicant category", applicant.getCategory(), is("dpf"));
         assertThat("applicant mimetype", applicant.getMimetype(), is("application/xml"));
@@ -68,14 +64,14 @@ public class DpfRecordTest {
 
     @Test
     public void addError() {
-        final ProcessingInstructions expectedProcessingInstructions = newProcessingInstructions()
+        ProcessingInstructions expectedProcessingInstructions = newProcessingInstructions()
                 .withErrors(Collections.singletonList("some error"));
-        final MarcRecord expectedMarcRecord = newMarcRecord()
+        MarcRecord expectedMarcRecord = newMarcRecord()
                 .addField(new DataField("e99", "00")
                         .addSubField(new SubField()
                                 .setCode('b').setData("some error")));
 
-        final DpfRecord dpfRecord = new DpfRecord(newProcessingInstructions(), newMarcRecord());
+        DpfRecord dpfRecord = new DpfRecord(newProcessingInstructions(), newMarcRecord());
         dpfRecord.addError("some error");
         assertThat("DPF record processing instructions", dpfRecord.getProcessingInstructions(),
                 is(expectedProcessingInstructions));

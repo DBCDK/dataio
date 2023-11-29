@@ -1,14 +1,14 @@
 package dk.dbc.dataio.sink.diff;
 
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     private static final byte[] DOC1 = (
@@ -56,8 +56,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void exactEquality() throws DiffGeneratorException, InvalidMessageException {
         if (canJsonDiff()) {
-            final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON,
-                    DOC1, DOC1);
+            String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON, DOC1, DOC1);
             assertThat(diff, is(""));
         }
     }
@@ -65,8 +64,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void normalizedEquality() throws DiffGeneratorException, InvalidMessageException {
         if (canJsonDiff()) {
-            final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON,
-                    DOC1, DOC1_PRETTY_PRINTED);
+            String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON, DOC1, DOC1_PRETTY_PRINTED);
             assertThat(diff, is(""));
         }
     }
@@ -74,8 +72,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void semanticEquality() throws DiffGeneratorException, InvalidMessageException {
         if (canJsonDiff()) {
-            final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON,
-                    DOC1, DOC1_WITH_DIFFERENT_KEY_ORDERING);
+            String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON, DOC1, DOC1_WITH_DIFFERENT_KEY_ORDERING);
             assertThat(diff, is(""));
         }
     }
@@ -83,8 +80,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void diff() throws DiffGeneratorException, InvalidMessageException {
         if (canJsonDiff()) {
-            final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON,
-                    DOC1, DOC2);
+            String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON, DOC1, DOC2);
             assertThat(diff, containsString("-    \"mail\": \"John@Doe.com\","));
             assertThat(diff, containsString("-    \"name\": \"John Doe\""));
             assertThat(diff, containsString("+    \"mail\": \"Jane@Doe.com\","));
@@ -95,14 +91,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void invalidJson() {
         if (canJsonDiff()) {
-            try {
-                diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON,
-                        DOC1, "{invalid".getBytes(StandardCharsets.UTF_8));
-                fail("No DiffGeneratorException thrown");
-            } catch (DiffGeneratorException e) {
-            } catch (InvalidMessageException e) {
-                throw new RuntimeException(e);
-            }
+            assertThrows(DiffGeneratorException.class, () -> diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON, DOC1, "{invalid".getBytes(StandardCharsets.UTF_8)));
         }
     }
 }

@@ -2,7 +2,6 @@ package dk.dbc.dataio.sink.marcconv;
 
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
-import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.jse.artemis.common.db.JPAHelper;
 import org.junit.Before;

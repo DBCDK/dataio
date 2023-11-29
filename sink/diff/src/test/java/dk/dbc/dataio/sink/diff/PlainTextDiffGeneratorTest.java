@@ -1,7 +1,7 @@
 package dk.dbc.dataio.sink.diff;
 
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 
@@ -26,8 +26,7 @@ public class PlainTextDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void equality() throws DiffGeneratorException, InvalidMessageException {
         if (canDiff()) {
-            final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT,
-                    DOC1, DOC1);
+            String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT, DOC1, DOC1);
             assertThat(diff, is(""));
         }
     }
@@ -35,8 +34,7 @@ public class PlainTextDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void diff() throws DiffGeneratorException, InvalidMessageException {
         if (canDiff()) {
-            final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT,
-                    DOC1, DOC2);
+            String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT, DOC1, DOC2);
             assertThat(diff, containsString("+second and ½"));
         }
     }

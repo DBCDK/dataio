@@ -1,6 +1,7 @@
 package dk.dbc.dataio.flowstore;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.testcontainers.Containers;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
@@ -22,12 +23,14 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
 
+
 public abstract class AbstractFlowStoreServiceContainerTest implements PostgresContainerJPAUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFlowStoreServiceContainerTest.class);
     static final GenericContainer<?> flowstoreServiceContainer;
     static final String flowStoreServiceBaseUrl;
     static final FlowStoreServiceConnector flowStoreServiceConnector;
     static final Connection flowStoreDbConnection;
+    protected static final JSONBContext jsonbContext = new JSONBContext();
 
     static {
         flowstoreServiceContainer = Containers.FLOW_STORE.makeContainer()
@@ -35,6 +38,7 @@ public abstract class AbstractFlowStoreServiceContainerTest implements PostgresC
                 .withEnv("LOG_FORMAT", "text")
                 .withEnv("JAVA_MAX_HEAP_SIZE", "4G")
                 .withEnv("FLOWSTORE_DB_URL", dbContainer.getPayaraDockerJdbcUrl())
+                .withEnv("SUBVERSION_URL", "https://no-svn-server-needed-for-this-test")
                 .withExposedPorts(8080)
                 .waitingFor(Wait.forHttp(System.getProperty("flowstore.it.service.context") + "/status"))
                 .withStartupTimeout(Duration.ofMinutes(5));
@@ -65,4 +69,5 @@ public abstract class AbstractFlowStoreServiceContainerTest implements PostgresC
     static Connection connectToFlowStoreDB() throws SQLException {
         return dbContainer.datasource().getConnection();
     }
+
 }

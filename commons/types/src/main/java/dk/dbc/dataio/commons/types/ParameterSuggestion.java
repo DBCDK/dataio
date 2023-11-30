@@ -1,4 +1,4 @@
-package dk.dbc.dataio.flowstore.model;
+package dk.dbc.dataio.commons.types;
 
 import java.util.List;
 import java.util.Objects;

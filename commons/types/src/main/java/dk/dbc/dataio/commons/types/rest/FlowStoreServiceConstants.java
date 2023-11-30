@@ -23,6 +23,9 @@ public class FlowStoreServiceConstants {
 
     public static final String ID_VARIABLE = "id";
     public static final String PARM_VARIABLE = "parm";
+    public static final String SVN_PROJECT_PATH = "path";
+    public static final String SVN_PROJECT_REVISION = "revision";
+    public static final String SVN_PROJECT_SCRIPTNAME = "scriptname";
     public static final String TYPE_VARIABLE = "type";
 
     public static final String SINK = "sinks/{id}";
@@ -60,6 +63,9 @@ public class FlowStoreServiceConstants {
     public static final String GATEKEEPER_DESTINATIONS = "gatekeeper/destinations";
     public static final String GATEKEEPER_DESTINATION = "gatekeeper/destinations/{id}";
     public static final String PARAMETERS = "parameter/suggester/{parm}";
+    public static final String SVN_PROJECT_GET_REVISIONS = "svn/project/{path}";
+    public static final String SVN_PROJECT_GET_SCRIPTS = "svn/project/{path}/{revision}/scripts";
+    public static final String SVN_PROJECT_GET_INVOCATION_METHODS = "svn/project/{path}/{revision}/script/{scriptname}/methods";
 
     private FlowStoreServiceConstants() {
     }

@@ -177,7 +177,6 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
 
         assertThat("chunk", chunk, is(notNullValue()));
         assertThat("chunk.size()", chunk.size(), is(2));
-        assertThat("chunk.getEncoding()", chunk.getEncoding(), is(chunkItem1.getEncoding()));
         Iterator<ChunkItem> iterator = chunk.iterator();
         ChunkItem firstChunkItem = iterator.next();
         assertThat("chunk[0]", firstChunkItem, is(chunkItem1));

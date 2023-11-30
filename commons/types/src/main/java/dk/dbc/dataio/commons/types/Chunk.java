@@ -2,9 +2,9 @@ package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -22,6 +22,7 @@ import java.util.List;
  * Extraction is through an iterator, since it is assumed that no one ever needs
  * to access items directly inside this class, but always consecutively.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Chunk implements Iterable<ChunkItem> {
     public enum Type {
         PARTITIONED,
@@ -54,7 +55,6 @@ public class Chunk implements Iterable<ChunkItem> {
         this.type = type;
         this.items = new ArrayList<>();
         this.next = new ArrayList<>(0);
-        this.encoding = "UTF-8";
     }
 
     // Private constructor for JsonUtil.fromJson().
@@ -101,14 +101,6 @@ public class Chunk implements Iterable<ChunkItem> {
         return items.size() == 1
                 && items.get(0).isTyped()
                 && items.get(0).getType().get(0) == ChunkItem.Type.JOB_END;
-    }
-
-    public Charset getEncoding() {
-        return Charset.forName(encoding);
-    }
-
-    public void setEncoding(Charset encoding) {
-        this.encoding = encoding.name();
     }
 
     public void addAllItems(List<ChunkItem> items) throws IllegalArgumentException {

@@ -62,6 +62,16 @@ public class HoldingsItemsConnector {
                 .collect(Collectors.toSet());
     }
 
+    public boolean hasAnyHoldings(String bibliographicRecordId, Set<Integer> agencyIds) {
+
+        // 870970 means: Any agency at all still has got the material?
+        if (agencyIds.contains(870970)) {
+            return !hasHoldings(bibliographicRecordId, Set.of()).isEmpty();
+        } else {
+            return !hasHoldings(bibliographicRecordId, agencyIds).isEmpty();
+        }
+    }
+
     private SolrQuery getHasHoldingsQuery(String bibliographicRecordId, Set<Integer> agencyIds) {
         final SolrQuery query = new SolrQuery();
         query.setQuery(getHasHoldingsQueryString(bibliographicRecordId, agencyIds));

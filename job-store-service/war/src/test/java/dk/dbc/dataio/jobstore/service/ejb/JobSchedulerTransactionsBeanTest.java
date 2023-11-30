@@ -1,14 +1,15 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JobSchedulerTransactionsBeanTest {
     @Test
@@ -21,7 +22,7 @@ public class JobSchedulerTransactionsBeanTest {
         );
         Set<DependencyTrackingEntity.Key> result = JobSchedulerTransactionsBean.optimizeDependencies(list);
         Set<DependencyTrackingEntity.Key> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTrackingEntity::getKey).collect(Collectors.toSet());
-        Assert.assertEquals("All dependencies marked to remain should be in the result and nothing else", expected, result);
+        assertEquals(expected, result, "All dependencies marked to remain should be in the result and nothing else");
     }
 
     @Test
@@ -39,7 +40,7 @@ public class JobSchedulerTransactionsBeanTest {
         );
         Set<DependencyTrackingEntity.Key> result = JobSchedulerTransactionsBean.optimizeDependencies(list);
         Set<DependencyTrackingEntity.Key> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTrackingEntity::getKey).collect(Collectors.toSet());
-        Assert.assertEquals("All dependencies marked to remain should be in the result and nothing else", expected, result);
+        assertEquals(expected, result, "All dependencies marked to remain should be in the result and nothing else");
     }
 
     @Test
@@ -57,7 +58,7 @@ public class JobSchedulerTransactionsBeanTest {
         );
         Set<DependencyTrackingEntity.Key> result = JobSchedulerTransactionsBean.optimizeDependencies(list);
         Set<DependencyTrackingEntity.Key> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTrackingEntity::getKey).collect(Collectors.toSet());
-        Assert.assertEquals("All dependencies marked to remain should be in the result and nothing else", expected, result);
+        assertEquals(expected, result, "All dependencies marked to remain should be in the result and nothing else");
     }
 
     public static class Dep extends DependencyTrackingEntity {

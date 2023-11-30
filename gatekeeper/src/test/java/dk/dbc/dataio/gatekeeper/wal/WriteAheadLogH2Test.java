@@ -4,8 +4,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.Query;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,7 +14,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -28,27 +28,27 @@ public class WriteAheadLogH2Test {
     private final EntityTransaction entityTransaction = mock(EntityTransaction.class);
     private final Query query = mock(Query.class);
 
-    @Before
+    @BeforeEach
     public void setupMocks() {
         when(entityManager.getTransaction()).thenReturn(entityTransaction);
         when(entityManager.createQuery(anyString())).thenReturn(query);
         when(query.setMaxResults(1)).thenReturn(query);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructorStringArg_walFileArgIsNull_throws() {
-        new WriteAheadLogH2((String) null);
+        assertThrows(NullPointerException.class, () -> new WriteAheadLogH2((String) null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructorStringArg_walFileArgIsEmpty_throws() {
-        new WriteAheadLogH2(" ");
+        assertThrows(IllegalArgumentException.class, () -> new WriteAheadLogH2(" "));
     }
 
     @Test
     public void add_whenGivenListOfModifications_persistsEachModificationInSingleTransaction() {
-        final List<Modification> modifications = Arrays.asList(new Modification(1L), new Modification(2L));
-        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        List<Modification> modifications = Arrays.asList(new Modification(1L), new Modification(2L));
+        WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
         wal.add(modifications);
 
         verify(entityTransaction).begin();
@@ -59,16 +59,11 @@ public class WriteAheadLogH2Test {
 
     @Test
     public void add_whenPersistThrows_transactionRollback() {
-        final List<Modification> modifications = Arrays.asList(new Modification(1L), new Modification(2L));
+        List<Modification> modifications = Arrays.asList(new Modification(1L), new Modification(2L));
         doThrow(new PersistenceException()).when(entityManager).persist(modifications.get(1));
 
-        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
-        try {
-            wal.add(modifications);
-            fail("No PersistenceException thrown");
-        } catch (PersistenceException e) {
-        }
-
+        WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        assertThrows(PersistenceException.class, () -> wal.add(modifications));
         verify(entityTransaction).begin();
         verify(entityManager).persist(modifications.get(0));
         verify(entityTransaction).rollback();
@@ -77,23 +72,23 @@ public class WriteAheadLogH2Test {
     @Test
     public void next_queryReturnsNull_returnsNull() throws ModificationLockedException {
         when(query.getResultList()).thenReturn(null);
-        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
         assertThat(wal.next(), is(nullValue()));
     }
 
     @Test
     public void next_queryReturnsEmptyList_returnsNull() throws ModificationLockedException {
         when(query.getResultList()).thenReturn(Collections.emptyList());
-        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
         assertThat(wal.next(), is(nullValue()));
     }
 
     @Test
     public void next_queryReturnsModification_locksAndReturnsModification() throws ModificationLockedException {
-        final Modification modification = new Modification(42L);
+        Modification modification = new Modification(42L);
         when(query.getResultList()).thenReturn(Collections.singletonList(modification));
-        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
-        final Modification next = wal.next();
+        WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        Modification next = wal.next();
         assertThat("next", next, is(modification));
         assertThat("next.isLocked()", next.isLocked(), is(true));
 
@@ -103,20 +98,16 @@ public class WriteAheadLogH2Test {
 
     @Test
     public void next_queryReturnsAlreadyLockedModification_throws() throws ModificationLockedException {
-        final Modification modification = new Modification(42L);
+        Modification modification = new Modification(42L);
         modification.lock();
         when(query.getResultList()).thenReturn(Collections.singletonList(modification));
-        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
-        try {
-            wal.next();
-            fail("No ModificationLockedException thrown");
-        } catch (ModificationLockedException e) {
-        }
+        WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        assertThrows(ModificationLockedException.class, wal::next);
     }
 
     @Test
     public void delete_modificationArgIsNull_returns() {
-        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
         wal.delete(null);
 
         verify(entityTransaction, times(0)).begin();
@@ -126,8 +117,8 @@ public class WriteAheadLogH2Test {
 
     @Test
     public void delete_modificationArgIsMonNull_deletesModification() {
-        final Modification modification = new Modification(42L);
-        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        Modification modification = new Modification(42L);
+        WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
         wal.delete(modification);
 
         verify(entityTransaction).begin();
@@ -137,22 +128,22 @@ public class WriteAheadLogH2Test {
 
     @Test
     public void unlock_modificationArgIsNull_returnsFalse() {
-        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
         assertThat(wal.unlock(null), is(false));
     }
 
     @Test
     public void unlock_modificationIsNotLocked_returnsFalse() {
-        final Modification modification = new Modification(42L);
-        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        Modification modification = new Modification(42L);
+        WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
         assertThat(wal.unlock(modification), is(false));
     }
 
     @Test
     public void unlock_modificationIsLocked_unlocksReturnsTrue() {
-        final Modification modification = new Modification(42L);
+        Modification modification = new Modification(42L);
         modification.lock();
-        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
         assertThat("wal.unlock()", wal.unlock(modification), is(true));
         assertThat("modification.isLocked()", modification.isLocked(), is(false));
 

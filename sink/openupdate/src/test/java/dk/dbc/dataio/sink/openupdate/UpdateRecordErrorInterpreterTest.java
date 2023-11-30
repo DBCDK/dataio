@@ -7,8 +7,8 @@ import dk.dbc.oss.ns.catalogingupdate.Messages;
 import dk.dbc.oss.ns.catalogingupdate.Type;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
@@ -38,7 +38,7 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
 
     private UpdateRecordErrorInterpreter interpreter;
 
-    @Before
+    @BeforeEach
     public void newInstance() {
         interpreter = new UpdateRecordErrorInterpreter();
     }

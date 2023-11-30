@@ -1,7 +1,9 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.commons.jsonb.JSONBException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Submitter unit tests
@@ -12,27 +14,27 @@ import org.junit.Test;
  */
 public class SubmitterTest {
 
-    @Test(expected = JSONBException.class)
-    public void setContent_jsonDataArgIsInvalidSubmitterContent_throws() throws Exception {
-        final Submitter submitter = new Submitter();
-        submitter.setContent("{}");
+    @Test
+    public void setContent_jsonDataArgIsInvalidSubmitterContent_throws() {
+        Submitter submitter = new Submitter();
+        assertThrows(JSONBException.class, () -> submitter.setContent("{}"));
     }
 
-    @Test(expected = JSONBException.class)
-    public void setContent_jsonDataArgIsInvalidJson_throws() throws Exception {
-        final Submitter submitter = new Submitter();
-        submitter.setContent("{");
+    @Test
+    public void setContent_jsonDataArgIsInvalidJson_throws() {
+        Submitter submitter = new Submitter();
+        assertThrows(JSONBException.class, () -> submitter.setContent("{"));
     }
 
-    @Test(expected = JSONBException.class)
-    public void setContent_jsonDataArgIsEmpty_throws() throws Exception {
-        final Submitter submitter = new Submitter();
-        submitter.setContent("");
+    @Test
+    public void setContent_jsonDataArgIsEmpty_throws() {
+        Submitter submitter = new Submitter();
+        assertThrows(JSONBException.class, () -> submitter.setContent(""));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void setContent_jsonDataArgIsNull_throws() throws Exception {
-        final Submitter submitter = new Submitter();
-        submitter.setContent(null);
+    @Test
+    public void setContent_jsonDataArgIsNull_throws() {
+        Submitter submitter = new Submitter();
+        assertThrows(IllegalArgumentException.class, () -> submitter.setContent(null));
     }
 }

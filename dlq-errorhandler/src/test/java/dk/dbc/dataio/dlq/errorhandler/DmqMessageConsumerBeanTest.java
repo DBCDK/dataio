@@ -15,9 +15,8 @@ import dk.dbc.dataio.jse.artemis.common.Metric;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.registry.PrometheusMetricRegistry;
 import jakarta.jms.JMSException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.Collections;
@@ -26,6 +25,8 @@ import java.util.Map;
 import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.destination;
 import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.redelivery;
 import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.rejected;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -40,7 +41,7 @@ public class DmqMessageConsumerBeanTest {
 
     }
 
-    @Before
+    @BeforeEach
     public void setup() {
         headers = Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         PrometheusMetricRegistry.create().resetAll();
@@ -54,19 +55,19 @@ public class DmqMessageConsumerBeanTest {
         textMessage.setText("{'invalid': 'instance'}");
         dlqMessageConsumer.onMessage(textMessage);
         long rej = Metric.dataio_message_count.counter(destination.is(dlqMessageConsumer.getFQN()), redelivery.is("false"), rejected.is("true")).getCount();
-        Assert.assertEquals("Message should be rejected", 1, rej);
+        assertEquals(1, rej, "Message should be rejected");
     }
 
-    @Test(expected = InvalidMessageException.class)
+    @Test
     public void handleConsumedMessage_messageArgPayloadIsInvalid_throws() throws JobStoreException, InvalidMessageException {
         ConsumedMessage consumedMessage = new ConsumedMessage("id", headers, "{'invalid': 'instance'}");
-        dlqMessageConsumer.handleConsumedMessage(consumedMessage);
+        assertThrows(InvalidMessageException.class, () -> dlqMessageConsumer.handleConsumedMessage(consumedMessage));
     }
 
-    @Test(expected = InvalidMessageException.class)
+    @Test
     public void handleConsumedMessage_messageArgPayloadIsUnknown_throws() throws JobStoreException, InvalidMessageException {
         ConsumedMessage consumedMessage = new ConsumedMessage("id", Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, "Unknown"), "{'unknown': 'instance'}");
-        dlqMessageConsumer.handleConsumedMessage(consumedMessage);
+        assertThrows(InvalidMessageException.class, () -> dlqMessageConsumer.handleConsumedMessage(consumedMessage));
     }
 
     @Test
@@ -80,7 +81,7 @@ public class DmqMessageConsumerBeanTest {
         long rec = Metric.dataio_message_count.counter(destination.is(dlqMessageConsumer.getFQN()), redelivery.is("false")).getCount();
         long rej = Metric.dataio_message_count.counter(destination.is(dlqMessageConsumer.getFQN()), redelivery.is("false"), rejected.is("true")).getCount();
         Mockito.verify(jobStoreServiceConnector, times(1)).addChunk(any(Chunk.class), eq(originalChunk.getJobId()), eq(originalChunk.getChunkId()));
-        Assert.assertEquals("Message should be successfully consumed", 1, rec);
-        Assert.assertEquals("Message should be accepted", 0, rej);
+        assertEquals(1, rec, "Message should be successfully consumed");
+        assertEquals(0, rej, "Message should be accepted");
     }
 }

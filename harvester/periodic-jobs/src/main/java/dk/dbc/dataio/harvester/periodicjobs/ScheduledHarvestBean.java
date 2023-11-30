@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.periodicjobs;
 
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.harvester.AbstractScheduledHarvestBean;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.util.RunSchedule;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * This singleton Enterprise Java Bean (EJB) class schedules harvests every thirty seconds
@@ -39,7 +41,7 @@ public class ScheduledHarvestBean extends AbstractScheduledHarvestBean<Harvester
 
     @Override
     public ScheduleExpression getTimerSchedule() {
-        final ScheduleExpression scheduleExpression = new ScheduleExpression();
+        ScheduleExpression scheduleExpression = new ScheduleExpression();
         scheduleExpression.second("*/30");
         scheduleExpression.minute("*");
         scheduleExpression.hour("*");
@@ -54,9 +56,9 @@ public class ScheduledHarvestBean extends AbstractScheduledHarvestBean<Harvester
     @Override
     public boolean canRun(PeriodicJobsHarvesterConfig config) {
         try {
-            final RunSchedule runSchedule = new RunSchedule(config.getContent().getSchedule())
-                    .withTimezone(ZoneId.of(System.getenv("TZ")));
-            final Date now = new Date();
+            RunSchedule runSchedule = new RunSchedule(config.getContent().getSchedule())
+                    .withTimezone(ZoneId.of(Optional.ofNullable(System.getenv("TZ")).orElse(Constants.CPH)));
+            Date now = new Date();
             return runSchedule.isSatisfiedBy(now, config.getContent().getTimeOfLastHarvest())
                     || runSchedule.isOverdue(now, config.getContent().getTimeOfLastHarvest());
         } catch (RuntimeException e) {

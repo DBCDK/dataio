@@ -5,8 +5,8 @@ import dk.dbc.corepo.access.CORepoProvider;
 import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.opensearch.commons.repository.IRepositoryIdentifier;
 import dk.dbc.opensearch.commons.repository.RepositoryException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -28,7 +28,7 @@ public class CORepoConnectorTest {
     private final Instant from = new Date(1485326980959L).toInstant();
     private final Instant to = new Date(1485339690529L).toInstant();
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws RepositoryException {
         when(coRepoProvider.getRepository()).thenReturn(coRepoDAO);
     }

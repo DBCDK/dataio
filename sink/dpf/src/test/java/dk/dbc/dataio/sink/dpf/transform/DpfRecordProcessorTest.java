@@ -16,8 +16,8 @@ import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,7 +51,7 @@ public class DpfRecordProcessorTest {
     private final ServiceBroker serviceBroker = mock(ServiceBroker.class);
     private final DpfRecordProcessor dpfRecordProcessor = new DpfRecordProcessor(serviceBroker, queueProvider);
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws UpdateServiceDoubleRecordCheckConnectorException, JSONBException {
         when(serviceBroker.isDoubleRecord(any())).thenReturn(createOKDoubleRecordResult());
     }

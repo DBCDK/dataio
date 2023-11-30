@@ -16,8 +16,8 @@ import dk.dbc.dmat.service.persistence.enums.EReolCode;
 import dk.dbc.dmat.service.persistence.enums.Status;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.Is;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class DMatMessageConsumerTest {
             new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build(),
             dMatServiceConnector);
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws DMatServiceConnectorException, JSONBException {
         when(dMatServiceConnector.upsertRecord(any(RecordData.class))).thenReturn(new DMatRecord().withId(1).withStatus(Status.NEW));
     }
@@ -57,7 +57,7 @@ public class DMatMessageConsumerTest {
 
         byte[] validRecordAddi = readLocalFile("valid_recorddata_addi.json");
 
-        final List<ChunkItem> chunkItems = Arrays.asList(
+        List<ChunkItem> chunkItems = Arrays.asList(
                 ChunkItem.failedChunkItem().withId(0L),     // failed by job processor
                 ChunkItem.ignoredChunkItem().withId(1L),    // ignored by job processor
                 ChunkItem.successfulChunkItem().withId(2L)  // invalid input record (not json)
@@ -66,22 +66,18 @@ public class DMatMessageConsumerTest {
                         .withData(validRecordAddi)
         );
 
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setChunkId(0L)
                 .setItems(chunkItems)
                 .build();
 
-        final Chunk result = DMatMessageConsumer.handleChunk(chunk);
+        Chunk result = DMatMessageConsumer.handleChunk(chunk);
 
         MatcherAssert.assertThat("number of chunk items", result.size(), is(4));
-        MatcherAssert.assertThat("1st chunk item", result.getItems().get(0).getStatus(),
-                is(ChunkItem.Status.IGNORE));
-        MatcherAssert.assertThat("2nd chunk item", result.getItems().get(1).getStatus(),
-                is(ChunkItem.Status.IGNORE));
-        MatcherAssert.assertThat("3rd chunk item", result.getItems().get(2).getStatus(),
-                is(ChunkItem.Status.FAILURE));
-        MatcherAssert.assertThat("4th chunk item", result.getItems().get(3).getStatus(),
-                is(ChunkItem.Status.SUCCESS));
+        MatcherAssert.assertThat("1st chunk item", result.getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
+        MatcherAssert.assertThat("2nd chunk item", result.getItems().get(1).getStatus(), is(ChunkItem.Status.IGNORE));
+        MatcherAssert.assertThat("3rd chunk item", result.getItems().get(2).getStatus(), is(ChunkItem.Status.FAILURE));
+        MatcherAssert.assertThat("4th chunk item", result.getItems().get(3).getStatus(), is(ChunkItem.Status.SUCCESS));
     }
 
     @Test
@@ -90,34 +86,29 @@ public class DMatMessageConsumerTest {
         byte[] invalidRecordAddiNoDatestamp = readLocalFile("invalid_recorddata_addi_no_datestamp.json");
         byte[] invalidRecordAddiNoRecordReference = readLocalFile("invalid_recorddata_addi_no_recordreference.json");
 
-        final List<ChunkItem> chunkItems = Arrays.asList(
+        List<ChunkItem> chunkItems = Arrays.asList(
                 ChunkItem.successfulChunkItem().withId(0L)  // failed du to invalid record (missing datestamp)
                         .withData(invalidRecordAddiNoDatestamp),
                 ChunkItem.successfulChunkItem().withId(1L)  // failed du to invalid record (missing record reference)
                         .withData(invalidRecordAddiNoRecordReference)
         );
 
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setChunkId(0L)
                 .setItems(chunkItems)
                 .build();
 
-        final Chunk result = DMatMessageConsumer.handleChunk(chunk);
+        Chunk result = DMatMessageConsumer.handleChunk(chunk);
 
         MatcherAssert.assertThat("number of chunk items", result.size(), is(2));
-        MatcherAssert.assertThat("1st chunk item", result.getItems().get(0).getStatus(),
-                is(ChunkItem.Status.FAILURE));
-        MatcherAssert.assertThat("2nd chunk item", result.getItems().get(1).getStatus(),
-                is(ChunkItem.Status.FAILURE));
+        MatcherAssert.assertThat("1st chunk item", result.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
+        MatcherAssert.assertThat("2nd chunk item", result.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
     /**
      * This test mimics a test in the dmat-service, to check that the RecordData object correctly
      * serializes and deserializes the incomming addi data, thus checking that we have the proper
      * versions of the dmat-connector (and by transitive dependency) the dmat-model
-     *
-     * @throws IOException
-     * @throws JSONBException
      */
     @Test
     public void testRecordData() throws IOException, JSONBException {

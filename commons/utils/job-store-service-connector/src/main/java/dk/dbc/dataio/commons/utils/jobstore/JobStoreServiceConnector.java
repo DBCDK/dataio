@@ -30,6 +30,8 @@ import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,11 +89,11 @@ public class JobStoreServiceConnector {
         this(HttpClient.create(client), baseUrl, null);
     }
 
-    public JobStoreServiceConnector(Client client, String baseUrl, MetricRegistry metricRegistry) throws NullPointerException, IllegalArgumentException {
-        this(HttpClient.create(client), baseUrl, metricRegistry);
+    public JobStoreServiceConnector(String baseUrl, MetricRegistry metricRegistry) throws NullPointerException, IllegalArgumentException {
+        this(HttpClient.create(HttpClient.newClient(new ClientConfig().register(new JacksonFeature()))), baseUrl, metricRegistry);
     }
 
-    JobStoreServiceConnector(HttpClient httpClient, String baseUrl, MetricRegistry metricRegistry) throws NullPointerException, IllegalArgumentException {
+    public JobStoreServiceConnector(HttpClient httpClient, String baseUrl, MetricRegistry metricRegistry) throws NullPointerException, IllegalArgumentException {
         this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "httpClient");
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
         this.metricRegistry = metricRegistry;

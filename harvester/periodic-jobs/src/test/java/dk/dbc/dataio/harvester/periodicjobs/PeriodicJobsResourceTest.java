@@ -5,8 +5,8 @@ import dk.dbc.dataio.harvester.periodicjobs.rest.PeriodicJobsResource;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
@@ -21,7 +21,7 @@ public class PeriodicJobsResourceTest {
     private static PeriodicJobsHarvesterConfig periodicJobsHarvesterConfig1 = new PeriodicJobsHarvesterConfig();
 
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws HarvesterException, FlowStoreServiceConnectorException {
         periodicJobsResource.harvesterConfigurationBean = mock(HarvesterConfigurationBean.class);
         periodicJobsResource.harvesterBean = mock(HarvesterBean.class);

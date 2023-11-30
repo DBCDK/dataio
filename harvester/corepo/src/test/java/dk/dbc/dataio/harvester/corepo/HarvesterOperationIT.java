@@ -37,7 +37,7 @@ public class HarvesterOperationIT {
     private static final Logger HLOGGER = LoggerFactory.getLogger("corepo-harvester");
     private static final Network network = Network.newNetwork();
     private static DBCPostgreSQLContainer db = startCorepoDB(network);
-    private static WireMockServer wireMockServer = makeWireMockServer(db);
+    private static final WireMockServer wireMockServer = makeWireMockServer(db);
     private static GenericContainer<?> harvester = startHarvester(network);
 
 

@@ -2,8 +2,8 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -20,31 +20,31 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class IncludeFilterDataPartitionerTest {
     private SimpleDataPartitioner wrappedPartitioner;
 
-    @Before
+    @BeforeEach
     public void setWrappedPartitioner() {
         wrappedPartitioner = new SimpleDataPartitioner();
     }
 
     @Test
     public void returnsEncodingOfWrappedDataPartitioner() {
-        final IncludeFilterDataPartitioner partitioner = new IncludeFilterDataPartitioner(wrappedPartitioner, new BitSet());
+        IncludeFilterDataPartitioner partitioner = new IncludeFilterDataPartitioner(wrappedPartitioner, new BitSet());
         assertThat(partitioner.getEncoding(), is(wrappedPartitioner.getEncoding()));
     }
 
     @Test
     public void returnsBytesReadOfWrappedDataPartitioner() {
-        final IncludeFilterDataPartitioner partitioner = new IncludeFilterDataPartitioner(wrappedPartitioner, new BitSet());
+        IncludeFilterDataPartitioner partitioner = new IncludeFilterDataPartitioner(wrappedPartitioner, new BitSet());
         assertThat(partitioner.getBytesRead(), is(wrappedPartitioner.getBytesRead()));
     }
 
     @Test
     public void iterates() {
-        final BitSet includeFilter = new BitSet();
+        BitSet includeFilter = new BitSet();
         includeFilter.set(3);
         includeFilter.set(4);
-        final IncludeFilterDataPartitioner partitioner = new IncludeFilterDataPartitioner(wrappedPartitioner, includeFilter);
+        IncludeFilterDataPartitioner partitioner = new IncludeFilterDataPartitioner(wrappedPartitioner, includeFilter);
 
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
         assertThat("has 4th result", iterator.hasNext(), is(true));
         assertThat("4th result position", iterator.next().getPositionInDatafile(), is(3));
         assertThat("has 5th result", iterator.hasNext(), is(true));
@@ -55,12 +55,12 @@ public class IncludeFilterDataPartitionerTest {
 
     @Test
     public void skippedCount() {
-        final BitSet includeFilter = new BitSet();
+        BitSet includeFilter = new BitSet();
         includeFilter.set(2);
         includeFilter.set(4);
         includeFilter.set(6);
 
-        final IncludeFilterDataPartitioner partitioner = new IncludeFilterDataPartitioner(wrappedPartitioner, includeFilter);
+        IncludeFilterDataPartitioner partitioner = new IncludeFilterDataPartitioner(wrappedPartitioner, includeFilter);
         for (DataPartitionerResult result : partitioner) {
         }
         assertThat("skipped count before reset", partitioner.getAndResetSkippedCount(), is(7));
@@ -69,13 +69,13 @@ public class IncludeFilterDataPartitionerTest {
 
     @Test
     public void drainsItems() {
-        final BitSet includeFilter = new BitSet();
+        BitSet includeFilter = new BitSet();
         includeFilter.set(0, 10);
 
-        final IncludeFilterDataPartitioner partitioner = new IncludeFilterDataPartitioner(wrappedPartitioner, includeFilter);
+        IncludeFilterDataPartitioner partitioner = new IncludeFilterDataPartitioner(wrappedPartitioner, includeFilter);
         partitioner.drainItems(9 + 2); // +2 to account for the fake -1 empty results
 
-        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        Iterator<DataPartitionerResult> iterator = partitioner.iterator();
         assertThat("has 10th result", iterator.hasNext(), is(true));
         assertThat("10th result position", iterator.next().getPositionInDatafile(), is(9));
         assertThat("has no more results", iterator.hasNext(), is(false));
@@ -105,7 +105,7 @@ public class IncludeFilterDataPartitionerTest {
 
                 @Override
                 public DataPartitionerResult next() {
-                    final Integer next = dataIterator.next();
+                    Integer next = dataIterator.next();
                     if (next != null) {
                         dataIterator.remove();
                         if (next == -1) { // Simulate empty result as they might happen from a ReorderingDataPartitioner

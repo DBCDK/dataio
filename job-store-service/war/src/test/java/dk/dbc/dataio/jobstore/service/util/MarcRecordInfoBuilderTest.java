@@ -7,7 +7,7 @@ import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.Field;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -34,11 +34,11 @@ public class MarcRecordInfoBuilderTest {
 
     @Test
     public void parse_without014() {
-        final MarcRecord marcRecord = getMarcRecord(f001, f004);
-        final Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
+        MarcRecord marcRecord = getMarcRecord(f001, f004);
+        Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
 
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
-        final MarcRecordInfo recordInfo = recordInfoOptional.get();
+        MarcRecordInfo recordInfo = recordInfoOptional.get();
         assertThat("getId()", recordInfo.getId(), is(id));
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
@@ -47,11 +47,11 @@ public class MarcRecordInfoBuilderTest {
 
     @Test
     public void parse_standaloneWith014_014IsNeverParsed() {
-        final MarcRecord marcRecord = getMarcRecord(f001, f004, f014);
-        final Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
+        MarcRecord marcRecord = getMarcRecord(f001, f004, f014);
+        Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
 
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
-        final MarcRecordInfo recordInfo = recordInfoOptional.get();
+        MarcRecordInfo recordInfo = recordInfoOptional.get();
         assertThat("getId()", recordInfo.getId(), is(id));
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
@@ -61,11 +61,11 @@ public class MarcRecordInfoBuilderTest {
 
     @Test
     public void parse_headWith014_014IsNeverParsed() {
-        final MarcRecord marcRecord = getMarcRecord(f001, get004("h", "c"), f014);
-        final Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
+        MarcRecord marcRecord = getMarcRecord(f001, get004("h", "c"), f014);
+        Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
 
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
-        final MarcRecordInfo recordInfo = recordInfoOptional.get();
+        MarcRecordInfo recordInfo = recordInfoOptional.get();
         assertThat("getId()", recordInfo.getId(), is(id));
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.HEAD));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
@@ -75,11 +75,11 @@ public class MarcRecordInfoBuilderTest {
 
     @Test
     public void parse_sectionWith014() {
-        final MarcRecord marcRecord = getMarcRecord(f001, get004("s", "c"), f014);
-        final Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
+        MarcRecord marcRecord = getMarcRecord(f001, get004("s", "c"), f014);
+        Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
 
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
-        final MarcRecordInfo recordInfo = recordInfoOptional.get();
+        MarcRecordInfo recordInfo = recordInfoOptional.get();
         assertThat("getId()", recordInfo.getId(), is(id));
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.SECTION));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(true));
@@ -90,11 +90,11 @@ public class MarcRecordInfoBuilderTest {
 
     @Test
     public void parse_volumeWith014() {
-        final MarcRecord marcRecord = getMarcRecord(f001, get004("b", "c"), f014);
-        final Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
+        MarcRecord marcRecord = getMarcRecord(f001, get004("b", "c"), f014);
+        Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
 
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
-        final MarcRecordInfo recordInfo = recordInfoOptional.get();
+        MarcRecordInfo recordInfo = recordInfoOptional.get();
         assertThat("getId()", recordInfo.getId(), is(id));
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.VOLUME));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(true));
@@ -105,30 +105,30 @@ public class MarcRecordInfoBuilderTest {
 
     @Test
     public void parse_empty004a_defaultsToStandaloneType() {
-        final MarcRecord marcRecord = getMarcRecord(f001, get004("", "c"));
-        final Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
+        MarcRecord marcRecord = getMarcRecord(f001, get004("", "c"));
+        Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
 
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
-        final MarcRecordInfo recordInfo = recordInfoOptional.get();
+        MarcRecordInfo recordInfo = recordInfoOptional.get();
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
         assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(id)));
     }
 
     @Test
     public void parse_deleteMarked() {
-        final MarcRecord marcRecord = getMarcRecord(f001, get004("e", "d"));
-        final Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
+        MarcRecord marcRecord = getMarcRecord(f001, get004("e", "d"));
+        Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
 
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
-        final MarcRecordInfo recordInfo = recordInfoOptional.get();
+        MarcRecordInfo recordInfo = recordInfoOptional.get();
         assertThat("isDelete()", recordInfo.isDelete(), is(true));
         assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(id)));
     }
 
     @Test
     public void parse_001ControlField() {
-        final MarcRecord marcRecord = getMarcRecord(c001);
-        final Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
+        MarcRecord marcRecord = getMarcRecord(c001);
+        Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
 
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
         assertThat("getId()", recordInfoOptional.get().getId(), is(id));

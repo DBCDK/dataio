@@ -31,7 +31,8 @@ import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.StateElement;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import types.TestableJobEntityBuilder;
 
 import java.io.ByteArrayInputStream;
@@ -58,7 +59,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -70,10 +70,10 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void createChunkItemEntities() {
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final Params params = new Params();
-        final JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
-        final Sink sink = new SinkBuilder().build();
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        Params params = new Params();
+        JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
+        Sink sink = new SinkBuilder().build();
         when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
 
         PgJobStoreRepository.ChunkItemEntities chunkItemEntities =
@@ -100,8 +100,8 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void createChunkItemEntities_dataPartitionerThrowsDataException_failedItemIsCreated() {
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final Params params = new Params();
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        Params params = new Params();
         final String invalidXml =
                 "<records>"
                         + "<record>first</record>"
@@ -111,11 +111,11 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         params.dataPartitioner = DefaultXmlDataPartitioner.newInstance(new ByteArrayInputStream(invalidXml.getBytes(StandardCharsets.UTF_8)),
                 StandardCharsets.UTF_8.name());
 
-        final Sink sink = new SinkBuilder().build();
-        final JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
+        Sink sink = new SinkBuilder().build();
+        JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
         when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
 
-        final PgJobStoreRepository.ChunkItemEntities chunkItemEntities =
+        PgJobStoreRepository.ChunkItemEntities chunkItemEntities =
                 pgJobStore.jobStoreRepository.createChunkItemEntities(101010, 1, 0,
                         params.maxChunkSize, params.dataPartitioner);
         assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
@@ -141,13 +141,13 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void createChunkEntity() throws JobStoreException {
-        final Params params = new Params();
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        Params params = new Params();
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
 
-        final JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
+        JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
         jobEntity.setState(new State());
 
-        final Sink sink = new SinkBuilder().build();
+        Sink sink = new SinkBuilder().build();
         when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
@@ -184,10 +184,10 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void addChunk_chunkArgIsNull_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore();
+        PgJobStore pgJobStore = newPgJobStore();
         try {
             pgJobStore.addChunk(null);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (NullPointerException e) {
         }
     }
@@ -195,47 +195,47 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     @Test
     public void addChunk_chunkEntityCanNotBeFound_throws() {
 
-        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
 
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class))).thenReturn(null);
 
-        final PgJobStore pgJobStore = newPgJobStore();
+        PgJobStore pgJobStore = newPgJobStore();
         try {
             pgJobStore.addChunk(chunk);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (JobStoreException e) {
         }
     }
 
     @Test
     public void addChunk_jobEntityCanNotBeFound_throws() {
-        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class))).thenReturn(getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING)));
         when(entityManager.find(eq(JobEntity.class), anyInt())).thenReturn(null);
 
-        final PgJobStore pgJobStore = newPgJobStore();
+        PgJobStore pgJobStore = newPgJobStore();
         try {
             pgJobStore.addChunk(chunk);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (JobStoreException e) {
         }
     }
 
     @Test
     public void addChunk_numberOfChunkItemsDiffersFromInternal_throws() {
-        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class))).thenReturn(getChunkEntity(chunk.size() + 42, Collections.singletonList(PARTITIONING)));
 
-        final PgJobStore pgJobStore = newPgJobStore();
+        PgJobStore pgJobStore = newPgJobStore();
         try {
             pgJobStore.addChunk(chunk);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (JobStoreException e) {
         }
     }
@@ -248,9 +248,9 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
             chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
             setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
-            final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
-            final State state = getUpdatedState(chunk.size(), Collections.singletonList(PARTITIONING));
-            final JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
+            ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
+            State state = getUpdatedState(chunk.size(), Collections.singletonList(PARTITIONING));
+            JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
 
             when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
             when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
@@ -258,34 +258,34 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
             pgJobStore = newPgJobStore(newPgJobStoreReposity());
             pgJobStore.addChunk(chunk);
         } catch (Exception e) {
-            fail(e.getMessage());
+            Assertions.fail(e.getMessage());
         }
 
         try {
             pgJobStore.addChunk(chunk);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (DuplicateChunkException e) {
         }
     }
 
     @Test
     public void addChunk_chunkAdded_chunkEntityPhaseComplete() throws JobStoreException {
-        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
-        final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
-        final State state = getUpdatedState(chunk.size(), Collections.singletonList(PARTITIONING));
-        final JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
+        ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
+        State state = getUpdatedState(chunk.size(), Collections.singletonList(PARTITIONING));
+        JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         JobInfoSnapshot jobInfoSnapshot = pgJobStore.addChunk(chunk);
 
         // assert ChunkEntity (counters + beginDate and endDate set)
 
-        final StateElement chunkStateElement = chunkEntity.getState().getPhase(PROCESSING);
+        StateElement chunkStateElement = chunkEntity.getState().getPhase(PROCESSING);
         assertThat("ChunkEntity: processing phase beginDate set", chunkStateElement.getBeginDate(), is(notNullValue()));
         assertThat("ChunkEntity: processing phase endDate set", chunkStateElement.getEndDate(), is(notNullValue()));
         assertThat("ChunkEntity: number of failed items", chunkStateElement.getFailed(), is(1));
@@ -298,11 +298,11 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void addChunk_finalChunkAdded_jobEntityPhaseComplete() throws JobStoreException {
-        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
-        final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
-        final State state = getUpdatedState(chunk.size(), Collections.singletonList(PARTITIONING));
+        ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
+        State state = getUpdatedState(chunk.size(), Collections.singletonList(PARTITIONING));
         state.getPhase(PARTITIONING).withSucceeded(126);
         state.getPhase(PROCESSING).withFailed(41);
         state.getPhase(PROCESSING).withIgnored(41);
@@ -312,14 +312,14 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addChunk(chunk);
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        JobInfoSnapshot jobInfoSnapshot = pgJobStore.addChunk(chunk);
         assertThat("JobInfoSnapshot:", jobInfoSnapshot, is(notNullValue()));
         assertThat("JobInfoSnapshot: time of completion not set", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
 
         // assert JobEntity (counters + beginDate and endDate set)
 
-        final StateElement jobStateElement = jobEntity.getState().getPhase(PROCESSING);
+        StateElement jobStateElement = jobEntity.getState().getPhase(PROCESSING);
         assertThat("JobEntity: processing phase beginDate set", jobStateElement.getBeginDate(), is(notNullValue()));
         assertThat("JobEntity: processing phase endDate set", jobStateElement.getEndDate(), is(notNullValue()));
         assertThat("JobEntity: number of failed items", jobStateElement.getFailed(), is(42));
@@ -332,24 +332,24 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void addChunk_nonFinalChunkAdded_jobEntityPhaseIncomplete() throws JobStoreException {
-        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
-        final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
-        final State state = getUpdatedState(chunk.size(), Collections.<State.Phase>emptyList());
-        final JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
+        ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
+        State state = getUpdatedState(chunk.size(), Collections.emptyList());
+        JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addChunk(chunk);
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        JobInfoSnapshot jobInfoSnapshot = pgJobStore.addChunk(chunk);
         assertThat("JobInfoSnapshot:", jobInfoSnapshot, is(notNullValue()));
         assertThat("JobInfoSnapshot: time of completion not set", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
 
         // assert JobEntity (counters + beginDate set, endData == null)
 
-        final StateElement jobStateElement = jobEntity.getState().getPhase(PROCESSING);
+        StateElement jobStateElement = jobEntity.getState().getPhase(PROCESSING);
         assertThat("JobEntity: processing phase beginDate set", jobStateElement.getBeginDate(), is(notNullValue()));
         assertThat("JobEntity: processing phase endDate not set", jobStateElement.getEndDate(), is(nullValue()));
         assertThat("JobEntity: number of failed items", jobStateElement.getFailed(), is(1));
@@ -362,22 +362,22 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void addChunk_allPhasesComplete_timeOfCompletionIsSet() throws JobStoreException {
-        final Chunk chunk = getChunk(DELIVERED, chunkData, Arrays.asList(SUCCESS, SUCCESS, SUCCESS));
+        Chunk chunk = getChunk(DELIVERED, chunkData, Arrays.asList(SUCCESS, SUCCESS, SUCCESS));
         setItemEntityExpectations(chunk, Arrays.asList(PARTITIONING, PROCESSING));
 
-        final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Arrays.asList(PARTITIONING, PROCESSING));
-        final State state = getUpdatedState(chunk.size(), Arrays.asList(PARTITIONING, PROCESSING));
-        final JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
+        ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Arrays.asList(PARTITIONING, PROCESSING));
+        State state = getUpdatedState(chunk.size(), Arrays.asList(PARTITIONING, PROCESSING));
+        JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addChunk(chunk);
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        JobInfoSnapshot jobInfoSnapshot = pgJobStore.addChunk(chunk);
         assertThat("JobInfoSnapshot:", jobInfoSnapshot, is(notNullValue()));
         assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
 
-        final StateElement jobStateElement = jobEntity.getState().getPhase(PROCESSING);
+        StateElement jobStateElement = jobEntity.getState().getPhase(PROCESSING);
         assertThat("JobEntity: processing phase beginDate set", jobStateElement.getBeginDate(), is(notNullValue()));
         assertThat("JobEntity: processing phase endDate set", jobStateElement.getEndDate(), is(notNullValue()));
         assertThat("JobEntity: number of failed items", jobStateElement.getFailed(), is(0));
@@ -389,14 +389,14 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void updateChunkItemEntities_itemsCanNotBeFound_throws() throws JobStoreException {
-        final Chunk chunk = new ChunkBuilder(PROCESSED).build();
+        Chunk chunk = new ChunkBuilder(PROCESSED).build();
 
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(null);
 
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         try {
             pgJobStore.jobStoreRepository.updateChunkItemEntities(chunk);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (InvalidInputException e) {
             assertThat("JobError:", e.getJobError(), is(notNullValue()));
             assertThat("JobError: code", e.getJobError().getCode(), is(JobError.Code.INVALID_ITEM_IDENTIFIER));
@@ -405,16 +405,16 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void updateChunkItemEntities_itemsForPartitioningPhase_throws() throws JobStoreException {
-        final Chunk chunk = new ChunkBuilder(PARTITIONED).build();
-        final ItemEntity itemEntity = new ItemEntity();
+        Chunk chunk = new ChunkBuilder(PARTITIONED).build();
+        ItemEntity itemEntity = new ItemEntity();
         itemEntity.setState(new State());
 
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
 
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         try {
             pgJobStore.jobStoreRepository.updateChunkItemEntities(chunk);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (InvalidInputException e) {
             assertThat("JobError:", e.getJobError(), is(notNullValue()));
             assertThat("JobError: code", e.getJobError().getCode(), is(JobError.Code.ILLEGAL_CHUNK));
@@ -423,15 +423,15 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void updateChunkItemEntities_itemsForProcessingPhase() throws JobStoreException {
-        final List<String> expectedItemData = Arrays.asList(
+        List<String> expectedItemData = Arrays.asList(
                 (chunkData.get(0)),
                 (chunkData.get(1)),
                 (chunkData.get(2)));
-        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
-        final List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
+        Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final PgJobStoreRepository.ChunkItemEntities chunkItemEntities = pgJobStore.jobStoreRepository.updateChunkItemEntities(chunk);
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        PgJobStoreRepository.ChunkItemEntities chunkItemEntities = pgJobStore.jobStoreRepository.updateChunkItemEntities(chunk);
         assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
         assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) chunk.size()));
         assertThat("Chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(1));
@@ -458,15 +458,15 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void updateChunkItemEntities_itemsForDeliveringPhase() throws JobStoreException {
-        final List<String> expectedItemData = Arrays.asList(
+        List<String> expectedItemData = Arrays.asList(
                 (chunkData.get(0)),
                 (chunkData.get(1)),
                 (chunkData.get(2)));
-        final Chunk chunk = getChunk(DELIVERED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
-        final List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
+        Chunk chunk = getChunk(DELIVERED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
 
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final PgJobStoreRepository.ChunkItemEntities chunkItemEntities = pgJobStore.jobStoreRepository.updateChunkItemEntities(chunk);
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        PgJobStoreRepository.ChunkItemEntities chunkItemEntities = pgJobStore.jobStoreRepository.updateChunkItemEntities(chunk);
         assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
         assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) chunk.size()));
         assertThat("Chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(1));
@@ -492,20 +492,20 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void updateChunkItemEntities_attemptToOverwriteAlreadyAddedChunk_throws() throws JobStoreException {
-        final List<String> chunkData = Collections.singletonList("itemData0");
-        final Chunk chunk = getChunk(PROCESSED, chunkData, Collections.singletonList(SUCCESS));
-        final List<String> chunkDataOverwrite = Collections.singletonList("itemData0-overwrite");
-        final Chunk chunkOverwrite = getChunk(PROCESSED, chunkDataOverwrite, Collections.singletonList(FAILURE));
+        List<String> chunkData = Collections.singletonList("itemData0");
+        Chunk chunk = getChunk(PROCESSED, chunkData, Collections.singletonList(SUCCESS));
+        List<String> chunkDataOverwrite = Collections.singletonList("itemData0-overwrite");
+        Chunk chunkOverwrite = getChunk(PROCESSED, chunkDataOverwrite, Collections.singletonList(FAILURE));
 
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         // add original chunk
         pgJobStore.jobStoreRepository.updateChunkItemEntities(chunk);
 
         try {
             pgJobStore.jobStoreRepository.updateChunkItemEntities(chunkOverwrite);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (DuplicateChunkException e) {
         }
     }
@@ -527,7 +527,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         public short maxChunkSize;
 
         public Params() {
-            final JobSpecification jobSpecification = new JobSpecification().withResultmailInitials("placeholder").withMailForNotificationAboutVerification("placeholder").withMailForNotificationAboutProcessing("placeholder");
+            JobSpecification jobSpecification = new JobSpecification().withResultmailInitials("placeholder").withMailForNotificationAboutVerification("placeholder").withMailForNotificationAboutProcessing("placeholder");
             jobInputStream = new JobInputStream(jobSpecification, true, 0);
             dataPartitioner = DefaultXmlDataPartitioner.newInstance(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
             flow = new FlowBuilder().build();
@@ -540,12 +540,12 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     private void assertChunkItemEntities(PgJobStoreRepository.ChunkItemEntities chunkItemEntities, State.Phase phase, List<String> dataEntries, Charset dataEncoding) {
-        final LinkedList<String> expectedData = new LinkedList<>(dataEntries);
+        LinkedList<String> expectedData = new LinkedList<>(dataEntries);
         assertThat("Chunk item entities: phase", chunkItemEntities.chunkStateChange.getPhase(), is(phase));
 
         for (ItemEntity itemEntity : chunkItemEntities.entities) {
 
-            final String itemEntityKey = String.format(
+            String itemEntityKey = String.format(
                     "ItemEntity.Key{jobId=%d, chunkId=%d, itemId=%d}",
                     itemEntity.getKey().getJobId(),
                     itemEntity.getKey().getChunkId(),
@@ -572,8 +572,8 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     private Chunk getChunk(Chunk.Type type, List<String> data, List<ChunkItem.Status> statuses) {
-        final List<ChunkItem> chunkItems = new ArrayList<>(data.size());
-        final LinkedList<ChunkItem.Status> statusStack = new LinkedList<>(statuses);
+        List<ChunkItem> chunkItems = new ArrayList<>(data.size());
+        LinkedList<ChunkItem.Status> statusStack = new LinkedList<>(statuses);
         short itemId = 0;
         for (String itemData : data) {
             chunkItems.add(new ChunkItemBuilder().setId(itemId++).setData(itemData).setStatus(statusStack.pop()).build());
@@ -586,12 +586,12 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     private List<ItemEntity> setItemEntityExpectations(Chunk chunk, List<State.Phase> phasesDone) {
-        final List<ItemEntity> entities = new ArrayList<>(chunk.size());
+        List<ItemEntity> entities = new ArrayList<>(chunk.size());
         for (ChunkItem chunkItem : chunk) {
-            final ItemEntity itemEntity = getItemEntity((int) chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId(), phasesDone);
+            ItemEntity itemEntity = getItemEntity(chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId(), phasesDone);
             entities.add(itemEntity);
         }
-        final ItemEntity[] expectations = entities.toArray(new ItemEntity[entities.size()]);
+        ItemEntity[] expectations = entities.toArray(new ItemEntity[entities.size()]);
         if (expectations.length > 1) {
             when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class)))
                     .thenReturn(expectations[0], Arrays.copyOfRange(expectations, 1, expectations.length));
@@ -603,11 +603,11 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     private ItemEntity getItemEntity(int jobId, int chunkId, short itemId, List<State.Phase> phasesDone) {
-        final ItemEntity.Key itemKey = new ItemEntity.Key(jobId, chunkId, itemId);
-        final ItemEntity itemEntity = new ItemEntity();
+        ItemEntity.Key itemKey = new ItemEntity.Key(jobId, chunkId, itemId);
+        ItemEntity itemEntity = new ItemEntity();
         itemEntity.setKey(itemKey);
-        final StateChange itemStateChange = new StateChange();
-        final State itemState = new State();
+        StateChange itemStateChange = new StateChange();
+        State itemState = new State();
         for (State.Phase phase : phasesDone) {
             itemStateChange.setPhase(phase)
                     .setSucceeded(1)
@@ -624,12 +624,12 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     private ChunkEntity getChunkEntity(int numberOfItems, List<State.Phase> phasesDone) {
         final int jobId = 1;
         final int chunkId = 0;
-        final ChunkEntity.Key chunkKey = new ChunkEntity.Key(chunkId, jobId);
-        final ChunkEntity chunkEntity = new ChunkEntity();
+        ChunkEntity.Key chunkKey = new ChunkEntity.Key(chunkId, jobId);
+        ChunkEntity chunkEntity = new ChunkEntity();
         chunkEntity.setKey(chunkKey);
         chunkEntity.setNumberOfItems((short) numberOfItems);
-        final StateChange chunkStateChange = new StateChange();
-        final State chunkState = new State();
+        StateChange chunkStateChange = new StateChange();
+        State chunkState = new State();
         for (State.Phase phase : phasesDone) {
             chunkStateChange.setPhase(phase)
                     .setBeginDate(new Date())
@@ -642,14 +642,14 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     private PgJobStoreRepository.ChunkItemEntities createChunkItemEntitiesForDanMarc2Partitioning(String data) throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final Params params = new Params();
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        Params params = new Params();
 
         params.dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
                 new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)), "latin1");
 
-        final JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
-        final Sink sink = new SinkBuilder().build();
+        JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
+        Sink sink = new SinkBuilder().build();
         when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
         return pgJobStore.jobStoreRepository.createChunkItemEntities(101010, 1,
                 0, params.maxChunkSize, params.dataPartitioner);

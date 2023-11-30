@@ -1,6 +1,6 @@
 package dk.dbc.dataio.sink.worldcat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -13,7 +13,7 @@ public class UnicodeNormalizationFormDecomposedTest {
     }
 
     private String getUnicodeValuesOfString(String str) {
-        final StringBuilder buffer = new StringBuilder();
+        StringBuilder buffer = new StringBuilder();
         for (char c : str.toCharArray()) {
             buffer.append(String.format("\\u%04x", (int) c));
         }

@@ -12,8 +12,8 @@ import jakarta.persistence.Query;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -23,6 +23,7 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -36,10 +37,10 @@ public class GatekeeperDestinationsBeanTest {
     private UriInfo mockedUriInfo;
     private JSONBContext jsonbContext;
 
-    @Before
+    @BeforeEach
     public void setup() throws URISyntaxException {
         mockedUriInfo = mock(UriInfo.class);
-        final UriBuilder mockedUriBuilder = mock(UriBuilder.class);
+        UriBuilder mockedUriBuilder = mock(UriBuilder.class);
 
         when(mockedUriInfo.getAbsolutePathBuilder()).thenReturn(mockedUriBuilder);
         when(mockedUriBuilder.path(anyString())).thenReturn(mockedUriBuilder);
@@ -52,32 +53,32 @@ public class GatekeeperDestinationsBeanTest {
 
     @Test
     public void gatekeeperDestinationsBean_validConstructor_newInstance() {
-        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+        GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
         assertThat(gatekeeperDestinationsBean, is(notNullValue()));
     }
 
-    @Test(expected = NullPointerException.class)
-    public void createGatekeeperDestination_nullGatekeeperDestination_throws() throws JSONBException {
-        newGatekeeperDestinationsBeanWithMockedEntityManager().createGatekeeperDestination(mockedUriInfo, null);
+    @Test
+    public void createGatekeeperDestination_nullGatekeeperDestination_throws() {
+        assertThrows(NullPointerException.class, () -> newGatekeeperDestinationsBeanWithMockedEntityManager().createGatekeeperDestination(mockedUriInfo, null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void createGatekeeperDestination_emptyGatekeeperDestination_throws() throws JSONBException {
-        newGatekeeperDestinationsBeanWithMockedEntityManager().createGatekeeperDestination(mockedUriInfo, "");
+    @Test
+    public void createGatekeeperDestination_emptyGatekeeperDestination_throws() {
+        assertThrows(IllegalArgumentException.class, () -> newGatekeeperDestinationsBeanWithMockedEntityManager().createGatekeeperDestination(mockedUriInfo, ""));
     }
 
-    @Test(expected = JSONBException.class)
-    public void createGatekeeperDestination_invalidJSON_throwsJsonException() throws JSONBException {
-        newGatekeeperDestinationsBeanWithMockedEntityManager().createGatekeeperDestination(mockedUriInfo, "invalid Json");
+    @Test
+    public void createGatekeeperDestination_invalidJSON_throwsJsonException() {
+        assertThrows(JSONBException.class, () -> newGatekeeperDestinationsBeanWithMockedEntityManager().createGatekeeperDestination(mockedUriInfo, "invalid Json"));
     }
 
     @Test
     public void createGatekeeperDestination_gatekeeperDestinationCreated_returnsResponseWithHttpStatusOk() throws JSONBException {
-        final String gatekeeperDestination = new GatekeeperDestinationJsonBuilder().build();
-        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+        String gatekeeperDestination = new GatekeeperDestinationJsonBuilder().build();
+        GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
 
         // Subject under test
-        final Response response = gatekeeperDestinationsBean.createGatekeeperDestination(mockedUriInfo, gatekeeperDestination);
+        Response response = gatekeeperDestinationsBean.createGatekeeperDestination(mockedUriInfo, gatekeeperDestination);
 
         // Verification
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
@@ -88,42 +89,42 @@ public class GatekeeperDestinationsBeanTest {
 
     @Test
     public void findAllGatekeeperDestinations_noGatekeeperDestinationsFound_returnsResponseWithHttpStatusOkAndEmptyList() throws JSONBException {
-        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
-        final Query query = mock(Query.class);
+        GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+        Query query = mock(Query.class);
 
         when(ENTITY_MANAGER.createNamedQuery(GatekeeperDestinationEntity.QUERY_FIND_ALL)).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.emptyList());
 
         // Subject under test
-        final Response response = gatekeeperDestinationsBean.findAllGatekeeperDestinations();
+        Response response = gatekeeperDestinationsBean.findAllGatekeeperDestinations();
 
         // Verification
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
-        final ArrayNode entityNode = (ArrayNode) jsonbContext.getJsonTree((String) response.getEntity());
+        ArrayNode entityNode = (ArrayNode) jsonbContext.getJsonTree((String) response.getEntity());
         assertThat(entityNode.size(), is(0));
     }
 
     @Test
     public void findAllGatekeeperDestinations_gatekeeperDestinationsFound_returnsResponseWithHttpStatusOkAndGatekeeperDestinationEntities() throws JSONBException {
-        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
-        final Query query = mock(Query.class);
-        final GatekeeperDestinationEntity gatekeeperDestinationEntityA = jsonbContext.unmarshall(
+        GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+        Query query = mock(Query.class);
+        GatekeeperDestinationEntity gatekeeperDestinationEntityA = jsonbContext.unmarshall(
                 new GatekeeperDestinationJsonBuilder().setSubmitterNumber("123").build(), GatekeeperDestinationEntity.class);
 
-        final GatekeeperDestinationEntity gatekeeperDestinationEntityB = jsonbContext.unmarshall(
+        GatekeeperDestinationEntity gatekeeperDestinationEntityB = jsonbContext.unmarshall(
                 new GatekeeperDestinationJsonBuilder().setSubmitterNumber("234").build(), GatekeeperDestinationEntity.class);
 
         when(ENTITY_MANAGER.createNamedQuery(GatekeeperDestinationEntity.QUERY_FIND_ALL)).thenReturn(query);
         when(query.getResultList()).thenReturn(Arrays.asList(gatekeeperDestinationEntityA, gatekeeperDestinationEntityB));
 
         // Subject under test
-        final Response response = gatekeeperDestinationsBean.findAllGatekeeperDestinations();
+        Response response = gatekeeperDestinationsBean.findAllGatekeeperDestinations();
 
         // Verification
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
-        final ArrayNode entityNode = (ArrayNode) jsonbContext.getJsonTree((String) response.getEntity());
+        ArrayNode entityNode = (ArrayNode) jsonbContext.getJsonTree((String) response.getEntity());
         assertThat(entityNode.size(), is(2));
         assertThat(entityNode.get(0).get("submitterNumber").textValue(), is("123"));
         assertThat(entityNode.get(1).get("submitterNumber").textValue(), is("234"));
@@ -133,11 +134,11 @@ public class GatekeeperDestinationsBeanTest {
 
     @Test
     public void deleteGatekeeperDestination_gatekeeperDestinationNotFound_returnsResponseWithHttpStatusNotFound() {
-        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+        GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(GatekeeperDestinationEntity.class), any())).thenReturn(null);
 
         // Subject under test
-        final Response response = gatekeeperDestinationsBean.deleteGatekeeperDestination(42L);
+        Response response = gatekeeperDestinationsBean.deleteGatekeeperDestination(42L);
 
         // Verification
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
@@ -145,13 +146,13 @@ public class GatekeeperDestinationsBeanTest {
 
     @Test
     public void deleteGatekeeperDestination_gatekeeperDestinationFound_returnsNoContentHttpResponse() {
-        final GatekeeperDestinationEntity gatekeeperDestinationEntity = mock(GatekeeperDestinationEntity.class);
-        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+        GatekeeperDestinationEntity gatekeeperDestinationEntity = mock(GatekeeperDestinationEntity.class);
+        GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
 
         when(ENTITY_MANAGER.find(eq(GatekeeperDestinationEntity.class), any())).thenReturn(gatekeeperDestinationEntity);
 
         // Subject under test
-        final Response response = gatekeeperDestinationsBean.deleteGatekeeperDestination(42L);
+        Response response = gatekeeperDestinationsBean.deleteGatekeeperDestination(42L);
 
         // Verification
         verify(ENTITY_MANAGER).remove(gatekeeperDestinationEntity);
@@ -160,24 +161,24 @@ public class GatekeeperDestinationsBeanTest {
 
     // ***************************************************** update gatekeeper destination ******************************************************
 
-    @Test(expected = NullPointerException.class)
-    public void updateGatekeeperDestination_nullGatekeeperDestination_throws() throws JSONBException {
-        newGatekeeperDestinationsBeanWithMockedEntityManager().updateGatekeeperDestination(null, 42L);
+    @Test
+    public void updateGatekeeperDestination_nullGatekeeperDestination_throws() {
+        assertThrows(NullPointerException.class, () -> newGatekeeperDestinationsBeanWithMockedEntityManager().updateGatekeeperDestination(null, 42L));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void updateGatekeeperDestination_emptyGatekeeperDestination_throws() throws JSONBException {
-        newGatekeeperDestinationsBeanWithMockedEntityManager().updateGatekeeperDestination("", 42L);
+    @Test
+    public void updateGatekeeperDestination_emptyGatekeeperDestination_throws() {
+        assertThrows(IllegalArgumentException.class, () -> newGatekeeperDestinationsBeanWithMockedEntityManager().updateGatekeeperDestination("", 42L));
     }
 
     @Test
     public void updateGatekeeperDestination_gatekeeperDestinationNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException {
-        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+        GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
 
         when(ENTITY_MANAGER.find(eq(GatekeeperDestinationEntity.class), any())).thenReturn(null);
 
         // Subject under test
-        final Response response = gatekeeperDestinationsBean.updateGatekeeperDestination(new GatekeeperDestinationJsonBuilder().build(), 42L);
+        Response response = gatekeeperDestinationsBean.updateGatekeeperDestination(new GatekeeperDestinationJsonBuilder().build(), 42L);
 
         // Verification
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
@@ -185,9 +186,9 @@ public class GatekeeperDestinationsBeanTest {
 
     @Test
     public void updateGatekeeperDestination_gatekeeperDestinationFound_returnsResponseWithHttpStatusOk() throws JSONBException {
-        final GatekeeperDestinationEntity gatekeeperDestinationEntity = mock(GatekeeperDestinationEntity.class);
-        final GatekeeperDestination gatekeeperDestination = new GatekeeperDestinationBuilder().build();
-        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+        GatekeeperDestinationEntity gatekeeperDestinationEntity = mock(GatekeeperDestinationEntity.class);
+        GatekeeperDestination gatekeeperDestination = new GatekeeperDestinationBuilder().build();
+        GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
         gatekeeperDestinationsBean.jsonbContext = mock(JSONBContext.class);
 
         when(gatekeeperDestinationsBean.jsonbContext.unmarshall(anyString(), eq(GatekeeperDestination.class))).thenReturn(gatekeeperDestination);
@@ -195,7 +196,7 @@ public class GatekeeperDestinationsBeanTest {
         when(gatekeeperDestinationsBean.jsonbContext.marshall(gatekeeperDestinationEntity)).thenReturn("entity");
 
         // Subject under test
-        final Response response = gatekeeperDestinationsBean.updateGatekeeperDestination(
+        Response response = gatekeeperDestinationsBean.updateGatekeeperDestination(
                 new JSONBContext().marshall(gatekeeperDestination), gatekeeperDestination.getId());
 
         // Verification
@@ -213,7 +214,7 @@ public class GatekeeperDestinationsBeanTest {
      */
 
     private static GatekeeperDestinationsBean newGatekeeperDestinationsBeanWithMockedEntityManager() {
-        final GatekeeperDestinationsBean gatekeeperDestinationsBean = new GatekeeperDestinationsBean();
+        GatekeeperDestinationsBean gatekeeperDestinationsBean = new GatekeeperDestinationsBean();
         gatekeeperDestinationsBean.entityManager = ENTITY_MANAGER;
         return gatekeeperDestinationsBean;
     }

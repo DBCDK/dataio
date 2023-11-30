@@ -13,8 +13,8 @@ import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.Timer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
 import java.time.Duration;
@@ -51,7 +51,7 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
                     .withSubmitterNumber(worldCatEntity.getAgencyId())
                     .withBibliographicRecordId(worldCatEntity.getBibliographicRecordId()));
 
-    @Before
+    @BeforeEach
     public void setupMocks() {
         when(ocnRepo.lookupWorldCatEntity(any(WorldCatEntity.class)))
                 .thenReturn(Collections.singletonList(worldCatEntity));

@@ -10,12 +10,13 @@ import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.ws.rs.core.Response;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -25,7 +26,7 @@ import static org.mockito.Mockito.when;
 public class FlowBindersBeanTest {
     private static final EntityManager ENTITY_MANAGER = mock(EntityManager.class);
 
-    private JSONBContext jsonbContext = new JSONBContext();
+    private final JSONBContext jsonbContext = new JSONBContext();
 
     @Test
     @SuppressWarnings("unchecked")
@@ -76,34 +77,34 @@ public class FlowBindersBeanTest {
         assertThat(entity.get("content").get("sinkId").asLong(), is((flowBinder.getSinkId())));
     }
 
-    @Test(expected = NullPointerException.class)
-    public void updateFlowBinder_nullFlowBinderContent_throws() throws JSONBException, ReferencedEntityNotFoundException {
-        newFlowBindersBeanWithMockedEntityManager().updateFlowBinder(null, 1L, 1L);
+    @Test
+    public void updateFlowBinder_nullFlowBinderContent_throws() {
+        assertThrows(NullPointerException.class, () -> newFlowBindersBeanWithMockedEntityManager().updateFlowBinder(null, 1L, 1L));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void updateFlowBinder_emptyFlowBinderContent_throws() throws JSONBException, ReferencedEntityNotFoundException {
-        newFlowBindersBeanWithMockedEntityManager().updateFlowBinder("", 1L, 1L);
+        assertThrows(IllegalArgumentException.class, () -> newFlowBindersBeanWithMockedEntityManager().updateFlowBinder("", 1L, 1L));
     }
 
     @Test
     public void deleteFlowBinder_flowBinderNotFound_returnsResponseWithHttpStatusNotFound() {
-        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+        FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(FlowBinder.class), any())).thenReturn(null);
 
-        final Response response = flowBindersBean.deleteFlowBinder(12L, 1L);
+        Response response = flowBindersBean.deleteFlowBinder(12L, 1L);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
     @Test
     public void deleteFlowBinder_flowBinderFound_returnsNoContentHttpResponse() {
-        final FlowBinder flowBinder = mock(FlowBinder.class);
-        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+        FlowBinder flowBinder = mock(FlowBinder.class);
+        FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
 
         when(ENTITY_MANAGER.find(eq(FlowBinder.class), any())).thenReturn(flowBinder);
         when(ENTITY_MANAGER.merge(any(FlowBinder.class))).thenReturn(flowBinder);
 
-        final Response response = flowBindersBean.deleteFlowBinder(12L, 1L);
+        Response response = flowBindersBean.deleteFlowBinder(12L, 1L);
 
         verify(flowBinder).setVersion(1L);
         verify(ENTITY_MANAGER).remove(flowBinder);
@@ -112,17 +113,17 @@ public class FlowBindersBeanTest {
 
     @Test
     public void deleteFlowBinder_errorWhileSettingParametersForQuery_returnsResponseWithHttpStatusNotFound() {
-        final FlowBinder flowBinder = mock(FlowBinder.class);
-        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+        FlowBinder flowBinder = mock(FlowBinder.class);
+        FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
 
         when(ENTITY_MANAGER.find(FlowBinder.class, 0)).thenReturn(flowBinder);
 
-        final Response response = flowBindersBean.deleteFlowBinder(1L, 1L);
+        Response response = flowBindersBean.deleteFlowBinder(1L, 1L);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
     private static FlowBindersBean newFlowBindersBeanWithMockedEntityManager() {
-        final FlowBindersBean flowBindersBean = new FlowBindersBean();
+        FlowBindersBean flowBindersBean = new FlowBindersBean();
         flowBindersBean.entityManager = ENTITY_MANAGER;
         return flowBindersBean;
     }

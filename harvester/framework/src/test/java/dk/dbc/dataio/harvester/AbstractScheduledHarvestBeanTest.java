@@ -6,8 +6,8 @@ import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import jakarta.ejb.ScheduleExpression;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -28,7 +27,7 @@ public class AbstractScheduledHarvestBeanTest {
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final CoRepoHarvesterConfig config = new CoRepoHarvesterConfig(1, 1, new CoRepoHarvesterConfig.Content());
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws HarvesterException, FlowStoreServiceConnectorException {
         when(flowStoreServiceConnectorBean.getConnector())
                 .thenReturn(flowStoreServiceConnector);
@@ -44,33 +43,33 @@ public class AbstractScheduledHarvestBeanTest {
         when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(CoRepoHarvesterConfig.class))
                 .thenReturn(Collections.emptyList());
 
-        final AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
+        AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 
     @Test
-    public void configurationsEntailsRunningHarvests() throws FlowStoreServiceConnectorException {
-        final AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
+    public void configurationsEntailsRunningHarvests() {
+        AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
     }
 
     @Test
-    public void completionOfHarvestEntailsRescheduling() throws FlowStoreServiceConnectorException, HarvesterException {
-        final AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
+    public void completionOfHarvestEntailsRescheduling() {
+        AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
     }
 
     @Test
-    public void completionOfHarvestNoLongerEnabledEntailsRemoval() throws HarvesterException, FlowStoreServiceConnectorException {
+    public void completionOfHarvestNoLongerEnabledEntailsRemoval() throws FlowStoreServiceConnectorException {
         when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(CoRepoHarvesterConfig.class))
                 .thenReturn(Collections.singletonList(config))
                 .thenReturn(Collections.emptyList());
 
-        final AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
+        AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
@@ -81,7 +80,7 @@ public class AbstractScheduledHarvestBeanTest {
         when(harvesterBean.harvest(config)).thenReturn(new MockedFuture()
                 .withException(new ExecutionException("DIED", new IllegalStateException())));
 
-        final AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
+        AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
@@ -95,14 +94,14 @@ public class AbstractScheduledHarvestBeanTest {
         when(harvesterBean.harvest(config)).thenReturn(new MockedFuture()
                 .withException(new ExecutionException("DIED", new IllegalStateException())));
 
-        final AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
+        AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 
     private AbstractScheduledHarvestBeanImpl getImplementation() {
-        final AbstractScheduledHarvestBeanImpl bean = new AbstractScheduledHarvestBeanImpl(harvesterBean, flowStoreServiceConnectorBean);
+        AbstractScheduledHarvestBeanImpl bean = new AbstractScheduledHarvestBeanImpl(harvesterBean, flowStoreServiceConnectorBean);
         bean.harvesterConfigurationBeanImpl = bean.getHarvesterConfigurationBeanImpl();
         return bean;
     }
@@ -157,7 +156,7 @@ public class AbstractScheduledHarvestBeanTest {
         }
 
         @Override
-        public Integer get() throws InterruptedException, ExecutionException {
+        public Integer get() throws ExecutionException {
             if (exception != null) {
                 throw exception;
             }
@@ -165,7 +164,7 @@ public class AbstractScheduledHarvestBeanTest {
         }
 
         @Override
-        public Integer get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        public Integer get(long timeout, TimeUnit unit) throws ExecutionException {
             if (exception != null) {
                 throw exception;
             }

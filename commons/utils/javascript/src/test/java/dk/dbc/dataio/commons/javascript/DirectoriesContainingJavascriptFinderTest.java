@@ -1,8 +1,7 @@
 package dk.dbc.dataio.commons.javascript;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,9 +13,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class DirectoriesContainingJavascriptFinderTest {
-
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    @TempDir
+    public Path folder;
 
     @Test
     public void testUnusedFinder_emptyResultList() {
@@ -28,7 +26,7 @@ public class DirectoriesContainingJavascriptFinderTest {
     public void testFinderWithDirectoriesContainingJavascriptFiles_findsAllDirectories() throws IOException {
         createTestDirectoryStructure();
         DirectoriesContainingJavascriptFinder finder = new DirectoriesContainingJavascriptFinder();
-        Files.walkFileTree(folder.getRoot().toPath(), finder);
+        Files.walkFileTree(folder, finder);
         List<Path> javascriptDirectories = finder.getJavascriptDirectories();
 
         assertThat(javascriptDirectories.size(), is(4));
@@ -37,10 +35,10 @@ public class DirectoriesContainingJavascriptFinderTest {
         for (Path p : javascriptDirectories) {
             javascriptDirectoriesAsString.add(p.toString());
         }
-        assertThat("Could not find dir: /root/dir1", javascriptDirectoriesAsString.contains(folder.getRoot() + "/root/dir1"), is(true));
-        assertThat("Could not find dir: /root/dir2", javascriptDirectoriesAsString.contains(folder.getRoot() + "/root/dir2"), is(true));
-        assertThat("Could not find dir: /root/dir2/dir3", javascriptDirectoriesAsString.contains(folder.getRoot() + "/root/dir2/dir3"), is(true));
-        assertThat("Could not find dir: /root/dir5/dir6", javascriptDirectoriesAsString.contains(folder.getRoot() + "/root/dir5/dir6"), is(true));
+        assertThat("Could not find dir: /root/dir1", javascriptDirectoriesAsString.contains(folder + "/root/dir1"), is(true));
+        assertThat("Could not find dir: /root/dir2", javascriptDirectoriesAsString.contains(folder + "/root/dir2"), is(true));
+        assertThat("Could not find dir: /root/dir2/dir3", javascriptDirectoriesAsString.contains(folder + "/root/dir2/dir3"), is(true));
+        assertThat("Could not find dir: /root/dir5/dir6", javascriptDirectoriesAsString.contains(folder + "/root/dir5/dir6"), is(true));
     }
 
     /*
@@ -67,19 +65,18 @@ public class DirectoriesContainingJavascriptFinderTest {
      *  root/dir5/dir6
      */
     private void createTestDirectoryStructure() throws IOException {
-        folder.newFolder("root");
-        folder.newFolder("root", "dir1");
-        folder.newFolder("root", "dir2");
-        folder.newFolder("root", "dir2", "dir3");
-        folder.newFolder("root", "dir4.js");
-        folder.newFolder("root", "dir5");
-        folder.newFolder("root", "dir5", "dir6");
+        Path dir1 = Files.createDirectories(folder.resolve("root/dir1"));
+        Path dir2 = Files.createDirectories(folder.resolve("root/dir2"));
+        Path dir3 = Files.createDirectories(dir2.resolve("dir3"));
+        Path dir4 = Files.createDirectories(folder.resolve("root/dir4.js"));
+        Path dir5 = Files.createDirectories(folder.resolve("root/dir5"));
+        Path dir6 = Files.createDirectories(dir5.resolve("dir6"));
 
-        folder.newFile("root/dir1/file1.js");
-        folder.newFile("root/dir2/file2.txt");
-        folder.newFile("root/dir2/file3.js");
-        folder.newFile("root/dir2/dir3/file4.js");
-        folder.newFile("root/dir4.js/file5.txt");
-        folder.newFile("root/dir5/dir6/file6.js");
+        Files.createFile(dir1.resolve("file1.js"));
+        Files.createFile(dir2.resolve("file2.txt"));
+        Files.createFile(dir2.resolve("file3.js"));
+        Files.createFile(dir3.resolve("file4.js"));
+        Files.createFile(dir4.resolve("file5.txt"));
+        Files.createFile(dir6.resolve("file6.js"));
     }
 }

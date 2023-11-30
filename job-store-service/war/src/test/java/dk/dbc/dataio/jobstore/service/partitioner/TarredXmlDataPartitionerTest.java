@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -15,7 +16,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TarredXmlDataPartitionerTest extends AbstractPartitionerTestBase {
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void partitioning() {
         final DataPartitioner partitioner = TarredXmlDataPartitioner.newInstance(
                 getResourceAsStream("test-records-ebsco-tarred.tar"), "UTF-8");
@@ -27,7 +29,8 @@ public class TarredXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 is(20480L));
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void positionInDatafile() {
         final DataPartitioner partitioner = TarredXmlDataPartitioner.newInstance(
                 getResourceAsStream("test-records-ebsco-tarred.tar"), "UTF-8");
@@ -39,7 +42,8 @@ public class TarredXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         }
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void emptyTarArchive() {
         final DataPartitioner partitioner = TarredXmlDataPartitioner.newInstance(
                 getResourceAsStream("empty.tar"), "UTF-8");
@@ -48,7 +52,8 @@ public class TarredXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 is(0));
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void extractsXmlDocuments() throws ParserConfigurationException, IOException, SAXException {
         final DataPartitioner partitioner = TarredXmlDataPartitioner.newInstance(
                 getResourceAsStream("test-records-ebsco-tarred.tar"), "UTF-8");

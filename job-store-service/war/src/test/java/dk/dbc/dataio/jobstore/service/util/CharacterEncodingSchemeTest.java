@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.marc.Marc8Charset;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;

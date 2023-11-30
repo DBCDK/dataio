@@ -37,25 +37,26 @@ import jakarta.ws.rs.client.Client;
 import org.apache.commons.codec.binary.Base64;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 public class TracerBullet {
     private static final long RECORDS_PER_SHOT_FIRED = 11;
@@ -73,23 +74,22 @@ public class TracerBullet {
     private static FlowStoreServiceConnector flowStoreServiceConnector;
     private static JobStoreServiceConnector jobStoreServiceConnector;
 
-    @Rule
-    public TemporaryFolder tmpFolder = new TemporaryFolder();
+    @TempDir
+    public Path tmpFolder;
 
-    @BeforeClass
+    @BeforeAll
     public static void getEnvironmentProperties() throws IOException {
         try (InputStream is = new FileInputStream(System.getProperty("env.properties"))) {
             ENV.load(is);
         }
-        final String filestoreBaseurl = ENV.getProperty("FILE_STORE_SERVICE_ENDPOINT");
-        final String flowstoreBaseurl = ENV.getProperty("FLOW_STORE_SERVICE_ENDPOINT");
-        final String jobstoreBaseurl = ENV.getProperty("JOB_STORE_SERVICE_ENDPOINT");
+        String filestoreBaseurl = ENV.getProperty("FILE_STORE_SERVICE_ENDPOINT");
+        String flowstoreBaseurl = ENV.getProperty("FLOW_STORE_SERVICE_ENDPOINT");
+        String jobstoreBaseurl = ENV.getProperty("JOB_STORE_SERVICE_ENDPOINT");
         System.out.println("file-store baseurl: " + filestoreBaseurl);
         System.out.println("flow-store baseurl: " + flowstoreBaseurl);
         System.out.println("job-store baseurl: " + jobstoreBaseurl);
 
-        final Client httpClient = HttpClient.newClient(new ClientConfig()
-                .register(new JacksonFeature()));
+        Client httpClient = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
 
         fileStoreServiceConnector = new FileStoreServiceConnector(httpClient, filestoreBaseurl);
         flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, flowstoreBaseurl);
@@ -99,16 +99,16 @@ public class TracerBullet {
     @Test
     public void fire() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException, JobStoreServiceConnectorException, IOException, URISyntaxException {
         initialiseFlowStore();
-        final FileStoreUrn dataFileUrn = createDataFile();
-        final JobInfoSnapshot jobInfoSnapshot = createJob(dataFileUrn);
+        FileStoreUrn dataFileUrn = createDataFile();
+        JobInfoSnapshot jobInfoSnapshot = createJob(dataFileUrn);
         waitForJobCompletion(jobInfoSnapshot.getJobId());
     }
 
     private void initialiseFlowStore() throws FlowStoreServiceConnectorException, UnsupportedEncodingException {
-        final Submitter submitter = createSubmitter();
-        final FlowComponent flowComponent = createFlowComponent();
-        final Flow flow = createFlow(flowComponent);
-        final Sink sink = createSink();
+        Submitter submitter = createSubmitter();
+        FlowComponent flowComponent = createFlowComponent();
+        Flow flow = createFlow(flowComponent);
+        Sink sink = createSink();
         createFlowBinder(flow, submitter, sink);
     }
 
@@ -120,7 +120,7 @@ public class TracerBullet {
                 new JavaScript(Base64.encodeBase64String((
                         "function invocationFunction(record, supplementaryData) {\n"
                                 + "    return \"Hello from javascript!\\n\";"
-                                + "}").getBytes("UTF-8")), "NoModule"),
+                                + "}").getBytes(StandardCharsets.UTF_8)), "NoModule"),
                 new JavaScript(ResourceReader.getResourceAsBase64(TracerBullet.class, "javascript/jscommon/system/Use.use.js"), "Use"),
                 new JavaScript(ResourceReader.getResourceAsBase64(TracerBullet.class, "javascript/jscommon/system/ModulesInfo.use.js"), "ModulesInfo"),
                 new JavaScript(ResourceReader.getResourceAsBase64(TracerBullet.class, "javascript/jscommon/system/Use.RequiredModules.use.js"), "Use.RequiredModules"),
@@ -130,7 +130,7 @@ public class TracerBullet {
 
     private Submitter createSubmitter() throws FlowStoreServiceConnectorException {
         final String submitterName = "tracer-bullet-submitter";
-        final SubmitterContent submitterContent = new SubmitterContentBuilder()
+        SubmitterContent submitterContent = new SubmitterContentBuilder()
                 .setName(submitterName)
                 .setNumber(SUBMITTER_NUMBER)
                 .setPriority(null)
@@ -149,7 +149,7 @@ public class TracerBullet {
 
     private FlowComponent createFlowComponent() throws UnsupportedEncodingException, FlowStoreServiceConnectorException {
         final String componentName = "tracer-bullet-component";
-        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
+        FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
                 .setName(componentName)
                 .setDescription("Minimalt script til basal system test")
                 .setJavascripts(getTinyJavaScript())
@@ -173,9 +173,9 @@ public class TracerBullet {
             flowComponent = new FlowComponentBuilder().build();
         }
         final String flowName = "tracer-bullet-flow";
-        final FlowContent flowContent = new FlowContentBuilder()
+        FlowContent flowContent = new FlowContentBuilder()
                 .setName(flowName)
-                .setComponents(Arrays.asList(flowComponent))
+                .setComponents(Collections.singletonList(flowComponent))
                 .build();
         try {
             return flowStoreServiceConnector.createFlow(flowContent);
@@ -189,7 +189,7 @@ public class TracerBullet {
     }
 
     private Sink createSink() throws FlowStoreServiceConnectorException {
-        final SinkContent sinkContent = new SinkContentBuilder()
+        SinkContent sinkContent = new SinkContentBuilder()
                 .setName("tracer-bullet-sink")
                 .setQueue("sink::dummy")
                 .build();
@@ -206,7 +206,7 @@ public class TracerBullet {
 
     private void createFlowBinder(Flow flow, Submitter submitter, Sink sink) throws FlowStoreServiceConnectorException {
         if (flow != null && submitter != null && sink != null) {
-            final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+            FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
                     .setName("tracer-bullet-binder")
                     .setDescription("flowbinder for tracer-bullet")
                     .setPackaging(PACKAGING)
@@ -215,7 +215,7 @@ public class TracerBullet {
                     .setDestination(DESTINATION)
                     .setFlowId(flow.getId())
                     .setSinkId(sink.getId())
-                    .setSubmitterIds(Arrays.asList(submitter.getId()))
+                    .setSubmitterIds(List.of(submitter.getId()))
                     .setPriority(null)
                     .build();
             try {
@@ -229,14 +229,14 @@ public class TracerBullet {
     }
 
     private FileStoreUrn createDataFile() throws IOException, FileStoreServiceConnectorException {
-        final File bulletData = createTemporaryFile(RECORDS_PER_SHOT_FIRED, "data");
-        try (InputStream is = new BufferedInputStream(new FileInputStream(bulletData))) {
+        Path bulletData = createTemporaryFile(RECORDS_PER_SHOT_FIRED, "data");
+        try (InputStream is = new BufferedInputStream(new FileInputStream(bulletData.toFile()))) {
             return FileStoreUrn.create(fileStoreServiceConnector.addFile(is));
         }
     }
 
     private JobInfoSnapshot createJob(FileStoreUrn fileStoreUrn) throws JobStoreServiceConnectorException {
-        final JobSpecification jobSpecification = new JobSpecification()
+        JobSpecification jobSpecification = new JobSpecification()
                 .withSubmitterId(SUBMITTER_NUMBER)
                 .withPackaging(PACKAGING)
                 .withFormat(FORMAT)
@@ -251,11 +251,11 @@ public class TracerBullet {
         }
     }
 
-    private File createTemporaryFile(long numberOfElements, String data) throws IOException {
-        final File f = tmpFolder.newFile();
+    private Path createTemporaryFile(long numberOfElements, String data) throws IOException {
+        Path f = Files.createFile(tmpFolder.resolve(UUID.randomUUID().toString()));
         final String head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<container>\n";
         final String tail = "</container>\n";
-        try (BufferedWriter bw = Files.newBufferedWriter(f.toPath(), Charset.forName("utf-8"))) {
+        try (BufferedWriter bw = Files.newBufferedWriter(f, StandardCharsets.UTF_8)) {
             bw.write(head);
             for (long i = 0; i < numberOfElements; i++) {
                 bw.write("  <record>" + data + i + "</record>\n");
@@ -266,7 +266,7 @@ public class TracerBullet {
     }
 
     private JobInfoSnapshot waitForJobCompletion(long jobId) throws JobStoreServiceConnectorException {
-        final JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
+        JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
         JobInfoSnapshot jobInfoSnapshot = null;
         // Wait for Job-completion
         long remainingWaitInMs = MAX_WAIT_IN_MS;
@@ -293,7 +293,7 @@ public class TracerBullet {
     }
 
     private boolean allPhasesAreDoneSuccessfully(JobInfoSnapshot jobInfoSnapshot) {
-        final State state = jobInfoSnapshot.getState();
+        State state = jobInfoSnapshot.getState();
         return state.allPhasesAreDone() && state.getPhase(State.Phase.DELIVERING).getSucceeded() == RECORDS_PER_SHOT_FIRED;
     }
 }

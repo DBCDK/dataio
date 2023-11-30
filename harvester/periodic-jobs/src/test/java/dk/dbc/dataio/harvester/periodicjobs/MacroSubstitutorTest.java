@@ -13,16 +13,14 @@ import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
 import dk.dbc.weekresolver.model.WeekResolverResult;
 import jakarta.enterprise.concurrent.ManagedExecutorService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+import static dk.dbc.dataio.commons.types.Constants.ZONE_CPH;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,12 +45,8 @@ public class MacroSubstitutorTest {
 
     private HarvestOperation harvestOperation;
 
-    @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
-    @Before
+    @BeforeEach
     public void setup() {
-        environmentVariables.set("TZ", "Europe/Copenhagen");
         harvestOperation = newHarvestOperation();
     }
 
@@ -63,7 +57,7 @@ public class MacroSubstitutorTest {
         final String inputQuery = "term.kk:${__NEXTWEEK_BKM__} OR term.kk:${__NEXTWEEK_ACC__} OR term.kk:${__NEXTWEEK_DPF__}";
         final String expectedQuery = "term.kk:BKM202325 OR term.kk:ACC202325 OR term.kk:DPF202325";
 
-        ZonedDateTime now = Instant.parse("2023-06-16T12:00:00Z").atZone(ZoneId.of(System.getenv("TZ")));
+        ZonedDateTime now = Instant.parse("2023-06-16T12:00:00Z").atZone(ZONE_CPH);
         MacroSubstitutor macroSubstitutor = new MacroSubstitutor(now.toInstant(), harvestOperation::catalogueCodeToWeekCode);
         assertThat(macroSubstitutor.replace(inputQuery), is(expectedQuery));
     }
@@ -88,7 +82,7 @@ public class MacroSubstitutorTest {
         final String inputQuery = "term.kk:${__WEEKCODE_DBF_MINUS_3__} OR term.kk:${__WEEKCODE_GBF_MINUS_3__} OR term.kk:${__WEEKCODE_DLF_MINUS_3__}";
         final String expectedQuery = "term.kk:DBF202316 OR term.kk:GBF202316 OR term.kk:DLF202316";
 
-        ZonedDateTime now = Instant.parse("2023-05-10T14:34:00Z").atZone(ZoneId.of(System.getenv("TZ")));
+        ZonedDateTime now = Instant.parse("2023-05-10T14:34:00Z").atZone(ZONE_CPH);
         MacroSubstitutor macroSubstitutor = new MacroSubstitutor(now.toInstant(), harvestOperation::catalogueCodeToWeekCode);
         assertThat(macroSubstitutor.replace(inputQuery), is(expectedQuery));
 
@@ -96,13 +90,13 @@ public class MacroSubstitutorTest {
         // from -5 to -6 around 15 o'clock on this day. This has not been possible to reproduce and is assumed to be
         // a matter of slight confusion on the user end due to the overall erroneous results.
 
-        now = Instant.parse("2023-05-10T15:29:00Z").atZone(ZoneId.of(System.getenv("TZ")));
+        now = Instant.parse("2023-05-10T15:29:00Z").atZone(ZONE_CPH);
         macroSubstitutor = new MacroSubstitutor(now.toInstant(), harvestOperation::catalogueCodeToWeekCode);
         assertThat(macroSubstitutor.replace(inputQuery), is(expectedQuery));
 
         // Check that we call the getCurrentWeekCode() endpoint, NOT the getWeekCode() endpoint.
         // Also check that the date is calculated correctly and used with the call.
-        ZonedDateTime then = Instant.parse("2023-04-19T15:29:00Z").atZone(ZoneId.of(System.getenv("TZ")));
+        ZonedDateTime then = Instant.parse("2023-04-19T15:29:00Z").atZone(ZONE_CPH);
         verify(weekResolverConnector, times(2)).getCurrentWeekCodeForDate("DBF", then.toLocalDate());
         verify(weekResolverConnector, times(2)).getCurrentWeekCodeForDate("GBF", then.toLocalDate());
         verify(weekResolverConnector, times(2)).getCurrentWeekCodeForDate("DLF", then.toLocalDate());
@@ -116,7 +110,7 @@ public class MacroSubstitutorTest {
         final String inputQuery = "term.kk:${__WEEK_PLUS_3__} OR term.kk:${__WEEK_PLUS_0__} OR term.kk:${__WEEK_MINUS_0__} OR term.kk:${__WEEK_MINUS_3__}";
         final String expectedQuery = "term.kk:202327 OR term.kk:202324 OR term.kk:202324 OR term.kk:202321";
 
-        ZonedDateTime now = Instant.parse("2023-06-16T12:00:00Z").atZone(ZoneId.of(System.getenv("TZ")));
+        ZonedDateTime now = Instant.parse("2023-06-16T12:00:00Z").atZone(ZONE_CPH);
         MacroSubstitutor macroSubstitutor = new MacroSubstitutor(now.toInstant(), harvestOperation::catalogueCodeToWeekCode);
         assertThat(macroSubstitutor.replace(inputQuery), is(expectedQuery));
     }

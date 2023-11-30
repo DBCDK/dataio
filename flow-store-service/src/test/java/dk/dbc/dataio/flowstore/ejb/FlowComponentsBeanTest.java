@@ -11,8 +11,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -35,12 +36,12 @@ public class FlowComponentsBeanTest {
     private JSONBContext jsonbContext;
     private UriInfo mockedUriInfo;
 
-    @Before
+    @BeforeEach
     public void setup() throws URISyntaxException {
         jsonbContext = new JSONBContext();
 
         mockedUriInfo = mock(UriInfo.class);
-        final UriBuilder mockedUriBuilder = mock(UriBuilder.class);
+        UriBuilder mockedUriBuilder = mock(UriBuilder.class);
 
         when(mockedUriInfo.getAbsolutePathBuilder()).thenReturn(mockedUriBuilder);
         when(mockedUriBuilder.path(anyString())).thenReturn(mockedUriBuilder);
@@ -49,28 +50,28 @@ public class FlowComponentsBeanTest {
 
     @Test
     public void flowComponentsBean_validConstructor_newInstance() {
-        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+        FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
         assertThat(flowComponentsBean, is(notNullValue()));
     }
 
-    @Test(expected = NullPointerException.class)
-    public void createFlowComponent_nullFlowComponentContent_throws() throws JSONBException {
-        newFlowComponentsBeanWithMockedEntityManager().createComponent(null, null);
+    @Test
+    public void createFlowComponent_nullFlowComponentContent_throws() {
+        assertThrows(NullPointerException.class, () -> newFlowComponentsBeanWithMockedEntityManager().createComponent(null, null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void createFlowComponent_emptyFlowComponentContent_throws() throws JSONBException {
-        newFlowComponentsBeanWithMockedEntityManager().createComponent(null, "");
+        assertThrows(IllegalArgumentException.class, () -> newFlowComponentsBeanWithMockedEntityManager().createComponent(null, ""));
     }
 
-    @Test(expected = JSONBException.class)
+    @Test
     public void createFlowComponent_invalidJSON_throwsJsonException() throws JSONBException {
-        newFlowComponentsBeanWithMockedEntityManager().createComponent(null, "invalid Json");
+        assertThrows(JSONBException.class, () -> newFlowComponentsBeanWithMockedEntityManager().createComponent(null, "invalid Json"));
     }
 
     @Test
     public void getFlowComponent_noFlowComponentFound_returnsResponseWithHttpStatusNotFound() throws JSONBException {
-        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+        FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
         Response response = flowComponentsBean.getFlowComponent(1L);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
@@ -78,9 +79,9 @@ public class FlowComponentsBeanTest {
 
     @Test
     public void getFlowComponent_flowComponentFound_returnsResponseWithHttpStatusOK() throws JSONBException {
-        final FlowComponent flowComponent = new FlowComponent();
+        FlowComponent flowComponent = new FlowComponent();
         flowComponent.setContent(new FlowComponentContentJsonBuilder().setName("testFlowComponent").build());
-        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+        FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(flowComponent);
 
         Response response = flowComponentsBean.getFlowComponent(1L);
@@ -92,11 +93,11 @@ public class FlowComponentsBeanTest {
 
     @Test
     public void CreateFlowComponent_flowComponentCreated_returnsResponseWithHttpStatusOk_returnsSink() throws JSONBException {
-        final UriInfo uriInfo = mock(UriInfo.class);
-        final UriBuilder uriBuilder = mock(UriBuilder.class);
-        final FlowComponentContent flowComponentContent = new FlowComponentContent("CreateContentName", "svnProjectForInvocationJavascript", 1L, "invocationJavascriptName", new ArrayList<JavaScript>(), "invocationMethod", "RequireCach");
-        final String flowComponentContentString = new FlowComponentContentJsonBuilder().setName("CreateContentName").build();
-        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+        UriInfo uriInfo = mock(UriInfo.class);
+        UriBuilder uriBuilder = mock(UriBuilder.class);
+        FlowComponentContent flowComponentContent = new FlowComponentContent("CreateContentName", "svnProjectForInvocationJavascript", 1L, "invocationJavascriptName", new ArrayList<JavaScript>(), "invocationMethod", "RequireCach");
+        String flowComponentContentString = new FlowComponentContentJsonBuilder().setName("CreateContentName").build();
+        FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
 
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
@@ -104,42 +105,42 @@ public class FlowComponentsBeanTest {
         when(mockedJSONBContext.unmarshall(flowComponentContentString, FlowComponentContent.class)).thenReturn(flowComponentContent);
         when(mockedJSONBContext.marshall(any(FlowComponent.class))).thenReturn("flowComponent");
 
-        final Response response = flowComponentsBean.createComponent(uriInfo, flowComponentContentString);
+        Response response = flowComponentsBean.createComponent(uriInfo, flowComponentContentString);
 
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
     }
 
-    @Test(expected = NullPointerException.class)
-    public void updateFlowComponent_nullFlowComponentContent_throws() throws JSONBException {
-        newFlowComponentsBeanWithMockedEntityManager().updateFlowComponent(null, null, 0L, 0L);
+    @Test
+    public void updateFlowComponent_nullFlowComponentContent_throws() {
+        assertThrows(NullPointerException.class, () -> newFlowComponentsBeanWithMockedEntityManager().updateFlowComponent(null, null, 0L, 0L));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void updateFlowComponent_emptyFlowComponentContent_throws() throws JSONBException {
-        newFlowComponentsBeanWithMockedEntityManager().updateFlowComponent(null, "", 0L, 0L);
+    @Test
+    public void updateFlowComponent_emptyFlowComponentContent_throws() {
+        assertThrows(IllegalArgumentException.class, () -> newFlowComponentsBeanWithMockedEntityManager().updateFlowComponent(null, "", 0L, 0L));
     }
 
     @Test
     public void updateFlowComponent_flowComponentNotFound_throwsException() throws JSONBException {
-        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+        FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
 
-        final String flowComponentContent = new FlowComponentContentJsonBuilder().setName("UpdateContentName").build();
-        final Response response = flowComponentsBean.updateFlowComponent(null, flowComponentContent, 123L, 4321L);
+        String flowComponentContent = new FlowComponentContentJsonBuilder().setName("UpdateContentName").build();
+        Response response = flowComponentsBean.updateFlowComponent(null, flowComponentContent, 123L, 4321L);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
     @Test
     public void updateFlowComponent_flowComponentFound_returnsResponseWithHttpStatusOk_returnsFlowComponent() throws JSONBException {
-        final FlowComponent flowComponent = mock(FlowComponent.class);
-        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+        FlowComponent flowComponent = mock(FlowComponent.class);
+        FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
         flowComponentsBean.jsonbContext = mock(JSONBContext.class);
         when(flowComponentsBean.jsonbContext.marshall(flowComponent)).thenReturn("test");
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(flowComponent);
 
-        final String flowComponentContent = new FlowComponentContentJsonBuilder().setName("UpdateContentName").build();
-        final Response response = flowComponentsBean.updateFlowComponent(mockedUriInfo, flowComponentContent, 123L, 4321L);
+        String flowComponentContent = new FlowComponentContentJsonBuilder().setName("UpdateContentName").build();
+        Response response = flowComponentsBean.updateFlowComponent(mockedUriInfo, flowComponentContent, 123L, 4321L);
 
         verify(flowComponent).setContent(flowComponentContent);
         verify(flowComponent).setVersion(4321L);
@@ -149,25 +150,25 @@ public class FlowComponentsBeanTest {
 
     @Test
     public void updateNext_flowComponentNotFound_throwsException() throws JSONBException {
-        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+        FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
 
-        final String flowComponentContent = new FlowComponentContentJsonBuilder().setName("UpdateContentName").build();
-        final Response response = flowComponentsBean.updateNext(null, flowComponentContent, 123L, 4321L);
+        String flowComponentContent = new FlowComponentContentJsonBuilder().setName("UpdateContentName").build();
+        Response response = flowComponentsBean.updateNext(null, flowComponentContent, 123L, 4321L);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
 
     @Test
     public void updateNext_nextIsNull_returnsResponseWithHttpStatusOk() throws JSONBException {
-        final FlowComponent flowComponent = mock(FlowComponent.class);
-        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+        FlowComponent flowComponent = mock(FlowComponent.class);
+        FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
 
         flowComponentsBean.jsonbContext = mock(JSONBContext.class);
         when(flowComponentsBean.jsonbContext.marshall(flowComponent)).thenReturn("test");
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(flowComponent);
 
-        final Response response = flowComponentsBean.updateNext(mockedUriInfo, null, 123L, 4321L);
+        Response response = flowComponentsBean.updateNext(mockedUriInfo, null, 123L, 4321L);
 
         verify(flowComponent).setNext(null);
         verify(flowComponent).setVersion(4321L);
@@ -177,15 +178,15 @@ public class FlowComponentsBeanTest {
 
     @Test
     public void updateNext_nextIsNotNull_returnsResponseWithHttpStatusOk_returnsFlowComponent() throws JSONBException {
-        final FlowComponent flowComponent = mock(FlowComponent.class);
-        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+        FlowComponent flowComponent = mock(FlowComponent.class);
+        FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
 
         flowComponentsBean.jsonbContext = mock(JSONBContext.class);
         when(flowComponentsBean.jsonbContext.marshall(flowComponent)).thenReturn("test");
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(flowComponent);
 
-        final String flowComponentContent = new FlowComponentContentJsonBuilder().build();
-        final Response response = flowComponentsBean.updateNext(mockedUriInfo, flowComponentContent, 123L, 4321L);
+        String flowComponentContent = new FlowComponentContentJsonBuilder().build();
+        Response response = flowComponentsBean.updateNext(mockedUriInfo, flowComponentContent, 123L, 4321L);
 
         verify(flowComponent).setNext(flowComponentContent);
         verify(flowComponent).setVersion(4321L);
@@ -194,7 +195,7 @@ public class FlowComponentsBeanTest {
     }
 
     public static FlowComponentsBean newFlowComponentsBeanWithMockedEntityManager() {
-        final FlowComponentsBean flowComponentsBean = new FlowComponentsBean();
+        FlowComponentsBean flowComponentsBean = new FlowComponentsBean();
         flowComponentsBean.entityManager = ENTITY_MANAGER;
         return flowComponentsBean;
     }

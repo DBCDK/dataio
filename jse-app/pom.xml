@@ -170,12 +170,6 @@
                 <version>${jersey.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.github.tomakehurst</groupId>
-                <artifactId>wiremock</artifactId>
-                <version>1.57</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>com.ongres</groupId>
                 <artifactId>fluent-process</artifactId>
                 <version>1.0.1</version>

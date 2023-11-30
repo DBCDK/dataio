@@ -23,8 +23,8 @@ import jakarta.jms.Queue;
 import jakarta.jms.TextMessage;
 import net.jodah.failsafe.RetryPolicy;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
@@ -45,7 +45,7 @@ public class JobProcessorMessageProducerBeanTest {
     private final ConnectionFactory jmsConnectionFactory = mock(ConnectionFactory.class);
     private final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
 
-    @Before
+    @BeforeEach
     public void setupMocks() {
         when(jmsConnectionFactory.createContext()).thenReturn(jmsContext);
         when(jmsContext.createProducer()).thenReturn(jmsProducer);

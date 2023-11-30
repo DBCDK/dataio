@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -18,16 +18,16 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT extends AbstractJobSt
 
     @Test
     public void volumeAfterParentsReordering() {
-        final LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
+        LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
                 2, 4, 8, 7, 5, 1, 9, 6, 3, 0));
 
-        final InputStream resourceAsStream = DanMarc2LineFormatReorderingDataPartitionerIT.class
+        InputStream resourceAsStream = DanMarc2LineFormatReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.lin");
-        final JobItemReorderer reorderer = new VolumeAfterParents(42, entityManager);
+        JobItemReorderer reorderer = new VolumeAfterParents(42, entityManager);
         assertThat("add collection wrapper flag",
                 reorderer.addCollectionWrapper(), is(false));
 
-        final List<ResultSummary> expectedResults = new ArrayList<>(10);
+        List<ResultSummary> expectedResults = new ArrayList<>(10);
         expectedResults.add(new ResultSummary()
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withIds(Collections.singletonList("standalone")));
@@ -59,9 +59,9 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT extends AbstractJobSt
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withIds(Collections.singletonList("headDeleted")));
 
-        final List<ResultSummary> results = new ArrayList<>(10);
+        List<ResultSummary> results = new ArrayList<>(10);
         persistenceContext.run(() -> {
-            final DanMarc2LineFormatReorderingDataPartitioner partitioner = DanMarc2LineFormatReorderingDataPartitioner
+            DanMarc2LineFormatReorderingDataPartitioner partitioner = DanMarc2LineFormatReorderingDataPartitioner
                     .newInstance(resourceAsStream, "latin1", reorderer);
             int itemNo = 0;
             for (DataPartitionerResult result : partitioner) {
@@ -76,16 +76,16 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT extends AbstractJobSt
 
     @Test
     public void volumeIncludeParentsReordering() {
-        final LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
+        LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
                 2, 4, 8, 1, 6, 9, 3, 5, 0, 7));
 
-        final InputStream resourceAsStream = DanMarc2LineFormatReorderingDataPartitionerIT.class
+        InputStream resourceAsStream = DanMarc2LineFormatReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.lin");
-        final JobItemReorderer reorderer = new VolumeIncludeParents(42, entityManager);
+        JobItemReorderer reorderer = new VolumeIncludeParents(42, entityManager);
         assertThat("add collection wrapper flag",
                 reorderer.addCollectionWrapper(), is(true));
 
-        final List<ResultSummary> expectedResults = new ArrayList<>(10);
+        List<ResultSummary> expectedResults = new ArrayList<>(10);
         expectedResults.add(new ResultSummary()
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withIds(Collections.singletonList("standalone")));
@@ -117,9 +117,9 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT extends AbstractJobSt
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withIds(Collections.singletonList("head")));
 
-        final List<ResultSummary> results = new ArrayList<>(10);
+        List<ResultSummary> results = new ArrayList<>(10);
         persistenceContext.run(() -> {
-            final DanMarc2LineFormatReorderingDataPartitioner partitioner = DanMarc2LineFormatReorderingDataPartitioner
+            DanMarc2LineFormatReorderingDataPartitioner partitioner = DanMarc2LineFormatReorderingDataPartitioner
                     .newInstance(resourceAsStream, "latin1", reorderer);
             int itemNo = 0;
             for (DataPartitionerResult result : partitioner) {

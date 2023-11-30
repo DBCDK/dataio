@@ -4,8 +4,8 @@ import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,7 +18,7 @@ import static org.hamcrest.core.Is.is;
 
 public class DependencyTrackingEntityIT  extends AbstractJobStoreIT {
 
-    @After
+    @AfterEach
     public void cleanupEntityManager() {
         if (entityManager.getTransaction().isActive()) {
             entityManager.getTransaction().rollback();

@@ -1,16 +1,17 @@
 package dk.dbc.dataio.jobstore.service.digest;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class Md5Test {
-    @Test(expected = NullPointerException.class)
+    @Test
     public void getMd5HexDigest_dataArgIsNull_throws() {
-        Md5.asHex(null);
+        assertThrows(NullPointerException.class, () -> Md5.asHex(null));
     }
 
     @Test

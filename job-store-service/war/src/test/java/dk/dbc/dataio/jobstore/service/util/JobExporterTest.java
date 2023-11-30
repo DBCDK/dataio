@@ -11,8 +11,8 @@ import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -37,7 +37,7 @@ public class JobExporterTest {
         jobExporter.chunkItemExporter = chunkItemExporter;
     }
 
-    @Before
+    @BeforeEach
     public void setupMocks() {
         when(entityManager.createNativeQuery(any(String.class), eq(ItemEntity.class))).thenReturn(query);
     }

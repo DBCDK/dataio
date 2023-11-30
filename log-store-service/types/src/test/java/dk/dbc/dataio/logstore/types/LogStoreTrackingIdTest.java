@@ -1,10 +1,11 @@
 package dk.dbc.dataio.logstore.types;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class LogStoreTrackingIdTest {
     private static final String JOB_ID = "jobId";
@@ -13,49 +14,49 @@ public class LogStoreTrackingIdTest {
     private static final String TRACKING_ID_FORMAT = "%s-%s-%s";
     private static final String TRACKING_ID = String.format(TRACKING_ID_FORMAT, JOB_ID, CHUNK_ID, ITEM_ID);
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_trackingIdArgIsNull_throws() {
-        new LogStoreTrackingId(null);
+        assertThrows(NullPointerException.class, () -> new LogStoreTrackingId(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_trackingIdArgIsEmpty_throws() {
-        new LogStoreTrackingId("");
+        assertThrows(IllegalArgumentException.class, () -> new LogStoreTrackingId(""));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_trackingIdArgIsInvalid_throws() {
-        new LogStoreTrackingId("invalid");
+        assertThrows(IllegalArgumentException.class, () -> new LogStoreTrackingId("invalid"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_trackingIdArgJobIdIsInvalid_throws() {
-        new LogStoreTrackingId(String.format(TRACKING_ID_FORMAT, "", CHUNK_ID, ITEM_ID));
+        assertThrows(IllegalArgumentException.class, () -> new LogStoreTrackingId(String.format(TRACKING_ID_FORMAT, "", CHUNK_ID, ITEM_ID)));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_trackingIdArgChunkIdIsInvalid_throws() {
-        new LogStoreTrackingId(String.format(TRACKING_ID_FORMAT, JOB_ID, "invalid", ITEM_ID));
+        assertThrows(IllegalArgumentException.class, () -> new LogStoreTrackingId(String.format(TRACKING_ID_FORMAT, JOB_ID, "invalid", ITEM_ID)));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_trackingIdArgItemIdIsInvalid_throws() {
-        new LogStoreTrackingId(String.format(TRACKING_ID_FORMAT, JOB_ID, CHUNK_ID, "invalid"));
+        assertThrows(IllegalArgumentException.class, () -> new LogStoreTrackingId(String.format(TRACKING_ID_FORMAT, JOB_ID, CHUNK_ID, "invalid")));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_trackingIdArgChunkIdIsEmpty_throws() {
-        new LogStoreTrackingId(String.format(TRACKING_ID_FORMAT, JOB_ID, "", ITEM_ID));
+        assertThrows(IllegalArgumentException.class, () -> new LogStoreTrackingId(String.format(TRACKING_ID_FORMAT, JOB_ID, "", ITEM_ID)));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_trackingIdArgItemIdIsEmpty_throws() {
-        new LogStoreTrackingId(String.format(TRACKING_ID_FORMAT, JOB_ID, CHUNK_ID, ""));
+        assertThrows(IllegalArgumentException.class, () -> new LogStoreTrackingId(String.format(TRACKING_ID_FORMAT, JOB_ID, CHUNK_ID, "")));
     }
 
     @Test
     public void constructor_trackingIdArgIsValid_returnsNewInstance() {
-        final LogStoreTrackingId logStoreTrackingId = new LogStoreTrackingId(TRACKING_ID);
+        LogStoreTrackingId logStoreTrackingId = new LogStoreTrackingId(TRACKING_ID);
         assertThat(logStoreTrackingId, is(notNullValue()));
         assertThat(logStoreTrackingId.getTrackingId(), is(TRACKING_ID));
         assertThat(logStoreTrackingId.getJobId(), is(JOB_ID));
@@ -63,19 +64,19 @@ public class LogStoreTrackingIdTest {
         assertThat(logStoreTrackingId.getItemId(), is(ITEM_ID));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void create_jobIdArgIsNull_throws() {
-        LogStoreTrackingId.create(null, CHUNK_ID, ITEM_ID);
+        assertThrows(NullPointerException.class, () -> LogStoreTrackingId.create(null, CHUNK_ID, ITEM_ID));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void create_jobIdArgIsEmpty_throws() {
-        LogStoreTrackingId.create("", CHUNK_ID, ITEM_ID);
+        assertThrows(IllegalArgumentException.class, () -> LogStoreTrackingId.create("", CHUNK_ID, ITEM_ID));
     }
 
     @Test
     public void create_jobIdArgIsValid_returnsNewInstance() {
-        final LogStoreTrackingId logStoreTrackingId = LogStoreTrackingId.create(JOB_ID, CHUNK_ID, ITEM_ID);
+        LogStoreTrackingId logStoreTrackingId = LogStoreTrackingId.create(JOB_ID, CHUNK_ID, ITEM_ID);
         assertThat(logStoreTrackingId, is(notNullValue()));
         assertThat(logStoreTrackingId.getTrackingId(), is(TRACKING_ID));
         assertThat(logStoreTrackingId.getJobId(), is(JOB_ID));

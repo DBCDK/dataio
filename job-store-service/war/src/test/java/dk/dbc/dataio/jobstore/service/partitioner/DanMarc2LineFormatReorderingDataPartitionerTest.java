@@ -2,11 +2,11 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -31,10 +31,6 @@ public class DanMarc2LineFormatReorderingDataPartitionerTest {
     public void nextDataPartitionerResult_reordererThrows_throws() {
         when(JOB_ITEM_REORDERER.next(any(DataPartitionerResult.class)))
                 .thenThrow(new RuntimeException());
-        try {
-            partitioner.nextDataPartitionerResult();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThrows(InvalidDataException.class, partitioner::nextDataPartitionerResult);
     }
 }

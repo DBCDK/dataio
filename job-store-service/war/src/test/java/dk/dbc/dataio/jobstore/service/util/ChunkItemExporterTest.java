@@ -14,7 +14,8 @@ import dk.dbc.marc.writer.DanMarc2LineFormatWriter;
 import dk.dbc.marc.writer.LineFormatWriter;
 import dk.dbc.marc.writer.MarcWriterException;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -24,7 +25,6 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 
 public class ChunkItemExporterTest {
     private final Charset encoding = StandardCharsets.UTF_8;
@@ -43,7 +43,7 @@ public class ChunkItemExporterTest {
     public void export_illegalConversion_throws() {
         try {
             chunkItemExporter.export(chunkItem, ChunkItem.Type.ADDI, encoding, diagnostics);
-            fail("No JobStoreException thrown");
+            Assertions.fail("No JobStoreException thrown");
         } catch (JobStoreException e) {
         }
     }

@@ -1,7 +1,7 @@
 package dk.dbc.dataio.harvester.infomedia;
 
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 
@@ -13,7 +13,7 @@ public class ScheduledHarvestBeanTest {
 
     @Test
     public void canRun_withInvalidSchedule() {
-        final InfomediaHarvesterConfig config = new InfomediaHarvesterConfig(1, 2,
+        InfomediaHarvesterConfig config = new InfomediaHarvesterConfig(1, 2,
                 new InfomediaHarvesterConfig.Content()
                         .withSchedule("invalid"));
 
@@ -22,7 +22,7 @@ public class ScheduledHarvestBeanTest {
 
     @Test
     public void canRun_withValidSchedule() {
-        final InfomediaHarvesterConfig config = new InfomediaHarvesterConfig(1, 2,
+        InfomediaHarvesterConfig config = new InfomediaHarvesterConfig(1, 2,
                 new InfomediaHarvesterConfig.Content()
                         .withSchedule("* * * * *")
                         .withTimeOfLastHarvest(null));
@@ -32,7 +32,7 @@ public class ScheduledHarvestBeanTest {
 
     @Test
     public void canRun_withTimeOfLastHarvestTooCloseToNow() {
-        final InfomediaHarvesterConfig config = new InfomediaHarvesterConfig(1, 2,
+        InfomediaHarvesterConfig config = new InfomediaHarvesterConfig(1, 2,
                 new InfomediaHarvesterConfig.Content()
                         .withSchedule("* * * * *")
                         .withTimeOfLastHarvest(new Date()));

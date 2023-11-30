@@ -5,8 +5,8 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,7 +24,7 @@ public class HarvesterConfigurationBeanTest {
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final Class<RRHarvesterConfig> rrHarvesterConfigurationType = RRHarvesterConfig.class;
 
-    @Before
+    @BeforeEach
     public void setupMocks() {
         when(flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
     }

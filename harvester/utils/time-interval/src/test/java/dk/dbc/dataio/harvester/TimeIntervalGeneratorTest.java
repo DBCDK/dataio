@@ -1,6 +1,6 @@
 package dk.dbc.dataio.harvester;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -17,8 +17,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TimeIntervalGeneratorTest {
     @Test
     public void endPointMustBeLaterThanStartingPoint() {
-        final Instant pointInTime = Instant.now();
-        final TimeIntervalGenerator generator = new TimeIntervalGenerator()
+        Instant pointInTime = Instant.now();
+        TimeIntervalGenerator generator = new TimeIntervalGenerator()
                 .withStartingPoint(pointInTime)
                 .withEndPoint(pointInTime.minusSeconds(60));
         assertThat(generator::iterator, isThrowing(IllegalArgumentException.class));
@@ -26,8 +26,8 @@ public class TimeIntervalGeneratorTest {
 
     @Test
     public void defaultValuesGeneratesSingleInterval() {
-        final TimeIntervalGenerator generator = new TimeIntervalGenerator();
-        final Iterator<TimeInterval> iterator = generator.iterator();
+        TimeIntervalGenerator generator = new TimeIntervalGenerator();
+        Iterator<TimeInterval> iterator = generator.iterator();
         assertThat("1st hasNext()", iterator.hasNext(), is(true));
         assertThat("1st next()", iterator.next(), is(notNullValue()));
         assertThat("2nd hasNext()", iterator.hasNext(), is(false));
@@ -36,11 +36,11 @@ public class TimeIntervalGeneratorTest {
 
     @Test
     public void endPointEqualToStartingPointGeneratesSingleInterval() {
-        final Instant pointInTime = Instant.now();
-        final TimeIntervalGenerator generator = new TimeIntervalGenerator()
+        Instant pointInTime = Instant.now();
+        TimeIntervalGenerator generator = new TimeIntervalGenerator()
                 .withStartingPoint(pointInTime)
                 .withEndPoint(pointInTime);
-        final Iterator<TimeInterval> iterator = generator.iterator();
+        Iterator<TimeInterval> iterator = generator.iterator();
         assertThat("1st hasNext()", iterator.hasNext(), is(true));
         assertThat("1st next()", iterator.next(), is(notNullValue()));
         assertThat("2nd hasNext()", iterator.hasNext(), is(false));
@@ -49,15 +49,15 @@ public class TimeIntervalGeneratorTest {
 
     @Test
     public void intervalGeneration() {
-        final Instant start = new Date(1485326980959L).toInstant();     // 2017-01-25T06:49:40.959Z
-        final Instant end = start.plusSeconds(3900);                          // 2017-01-25T07:54:40.959Z
+        Instant start = new Date(1485326980959L).toInstant();     // 2017-01-25T06:49:40.959Z
+        Instant end = start.plusSeconds(3900);                          // 2017-01-25T07:54:40.959Z
 
-        final TimeIntervalGenerator generator = new TimeIntervalGenerator()
+        TimeIntervalGenerator generator = new TimeIntervalGenerator()
                 .withStartingPoint(start)
                 .withEndPoint(end)
                 .withIntervalDuration(10, ChronoUnit.MINUTES);
 
-        final Iterator<TimeInterval> iterator = generator.iterator();
+        Iterator<TimeInterval> iterator = generator.iterator();
         assertThat("1st hasNext()", iterator.hasNext(), is(true));
         assertThat("1st next()", iterator.next().toString(),
                 is("TimeInterval{from=2017-01-25T06:49:40.959Z, to=2017-01-25T06:59:40.959Z}"));
@@ -85,15 +85,15 @@ public class TimeIntervalGeneratorTest {
 
     @Test
     public void intervalDurationIsGreaterThanStartingPointEndPointDuration() {
-        final Instant start = new Date(1485326980959L).toInstant();     // 2017-01-25T06:49:40.959Z
-        final Instant end = start.plusSeconds(60);                            // 2017-01-25T06:50:40.959Z
+        Instant start = new Date(1485326980959L).toInstant();     // 2017-01-25T06:49:40.959Z
+        Instant end = start.plusSeconds(60);                            // 2017-01-25T06:50:40.959Z
 
-        final TimeIntervalGenerator generator = new TimeIntervalGenerator()
+        TimeIntervalGenerator generator = new TimeIntervalGenerator()
                 .withStartingPoint(start)
                 .withEndPoint(end)
                 .withIntervalDuration(10, ChronoUnit.MINUTES);
 
-        final Iterator<TimeInterval> iterator = generator.iterator();
+        Iterator<TimeInterval> iterator = generator.iterator();
         assertThat("1st hasNext()", iterator.hasNext(), is(true));
         assertThat("1st next()", iterator.next().toString(),
                 is("TimeInterval{from=2017-01-25T06:49:40.959Z, to=2017-01-25T06:50:40.959Z}"));
@@ -103,15 +103,15 @@ public class TimeIntervalGeneratorTest {
 
     @Test
     public void intervalDurationHitsEndPointBoundaryExactly() {
-        final Instant start = new Date(1485326980959L).toInstant();     // 2017-01-25T06:49:40.959Z
-        final Instant end = start.plusSeconds(1200);                          // 2017-01-25T07:09:40.959Z
+        Instant start = new Date(1485326980959L).toInstant();     // 2017-01-25T06:49:40.959Z
+        Instant end = start.plusSeconds(1200);                          // 2017-01-25T07:09:40.959Z
 
-        final TimeIntervalGenerator generator = new TimeIntervalGenerator()
+        TimeIntervalGenerator generator = new TimeIntervalGenerator()
                 .withStartingPoint(start)
                 .withEndPoint(end)
                 .withIntervalDuration(10, ChronoUnit.MINUTES);
 
-        final Iterator<TimeInterval> iterator = generator.iterator();
+        Iterator<TimeInterval> iterator = generator.iterator();
         assertThat("1st hasNext()", iterator.hasNext(), is(true));
         assertThat("1st next()", iterator.next().toString(),
                 is("TimeInterval{from=2017-01-25T06:49:40.959Z, to=2017-01-25T06:59:40.959Z}"));
@@ -124,15 +124,15 @@ public class TimeIntervalGeneratorTest {
 
     @Test
     public void endPointSetWithLag() {
-        final Instant start = new Date(1485326980959L).toInstant();     // 2017-01-25T06:49:40.959Z
-        final Instant end = start.plusSeconds(60);                            // 2017-01-25T06:50:40.959Z
+        Instant start = new Date(1485326980959L).toInstant();     // 2017-01-25T06:49:40.959Z
+        Instant end = start.plusSeconds(60);                            // 2017-01-25T06:50:40.959Z
 
-        final TimeIntervalGenerator generator = new TimeIntervalGenerator()
+        TimeIntervalGenerator generator = new TimeIntervalGenerator()
                 .withStartingPoint(start)
                 .withEndPoint(end, 50, ChronoUnit.SECONDS)
                 .withIntervalDuration(10, ChronoUnit.MINUTES);
 
-        final Iterator<TimeInterval> iterator = generator.iterator();
+        Iterator<TimeInterval> iterator = generator.iterator();
         assertThat("1st hasNext()", iterator.hasNext(), is(true));
         assertThat("1st next()", iterator.next().toString(),
                 is("TimeInterval{from=2017-01-25T06:49:40.959Z, to=2017-01-25T06:49:50.959Z}"));

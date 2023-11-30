@@ -38,6 +38,10 @@
       <type>ejb</type>
     </dependency>
     <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+    </dependency>
+    <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-job-store-service-test</artifactId>
       <scope>test</scope>

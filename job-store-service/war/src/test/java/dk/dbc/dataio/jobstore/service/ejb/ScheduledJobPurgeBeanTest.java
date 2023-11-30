@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpectedStatusCodeException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;

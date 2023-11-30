@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.service.util;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

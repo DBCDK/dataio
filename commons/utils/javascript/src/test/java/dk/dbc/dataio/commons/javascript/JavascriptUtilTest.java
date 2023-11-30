@@ -1,34 +1,35 @@
 package dk.dbc.dataio.commons.javascript;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class JavascriptUtilTest {
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testGetAllToplevelFunctionsInJavascript_nullReaderArgument_throws() throws Throwable {
-        JavascriptUtil.getAllToplevelFunctionsInJavascript(null, "<inlinetest>");
+        assertThrows(NullPointerException.class, () -> JavascriptUtil.getAllToplevelFunctionsInJavascript(null, "<inlinetest>"));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testGetAllToplevelFunctionsInJavascript_nullStringSourceArgument_throws() throws Throwable {
         String javascript = "function myfunc(s) { }";
-        JavascriptUtil.getAllToplevelFunctionsInJavascript(new StringReader(javascript), null);
+        assertThrows(NullPointerException.class, () -> JavascriptUtil.getAllToplevelFunctionsInJavascript(new StringReader(javascript), null));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_nullReaderArgument_throws() throws Throwable {
-        JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(null, "<inlinetest>");
+        assertThrows(NullPointerException.class, () -> JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(null, "<inlinetest>"));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_nullStringSourceArgument_throws() throws Throwable {
         String javascript = "function myfunc(s) { }";
-        JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(new StringReader(javascript), null);
+        assertThrows(NullPointerException.class, () -> JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(new StringReader(javascript), null));
     }
 
     @Test
@@ -39,12 +40,12 @@ public class JavascriptUtilTest {
         assertThat(functionNames.get(0), is("myfunc"));
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void testGetAllToplevelFunctionsInJavascript_javascriptContainingUse_throws() throws Throwable {
         String javascript = ""
                 + "use(\"Something\");\n"
                 + "function myfunc(s) { }";
-        JavascriptUtil.getAllToplevelFunctionsInJavascript(new StringReader(javascript), "<inlinetest>");
+        assertThrows(Exception.class, () -> JavascriptUtil.getAllToplevelFunctionsInJavascript(new StringReader(javascript), "<inlinetest>"));
     }
 
     @Test
@@ -99,19 +100,17 @@ public class JavascriptUtilTest {
         assertThat(functionNames.get(0), is("f"));
     }
 
-    @Test(expected = Exception.class)
-    public void testGetAllToplevelFunctionsInJavascript_illegalJavascript_throws() throws Throwable {
-        String javascript = ""
-                + "function myfunc(x) {";
-        JavascriptUtil.getAllToplevelFunctionsInJavascript(new StringReader(javascript), "<inlinetest>");
+    @Test
+    public void testGetAllToplevelFunctionsInJavascript_illegalJavascript_throws() {
+        String javascript = "function myfunc(x) {";
+        assertThrows(Exception.class, () -> JavascriptUtil.getAllToplevelFunctionsInJavascript(new StringReader(javascript), "<inlinetest>"));
     }
 
-    @Test(expected = Exception.class)
-    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_illegalJavascript_throws() throws Throwable {
-        String javascript = ""
-                + "use(\"Something\");\n"
+    @Test
+    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_illegalJavascript_throws() {
+        String javascript = "use(\"Something\");\n"
                 + "function myfunc(x) {";
-        JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(new StringReader(javascript), "<inlinetest>");
+        assertThrows(Exception.class, () -> JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(new StringReader(javascript), "<inlinetest>"));
     }
 
     /*
@@ -121,8 +120,7 @@ public class JavascriptUtilTest {
      */
     @Test
     public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_singleLegalAdditionalUseFunction() throws Throwable {
-        String javascript = ""
-                + "use(\"Something\");\n"
+        String javascript = "use(\"Something\");\n"
                 + "function use(s) { }";
         List<String> functionNames = JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(new StringReader(javascript), "<inlinetest>");
         assertThat(functionNames.size(), is(0));
@@ -133,7 +131,7 @@ public class JavascriptUtilTest {
      * If the evaluated javascript contains an object which tries to reference another
      * object which is the target of the use-function, then an exception is thrown.
      */
-    @Test(expected = Exception.class) // ReferenceError
+    @Test
     public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_javascriptWithObjectReferencingUseModule() throws Throwable {
         String javascript = ""
                 + "use(\"Something\");\n"
@@ -152,6 +150,6 @@ public class JavascriptUtilTest {
                 + "    }\n"
                 + "    return that;\n"
                 + "}();\n";
-        JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(new StringReader(javascript), "<inlinetest>");
+        assertThrows(Exception.class, () -> JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(new StringReader(javascript), "<inlinetest>"));
     }
 }

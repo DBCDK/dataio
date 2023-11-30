@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.service.param;
 
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class ParamBaseTest {
 
@@ -11,7 +11,7 @@ public abstract class ParamBaseTest {
 
     protected JobSpecification jobSpecification;
 
-    @Before
+    @BeforeEach
     public void createJobSpecification() {
         jobSpecification = new JobSpecification().withPackaging("packaging")
                 .withFormat("format")

@@ -16,8 +16,9 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import jakarta.persistence.LockModeType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import types.TestablePartitioningParamBuilder;
 
 import java.io.ByteArrayInputStream;
@@ -30,7 +31,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -43,16 +43,16 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     private JobEntity jobEntity;
     private TestablePartitioningParamBuilder partitioningParamBuilder;
 
-    @Before
+    @BeforeEach
     public void createPgJobStore() {
         pgJobStore = newPgJobStore(newPgJobStoreReposity());
         pgJobStore.jobQueueRepository = newJobQueueRepository();
     }
 
-    @Before
+    @BeforeEach
     public void createPartitioningParamBuilder() {
-        final Sink sink = new SinkBuilder().build();
-        final SinkCacheEntity sinkCacheEntity = SinkCacheEntity.create(sink);
+        Sink sink = new SinkBuilder().build();
+        SinkCacheEntity sinkCacheEntity = SinkCacheEntity.create(sink);
         jobEntity = getJobEntity(0);
         jobEntity.setCachedSink(sinkCacheEntity);
         partitioningParamBuilder = new TestablePartitioningParamBuilder()
@@ -74,18 +74,18 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenThrow(fileStoreUnexpectedException);
         when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(EXPECTED_SUBMITTER);
 
-        final PartitioningParam param = partitioningParamBuilder.build();
+        PartitioningParam param = partitioningParamBuilder.build();
 
         // Subject Under Test
-        final Partitioning partitioning = pgJobStore.partition(param);
-        final JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
+        Partitioning partitioning = pgJobStore.partition(param);
+        JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
 
         // Verify
         assertThat("Fatal error occurred", jobInfoSnapshot.hasFatalError(), is(true));
 
-        final Diagnostic diagnostic = param.getJobEntity().getState().getDiagnostics().get(0);
-        final String diagnosticsStacktrace = diagnostic.getStacktrace();
-        assertTrue(!param.getJobEntity().getState().getDiagnostics().isEmpty());
+        Diagnostic diagnostic = param.getJobEntity().getState().getDiagnostics().get(0);
+        String diagnosticsStacktrace = diagnostic.getStacktrace();
+        Assertions.assertFalse(param.getJobEntity().getState().getDiagnostics().isEmpty());
         assertThat("Diagnostics level", diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("Diagnostics stacktrace", diagnosticsStacktrace, containsString("Caused by: dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException: unexpected status code"));
         assertThat("Diagnostics stacktrace", diagnosticsStacktrace, containsString("dk.dbc.dataio.jobstore.types.JobStoreException: Could not retrieve byte size"));
@@ -97,20 +97,20 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(99999L);
         when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(EXPECTED_SUBMITTER);
 
-        final PartitioningParam param = partitioningParamBuilder.build();
+        PartitioningParam param = partitioningParamBuilder.build();
 
         // Subject Under Test
-        final Partitioning partitioning = pgJobStore.partition(param);
-        final JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
+        Partitioning partitioning = pgJobStore.partition(param);
+        JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
 
 
         // Verify
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
         assertThat("Fatal error occurred", jobInfoSnapshot.hasFatalError(), is(true));
 
-        final Diagnostic diagnostic = param.getJobEntity().getState().getDiagnostics().get(0);
-        final String diagnosticsMessage = diagnostic.getMessage();
-        assertTrue(!param.getJobEntity().getState().getDiagnostics().isEmpty());
+        Diagnostic diagnostic = param.getJobEntity().getState().getDiagnostics().get(0);
+        String diagnosticsMessage = diagnostic.getMessage();
+        Assertions.assertFalse(param.getJobEntity().getState().getDiagnostics().isEmpty());
         assertThat("Diagnostics level", diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("Diagnostics message", diagnosticsMessage, containsString("DataPartitioner.byteSize was: 307"));
         assertThat("Diagnostics message", diagnosticsMessage, containsString("FileStore.byteSize was: 99999"));
@@ -122,11 +122,11 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(307L);
         when(mockedFlowStoreServiceConnector.getSubmitter(EXPECTED_SUBMITTER.getId())).thenReturn(EXPECTED_SUBMITTER);
 
-        final PartitioningParam param = partitioningParamBuilder.build();
+        PartitioningParam param = partitioningParamBuilder.build();
 
         // Subject Under Test
-        final Partitioning partitioning = pgJobStore.handlePartitioning(param);
-        final JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
+        Partitioning partitioning = pgJobStore.handlePartitioning(param);
+        JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
 
         // Verify
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
@@ -144,11 +144,11 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(307L);
         when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(new SubmitterBuilder().setContent(new SubmitterContentBuilder().setEnabled(false).build()).build());
 
-        final PartitioningParam param = partitioningParamBuilder.build();
+        PartitioningParam param = partitioningParamBuilder.build();
 
         // Subject Under Test
-        final Partitioning preview = pgJobStore.handlePartitioning(param);
-        final JobInfoSnapshot jobInfoSnapshot = preview.getJobInfoSnapshot();
+        Partitioning preview = pgJobStore.handlePartitioning(param);
+        JobInfoSnapshot jobInfoSnapshot = preview.getJobInfoSnapshot();
 
         // Verify
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
@@ -163,16 +163,16 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     @Test
     public void partition_noRecords_returnsJobInfoSnapshot() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
-        final byte[] records = "<records></records>".getBytes(StandardCharsets.UTF_8);
+        byte[] records = "<records></records>".getBytes(StandardCharsets.UTF_8);
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(Long.valueOf(records.length));
         when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(EXPECTED_SUBMITTER);
 
-        final InputStream dataFileInputStream = new ByteArrayInputStream(records);
-        final PartitioningParam param = partitioningParamBuilder.setDataPartitioner(DefaultXmlDataPartitioner.newInstance(dataFileInputStream, StandardCharsets.UTF_8.name())).build();
+        InputStream dataFileInputStream = new ByteArrayInputStream(records);
+        PartitioningParam param = partitioningParamBuilder.setDataPartitioner(DefaultXmlDataPartitioner.newInstance(dataFileInputStream, StandardCharsets.UTF_8.name())).build();
 
         // Subject Under Test
-        final Partitioning partitioning = pgJobStore.partition(param);
-        final JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
+        Partitioning partitioning = pgJobStore.partition(param);
+        JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
 
         // Verify
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
@@ -194,7 +194,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         // matches the number of bytes read
         final String fileId = "gzFileLargerThan4GiB";
         final long sizeOverflow = 123L;
-        final DataPartitioner dataPartitioner = mock(DataPartitioner.class);
+        DataPartitioner dataPartitioner = mock(DataPartitioner.class);
         when(dataPartitioner.getBytesRead()).thenReturn(sizeOverflow + 4 * 1024 * 1024 * 1024L);
         when(mockedFileStoreServiceConnector.getByteSize(fileId)).thenReturn(sizeOverflow);
 
@@ -203,14 +203,14 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
 
     @Test
     public void compareByteSize_noByteCountAvailable() throws IOException, JobStoreException {
-        final DataPartitioner dataPartitioner = mock(DataPartitioner.class);
+        DataPartitioner dataPartitioner = mock(DataPartitioner.class);
         when(dataPartitioner.getBytesRead()).thenReturn(DataPartitioner.NO_BYTE_COUNT_AVAILABLE);
         pgJobStore.compareByteSize("fileId", dataPartitioner);
     }
 
     @Test
     public void compareByteSize_bzip2() throws FileStoreServiceConnectorException, IOException, JobStoreException {
-        final DataPartitioner dataPartitioner = mock(DataPartitioner.class);
+        DataPartitioner dataPartitioner = mock(DataPartitioner.class);
         when(dataPartitioner.getBytesRead())
                 .thenReturn(42L);
         when(mockedFileStoreServiceConnector.getByteSize("fileId"))

@@ -2,7 +2,6 @@ package dk.dbc.dataio.logstore.service.connector.ejb;
 
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
 import dk.dbc.httpclient.HttpClient;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Singleton;
@@ -16,14 +15,15 @@ import org.slf4j.LoggerFactory;
 public class LogStoreServiceConnectorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(LogStoreServiceConnectorBean.class);
 
-    LogStoreServiceConnector logStoreServiceConnector;
+    private final LogStoreServiceConnector logStoreServiceConnector;
 
-    @PostConstruct
-    public void initializeConnector() {
-        final String endpoint = System.getenv("LOGSTORE_URL");
-        logStoreServiceConnector = new LogStoreServiceConnector(
-                HttpClient.newClient(), endpoint);
-        LOGGER.info("Using service endpoint {}", endpoint);
+    public LogStoreServiceConnectorBean() {
+        this(System.getenv("LOGSTORE_URL"));
+    }
+
+    public LogStoreServiceConnectorBean(String logStoreUrl) {
+        logStoreServiceConnector = new LogStoreServiceConnector(HttpClient.newClient(), logStoreUrl);
+        LOGGER.info("Using service endpoint {}", logStoreUrl);
     }
 
     public LogStoreServiceConnector getConnector() {

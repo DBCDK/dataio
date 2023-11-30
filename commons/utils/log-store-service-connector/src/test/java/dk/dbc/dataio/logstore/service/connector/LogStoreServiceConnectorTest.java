@@ -1,12 +1,13 @@
 package dk.dbc.dataio.logstore.service.connector;
 
 import jakarta.ws.rs.client.Client;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 public class LogStoreServiceConnectorTest {
@@ -16,19 +17,19 @@ public class LogStoreServiceConnectorTest {
     private static final long CHUNK_ID = 42;
     private static final long ITEM_ID = 1;
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_httpClientArgIsNull_throws() {
-        new LogStoreServiceConnector(null, LOG_STORE_URL);
+        assertThrows(NullPointerException.class, () -> new LogStoreServiceConnector(null, LOG_STORE_URL));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_baseUrlArgIsNull_throws() {
-        new LogStoreServiceConnector(CLIENT, null);
+        assertThrows(NullPointerException.class, () -> new LogStoreServiceConnector(CLIENT, null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_baseUrlArgIsEmpty_throws() {
-        new LogStoreServiceConnector(CLIENT, "");
+        assertThrows(IllegalArgumentException.class, () -> new LogStoreServiceConnector(CLIENT, ""));
     }
 
     @Test
@@ -44,7 +45,7 @@ public class LogStoreServiceConnectorTest {
         final LogStoreServiceConnector logStoreServiceConnector = newLogStoreServiceConnector();
         try {
             logStoreServiceConnector.getItemLog(null, CHUNK_ID, ITEM_ID);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (NullPointerException e) {
         }
     }
@@ -54,7 +55,7 @@ public class LogStoreServiceConnectorTest {
         final LogStoreServiceConnector logStoreServiceConnector = newLogStoreServiceConnector();
         try {
             logStoreServiceConnector.getItemLog("", CHUNK_ID, ITEM_ID);
-            fail("No exception thrown");
+            Assertions.fail("No exception thrown");
         } catch (IllegalArgumentException e) {
         }
     }

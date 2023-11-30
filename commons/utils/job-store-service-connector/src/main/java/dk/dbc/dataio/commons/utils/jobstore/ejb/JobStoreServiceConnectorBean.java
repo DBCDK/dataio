@@ -7,10 +7,7 @@ import jakarta.annotation.PreDestroy;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Singleton;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.client.Client;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,19 +17,19 @@ import org.slf4j.LoggerFactory;
 @LocalBean
 public class JobStoreServiceConnectorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreServiceConnectorBean.class);
-
     JobStoreServiceConnector jobStoreServiceConnector;
 
     @Inject
     private MetricRegistry metricRegistry;
 
+    public JobStoreServiceConnectorBean() {
+    }
+
     @PostConstruct
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
-        final Client client = HttpClient.newClient(new ClientConfig()
-                .register(new JacksonFeature()));
         final String endpoint = System.getenv("JOBSTORE_URL");
-        jobStoreServiceConnector = new JobStoreServiceConnector(client, endpoint, metricRegistry);
+        jobStoreServiceConnector = new JobStoreServiceConnector(endpoint, metricRegistry);
         LOGGER.info("Using service endpoint {}", endpoint);
     }
 

@@ -1,6 +1,6 @@
 package dk.dbc.dataio.gatekeeper;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

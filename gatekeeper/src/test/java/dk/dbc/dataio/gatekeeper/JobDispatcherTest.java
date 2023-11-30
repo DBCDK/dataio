@@ -18,10 +18,9 @@ import dk.dbc.dataio.gatekeeper.wal.Modification;
 import dk.dbc.dataio.gatekeeper.wal.ModificationLockedException;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,29 +41,30 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class JobDispatcherTest {
-    @Rule
-    public TemporaryFolder testFolder = new TemporaryFolder();
+    @TempDir
+    public Path testFolder;
 
     private Path dir;
     private MockedWriteAheadLog wal = new MockedWriteAheadLog();
-    private ConnectorFactory connectorFactory = mock(ConnectorFactory.class);
-    private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
-    private FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
-    private FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+    private final ConnectorFactory connectorFactory = mock(ConnectorFactory.class);
+    private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    private final FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private ShutdownManager shutdownManager;
-    private List<GatekeeperDestination> gatekeeperDestinations = ModificationFactoryTest.getGatekeeperDestinationsForTest();
+    private final List<GatekeeperDestination> gatekeeperDestinations = ModificationFactoryTest.getGatekeeperDestinationsForTest();
 
-    @Before
+    @BeforeEach
     public void setupFileSystem() throws IOException {
-        dir = testFolder.newFolder("in").toPath();
+        dir = Files.createDirectory(testFolder.resolve("in"));
     }
 
-    @Before
+    @BeforeEach
     public void setupMocks() throws JobStoreServiceConnectorException,
             FlowStoreServiceConnectorException,
             FileStoreServiceConnectorException {
@@ -77,59 +77,59 @@ public class JobDispatcherTest {
         when(flowStoreServiceConnector.findAllGatekeeperDestinations()).thenReturn(gatekeeperDestinations);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_dirArgIsNull_throws() {
-        new JobDispatcher(null, wal, connectorFactory, shutdownManager);
+        assertThrows(NullPointerException.class, () -> new JobDispatcher(null, wal, connectorFactory, shutdownManager));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_walArgIsNull_throws() {
-        new JobDispatcher(dir, null, connectorFactory, shutdownManager);
+        assertThrows(NullPointerException.class, () -> new JobDispatcher(dir, null, connectorFactory, shutdownManager));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_connectorFactoryArgIsNull_throws() {
-        new JobDispatcher(dir, wal, null, shutdownManager);
+        assertThrows(NullPointerException.class, () -> new JobDispatcher(dir, wal, null, shutdownManager));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_shutdownManagerArgIsNull_throws() {
-        new JobDispatcher(dir, wal, connectorFactory, null);
+        assertThrows(NullPointerException.class, () -> new JobDispatcher(dir, wal, connectorFactory, null));
     }
 
     @Test
     public void processIfCompleteTransfile_fileDoesNotHaveTransfileExtension_notProcessedReturnsFalse()
-            throws OperationExecutionException, ModificationLockedException, InterruptedException, IOException {
-        final Path filePath = writeFile(dir, "file.dat", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
-        final JobDispatcher jobDispatcher = getJobDispatcher();
+            throws OperationExecutionException, ModificationLockedException, InterruptedException {
+        Path filePath = writeFile(dir, "file.dat", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
+        JobDispatcher jobDispatcher = getJobDispatcher();
         assertThat("processIfCompleteTransfile()", jobDispatcher.processIfCompleteTransfile(filePath), is(false));
         assertThat("WAL modifications", wal.modificationsAddedOverTime, is(0));
     }
 
     @Test
     public void processIfCompleteTransfile_fileDoesNotExist_notProcessedReturnsFalse()
-            throws OperationExecutionException, ModificationLockedException, InterruptedException, IOException {
-        final Path transfilePath = dir.resolve("file.trans");
-        final JobDispatcher jobDispatcher = getJobDispatcher();
+            throws OperationExecutionException, ModificationLockedException, InterruptedException {
+        Path transfilePath = dir.resolve("file.trans");
+        JobDispatcher jobDispatcher = getJobDispatcher();
         assertThat("processIfCompleteTransfile()", jobDispatcher.processIfCompleteTransfile(transfilePath), is(false));
         assertThat("WAL modifications", wal.modificationsAddedOverTime, is(0));
     }
 
     @Test
     public void processIfCompleteTransfile_fileIsIncomplete_notProcessedReturnsFalse()
-            throws OperationExecutionException, ModificationLockedException, InterruptedException, IOException {
-        final Path transfilePath = writeFile(dir, "123456.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
-        final JobDispatcher jobDispatcher = getJobDispatcher();
+            throws OperationExecutionException, ModificationLockedException, InterruptedException {
+        Path transfilePath = writeFile(dir, "123456.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
+        JobDispatcher jobDispatcher = getJobDispatcher();
         assertThat("processIfCompleteTransfile()", jobDispatcher.processIfCompleteTransfile(transfilePath), is(false));
         assertThat("WAL modifications", wal.modificationsAddedOverTime, is(0));
     }
 
     @Test
     public void processIfCompleteTransfile_fileIsComplete_processedReturnsTrue()
-            throws OperationExecutionException, ModificationLockedException, InterruptedException, IOException {
+            throws OperationExecutionException, ModificationLockedException, InterruptedException {
         writeFile(dir, "820010.file", "");
-        final Path transfilePath = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
-        final JobDispatcher jobDispatcher = getJobDispatcher();
+        Path transfilePath = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
+        JobDispatcher jobDispatcher = getJobDispatcher();
         assertThat("processIfCompleteTransfile()", jobDispatcher.processIfCompleteTransfile(transfilePath), is(true));
 
         // We don't assert all the modifications
@@ -144,9 +144,9 @@ public class JobDispatcherTest {
     public void processTransfile()
             throws OperationExecutionException, InterruptedException, ModificationLockedException {
         writeFile(dir, "820010.file", "");
-        final Path transfilePath = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
-        final TransFile transFile = new TransFile(transfilePath);
-        final JobDispatcher jobDispatcher = getJobDispatcher();
+        Path transfilePath = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
+        TransFile transFile = new TransFile(transfilePath);
+        JobDispatcher jobDispatcher = getJobDispatcher();
         jobDispatcher.processTransfile(transFile);
 
         // We don't assert all the modifications
@@ -160,8 +160,8 @@ public class JobDispatcherTest {
     @Test
     public void getCompleteTransfiles_noCompleteTransfiles_returnsEmptyList() throws IOException {
         writeFile(dir, "file.trans", "data");
-        final JobDispatcher jobDispatcher = getJobDispatcher();
-        final List<TransFile> completeTransfiles = jobDispatcher.getCompleteTransfiles();
+        JobDispatcher jobDispatcher = getJobDispatcher();
+        List<TransFile> completeTransfiles = jobDispatcher.getCompleteTransfiles();
         assertThat(completeTransfiles.isEmpty(), is(true));
     }
 
@@ -170,10 +170,10 @@ public class JobDispatcherTest {
         writeFile(dir, "file1.trans", "data1\nslut");
         writeFile(dir, "file2.trans", "data2\n");
         writeFile(dir, "file3.trs", "data3\nfinish");
-        final JobDispatcher jobDispatcher = getJobDispatcher();
-        final List<TransFile> completeTransfiles = jobDispatcher.getCompleteTransfiles();
+        JobDispatcher jobDispatcher = getJobDispatcher();
+        List<TransFile> completeTransfiles = jobDispatcher.getCompleteTransfiles();
         assertThat("Number of transfiles found", completeTransfiles.size(), is(2));
-        final Set<String> transfiles = new HashSet<>(2);
+        Set<String> transfiles = new HashSet<>(2);
         transfiles.add(completeTransfiles.get(0).getPath().getFileName().toString());
         transfiles.add(completeTransfiles.get(1).getPath().getFileName().toString());
         assertThat("transfiles found", transfiles, containsInAnyOrder("file1.trans", "file3.trs"));
@@ -182,19 +182,19 @@ public class JobDispatcherTest {
     @Test
     public void getStalledIncompleteTransfiles_noStalledTransfiles_returnsEmptyList() throws IOException {
         writeFile(dir, "file1.trans", "data1");
-        final JobDispatcher jobDispatcher = getJobDispatcher();
-        final List<TransFile> stalledTransfiles = jobDispatcher.getStalledIncompleteTransfiles();
+        JobDispatcher jobDispatcher = getJobDispatcher();
+        List<TransFile> stalledTransfiles = jobDispatcher.getStalledIncompleteTransfiles();
         assertThat(stalledTransfiles.isEmpty(), is(true));
     }
 
     @Test
     public void getStalledIncompleteTransfiles_stalledTransfilesExist_returnsList() throws IOException {
-        final Path path1 = writeFile(dir, "file1.trans", "data1");
-        final Path path2 = writeFile(dir, "file2.trs", "data2");
-        final Path path3 = writeFile(dir, "file3.trans", "data3\nslut");
+        Path path1 = writeFile(dir, "file1.trans", "data1");
+        Path path2 = writeFile(dir, "file2.trs", "data2");
+        Path path3 = writeFile(dir, "file3.trans", "data3\nslut");
         writeFile(dir, "file4.trans", "data4");
-        final BasicFileAttributes fileAttributes = Files.readAttributes(path1, BasicFileAttributes.class);
-        final FileTime lastModified = FileTime.from(
+        BasicFileAttributes fileAttributes = Files.readAttributes(path1, BasicFileAttributes.class);
+        FileTime lastModified = FileTime.from(
                 fileAttributes.lastAccessTime().toMillis() - JobDispatcher.STALLED_TRANSFILE_THRESHOLD_IN_MS,
                 TimeUnit.MILLISECONDS);
         Files.setLastModifiedTime(path1, lastModified); // file1.trans exceeds threshold and is incomplete
@@ -202,8 +202,8 @@ public class JobDispatcherTest {
         Files.setLastModifiedTime(path3, lastModified); // file3.trans exceeds threshold but is complete
         // file4.trans is incomplete but does not exceed threshold
 
-        final JobDispatcher jobDispatcher = getJobDispatcher();
-        final List<TransFile> stalledTransfiles = jobDispatcher.getStalledIncompleteTransfiles();
+        JobDispatcher jobDispatcher = getJobDispatcher();
+        List<TransFile> stalledTransfiles = jobDispatcher.getStalledIncompleteTransfiles();
         assertThat("Number of transfiles found", stalledTransfiles.size(), is(2));
         assertThat("transfiles found", stalledTransfiles.stream()
                         .map(transfile -> transfile.getPath().getFileName().toString())
@@ -212,11 +212,11 @@ public class JobDispatcherTest {
     }
 
     @Test
-    public void writeWal_addModificationsToWal() throws IOException {
+    public void writeWal_addModificationsToWal() {
         writeFile(dir, "820010.file", "");
-        final Path transfilePath = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
-        final TransFile transFile = new TransFile(transfilePath);
-        final JobDispatcher jobDispatcher = getJobDispatcher();
+        Path transfilePath = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
+        TransFile transFile = new TransFile(transfilePath);
+        JobDispatcher jobDispatcher = getJobDispatcher();
         jobDispatcher.writeWal(transFile);
         assertThat("Number of WAL modifications", wal.modifications.size(), is(3));
     }
@@ -225,11 +225,11 @@ public class JobDispatcherTest {
     public void processModification_executesOperation() throws OperationExecutionException, InterruptedException {
         final String filename = "file";
         writeFile(dir, filename, "data");
-        final Modification modification = new Modification(42L);
+        Modification modification = new Modification(42L);
         modification.setOpcode(Opcode.DELETE_FILE);
         modification.setArg(filename);
 
-        final JobDispatcher jobDispatcher = getJobDispatcher();
+        JobDispatcher jobDispatcher = getJobDispatcher();
         jobDispatcher.processModification(modification);
 
         assertThat("file exists", Files.exists(dir.resolve(filename)), is(false));
@@ -237,17 +237,17 @@ public class JobDispatcherTest {
     }
 
     @Test
-    public void processModification_operationThrows_unlocksAndRethrows() throws OperationExecutionException, IOException, InterruptedException {
+    public void processModification_operationThrows_unlocksAndRethrows() throws IOException, InterruptedException {
         // Delete operation will fail when trying to delete a
         // non-empty folder
-        final Path subdir = dir.resolve("subdir");
+        Path subdir = dir.resolve("subdir");
         writeFile(Files.createDirectory(subdir), "tmp", "data");
-        final Modification modification = new Modification(42L);
+        Modification modification = new Modification(42L);
         modification.lock();
         modification.setOpcode(Opcode.DELETE_FILE);
         modification.setArg(subdir.getFileName().toString());
 
-        final JobDispatcher jobDispatcher = getJobDispatcher();
+        JobDispatcher jobDispatcher = getJobDispatcher();
         try {
             jobDispatcher.processModification(modification);
             fail("No OperationExecutionException thrown");
@@ -260,9 +260,9 @@ public class JobDispatcherTest {
     @Test
     public void processModification_shutdownManagerInStateShutdownInProgress_unlocksAndThrows() throws OperationExecutionException {
         shutdownManager.signalShutdownInProgress();
-        final Modification modification = new Modification(42L);
+        Modification modification = new Modification(42L);
         modification.lock();
-        final JobDispatcher jobDispatcher = getJobDispatcher();
+        JobDispatcher jobDispatcher = getJobDispatcher();
         try {
             jobDispatcher.processModification(modification);
             fail("No OperationExecutionException thrown");
@@ -274,12 +274,12 @@ public class JobDispatcherTest {
 
     @Test
     public void getOperation_modificationArgHasDeleteFileOpcode_returnsFileDeleteOperation() {
-        final Modification modification = new Modification();
+        Modification modification = new Modification();
         modification.setOpcode(Opcode.DELETE_FILE);
         modification.setArg("file");
 
-        final JobDispatcher jobDispatcher = getJobDispatcher();
-        final Operation operation = jobDispatcher.getOperation(modification);
+        JobDispatcher jobDispatcher = getJobDispatcher();
+        Operation operation = jobDispatcher.getOperation(modification);
         assertThat("Operation", operation, is(notNullValue()));
         assertThat("Operation.getOpcode()", operation.getOpcode(), is(Opcode.DELETE_FILE));
         assertThat("FileDeleteOperation.getFile()", ((FileDeleteOperation) operation).getFile(),
@@ -288,13 +288,13 @@ public class JobDispatcherTest {
 
     @Test
     public void getOperation_modificationArgHasCreateJobOpcode_returnsCreateJobOperation() {
-        final Modification modification = new Modification();
+        Modification modification = new Modification();
         modification.setOpcode(Opcode.CREATE_JOB);
         modification.setTransfileName("123456.001.trans");
         modification.setArg("line");
 
-        final JobDispatcher jobDispatcher = getJobDispatcher();
-        final Operation operation = jobDispatcher.getOperation(modification);
+        JobDispatcher jobDispatcher = getJobDispatcher();
+        Operation operation = jobDispatcher.getOperation(modification);
         assertThat("Operation", operation, is(notNullValue()));
         assertThat("Operation.getOpcode()", operation.getOpcode(), is(Opcode.CREATE_JOB));
         assertThat("CreateJobOperation.getJobStoreServiceConnector()", ((CreateJobOperation) operation).getJobStoreServiceConnector(),

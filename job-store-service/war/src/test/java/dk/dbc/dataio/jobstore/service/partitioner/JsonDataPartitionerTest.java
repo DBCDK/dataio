@@ -3,7 +3,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.util.Iterator;

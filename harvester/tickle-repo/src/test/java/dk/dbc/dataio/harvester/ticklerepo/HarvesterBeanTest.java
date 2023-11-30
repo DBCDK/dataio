@@ -3,7 +3,7 @@ package dk.dbc.dataio.harvester.ticklerepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import jakarta.ejb.SessionContext;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.concurrent.ExecutionException;

@@ -10,7 +10,7 @@ import dk.dbc.rawrepo.dto.RecordDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -36,7 +36,7 @@ public class RecordFetcherTest {
 
     @Test
     public void replaceWithDbcAgency() throws HarvesterException, RecordServiceConnectorException {
-        final RecordIdDTO recordId = new RecordIdDTO("id", 870970);
+        RecordIdDTO recordId = new RecordIdDTO("id", 870970);
 
         new RecordFetcher(recordId, recordServiceConnector, config).call();
 
@@ -48,7 +48,7 @@ public class RecordFetcherTest {
     @Test
     public void recordServiceConnectorFetchRecordCollectionThrows()
             throws RecordServiceConnectorException, HarvesterException {
-        final RecordIdDTO recordId = new RecordIdDTO("id", 191919);
+        RecordIdDTO recordId = new RecordIdDTO("id", 191919);
 
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
@@ -62,9 +62,9 @@ public class RecordFetcherTest {
     @Test
     public void recordHasInvalidXmlContent()
             throws HarvesterException, RecordServiceConnectorException {
-        final RecordIdDTO recordId = new RecordIdDTO("id", 191919);
+        RecordIdDTO recordId = new RecordIdDTO("id", 191919);
 
-        final RecordDTO recordData = new RecordDTO();
+        RecordDTO recordData = new RecordDTO();
         recordData.setCreated(Instant.now().toString());
         recordData.setEnrichmentTrail("191919,870970");
         recordData.setContent("invalidXML".getBytes());
@@ -72,7 +72,7 @@ public class RecordFetcherTest {
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(recordId.getBibliographicRecordId(), recordData);
                 }});
 
@@ -83,8 +83,8 @@ public class RecordFetcherTest {
     @Test
     public void recordHasNoCreationDate()
             throws HarvesterException, RecordServiceConnectorException {
-        final RecordIdDTO recordId = new RecordIdDTO("id", 191919);
-        final RecordDTO recordData = new RecordDTO();
+        RecordIdDTO recordId = new RecordIdDTO("id", 191919);
+        RecordDTO recordData = new RecordDTO();
         recordData.setCreated(null);
         recordData.setEnrichmentTrail("191919,870970");
         recordData.setContent("<record xmlns='info:lc/xmlns/marcxchange-v1'/>".getBytes());
@@ -92,7 +92,7 @@ public class RecordFetcherTest {
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(recordId.getBibliographicRecordId(), recordData);
                 }});
 
@@ -103,7 +103,7 @@ public class RecordFetcherTest {
     @Test
     public void emptyCollection()
             throws HarvesterException, RecordServiceConnectorException {
-        final RecordIdDTO recordId = new RecordIdDTO("id", 191919);
+        RecordIdDTO recordId = new RecordIdDTO("id", 191919);
 
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
@@ -117,8 +117,8 @@ public class RecordFetcherTest {
     @Test
     public void recordIdNotInCollection()
             throws HarvesterException, RecordServiceConnectorException {
-        final RecordIdDTO recordId = new RecordIdDTO("id", 191919);
-        final RecordDTO recordData = new RecordDTO();
+        RecordIdDTO recordId = new RecordIdDTO("id", 191919);
+        RecordDTO recordData = new RecordDTO();
         recordData.setCreated(Instant.now().toString());
         recordData.setEnrichmentTrail("191919,870970");
         recordData.setContent("<record xmlns='info:lc/xmlns/marcxchange-v1'/>".getBytes());
@@ -126,7 +126,7 @@ public class RecordFetcherTest {
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put("notId", recordData);
                 }});
 
@@ -136,10 +136,10 @@ public class RecordFetcherTest {
 
     @Test
     public void addiRecord() throws RecordServiceConnectorException, HarvesterException, JSONBException {
-        final RecordIdDTO recordId = new RecordIdDTO("id", 123456);
-        final RecordDTO recordData = new RecordDTO();
+        RecordIdDTO recordId = new RecordIdDTO("id", 123456);
+        RecordDTO recordData = new RecordDTO();
 
-        final Instant creationTime = Instant.now();
+        Instant creationTime = Instant.now();
         final String trackingId = "-trackingId-";
 
         recordData.setCreated(Instant.now().toString());
@@ -149,13 +149,13 @@ public class RecordFetcherTest {
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(recordId.getBibliographicRecordId(), recordData);
                 }});
 
-        final AddiRecord addiRecord = new RecordFetcher(recordId, recordServiceConnector, config).call();
+        AddiRecord addiRecord = new RecordFetcher(recordId, recordServiceConnector, config).call();
 
-        final AddiMetaData addiMetaData = jsonbContext.unmarshall(
+        AddiMetaData addiMetaData = jsonbContext.unmarshall(
                 new String(addiRecord.getMetaData(), StandardCharsets.UTF_8), AddiMetaData.class);
         assertThat("Addi metadata", addiMetaData, is(new AddiMetaData()
                 .withBibliographicRecordId(recordId.getBibliographicRecordId())
@@ -172,8 +172,8 @@ public class RecordFetcherTest {
     @Test
     public void getSubmitterFromEnrichmentTrail()
             throws RecordServiceConnectorException, HarvesterException, JSONBException {
-        final RecordIdDTO recordId = new RecordIdDTO("id", 191919);
-        final RecordDTO recordData = new RecordDTO();
+        RecordIdDTO recordId = new RecordIdDTO("id", 191919);
+        RecordDTO recordData = new RecordDTO();
 
         recordData.setCreated(Instant.now().toString());
         recordData.setEnrichmentTrail("191919,870970");
@@ -182,13 +182,13 @@ public class RecordFetcherTest {
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordDTO>() {{
+                .thenReturn(new HashMap<>() {{
                     put(recordId.getBibliographicRecordId(), recordData);
                 }});
 
-        final AddiRecord addiRecord = new RecordFetcher(recordId, recordServiceConnector, config).call();
+        AddiRecord addiRecord = new RecordFetcher(recordId, recordServiceConnector, config).call();
 
-        final AddiMetaData addiMetaData = jsonbContext.unmarshall(
+        AddiMetaData addiMetaData = jsonbContext.unmarshall(
                 new String(addiRecord.getMetaData(), StandardCharsets.UTF_8), AddiMetaData.class);
 
         assertThat("Addi metadata enrichment trail", addiMetaData.enrichmentTrail(),
@@ -217,7 +217,7 @@ public class RecordFetcherTest {
     private void assertHasDiagnostic(AddiRecord addiRecord, String messageContains) {
         assertThat("Addi record", addiRecord, is(notNullValue()));
         try {
-            final AddiMetaData addiMetaData = jsonbContext.unmarshall(
+            AddiMetaData addiMetaData = jsonbContext.unmarshall(
                     new String(addiRecord.getMetaData(), StandardCharsets.UTF_8), AddiMetaData.class);
             assertThat("Addi record metadata", addiMetaData,
                     is(notNullValue()));

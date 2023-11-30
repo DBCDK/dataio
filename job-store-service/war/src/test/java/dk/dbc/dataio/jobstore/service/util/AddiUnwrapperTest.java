@@ -4,7 +4,8 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -13,7 +14,6 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 
 public class AddiUnwrapperTest {
     private final AddiUnwrapper unwrapper = new AddiUnwrapper();
@@ -25,7 +25,7 @@ public class AddiUnwrapperTest {
                 .build();
         try {
             unwrapper.unwrap(chunkItem);
-            fail("No JobStoreException thrown");
+            Assertions.fail("No JobStoreException thrown");
         } catch (JobStoreException e) {
         }
     }
@@ -65,7 +65,7 @@ public class AddiUnwrapperTest {
                 .build();
         try {
             unwrapper.unwrap(chunkItem);
-            fail("No JobStoreException thrown");
+            Assertions.fail("No JobStoreException thrown");
         } catch (JobStoreException e) {
         }
     }

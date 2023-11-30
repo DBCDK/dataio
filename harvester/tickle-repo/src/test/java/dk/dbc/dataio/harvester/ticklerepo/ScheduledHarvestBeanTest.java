@@ -2,8 +2,8 @@ package dk.dbc.dataio.harvester.ticklerepo;
 
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,14 +22,14 @@ public class ScheduledHarvestBeanTest {
     private final HarvesterBean harvesterBean = mock(HarvesterBean.class);
     private final List<TickleRepoHarvesterConfig> configs = new ArrayList<>();
 
-    @Before
+    @BeforeEach
     public void resetConfigs() {
         configs.clear();
     }
 
     @Test
     public void scheduleHarvests_emptyConfig_resultsInZeroRunningHarvests() {
-        final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
+        ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
@@ -38,7 +38,7 @@ public class ScheduledHarvestBeanTest {
     public void scheduleHarvests_nonEmptyConfig_resultsInRunningHarvests() {
         injectConfigs(newConfigEligibleForExecution());
 
-        final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
+        ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
     }
@@ -48,7 +48,7 @@ public class ScheduledHarvestBeanTest {
         injectConfigs(newConfigEligibleForExecution());
         mockedHarvestCompletes();
 
-        final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
+        ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
@@ -59,7 +59,7 @@ public class ScheduledHarvestBeanTest {
         injectConfigs(newConfigEligibleForExecution());
         mockedHarvestCompletes();
 
-        final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
+        ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
 
         configs.clear();
@@ -73,7 +73,7 @@ public class ScheduledHarvestBeanTest {
         injectConfigs(newConfigEligibleForExecution());
         mockedHarvestCompletesWithException();
 
-        final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
+        ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
@@ -84,7 +84,7 @@ public class ScheduledHarvestBeanTest {
         injectConfigs(newConfigEligibleForExecution());
         mockedHarvestCompletesWithException();
 
-        final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
+        ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
 
         configs.clear();
@@ -98,9 +98,9 @@ public class ScheduledHarvestBeanTest {
      */
 
     private ScheduledHarvestBean getScheduledHarvestBean() {
-        final HarvesterConfigurationBean harvesterConfigurationBean = mock(HarvesterConfigurationBean.class);
+        HarvesterConfigurationBean harvesterConfigurationBean = mock(HarvesterConfigurationBean.class);
         when(harvesterConfigurationBean.get()).thenReturn(configs);
-        final ScheduledHarvestBean scheduledHarvestBean = new ScheduledHarvestBean();
+        ScheduledHarvestBean scheduledHarvestBean = new ScheduledHarvestBean();
         scheduledHarvestBean.harvester = harvesterBean;
         scheduledHarvestBean.config = harvesterConfigurationBean;
         return scheduledHarvestBean;
@@ -112,7 +112,7 @@ public class ScheduledHarvestBeanTest {
     }
 
     private TickleRepoHarvesterConfig newConfigEligibleForExecution() {
-        final TickleRepoHarvesterConfig.Content tickleRepoHarvesterConfigContent = new TickleRepoHarvesterConfig.Content().withDatasetName("random");
+        TickleRepoHarvesterConfig.Content tickleRepoHarvesterConfigContent = new TickleRepoHarvesterConfig.Content().withDatasetName("random");
         return new TickleRepoHarvesterConfig(1, 1, tickleRepoHarvesterConfigContent);
     }
 
@@ -121,7 +121,7 @@ public class ScheduledHarvestBeanTest {
     }
 
     private void mockedHarvestCompletesWithException() throws HarvesterException {
-        final MockedFuture mockedFuture = new MockedFuture();
+        MockedFuture mockedFuture = new MockedFuture();
         mockedFuture.exception = new ExecutionException("DIED", new IllegalStateException());
         when(harvesterBean.harvest(any(TickleRepoHarvesterConfig.class))).thenReturn(mockedFuture);
     }

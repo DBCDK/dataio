@@ -1,7 +1,8 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
 import com.fasterxml.jackson.databind.type.CollectionType;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -14,8 +15,8 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.core.MediaType;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,17 +28,20 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
+@WireMockTest
 public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
-
-    @Rule  // Port 0 lets wiremock find a random port
-    public WireMockRule wireMockRule = new WireMockRule(0);
-
     private final JSONBContext jsonbContext = new JSONBContext();
+    private static String wireMockEndpoint;
+
+    @BeforeAll
+    public static void init(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        wireMockEndpoint = wireMockRuntimeInfo.getHttpBaseUrl();
+    }
 
     @Test
     public void findHarvesterConfigsByTypeForRRType() throws Exception {
-        final FlowStoreServiceConnector connector = createTestConnector();
-        final String path = "/" + String.join("/", (CharSequence[]) new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
+        FlowStoreServiceConnector connector = createTestConnector();
+        String path = "/" + String.join("/", new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
                 .bind(FlowStoreServiceConstants.TYPE_VARIABLE, RRHarvesterConfig.class.getName())
                 .build());
 
@@ -49,16 +53,16 @@ public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
                 )
         );
 
-        final List<RRHarvesterConfig> response = connector.findHarvesterConfigsByType(RRHarvesterConfig.class);
+        List<RRHarvesterConfig> response = connector.findHarvesterConfigsByType(RRHarvesterConfig.class);
 
         assertThat(response.size(), is(1));
         assertThat(response.get(0).getId(), is(1L));
-        final List<RRHarvesterConfig> expectedList = buildRRList();
+        List<RRHarvesterConfig> expectedList = buildRRList();
         assertThat(response.get(0), is(expectedList.get(0)));
     }
 
     private List<RRHarvesterConfig> buildRRList() {
-        final RRHarvesterConfig rrHarvesterConfig = new RRHarvesterConfig(1, 2,
+        RRHarvesterConfig rrHarvesterConfig = new RRHarvesterConfig(1, 2,
                 new RRHarvesterConfig.Content()
                         .withFormat("format")
                         .withBatchSize(12)
@@ -72,20 +76,18 @@ public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
                         .withId("harvest log id")
                         .withEnabled(true)
         );
-        final List<RRHarvesterConfig> list = new ArrayList<>();
+        List<RRHarvesterConfig> list = new ArrayList<>();
         list.add(rrHarvesterConfig);
         return list;
     }
 
     private FlowStoreServiceConnector createTestConnector() {
-        final Client client = HttpClient.newClient(new ClientConfig()
-                .register(new JacksonFeature()));
-        return new FlowStoreServiceConnector(client,
-                String.format("http://localhost:%d/", wireMockRule.port()));
+        Client client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
+        return new FlowStoreServiceConnector(client, wireMockEndpoint);
     }
 
     private <T extends HarvesterConfig> String marshall(List<T> list) throws JSONBException {
-        final CollectionType collectionType = jsonbContext.getTypeFactory().constructCollectionType(List.class, HarvesterConfig.class);
+        CollectionType collectionType = jsonbContext.getTypeFactory().constructCollectionType(List.class, HarvesterConfig.class);
         return jsonbContext.marshall(list, collectionType);
     }
 }

@@ -3,8 +3,8 @@ package dk.dbc.dataio.jobstore.service.rs;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -23,14 +23,14 @@ public class AdminBeanTest {
     public void getSinkName() {
         DependencyTrackingEntity dte = new DependencyTrackingEntity().setSinkid(2);
         String sinkName = new TestAdminBean().getSink(dte.getSinkid()).getContent().getName();
-        Assert.assertEquals("sink2", sinkName);
+        Assertions.assertEquals("sink2", sinkName);
     }
 
     @Test
     public void isTimeout() {
-        Assert.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTrackingEntity(Instant.now()).setSinkid(2)));
-        Assert.assertTrue(new TestAdminBean().isTimeout(new TestDependencyTrackingEntity(Instant.now().minus(Duration.ofHours(2))).setSinkid(2)));
-        Assert.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTrackingEntity(Instant.now().minus(Duration.ofHours(2))).setSinkid(3)));
+        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTrackingEntity(Instant.now()).setSinkid(2)));
+        Assertions.assertTrue(new TestAdminBean().isTimeout(new TestDependencyTrackingEntity(Instant.now().minus(Duration.ofHours(2))).setSinkid(2)));
+        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTrackingEntity(Instant.now().minus(Duration.ofHours(2))).setSinkid(3)));
     }
 
     public static SinkContent newSinkContent(String name, int timeout) {

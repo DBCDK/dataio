@@ -4,7 +4,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -18,14 +18,15 @@ import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class MarcXchangeAddiDataPartitionerTest extends AbstractPartitionerTestBase {
     private final static InputStream EMPTY_STREAM = StringUtil.asInputStream("");
     private final static String UTF_8_ENCODING = "UTF-8";
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void newInstance_inputStreamArgIsNull_throws() {
-        MarcXchangeAddiDataPartitioner.newInstance(null, UTF_8_ENCODING);
+        assertThrows(NullPointerException.class, () -> MarcXchangeAddiDataPartitioner.newInstance(null, UTF_8_ENCODING));
     }
 
     @Test
@@ -46,14 +47,14 @@ public class MarcXchangeAddiDataPartitionerTest extends AbstractPartitionerTestB
                 isThrowing(IllegalArgumentException.class));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void newInstance_encodingArgIsNull_throws() {
-        MarcXchangeAddiDataPartitioner.newInstance(EMPTY_STREAM, null);
+        assertThrows(NullPointerException.class, () -> MarcXchangeAddiDataPartitioner.newInstance(EMPTY_STREAM, null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void newInstance_encodingArgIsEmpty_throws() {
-        MarcXchangeAddiDataPartitioner.newInstance(EMPTY_STREAM, " ");
+        assertThrows(IllegalArgumentException.class, () -> MarcXchangeAddiDataPartitioner.newInstance(EMPTY_STREAM, " "));
     }
 
     @Test

@@ -15,9 +15,8 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -37,7 +36,7 @@ public class AddAccTestJobParamTest extends ParamBaseTest {
     private final RecordSplitterConstants.RecordSplitter typeOfDataPartitioner = RecordSplitterConstants.RecordSplitter.XML;
     private AccTestJobInputStream accTestJobInputStream;
 
-    @Before
+    @BeforeEach
     public void setup() {
         jobSpecification.withType(JobSpecification.Type.ACCTEST);
         accTestJobInputStream = new AccTestJobInputStream(jobSpecification, flow, typeOfDataPartitioner);
@@ -63,14 +62,14 @@ public class AddAccTestJobParamTest extends ParamBaseTest {
                 jobSpecification.getSubmitterId(),
                 jobSpecification.getDestination())).thenReturn(flowBinder);
 
-        final AddAccTestJobParam addAccTestJobParam = new AddAccTestJobParam(accTestJobInputStream, mockedFlowStoreServiceConnector);
+        AddAccTestJobParam addAccTestJobParam = new AddAccTestJobParam(accTestJobInputStream, mockedFlowStoreServiceConnector);
 
         assertThat(addAccTestJobParam.getTypeOfDataPartitioner(), is(typeOfDataPartitioner));
         assertThat(addAccTestJobParam.getFlow(), is(flow));
         assertThat(addAccTestJobParam.getSink(), is(sink));
         assertThat(addAccTestJobParam.getDiagnostics().size(), is(0));
 
-        final FlowStoreReferences flowStoreReferences = addAccTestJobParam.getFlowStoreReferences();
+        FlowStoreReferences flowStoreReferences = addAccTestJobParam.getFlowStoreReferences();
         assertThat(flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW).getName(), is(flow.getContent().getName()));
         assertThat(flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK).getName(), is(sink.getContent().getName()));
         assertThat(flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER).getName(), is(flowBinder.getContent().getName()));
@@ -86,10 +85,10 @@ public class AddAccTestJobParamTest extends ParamBaseTest {
                 jobSpecification.getSubmitterId(),
                 jobSpecification.getDestination())).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("message", 404));
 
-        final AddAccTestJobParam addAccTestJobParam = new AddAccTestJobParam(accTestJobInputStream, mockedFlowStoreServiceConnector);
+        AddAccTestJobParam addAccTestJobParam = new AddAccTestJobParam(accTestJobInputStream, mockedFlowStoreServiceConnector);
 
-        final List<Diagnostic> diagnostic = addAccTestJobParam.getDiagnostics();
-        Assert.assertThat(diagnostic.size(), is(1));
+        List<Diagnostic> diagnostic = addAccTestJobParam.getDiagnostics();
+        assertThat(diagnostic.size(), is(1));
         assertThat(diagnostic.get(0).getLevel(), is(Diagnostic.Level.FATAL));
     }
 }

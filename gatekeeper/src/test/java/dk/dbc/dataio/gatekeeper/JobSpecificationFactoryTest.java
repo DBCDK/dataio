@@ -5,12 +5,13 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gatekeeper.operation.JobSpecificationFactory;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import org.apache.commons.cli.ParseException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class JobSpecificationFactoryTest {
     private final long submitter = 810010;
@@ -18,29 +19,29 @@ public class JobSpecificationFactoryTest {
     private final byte[] rawTransfile = "content".getBytes(StandardCharsets.UTF_8);
 
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void createJobSpecification_lineArgIsNull_throws() {
-        JobSpecificationFactory.createJobSpecification(null, transfileName, "42", rawTransfile);
+        assertThrows(NullPointerException.class, () -> JobSpecificationFactory.createJobSpecification(null, transfileName, "42", rawTransfile));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void createJobSpecification_fileStoreIdArgIsNull_throws() {
-        JobSpecificationFactory.createJobSpecification(new TransFile.Line("foo"), transfileName, null, rawTransfile);
+        assertThrows(NullPointerException.class, () -> JobSpecificationFactory.createJobSpecification(new TransFile.Line("foo"), transfileName, null, rawTransfile));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void createJobSpecification_fileStoreIdArgIsEmpty_throws() {
-        JobSpecificationFactory.createJobSpecification(new TransFile.Line("foo"), transfileName, " ", rawTransfile);
+        assertThrows(IllegalArgumentException.class, () -> JobSpecificationFactory.createJobSpecification(new TransFile.Line("foo"), transfileName, " ", rawTransfile));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void createJobSpecification_transfileNameArgIsNull_throws() {
-        JobSpecificationFactory.createJobSpecification(new TransFile.Line("foo"), null, "42", rawTransfile);
+        assertThrows(NullPointerException.class, () -> JobSpecificationFactory.createJobSpecification(new TransFile.Line("foo"), null, "42", rawTransfile));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void createJobSpecification_transfileNameArgArgIsEmpty_throws() {
-        JobSpecificationFactory.createJobSpecification(new TransFile.Line("foo"), " ", "42", rawTransfile);
+        assertThrows(IllegalArgumentException.class, () -> JobSpecificationFactory.createJobSpecification(new TransFile.Line("foo"), " ", "42", rawTransfile));
     }
 
     @Test

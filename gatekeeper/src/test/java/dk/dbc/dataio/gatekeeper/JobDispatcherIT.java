@@ -15,10 +15,10 @@ import dk.dbc.dataio.gatekeeper.wal.WriteAheadLogH2;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,35 +49,32 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JobDispatcherIT {
-    @Rule
-    public TemporaryFolder testFolder = new TemporaryFolder();
+    @TempDir
+    public Path testFolder;
 
     private Path dir;
     private Path walFile;
     private WriteAheadLog wal;
-    private ConnectorFactory connectorFactory = mock(ConnectorFactory.class);
-    private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
-    private FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
-    private FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+    private final ConnectorFactory connectorFactory = mock(ConnectorFactory.class);
+    private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    private final FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private ShutdownManager shutdownManager;
     private Exception exception;
-    private List<GatekeeperDestination> gatekeeperDestinations = ModificationFactoryTest.getGatekeeperDestinationsForTest();
-    ;
+    private final List<GatekeeperDestination> gatekeeperDestinations = ModificationFactoryTest.getGatekeeperDestinationsForTest();
 
 
-    @Before
+    @BeforeEach
     public void setupSystem() throws IOException {
         exception = null;
-        dir = testFolder.newFolder("in").toPath();
-        walFile = testFolder.newFolder("wal").toPath().resolve("gatekeeper.wal").toAbsolutePath();
+        dir = Files.createDirectory(testFolder.resolve("in"));
+        walFile = Files.createDirectories(testFolder.resolve("wal").resolve("gatekeeper.wal").toAbsolutePath());
         wal = new WriteAheadLogH2(walFile.toString());
         shutdownManager = new ShutdownManager();
     }
 
-    @Before
-    public void setupMocks() throws JobStoreServiceConnectorException,
-            FlowStoreServiceConnectorException,
-            FileStoreServiceConnectorException {
+    @BeforeEach
+    public void setupMocks() throws JobStoreServiceConnectorException, FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
         when(connectorFactory.getFileStoreServiceConnector()).thenReturn(fileStoreServiceConnector);
         when(connectorFactory.getJobStoreServiceConnector()).thenReturn(jobStoreServiceConnector);
         when(fileStoreServiceConnector.addFile(any(InputStream.class))).thenReturn("fileId");
@@ -85,7 +82,8 @@ public class JobDispatcherIT {
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshot());
     }
 
-    @Test(timeout = 120000)
+    @Test
+    @Timeout(120)
     public void emptyTransfilesProcessed() throws Throwable {
         // Given...
         Path transfile = writeFile(dir, "820010.trs", "");
@@ -113,7 +111,8 @@ public class JobDispatcherIT {
      * When : the job dispatcher is started
      * Then : the transfile is processed
      */
-    @Test(timeout = 50000)
+    @Test
+    @Timeout(50)
     public void staticTransfilesProcessed() throws Throwable {
         // Given...
         final Path transfile = writeFile(dir, "820010.trs",
@@ -141,7 +140,8 @@ public class JobDispatcherIT {
      * When : the job dispatcher is started
      * Then : the transfile is processed
      */
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void stalledTransfilesProcessed() throws Throwable {
         // Given...
         final Path transfile = writeFile(dir, "file.trs", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2");
@@ -170,7 +170,8 @@ public class JobDispatcherIT {
      * Then : the transfile modifications are stored in the WAL
      * And  : when a new job dispatcher started all WAL entries are processed
      */
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void walProcessedAfterRestart() throws Throwable {
         // Given...
         final Path transfile = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
@@ -212,7 +213,8 @@ public class JobDispatcherIT {
      * When : the job dispatcher is started
      * Then : an exception is thrown
      */
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void walContainsAlreadyLockedModification() throws InterruptedException {
         // Given...
         insertLockedWalModification();
@@ -241,7 +243,8 @@ public class JobDispatcherIT {
      * When : the transfile is updated to be complete
      * Then : the transfile is processed
      */
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void fileChangesDetected() throws InterruptedException {
         if (SystemUtil.isOsX()) {  // Do NOT run on Mac OsX, because WatchService is poll based on OsX, and has a long poll time (10 sec)
             return;
@@ -286,7 +289,8 @@ public class JobDispatcherIT {
      * When : the other transfile is updated to be complete
      * Then : the stalled transfile is also processed
      */
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void checkForStalledTransfilesExecutedOnTransfileCompletedEvent() throws InterruptedException {
         if (SystemUtil.isOsX()) {  // Do NOT run on Mac OsX, because WatchService is poll based on OsX, and has a long poll time (10 sec)
             return;

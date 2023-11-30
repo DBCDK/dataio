@@ -11,7 +11,7 @@ import dk.dbc.rawrepo.dto.RecordDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -21,8 +21,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -52,14 +52,14 @@ public class RecordsWithoutHoldingsHarvestOperationTest extends HarvestOperation
 
     @Test
     public void addiRecordConfigWithoutHoldings_WithHoldings() throws HarvesterException {
-        final RecordIdDTO recordIdWithHoldings = new RecordIdDTO("id1", 870970);
-        final RecordDTO recordDataWithHoldings = new RecordDTO();
+        RecordIdDTO recordIdWithHoldings = new RecordIdDTO("id1", 870970);
+        RecordDTO recordDataWithHoldings = new RecordDTO();
         recordDataWithHoldings.setRecordId(recordIdWithHoldings);
         recordDataWithHoldings.setContent("".getBytes());
 
         when(holdingsItemsConnector.hasHoldings("id1", null)).thenReturn(new HashSet<>(List.of(700300)));
 
-        final AddiRecord addiRecord = new RecordsWithoutHoldingsHarvestOperation.RecordFetcher(
+        AddiRecord addiRecord = new RecordsWithoutHoldingsHarvestOperation.RecordFetcher(
                 recordIdWithHoldings, recordServiceConnector, holdingsItemsConnector, configWithoutHoldings)
                 .call();
 
@@ -68,11 +68,11 @@ public class RecordsWithoutHoldingsHarvestOperationTest extends HarvestOperation
 
     @Test
     public void addiRecordConfigWithoutHoldings_WithoutHoldings() throws RecordServiceConnectorException, HarvesterException, JSONBException {
-        final Instant creationTime = Instant.now();
+        Instant creationTime = Instant.now();
         final String trackingId = "-trackingId-";
 
-        final RecordIdDTO recordIdWithoutHoldings = new RecordIdDTO("id1", 870970);
-        final RecordDTO recordWithoutHoldings = new RecordDTO();
+        RecordIdDTO recordIdWithoutHoldings = new RecordIdDTO("id1", 870970);
+        RecordDTO recordWithoutHoldings = new RecordDTO();
         recordWithoutHoldings.setCreated(creationTime.toString());
         recordWithoutHoldings.setEnrichmentTrail("870970,191919");
         recordWithoutHoldings.setTrackingId(trackingId);
@@ -89,11 +89,11 @@ public class RecordsWithoutHoldingsHarvestOperationTest extends HarvestOperation
                     put(recordIdWithoutHoldings.getBibliographicRecordId(), recordWithoutHoldings);
                 }});
 
-        final AddiRecord addiRecord = new RecordsWithoutHoldingsHarvestOperation.RecordFetcher(
+        AddiRecord addiRecord = new RecordsWithoutHoldingsHarvestOperation.RecordFetcher(
                 recordIdWithoutHoldings, recordServiceConnector, holdingsItemsConnector, configWithoutHoldings)
                 .call();
 
-        final AddiMetaData addiMetaData = jsonbContext.unmarshall(
+        AddiMetaData addiMetaData = jsonbContext.unmarshall(
                 new String(addiRecord.getMetaData(), StandardCharsets.UTF_8), AddiMetaData.class);
 
         assertThat("Addi metadata", addiMetaData, is(new AddiMetaData()

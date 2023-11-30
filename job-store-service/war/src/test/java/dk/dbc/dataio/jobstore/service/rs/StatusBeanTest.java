@@ -14,8 +14,8 @@ import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -36,7 +36,7 @@ public class StatusBeanTest {
     private FlowStoreServiceConnector flowStoreServiceConnector;
 
 
-    @Before
+    @BeforeEach
     public void setup() throws URISyntaxException {
         jsonbContext = new JSONBContext();
         query = mock(Query.class);

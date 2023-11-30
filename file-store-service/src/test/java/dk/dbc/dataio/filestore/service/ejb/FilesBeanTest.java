@@ -1,12 +1,12 @@
 package dk.dbc.dataio.filestore.service.ejb;
 
 import dk.dbc.dataio.filestore.service.entity.FileAttributes;
-import org.junit.Test;
-
 import jakarta.ejb.EJBException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,8 +36,8 @@ public class FilesBeanTest {
         when(uriBuilder.path(fileId)).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(null);
 
-        final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.addFile(uriInfo, inputStream);
+        FilesBean filesBean = newFilesBeanInstance();
+        Response response = filesBean.addFile(uriInfo, inputStream);
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
     }
 
@@ -45,8 +45,8 @@ public class FilesBeanTest {
     public void appendToFile_fileDoesNotExist_returnsStatusNotFoundResponse() {
         when(fileStoreBean.fileExists(fileId)).thenReturn(false);
 
-        final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.appendToFile(fileId, new byte[0]);
+        FilesBean filesBean = newFilesBeanInstance();
+        Response response = filesBean.appendToFile(fileId, new byte[0]);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
@@ -57,8 +57,8 @@ public class FilesBeanTest {
         when(fileStoreBean.addMetaData(anyString(), anyString()))
                 .thenReturn(fileAttributes);
 
-        final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.addMetadata("123456",
+        FilesBean filesBean = newFilesBeanInstance();
+        Response response = filesBean.addMetadata("123456",
                 "{\"meta\": \"data\"}");
         assertThat("status", response.getStatus(), is(
                 Response.Status.OK.getStatusCode()));
@@ -69,8 +69,8 @@ public class FilesBeanTest {
         when(fileStoreBean.fileExists(fileId)).thenReturn(true);
         doNothing().when(fileStoreBean).getFile(fileId, outputStream, false);
 
-        final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.getFile(null, fileId);
+        FilesBean filesBean = newFilesBeanInstance();
+        Response response = filesBean.getFile(null, fileId);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
     }
 
@@ -78,8 +78,8 @@ public class FilesBeanTest {
     public void getFile_fileDoesNotExist_returnsStatusNotFoundResponse() {
         when(fileStoreBean.fileExists(fileId)).thenReturn(false);
 
-        final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.getFile(null, fileId);
+        FilesBean filesBean = newFilesBeanInstance();
+        Response response = filesBean.getFile(null, fileId);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
@@ -87,8 +87,8 @@ public class FilesBeanTest {
     public void getByteSize_fileAttributesNotFound_returnsStatusNotFoundResponse() throws IllegalArgumentException {
         when(fileStoreBean.getByteSize(fileId, true)).thenThrow(new EJBException());
 
-        final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.getByteSize(null, fileId);
+        FilesBean filesBean = newFilesBeanInstance();
+        Response response = filesBean.getByteSize(null, fileId);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
@@ -96,8 +96,8 @@ public class FilesBeanTest {
     public void getByteSize_fileIdNotANumber_returnsBadRequestResponse() throws IllegalArgumentException {
         when(fileStoreBean.getByteSize(anyString(), eq(true))).thenThrow(new IllegalArgumentException());
 
-        final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.getByteSize(null, "notANumber");
+        FilesBean filesBean = newFilesBeanInstance();
+        Response response = filesBean.getByteSize(null, "notANumber");
         assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
@@ -106,14 +106,14 @@ public class FilesBeanTest {
         long byteSize = 42;
         when(fileStoreBean.getByteSize(fileId, true)).thenReturn(byteSize);
 
-        final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.getByteSize(null, fileId);
+        FilesBean filesBean = newFilesBeanInstance();
+        Response response = filesBean.getByteSize(null, fileId);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getEntity(), is(byteSize));
     }
 
     private FilesBean newFilesBeanInstance() {
-        final FilesBean filesBean = new FilesBean();
+        FilesBean filesBean = new FilesBean();
         filesBean.fileStore = fileStoreBean;
         return filesBean;
     }

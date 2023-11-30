@@ -6,14 +6,14 @@ import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.fail;
 
 public class ItemEntityTest {
     private final static ItemEntity.Key KEY = new ItemEntity.Key(2, 1, (short) 0);
@@ -28,7 +28,7 @@ public class ItemEntityTest {
         entity.setState(state);
         try {
             entity.getChunkItemForPhase(null);
-            fail("No Exception thrown");
+            Assertions.fail("No Exception thrown");
         } catch (NullPointerException e) {
         }
     }

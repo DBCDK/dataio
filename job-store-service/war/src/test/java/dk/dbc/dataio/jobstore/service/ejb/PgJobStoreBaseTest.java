@@ -23,7 +23,7 @@ import dk.dbc.dataio.jobstore.types.StateChange;
 import jakarta.ejb.SessionContext;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -76,7 +76,7 @@ public abstract class PgJobStoreBaseTest {
     private final FlowStoreServiceConnectorBean mockedFlowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     private final SessionContext mockedSessionContext = mock(SessionContext.class);
 
-    @Before
+    @BeforeEach
     public void setupExpectations() {
         final Query cacheFlowQuery = mock(Query.class);
         when(entityManager.createNamedQuery(FlowCacheEntity.NAMED_QUERY_SET_CACHE)).thenReturn(cacheFlowQuery);

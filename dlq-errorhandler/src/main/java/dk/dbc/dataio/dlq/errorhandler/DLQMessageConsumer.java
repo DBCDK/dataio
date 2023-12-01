@@ -15,8 +15,6 @@ import dk.dbc.dataio.registry.PrometheusMetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
-
 /**
  * This message driven bean monitors the DMQ for dead chunks
  * ensuring that they are marked as completed with failures in
@@ -65,7 +63,6 @@ public class DLQMessageConsumer extends MessageConsumerAdapter {
     private Chunk createDeadChunk(Chunk originatingChunk) {
         Chunk.Type chunkType = originatingChunk.getType() == Chunk.Type.PARTITIONED ? Chunk.Type.PROCESSED : Chunk.Type.DELIVERED;
         Chunk deadChunk = new Chunk(originatingChunk.getJobId(), originatingChunk.getChunkId(), chunkType);
-        deadChunk.setEncoding(StandardCharsets.UTF_8);
         for (ChunkItem chunkItem : originatingChunk) {
             deadChunk.insertItem(new ChunkItem()
                     .withId(chunkItem.getId())

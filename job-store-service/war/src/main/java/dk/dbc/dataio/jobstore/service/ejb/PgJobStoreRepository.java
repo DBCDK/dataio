@@ -569,7 +569,6 @@ public class PgJobStoreRepository extends RepositoryBase {
                     }
                     ++i;
                 }
-                chunk.setEncoding(StandardCharsets.UTF_8); // TODO: 15/01/16 This is a temporary solution that should be removed once encoding is removed from Chunk
                 return chunk;
             }
             return null;

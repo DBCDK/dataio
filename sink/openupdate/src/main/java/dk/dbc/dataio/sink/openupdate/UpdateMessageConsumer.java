@@ -122,7 +122,6 @@ public class UpdateMessageConsumer extends MessageConsumerAdapter {
 
     private Chunk buildOutcomeFromProcessedChunk(Chunk processedChunk) {
         Chunk outcome = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
-        outcome.setEncoding(processedChunk.getEncoding());
         return outcome;
     }
 

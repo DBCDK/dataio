@@ -6,8 +6,12 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.GroupParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,6 +25,7 @@ public class HoldingsItemsConnector {
 
     private final HttpSolrClient client;
     private final String appId;
+    private static Logger LOGGER = LoggerFactory.getLogger(HoldingsItemsConnector.class);
 
     public HoldingsItemsConnector(String solrServerEndpoint) throws NullPointerException, IllegalArgumentException {
         this(solrServerEndpoint, System.getenv("SOLR_APPID"));
@@ -72,6 +77,22 @@ public class HoldingsItemsConnector {
         }
     }
 
+    public Set<String> getRecordHoldings(Set<String> recordIds, Set<Integer> agencyIds) {
+        SolrQuery query = new SolrQuery();
+        query.setQuery(getHasHoldingsQueryString(recordIds, agencyIds));
+        query.set(GroupParams.GROUP, true);
+        query.set(GroupParams.GROUP_MAIN, true);
+        query.set(GroupParams.GROUP_FIELD, BIBLIOGRAPHIC_RECORD_ID_FIELD);
+        query.setFields(BIBLIOGRAPHIC_RECORD_ID_FIELD);
+        query.setRows(100000);
+        query.setParam("appId", appId);
+        Set<String> found =  executeQuery(query).getResults().stream()
+                .map(doc -> (String) doc.getFieldValue(BIBLIOGRAPHIC_RECORD_ID_FIELD))
+                .collect(Collectors.toSet());
+        LOGGER.info("Found: {} with holdings", found.size());
+        return found;
+    }
+
     private SolrQuery getHasHoldingsQuery(String bibliographicRecordId, Set<Integer> agencyIds) {
         final SolrQuery query = new SolrQuery();
         query.setQuery(getHasHoldingsQueryString(bibliographicRecordId, agencyIds));
@@ -87,13 +108,23 @@ public class HoldingsItemsConnector {
     private String getHasHoldingsQueryString(String bibliographicRecordId, Set<Integer> agencyIds) {
         return String.format("%s:%s%s", BIBLIOGRAPHIC_RECORD_ID_FIELD, bibliographicRecordId, getAgencyIdQueryStringFilter(agencyIds));
     }
+    private String getHasHoldingsQueryString(Set<String> recordIds, Set<Integer> agencyIds) {
+        return String.format("%s%s", getRecordIdQueryStringFilter(recordIds), getAgencyIdQueryStringFilter(agencyIds));
+    }
 
     private String getAgencyIdQueryStringFilter(Set<Integer> agencyIds) {
-        if (!agencyIds.isEmpty()) {
+        if (!agencyIds.isEmpty() && !agencyIds.contains(870970)) {
             return String.format(" AND %s:(%s)", AGENCY_ID_FIELD, agencyIds.stream()
                     .map(Object::toString).collect(Collectors.joining(" OR ")));
         }
         return "";
+    }
+
+    private String getRecordIdQueryStringFilter(Set<String> recordIds) {
+        if (recordIds == null || recordIds.isEmpty()) {
+            throw new HoldingsItemsConnectorException(new NullPointerException("Set of recordIds cannot be null or empty."));
+        }
+        return String.format("%s:(%s)", BIBLIOGRAPHIC_RECORD_ID_FIELD, String.join(" OR ", recordIds));
     }
 
     private QueryResponse executeQuery(SolrQuery query) throws HoldingsItemsConnectorException {

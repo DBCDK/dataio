@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
@@ -123,6 +124,23 @@ public class HarvestOperation {
             }
         }
         return searchResultFile;
+    }
+
+    protected List<String> search() throws HarvesterException {
+        List<String> result = new ArrayList<>();
+        try (RecordSearcher recordSearcher = createRecordSearcher()) {
+            for (String queryString : getQueries()) {
+                MacroSubstitutor macroSubstitutor = new MacroSubstitutor(this::catalogueCodeToWeekCode)
+                        .addUTC("__TIME_OF_LAST_HARVEST__", config.getContent().getTimeOfLastHarvest());
+                String query = macroSubstitutor.replace(queryString);
+                LOGGER.info("Executing Solr query (rawrepo): {}", query);
+                List<String> tempResult = recordSearcher.search(config.getContent().getCollection(), query);
+                LOGGER.info("Solr query found {} documents", tempResult.size());
+                result.addAll(tempResult.stream().map(s -> s.split(":").length == 0 ? s : s.split(":")[0] ).collect(Collectors.toList()));
+                this.timeOfSearch = macroSubstitutor.getNow();
+            }
+        }
+        return result;
     }
 
     /**

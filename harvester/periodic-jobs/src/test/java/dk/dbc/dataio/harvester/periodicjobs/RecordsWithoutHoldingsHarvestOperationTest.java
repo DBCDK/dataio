@@ -123,6 +123,12 @@ public class RecordsWithoutHoldingsHarvestOperationTest extends HarvestOperation
 
     @Test
     public void validateQueryUsingHoldings_scenarios() throws HarvesterException, IOException {
+        List<String> LIST_OF_10 = List.of(
+                "id1", "id2", "id3", "id4", "id5", "id6","id7", "id8", "id9", "id10");
+        Set<String> SET_OF_10 = new HashSet<>(LIST_OF_10);
+        List<String> LIST_OF_9 = List.of( "id1", "id2", "id3", "id4", "id5", "id7", "id8", "id9", "id10");
+        Set<String> SET_OF_9 = new HashSet<>(LIST_OF_9);
+
         Path originalFile = Paths.get("src/test/resources/record-ids.txt");
         Path copy = Paths.get("target/record-ids.txt");
         Files.copy(originalFile, copy, StandardCopyOption.REPLACE_EXISTING);
@@ -131,26 +137,32 @@ public class RecordsWithoutHoldingsHarvestOperationTest extends HarvestOperation
         recordsWithoutHoldingsHarvestOperation.holdingsItemsConnector = holdingsItemsConnector;
         recordsWithoutHoldingsHarvestOperation.config = configWithHoldings;
         when(recordsWithoutHoldingsHarvestOperation.validateQuery()).thenCallRealMethod();
-        when(recordsWithoutHoldingsHarvestOperation.searchAndPersist(any())).thenReturn(recordsIdFile);
-        when(holdingsItemsConnector.hasHoldings("id6", Set.of(987654))).thenReturn(Set.of(987654));
-        when(holdingsItemsConnector.hasHoldings("id6", Set.of())).thenReturn(Set.of(987654));
-        when(holdingsItemsConnector.hasAnyHoldings(any(), any())).thenCallRealMethod();
+        when(recordsWithoutHoldingsHarvestOperation.flush(List.of("id6"), 870970,
+               PeriodicJobsHarvesterConfig.HoldingsFilter.WITH_HOLDINGS)).thenCallRealMethod();
+        when(recordsWithoutHoldingsHarvestOperation.search()).thenReturn(List.of("id6"));
+        when(holdingsItemsConnector.getRecordHoldings(Set.of("id6"), Set.of(870970))).thenReturn(Set.of("id6"));
+
 
         // Case 1: With holdings. Submitter 870970.
         // Should return records with holdings for any agency with holdings on that recordid.
-        String expected = "Found 1 record by combined rawrepo solr search and holdingssolr search.";
+        String expected = "Found 1 records by combined rawrepo solr search and holdingssolr search.";
         String actual = recordsWithoutHoldingsHarvestOperation.validateQuery();
         assertThat("Found with holdings", actual, is(expected));
 
+
         // Case 2: Some other agency (that has no holdings).
         configWithHoldings.getContent().withSubmitterNumber("999999");
-        expected = "Found 0 record by combined rawrepo solr search and holdingssolr search.";
+        expected = "Found 0 records by combined rawrepo solr search and holdingssolr search.";
         actual = recordsWithoutHoldingsHarvestOperation.validateQuery();
         assertThat("Found with holdings", actual, is(expected));
 
+
         // Case 3: Agency has holding for one.
         configWithHoldings.getContent().withSubmitterNumber("987654");
-        expected = "Found 1 record by combined rawrepo solr search and holdingssolr search.";
+        when(recordsWithoutHoldingsHarvestOperation.flush(List.of("id6"), 987654,
+                PeriodicJobsHarvesterConfig.HoldingsFilter.WITH_HOLDINGS)).thenCallRealMethod();
+        when(holdingsItemsConnector.getRecordHoldings(Set.of("id6"), Set.of(987654))).thenReturn(Set.of("id6"));
+        expected = "Found 1 records by combined rawrepo solr search and holdingssolr search.";
         actual = recordsWithoutHoldingsHarvestOperation.validateQuery();
         assertThat("Found with holdings", actual, is(expected));
 
@@ -159,23 +171,47 @@ public class RecordsWithoutHoldingsHarvestOperationTest extends HarvestOperation
         // Should return records with no holdings at all for any agency on that recordid.
         configWithoutHoldings.getContent().withSubmitterNumber("870970");
         recordsWithoutHoldingsHarvestOperation.config = configWithoutHoldings;
-        expected = "Found 9 record by combined rawrepo solr search and holdingssolr search.";
+        when(recordsWithoutHoldingsHarvestOperation.search()).thenReturn(LIST_OF_10);
+        when(recordsWithoutHoldingsHarvestOperation.flush(
+                LIST_OF_10,
+                870970,
+                PeriodicJobsHarvesterConfig.HoldingsFilter.WITHOUT_HOLDINGS)).thenCallRealMethod();
+        when(holdingsItemsConnector.getRecordHoldings(SET_OF_10, Set.of(870970)))
+                .thenReturn(SET_OF_9);
+        expected = "Found 1 records by combined rawrepo solr search and holdingssolr search.";
         actual = recordsWithoutHoldingsHarvestOperation.validateQuery();
         assertThat("Found without holdings", actual, is(expected));
+
 
         // Case 5: WithOUT holdings. Some other agency.
         // Should return records with no holdings for that agency. (But for all others!).
         configWithoutHoldings.getContent().withSubmitterNumber("999999");
-        expected = "Found 10 record by combined rawrepo solr search and holdingssolr search.";
+        when(recordsWithoutHoldingsHarvestOperation.flush(
+                LIST_OF_10,
+                999999,
+                PeriodicJobsHarvesterConfig.HoldingsFilter.WITHOUT_HOLDINGS)).thenCallRealMethod();
+        when(holdingsItemsConnector.getRecordHoldings(SET_OF_10, Set.of(999999)))
+                .thenReturn(Set.of());
+        expected = "Found 10 records by combined rawrepo solr search and holdingssolr search.";
         actual = recordsWithoutHoldingsHarvestOperation.validateQuery();
         assertThat("Found without holdings", actual, is(expected));
 
         // Case 6: WithOUT holdings. Agency has holdings for one.
         // Should return records with no holdings for that particular agency.
         configWithoutHoldings.getContent().withSubmitterNumber("987654");
-        expected = "Found 9 record by combined rawrepo solr search and holdingssolr search.";
+        recordsWithoutHoldingsHarvestOperation.config = configWithoutHoldings;
+        when(recordsWithoutHoldingsHarvestOperation.search()).thenReturn(LIST_OF_10);
+        when(recordsWithoutHoldingsHarvestOperation.flush(
+                LIST_OF_10,
+                987654,
+                PeriodicJobsHarvesterConfig.HoldingsFilter.WITHOUT_HOLDINGS)).thenCallRealMethod();
+        when(holdingsItemsConnector.getRecordHoldings(SET_OF_10, Set.of(987654)))
+                .thenReturn(Set.of("id6"));
+        configWithoutHoldings.getContent().withSubmitterNumber("987654");
+        expected = "Found 9 records by combined rawrepo solr search and holdingssolr search.";
         actual = recordsWithoutHoldingsHarvestOperation.validateQuery();
         assertThat("Found without holdings", actual, is(expected));
+
     }
     private static String getRecordContent(RecordIdDTO recordId) {
         return

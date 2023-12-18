@@ -1,6 +1,7 @@
 package dk.dbc.dataio.harvester.periodicjobs;
 
 import dk.dbc.dataio.bfs.api.BinaryFile;
+import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.solr.SolrSearch;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -14,6 +15,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -64,6 +66,26 @@ public class RecordSearcher implements AutoCloseable {
             return resultSet.getSize();
         } catch (IOException e) {
             throw new HarvesterException("Unable to write search result to file", e);
+        } catch (SolrServerException e) {
+            throw new HarvesterException("Unable to complete search", e);
+        }
+    }
+
+    public List<String> search(String solrCollection, String query) throws HarvesterException {
+        try {
+            ArrayList<String>  result = new ArrayList<String>();
+            SolrSearch.ResultSet resultSet =
+                    new SolrSearch(solrClient, solrCollection)
+                    .withQuery(query)
+                    .withRows(FETCH_SIZE)
+                    .withFields(UNIQUE_KEY_FIELD)
+                    .withSortClauses(new SolrQuery.SortClause(UNIQUE_KEY_FIELD, SolrQuery.ORDER.asc))
+                    .executeForCursorBasedIteration();
+            for (SolrDocument solrDocument : resultSet) {
+                result.add((String) solrDocument.getFirstValue(UNIQUE_KEY_FIELD));
+            }
+            return result;
+
         } catch (SolrServerException e) {
             throw new HarvesterException("Unable to complete search", e);
         }

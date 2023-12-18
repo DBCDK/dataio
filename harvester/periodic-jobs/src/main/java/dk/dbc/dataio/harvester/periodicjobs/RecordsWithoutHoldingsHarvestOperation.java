@@ -12,13 +12,18 @@ import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
+import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnectorException;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -26,7 +31,9 @@ import java.util.concurrent.ExecutorService;
  * Specialized harvest operation for only records which doesn't have holdings
  */
 public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
+    private static Logger LOGGER = LoggerFactory.getLogger(RecordsWithoutHoldingsHarvestOperation.class);
     protected HoldingsItemsConnector holdingsItemsConnector;
+    protected int MAX_BUF_SIZE = 200;
 
     public RecordsWithoutHoldingsHarvestOperation(PeriodicJobsHarvesterConfig config,
                                                   BinaryFileStore binaryFileStore,
@@ -62,31 +69,40 @@ public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
 
     @Override
     public String validateQuery() throws HarvesterException {
-        int found = 0;
-        try (RecordIdFile recordIdFile = new RecordIdFile(searchAndPersist(getTmpFileForSearchResult()))) {
-            Iterator<RecordIdDTO> recordIdDTOIterator = recordIdFile.iterator();
-            if (recordIdDTOIterator.hasNext()) {
-                do {
-                    RecordIdDTO recordIdDTO = recordIdDTOIterator.next();
-                    found = validateAndIncrement(recordIdDTO, found);
-
-                } while (recordIdDTOIterator.hasNext());
+        List<String> recIds = search();
+        List<String> buffer = new ArrayList<>();
+        int size = recIds.size();
+        Integer  agencyId = Integer.parseInt(config.getContent().getSubmitterNumber());
+        int numFound = 0;
+        int progress = 0;
+        for (String recId : recIds) {
+            buffer.add(recId);
+            if (buffer.size() >= MAX_BUF_SIZE)  {
+                LOGGER.info(String.format("flushing. Progress: %d / %d", progress, size));
+                numFound += flush(buffer, agencyId, config.getContent().getHoldingsFilter()).size();
             }
+            progress += 1;
         }
-        return String.format("Found %d record by combined rawrepo solr search and holdingssolr search.", found);
+        numFound += flush(buffer, agencyId, config.getContent().getHoldingsFilter()).size();
+        return String.format("Found %d records by combined rawrepo solr search and holdingssolr search.", numFound);
     }
 
-    private int validateAndIncrement(RecordIdDTO recordIdDTO, int foundSoFar) {
-        if (recordIdDTO == null) return foundSoFar;
-        int submitter = Integer.parseInt(config.getContent().getSubmitterNumber());
-        boolean found = holdingsItemsConnector.hasAnyHoldings(recordIdDTO.getBibliographicRecordId(), Set.of(submitter));
-        if (found && config.getContent().getHoldingsFilter() == PeriodicJobsHarvesterConfig.HoldingsFilter.WITH_HOLDINGS) {
-            return ++foundSoFar;
+    protected Set<String > flush(List<String> buffer, Integer agencyId, PeriodicJobsHarvesterConfig.HoldingsFilter holdingsFilter) {
+        try {
+            Set<String> found = holdingsItemsConnector.getRecordHoldings(new HashSet<String>(buffer), Set.of(agencyId));
+            if (holdingsFilter == PeriodicJobsHarvesterConfig.HoldingsFilter.WITH_HOLDINGS) {
+                return found;
+            } else {
+                HashSet<String > noHoldings =  new HashSet<>(buffer);
+                noHoldings.removeAll(found);
+                return noHoldings;
+            }
+        } catch (HoldingsItemsConnectorException e){
+            LOGGER.error("RecordsWithoutHoldingsHarvestOperation:", e);
+        } finally {
+            buffer.clear();
         }
-        if (!found && config.getContent().getHoldingsFilter() == PeriodicJobsHarvesterConfig.HoldingsFilter.WITHOUT_HOLDINGS) {
-            return ++foundSoFar;
-        }
-        return foundSoFar;
+        return Set.of();
     }
 
     @Override

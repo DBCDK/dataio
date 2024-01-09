@@ -110,6 +110,7 @@ public class HarvestersBean {
             return Response.status(Response.Status.NOT_FOUND).entity(NO_CONTENT).build();
         }
 
+        entityManager.detach(harvesterConfig);
         if (type != null && !type.trim().isEmpty()) {
             // Update type if given as header parameter
             harvesterConfig.withType(type);
@@ -118,6 +119,8 @@ public class HarvestersBean {
 
         harvesterConfig.setContent(configContent);
         harvesterConfig.setVersion(version);
+        harvesterConfig = entityManager.merge(harvesterConfig);
+        entityManager.flush();
 
         return Response.ok().entity(jsonbContext.marshall(harvesterConfig))
                 .tag(harvesterConfig.getVersion().toString())

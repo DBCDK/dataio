@@ -39,6 +39,7 @@ public abstract class AbstractFlowStoreServiceContainerTest implements PostgresC
                 .withEnv("JAVA_MAX_HEAP_SIZE", "4G")
                 .withEnv("FLOWSTORE_DB_URL", dbContainer.getPayaraDockerJdbcUrl())
                 .withEnv("SUBVERSION_URL", "https://no-svn-server-needed-for-this-test")
+                .withEnv("HZ_CLUSTER_NAME", "dataio-flowstore-cluster")
                 .withExposedPorts(8080)
                 .waitingFor(Wait.forHttp(System.getProperty("flowstore.it.service.context") + "/status"))
                 .withStartupTimeout(Duration.ofMinutes(5));

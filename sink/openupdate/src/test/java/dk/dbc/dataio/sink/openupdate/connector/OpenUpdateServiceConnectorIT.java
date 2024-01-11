@@ -8,7 +8,7 @@ import dk.dbc.dataio.sink.openupdate.AddiRecordPreprocessor;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -24,10 +24,10 @@ public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase
     private final String groupId = "010100";
     private final String updateTemplate = "dbc";
     private final String queueProvider = "queue";
-    public static OpenUpdateServiceConnector openUpdateServiceConnector;
+    public OpenUpdateServiceConnector openUpdateServiceConnector;
 
-    @BeforeAll
-    public static void init(WireMockRuntimeInfo wireMockRuntimeInfo) {
+    @BeforeEach
+    public void init(WireMockRuntimeInfo wireMockRuntimeInfo) {
         openUpdateServiceConnector = new OpenUpdateServiceConnector(wireMockRuntimeInfo.getHttpBaseUrl() + "/UpdateService/2.0");
     }
 

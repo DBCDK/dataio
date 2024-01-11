@@ -9,7 +9,7 @@ import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.ws.WebServiceException;
 import net.jodah.failsafe.RetryPolicy;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -27,10 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @WireMockTest
 public class ImsServiceConnectorTest {
-    private static String wireMockEndpoint;
+    private String wireMockEndpoint;
 
-    @BeforeAll
-    public static void init(WireMockRuntimeInfo wireMockRuntimeInfo) {
+    @BeforeEach
+    public void init(WireMockRuntimeInfo wireMockRuntimeInfo) {
         wireMockEndpoint = wireMockRuntimeInfo.getHttpBaseUrl();
     }
 

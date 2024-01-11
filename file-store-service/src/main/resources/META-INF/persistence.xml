@@ -8,8 +8,8 @@
     <properties>
       <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
       <property name="eclipselink.logging.level" value="INFO"/>
-      <property name="eclipselink.cache.coordination.protocol" value="fish.payara.persistence.eclipselink.cache.coordination.HazelcastPublishingTransportManager"/>
-      <property name="eclipselink.cache.coordination.channel" value="filestorePUChannel"/>
+<!--      <property name="eclipselink.cache.coordination.protocol" value="fish.payara.persistence.eclipselink.cache.coordination.HazelcastPublishingTransportManager"/>-->
+<!--      <property name="eclipselink.cache.coordination.channel" value="filestorePUChannel"/>-->
     </properties>
   </persistence-unit>
 

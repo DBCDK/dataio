@@ -16,8 +16,8 @@
         <properties>
             <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
             <property name="eclipselink.logging.level" value="OFF"/>
-            <property name="eclipselink.cache.coordination.protocol" value="fish.payara.persistence.eclipselink.cache.coordination.HazelcastPublishingTransportManager"/>
-            <property name="eclipselink.cache.coordination.channel" value="flowstorePUChannel"/>
+<!--            <property name="eclipselink.cache.coordination.protocol" value="fish.payara.persistence.eclipselink.cache.coordination.HazelcastPublishingTransportManager"/>-->
+<!--            <property name="eclipselink.cache.coordination.channel" value="flowstorePUChannel"/>-->
         </properties>
     </persistence-unit>
 </persistence>

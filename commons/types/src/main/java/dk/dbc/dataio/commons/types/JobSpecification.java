@@ -7,6 +7,7 @@ import dk.dbc.invariant.InvariantUtil;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.EnumSet;
 
 /**
  * Job specification DTO class.
@@ -31,12 +32,18 @@ public class JobSpecification implements Serializable {
 
         public final String processorQueue;
 
+        private static final EnumSet<Type> PREVIEW_SET = EnumSet.of(SUPER_TRANSIENT, TRANSIENT, PERSISTENT);
+
         Type(String processorQueue) {
             this.processorQueue = processorQueue;
         }
 
         Type() {
             this.processorQueue = "processor::business";
+        }
+
+        public boolean canBePreview() {
+            return PREVIEW_SET.contains(this);
         }
     }
 

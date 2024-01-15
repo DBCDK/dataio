@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
+import dk.dbc.dataio.commons.RecordSplitter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,8 +20,6 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
 import java.sql.Timestamp;
-
-import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter;
 
 @Entity
 @Table(name = "jobQueue")

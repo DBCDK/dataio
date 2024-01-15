@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.dataio.commons.partioner.entity.ConverterJSONBContext;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

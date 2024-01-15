@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.util;
 
+import dk.dbc.dataio.commons.MarcRecordInfoBuilder;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.marc.binding.ControlField;

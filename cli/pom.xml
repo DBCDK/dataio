@@ -21,6 +21,7 @@
         <module>job-replicator</module>
         <module>lhr-retriever</module>
         <module>cli-image</module>
+        <module>acc-test-runner</module>
     </modules>
 
     <dependencies>

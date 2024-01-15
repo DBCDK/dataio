@@ -5,11 +5,11 @@ import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.RecordSplitter;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
@@ -199,7 +199,7 @@ public class AbstractJobStoreIT implements PostgresContainerJPAUtils {
     protected JobQueueEntity newJobQueueEntity(JobEntity job) {
         return new JobQueueEntity()
                 .withJob(job)
-                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML)
+                .withTypeOfDataPartitioner(RecordSplitter.XML)
                 .withSinkId(0)
                 .withState(JobQueueEntity.State.WAITING);
     }

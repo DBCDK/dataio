@@ -1,5 +1,7 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
+import dk.dbc.dataio.commons.partioner.entity.ChunkItemConverter;
+import dk.dbc.dataio.commons.partioner.entity.RecordInfoConverter;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;

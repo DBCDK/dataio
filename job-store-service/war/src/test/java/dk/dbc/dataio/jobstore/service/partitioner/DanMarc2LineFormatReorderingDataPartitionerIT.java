@@ -1,7 +1,15 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
+import dk.dbc.dataio.commons.ResultSummary;
+import dk.dbc.dataio.commons.partioner.DanMarc2LineFormatReorderingDataPartitioner;
+import dk.dbc.dataio.commons.partioner.DataPartitionerResult;
+import dk.dbc.dataio.commons.partioner.JobItemReorderer;
+import dk.dbc.dataio.commons.partioner.VolumeAfterParents;
+import dk.dbc.dataio.commons.partioner.VolumeIncludeParents;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
@@ -10,9 +18,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class DanMarc2LineFormatReorderingDataPartitionerIT extends AbstractJobStoreIT {
 
@@ -24,8 +29,8 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT extends AbstractJobSt
         InputStream resourceAsStream = DanMarc2LineFormatReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.lin");
         JobItemReorderer reorderer = new VolumeAfterParents(42, entityManager);
-        assertThat("add collection wrapper flag",
-                reorderer.addCollectionWrapper(), is(false));
+        MatcherAssert.assertThat("add collection wrapper flag",
+                reorderer.addCollectionWrapper(), CoreMatchers.is(false));
 
         List<ResultSummary> expectedResults = new ArrayList<>(10);
         expectedResults.add(new ResultSummary()
@@ -65,13 +70,13 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT extends AbstractJobSt
                     .newInstance(resourceAsStream, "latin1", reorderer);
             int itemNo = 0;
             for (DataPartitionerResult result : partitioner) {
-                assertThat("result " + (itemNo++) + " position in datafile",
-                        result.getPositionInDatafile(), is(expectedPositions.remove()));
+                MatcherAssert.assertThat("result " + (itemNo++) + " position in datafile",
+                        result.getPositionInDatafile(), CoreMatchers.is(expectedPositions.remove()));
                 ResultSummary.of(result)
                         .ifPresent(results::add);
             }
         });
-        assertThat("results", results, is(expectedResults));
+        MatcherAssert.assertThat("results", results, CoreMatchers.is(expectedResults));
     }
 
     @Test
@@ -82,8 +87,8 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT extends AbstractJobSt
         InputStream resourceAsStream = DanMarc2LineFormatReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.lin");
         JobItemReorderer reorderer = new VolumeIncludeParents(42, entityManager);
-        assertThat("add collection wrapper flag",
-                reorderer.addCollectionWrapper(), is(true));
+        MatcherAssert.assertThat("add collection wrapper flag",
+                reorderer.addCollectionWrapper(), CoreMatchers.is(true));
 
         List<ResultSummary> expectedResults = new ArrayList<>(10);
         expectedResults.add(new ResultSummary()
@@ -123,12 +128,12 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT extends AbstractJobSt
                     .newInstance(resourceAsStream, "latin1", reorderer);
             int itemNo = 0;
             for (DataPartitionerResult result : partitioner) {
-                assertThat("result " + (itemNo++) + " position in datafile",
-                        result.getPositionInDatafile(), is(expectedPositions.remove()));
+                MatcherAssert.assertThat("result " + (itemNo++) + " position in datafile",
+                        result.getPositionInDatafile(), CoreMatchers.is(expectedPositions.remove()));
                 ResultSummary.of(result)
                         .ifPresent(results::add);
             }
         });
-        assertThat("results", results, is(expectedResults));
+        MatcherAssert.assertThat("results", results, CoreMatchers.is(expectedResults));
     }
 }

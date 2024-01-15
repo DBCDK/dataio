@@ -2,7 +2,7 @@ package dk.dbc.dataio.commons.utils.test.model;
 
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.Priority;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +15,7 @@ public class FlowBinderContentBuilder {
     private String charset = "flowbinder-charset";
     private String destination = "flowbinder-destination";
     private Priority priority = Priority.NORMAL;
-    private RecordSplitterConstants.RecordSplitter recordSplitter = RecordSplitterConstants.RecordSplitter.XML;
+    private RecordSplitter recordSplitter = RecordSplitter.XML;
     private long flowId = 47L;
     private List<Long> submitterIds = Collections.singletonList(78L);
     private long sinkId = 24L;
@@ -57,7 +57,7 @@ public class FlowBinderContentBuilder {
         return this;
     }
 
-    public FlowBinderContentBuilder setRecordSplitter(RecordSplitterConstants.RecordSplitter recordSplitter) {
+    public FlowBinderContentBuilder setRecordSplitter(RecordSplitter recordSplitter) {
         this.recordSplitter = recordSplitter;
         return this;
     }

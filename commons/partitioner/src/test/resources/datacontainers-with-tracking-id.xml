@@ -9,7 +9,7 @@
     </data-supplementary>
     <data>
       <collection xmlns="info:lc/xmlns/marcxchange-v1">
-        <record xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd">
+        <record>
           <leader>00000n 2200000 4500</leader>
           <marcx:datafield xmlns:marcx="info:lc/xmlns/marcxchange-v1" ind1="0" ind2="0" tag="001">
             <marcx:subfield code="a">51222865</marcx:subfield>
@@ -29,7 +29,7 @@
     </data-supplementary>
     <data>
       <collection xmlns="info:lc/xmlns/marcxchange-v1">
-        <record xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd">
+        <record>
           <leader>00000n 2200000 4500</leader>
           <marcx:datafield xmlns:marcx="info:lc/xmlns/marcxchange-v1" ind1="0" ind2="0" tag="001">
             <marcx:subfield code="a">51222865</marcx:subfield>
@@ -49,7 +49,7 @@
     </data-supplementary>
     <data>
       <collection xmlns="info:lc/xmlns/marcxchange-v1">
-        <record xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd">
+          <record>
           <leader>00000n 2200000 4500</leader>
           <marcx:datafield xmlns:marcx="info:lc/xmlns/marcxchange-v1" ind1="0" ind2="0" tag="001">
             <marcx:subfield code="a">51222865</marcx:subfield>

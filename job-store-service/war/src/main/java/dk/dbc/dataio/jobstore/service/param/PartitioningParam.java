@@ -2,12 +2,13 @@ package dk.dbc.dataio.jobstore.service.param;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
-import dk.dbc.dataio.commons.RecordSplitter;
 import dk.dbc.dataio.commons.partioner.DataPartitioner;
+import dk.dbc.dataio.commons.partioner.DataPartitionerFactory;
 import dk.dbc.dataio.commons.partioner.IncludeFilterDataPartitioner;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.ObjectFactory;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
@@ -163,7 +164,7 @@ public class PartitioningParam {
 
     private DataPartitioner createDataPartitioner() {
         if (dataFileInputStream != null) {
-            return recordSplitterType.toPartitioner(dataFileInputStream, jobEntity.getSpecification(), jobEntity.getId(), entityManager);
+            return DataPartitionerFactory.create(recordSplitterType, dataFileInputStream, jobEntity.getSpecification(), jobEntity.getId(), entityManager);
         }
         return null;
     }

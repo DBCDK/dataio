@@ -9,7 +9,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Priority;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -65,7 +65,7 @@ public class Developer {
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response addJobDeveloper(@Context UriInfo uriInfo,
-                                    @PathParam("recordsplitter") RecordSplitterConstants.RecordSplitter recordSplitter,
+                                    @PathParam("recordsplitter") RecordSplitter recordSplitter,
                                     String jobInputStreamData) throws JSONBException, JobStoreException {
         LOGGER.info("JobInputStream: {}", jobInputStreamData);
         final JobInputStream jobInputStream;

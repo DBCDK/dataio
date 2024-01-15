@@ -10,7 +10,7 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.Priority;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
@@ -36,7 +36,7 @@ public class AddJobParam {
     protected List<Diagnostic> diagnostics;
     protected Submitter submitter;
     protected FlowBinder flowBinder;
-    protected RecordSplitterConstants.RecordSplitter typeOfDataPartitioner;
+    protected RecordSplitter typeOfDataPartitioner;
     protected Flow flow;
     protected Sink sink;
     protected FlowStoreReferences flowStoreReferences;
@@ -80,7 +80,7 @@ public class AddJobParam {
         return sink;
     }
 
-    public RecordSplitterConstants.RecordSplitter getTypeOfDataPartitioner() {
+    public RecordSplitter getTypeOfDataPartitioner() {
         return typeOfDataPartitioner;
     }
 
@@ -147,7 +147,7 @@ public class AddJobParam {
         return null;
     }
 
-    protected RecordSplitterConstants.RecordSplitter lookupTypeOfDataPartitioner() {
+    protected RecordSplitter lookupTypeOfDataPartitioner() {
         if (flowBinder != null) {
             return flowBinder.getContent().getRecordSplitter();
         }

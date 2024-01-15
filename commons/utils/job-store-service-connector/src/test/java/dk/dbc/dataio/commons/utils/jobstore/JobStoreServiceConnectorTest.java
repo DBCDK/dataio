@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
@@ -829,7 +829,7 @@ public class JobStoreServiceConnectorTest {
         try {
             JobSpecification jobSpecification = new JobSpecification();
             Flow flow = new FlowBuilder().build();
-            return new AccTestJobInputStream(jobSpecification, flow, RecordSplitterConstants.RecordSplitter.XML);
+            return new AccTestJobInputStream(jobSpecification, flow, RecordSplitter.XML);
         } catch (Exception e) {
             Assertions.fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
             throw new IllegalStateException(e);

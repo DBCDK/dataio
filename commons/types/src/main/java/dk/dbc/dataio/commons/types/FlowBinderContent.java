@@ -25,7 +25,7 @@ public class FlowBinderContent implements Serializable {
     private final String destination;
     @JsonProperty
     private final Priority priority;
-    private final RecordSplitterConstants.RecordSplitter recordSplitter;
+    private final RecordSplitter recordSplitter;
     private final long flowId;
     private final List<Long> submitterIds;
     private final long sinkId;
@@ -58,7 +58,7 @@ public class FlowBinderContent implements Serializable {
                              @JsonProperty("charset") String charset,
                              @JsonProperty("destination") String destination,
                              @JsonProperty("priority") Priority priority,
-                             @JsonProperty("recordSplitter") RecordSplitterConstants.RecordSplitter recordSplitter,
+                             @JsonProperty("recordSplitter") RecordSplitter recordSplitter,
                              @JsonProperty("flowId") long flowId,
                              @JsonProperty("submitterIds") List<Long> submitterIds,
                              @JsonProperty("sinkId") long sinkId,
@@ -114,7 +114,7 @@ public class FlowBinderContent implements Serializable {
         }
     }
 
-    public RecordSplitterConstants.RecordSplitter getRecordSplitter() {
+    public RecordSplitter getRecordSplitter() {
         return recordSplitter;
     }
 

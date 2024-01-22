@@ -63,6 +63,28 @@ public class DataPartitionerFactory {
         return partitionerInput.from(inputStream, jobSpecification, jobId, em);
     }
 
+    public static DataPartitioner createNoReordering(RecordSplitter recordSplitter, InputStream inputStream, String charset) {
+        Map<RecordSplitter, BiFunction<InputStream, String, DataPartitioner>> map = Map.ofEntries(
+                Map.entry(ADDI, AddiDataPartitioner::newInstance),
+                Map.entry(ADDI_MARC_XML, MarcXchangeAddiDataPartitioner::newInstance),
+                Map.entry(CSV,  CsvDataPartitioner::newInstance),
+                Map.entry(DANMARC2_LINE_FORMAT, DanMarc2LineFormatDataPartitioner::newInstance),
+                Map.entry(DANMARC2_LINE_FORMAT_COLLECTION, DanMarc2LineFormatDataPartitioner::newInstance), // Not sure if this works
+                Map.entry(DSD_CSV, DsdCsvDataPartitioner::newInstance),
+                Map.entry(ISO2709, Iso2709DataPartitioner::newInstance),
+                Map.entry(ISO2709_COLLECTION, Iso2709DataPartitioner::newInstance),// Not sure if this works
+                Map.entry(JSON, JsonDataPartitioner::newInstance),
+                Map.entry(VIAF, ViafDataPartitioner::newInstance),
+                Map.entry(VIP_CSV, VipCsvDataPartitioner::newInstance),
+                Map.entry(XML, DefaultXmlDataPartitioner::newInstance),
+                Map.entry(TARRED_XML, TarredXmlDataPartitioner::newInstance),
+                Map.entry(ZIPPED_XML, ZippedXmlDataPartitioner::newInstance)
+        );
+        Set<RecordSplitter> unmatched = Arrays.stream(values()).filter(e -> !map.containsKey(e)).collect(Collectors.toSet());
+        if(!unmatched.isEmpty()) LOGGER.error("All record splitters must mapped to a data partitioner, unmapped: " + unmatched);
+        return map.get(recordSplitter).apply(inputStream, charset);
+    }
+
     private static DataPartitioner getDanMarc2LineFormatPartitioner(InputStream is, JobSpecification js, int jobId, EntityManager em) {
         String encoding = js.getCharset();
         switch (TypeOfReordering.from(js)) {

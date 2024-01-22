@@ -2,10 +2,17 @@ package dk.dbc.dataio.jobstore.service.param;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.partioner.DanMarc2LineFormatDataPartitioner;
+import dk.dbc.dataio.commons.partioner.DanMarc2LineFormatReorderingDataPartitioner;
+import dk.dbc.dataio.commons.partioner.DataPartitioner;
+import dk.dbc.dataio.commons.partioner.IncludeFilterDataPartitioner;
+import dk.dbc.dataio.commons.partioner.Iso2709DataPartitioner;
+import dk.dbc.dataio.commons.partioner.Iso2709ReorderingDataPartitioner;
+import dk.dbc.dataio.commons.partioner.VolumeAfterParents;
 import dk.dbc.dataio.commons.partioner.entity.ReorderedItemEntity;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -17,13 +24,6 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
-import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatReorderingDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.IncludeFilterDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.VolumeAfterParents;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.State;
@@ -54,7 +54,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final EntityManager entityManager = mock(EntityManager.class);
     private final TypedQuery typedQuery = mock(TypedQuery.class);
-    private final RecordSplitterConstants.RecordSplitter dataPartitionerType = RecordSplitterConstants.RecordSplitter.XML;
+    private final RecordSplitter dataPartitionerType = RecordSplitter.XML;
     private final Submitter expected_submitter = new SubmitterBuilder().build();
 
     @BeforeEach
@@ -189,7 +189,7 @@ public class PartitioningParamTest extends ParamBaseTest {
         JobEntity jobEntity = newJobEntity(jobSpecification);
         PartitioningParam param = new PartitioningParam(jobEntity,
                 fileStoreServiceConnector, flowStoreServiceConnector,
-                entityManager, RecordSplitterConstants.RecordSplitter.ISO2709,
+                entityManager, RecordSplitter.ISO2709,
                 new BitSet());
         assertThat("IncludeFilterDataPartitioner",
                 param.getDataPartitioner() instanceof IncludeFilterDataPartitioner, is(true));
@@ -227,12 +227,12 @@ public class PartitioningParamTest extends ParamBaseTest {
 
     private PartitioningParam newPartitioningParamForDanMarc2LineFormat(JobEntity jobEntity) {
         return new PartitioningParam(jobEntity, fileStoreServiceConnector, flowStoreServiceConnector, entityManager,
-                RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT);
+                RecordSplitter.DANMARC2_LINE_FORMAT);
     }
 
     private PartitioningParam newPartitioningParamForIso2709(JobEntity jobEntity) {
         return new PartitioningParam(jobEntity, fileStoreServiceConnector, flowStoreServiceConnector, entityManager,
-                RecordSplitterConstants.RecordSplitter.ISO2709);
+                RecordSplitter.ISO2709);
     }
 
     private JobEntity newJobEntity(JobSpecification jobSpecification) {

@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
+import static dk.dbc.dataio.commons.encoding.CharacterEncodingScheme.charsetOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -17,17 +18,17 @@ public class CharacterEncodingSchemeTest {
 
     @Test
     public void charsetOf_normalizesName() {
-        assertThat("latin1", CharacterEncodingScheme.charsetOf("latin1"), is(StandardCharsets.ISO_8859_1));
-        assertThat("LATIN-1", CharacterEncodingScheme.charsetOf("LATIN-1"), is(StandardCharsets.ISO_8859_1));
-        assertThat("ISO-8859-1", CharacterEncodingScheme.charsetOf("ISO-8859-1"), is(StandardCharsets.ISO_8859_1));
-        assertThat("utf8", CharacterEncodingScheme.charsetOf("UTF-8"), is(StandardCharsets.UTF_8));
-        assertThat("UTF-8", CharacterEncodingScheme.charsetOf("UTF-8"), is(StandardCharsets.UTF_8));
-        assertThat("marc-8", CharacterEncodingScheme.charsetOf("marc-8"), is(marc8));
-        assertThat("MARC8", CharacterEncodingScheme.charsetOf("MARC8"), is(marc8));
+        assertThat("latin1", charsetOf("latin1"), is(StandardCharsets.ISO_8859_1));
+        assertThat("LATIN-1", charsetOf("LATIN-1"), is(StandardCharsets.ISO_8859_1));
+        assertThat("ISO-8859-1", charsetOf("ISO-8859-1"), is(StandardCharsets.ISO_8859_1));
+        assertThat("utf8", charsetOf("UTF-8"), is(StandardCharsets.UTF_8));
+        assertThat("UTF-8", charsetOf("UTF-8"), is(StandardCharsets.UTF_8));
+        assertThat("marc-8", charsetOf("marc-8"), is(marc8));
+        assertThat("MARC8", charsetOf("MARC8"), is(marc8));
     }
 
     @Test
     public void charsetOf_throwsWhenUnableToResolveName() {
-        assertThat(() -> CharacterEncodingScheme.charsetOf("unknown"), isThrowing(InvalidEncodingException.class));
+        assertThat(() -> charsetOf("unknown"), isThrowing(InvalidEncodingException.class));
     }
 }

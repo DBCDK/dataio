@@ -244,6 +244,7 @@
                                     </manifest>
                                     <manifestEntries>
                                         <pom-version>${project.version}</pom-version>
+                                        <multi-version>true</multi-version>
                                     </manifestEntries>
                                 </archive>
                             </configuration>

@@ -43,7 +43,7 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
         super(serviceHub);
         healthService = serviceHub.healthService;
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
-        chunkProcessor = new ChunkProcessor(healthService, jobStoreServiceConnector);
+        chunkProcessor = new ChunkProcessor(healthService, jobStoreServiceConnector::getCachedFlow);
         Metric.dataio_jobprocessor_chunk_duration_ms.gauge(this::getLongestRunningChunkDuration);
         zombieWatch.addCheck("script-check" , this::scriptRuntimeCheck);
     }

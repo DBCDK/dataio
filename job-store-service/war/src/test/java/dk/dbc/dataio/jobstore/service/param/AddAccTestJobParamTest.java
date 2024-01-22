@@ -7,7 +7,7 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
@@ -33,7 +33,7 @@ public class AddAccTestJobParamTest extends ParamBaseTest {
     private final FlowBinder flowBinder = new FlowBinderBuilder().setContent(new FlowBinderContentBuilder().setName("FlowBinderName").setFlowId(42).setSinkId(42).build()).build();
     private final Flow flow = new FlowBuilder().setContent(new FlowContentBuilder().setName("accTestFlow").build()).build();
     private final Sink sink = Sink.DIFF;
-    private final RecordSplitterConstants.RecordSplitter typeOfDataPartitioner = RecordSplitterConstants.RecordSplitter.XML;
+    private final RecordSplitter typeOfDataPartitioner = RecordSplitter.XML;
     private AccTestJobInputStream accTestJobInputStream;
 
     @BeforeEach

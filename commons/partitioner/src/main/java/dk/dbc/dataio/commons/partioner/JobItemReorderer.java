@@ -10,7 +10,7 @@ import java.util.Optional;
  * The responsibility of this class is to ensure the correct ordering of records taking part
  * in multi-level record structures.
  */
-public abstract class JobItemReorderer {
+public abstract class JobItemReorderer implements ItemReorderer {
     public enum SortOrder {
         HEAD(1),
         SECTION(2),
@@ -97,10 +97,6 @@ public abstract class JobItemReorderer {
      */
     public int getNumberOfItems() {
         return numberOfItems;
-    }
-
-    public Boolean addCollectionWrapper() {
-        return Boolean.FALSE;
     }
 
     private boolean mustBeReordered(DataPartitionerResult partitionerResult) {

@@ -8,7 +8,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsProducer;
@@ -154,7 +154,7 @@ public class JobsBeanTest {
         AccTestJobInputStream jobInputStream = new AccTestJobInputStream(
                 new JobSpecification(),
                 new FlowBuilder().build(),
-                RecordSplitterConstants.RecordSplitter.XML);
+                RecordSplitter.XML);
 
         when(jobsBean.jobStore.addAndScheduleAccTestJob(any(AccTestJobInputStream.class))).thenThrow(new JobStoreException("Error"));
         assertThat(() -> jobsBean.addAccTestJob(mockedUriInfo, asJson(jobInputStream)), isThrowing(JobStoreException.class));
@@ -171,7 +171,7 @@ public class JobsBeanTest {
     public void addAccTestJob_returnsResponseWithHttpStatusCreated_returnsJobInfoSnapshot() throws Exception {
         JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot().withSpecification(new JobSpecification()).withJobId(JOB_ID);
         Flow flow = new FlowBuilder().build();
-        AccTestJobInputStream jobInputStream = new AccTestJobInputStream(jobInfoSnapshot.getSpecification(), flow, RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT);
+        AccTestJobInputStream jobInputStream = new AccTestJobInputStream(jobInfoSnapshot.getSpecification(), flow, RecordSplitter.DANMARC2_LINE_FORMAT);
         String jobInputStreamJson = asJson(jobInputStream);
 
         when(jobsBean.jobStore.addAndScheduleAccTestJob(any(AccTestJobInputStream.class))).thenReturn(jobInfoSnapshot);

@@ -113,7 +113,7 @@ public class ChunkProcessorTest {
     private ChunkProcessor makeChunkProcessor(Chunk chunk, Flow flow) throws JobStoreServiceConnectorException {
         JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
         when(jobStoreServiceConnector.getCachedFlow(Mockito.eq(chunk.getJobId()))).thenReturn(flow);
-        return new ChunkProcessor(mock(HealthService.class), jobStoreServiceConnector);
+        return new ChunkProcessor(mock(HealthService.class), jobStoreServiceConnector::getCachedFlow);
     }
 
     @Test

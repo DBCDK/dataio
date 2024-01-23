@@ -16,8 +16,10 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -39,6 +41,7 @@ public abstract class AbstractFlowStoreServiceContainerTest implements PostgresC
                 .withEnv("JAVA_MAX_HEAP_SIZE", "4G")
                 .withEnv("FLOWSTORE_DB_URL", dbContainer.getPayaraDockerJdbcUrl())
                 .withEnv("SUBVERSION_URL", "https://no-svn-server-needed-for-this-test")
+//                .withEnv("REMOTE_DEBUGGING_HOST", getDebuggingHost())
                 .withExposedPorts(8080)
                 .waitingFor(Wait.forHttp(System.getProperty("flowstore.it.service.context") + "/status"))
                 .withStartupTimeout(Duration.ofMinutes(5));
@@ -54,6 +57,15 @@ public abstract class AbstractFlowStoreServiceContainerTest implements PostgresC
         flowStoreServiceConnector = new FlowStoreServiceConnector(
                 FailSafeHttpClient.create(HttpClient.newClient(), new RetryPolicy().withMaxRetries(0)),
                 flowStoreServiceBaseUrl);
+    }
+
+    private static String getDebuggingHost() {
+        try {
+            String host = InetAddress.getLocalHost().getHostAddress() + ":5005";
+            return host;
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected static void initializeDB() {

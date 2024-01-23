@@ -122,14 +122,11 @@ public class FlowsBean extends AbstractResourceBean {
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
 
         jsonbContext.unmarshall(flowContent, FlowContent.class);
-        Flow flow = self().saveFlow(flowContent);
+
+        final Flow flow = saveAsVersionedEntity(entityManager, Flow.class, flowContent);
+        entityManager.flush();
         final String flowJson = jsonbContext.marshall(flow);
         return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flow)).entity(flowJson).build();
-    }
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public Flow saveFlow(String flowContent) throws JSONBException {
-        return saveAsVersionedEntity(entityManager, Flow.class, flowContent);
     }
 
     /**
@@ -162,16 +159,16 @@ public class FlowsBean extends AbstractResourceBean {
         Flow flow = null;
         if (isRefresh != null && isRefresh) {
             flow = self().refreshFlowComponents(uriInfo, id, version);
-            if(flow == null) return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(NULL_ENTITY).build();
+            if (flow == null) return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(NULL_ENTITY).build();
             Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flow)).entity(flow.getContent()).build();
         } else {
             InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
             jsonbContext.unmarshall(flowContent, FlowContent.class);
             flow = self().updateFlowContent(flowContent, id, version);
         }
-        if(flow == null) return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(NULL_ENTITY).build();
+        if (flow == null) return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(NULL_ENTITY).build();
         return Response.ok()
-                .entity(flow)
+                .entity(jsonbContext.marshall(flow))
                 .tag(Long.toString(flow.getVersion()))
                 .build();
     }
@@ -231,6 +228,7 @@ public class FlowsBean extends AbstractResourceBean {
         if (flowEntity == null) {
             return null;
         }
+        flowEntity.assertLatestVersion(version);
         FlowContent flowContent = jsonbContext.unmarshall(flowEntity.getContent(), FlowContent.class);
 
         for (dk.dbc.dataio.commons.types.FlowComponent flowComponent : flowContent.getComponents()) {
@@ -252,6 +250,7 @@ public class FlowsBean extends AbstractResourceBean {
         }
 
         flowEntity.setContent(jsonbContext.marshall(updatedFlowContent));
+        entityManager.flush();
         return flowEntity;
     }
 
@@ -267,7 +266,8 @@ public class FlowsBean extends AbstractResourceBean {
      * @throws JSONBException JsonException on failure to create json flow
      */
     @SuppressWarnings("PMD.UnusedPrivateMethod")
-    private Flow updateFlowContent(String flowContent, Long id, Long version) throws JSONBException {
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public Flow updateFlowContent(String flowContent, Long id, Long version) throws JSONBException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
         final Flow flowEntity = entityManager.find(Flow.class, id);
         if (flowEntity == null) {
@@ -276,13 +276,14 @@ public class FlowsBean extends AbstractResourceBean {
         flowEntity.assertLatestVersion(version);
         flowContent = setTimeOfFlowComponentUpdate(flowContent, flowEntity.getContent());
         flowEntity.setContent(flowContent);
+        entityManager.flush();
         return flowEntity;
     }
 
     /**
      * Deletes an existing flow
      *
-     * @param flowId  The flow ID
+     * @param flowId The flow ID
      * @return a HTTP 204 response with no content,
      * a HTTP 404 response in case of flow ID not found,
      * a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
@@ -300,6 +301,7 @@ public class FlowsBean extends AbstractResourceBean {
         }
         flowEntity.assertLatestVersion(version);
         entityManager.remove(flowEntity);
+        entityManager.flush();
 
         return Response.noContent().build();
     }

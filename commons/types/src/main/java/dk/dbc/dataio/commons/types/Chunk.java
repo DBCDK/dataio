@@ -37,8 +37,6 @@ public class Chunk implements Iterable<ChunkItem> {
     private final List<ChunkItem> items;
     @JsonProperty
     private final List<ChunkItem> next;
-    @JsonProperty
-    private String encoding;
 
     /**
      * @param jobId   cannot be negative.

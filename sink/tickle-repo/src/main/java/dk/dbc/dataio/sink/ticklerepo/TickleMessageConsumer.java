@@ -43,7 +43,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,7 +53,6 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
     private final EntityManagerFactory entityManagerFactory;
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
-    private static final AtomicLong evictCounter = new AtomicLong();
     private static final String DATA_PRINTF = "Record %d: %s\n\t%s\n";
 
 

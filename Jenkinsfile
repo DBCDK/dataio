@@ -157,13 +157,6 @@ pipeline {
             }
         }
         stage("bump docker tags in dataio-secrets for non-master branches") {
-            agent {
-                docker {
-                    label workerNode
-                    image "docker-dbc.artifacts.dbccloud.dk/build-env:latest"
-                    alwaysPull true
-                }
-            }
             when {
                 not {
                     branch "master"

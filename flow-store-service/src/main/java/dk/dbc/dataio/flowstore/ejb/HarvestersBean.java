@@ -35,7 +35,8 @@ import java.util.List;
 
 @Stateless
 @Path("/")
-public class HarvestersBean {
+public class
+HarvestersBean {
     public static final String NO_CONTENT = "";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestersBean.class);
@@ -46,6 +47,7 @@ public class HarvestersBean {
     JSONBContext jsonbContext = new JSONBContext();
     @Resource
     SessionContext sessionContext;
+
 
     /**
      * Creates a new harvester config
@@ -134,6 +136,7 @@ public class HarvestersBean {
 
         harvesterConfig.setContent(configContent);
         entityManager.flush();
+        entityManager.getEntityManagerFactory().getCache().evict(HarvesterConfig.class, harvesterConfig.getId());
         return harvesterConfig;
     }
 

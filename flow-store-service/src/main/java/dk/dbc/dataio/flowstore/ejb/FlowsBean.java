@@ -159,7 +159,7 @@ public class FlowsBean extends AbstractResourceBean {
         Flow flow = null;
         if (isRefresh != null && isRefresh) {
             flow = self().refreshFlowComponents(uriInfo, id, version);
-            if (flow != null) Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flow)).entity(flow.getContent()).build();
+            if (flow != null) return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flow)).entity(flow.getContent()).build();
         } else {
             InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
             jsonbContext.unmarshall(flowContent, FlowContent.class);

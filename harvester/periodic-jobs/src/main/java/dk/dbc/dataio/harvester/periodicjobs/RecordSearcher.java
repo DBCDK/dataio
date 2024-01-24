@@ -1,7 +1,6 @@
 package dk.dbc.dataio.harvester.periodicjobs;
 
 import dk.dbc.dataio.bfs.api.BinaryFile;
-import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.solr.SolrSearch;
 import org.apache.solr.client.solrj.SolrQuery;

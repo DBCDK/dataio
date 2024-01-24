@@ -136,7 +136,6 @@ HarvestersBean {
 
         harvesterConfig.setContent(configContent);
         entityManager.flush();
-        entityManager.getEntityManagerFactory().getCache().evict(HarvesterConfig.class, harvesterConfig.getId());
         return harvesterConfig;
     }
 
@@ -156,6 +155,7 @@ HarvestersBean {
     @Produces({MediaType.APPLICATION_JSON})
     public Response getHarvesterConfig(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) throws JSONBException {
         final HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, id);
+        entityManager.refresh(harvesterConfig);
         if (harvesterConfig == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NO_CONTENT).build();
         }

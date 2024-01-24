@@ -255,7 +255,7 @@ public class FlowsBeanTest {
 
         // Verifying that the private method invoked is: updateFlowComponentsInFlowToLatestVersion.
         // The other method: updateFlowContent does not invoke flow.getContent().
-        verify(flow, times(2)).getContent();
+        verify(flow, times(1)).getContent();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
     }

@@ -15,7 +15,7 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.core.MediaType;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -31,10 +31,10 @@ import static org.hamcrest.core.Is.is;
 @WireMockTest
 public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
     private final JSONBContext jsonbContext = new JSONBContext();
-    private static String wireMockEndpoint;
+    private String wireMockEndpoint;
 
-    @BeforeAll
-    public static void init(WireMockRuntimeInfo wireMockRuntimeInfo) {
+    @BeforeEach
+    public void init(WireMockRuntimeInfo wireMockRuntimeInfo) {
         wireMockEndpoint = wireMockRuntimeInfo.getHttpBaseUrl();
     }
 

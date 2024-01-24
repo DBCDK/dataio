@@ -6,10 +6,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>p6</artifactId>
+    <artifactId>dataio-commons-utils</artifactId>
     <groupId>dk.dbc</groupId>
     <version>2.0-SNAPSHOT</version>
-    <relativePath>../../../p6</relativePath>
   </parent>
 
   <artifactId>dataio-commons-utils-log-store-service-connector</artifactId>

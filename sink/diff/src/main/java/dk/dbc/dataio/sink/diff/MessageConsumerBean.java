@@ -82,7 +82,7 @@ public class MessageConsumerBean extends MessageConsumerAdapter {
      * @return result of diff
      * @throws InvalidMessageException on failure to produce diff
      */
-    Chunk handleChunk(Chunk chunk) throws InvalidMessageException {
+    public Chunk handleChunk(Chunk chunk) throws InvalidMessageException {
         if (!chunk.hasNextItems()) {
             return failWithMissingNextItem(chunk);
         }

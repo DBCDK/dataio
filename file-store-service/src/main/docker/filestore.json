@@ -5,5 +5,8 @@
     "jdbc/dataio/fileStore": {
       "url": "${FILESTORE_DB_URL}"
     }
+  },
+  "hazelcast": {
+    "clusterName": "${HZ_CLUSTER_NAME}"
   }
 }

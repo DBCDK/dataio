@@ -2,7 +2,7 @@
 <persistence version="3.0"
              xmlns="https://jakarta.ee/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
-<persistence-unit name="flowStorePU" transaction-type="JTA">
+    <persistence-unit name="flowStorePU" transaction-type="JTA">
         <jta-data-source>jdbc/flowStoreDb</jta-data-source>
         <class>dk.dbc.dataio.flowstore.entity.Flow</class>
         <class>dk.dbc.dataio.flowstore.entity.FlowBinder</class>
@@ -13,10 +13,12 @@
         <class>dk.dbc.dataio.flowstore.entity.SinkEntity</class>
         <class>dk.dbc.dataio.flowstore.entity.Submitter</class>
         <class>dk.dbc.dataio.flowstore.entity.Versioned</class>
+        <shared-cache-mode>DISABLE_SELECTIVE</shared-cache-mode>
         <properties>
             <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
             <property name="eclipselink.logging.level" value="OFF"/>
-            <property name="eclipselink.cache.coordination.protocol" value="fish.payara.persistence.eclipselink.cache.coordination.HazelcastPublishingTransportManager"/>
+            <property name="eclipselink.cache.coordination.protocol"
+                      value="fish.payara.persistence.eclipselink.cache.coordination.HazelcastPublishingTransportManager"/>
             <property name="eclipselink.cache.coordination.channel" value="flowstorePUChannel"/>
         </properties>
     </persistence-unit>

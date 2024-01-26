@@ -2,7 +2,7 @@ package dk.dbc.dataio.harvester.utils.holdingsitems;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -37,8 +37,8 @@ public class HoldingsItemsConnectorTest {
     private static String solrServerEndpoint;
     private final String bibliographicRecordId = "23181444";
 
-    @BeforeAll
-    public static void init(WireMockRuntimeInfo wireMockRuntimeInfo) {
+    @BeforeEach
+    public void init(WireMockRuntimeInfo wireMockRuntimeInfo) {
         solrServerEndpoint = wireMockRuntimeInfo.getHttpBaseUrl();
     }
 

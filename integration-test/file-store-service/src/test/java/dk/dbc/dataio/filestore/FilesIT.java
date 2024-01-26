@@ -77,6 +77,7 @@ public class FilesIT {
             .withEnv("JAVA_MAX_HEAP_SIZE", "4G")
             .withEnv("FILESTORE_DB_URL", dbContainer.getPayaraDockerJdbcUrl())
             .withEnv("BFS_ROOT", "/tmp/filestore")
+            .withEnv("HZ_CLUSTER_NAME", "dataio-filestore-cluster")
             .withExposedPorts(8080)
             .waitingFor(Wait.forHttp("/dataio/file-store-service/status"))
             .withStartupTimeout(Duration.ofMinutes(2));

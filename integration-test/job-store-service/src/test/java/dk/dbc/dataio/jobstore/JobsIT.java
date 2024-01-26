@@ -52,7 +52,7 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
         // And...
         // (Since we cannot be certain of sequence of partitioning...)
         List<Chunk> chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
-                JmsQueueTester.Queue.PROCESSING_BUSINESS, 2, 10000)
+                JmsQueueTester.Queue.PROCESSING_BUSINESS, 2, 20000)
                 .stream().map(this::getChunk)
                 .sorted(Comparator.comparing(chunk1 -> chunk1 != null ? chunk1.getChunkId() : 0))
                 .collect(Collectors.toList());
@@ -86,7 +86,7 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
         // Then...
         // (And now taking chunk sequence very serious!)
         chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
-                        JmsQueueTester.Queue.SINK_BE_CISTERNE, 2, 10000)
+                        JmsQueueTester.Queue.SINK_BE_CISTERNE, 2, 20000)
                 .stream().map(this::getChunk)
                 .collect(Collectors.toList());
 

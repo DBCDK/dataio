@@ -12,9 +12,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 
-public class ExternalToolDiffGenerator {
+public class ExternalToolDiffGenerator implements DiffGenerator {
     private static final String EMPTY = "";
-    static String path = SinkConfig.TOOL_PATH.asString();
 
     /**
      * Creates diff string through external tool, returning
@@ -83,22 +82,6 @@ public class ExternalToolDiffGenerator {
             if (tempFile2 != null) {
                 tempFile2.delete();
             }
-        }
-    }
-
-    public enum Kind {
-        JSON("jsondiff"),
-        PLAINTEXT("plaintextdiff"),
-        XML("xmldiff");
-
-        private final String tool;
-
-        Kind(String tool) {
-            this.tool = tool;
-        }
-
-        public String getTool() {
-            return path + '/' + tool;
         }
     }
 

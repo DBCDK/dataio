@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 @XmlRootElement(name = "testsuite")
 public class Testsuite {
     @XmlAttribute
@@ -81,6 +82,7 @@ public class Testsuite {
         }
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public static class TestCase {
         @XmlAttribute
         private String classname;
@@ -148,7 +150,7 @@ public class Testsuite {
         }
     }
 
-    public static enum Status {
+    public enum Status {
         passed(ChunkItem.Status.SUCCESS), error(null), failed(ChunkItem.Status.FAILURE), ignored(ChunkItem.Status.IGNORE);
 
         private final ChunkItem.Status ciStatus;

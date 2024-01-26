@@ -26,16 +26,28 @@ public class PlainTextDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void equality() throws DiffGeneratorException, InvalidMessageException {
         if (canDiff()) {
-            String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT, DOC1, DOC1);
+            String diff = diffGenerator.getDiff(Kind.PLAINTEXT, DOC1, DOC1);
             assertThat(diff, is(""));
         }
     }
 
     @Test
+    public void javaEquality() throws DiffGeneratorException, InvalidMessageException {
+        String diff = new JavaDiffGenerator().getDiff(Kind.PLAINTEXT, DOC1, DOC1);
+        assertThat(diff, is(""));
+    }
+
+    @Test
     public void diff() throws DiffGeneratorException, InvalidMessageException {
         if (canDiff()) {
-            String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT, DOC1, DOC2);
+            String diff = diffGenerator.getDiff(Kind.PLAINTEXT, DOC1, DOC2);
             assertThat(diff, containsString("+second and ½"));
         }
+    }
+
+    @Test
+    public void javaDiff() throws DiffGeneratorException, InvalidMessageException {
+        String diff = new JavaDiffGenerator().getDiff(Kind.PLAINTEXT, DOC1, DOC2);
+        assertThat(diff, containsString("second and ½"));
     }
 }

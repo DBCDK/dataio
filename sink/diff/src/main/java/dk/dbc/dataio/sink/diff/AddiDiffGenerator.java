@@ -8,11 +8,13 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class AddiDiffGenerator {
-    private final ExternalToolDiffGenerator externalToolDiffGenerator;
+import static dk.dbc.dataio.sink.diff.Kind.detect;
 
-    public AddiDiffGenerator(ExternalToolDiffGenerator externalToolDiffGenerator) {
-        this.externalToolDiffGenerator = externalToolDiffGenerator;
+public class AddiDiffGenerator {
+    private final DiffGenerator diffGenerator;
+
+    public AddiDiffGenerator(DiffGenerator diffGenerator) {
+        this.diffGenerator = diffGenerator;
     }
 
     /**
@@ -71,12 +73,12 @@ public class AddiDiffGenerator {
 
         private String getDiff(byte[] current, byte[] next) throws DiffGeneratorException, InvalidMessageException {
             if (!Arrays.equals(current, next)) {
-                ExternalToolDiffGenerator.Kind currentKind = DiffKindDetector.getKind(current);
-                ExternalToolDiffGenerator.Kind nextKind = DiffKindDetector.getKind(next);
+                Kind currentKind = detect(current);
+                Kind nextKind = detect(next);
                 if (currentKind == nextKind) {
-                    return externalToolDiffGenerator.getDiff(currentKind, current, next);
+                    return diffGenerator.getDiff(currentKind, current, next);
                 }
-                return externalToolDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT, current, next);
+                return diffGenerator.getDiff(Kind.PLAINTEXT, current, next);
             }
             return NO_DIFF;
         }

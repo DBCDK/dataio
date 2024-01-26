@@ -37,20 +37,22 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+@CommandLine.Command(name = "acc-test-runner.sh", mixinStandardHelpOptions = true, showDefaultValues = true, version = "1.0")
 public class AccTestRunner implements Callable<Integer> {
-    @CommandLine.Parameters(index = "0", description = "job specification file")
+    @CommandLine.Parameters(index = "0", description = "Job specification file")
     private Path jobSpec;
-    @CommandLine.Parameters(index = "1", description = "record splitter")
+    @CommandLine.Parameters(index = "1", description = "Record splitter <ADDI, ADDI_MARC_XML, CSV|DANMARC2_LINE_FORMAT|DANMARC2_LINE_FORMAT_COLLECTION|" +
+            "DSD_CSV|ISO2709|ISO2709_COLLECTION|JSON|VIAF|VIP_CSV|XML|TARRED_XML|ZIPPED_XML>")
     private RecordSplitter recordSplitter;
-    @CommandLine.Parameters(index = "2", description = "data file")
+    @CommandLine.Parameters(index = "2", description = "Data file")
     private Path datafile;
     @CommandLine.Option(names = "-f", description = "Flowstore url (prod flowstore is default)", defaultValue = "http://dataio-flowstore-service.metascrum-prod.svc.cloud.dbc.dk/dataio/flow-store-service")
     private FlowStoreServiceConnector flowstore;
-    @CommandLine.Option(names = "-s", description = "Path to local scripts", required = true)
+    @CommandLine.Option(names = "-s", description = "Path to local script", required = true)
     private Path nextScripts;
     @CommandLine.Option(names = "-d", description = "Search path for dependencies", required = true)
     private Path dependencies;
-    @CommandLine.Option(names = "-r", description = "report format <TEXT|XML> TEXT is default", defaultValue = "TEXT")
+    @CommandLine.Option(names = "-r", description = "Report format <TEXT|XML>", defaultValue = "TEXT")
     private ReportFormat reportFormat;
 
 
@@ -69,7 +71,7 @@ public class AccTestRunner implements Callable<Integer> {
         JobSpecification jobSpecification = new ObjectMapper().readValue(jobSpec.toFile(), JobSpecification.class);
         Flow flow = getFlow(jobSpecification);
         Chunk chunk = readChunk(jobSpecification);
-        Chunk processed = processChunk(flow, chunk, jobSpecification);
+        Chunk processed = processChunk(flow, chunk);
         ServiceHub serviceHub = new ServiceHub.Builder().withJobStoreServiceConnector(null).build();
         Chunk diff = new MessageConsumerBean(serviceHub).handleChunk(processed);
         reportFormat.printDiff(flow, diff);
@@ -81,7 +83,7 @@ public class AccTestRunner implements Callable<Integer> {
         return flowstore.getFlow(flowBinder.getContent().getFlowId());
     }
 
-    private Chunk processChunk(Flow flow, Chunk chunk, JobSpecification jobSpecification) throws Exception {
+    private Chunk processChunk(Flow flow, Chunk chunk) throws Exception {
         if(nextScripts != null) overwriteNext(flow);
         ChunkProcessor processor = new ChunkProcessor(null, id -> flow);
         return processor.process(chunk, flow.getId(), flow.getVersion(), "");
@@ -117,7 +119,7 @@ public class AccTestRunner implements Callable<Integer> {
                     System.out.println(ci.getStatus() + " - ChunkItem: " + ci.getId());
                     System.out.println(new String(ci.getData(), ci.getEncoding()));
                 });
-            };
+            }
         },
         XML {
             public void printDiff(Flow flow, Chunk chunk) {
@@ -127,7 +129,7 @@ public class AccTestRunner implements Callable<Integer> {
                 File file = new File("TESTS-dbc_" + flow.getId() + "-" + name + ".xml");
                 JAXB.marshal(testsuite, file);
                 System.out.println("Wrote report to " + file.getAbsolutePath());
-            };
+            }
         };
 
         public abstract void printDiff(Flow flow, Chunk chunk);

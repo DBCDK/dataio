@@ -42,7 +42,7 @@ public class XmlDiffGeneratorParameterizedTest extends AbstractDiffGeneratorTest
         if (canXmlDiff()) {
             ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
             String diff = xmlDiffGenerator.getDiff(
-                    ExternalToolDiffGenerator.Kind.XML,
+                    Kind.XML,
                     XmlDiffGeneratorTest.readTestRecord(currentFile),
                     XmlDiffGeneratorTest.readTestRecord(nextFile)
             );

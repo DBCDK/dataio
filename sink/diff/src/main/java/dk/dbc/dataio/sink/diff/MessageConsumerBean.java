@@ -17,23 +17,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static dk.dbc.dataio.sink.diff.Kind.detect;
+
 public class MessageConsumerBean extends MessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
 
-    private final ExternalToolDiffGenerator externalToolDiffGenerator;
+    private final DiffGenerator diffGenerator;
     private final AddiDiffGenerator addiDiffGenerator;
 
     public MessageConsumerBean(ServiceHub serviceHub) {
         super(serviceHub);
-        externalToolDiffGenerator = new ExternalToolDiffGenerator();
-        addiDiffGenerator = new AddiDiffGenerator(externalToolDiffGenerator);
+        diffGenerator = SinkConfig.USE_NATIVE_DIFF.asBoolean() ? new ExternalToolDiffGenerator() : new JavaDiffGenerator();
+        addiDiffGenerator = new AddiDiffGenerator(diffGenerator);
     }
 
-    public MessageConsumerBean(ServiceHub serviceHub, ExternalToolDiffGenerator externalToolDiffGenerator, AddiDiffGenerator addiDiffGenerator) {
+    public MessageConsumerBean(ServiceHub serviceHub, ExternalToolDiffGenerator diffGenerator, AddiDiffGenerator addiDiffGenerator) {
         super(serviceHub);
-        this.externalToolDiffGenerator = externalToolDiffGenerator;
+        this.diffGenerator = diffGenerator;
         this.addiDiffGenerator = addiDiffGenerator;
     }
 
@@ -82,7 +84,7 @@ public class MessageConsumerBean extends MessageConsumerAdapter {
      * @return result of diff
      * @throws InvalidMessageException on failure to produce diff
      */
-    Chunk handleChunk(Chunk chunk) throws InvalidMessageException {
+    public Chunk handleChunk(Chunk chunk) throws InvalidMessageException {
         if (!chunk.hasNextItems()) {
             return failWithMissingNextItem(chunk);
         }
@@ -193,12 +195,12 @@ public class MessageConsumerBean extends MessageConsumerAdapter {
             try {
                 diff = addiDiffGenerator.getDiff(pair.current.getData(), pair.next.getData());
             } catch (IllegalArgumentException e) {
-                ExternalToolDiffGenerator.Kind currentKind = DiffKindDetector.getKind(pair.current.getData());
-                ExternalToolDiffGenerator.Kind nextKind = DiffKindDetector.getKind(pair.next.getData());
+                Kind currentKind = detect(pair.current.getData());
+                Kind nextKind = detect(pair.next.getData());
                 if (currentKind == nextKind) {
-                    diff = externalToolDiffGenerator.getDiff(currentKind, pair.current.getData(), pair.next.getData());
+                    diff = diffGenerator.getDiff(currentKind, pair.current.getData(), pair.next.getData());
                 } else {
-                    diff = externalToolDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT,
+                    diff = diffGenerator.getDiff(Kind.PLAINTEXT,
                             pair.current.getData(), pair.next.getData());
                 }
             }

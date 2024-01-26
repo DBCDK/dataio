@@ -22,7 +22,14 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void testGetDiff_semanticEqual_returnsEmptyString() throws DiffGeneratorException, InvalidMessageException {
         ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-        String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, getXml(), getXmlSemanticEquals());
+        String diff = xmlDiffGenerator.getDiff(Kind.XML, getXml(), getXmlSemanticEquals());
+        assertThat(diff, is(""));
+    }
+
+    @Test
+    public void testXmlUnitDiff_semanticEqual_returnsEmptyString() throws DiffGeneratorException, InvalidMessageException {
+        DiffGenerator generator = new JavaDiffGenerator();
+        String diff = generator.getDiff(Kind.XML, getXml(), getXmlSemanticEquals());
         assertThat(diff, is(""));
     }
 
@@ -30,16 +37,24 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     public void testGetDiff_different_returnsDiffString() throws DiffGeneratorException, InvalidMessageException {
         if (canXmlDiff()) {
             ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-            String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, getXml(), getXmlNext());
+            String diff = xmlDiffGenerator.getDiff(Kind.XML, getXml(), getXmlNext());
             assertThat(diff, not(""));
         }
     }
 
     @Test
+    public void testXmlUnitDiff_different_returnsDiffString() throws DiffGeneratorException, InvalidMessageException {
+        DiffGenerator diffGenerator = new JavaDiffGenerator();
+        String diff = diffGenerator.getDiff(Kind.XML, getXml(), getXmlNext());
+        assertThat(diff, not(""));
+    }
+
+
+    @Test
     public void testGetDiff_bug18965() throws DiffGeneratorException, IOException, URISyntaxException, InvalidMessageException {
         if (canXmlDiff()) {
             ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-            String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
+            String diff = xmlDiffGenerator.getDiff(Kind.XML,
                     readTestRecord("bug_18956.xml"),
                     readTestRecord("bug_18956-differences.xml"));
             assertThat(diff, not(""));
@@ -51,7 +66,7 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     public void testGetDiff_output() throws DiffGeneratorException, IOException, URISyntaxException, InvalidMessageException {
         if (canXmlDiff()) {
             ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-            String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
+            String diff = xmlDiffGenerator.getDiff(Kind.XML,
                     readTestRecord("small-current.xml"),
                     readTestRecord("small-next.xml"));
             assertThat(diff, not(""));
@@ -62,7 +77,7 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     public void testGetDiff_contentEquals_returnsEmptyString() throws DiffGeneratorException, InvalidMessageException {
         if (canXmlDiff()) {
             ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-            String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, getXml(), getXml());
+            String diff = xmlDiffGenerator.getDiff(Kind.XML, getXml(), getXml());
             assertThat(diff, is(""));
         }
     }
@@ -71,7 +86,7 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     public void testGetDiff_failureComparingInput_throws() {
         if (canXmlDiff()) {
             ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-            assertThrows(DiffGeneratorException.class, () -> xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, "<INVALID>".getBytes(), "<INVALID>".getBytes()));
+            assertThrows(DiffGeneratorException.class, () -> xmlDiffGenerator.getDiff(Kind.XML, "<INVALID>".getBytes(), "<INVALID>".getBytes()));
         }
     }
 

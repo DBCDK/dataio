@@ -68,6 +68,8 @@ public class AccTestRunner implements Callable<Integer> {
     public Integer call() throws Exception {
         if(!Files.isReadable(jobSpec)) throw new IllegalArgumentException("Job specification " + jobSpec + " is not a readable file");
         if(!Files.isReadable(datafile)) throw new IllegalArgumentException("Datafile " + datafile + " is not a readable file");
+        if(!Files.isReadable(nextScripts)) throw new IllegalArgumentException("Local script file " + nextScripts + " is not a readable file");
+        if(!Files.isDirectory(dependencies)) throw new IllegalArgumentException("Path for dependencies " + dependencies + " is not valid");
         JobSpecification jobSpecification = new ObjectMapper().readValue(jobSpec.toFile(), JobSpecification.class);
         Flow flow = getFlow(jobSpecification);
         Chunk chunk = readChunk(jobSpecification);

@@ -22,7 +22,8 @@ pipeline {
             harvester/utils/rawrepo-connector, \
             harvester/utils/harvester-job-builder, \
             commons/utils, \
-            commons/utils/binary-file-store"
+            commons/utils/binary-file-store, \
+            cli/acc-test-runner"
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara5-bump-trigger",

@@ -41,7 +41,7 @@ import java.util.stream.StreamSupport;
 public class AccTestRunner implements Callable<Integer> {
     @CommandLine.Parameters(index = "0", description = "Job specification file")
     private Path jobSpec;
-    @CommandLine.Parameters(index = "1", description = "Record splitter <ADDI, ADDI_MARC_XML, CSV|DANMARC2_LINE_FORMAT|DANMARC2_LINE_FORMAT_COLLECTION|" +
+    @CommandLine.Parameters(index = "1", description = "Record splitter <ADDI|ADDI_MARC_XML|CSV|DANMARC2_LINE_FORMAT|DANMARC2_LINE_FORMAT_COLLECTION|" +
             "DSD_CSV|ISO2709|ISO2709_COLLECTION|JSON|VIAF|VIP_CSV|XML|TARRED_XML|ZIPPED_XML>")
     private RecordSplitter recordSplitter;
     @CommandLine.Parameters(index = "2", description = "Data file")

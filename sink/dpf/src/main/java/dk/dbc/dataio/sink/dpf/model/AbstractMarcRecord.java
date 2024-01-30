@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.dpf.model;
 
+import dk.dbc.dataio.sink.dpf.transform.DpfRecordProcessorException;
 import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.Field;
 import dk.dbc.marc.binding.MarcRecord;
@@ -60,8 +61,9 @@ public class AbstractMarcRecord {
         return body.getFields(MarcRecord.hasTag(field));
     }
 
-    public DataField getCatalogueCodeField() {
-        return (DataField) body.getField(MarcRecord.hasTag("032")).orElse(null);
+    public DataField getCatalogueCodeField() throws DpfRecordProcessorException {
+        return (DataField) body.getField(MarcRecord.hasTag("032"))
+                .orElseThrow(() -> new DpfRecordProcessorException("Record " + getBibliographicRecordId() + " has no catalogue code field"));
     }
 
     public List<Field> getFieldsWithContent(String fieldName, Character subfieldName) {

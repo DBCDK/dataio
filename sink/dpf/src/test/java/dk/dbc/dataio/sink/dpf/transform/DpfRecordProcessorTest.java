@@ -402,8 +402,10 @@ public class DpfRecordProcessorTest {
 
         ProcessingInstructions processingInstructions1 = new ProcessingInstructions().withId("id-1").withRecordState(DpfRecord.State.MODIFIED);
         DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+        dpfRecord1.setCatalogueCodeField(new DataField("032", "00"));
         ProcessingInstructions processingInstructions2 = new ProcessingInstructions().withId("id-2");
         DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, headBody);
+        dpfRecord2.setCatalogueCodeField(new DataField("032", "00"));
 
         when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
         when(serviceBroker.rawrepoRecordExists("5678", 870970)).thenReturn(false);
@@ -426,8 +428,10 @@ public class DpfRecordProcessorTest {
 
         ProcessingInstructions processingInstructions1 = new ProcessingInstructions().withId("id-1").withRecordState(DpfRecord.State.MODIFIED);
         DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+        dpfRecord1.setCatalogueCodeField(new DataField("032", "00"));
         ProcessingInstructions processingInstructions2 = new ProcessingInstructions().withId("id-2");
         DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, headBody);
+        dpfRecord2.setCatalogueCodeField(new DataField("032", "00"));
 
         when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
         when(serviceBroker.rawrepoRecordExists("5678", 870970)).thenReturn(true);
@@ -455,15 +459,22 @@ public class DpfRecordProcessorTest {
 
         ProcessingInstructions processingInstructions1 = new ProcessingInstructions().withId("id-1").withRecordState(DpfRecord.State.MODIFIED);
         DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+        dpfRecord1.setCatalogueCodeField(new DataField("032", "00"));
         ProcessingInstructions processingInstructions2 = new ProcessingInstructions().withId("id-2");
         DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, headBody);
+        dpfRecord2.setCatalogueCodeField(new DataField("032", "00"));
 
         when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
         when(serviceBroker.rawrepoRecordExists("5678", 870970)).thenReturn(true);
         when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(dpfBody));
         when(serviceBroker.getRawrepoRecord("5678", 870970)).thenReturn(new RawrepoRecord(existingHeadBody));
 
-        assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)), is(Arrays.asList(new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED), new DpfRecordProcessor.Event("id-2", PROCESS_HEAD), new DpfRecordProcessor.Event("id-2", DPF_REFERENCE_MISMATCH), new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY), new DpfRecordProcessor.Event("id-2", SENT_TO_LOBBY))));
+        assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
+                is(Arrays.asList(new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED),
+                        new DpfRecordProcessor.Event("id-2", PROCESS_HEAD),
+                        new DpfRecordProcessor.Event("id-2", DPF_REFERENCE_MISMATCH),
+                        new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY),
+                        new DpfRecordProcessor.Event("id-2", SENT_TO_LOBBY))));
         assertThat("dpf errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(DpfRecordProcessor.FAILED_BECAUSE_OF_OTHER)));
 
         assertThat("head errors", dpfRecord2.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(String.format(DpfRecordProcessor.REFERENCE_MISMATCH, "1234", "870970", "4321", "870970"))));
@@ -485,8 +496,10 @@ public class DpfRecordProcessorTest {
 
         ProcessingInstructions processingInstructions1 = new ProcessingInstructions().withId("id-1").withRecordState(DpfRecord.State.MODIFIED).withUpdateTemplate("dbcperiodica");
         DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+        dpfRecord1.setCatalogueCodeField(new DataField("032", "00"));
         ProcessingInstructions processingInstructions2 = new ProcessingInstructions().withId("id-2").withUpdateTemplate("dbchoved");
         DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, headBody);
+        dpfRecord2.setCatalogueCodeField(new DataField("032", "00"));
 
         when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
         when(serviceBroker.rawrepoRecordExists("5678", 870970)).thenReturn(true);

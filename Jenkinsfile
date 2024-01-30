@@ -1,9 +1,9 @@
 #!groovy
 
 String docker_images_log_stash_tag = "docker_images_log"
-String workerNode = "devel11"
+String workerNode = "devel10"
 Boolean DEPLOY_TO_STAGING_CANDIDATE=false
-// byg for fanden!!!
+
 pipeline {
     agent {label workerNode}
     tools {
@@ -157,13 +157,6 @@ pipeline {
             }
         }
         stage("bump docker tags in dataio-secrets for non-master branches") {
-            agent {
-                docker {
-                    label workerNode
-                    image "docker-dbc.artifacts.dbccloud.dk/build-env:latest"
-                    alwaysPull true
-                }
-            }
             when {
                 not {
                     branch "master"

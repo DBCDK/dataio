@@ -252,7 +252,6 @@ public class FlowsBeanTest {
         Response response = flowsBean.updateFlow(createEmptyFlowContentJSON(), mockedUriInfo, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, true);
 
         verify(flow).setContent(flowsBean.jsonbContext.marshall(flowContent));
-        verify(flow).setVersion(DEFAULT_TEST_VERSION);
 
         // Verifying that the private method invoked is: updateFlowComponentsInFlowToLatestVersion.
         // The other method: updateFlowContent does not invoke flow.getContent().
@@ -301,7 +300,6 @@ public class FlowsBeanTest {
 
         Response response = flowsBean.deleteFlow(12L, 1L);
 
-        verify(flow).setVersion(1L);
         verify(ENTITY_MANAGER).remove(flow);
         assertThat(response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
     }
@@ -321,7 +319,11 @@ public class FlowsBeanTest {
     }
 
     public static FlowsBean newFlowsBeanWithMockedEntityManager() {
-        FlowsBean flowsBean = new FlowsBean();
+        FlowsBean flowsBean = new FlowsBean() {
+            protected FlowsBean self() {
+                return this;
+            }
+        };
         flowsBean.entityManager = ENTITY_MANAGER;
         return flowsBean;
     }

@@ -6,7 +6,11 @@ import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.HarvesterConfig;
 import dk.dbc.invariant.InvariantUtil;
+import jakarta.annotation.Resource;
+import jakarta.ejb.SessionContext;
 import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -31,7 +35,8 @@ import java.util.List;
 
 @Stateless
 @Path("/")
-public class HarvestersBean {
+public class
+HarvestersBean {
     public static final String NO_CONTENT = "";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestersBean.class);
@@ -40,6 +45,9 @@ public class HarvestersBean {
     EntityManager entityManager;
 
     JSONBContext jsonbContext = new JSONBContext();
+    @Resource
+    SessionContext sessionContext;
+
 
     /**
      * Creates a new harvester config
@@ -105,27 +113,33 @@ public class HarvestersBean {
         LOGGER.trace("Called with id='{}', version='{}' type='{}', content='{}'", id, version, type, configContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(configContent, "configContent");
 
-        HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, id);
+        HarvesterConfig harvesterConfig = update(id, type, configContent, version);
         if (harvesterConfig == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NO_CONTENT).build();
         }
+        return Response.ok().entity(jsonbContext.marshall(harvesterConfig))
+                .tag(harvesterConfig.getVersion().toString())
+                .build();
+    }
 
-        entityManager.detach(harvesterConfig);
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public HarvesterConfig update(Long id, String type, String configContent, Long version) throws ClassNotFoundException, JSONBException {
+        HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, id);
+        if (harvesterConfig == null) {
+            return null;
+        }
+        harvesterConfig.assertLatestVersion(version);
         if (type != null && !type.trim().isEmpty()) {
-            // Update type if given as header parameter
             harvesterConfig.withType(type);
         }
         validateContent(harvesterConfig.getType(), configContent);
 
         harvesterConfig.setContent(configContent);
-        harvesterConfig.setVersion(version);
-        harvesterConfig = entityManager.merge(harvesterConfig);
         entityManager.flush();
-
-        return Response.ok().entity(jsonbContext.marshall(harvesterConfig))
-                .tag(harvesterConfig.getVersion().toString())
-                .build();
+        return harvesterConfig;
     }
+
+
 
     /**
      * Retrieves harvester config from underlying data store
@@ -166,18 +180,14 @@ public class HarvestersBean {
     public Response deleteHarvesterConfig(
             @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
             @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {
-        final HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, id);
+        HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, id);
         if (harvesterConfig == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NO_CONTENT).build();
         }
+        harvesterConfig.assertLatestVersion(version);
 
-        // First we need to update the version to ensure that an OptimisticLockingException
-        // is triggered if a conflict exists
-        entityManager.detach(harvesterConfig);
-        harvesterConfig.setVersion(version);
-        entityManager.remove(entityManager.merge(harvesterConfig));
+        entityManager.remove(harvesterConfig);
         entityManager.flush();
-
         return Response.noContent().build();
     }
 
@@ -234,6 +244,10 @@ public class HarvestersBean {
 
     private URI getResourceUriOfVersionedEntity(UriBuilder uriBuilder, HarvesterConfig harvesterConfig) {
         return uriBuilder.path(String.valueOf(harvesterConfig.getId())).build();
+    }
+
+    public HarvestersBean self() {
+        return sessionContext.getBusinessObject(HarvestersBean.class);
     }
 }
 

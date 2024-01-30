@@ -9,7 +9,11 @@ import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowComponent;
 import dk.dbc.invariant.InvariantUtil;
+import jakarta.annotation.Resource;
+import jakarta.ejb.SessionContext;
 import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -48,6 +52,9 @@ public class FlowsBean extends AbstractResourceBean {
 
     @PersistenceContext
     EntityManager entityManager;
+
+    @Resource
+    SessionContext sessionContext;
 
     /**
      * Retrieves flow from underlying data store
@@ -149,15 +156,24 @@ public class FlowsBean extends AbstractResourceBean {
             @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version,
             @QueryParam(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH) Boolean isRefresh) throws JSONBException, ReferencedEntityNotFoundException {
 
-        Response response;
+        Flow flow = null;
         if (isRefresh != null && isRefresh) {
-            response = refreshFlowComponents(uriInfo, id, version);
+            flow = self().refreshFlowComponents(uriInfo, id, version);
+            if (flow != null) return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flow)).entity(jsonbContext.marshall(flow)).build();
         } else {
             InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
             jsonbContext.unmarshall(flowContent, FlowContent.class);
-            response = updateFlowContent(flowContent, id, version);
+            flow = self().updateFlowContent(flowContent, id, version);
         }
-        return response;
+        if (flow == null) return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(NULL_ENTITY).build();
+        return Response.ok()
+                .entity(jsonbContext.marshall(flow))
+                .tag(Long.toString(flow.getVersion()))
+                .build();
+    }
+
+    protected FlowsBean self() {
+        return sessionContext.getBusinessObject(FlowsBean.class);
     }
 
     // private methods
@@ -202,15 +218,16 @@ public class FlowsBean extends AbstractResourceBean {
      * @throws ReferencedEntityNotFoundException on failure to locate the flow component in the underlying database
      */
     @SuppressWarnings("PMD.UnusedPrivateMethod")
-    private Response refreshFlowComponents(UriInfo uriInfo, Long id, Long version) throws JSONBException, ReferencedEntityNotFoundException {
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public Flow refreshFlowComponents(UriInfo uriInfo, Long id, Long version) throws JSONBException, ReferencedEntityNotFoundException {
         List<dk.dbc.dataio.commons.types.FlowComponent> flowComponentsWithLatestVersion = new ArrayList<>();
         boolean hasFlowComponentsChanged = false;
 
         final Flow flowEntity = entityManager.find(Flow.class, id);
         if (flowEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(NULL_ENTITY).build();
+            return null;
         }
-        entityManager.detach(flowEntity);
+        flowEntity.assertLatestVersion(version);
         FlowContent flowContent = jsonbContext.unmarshall(flowEntity.getContent(), FlowContent.class);
 
         for (dk.dbc.dataio.commons.types.FlowComponent flowComponent : flowContent.getComponents()) {
@@ -232,12 +249,8 @@ public class FlowsBean extends AbstractResourceBean {
         }
 
         flowEntity.setContent(jsonbContext.marshall(updatedFlowContent));
-        flowEntity.setVersion(version);
-        entityManager.merge(flowEntity);
         entityManager.flush();
-        final Flow updatedFlow = entityManager.find(Flow.class, id);
-        final String flowJson = jsonbContext.marshall(updatedFlow);
-        return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), updatedFlow)).entity(flowJson).build();
+        return flowEntity;
     }
 
     /**
@@ -252,33 +265,24 @@ public class FlowsBean extends AbstractResourceBean {
      * @throws JSONBException JsonException on failure to create json flow
      */
     @SuppressWarnings("PMD.UnusedPrivateMethod")
-    private Response updateFlowContent(String flowContent, Long id, Long version) throws JSONBException {
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public Flow updateFlowContent(String flowContent, Long id, Long version) throws JSONBException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
         final Flow flowEntity = entityManager.find(Flow.class, id);
         if (flowEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(NULL_ENTITY).build();
+            return null;
         }
-        entityManager.detach(flowEntity);
-
+        flowEntity.assertLatestVersion(version);
         flowContent = setTimeOfFlowComponentUpdate(flowContent, flowEntity.getContent());
         flowEntity.setContent(flowContent);
-        flowEntity.setVersion(version);
-        entityManager.merge(flowEntity);
         entityManager.flush();
-        final Flow updatedFlow = entityManager.find(Flow.class, id);
-        final String flowJson = jsonbContext.marshall(updatedFlow);
-        return Response
-                .ok()
-                .entity(flowJson)
-                .tag(updatedFlow.getVersion().toString())
-                .build();
+        return flowEntity;
     }
 
     /**
      * Deletes an existing flow
      *
-     * @param flowId  The flow ID
-     * @param version The version of the flow
+     * @param flowId The flow ID
      * @return a HTTP 204 response with no content,
      * a HTTP 404 response in case of flow ID not found,
      * a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
@@ -291,18 +295,11 @@ public class FlowsBean extends AbstractResourceBean {
             @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {
 
         final Flow flowEntity = entityManager.find(Flow.class, flowId);
-
         if (flowEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
-
-        // First we need to update the version no to see if any Optimistic Locking occurs!
-        entityManager.detach(flowEntity);
-        flowEntity.setVersion(version);
-        Flow versionUpdatedAndNoOptimisticLocking = entityManager.merge(flowEntity);
-
-        // If no Optimistic Locking - delete it!
-        entityManager.remove(versionUpdatedAndNoOptimisticLocking);
+        flowEntity.assertLatestVersion(version);
+        entityManager.remove(flowEntity);
         entityManager.flush();
 
         return Response.noContent().build();

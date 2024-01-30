@@ -104,7 +104,7 @@ public class HarvestersBeanTest {
 
     @Test
     public void updateHarvesterConfig_typeArgCanNotBeResolvedAsClass_throws() {
-        HarvesterConfig harvesterConfig = new HarvesterConfig();
+        HarvesterConfig harvesterConfig = new HarvesterConfig().withVersion(version);
         when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
 
         HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
@@ -113,7 +113,7 @@ public class HarvestersBeanTest {
 
     @Test
     public void updateHarvesterConfig_contentArgIsNotCompatibleWithTypeArg_throws() {
-        HarvesterConfig harvesterConfig = new HarvesterConfig();
+        HarvesterConfig harvesterConfig = new HarvesterConfig().withVersion(version);
         when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
 
         HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();

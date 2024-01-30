@@ -161,7 +161,8 @@ public abstract class AbstractJobStoreServiceContainerTest {
 //                .withEnv("REMOTE_DEBUGGING_HOST", getDebuggingHost())
                 .withExposedPorts(4848, 8080)
                 .waitingFor(Wait.forHttp("/dataio/job-store-service/status")
-                        .withReadTimeout(Duration.of(10, ChronoUnit.SECONDS)).forPort(8080))
+                        .forPort(8080)
+                        .withReadTimeout(Duration.of(10, ChronoUnit.SECONDS)))
                 .withStartupTimeout(Duration.ofMinutes(2));
         container.start();
         return container;

@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.Version;
 
 /**
@@ -41,6 +42,11 @@ public class Versioned {
 
     public Long getVersion() {
         return version;
+    }
+
+    public void assertLatestVersion(Long version) {
+        if(this.version.equals(version)) return;
+        throw new OptimisticLockException(getClass() + " was changed since version " + version);
     }
 
     public void setVersion(Long version) {

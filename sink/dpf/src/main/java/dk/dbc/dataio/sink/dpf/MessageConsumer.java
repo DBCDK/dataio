@@ -106,6 +106,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
                                             .process(getDpfRecords(chunkItem, id))));
             }
         } catch (DpfRecordProcessorException | IOException | JSONBException | MarcReaderException e) {
+            LOGGER.warn("Failed to handle chunk {}", chunkItem.getTrackingId(), e);
             return result
                     .withStatus(ChunkItem.Status.FAILURE)
                     .withDiagnostics(

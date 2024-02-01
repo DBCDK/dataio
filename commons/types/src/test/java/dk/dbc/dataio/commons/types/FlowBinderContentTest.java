@@ -26,7 +26,7 @@ public class FlowBinderContentTest {
     private static final String CHARSET = "charset";
     private static final String DESTINATION = "destination";
     private static final Priority PRIORITY = Priority.NORMAL;
-    private static final RecordSplitterConstants.RecordSplitter RECORD_SPLITTER = RecordSplitterConstants.RecordSplitter.XML;
+    private static final RecordSplitter RECORD_SPLITTER = RecordSplitter.XML;
     private static final Long FLOW_ID = 42L;
     private static final List<Long> SUBMITTER_IDS = Collections.singletonList(42L);
     private static final Long SINK_ID = 31L;

@@ -1,12 +1,12 @@
 package types;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.partioner.DataPartitioner;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import jakarta.persistence.EntityManager;
 
 import java.io.InputStream;
@@ -18,7 +18,7 @@ public class TestablePartitioningParam extends PartitioningParam {
                                      FlowStoreServiceConnector flowStoreServiceConnector,
                                      EntityManager entityManager,
                                      List<Diagnostic> diagnostics,
-                                     RecordSplitterConstants.RecordSplitter recordSplitter,
+                                     RecordSplitter recordSplitter,
                                      InputStream dataFileInputStream,
                                      DataPartitioner dataPartitioner) {
 

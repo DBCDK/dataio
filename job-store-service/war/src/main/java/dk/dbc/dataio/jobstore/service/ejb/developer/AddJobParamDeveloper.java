@@ -4,7 +4,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
@@ -20,7 +20,7 @@ public class AddJobParamDeveloper extends AddJobParam {
     }
 
     @Override
-    public RecordSplitterConstants.RecordSplitter lookupTypeOfDataPartitioner() {
+    public RecordSplitter lookupTypeOfDataPartitioner() {
         return typeOfDataPartitioner;
     }
 
@@ -44,7 +44,7 @@ public class AddJobParamDeveloper extends AddJobParam {
         return null;
     }
 
-    public AddJobParamDeveloper withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter typeOfDataPartitioner) {
+    public AddJobParamDeveloper withTypeOfDataPartitioner(RecordSplitter typeOfDataPartitioner) {
         this.typeOfDataPartitioner = typeOfDataPartitioner;
         return this;
     }

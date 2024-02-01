@@ -1,6 +1,9 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 
+import dk.dbc.dataio.commons.partioner.DanMarc2LineFormatDataPartitioner;
+import dk.dbc.dataio.commons.partioner.DataPartitioner;
+import dk.dbc.dataio.commons.partioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
@@ -16,9 +19,6 @@ import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -108,8 +108,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
                         + "<record>second"
                         + "</records>";
 
-        params.dataPartitioner = DefaultXmlDataPartitioner.newInstance(new ByteArrayInputStream(invalidXml.getBytes(StandardCharsets.UTF_8)),
-                StandardCharsets.UTF_8.name());
+        params.dataPartitioner = DefaultXmlDataPartitioner.newInstance(new ByteArrayInputStream(invalidXml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
 
         Sink sink = new SinkBuilder().build();
         JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);

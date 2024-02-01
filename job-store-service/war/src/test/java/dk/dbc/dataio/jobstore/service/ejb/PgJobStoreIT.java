@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
@@ -408,7 +408,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
                 .setJobSpecification(jobSpecification)
                 .setFlowBinder(new FlowBinderBuilder()
                         .setContent(new FlowBinderContentBuilder()
-                                .setRecordSplitter(RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT)
+                                .setRecordSplitter(RecordSplitter.DANMARC2_LINE_FORMAT)
                                 .build())
                         .build())
                 .setSubmitter(new SubmitterBuilder().build())

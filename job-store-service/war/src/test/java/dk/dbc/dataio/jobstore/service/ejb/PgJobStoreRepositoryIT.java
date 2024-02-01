@@ -1,5 +1,10 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.partioner.AddiDataPartitioner;
+import dk.dbc.dataio.commons.partioner.DanMarc2LineFormatDataPartitioner;
+import dk.dbc.dataio.commons.partioner.DataPartitioner;
+import dk.dbc.dataio.commons.partioner.DefaultXmlDataPartitioner;
+import dk.dbc.dataio.commons.partioner.IncludeFilterDataPartitioner;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
@@ -10,11 +15,6 @@ import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.partitioner.AddiDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.IncludeFilterDataPartitioner;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobStoreException;

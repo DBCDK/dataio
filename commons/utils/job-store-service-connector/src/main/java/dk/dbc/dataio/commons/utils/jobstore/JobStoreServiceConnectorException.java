@@ -1,9 +1,11 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
+import dk.dbc.dataio.commons.utils.service.DataIOConnectorException;
+
 /**
  * Thrown to indicate general error during job-store communication
  */
-public class JobStoreServiceConnectorException extends Exception {
+public class JobStoreServiceConnectorException extends DataIOConnectorException {
     private static final long serialVersionUID = 6110485229279206241L;
 
     /**

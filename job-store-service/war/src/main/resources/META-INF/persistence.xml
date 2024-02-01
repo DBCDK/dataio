@@ -15,15 +15,15 @@
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.SequenceAnalysisDataConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ItemEntity</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.ChunkItemConverter</class>
+    <class>dk.dbc.dataio.commons.partioner.entity.ChunkItemConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.FlowStoreReferencesConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.JobQueueEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationTypeConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationStatusConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.WorkflowNoteConverter</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.RecordInfoConverter</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity</class>
+    <class>dk.dbc.dataio.commons.partioner.entity.RecordInfoConverter</class>
+    <class>dk.dbc.dataio.commons.partioner.entity.ReorderedItemEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkSchedulingStatusConverter</class>
@@ -49,15 +49,15 @@
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.SequenceAnalysisDataConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ItemEntity</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.ChunkItemConverter</class>
+    <class>dk.dbc.dataio.commons.partioner.entity.ChunkItemConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.FlowStoreReferencesConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.JobQueueEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationTypeConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationStatusConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.WorkflowNoteConverter</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.RecordInfoConverter</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity</class>
+    <class>dk.dbc.dataio.commons.partioner.entity.RecordInfoConverter</class>
+    <class>dk.dbc.dataio.commons.partioner.entity.ReorderedItemEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkSchedulingStatusConverter</class>

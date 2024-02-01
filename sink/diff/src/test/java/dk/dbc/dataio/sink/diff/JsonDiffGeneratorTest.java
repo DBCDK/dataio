@@ -11,7 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
-    private static final byte[] DOC1 = (
+    public static final byte[] DOC1 = (
             "{" +
                     "\"name\":\"JsonDiffGeneratorTest\"," +
                     "\"author\":{" +
@@ -21,7 +21,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
                     "\"dependencies\":[\"a.jar\",\"b.jar\"]" +
                     "}").getBytes(StandardCharsets.UTF_8);
 
-    private static final byte[] DOC1_PRETTY_PRINTED = (
+    public static final byte[] DOC1_PRETTY_PRINTED = (
             "{\n" +
                     "  \"name\": \"JsonDiffGeneratorTest\",\n" +
                     "  \"author\": {\n" +
@@ -31,7 +31,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
                     "  \"dependencies\": [\"a.jar\", \"b.jar\"]\n" +
                     "}\n").getBytes(StandardCharsets.UTF_8);
 
-    private static final byte[] DOC1_WITH_DIFFERENT_KEY_ORDERING = (
+    public static final byte[] DOC1_WITH_DIFFERENT_KEY_ORDERING = (
             "{" +
                     "\"name\":\"JsonDiffGeneratorTest\"," +
                     "\"author\":{" +
@@ -41,7 +41,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
                     "\"dependencies\":[\"a.jar\",\"b.jar\"]" +
                     "}").getBytes(StandardCharsets.UTF_8);
 
-    private static final byte[] DOC2 = (
+    public static final byte[] DOC2 = (
             "{" +
                     "\"name\":\"JsonDiffGeneratorTest\"," +
                     "\"author\":{" +
@@ -56,7 +56,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void exactEquality() throws DiffGeneratorException, InvalidMessageException {
         if (canJsonDiff()) {
-            String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON, DOC1, DOC1);
+            String diff = diffGenerator.getDiff(Kind.JSON, DOC1, DOC1);
             assertThat(diff, is(""));
         }
     }
@@ -64,7 +64,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void normalizedEquality() throws DiffGeneratorException, InvalidMessageException {
         if (canJsonDiff()) {
-            String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON, DOC1, DOC1_PRETTY_PRINTED);
+            String diff = diffGenerator.getDiff(Kind.JSON, DOC1, DOC1_PRETTY_PRINTED);
             assertThat(diff, is(""));
         }
     }
@@ -72,7 +72,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void semanticEquality() throws DiffGeneratorException, InvalidMessageException {
         if (canJsonDiff()) {
-            String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON, DOC1, DOC1_WITH_DIFFERENT_KEY_ORDERING);
+            String diff = diffGenerator.getDiff(Kind.JSON, DOC1, DOC1_WITH_DIFFERENT_KEY_ORDERING);
             assertThat(diff, is(""));
         }
     }
@@ -80,7 +80,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void diff() throws DiffGeneratorException, InvalidMessageException {
         if (canJsonDiff()) {
-            String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON, DOC1, DOC2);
+            String diff = diffGenerator.getDiff(Kind.JSON, DOC1, DOC2);
             assertThat(diff, containsString("-    \"mail\": \"John@Doe.com\","));
             assertThat(diff, containsString("-    \"name\": \"John Doe\""));
             assertThat(diff, containsString("+    \"mail\": \"Jane@Doe.com\","));
@@ -91,7 +91,7 @@ public class JsonDiffGeneratorTest extends AbstractDiffGeneratorTest {
     @Test
     public void invalidJson() {
         if (canJsonDiff()) {
-            assertThrows(DiffGeneratorException.class, () -> diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.JSON, DOC1, "{invalid".getBytes(StandardCharsets.UTF_8)));
+            assertThrows(DiffGeneratorException.class, () -> diffGenerator.getDiff(Kind.JSON, DOC1, "{invalid".getBytes(StandardCharsets.UTF_8)));
         }
     }
 }

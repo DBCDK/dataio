@@ -1,11 +1,12 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.dataio.commons.partioner.entity.ConverterJSONBContext;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
-import org.postgresql.util.PGobject;
-
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import org.postgresql.util.PGobject;
+
 import java.sql.SQLException;
 
 @Converter

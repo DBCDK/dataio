@@ -5,6 +5,7 @@ import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 public enum SinkConfig implements EnvConfig {
     QUEUE("sink::diff"),
     MESSAGE_FILTER(null),
+    USE_NATIVE_DIFF("true"),
     TOOL_PATH("/work");
 
     private final String defaultValue;

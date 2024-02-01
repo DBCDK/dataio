@@ -5,9 +5,8 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.commons.utils.service.DataIOConnectorException;
 import dk.dbc.dataio.jobprocessor2.ProcessorConfig;
 import dk.dbc.dataio.jobprocessor2.util.ChunkItemProcessor;
 import dk.dbc.dataio.jobprocessor2.util.FlowCache;
@@ -35,11 +34,11 @@ public class ChunkProcessor {
     private static final boolean SHARE_FLOWS = ProcessorConfig.SHARE_FLOWS.asBoolean();
     private final HealthService healthService;
     private static final FlowCache flowCache = new FlowCache();
-    private final JobStoreServiceConnector jobStoreServiceConnector;
+    private final FlowFetcher flowFetcher;
 
-    public ChunkProcessor(HealthService healthService, JobStoreServiceConnector jobStoreServiceConnector) {
+    public ChunkProcessor(HealthService healthService, FlowFetcher flowFetcher) {
         this.healthService = healthService;
-        this.jobStoreServiceConnector = jobStoreServiceConnector;
+        this.flowFetcher = flowFetcher;
     }
 
     public static void clearFlowCache() {
@@ -98,8 +97,8 @@ public class ChunkProcessor {
     private Flow flowFromJobStore(Chunk chunk) throws JobProcessorException {
         StopWatch stopWatch = new StopWatch();
         try {
-            return jobStoreServiceConnector.getCachedFlow(chunk.getJobId());
-        } catch (JobStoreServiceConnectorException e) {
+            return flowFetcher.fetch(chunk.getJobId());
+        } catch (DataIOConnectorException e) {
             throw new JobProcessorException(String.format(
                     "Exception caught while fetching flow for job %s", chunk.getJobId()), e);
         } finally {
@@ -126,7 +125,7 @@ public class ChunkProcessor {
                 flowCacheEntry.scripts, additionalArgs));
     }
 
-    private List<ChunkItem> processItemsWithNextRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, String additionalArgs) {
+    protected List<ChunkItem> processItemsWithNextRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, String additionalArgs) {
         if (!flowCacheEntry.next.isEmpty()) {
             return processItems(chunk, new ChunkItemProcessor(chunk.getJobId(), chunk.getChunkId(),
                     flowCacheEntry.next, additionalArgs));
@@ -165,5 +164,9 @@ public class ChunkProcessor {
                     .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "Chunk item failed during processing", t)));
         }
         return failedItems;
+    }
+
+    public interface FlowFetcher {
+        Flow fetch(int id) throws DataIOConnectorException;
     }
 }

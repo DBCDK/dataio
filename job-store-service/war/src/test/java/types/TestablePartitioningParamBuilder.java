@@ -1,14 +1,14 @@
 package types;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.partioner.DataPartitioner;
+import dk.dbc.dataio.commons.partioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import jakarta.persistence.EntityManager;
 
 import java.io.ByteArrayInputStream;
@@ -43,7 +43,7 @@ public class TestablePartitioningParamBuilder {
 
     private List<Diagnostic> diagnostics = new ArrayList<>();
     private InputStream dataFileInputStream = new ByteArrayInputStream(records.getBytes(StandardCharsets.UTF_8));
-    private RecordSplitterConstants.RecordSplitter recordSplitter = RecordSplitterConstants.RecordSplitter.XML;
+    private RecordSplitter recordSplitter = RecordSplitter.XML;
     private DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(dataFileInputStream, StandardCharsets.UTF_8.name());
 
     public TestablePartitioningParamBuilder setJobEntity(JobEntity jobEntity) {
@@ -66,7 +66,7 @@ public class TestablePartitioningParamBuilder {
         return this;
     }
 
-    public TestablePartitioningParamBuilder setRecordSplitter(RecordSplitterConstants.RecordSplitter recordSplitter) {
+    public TestablePartitioningParamBuilder setRecordSplitter(RecordSplitter recordSplitter) {
         this.recordSplitter = recordSplitter;
         return this;
     }

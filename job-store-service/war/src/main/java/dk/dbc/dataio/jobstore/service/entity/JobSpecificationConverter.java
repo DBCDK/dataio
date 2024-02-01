@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.dataio.commons.partioner.entity.ConverterJSONBContext;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

@@ -1,5 +1,11 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
+import dk.dbc.dataio.commons.ResultSummary;
+import dk.dbc.dataio.commons.partioner.DataPartitionerResult;
+import dk.dbc.dataio.commons.partioner.Iso2709ReorderingDataPartitioner;
+import dk.dbc.dataio.commons.partioner.JobItemReorderer;
+import dk.dbc.dataio.commons.partioner.VolumeAfterParents;
+import dk.dbc.dataio.commons.partioner.VolumeIncludeParents;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import org.junit.Test;

@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.utils.JunitXmlStreamWriter;
 import dk.dbc.dataio.commons.utils.JunitXmlTestCase;
 import dk.dbc.dataio.commons.utils.JunitXmlTestSuite;
@@ -64,7 +64,7 @@ public class JobManager {
         final AccTestJobInputStream jobInputStream = new AccTestJobInputStream(
                 jobSpecification,
                 flow,
-                RecordSplitterConstants.RecordSplitter.valueOf((String) testSuite.getProperties().get("recordSplitter")));
+                RecordSplitter.valueOf((String) testSuite.getProperties().get("recordSplitter")));
 
         final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addAccTestJob(jobInputStream);
         return waitForJobCompletion(jobInfoSnapshot.getJobId(), testSuite);

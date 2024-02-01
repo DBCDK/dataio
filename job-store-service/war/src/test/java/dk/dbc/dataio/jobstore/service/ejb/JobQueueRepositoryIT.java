@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
@@ -94,7 +94,7 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
         final JobQueueEntity jobQueueEntity = new JobQueueEntity()
                 .withJob(job)
                 .withSinkId(42)
-                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
+                .withTypeOfDataPartitioner(RecordSplitter.XML);
 
         // When...
         final JobQueueRepository jobQueueRepository = newJobQueueRepository();
@@ -169,12 +169,12 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
                 .withJob(job1)
                 .withSinkId(sinkCacheEntity.getSink().getId())
                 .withState(JobQueueEntity.State.IN_PROGRESS)
-                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
+                .withTypeOfDataPartitioner(RecordSplitter.XML);
         final JobQueueEntity jobQueueEntity2 = new JobQueueEntity()
                 .withJob(job2)
                 .withSinkId(sinkCacheEntity.getSink().getId())
                 .withState(JobQueueEntity.State.WAITING)
-                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
+                .withTypeOfDataPartitioner(RecordSplitter.XML);
 
         persist(jobQueueEntity1);
         persist(jobQueueEntity2);
@@ -209,12 +209,12 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
                 .withJob(job1)
                 .withSinkId(sinkCacheEntity.getSink().getId())
                 .withState(JobQueueEntity.State.WAITING)
-                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
+                .withTypeOfDataPartitioner(RecordSplitter.XML);
         final JobQueueEntity jobQueueEntity2 = new JobQueueEntity()
                 .withJob(job2)
                 .withSinkId(sinkCacheEntity.getSink().getId())
                 .withState(JobQueueEntity.State.WAITING)
-                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
+                .withTypeOfDataPartitioner(RecordSplitter.XML);
 
         persist(jobQueueEntity1);
         persist(jobQueueEntity2);
@@ -251,23 +251,23 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
                 .withJob(job1)
                 .withSinkId(sinkCacheEntity.getSink().getId())
                 .withState(JobQueueEntity.State.IN_PROGRESS)
-                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
+                .withTypeOfDataPartitioner(RecordSplitter.XML);
         final JobQueueEntity jobQueueEntity2 = new JobQueueEntity()
                 .withJob(job2)
                 .withSinkId(sinkCacheEntity.getSink().getId())
                 .withState(JobQueueEntity.State.WAITING)
-                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
+                .withTypeOfDataPartitioner(RecordSplitter.XML);
         final JobQueueEntity jobQueueEntity3 = new JobQueueEntity()
                 .withJob(job3)
                 .withSinkId(sinkCacheEntity.getSink().getId())
                 .withState(JobQueueEntity.State.WAITING)
-                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
+                .withTypeOfDataPartitioner(RecordSplitter.XML);
         // check that the same submitter can run in different sinks
         final JobQueueEntity jobQueueEntity4 = new JobQueueEntity()
                 .withJob(job4)
                 .withSinkId(sinkCacheEntity.getSink().getId() + 1)
                 .withState(JobQueueEntity.State.IN_PROGRESS)
-                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
+                .withTypeOfDataPartitioner(RecordSplitter.XML);
 
         persist(jobQueueEntity1);
         persist(jobQueueEntity2);
@@ -303,7 +303,7 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
                 .withJob(job)
                 .withSinkId(sinkCacheEntity.getSink().getId())
                 .withState(JobQueueEntity.State.WAITING)
-                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML));
+                .withTypeOfDataPartitioner(RecordSplitter.XML));
 
         final JobQueueRepository jobQueueRepository = newJobQueueRepository();
         final JobQueueEntity jobQueueEntity = persistenceContext.run(() ->

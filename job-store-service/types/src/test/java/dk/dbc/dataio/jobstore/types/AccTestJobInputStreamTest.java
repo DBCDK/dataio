@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.types;
 
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +15,7 @@ public class AccTestJobInputStreamTest {
 
     private final JobSpecification jobSpecification = new JobSpecification().withFormat("format");
     private final Flow flow = new FlowBuilder().build();
-    private final RecordSplitterConstants.RecordSplitter typeOfDataPartitioner = RecordSplitterConstants.RecordSplitter.XML;
+    private final RecordSplitter typeOfDataPartitioner = RecordSplitter.XML;
 
     @Test
     public void constructor_flowArgIsNull_throws() {

@@ -182,6 +182,10 @@
             <artifactId>dbc-commons-marc</artifactId>
         </dependency>
         <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-partitioner</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
         </dependency>

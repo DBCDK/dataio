@@ -1,0 +1,64 @@
+
+
+<dataio-harvester-datafile>
+  <data-container>
+    <data-supplementary>
+      <creationDate>20140805</creationDate>
+      <enrichmentTrail>191919,758000</enrichmentTrail>
+      <trackingId>&lt;trackingid-&amp;dataio-1&gt;</trackingId>
+    </data-supplementary>
+    <data>
+      <collection xmlns="info:lc/xmlns/marcxchange-v1">
+        <record>
+          <leader>00000n 2200000 4500</leader>
+          <marcx:datafield xmlns:marcx="info:lc/xmlns/marcxchange-v1" ind1="0" ind2="0" tag="001">
+            <marcx:subfield code="a">51222865</marcx:subfield>
+          </marcx:datafield>
+          <datafield ind1="0" ind2="0" tag="004">
+            <subfield code="r">n</subfield>
+          </datafield>
+        </record>
+      </collection>
+    </data>
+  </data-container>
+  <data-container>
+    <data-supplementary>
+      <creationDate>20140805</creationDate>
+      <enrichmentTrail>191919,758000</enrichmentTrail>
+      <trackingId>&quot;&amp;trackingid-dataio-2&quot;</trackingId>
+    </data-supplementary>
+    <data>
+      <collection xmlns="info:lc/xmlns/marcxchange-v1">
+        <record>
+          <leader>00000n 2200000 4500</leader>
+          <marcx:datafield xmlns:marcx="info:lc/xmlns/marcxchange-v1" ind1="0" ind2="0" tag="001">
+            <marcx:subfield code="a">51222865</marcx:subfield>
+          </marcx:datafield>
+          <datafield ind1="0" ind2="0" tag="004">
+            <subfield code="r">n</subfield>
+          </datafield>
+        </record>
+      </collection>
+    </data>
+  </data-container>
+  <data-container>
+    <data-supplementary>
+      <creationDate>20140805</creationDate>
+      <enrichmentTrail>191919,758000</enrichmentTrail>
+      <trackingId>&#39;trackingid-&#39;dataio-3&amp;</trackingId>
+    </data-supplementary>
+    <data>
+      <collection xmlns="info:lc/xmlns/marcxchange-v1">
+          <record>
+          <leader>00000n 2200000 4500</leader>
+          <marcx:datafield xmlns:marcx="info:lc/xmlns/marcxchange-v1" ind1="0" ind2="0" tag="001">
+            <marcx:subfield code="a">51222865</marcx:subfield>
+          </marcx:datafield>
+          <datafield ind1="0" ind2="0" tag="004">
+            <subfield code="r">n</subfield>
+          </datafield>
+        </record>
+      </collection>
+    </data>
+  </data-container>
+</dataio-harvester-datafile>

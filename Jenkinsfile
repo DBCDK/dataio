@@ -1,7 +1,7 @@
 #!groovy
 
 String docker_images_log_stash_tag = "docker_images_log"
-String workerNode = "devel10"
+String workerNode = "devel11"
 Boolean DEPLOY_TO_STAGING_CANDIDATE=false
 
 pipeline {
@@ -22,7 +22,8 @@ pipeline {
             harvester/utils/rawrepo-connector, \
             harvester/utils/harvester-job-builder, \
             commons/utils, \
-            commons/utils/binary-file-store"
+            commons/utils/binary-file-store, \
+            cli/acc-test-runner"
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara5-bump-trigger",

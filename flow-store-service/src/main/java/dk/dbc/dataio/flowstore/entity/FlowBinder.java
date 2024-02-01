@@ -51,7 +51,7 @@ import jakarta.persistence.Table;
         ),
 })
 public class FlowBinder extends Versioned {
-    private static final JSONBContext jsonbContext = new JSONBContext();
+    protected static final JSONBContext jsonbContext = new JSONBContext();
 
     public static final String TABLE_NAME = "flow_binders";
 

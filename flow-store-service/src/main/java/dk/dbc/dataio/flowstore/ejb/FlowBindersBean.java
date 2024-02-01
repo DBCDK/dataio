@@ -305,8 +305,8 @@ public class FlowBindersBean extends AbstractResourceBean {
         return Response.ok().entity(jsonbContext.marshall(findFlowBinders())).build();
     }
 
-    private List<dk.dbc.dataio.commons.types.FlowBinder> findFlowBinders() {
-        TypedQuery<dk.dbc.dataio.commons.types.FlowBinder> query = entityManager.createNamedQuery(FlowBinder.FIND_ALL_QUERY_NAME, dk.dbc.dataio.commons.types.FlowBinder.class);
+    private List<FlowBinder> findFlowBinders() {
+        TypedQuery<FlowBinder> query = entityManager.createNamedQuery(FlowBinder.FIND_ALL_QUERY_NAME, FlowBinder.class);
         return query.getResultList();
     }
 
@@ -314,7 +314,7 @@ public class FlowBindersBean extends AbstractResourceBean {
     @Path(FlowStoreServiceConstants.FLOW_BINDERS_RESOLVED)
     @Produces({MediaType.APPLICATION_JSON})
     public Response findAllResolvedFlowBinders() throws JSONBException {
-        List<FlowBindersResolved> resolvedList = findFlowBinders().stream().map(fb -> new FlowBindersResolved(fb, sinksBean::getSinkName, submittersBean::getSubmitterName, flowsBean::getFlowName)).collect(Collectors.toList());
+        List<FlowBindersResolved> resolvedList = findFlowBinders().stream().map(fb -> FlowBindersResolved.from(fb, sinksBean::getSinkName, submittersBean::getSubmitterName, flowsBean::getFlowName)).collect(Collectors.toList());
         return Response.ok().entity(jsonbContext.marshall(resolvedList)).build();
     }
 

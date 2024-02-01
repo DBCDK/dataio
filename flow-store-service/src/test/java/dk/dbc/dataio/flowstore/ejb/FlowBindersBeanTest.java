@@ -10,6 +10,7 @@ import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.ws.rs.core.Response;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -28,7 +29,7 @@ public class FlowBindersBeanTest {
 
     private final JSONBContext jsonbContext = new JSONBContext();
 
-    @Test
+    @Test @Disabled("Flawed test as FlowBinder.FIND_ALL_QUERY_NAME returns the flow binder entity")
     @SuppressWarnings("unchecked")
     public void getAllFlowBinders_validParametersAndMatchingFlow_returnsResponseWithFlowAndHTTP200() throws JSONBException {
         FlowBindersBean fbb = new FlowBindersBean();

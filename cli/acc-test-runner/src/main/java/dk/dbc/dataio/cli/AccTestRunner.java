@@ -20,6 +20,9 @@ import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.diff.MessageConsumerBean;
 import dk.dbc.httpclient.HttpClient;
 import jakarta.xml.bind.JAXB;
+import junit.testsuite.Testcase;
+import junit.testsuite.Testsuite;
+import junit.testsuite.Testsuites;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import picocli.CommandLine;
@@ -125,14 +128,20 @@ public class AccTestRunner implements Callable<Integer> {
         },
         XML {
             public void printDiff(Flow flow, Chunk chunk) {
-                List<Testsuite.TestCase> cases = chunk.getItems().stream().map(Testsuite.TestCase::from).collect(Collectors.toList());
                 String name = flow.getContent().getName();
-                Testsuite testsuite = new Testsuite(name, cases);
+                List<Object> cases = chunk.getItems().stream().map(Testcase::from).collect(Collectors.toList());
+                Testsuites testsuites = new Testsuites().withTestsuite(List.of(new Testsuite().withName(name).withHostname(HOSTNAME).withTests(Integer.toString(chunk.getItems().size())).withTestsuiteOrPropertiesOrTestcase(cases)));
                 File file = new File("TESTS-dbc_" + flow.getId() + "-" + name + ".xml");
-                JAXB.marshal(testsuite, file);
+                JAXB.marshal(testsuites, file);
                 System.out.println("Wrote report to " + file.getAbsolutePath());
             }
         };
+
+        public static final String HOSTNAME = hostname();
+
+        private static String hostname() {
+            return System.getenv("HOSTNAME");
+        }
 
         public abstract void printDiff(Flow flow, Chunk chunk);
     }

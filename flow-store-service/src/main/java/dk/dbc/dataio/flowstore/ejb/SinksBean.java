@@ -9,7 +9,7 @@ import dk.dbc.invariant.InvariantUtil;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -26,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Stateless
 @Path("/")
@@ -33,6 +35,7 @@ public class SinksBean extends AbstractResourceBean {
     private static final Logger log = LoggerFactory.getLogger(SinksBean.class);
     private static final String SINK_CONTENT_DISPLAY_TEXT = "sinkContent";
     private static final String NULL_ENTITY = "";
+    private static final Map<Long, String> NAME_CACHE = new ConcurrentHashMap<>();
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -182,12 +185,28 @@ public class SinksBean extends AbstractResourceBean {
     @Path(FlowStoreServiceConstants.SINKS)
     @Produces({MediaType.APPLICATION_JSON})
     public Response findAllSinks() throws JSONBException {
-        final Query query = entityManager.createNamedQuery(SinkEntity.QUERY_FIND_ALL);
-        final List<SinkEntity> results = query.getResultList();
         return Response
                 .ok()
-                .entity(jsonbContext.marshall(results))
+                .entity(jsonbContext.marshall(getSinks()))
                 .build();
+    }
+
+    public String getSinkName(Long id) {
+        return NAME_CACHE.computeIfAbsent(id, this::resolveSinkName);
+    }
+
+    private String resolveSinkName(Long id) {
+        SinkEntity sinkEntity = entityManager.find(SinkEntity.class, id);
+        try {
+            return jsonbContext.unmarshall(sinkEntity.getContent(), SinkContent.class).getName();
+        } catch (Exception e) {
+            return id.toString();
+        }
+    }
+
+    public List<SinkEntity> getSinks() {
+        TypedQuery<SinkEntity> query = entityManager.createNamedQuery(SinkEntity.QUERY_FIND_ALL, SinkEntity.class);
+        return query.getResultList();
     }
 }
 

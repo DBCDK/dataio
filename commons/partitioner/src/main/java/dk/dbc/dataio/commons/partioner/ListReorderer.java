@@ -25,7 +25,7 @@ public class ListReorderer implements ItemReorderer {
 
     @Override
     public int getNumberOfItems() {
-        return 0;
+        return size;
     }
 
     @Override

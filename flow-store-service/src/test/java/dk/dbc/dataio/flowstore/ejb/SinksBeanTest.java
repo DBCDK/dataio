@@ -7,7 +7,7 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
 import dk.dbc.dataio.flowstore.entity.SinkEntity;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
@@ -78,9 +78,9 @@ public class SinksBeanTest {
     @SuppressWarnings("unchecked")
     public void findAllSinks_noSinksFound_returnsResponseWithHttpStatusOkAndSinkEntity() throws JSONBException {
         SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
-        Query query = mock(Query.class);
+        TypedQuery<SinkEntity> query = mock(TypedQuery.class);
 
-        when(ENTITY_MANAGER.createNamedQuery(SinkEntity.QUERY_FIND_ALL)).thenReturn(query);
+        when(ENTITY_MANAGER.createNamedQuery(SinkEntity.QUERY_FIND_ALL, SinkEntity.class)).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.emptyList());
 
         Response response = sinksBean.findAllSinks();
@@ -94,7 +94,7 @@ public class SinksBeanTest {
     @SuppressWarnings("unchecked")
     public void findAllSinks_sinksFound_returnsResponseWithHttpStatusOkAndSinkEntities() throws JSONBException {
         SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
-        Query query = mock(Query.class);
+        TypedQuery<SinkEntity> query = mock(TypedQuery.class);
         final String nameSinkA = "A";
         SinkEntity sinkEntityA = new SinkEntity();
         sinkEntityA.setContent(new SinkContentJsonBuilder()
@@ -106,7 +106,7 @@ public class SinksBeanTest {
                 .setName(nameSinkB)
                 .build());
 
-        when(ENTITY_MANAGER.createNamedQuery(SinkEntity.QUERY_FIND_ALL)).thenReturn(query);
+        when(ENTITY_MANAGER.createNamedQuery(SinkEntity.QUERY_FIND_ALL, SinkEntity.class)).thenReturn(query);
         when(query.getResultList()).thenReturn(Arrays.asList(sinkEntityA, sinkEntityB));
 
         Response response = sinksBean.findAllSinks();

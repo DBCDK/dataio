@@ -32,6 +32,7 @@ import static dk.dbc.dataio.commons.types.RecordSplitter.values;
 /**
  * Factory interface for creation of instances of DataPartitioner
  */
+@SuppressWarnings("PMD")
 public class DataPartitionerFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataPartitionerFactory.class);
     private static final Map<RecordSplitter, PartitionerInput> map = createMappings();

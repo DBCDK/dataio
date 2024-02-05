@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -47,6 +49,7 @@ public class FlowsBean extends AbstractResourceBean {
     private static final Logger log = LoggerFactory.getLogger(FlowsBean.class);
     private static final String FLOW_CONTENT_DISPLAY_TEXT = "flowContent";
     private static final String NULL_ENTITY = "";
+    private static final Map<Long, String> NAME_CACHE = new ConcurrentHashMap<>();
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -75,6 +78,17 @@ public class FlowsBean extends AbstractResourceBean {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         return Response.ok().entity(jsonbContext.marshall(flow)).build();
+    }
+
+    public String getFlowName(Long id) {
+        return NAME_CACHE.computeIfAbsent(id, k -> {
+            try {
+                Flow flow = entityManager.find(Flow.class, id);
+                return jsonbContext.unmarshall(flow.getContent(), FlowContent.class).getName();
+            } catch (Exception e) {
+                return id.toString();
+            }
+        });
     }
 
     /**
@@ -166,6 +180,7 @@ public class FlowsBean extends AbstractResourceBean {
             flow = self().updateFlowContent(flowContent, id, version);
         }
         if (flow == null) return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(NULL_ENTITY).build();
+        NAME_CACHE.remove(id);
         return Response.ok()
                 .entity(jsonbContext.marshall(flow))
                 .tag(Long.toString(flow.getVersion()))
@@ -276,6 +291,7 @@ public class FlowsBean extends AbstractResourceBean {
         flowContent = setTimeOfFlowComponentUpdate(flowContent, flowEntity.getContent());
         flowEntity.setContent(flowContent);
         entityManager.flush();
+        NAME_CACHE.remove(id);
         return flowEntity;
     }
 
@@ -301,7 +317,7 @@ public class FlowsBean extends AbstractResourceBean {
         flowEntity.assertLatestVersion(version);
         entityManager.remove(flowEntity);
         entityManager.flush();
-
+        NAME_CACHE.remove(flowId);
         return Response.noContent().build();
     }
 

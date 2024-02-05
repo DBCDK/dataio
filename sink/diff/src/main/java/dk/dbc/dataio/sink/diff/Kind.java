@@ -6,7 +6,7 @@ import com.deblock.jsondiff.matcher.CompositeJsonMatcher;
 import com.deblock.jsondiff.matcher.StrictJsonArrayPartialMatcher;
 import com.deblock.jsondiff.matcher.StrictJsonObjectPartialMatcher;
 import com.deblock.jsondiff.matcher.StrictPrimitivePartialMatcher;
-import com.deblock.jsondiff.viewer.OnlyErrorDiffViewer;
+import com.deblock.jsondiff.viewer.PatchDiffViewer;
 import com.github.difflib.text.DiffRow;
 import com.github.difflib.text.DiffRowGenerator;
 import org.xmlunit.builder.DiffBuilder;
@@ -25,7 +25,7 @@ public enum Kind {
             CompositeJsonMatcher matcher = new CompositeJsonMatcher(new StrictJsonArrayPartialMatcher(), new StrictJsonObjectPartialMatcher(), new StrictPrimitivePartialMatcher());
             JsonDiff diff = DiffGenerator.diff(new String(data1, UTF_8), new String(data2, UTF_8), matcher);
             if(diff.similarityRate() == 100D) return "";
-            return OnlyErrorDiffViewer.from(diff).toString();
+            return PatchDiffViewer.from(diff).toString();
         }
     },
     XML("xmldiff") {

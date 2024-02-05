@@ -6,7 +6,7 @@ import com.deblock.jsondiff.matcher.CompositeJsonMatcher;
 import com.deblock.jsondiff.matcher.StrictJsonArrayPartialMatcher;
 import com.deblock.jsondiff.matcher.StrictJsonObjectPartialMatcher;
 import com.deblock.jsondiff.matcher.StrictPrimitivePartialMatcher;
-import com.deblock.jsondiff.viewer.OnlyErrorDiffViewer;
+import com.deblock.jsondiff.viewer.PatchDiffViewer;
 import com.github.difflib.text.DiffRow;
 import com.github.difflib.text.DiffRowGenerator;
 import org.xmlunit.builder.DiffBuilder;
@@ -14,7 +14,9 @@ import org.xmlunit.builder.Input;
 import org.xmlunit.diff.Diff;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -25,7 +27,7 @@ public enum Kind {
             CompositeJsonMatcher matcher = new CompositeJsonMatcher(new StrictJsonArrayPartialMatcher(), new StrictJsonObjectPartialMatcher(), new StrictPrimitivePartialMatcher());
             JsonDiff diff = DiffGenerator.diff(new String(data1, UTF_8), new String(data2, UTF_8), matcher);
             if(diff.similarityRate() == 100D) return "";
-            return OnlyErrorDiffViewer.from(diff).toString();
+            return PatchDiffViewer.from(diff).toString();
         }
     },
     XML("xmldiff") {
@@ -40,18 +42,13 @@ public enum Kind {
         @Override
         public String diff(byte[] data1, byte[] data2) {
             DiffRowGenerator generator = DiffRowGenerator.create()
-                    .showInlineDiffs(true)
-                    .inlineDiffByWord(true)
-                    .oldTag(f -> "~")
-                    .newTag(f -> "**")
+                    .oldTag(f -> "-")
+                    .newTag(f -> "+")
                     .build();
             List<DiffRow> rows = generator.generateDiffRows(List.of(new String(data1, UTF_8).split("\n")), List.of(new String(data2, UTF_8).split("\n")));
             List<DiffRow> diff = rows.stream().filter(r -> r.getTag() != DiffRow.Tag.EQUAL).collect(Collectors.toList());
             if(diff.isEmpty()) return "";
-            return "|current|next|\n" +
-                    diff.stream()
-                            .map(r -> "|" + r.getOldLine() + "|" + r.getNewLine() + "|")
-                            .collect(Collectors.joining("\n"));
+            return rows.stream().flatMap(Kind::lineDiff).collect(Collectors.joining("\n"));
         }
     };
 
@@ -79,4 +76,12 @@ public enum Kind {
     }
 
     public abstract String diff(byte[] data1, byte[] data2);
+
+    private static Stream<String> lineDiff(DiffRow diffRow) {
+        if(diffRow.getTag() == DiffRow.Tag.EQUAL) return Stream.of("  " + diffRow.getOldLine());
+        return Stream.of(
+                Optional.of(diffRow.getOldLine()).filter(s -> !s.isEmpty()).map(s -> "- " + s).stream(),
+                Optional.of(diffRow.getNewLine()).filter(s -> !s.isEmpty()).map(s -> "+ " + s).stream()
+        ).flatMap(s -> s);
+    }
 }

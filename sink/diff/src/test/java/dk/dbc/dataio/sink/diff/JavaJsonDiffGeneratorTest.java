@@ -63,7 +63,7 @@ public class JavaJsonDiffGeneratorTest {
     @Test
     public void diff() throws DiffGeneratorException, InvalidMessageException {
         String diff = DIFF_GENERATOR.getDiff(Kind.JSON, DOC1, DOC2);
-        Assertions.assertTrue(diff.contains("$.author.mail"));
-        Assertions.assertTrue(diff.contains("$.author.name"));
+        Assertions.assertTrue(diff.contains("Jane"));
+        Assertions.assertTrue(diff.contains("John"));
     }
 }

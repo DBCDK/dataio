@@ -14,11 +14,14 @@
 
     <properties>
         <main-class>dk.dbc.dataio.jobprocessor2.Jobprocessor</main-class>
+        <jdk.target.version>17</jdk.target.version>
+        <java.image>docker-dbc.artifacts.dbccloud.dk/dbc-java17:latest</java.image>
         <!--suppress UnresolvedMavenProperty -->
         <start.cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-2g} -XX:+ExitOnOutOfMemoryError -Dlogback.configurationFile=logback-jobstore.xml -jar /work/${project.build.finalName}.jar</start.cmd>
     </properties>
 
     <dependencies>
+
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>artemis-jse-app</artifactId>
@@ -26,7 +29,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-javascript</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>

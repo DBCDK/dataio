@@ -68,7 +68,7 @@ public class AddiDiffGenerator {
 
         @Override
         public String toString() {
-            return metaDiff + contentDiff;
+            return metaDiff + "\n" + contentDiff;
         }
 
         private String getDiff(byte[] current, byte[] next) throws DiffGeneratorException, InvalidMessageException {

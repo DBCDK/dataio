@@ -16,7 +16,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-jslib</artifactId>
-            <version>1.4-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.postgresql</groupId>
@@ -39,6 +38,11 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-stopwatch</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.nashorn</groupId>
+            <artifactId>nashorn-core</artifactId>
+            <version>15.4</version>
         </dependency>
     </dependencies>
 

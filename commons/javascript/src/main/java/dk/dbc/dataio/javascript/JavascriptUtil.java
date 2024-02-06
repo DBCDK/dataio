@@ -5,7 +5,7 @@ import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.jslib.Environment;
 import dk.dbc.jslib.ModuleHandler;
 import dk.dbc.jslib.SchemeURI;
-import jdk.nashorn.api.scripting.JSObject;
+import org.openjdk.nashorn.api.scripting.JSObject;
 
 import java.io.IOException;
 import java.io.Reader;

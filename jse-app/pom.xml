@@ -19,6 +19,7 @@
         <main-class>Dummy</main-class>
         <java.image>docker-dbc.artifacts.dbccloud.dk/dbc-java11:master</java.image>
         <jackson.version>2.15.2</jackson.version>
+
         <!--suppress UnresolvedMavenProperty -->
         <start.cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-256m} -XX:+ExitOnOutOfMemoryError -jar /work/${project.build.finalName}.jar</start.cmd>
     </properties>

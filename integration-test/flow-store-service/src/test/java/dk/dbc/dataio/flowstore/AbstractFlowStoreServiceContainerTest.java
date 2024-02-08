@@ -41,7 +41,7 @@ public abstract class AbstractFlowStoreServiceContainerTest implements PostgresC
                 .withEnv("SUBVERSION_URL", "https://no-svn-server-needed-for-this-test")
                 .withEnv("HZ_CLUSTER_NAME", "dataio-flowstore-cluster")
                 .withExposedPorts(8080)
-                .waitingFor(Wait.forHttp(System.getProperty("flowstore.it.service.context") + "/status"))
+                .waitingFor(Wait.forHttp(System.getProperty("flowstore.it.service.context") + "/status").forPort(8080))
                 .withStartupTimeout(Duration.ofMinutes(5));
         flowstoreServiceContainer.start();
         try {

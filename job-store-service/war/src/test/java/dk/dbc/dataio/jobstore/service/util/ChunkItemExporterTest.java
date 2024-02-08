@@ -140,10 +140,10 @@ public class ChunkItemExporterTest {
                 .setTag("245")
                 .setInd1('0')
                 .setInd2('0')
-                .addSubfield(new SubField()
+                .addSubField(new SubField()
                         .setCode('a')
                         .setData("A *programmer is born"))
-                .addSubfield(new SubField()
+                .addSubField(new SubField()
                         .setCode('b')
                         .setData("everyday@dbc"));
         return new MarcRecord()

@@ -54,8 +54,7 @@ public class ScheduledHarvestBean extends AbstractScheduledHarvestBean<Harvester
     @Override
     public boolean canRun(PromatHarvesterConfig config) {
         try {
-            final RunSchedule runSchedule = new RunSchedule(config.getContent().getSchedule())
-                    .withTimezone(Constants.ZONE_ID);
+            final RunSchedule runSchedule = new RunSchedule(config.getContent().getSchedule()).withTimezone(Constants.ZONE_CPH);
             final Date now = new Date();
             return runSchedule.isSatisfiedBy(now, config.getContent().getTimeOfLastHarvest())
                     || runSchedule.isOverdue(now, config.getContent().getTimeOfLastHarvest());

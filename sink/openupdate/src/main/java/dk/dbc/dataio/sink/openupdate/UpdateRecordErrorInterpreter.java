@@ -152,7 +152,7 @@ class UpdateRecordErrorInterpreter {
         Integer subfieldNo = message.getOrdinalPositionOfSubfield();
         if (subfieldNo != null) {
             try {
-                return Optional.of(dataField.getSubfields().get(subfieldNo));
+                return Optional.of(dataField.getSubFields().get(subfieldNo));
             } catch (RuntimeException e) {
                 LOGGER.error("Caught exception while extracting subfield no {} from dataField {}", subfieldNo, dataField, e);
             }

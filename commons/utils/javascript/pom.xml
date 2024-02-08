@@ -3,45 +3,39 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <artifactId>dataio-commons-utils</artifactId>
-    <groupId>dk.dbc</groupId>
-    <version>2.0-SNAPSHOT</version>
-  </parent>
+    <parent>
+        <artifactId>dataio-commons-utils</artifactId>
+        <groupId>dk.dbc</groupId>
+        <version>2.0-SNAPSHOT</version>
+    </parent>
 
-  <artifactId>dataio-commons-utils-javascript</artifactId>
-  <name>dataio-commons-utils-javascript</name>
+    <artifactId>dataio-commons-utils-javascript</artifactId>
+    <name>dataio-commons-utils-javascript</name>
 
-  <properties>
-      <powermock.version>2.0.9</powermock.version>
-  </properties>
+    <properties>
+        <mockito.version>5.2.0</mockito.version>
+    </properties>
 
-  <dependencies>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dbc-jslib</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-stopwatch</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-svn</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito2</artifactId>
-      <version>${powermock.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
-      <version>${powermock.version}</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-jslib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-stopwatch</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-svn</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>1.12.19</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

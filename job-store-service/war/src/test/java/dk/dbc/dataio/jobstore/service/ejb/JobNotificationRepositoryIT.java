@@ -17,9 +17,7 @@ import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.vipcore.service.VipCoreServiceConnector;
 import jakarta.ejb.SessionContext;
 import jakarta.persistence.Query;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -36,9 +34,6 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     private final SessionContext sessionContext = mock(SessionContext.class);
     private final VipCoreServiceConnector vipCoreServiceConnector = mock(VipCoreServiceConnector.class);
     private final String mailToFallback = "mail-to-fallback@dbc.dk";
-
-    @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     /**
      * Given: an empty notification repository
@@ -129,8 +124,6 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
      */
     @Test
     public void processNotificationWithAppendedFailures() throws IOException {
-        environmentVariables.set("MAIL_TO_FALLBACK", mailToFallback);
-
         // Given...
         final JobEntity jobEntity = newJobEntity();
         jobEntity.getSpecification()

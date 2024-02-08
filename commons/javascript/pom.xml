@@ -12,10 +12,6 @@
     <artifactId>dataio-javascript</artifactId>
     <name>javascript</name>
 
-    <properties>
-        <jdk.target.version>11</jdk.target.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>dk.dbc</groupId>

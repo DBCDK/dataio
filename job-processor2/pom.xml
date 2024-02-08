@@ -14,8 +14,6 @@
 
     <properties>
         <main-class>dk.dbc.dataio.jobprocessor2.Jobprocessor</main-class>
-        <jdk.target.version>17</jdk.target.version>
-        <java.image>docker-dbc.artifacts.dbccloud.dk/dbc-java17:latest</java.image>
         <!--suppress UnresolvedMavenProperty -->
         <start.cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-2g} -XX:+ExitOnOutOfMemoryError -Dlogback.configurationFile=logback-jobstore.xml -jar /work/${project.build.finalName}.jar</start.cmd>
     </properties>

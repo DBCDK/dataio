@@ -25,6 +25,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.CoderMalfunctionError;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Optional;
@@ -247,6 +248,8 @@ public class Iso2709DataPartitioner implements DataPartitioner {
             return Iso2709Unpacker.createMarcRecord(recordAsBytes, inputEncoding);
         } catch (Exception e) {
             throw new Iso2709IteratorReadError("Exception caught while decoding 2709: " + e.getMessage(), e);
+        } catch (CoderMalfunctionError cme) {
+            throw new Iso2709IteratorReadError("Exception caught while decoding 2709: " + cme.getMessage());
         }
     }
 

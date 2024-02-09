@@ -98,7 +98,7 @@ public class ViafHarvestOperation extends HarvestOperation {
     }
 
     private String getDbcRecordId(DataField dataField) {
-        for (SubField subField : dataField.getSubfields()) {
+        for (SubField subField : dataField.getSubFields()) {
             if (subField.getCode() == '0' && subField.getData().startsWith("(DBC)")) {
                 return subField.getData().replaceFirst("^\\(DBC\\)870979", "");
             }
@@ -124,7 +124,7 @@ public class ViafHarvestOperation extends HarvestOperation {
             if (!(field instanceof DataField)) {
                 return false;
             }
-            for (SubField subField : ((DataField) field).getSubfields()) {
+            for (SubField subField : ((DataField) field).getSubFields()) {
                 if (subField.getCode() == code && subField.getData().startsWith(prefix)) {
                     return true;
                 }

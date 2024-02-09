@@ -13,11 +13,11 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @SuppressWarnings("unused")
 public interface EnvConfig {
     default Optional<String> asOptionalString() {
-        return getProperty(getName()).or(() -> Optional.ofNullable(getDefaultValue())).map(String::trim).filter(s -> !s.isEmpty());
+        return getProperty().or(() -> Optional.ofNullable(getDefaultValue())).map(String::trim).filter(s -> !s.isEmpty());
     }
 
     default Optional<Boolean> asOptionalBoolean() {
-       return getProperty(getName()).or(() -> Optional.of("false"))
+       return getProperty().or(() -> Optional.of("false"))
                .map(s -> List.of("TRUE", "ON", "1").contains(s.toUpperCase()));
     }
 
@@ -56,8 +56,12 @@ public interface EnvConfig {
         return fqn[0];
     }
 
-    default Optional<String> getProperty(String key) {
-        return Optional.ofNullable(System.getenv(key)).map(String::trim);
+    default Optional<String> getProperty() {
+        return Optional.ofNullable(get()).map(String::trim);
+    }
+
+    default String get() {
+        return System.getenv(getName());
     }
 
     private IllegalStateException missingConf() {
@@ -87,6 +91,9 @@ public interface EnvConfig {
         return "jdbc:postgresql://" + map.get(DBProperty.HOST) + ":" + map.get(DBProperty.PORT) + "/" + map.get(DBProperty.DATABASE)
                 + "?user=" + URLEncoder.encode(map.get(DBProperty.USER), UTF_8) + "&password=" + URLEncoder.encode(map.get(DBProperty.PASSWORD), UTF_8);
     }
+
+    default void setTestOverride(String value) {};
+    default void clearAllTestOverrides() {};
 
     default String getDefaultValue() {
         //noinspection ReturnOfNull

@@ -241,7 +241,7 @@ public class DpfRecordProcessor {
 
     private void handleCatalogueCodeNew(DpfRecord dpfRecord) throws DpfRecordProcessorException {
         DataField dataField = dpfRecord.getCatalogueCodeField();
-        for (SubField subField : dataField.getSubfields()) {
+        for (SubField subField : dataField.getSubFields()) {
             if ('a' == subField.getCode() && subField.getData().length() == 3) {
                 subField.setData(getCatalogueCodeWithWeekNumber(dpfRecord, subField.getData()));
             }

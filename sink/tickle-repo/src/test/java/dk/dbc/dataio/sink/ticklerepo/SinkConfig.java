@@ -2,6 +2,9 @@ package dk.dbc.dataio.sink.ticklerepo;
 
 import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum SinkConfig implements EnvConfig {
     QUEUE("sink::tickle-repo"),
     FILESTORE_URL("filestore"),
@@ -20,8 +23,27 @@ public enum SinkConfig implements EnvConfig {
         this.defaultValue = defaultValue;
     }
 
+    private static final Map<SinkConfig, String> TEST_OVERRIDES = new HashMap<>();
+
+    @Override
+    public String get() {
+        return TEST_OVERRIDES.getOrDefault(this, EnvConfig.super.get());
+    }
+
+    @Override
+    public void setTestOverride(String value) {
+        TEST_OVERRIDES.put(this, value);
+    }
+
+    @Override
+    public void clearAllTestOverrides() {
+        TEST_OVERRIDES.clear();
+    }
+
     @Override
     public String getDefaultValue() {
         return defaultValue;
     }
+
+
 }

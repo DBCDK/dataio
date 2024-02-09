@@ -183,7 +183,7 @@ public class OpenUpdateServiceConnector {
         final Integer subfieldpos = message.getOrdinalPositionOfSubfield();
         if (subfieldpos != null) {
             try {
-                return datafield.getSubfields().get(subfieldpos);
+                return datafield.getSubFields().get(subfieldpos);
             } catch (RuntimeException e) {
                 LOGGER.error("Caught exception while extracting subfield {} from datafield {}",
                         subfieldpos, datafield, e);

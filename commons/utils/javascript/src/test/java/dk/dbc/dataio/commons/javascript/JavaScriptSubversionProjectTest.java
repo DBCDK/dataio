@@ -2,14 +2,13 @@ package dk.dbc.dataio.commons.javascript;
 
 import dk.dbc.dataio.commons.svn.SvnConnector;
 import dk.dbc.dataio.commons.types.RevisionInfo;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.tmatesoft.svn.core.SVNErrorCode;
 import org.tmatesoft.svn.core.SVNErrorMessage;
 import org.tmatesoft.svn.core.SVNException;
@@ -19,24 +18,19 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * JavaScriptProjectFetcherImpl unit tests
@@ -45,11 +39,6 @@ import static org.powermock.api.mockito.PowerMockito.when;
  * <p>
  * unitOfWork_stateUnderTest_expectedBehavior
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({
-        JavascriptUtil.class,
-        SvnConnector.class
-})
 public class JavaScriptSubversionProjectTest {
     private static final String JAVA_IO_TMPDIR = "java.io.tmpdir";
     private static String originalTmpDir;
@@ -64,298 +53,284 @@ public class JavaScriptSubversionProjectTest {
     private final long revision = 1;
     private final URISyntaxException uriSyntaxException = new URISyntaxException("input", "reason");
     private final SVNException svnException = new SVNException(SVNErrorMessage.create(SVNErrorCode.UNKNOWN));
-    private final SVNRepository svnRepository = mock(SVNRepository.class);
+    private final SVNRepository svnRepository = Mockito.mock(SVNRepository.class);
+    private MockedStatic<SvnConnector> svnMock;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         originalTmpDir = System.getProperty(JAVA_IO_TMPDIR);
-        final Path testTmp = Files.createTempDirectory(JavaScriptSubversionProjectTest.class.getName());
-        testTmp.toFile().deleteOnExit();
-        System.setProperty(JAVA_IO_TMPDIR, testTmp.toString());
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
         // Restore original tmp directory
         System.setProperty(JAVA_IO_TMPDIR, originalTmpDir);
     }
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
-        mockStatic(JavascriptUtil.class);
-        mockStatic(SvnConnector.class);
-        when(SvnConnector.dirExists(svnRepository, JavaScriptSubversionProject.TRUNK_PATH))
-                .thenReturn(true);
-        when(SvnConnector.getRepository(anyString()))
-                .thenReturn(svnRepository);
+        Path testTmp = Files.createTempDirectory(JavaScriptSubversionProjectTest.class.getName());
+        testTmp.toFile().deleteOnExit();
+        System.setProperty(JAVA_IO_TMPDIR, testTmp.toString());
+        svnMock = mockStatic(SvnConnector.class);
+        svnMock.when(() -> SvnConnector.dirExists(svnRepository, JavaScriptSubversionProject.TRUNK_PATH)).thenReturn(true);
+        svnMock.when(() -> SvnConnector.getRepository(anyString())).thenReturn(svnRepository);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void constructor_subversionScmEndpointArgIsNull_throws() throws Exception {
-        new JavaScriptSubversionProject(null);
+    @AfterEach
+    public void tearDown() {
+        svnMock.close();
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_subversionScmEndpointArgIsEmpty_throws() throws Exception {
-        new JavaScriptSubversionProject("");
+    @Test
+    public void constructor_subversionScmEndpointArgIsNull_throws() {
+        assertThrows(NullPointerException.class, () -> new JavaScriptSubversionProject(null));
+    }
+
+    @Test
+    public void constructor_subversionScmEndpointArgIsEmpty_throws() {
+        assertThrows(IllegalArgumentException.class, () -> new JavaScriptSubversionProject(""));
     }
 
     @Test
     public void constructor_subversionScmEndpointArgIsValid_returnsNewInstance() {
-        final JavaScriptSubversionProject instance = newInstance();
+        JavaScriptSubversionProject instance = newInstance();
         assertThat(instance, is(notNullValue()));
     }
 
-    @Test(expected = NullPointerException.class)
-    public void fetchRevisions_projectNameArgIsNull_throws() throws Exception {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchRevisions(null);
+    @Test
+    public void fetchRevisions_projectNameArgIsNull_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(NullPointerException.class, () -> instance.fetchRevisions(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void fetchRevisions_projectNameArgIsEmpty_throws() throws Exception {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchRevisions("");
+    @Test
+    public void fetchRevisions_projectNameArgIsEmpty_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(IllegalArgumentException.class, () -> instance.fetchRevisions(""));
     }
 
-    @Test(expected = JavaScriptProjectException.class)
-    public void fetchRevisions_svnConnectorThrowsUriSyntaxException_throws() throws Exception {
-        when(SvnConnector.listAvailableRevisions(anyString())).thenThrow(uriSyntaxException);
-
-        final JavaScriptSubversionProject instance = newInstance();
+    @Test
+    public void fetchRevisions_svnConnectorThrowsUriSyntaxException_throws() {
         try {
+            svnMock.when(() -> SvnConnector.listAvailableRevisions(anyString())).thenThrow(uriSyntaxException);
+            JavaScriptSubversionProject instance = newInstance();
             instance.fetchRevisions(projectName);
+            fail("Must throw JavaScriptProjectException");
         } catch (JavaScriptProjectException e) {
             assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_INVALID_URL));
-            throw e;
         }
     }
 
-    @Test(expected = JavaScriptProjectException.class)
-    public void fetchRevisions_svnConnectorThrowsSvnException_throws() throws Exception {
-        when(SvnConnector.listAvailableRevisions(anyString())).thenThrow(svnException);
-
-        final JavaScriptSubversionProject instance = newInstance();
+    @Test
+    public void fetchRevisions_svnConnectorThrowsSvnException_throws() {
         try {
+            svnMock.when(() -> SvnConnector.listAvailableRevisions(anyString())).thenThrow(svnException);
+            JavaScriptSubversionProject instance = newInstance();
             instance.fetchRevisions(projectName);
+            fail("Must throw JavaScriptProjectException");
         } catch (JavaScriptProjectException e) {
             assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_SERVER_ERROR));
-            throw e;
         }
     }
 
     @Test
     public void fetchRevisions_svnConnectorReturnsRevisions_returnsRevisions() throws Exception {
-        final Date now = new Date();
-        final RevisionInfo.ChangedItem item1 = new RevisionInfo.ChangedItem("/path/file1", "D");
-        final RevisionInfo.ChangedItem item2 = new RevisionInfo.ChangedItem("/path/file2", "A");
-        final RevisionInfo.ChangedItem item3 = new RevisionInfo.ChangedItem("/path/file1", "A");
-        final RevisionInfo rev42 = new RevisionInfo(42L, "bob", now, "message for revision 42", new ArrayList<>(Arrays.asList(item1, item2)));
-        final RevisionInfo rev10 = new RevisionInfo(10L, "joe", new Date(now.getTime() - 1000000), "message for revision 10", new ArrayList<>(Collections.singletonList(item3)));
-        final List<RevisionInfo> expectedRevisions = new ArrayList<>(Arrays.asList(rev42, rev10));
+        Date now = new Date();
+        RevisionInfo.ChangedItem item1 = new RevisionInfo.ChangedItem("/path/file1", "D");
+        RevisionInfo.ChangedItem item2 = new RevisionInfo.ChangedItem("/path/file2", "A");
+        RevisionInfo.ChangedItem item3 = new RevisionInfo.ChangedItem("/path/file1", "A");
+        RevisionInfo rev42 = new RevisionInfo(42L, "bob", now, "message for revision 42", List.of(item1, item2));
+        RevisionInfo rev10 = new RevisionInfo(10L, "joe", new Date(now.getTime() - 1000000), "message for revision 10", List.of(item3));
+        List<RevisionInfo> expectedRevisions = List.of(rev42, rev10);
         final String projectUrl = subversionScmEndpoint + JavaScriptSubversionProject.URL_DELIMITER
                 + projectName + JavaScriptSubversionProject.URL_DELIMITER + JavaScriptSubversionProject.TRUNK_PATH;
 
-        when(SvnConnector.listAvailableRevisions(projectUrl)).thenReturn(expectedRevisions);
-
-        final JavaScriptSubversionProject instance = newInstance();
-        final List<RevisionInfo> revisions = instance.fetchRevisions(projectName);
+        svnMock.when(() -> SvnConnector.listAvailableRevisions(eq(projectUrl))).thenReturn(expectedRevisions);
+        JavaScriptSubversionProject instance = newInstance();
+        List<RevisionInfo> revisions = instance.fetchRevisions(projectName);
         assertThat(revisions, is(expectedRevisions));
     }
 
-    @Test(expected = NullPointerException.class)
-    public void fetchJavaScriptFileNames_projectNameArgIsNull_throws() throws Exception {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchJavaScriptFileNames(null, revision);
+    @Test
+    public void fetchJavaScriptFileNames_projectNameArgIsNull_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(NullPointerException.class, () -> instance.fetchJavaScriptFileNames(null, revision));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void fetchJavaScriptFileNames_projectNameArgIsEmpty_throws() throws Exception {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchJavaScriptFileNames("", revision);
+    @Test
+    public void fetchJavaScriptFileNames_projectNameArgIsEmpty_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(IllegalArgumentException.class, () -> instance.fetchJavaScriptFileNames("", revision));
     }
 
-    @Test(expected = JavaScriptProjectException.class)
-    public void fetchJavaScriptFileNames_svnConnectorThrowsUriSyntaxException_throws() throws Exception {
-        when(SvnConnector.listAvailablePaths(anyString(), anyLong())).thenThrow(uriSyntaxException);
-
-        final JavaScriptSubversionProject instance = newInstance();
+    @Test
+    public void fetchJavaScriptFileNames_svnConnectorThrowsUriSyntaxException_throws() {
+        svnMock.when(() -> SvnConnector.listAvailablePaths(anyString(), anyLong())).thenThrow(uriSyntaxException);
+        JavaScriptSubversionProject instance = newInstance();
         try {
             instance.fetchJavaScriptFileNames(projectName, revision);
+            fail("Must throw JavaScriptProjectException");
         } catch (JavaScriptProjectException e) {
             assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_INVALID_URL));
-            throw e;
         }
     }
 
-    @Test(expected = JavaScriptProjectException.class)
-    public void fetchJavaScriptFileNames_svnConnectorThrowsSvnException_throws() throws Exception {
-        when(SvnConnector.listAvailablePaths(anyString(), anyLong())).thenThrow(svnException);
+    @Test
+    public void fetchJavaScriptFileNames_svnConnectorThrowsSvnException_throws() {
+        svnMock.when(() -> SvnConnector.listAvailablePaths(anyString(), anyLong())).thenThrow(svnException);
 
-        final JavaScriptSubversionProject instance = newInstance();
+        JavaScriptSubversionProject instance = newInstance();
         try {
             instance.fetchJavaScriptFileNames(projectName, revision);
+            fail("Must throw JavaScriptProjectException");
         } catch (JavaScriptProjectException e) {
             assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_SERVER_ERROR));
-            throw e;
         }
     }
 
     @Test
     public void fetchJavaScriptFileNames_svnConnectorReturnsPaths_returnsNamesOfFilesWithJavaScriptExtension() throws Exception {
-        final List<String> paths = new ArrayList<String>(Arrays.asList(
+        final List<String> paths = List.of(
                 "main.js",          // expected in returned result
                 "main.js.bak",
                 "js.README",
                 "sub/aux.js",       // expected in returned result
                 "sub/mod.use.js"
-        ));
+        );
         final String projectUrl = subversionScmEndpoint + JavaScriptSubversionProject.URL_DELIMITER
                 + projectName + JavaScriptSubversionProject.URL_DELIMITER + JavaScriptSubversionProject.TRUNK_PATH;
 
-        when(SvnConnector.listAvailablePaths(eq(projectUrl), eq(revision))).thenReturn(paths);
+        svnMock.when(() -> SvnConnector.listAvailablePaths(eq(projectUrl), eq(revision))).thenReturn(paths);
 
-        final JavaScriptSubversionProject instance = newInstance();
-        final List<String> fileNames = instance.fetchJavaScriptFileNames(projectName, revision);
+        JavaScriptSubversionProject instance = newInstance();
+        List<String> fileNames = instance.fetchJavaScriptFileNames(projectName, revision);
         assertThat(fileNames.size(), is(2));
         assertThat(fileNames.get(0), is(paths.get(0)));
         assertThat(fileNames.get(1), is(paths.get(3)));
     }
 
-    @Test(expected = NullPointerException.class)
-    public void fetchJavaScriptInvocationMethods_projectNameArgIsNull_throws() throws Throwable {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchJavaScriptInvocationMethods(null, revision, javaScriptFileName);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void fetchJavaScriptInvocationMethods_projectNameArgIsEmpty_throws() throws Throwable {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchJavaScriptInvocationMethods("", revision, javaScriptFileName);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void fetchJavaScriptInvocationMethods_javaScriptFileNameArgIsNull_throws() throws Throwable {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchJavaScriptInvocationMethods(projectName, revision, null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void fetchJavaScriptInvocationMethods_javaScriptFileNameArgIsEmpty_throws() throws Throwable {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchJavaScriptInvocationMethods(projectName, revision, "");
-    }
-
-    @Test(expected = JavaScriptProjectException.class)
-    public void fetchJavaScriptInvocationMethods_svnConnectorThrowsUriSyntaxException_throws() throws Throwable {
-        doThrow(uriSyntaxException).when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
-
-        final JavaScriptSubversionProject instance = newInstance();
-        try {
-            instance.fetchJavaScriptInvocationMethods(projectName, revision, javaScriptFileName);
-        } catch (JavaScriptProjectException e) {
-            assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_INVALID_URL));
-            throw e;
-        } finally {
-            assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
-        }
-    }
-
-    @Test(expected = JavaScriptProjectException.class)
-    public void fetchJavaScriptInvocationMethods_svnConnectorThrowsSvnException_throws() throws Throwable {
-        doThrow(svnException).when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
-
-        final JavaScriptSubversionProject instance = newInstance();
-        try {
-            instance.fetchJavaScriptInvocationMethods(projectName, revision, javaScriptFileName);
-        } catch (JavaScriptProjectException e) {
-            assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_SERVER_ERROR));
-            throw e;
-        } finally {
-            assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
-        }
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void fetchRequiredJavaScript_projectNameArgIsNull_throws() throws Throwable {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchRequiredJavaScript(null, revision, javaScriptFileName, javaScriptFunction);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void fetchRequiredJavaScript_projectNameArgIsEmpty_throws() throws Throwable {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchRequiredJavaScript("", revision, javaScriptFileName, javaScriptFunction);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void fetchRequiredJavaScript_javaScriptFileNameArgIsNull_throws() throws Throwable {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchRequiredJavaScript(projectName, revision, null, javaScriptFunction);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void fetchRequiredJavaScript_javaScriptFileNameArgIsEmpty_throws() throws Throwable {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchRequiredJavaScript(projectName, revision, "", javaScriptFunction);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void fetchRequiredJavaScript_javaScriptFunctionArgIsNull_throws() throws Throwable {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void fetchRequiredJavaScript_javaScriptFunctionArgIsEmpty_throws() throws Throwable {
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, "");
-    }
-
-    @Test(expected = JavaScriptProjectException.class)
-    public void fetchRequiredJavaScript_svnConnectorThrowsUriSyntaxException_throws() throws Throwable {
-        doThrow(uriSyntaxException).when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
-
-        final JavaScriptSubversionProject instance = newInstance();
-        try {
-            instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, javaScriptFunction);
-        } catch (JavaScriptProjectException e) {
-            assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_INVALID_URL));
-            throw e;
-        } finally {
-            assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
-        }
-    }
-
-    @Test(expected = JavaScriptProjectException.class)
-    public void fetchRequiredJavaScript_svnConnectorThrowsSvnException_throws() throws Throwable {
-        doThrow(svnException).when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
-
-        final JavaScriptSubversionProject instance = newInstance();
-        try {
-            instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, javaScriptFunction);
-        } catch (JavaScriptProjectException e) {
-            assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_SERVER_ERROR));
-            throw e;
-        } finally {
-            assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
-        }
-    }
-
-    @Ignore
     @Test
-    public void fetchRequiredJavaScript__returnsJavaScripts() throws Throwable {
-        final String projectUrl = subversionScmEndpoint + JavaScriptSubversionProject.URL_DELIMITER
-                + projectName + JavaScriptSubversionProject.URL_DELIMITER + JavaScriptSubversionProject.TRUNK_PATH;
-        final String dependencyUrl = subversionScmEndpoint + JavaScriptSubversionProject.URL_DELIMITER
-                + "jscommon" + JavaScriptSubversionProject.URL_DELIMITER + JavaScriptSubversionProject.TRUNK_PATH;
+    public void fetchJavaScriptInvocationMethods_projectNameArgIsNull_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(NullPointerException.class, () -> instance.fetchJavaScriptInvocationMethods(null, revision, javaScriptFileName));
+    }
 
-        doNothing().when(SvnConnector.class, "export", eq(projectUrl), eq(revision), any(Path.class));
-        doNothing().when(SvnConnector.class, "export", eq(dependencyUrl), eq(revision), any(Path.class));
+    @Test
+    public void fetchJavaScriptInvocationMethods_projectNameArgIsEmpty_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(IllegalArgumentException.class, () -> instance.fetchJavaScriptInvocationMethods("", revision, javaScriptFileName));
+    }
 
-        final JavaScriptSubversionProject instance = newInstance();
-        instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, javaScriptFunction);
-        assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
+    @Test
+    public void fetchJavaScriptInvocationMethods_javaScriptFileNameArgIsNull_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(NullPointerException.class, () -> instance.fetchJavaScriptInvocationMethods(projectName, revision, null));
+    }
+
+    @Test
+    public void fetchJavaScriptInvocationMethods_javaScriptFileNameArgIsEmpty_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(IllegalArgumentException.class, () -> instance.fetchJavaScriptInvocationMethods(projectName, revision, ""));
+    }
+
+    @Test
+    public void fetchJavaScriptInvocationMethods_svnConnectorThrowsUriSyntaxException_throws() {
+        svnMock.when(() -> SvnConnector.export(anyString(), anyLong(), any(Path.class))).thenThrow(uriSyntaxException);
+        JavaScriptSubversionProject instance = newInstance();
+        try {
+            instance.fetchJavaScriptInvocationMethods(projectName, revision, javaScriptFileName);
+            fail("Must throw JavaScriptProjectException");
+        } catch (JavaScriptProjectException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_INVALID_URL));
+        } finally {
+            assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
+        }
+    }
+
+    @Test
+    public void fetchJavaScriptInvocationMethods_svnConnectorThrowsSvnException_throws() {
+        svnMock.when(() -> SvnConnector.export(anyString(), anyLong(), any(Path.class))).thenThrow(svnException);
+
+        JavaScriptSubversionProject instance = newInstance();
+        try {
+            instance.fetchJavaScriptInvocationMethods(projectName, revision, javaScriptFileName);
+            fail("Must throw JavaScriptProjectException");
+        } catch (JavaScriptProjectException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_SERVER_ERROR));
+        } finally {
+            assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
+        }
+    }
+
+    @Test
+    public void fetchRequiredJavaScript_projectNameArgIsNull_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(NullPointerException.class,
+                () -> instance.fetchRequiredJavaScript(null, revision, javaScriptFileName, javaScriptFunction));
+    }
+
+    @Test
+    public void fetchRequiredJavaScript_projectNameArgIsEmpty_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(IllegalArgumentException.class,
+                () -> instance.fetchRequiredJavaScript("", revision, javaScriptFileName, javaScriptFunction));
+    }
+
+    @Test
+    public void fetchRequiredJavaScript_javaScriptFileNameArgIsNull_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(NullPointerException.class,
+                () -> instance.fetchRequiredJavaScript(projectName, revision, null, javaScriptFunction));
+    }
+
+    @Test
+    public void fetchRequiredJavaScript_javaScriptFileNameArgIsEmpty_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(IllegalArgumentException.class,
+                () -> instance.fetchRequiredJavaScript(projectName, revision, "", javaScriptFunction));
+    }
+
+    @Test
+    public void fetchRequiredJavaScript_javaScriptFunctionArgIsNull_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(NullPointerException.class,
+                () -> instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, null));
+    }
+
+    @Test
+    public void fetchRequiredJavaScript_javaScriptFunctionArgIsEmpty_throws() {
+        JavaScriptSubversionProject instance = newInstance();
+        assertThrows(IllegalArgumentException.class,
+                () -> instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, ""));
+    }
+
+    @Test
+    public void fetchRequiredJavaScript_svnConnectorThrowsUriSyntaxException_throws() throws Throwable {
+        svnMock.when(() -> SvnConnector.export(anyString(), anyLong(), any(Path.class))).thenThrow(uriSyntaxException);
+        JavaScriptSubversionProject instance = newInstance();
+        try {
+            instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, javaScriptFunction);
+            fail("Must throw JavaScriptProjectException");
+        } catch (JavaScriptProjectException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_INVALID_URL));
+        } finally {
+            assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
+        }
+    }
+
+    @Test
+    public void fetchRequiredJavaScript_svnConnectorThrowsSvnException_throws() throws Throwable {
+        svnMock.when(() -> SvnConnector.export(anyString(), anyLong(), any(Path.class))).thenThrow(svnException);
+        JavaScriptSubversionProject instance = newInstance();
+        try {
+            instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, javaScriptFunction);
+            fail("Must throw JavaScriptProjectException");
+        } catch (JavaScriptProjectException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_SERVER_ERROR));
+        } finally {
+            assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
+        }
     }
 
     private JavaScriptSubversionProject newInstance() {

@@ -31,9 +31,7 @@ import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
 import jakarta.persistence.EntityTransaction;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
@@ -63,13 +61,14 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
 
     private JobRerunnerBean jobRerunnerBean;
 
-    @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
     @Before
     public void initializeJobRerunnerBean() {
-        environmentVariables.set("MAIL_TO_FALLBACK", fallbackNotificationDestination);
-        jobRerunnerBean = new JobRerunnerBean();
+        jobRerunnerBean = new JobRerunnerBean() {
+            @Override
+            public String getFallbackMail() {
+                return fallbackNotificationDestination;
+            }
+        };
         jobRerunnerBean.rerunsRepository = newRerunsRepository();
         jobRerunnerBean.rrHarvesterServiceConnectorBean = rrHarvesterServiceConnectorBean;
         jobRerunnerBean.tickleHarvesterServiceConnectorBean = tickleHarvesterServiceConnectorBean;

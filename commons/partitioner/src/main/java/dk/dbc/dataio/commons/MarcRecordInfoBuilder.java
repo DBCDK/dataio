@@ -71,7 +71,7 @@ public class MarcRecordInfoBuilder {
          */
         if (field instanceof DataField) {
             DataField datafield = (DataField) field;
-            Optional<SubField> subfield = datafield.getSubfields().stream().filter(s -> s.getCode() == 'a').findFirst();
+            Optional<SubField> subfield = datafield.getSubField(s -> s.getCode() == 'a');
             subfield.ifPresent(subField -> parseResult.id = subField.getData());
         } else {
             parseResult.id = ((ControlField) field).getData();
@@ -84,7 +84,7 @@ public class MarcRecordInfoBuilder {
             r       kode for poststatus
             a       kode for bibliografisk posttype
          */
-        datafield.getSubfields().forEach(s -> parse004Subfield(parseResult, s));
+        datafield.getSubFields().forEach(s -> parse004Subfield(parseResult, s));
     }
 
     private void parse004Subfield(ParseResult parseResult, SubField subfield) {
@@ -126,7 +126,7 @@ public class MarcRecordInfoBuilder {
             a       id-nummer på post på højere niveau
             x       typekode
          */
-        Optional<SubField> subfield = datafield.getSubfields().stream().filter(s -> s.getCode() == 'a').findFirst();
+        Optional<SubField> subfield = datafield.getSubField(s -> s.getCode() == 'a');
         subfield.ifPresent(subField -> parseResult.parentRelation = subField.getData());
     }
 

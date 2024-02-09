@@ -108,7 +108,7 @@ public class ViafDataPartitioner extends Iso2709DataPartitioner {
             if (!(field instanceof DataField)) {
                 return false;
             }
-            for (SubField subField : ((DataField) field).getSubfields()) {
+            for (SubField subField : ((DataField) field).getSubFields()) {
                 if (subField.getCode() == code && subField.getData().startsWith(prefix)) {
                     return true;
                 }

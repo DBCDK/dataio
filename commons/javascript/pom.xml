@@ -16,7 +16,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-jslib</artifactId>
-            <version>1.4-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.postgresql</groupId>
@@ -40,12 +39,10 @@
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-stopwatch</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.openjdk.nashorn</groupId>
+            <artifactId>nashorn-core</artifactId>
+            <version>15.4</version>
+        </dependency>
     </dependencies>
-
-    <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
 </project>

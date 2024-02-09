@@ -307,9 +307,13 @@ public class JobRerunnerBean {
         if (jobSpecification != null &&
                 !(MailNotification.isUndefined(jobSpecification.getMailForNotificationAboutVerification())
                         && MailNotification.isUndefined(jobSpecification.getMailForNotificationAboutProcessing()))) {
-            return System.getenv("MAIL_TO_FALLBACK");
+            return getFallbackMail();
         }
         return Constants.MISSING_FIELD_VALUE;
+    }
+
+    public String getFallbackMail() {
+        return System.getenv("MAIL_TO_FALLBACK");
     }
 
     public static void logBitSet(int jobId, BitSet bitSet) {

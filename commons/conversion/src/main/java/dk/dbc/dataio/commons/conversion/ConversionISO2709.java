@@ -1,6 +1,6 @@
 package dk.dbc.dataio.commons.conversion;
 
-import dk.dbc.marc.Iso2709Packer;
+import dk.dbc.marc.Iso2709MarcXchangePacker;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -24,7 +24,7 @@ public class ConversionISO2709 extends Conversion {
         try {
             final Document document = documentBuilder.parse(new ByteArrayInputStream(bytes));
             final Charset encoding = param.getEncoding().orElse(StandardCharsets.UTF_8);
-            return Iso2709Packer.create2709FromMarcXChangeRecord(document, encoding);
+            return Iso2709MarcXchangePacker.create2709FromMarcXChangeRecord(document, encoding);
         } catch (SAXException | IOException e) {
             throw new ConversionException("Unable to parse XML", e);
         }

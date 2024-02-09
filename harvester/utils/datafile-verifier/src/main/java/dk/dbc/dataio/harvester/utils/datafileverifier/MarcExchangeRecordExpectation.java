@@ -71,6 +71,6 @@ public class MarcExchangeRecordExpectation {
     }
 
     private Optional<SubField> getSubfield(DataField field, char code) {
-        return field.getSubfields().stream().filter(s -> s.getCode() == code).findFirst();
+        return field.getSubFields().stream().filter(s -> s.getCode() == code).findFirst();
     }
 }

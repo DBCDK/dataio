@@ -143,11 +143,11 @@ public class MarcRecordInfoBuilderTest {
     public static DataField get001(String a) {
         return new DataField()
                 .setTag("001")
-                .addSubfield(
+                .addSubField(
                         new SubField()
                                 .setCode('f')
                                 .setData("danmarc2"))
-                .addSubfield(
+                .addSubField(
                         new SubField()
                                 .setCode('a')
                                 .setData(a));
@@ -156,11 +156,11 @@ public class MarcRecordInfoBuilderTest {
     public static DataField get004(String a, String r) {
         return new DataField()
                 .setTag("004")
-                .addSubfield(
+                .addSubField(
                         new SubField()
                                 .setCode('a')
                                 .setData(a))
-                .addSubfield(
+                .addSubField(
                         new SubField()
                                 .setCode('r')
                                 .setData(r));
@@ -169,11 +169,11 @@ public class MarcRecordInfoBuilderTest {
     public static DataField get014(String a) {
         return new DataField()
                 .setTag("014")
-                .addSubfield(
+                .addSubField(
                         new SubField()
                                 .setCode('x')
                                 .setData("SMS"))
-                .addSubfield(
+                .addSubField(
                         new SubField()
                                 .setCode('a')
                                 .setData(a));

@@ -26,12 +26,12 @@ public abstract class AbstractToLineFormatConverter implements ChunkItemConverte
 
                 DataField dataField = new DataField().setTag("e01").setInd1('0').setInd2('0');
                 if (diagnostic.getTag() != null) {
-                    dataField.addSubfield(new SubField().setCode('b').setData(diagnostic.getTag()));
+                    dataField.addSubField(new SubField().setCode('b').setData(diagnostic.getTag()));
                 }
                 if (diagnostic.getAttribute() != null) {
-                    dataField.addSubfield(new SubField().setCode('c').setData(diagnostic.getAttribute()));
+                    dataField.addSubField(new SubField().setCode('c').setData(diagnostic.getAttribute()));
                 }
-                dataField.addSubfield(new SubField().setCode('a').setData(diagnostic.getMessage()));
+                dataField.addSubField(new SubField().setCode('a').setData(diagnostic.getMessage()));
                 record.addField(dataField);
             }
         }

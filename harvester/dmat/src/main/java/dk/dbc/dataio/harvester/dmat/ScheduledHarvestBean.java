@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.dmat;
 
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.harvester.AbstractScheduledHarvestBean;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.util.RunSchedule;
@@ -10,7 +11,6 @@ import jakarta.ejb.Startup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.ZoneId;
 import java.util.Date;
 
 /**
@@ -18,8 +18,7 @@ import java.util.Date;
  */
 @Singleton
 @Startup
-public class ScheduledHarvestBean extends AbstractScheduledHarvestBean<HarvesterBean,
-        DMatHarvesterConfig, HarvesterConfigurationBean> {
+public class ScheduledHarvestBean extends AbstractScheduledHarvestBean<HarvesterBean, DMatHarvesterConfig, HarvesterConfigurationBean> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledHarvestBean.class);
 
     @EJB
@@ -54,8 +53,7 @@ public class ScheduledHarvestBean extends AbstractScheduledHarvestBean<Harvester
     @Override
     public boolean canRun(DMatHarvesterConfig config) {
         try {
-            final RunSchedule runSchedule = new RunSchedule(config.getContent().getSchedule())
-                    .withTimezone(ZoneId.of(System.getenv("TZ")));
+            final RunSchedule runSchedule = new RunSchedule(config.getContent().getSchedule()).withTimezone(Constants.ZONE_CPH);
             final Date now = new Date();
             return runSchedule.isSatisfiedBy(now, config.getContent().getTimeOfLastHarvest())
                     || runSchedule.isOverdue(now, config.getContent().getTimeOfLastHarvest());

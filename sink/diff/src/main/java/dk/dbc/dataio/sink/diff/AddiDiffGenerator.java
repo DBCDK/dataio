@@ -7,6 +7,8 @@ import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static dk.dbc.dataio.sink.diff.Kind.detect;
 
@@ -68,7 +70,7 @@ public class AddiDiffGenerator {
 
         @Override
         public String toString() {
-            return metaDiff + contentDiff;
+            return Stream.of(metaDiff, contentDiff).filter(s -> !s.isEmpty()).collect(Collectors.joining("\n"));
         }
 
         private String getDiff(byte[] current, byte[] next) throws DiffGeneratorException, InvalidMessageException {

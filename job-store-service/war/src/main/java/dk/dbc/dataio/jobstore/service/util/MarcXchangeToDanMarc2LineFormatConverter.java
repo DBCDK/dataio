@@ -51,10 +51,10 @@ public class MarcXchangeToDanMarc2LineFormatConverter extends AbstractToLineForm
 
         for (ControlField controlField : controlFields) {
             record.addField(new DataField().setTag("e01").setInd1('0').setInd2('0')
-                    .addSubfield(new SubField()
+                    .addSubField(new SubField()
                             .setCode('b')
                             .setData("felt '" + controlField.getTag() + "'"))
-                    .addSubfield(new SubField()
+                    .addSubField(new SubField()
                             .setCode('a')
                             .setData("felt '" + controlField.getTag() + "' mangler delfelter")));
         }

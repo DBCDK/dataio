@@ -23,9 +23,7 @@ import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.ArgumentCaptor;
 
 import java.io.ByteArrayInputStream;
@@ -47,8 +45,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TickleMessageConsumerIT extends IntegrationTest {
-    @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final JSONBContext jsonbContext = new JSONBContext();
     private final TickleAttributes invalidTickleAttributes = new TickleAttributes()
@@ -137,8 +133,7 @@ public class TickleMessageConsumerIT extends IntegrationTest {
      */
     @Test
     public void totalBatchCreated() throws InvalidMessageException {
-        environmentVariables.set("TICKLE_BEHAVIOUR", "total");
-
+        SinkConfig.TICKLE_BEHAVIOUR.setTestOverride("total");
         Chunk chunk = createChunk();
         ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
         TickleMessageConsumer messageConsumer = createMessageConsumerBean();
@@ -151,6 +146,7 @@ public class TickleMessageConsumerIT extends IntegrationTest {
         assertThat("batch type", batch.getType(), is(Batch.Type.TOTAL));
         assertThat("job ID in cache", messageConsumer.batchCache.asMap().containsKey(chunk.getJobId()), is(true));
         assertThat("cached batch", messageConsumer.batchCache.getIfPresent(chunk.getJobId()).getId(), is(batch.getId()));
+        SinkConfig.TICKLE_BEHAVIOUR.clearAllTestOverrides();
     }
 
     /*  When: handling subsequent chunks from a known job

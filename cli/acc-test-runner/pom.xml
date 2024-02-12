@@ -13,6 +13,7 @@
 
     <properties>
         <main-class>dk.dbc.dataio.cli.AccTestRunner</main-class>
+        <jdk.target.version>17</jdk.target.version>
     </properties>
 
     <dependencies>

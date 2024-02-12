@@ -15,6 +15,10 @@
     <artifactId>dataio-cli</artifactId>
     <packaging>pom</packaging>
 
+    <properties>
+        <jdk.target.version>11</jdk.target.version>
+    </properties>
+
     <modules>
         <module>acceptance-test</module>
         <module>datafile-exporter</module>

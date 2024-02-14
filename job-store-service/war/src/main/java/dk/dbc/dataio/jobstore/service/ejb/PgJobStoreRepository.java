@@ -16,7 +16,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowConverter;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -106,8 +106,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new JobListQuery(entityManager).execute(criteria);
     }
 
-    public List<DependencyTrackingEntity> getStaleDependencies(DependencyTrackingEntity.ChunkSchedulingStatus status, Duration timeout) {
-        TypedQuery<DependencyTrackingEntity> query = entityManager.createNamedQuery(DependencyTrackingEntity.BY_STATE_AND_LAST_MODIFIED, DependencyTrackingEntity.class);
+    public List<DependencyTracking> getStaleDependencies(DependencyTracking.ChunkSchedulingStatus status, Duration timeout) {
+        TypedQuery<DependencyTracking> query = entityManager.createNamedQuery(DependencyTracking.BY_STATE_AND_LAST_MODIFIED, DependencyTracking.class);
         query.setParameter("date", new Timestamp(Instant.now().minus(timeout).toEpochMilli()));
         query.setParameter("status", status);
         return query.getResultList();
@@ -130,8 +130,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new JobListQuery(entityManager).count(query);
     }
 
-    public long getChunksToBeResetForState(DependencyTrackingEntity.ChunkSchedulingStatus status) {
-        TypedQuery<Long> q = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_IN_STATE, Long.class);
+    public long getChunksToBeResetForState(DependencyTracking.ChunkSchedulingStatus status) {
+        TypedQuery<Long> q = entityManager.createNamedQuery(DependencyTracking.CHUNKS_IN_STATE, Long.class);
         q.setParameter("status", status);
         return q.getSingleResult();
     }
@@ -147,17 +147,17 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public int deleteDependencies(int jobId) {
-        Query query = entityManager.createNamedQuery(DependencyTrackingEntity.DELETE_JOB);
+        Query query = entityManager.createNamedQuery(DependencyTracking.DELETE_JOB);
         query.setParameter("jobId", jobId);
         return query.executeUpdate();
     }
 
-    public int resetStatus(Set<Integer> jobIds, DependencyTrackingEntity.ChunkSchedulingStatus fromStatus,
-                           DependencyTrackingEntity.ChunkSchedulingStatus toStatus) {
+    public int resetStatus(Set<Integer> jobIds, DependencyTracking.ChunkSchedulingStatus fromStatus,
+                           DependencyTracking.ChunkSchedulingStatus toStatus) {
         Query q;
-        if(jobIds == null || jobIds.isEmpty()) q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATES_IN_DEPENDENCYTRACKING);
+        if(jobIds == null || jobIds.isEmpty()) q = entityManager.createNamedQuery(DependencyTracking.RESET_STATES_IN_DEPENDENCYTRACKING);
         else {
-            q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING);
+            q = entityManager.createNamedQuery(DependencyTracking.RESET_STATE_IN_DEPENDENCYTRACKING);
             q.setParameter("jobIds", jobIds);
         }
         q.setParameter("fromStatus", fromStatus);
@@ -166,7 +166,7 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void resetChunk(DependencyTrackingEntity e, DependencyTrackingEntity.ChunkSchedulingStatus status) {
+    public void resetChunk(DependencyTracking e, DependencyTracking.ChunkSchedulingStatus status) {
         e.setStatus(status);
         entityManager.persist(e);
     }

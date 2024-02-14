@@ -3,7 +3,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTracking.Key;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -28,25 +28,25 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
         bean.entityManager = entityManager;
         bean.enableOptimizer =false;
 
-        assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+        assertThat(bean.findChunksToWaitFor(new DependencyTracking()
                         .setSubmitterNumber(123456)
                         .setSinkid(0)
                         .setMatchKeys(Collections.emptySet()), null),
                 is(Collections.emptySet()));
 
-        assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+        assertThat(bean.findChunksToWaitFor(new DependencyTracking()
                         .setSubmitterNumber(123456)
                         .setSinkid(0)
                         .setMatchKeys(asSet("K1")), null),
                 containsInAnyOrder(new Key(1, 1)));
 
-        assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+        assertThat(bean.findChunksToWaitFor(new DependencyTracking()
                         .setSubmitterNumber(123456)
                         .setSinkid(0)
                         .setMatchKeys(asSet("C1")), null),
                 containsInAnyOrder(new Key(1, 1)));
 
-        assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+        assertThat(bean.findChunksToWaitFor(new DependencyTracking()
                         .setSubmitterNumber(123456)
                         .setSinkid(0)
                         .setMatchKeys(asSet("KK2")), null),
@@ -56,7 +56,7 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
                         new Key(1, 2),
                         new Key(1, 3)));
 
-        assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+        assertThat(bean.findChunksToWaitFor(new DependencyTracking()
                         .setSubmitterNumber(123456)
                         .setSinkid(1)
                         .setMatchKeys(asSet("K4", "K6", "C4")), null),
@@ -65,7 +65,7 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
                         new Key(2, 2),
                         new Key(2, 4)));
 
-        assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+        assertThat(bean.findChunksToWaitFor(new DependencyTracking()
                         .setSubmitterNumber(123456)
                         .setSinkid(1)
                         .setMatchKeys(asSet("K4", "K6", "C4", "K5")), null),
@@ -80,12 +80,12 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
     public void boostPriorities() throws IOException, URISyntaxException {
         JPATestUtils.runSqlFromResource(entityManager, this, "JobSchedulerBeanIT_findWaitForChunks.sql");
 
-        final DependencyTrackingEntity entity = new DependencyTrackingEntity();
+        final DependencyTracking entity = new DependencyTracking();
         entity.setKey(new Key(4, 2));
         entity.setPriority(Priority.HIGH.getValue());
         entity.setMatchKeys(Stream.of("4_1", "4_2").collect(Collectors.toSet()));
         entity.setSinkid(1);
-        entity.setStatus(DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING);
+        entity.setStatus(DependencyTracking.ChunkSchedulingStatus.READY_FOR_PROCESSING);
 
         final JobSchedulerTransactionsBean bean = new JobSchedulerTransactionsBean();
         bean.entityManager = entityManager;
@@ -94,11 +94,11 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
         persistenceContext.run(() -> bean.persistDependencyEntity(entity, null));
 
         // 4_2 is waiting for 4_1 => 4_1's default NORMAL priority is boosted to HIGH
-        final DependencyTrackingEntity firstLevelDependency = entityManager.find(DependencyTrackingEntity.class, new Key(4, 1));
+        final DependencyTracking firstLevelDependency = entityManager.find(DependencyTracking.class, new Key(4, 1));
         assertThat(firstLevelDependency.getPriority(), is(Priority.HIGH.getValue()));
 
         // 4_1 is waiting for 4_0 => 4_0's default NORMAL priority is boosted to HIGH
-        final DependencyTrackingEntity secondLevelDependency = entityManager.find(DependencyTrackingEntity.class, new Key(4, 0));
+        final DependencyTracking secondLevelDependency = entityManager.find(DependencyTracking.class, new Key(4, 0));
         assertThat(secondLevelDependency.getPriority(), is(Priority.HIGH.getValue()));
     }
 

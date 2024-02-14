@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTracking.Key;
 import org.junit.jupiter.api.Test;
 import org.postgresql.util.PGobject;
 

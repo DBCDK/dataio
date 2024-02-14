@@ -1,13 +1,29 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import java.io.Serializable;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-class JobSchedulerSinkStatus {
+public class JobSchedulerSinkStatus implements Serializable {
     final QueueStatus processingStatus = new QueueStatus();
     final QueueStatus deliveringStatus = new QueueStatus();
+
+    public QueueStatus getProcessingStatus() {
+        return processingStatus;
+    }
+
+    public QueueStatus getDeliveringStatus() {
+        return deliveringStatus;
+    }
+
+    public void mergeCounters(JobSchedulerSinkStatus status) {
+        processingStatus.enqueued.addAndGet(status.processingStatus.enqueued.get());
+        processingStatus.ready.addAndGet(status.processingStatus.ready.get());
+        deliveringStatus.enqueued.addAndGet(status.deliveringStatus.enqueued.get());
+        deliveringStatus.ready.addAndGet(status.deliveringStatus.ready.get());
+    }
 
     boolean isProcessingModeDirectSubmit() {
         return processingStatus.isDirectSubmitMode();
@@ -26,11 +42,11 @@ class JobSchedulerSinkStatus {
     }
 
     // Status for a single JMS queue..
-    static class QueueStatus {
+    public static class QueueStatus implements Serializable {
         private JobSchedulerBean.QueueSubmitMode queueSubmitMode = JobSchedulerBean.QueueSubmitMode.DIRECT;
-        final AtomicInteger ready = new AtomicInteger(0);
-        final AtomicInteger enqueued = new AtomicInteger(0);
-        final ReadWriteLock modeLock = new ReentrantReadWriteLock();
+        public final AtomicInteger ready = new AtomicInteger(0);
+        public final AtomicInteger enqueued = new AtomicInteger(0);
+        final transient ReadWriteLock modeLock = new ReentrantReadWriteLock();
 
         // owned and updated by singleton JobSchedulerBulkSubmitterBean
         public Future<Integer> lastAsyncPushResult = null;

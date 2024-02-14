@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.service.rs;
 
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -21,26 +21,26 @@ public class AdminBeanTest {
 
     @Test
     public void getSinkName() {
-        DependencyTrackingEntity dte = new DependencyTrackingEntity().setSinkid(2);
+        DependencyTracking dte = new DependencyTracking().setSinkid(2);
         String sinkName = new TestAdminBean().getSink(dte.getSinkid()).getContent().getName();
         Assertions.assertEquals("sink2", sinkName);
     }
 
     @Test
     public void isTimeout() {
-        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTrackingEntity(Instant.now()).setSinkid(2)));
-        Assertions.assertTrue(new TestAdminBean().isTimeout(new TestDependencyTrackingEntity(Instant.now().minus(Duration.ofHours(2))).setSinkid(2)));
-        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTrackingEntity(Instant.now().minus(Duration.ofHours(2))).setSinkid(3)));
+        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now()).setSinkid(2)));
+        Assertions.assertTrue(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now().minus(Duration.ofHours(2))).setSinkid(2)));
+        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now().minus(Duration.ofHours(2))).setSinkid(3)));
     }
 
     public static SinkContent newSinkContent(String name, int timeout) {
         return new SinkContent(name, "queue", "description", SinkContent.SinkType.DUMMY, null, SinkContent.SequenceAnalysisOption.ALL, timeout);
     }
 
-    private static class TestDependencyTrackingEntity extends DependencyTrackingEntity {
+    private static class TestDependencyTracking extends DependencyTracking {
         private final Instant lm;
 
-        private TestDependencyTrackingEntity(Instant lm) {
+        private TestDependencyTracking(Instant lm) {
             this.lm = lm;
         }
 

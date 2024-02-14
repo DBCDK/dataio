@@ -9,7 +9,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedS
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
@@ -65,7 +65,7 @@ public class StatusBeanTest {
 
         when(flowStoreServiceConnector.getSink(1)).thenReturn(sink);
         when(flowStoreServiceConnector.findAllSinks()).thenReturn(Collections.singletonList(sink));
-        when(statusBean.entityManager.createNamedQuery(DependencyTrackingEntity.JOB_COUNT_CHUNK_COUNT_QUERY)).thenReturn(query);
+        when(statusBean.entityManager.createNamedQuery(DependencyTracking.JOB_COUNT_CHUNK_COUNT_QUERY)).thenReturn(query);
         when(query.getSingleResult()).thenReturn(new Object[]{1L, 2L});
 
         final Response response = statusBean.getSinkStatusList();
@@ -87,7 +87,7 @@ public class StatusBeanTest {
                 .withSinkType(sink.getContent().getSinkType()).withNumberOfJobs(1).withNumberOfChunks(2);
 
         when(flowStoreServiceConnector.getSink(1)).thenReturn(sink);
-        when(statusBean.entityManager.createNamedQuery(DependencyTrackingEntity.JOB_COUNT_CHUNK_COUNT_QUERY)).thenReturn(query);
+        when(statusBean.entityManager.createNamedQuery(DependencyTracking.JOB_COUNT_CHUNK_COUNT_QUERY)).thenReturn(query);
         when(query.getSingleResult()).thenReturn(new Object[]{1L, 2L});
 
         Response response = statusBean.getSinkStatus(1);

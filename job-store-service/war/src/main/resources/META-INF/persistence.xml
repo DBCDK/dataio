@@ -24,7 +24,7 @@
     <class>dk.dbc.dataio.jobstore.service.entity.WorkflowNoteConverter</class>
     <class>dk.dbc.dataio.commons.partioner.entity.RecordInfoConverter</class>
     <class>dk.dbc.dataio.commons.partioner.entity.ReorderedItemEntity</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.DependencyTracking</class>
     <class>dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkSchedulingStatusConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.StringSetConverter</class>
@@ -58,7 +58,7 @@
     <class>dk.dbc.dataio.jobstore.service.entity.WorkflowNoteConverter</class>
     <class>dk.dbc.dataio.commons.partioner.entity.RecordInfoConverter</class>
     <class>dk.dbc.dataio.commons.partioner.entity.ReorderedItemEntity</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.DependencyTracking</class>
     <class>dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkSchedulingStatusConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.StringSetConverter</class>

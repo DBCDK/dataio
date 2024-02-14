@@ -16,6 +16,7 @@
 
     <properties>
         <jobstore.it.persistence.unit.name>jobstoreIT</jobstore.it.persistence.unit.name>
+        <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:24</java.image>
     </properties>
 
     <dependencies>
@@ -70,6 +71,10 @@
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.microprofile.config</groupId>

@@ -8,7 +8,7 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 public class SinkIdStatusCountResult {
     public int sinkId;
-    public DependencyTrackingEntity.ChunkSchedulingStatus status;
+    public DependencyTracking.ChunkSchedulingStatus status;
     public int count;
 
     static final ChunkSchedulingStatusConverter converter = new ChunkSchedulingStatusConverter();
@@ -19,7 +19,7 @@ public class SinkIdStatusCountResult {
         this.count = Math.toIntExact(count);
     }
 
-    public SinkIdStatusCountResult(int sinkId, DependencyTrackingEntity.ChunkSchedulingStatus status, int count) {
+    public SinkIdStatusCountResult(int sinkId, DependencyTracking.ChunkSchedulingStatus status, int count) {
         this.sinkId = sinkId;
         this.status = status;
         this.count = count;

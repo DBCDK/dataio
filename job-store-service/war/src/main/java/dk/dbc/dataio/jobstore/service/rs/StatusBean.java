@@ -9,7 +9,7 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceStatus;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import jakarta.ejb.EJB;
 import jakarta.ejb.LocalBean;
@@ -91,7 +91,7 @@ public class StatusBean implements ServiceStatus {
     }
 
     private Object[] executeQuery(Sink sink) {
-        final Query query = entityManager.createNamedQuery(DependencyTrackingEntity.JOB_COUNT_CHUNK_COUNT_QUERY);
+        final Query query = entityManager.createNamedQuery(DependencyTracking.JOB_COUNT_CHUNK_COUNT_QUERY);
         query.setParameter(1, sink.getId());
         return (Object[]) query.getSingleResult();
     }

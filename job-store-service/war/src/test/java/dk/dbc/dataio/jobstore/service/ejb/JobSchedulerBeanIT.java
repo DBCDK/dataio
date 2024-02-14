@@ -11,7 +11,7 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTracking.Key;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -88,7 +88,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         JPATestUtils.clearEntityManagerCache(entityManager);
 
         // check no statuses is modified
-        List<DependencyTrackingEntity> res = entityManager.createNativeQuery("SELECT * FROM dependencytracking WHERE jobid=3 AND chunkId != status ").getResultList();
+        List<DependencyTracking> res = entityManager.createNativeQuery("SELECT * FROM dependencytracking WHERE jobid=3 AND chunkId != status ").getResultList();
         assertThat("Test chunkProcessingDone did not change any chunk ", res.size(), is(0));
 
 
@@ -219,7 +219,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         final JobEntity jobEntity = newPersistedJobEntity();
         jobEntity.setNumberOfChunks(43);
         newPersistedChunkEntity(new ChunkEntity.Key(42, jobEntity.getId()));
-        newPersistedDependencyTrackingEntity(new DependencyTrackingEntity.Key(jobEntity.getId(), 42));
+        newPersistedDependencyTrackingEntity(new DependencyTracking.Key(jobEntity.getId(), 42));
 
         final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
         jobSchedulerBean.entityManager = entityManager;
@@ -251,7 +251,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         jobSchedulerBean.ensureLastChunkIsScheduled(jobEntity.getId());
 
         verify(jobSchedulerTransactionsBean).persistDependencyEntity(
-                any(DependencyTrackingEntity.class), nullable(String.class));
+                any(DependencyTracking.class), nullable(String.class));
 
         verify(jobSchedulerTransactionsBean).submitToProcessingIfPossibleAsync(
                 chunkEntity, sinkCacheEntity.getSink().getId(), jobEntity.getPriority().getValue());
@@ -272,15 +272,15 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private DependencyTrackingEntity getDependencyTrackingEntity(int jobId, int chunkId) {
+    private DependencyTracking getDependencyTrackingEntity(int jobId, int chunkId) {
         JPATestUtils.clearEntityManagerCache(entityManager);
         entityManager.getTransaction().begin();
 
         LOGGER.info("Test Checker entityManager.find( job={}, chunk={} ) ", jobId, chunkId);
-        DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(jobId, chunkId), LockModeType.PESSIMISTIC_READ);
-        assertThat(dependencyTrackingEntity, is(notNullValue()));
-        entityManager.refresh(dependencyTrackingEntity);
+        DependencyTracking dependencyTracking = entityManager.find(DependencyTracking.class, new DependencyTracking.Key(jobId, chunkId), LockModeType.PESSIMISTIC_READ);
+        assertThat(dependencyTracking, is(notNullValue()));
+        entityManager.refresh(dependencyTracking);
         entityManager.getTransaction().rollback();
-        return dependencyTrackingEntity;
+        return dependencyTracking;
     }
 }

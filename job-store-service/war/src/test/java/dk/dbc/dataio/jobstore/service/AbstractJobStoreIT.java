@@ -22,7 +22,7 @@ import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
 import dk.dbc.dataio.jobstore.service.ejb.RerunsRepository;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -239,18 +239,18 @@ public class AbstractJobStoreIT implements PostgresContainerJPAUtils {
         return jobQueueEntity;
     }
 
-    protected DependencyTrackingEntity newDependencyTrackingEntity(DependencyTrackingEntity.Key key) {
-        DependencyTrackingEntity dependencyTrackingEntity = new DependencyTrackingEntity();
-        dependencyTrackingEntity.setKey(key);
-        dependencyTrackingEntity.setSinkid(1);
-        dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING);
-        return dependencyTrackingEntity;
+    protected DependencyTracking newDependencyTrackingEntity(DependencyTracking.Key key) {
+        DependencyTracking dependencyTracking = new DependencyTracking();
+        dependencyTracking.setKey(key);
+        dependencyTracking.setSinkid(1);
+        dependencyTracking.setStatus(DependencyTracking.ChunkSchedulingStatus.READY_FOR_PROCESSING);
+        return dependencyTracking;
     }
 
-    protected DependencyTrackingEntity newPersistedDependencyTrackingEntity(DependencyTrackingEntity.Key key) {
-        DependencyTrackingEntity dependencyTrackingEntity = newDependencyTrackingEntity(key);
-        persist(dependencyTrackingEntity);
-        return dependencyTrackingEntity;
+    protected DependencyTracking newPersistedDependencyTrackingEntity(DependencyTracking.Key key) {
+        DependencyTracking dependencyTracking = newDependencyTrackingEntity(key);
+        persist(dependencyTracking);
+        return dependencyTracking;
     }
 
     protected JobQueueRepository newJobQueueRepository() {

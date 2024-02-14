@@ -12,12 +12,12 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Converter
-public class KeySetJSONBConverter implements AttributeConverter<Set<DependencyTrackingEntity.Key>, PGobject> {
+public class KeySetJSONBConverter implements AttributeConverter<Set<DependencyTracking.Key>, PGobject> {
 
-    final CollectionType JSONSetKeyType = ConverterJSONBContext.getInstance().getTypeFactory().constructCollectionType(Set.class, DependencyTrackingEntity.Key.class);
+    final CollectionType JSONSetKeyType = ConverterJSONBContext.getInstance().getTypeFactory().constructCollectionType(Set.class, DependencyTracking.Key.class);
 
     @Override
-    public PGobject convertToDatabaseColumn(Set<DependencyTrackingEntity.Key> sequenceAnalysisData) throws IllegalStateException {
+    public PGobject convertToDatabaseColumn(Set<DependencyTracking.Key> sequenceAnalysisData) throws IllegalStateException {
         final PGobject pgObject = new PGobject();
         pgObject.setType("jsonb");
         try {
@@ -29,7 +29,7 @@ public class KeySetJSONBConverter implements AttributeConverter<Set<DependencyTr
     }
 
     @Override
-    public Set<DependencyTrackingEntity.Key> convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
+    public Set<DependencyTracking.Key> convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
         try {
             if (pgObject == null) return new LinkedHashSet<>();
             return ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), JSONSetKeyType);

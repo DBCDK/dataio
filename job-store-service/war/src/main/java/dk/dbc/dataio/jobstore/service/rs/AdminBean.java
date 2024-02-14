@@ -8,7 +8,7 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.jms.artemis.AdminClient;
@@ -47,10 +47,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_DELIVERY;
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTracking.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTracking.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTracking.ChunkSchedulingStatus.READY_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTracking.ChunkSchedulingStatus.READY_FOR_PROCESSING;
 
 @Stateless
 @Path("/")
@@ -83,12 +83,12 @@ public class AdminBean {
     @Schedule(minute = "*", hour = "*", persistent = false)
     public void updateStaleChunks() {
         try {
-            Stream<DependencyTrackingEntity> delStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
-            Stream<DependencyTrackingEntity> procStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
-            List<DependencyTrackingEntity> list = Stream.concat(delStream, procStream).collect(Collectors.toList());
+            Stream<DependencyTracking> delStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
+            Stream<DependencyTracking> procStream = jobStoreRepository.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
+            List<DependencyTracking> list = Stream.concat(delStream, procStream).collect(Collectors.toList());
             resendIfNeeded(list);
             list.stream().map(s -> getSinkName(s.getSinkid())).distinct().filter(s -> staleChunks.putIfAbsent(s, new AtomicInteger(0)) == null).forEach(this::registerChunkMetric);
-            Map<Integer, List<DependencyTrackingEntity>> map = list.stream().collect(Collectors.groupingBy(DependencyTrackingEntity::getSinkid));
+            Map<Integer, List<DependencyTracking>> map = list.stream().collect(Collectors.groupingBy(DependencyTracking::getSinkid));
             Map<String, Integer> counters = map.entrySet().stream().collect(Collectors.toMap(e -> getSinkName(e.getKey()), e -> e.getValue().size()));
             staleChunks.forEach((k, v) -> v.set(counters.getOrDefault(k, 0)));
             LOGGER.info("Stale chunks alert set for jobs: " + list.stream().map(e -> e.getKey().getJobId()).distinct().map(i -> Integer.toString(i)).collect(Collectors.joining(", ")));
@@ -98,8 +98,8 @@ public class AdminBean {
         }
     }
 
-    public void resendIfNeeded(List<DependencyTrackingEntity> list) {
-        Set<DependencyTrackingEntity> retries = list.stream()
+    public void resendIfNeeded(List<DependencyTracking> list) {
+        Set<DependencyTracking> retries = list.stream()
                 .filter(de -> de.getRetries() < 1)
                 .filter(de -> de.getWaitingOn().isEmpty())
                 .collect(Collectors.toSet());
@@ -107,8 +107,8 @@ public class AdminBean {
         LOGGER.warn("Retrying stale trackers: {}", retries.stream()
                 .map(e -> e.getKey().toChunkIdentifier())
                 .collect(Collectors.joining(", ")));
-        list.forEach(DependencyTrackingEntity::resend);
-        Set<Integer> sinks = list.stream().map(DependencyTrackingEntity::getSinkid).collect(Collectors.toSet());
+        list.forEach(DependencyTracking::resend);
+        Set<Integer> sinks = list.stream().map(DependencyTracking::getSinkid).collect(Collectors.toSet());
         sinks.forEach(jobSchedulerBean::loadSinkStatusOnBootstrap);
     }
 
@@ -187,7 +187,7 @@ public class AdminBean {
         }
     }
 
-    boolean isTimeout(DependencyTrackingEntity de) {
+    boolean isTimeout(DependencyTracking de) {
         if(de.getLastModified() == null) return false;
         Optional<Sink> sink = Optional.ofNullable(getSink(de.getSinkid()));
         Instant lm = Instant.ofEpochMilli(de.getLastModified().getTime());

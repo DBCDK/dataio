@@ -836,6 +836,7 @@
                                                         <directory>${basedir}/src/main/docker</directory>
                                                         <includes>
                                                             <include>*.json</include>
+                                                            <include>*.xml</include>
                                                         </includes>
                                                         <outputDirectory>.</outputDirectory>
                                                     </fileSet>

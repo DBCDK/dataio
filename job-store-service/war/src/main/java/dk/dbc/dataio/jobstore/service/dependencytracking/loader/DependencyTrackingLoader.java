@@ -159,6 +159,7 @@ public class DependencyTrackingLoader implements MapStore<TrackingKey, Dependenc
 
     private static DataSource lookupDataSource() {
         try {
+            LOGGER.info("Initializing map loader");
             return (DataSource) new InitialContext().lookup(DS_JNDI);
         } catch (NamingException e) {
             LOGGER.error("Unable to lookup datasource {}", DS_JNDI, e);

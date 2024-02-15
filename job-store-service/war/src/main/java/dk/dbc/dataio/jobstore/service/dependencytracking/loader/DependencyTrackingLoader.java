@@ -92,7 +92,7 @@ public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key
     public Map<DependencyTracking.Key, DependencyTracking> loadAll(Collection<DependencyTracking.Key> keys) {
         Map<Integer, List<DependencyTracking.Key>> jobs = keys.stream().collect(Collectors.groupingBy(DependencyTracking.Key::getJobId));
         String sql = "select * from dependencytracking where jobid=? and chunkid in [?]";
-        return fetch(SELECT, ps -> {
+        return fetch(sql, ps -> {
             Map<DependencyTracking.Key, DependencyTracking> entities = new HashMap<>();
             for (Integer jobId : jobs.keySet()) {
                 String chunks = jobs.get(jobId).stream().mapToInt(DependencyTracking.Key::getChunkId).mapToObj(Integer::toString).collect(Collectors.joining(", "));

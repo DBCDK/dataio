@@ -33,9 +33,6 @@ public class JobSchedulerRestBean {
         return Response.ok().build();
     }
 
-    ;
-
-
     @POST
     @Path(JobStoreServiceConstants.SCHEDULER_SINK_FORCE_TRANSITION_MODE)
     @Consumes({MediaType.APPLICATION_JSON})
@@ -47,7 +44,4 @@ public class JobSchedulerRestBean {
         sinkStatus.deliveringStatus.setMode(JobSchedulerBean.QueueSubmitMode.TRANSITION_TO_DIRECT);
         return Response.ok().build();
     }
-
-    ;
-
 }

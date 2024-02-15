@@ -53,7 +53,7 @@ public enum Kind {
     };
 
     private final String tool;
-    static String toolPath = SinkConfig.TOOL_PATH.asString();;
+    static String toolPath = SinkConfig.TOOL_PATH.asString();
 
     Kind(String tool) {
         this.tool = tool;

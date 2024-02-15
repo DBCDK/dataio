@@ -31,6 +31,7 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.jms.artemis.AdminClient;
 import dk.dbc.jms.artemis.AdminClientFactory;
+import jakarta.annotation.PostConstruct;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -95,14 +96,14 @@ public class JobsBean {
     SinkMessageProducerBean sinkMessageProducerBean;
     @EJB
     JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
+    @Inject
+    private HazelcastInstance hc;
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
 
-    @Inject
-    public JobsBean(HazelcastInstance hc) {
-        synchronized (this) {
-            if (abortedJobs == null) abortedJobs = hc.getSet("aborted.jobs");
-        }
+    @PostConstruct
+    public void init() {
+        if (abortedJobs == null) abortedJobs = hc.getSet("aborted.jobs");
     }
 
     @POST

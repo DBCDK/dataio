@@ -6,6 +6,7 @@ import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
+import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -64,7 +65,7 @@ public class JobSchedulerTransactionsBean {
     public void persistDependencyEntity(DependencyTracking entity, String barrierMatchKey) {
         dependencyTrackingService.getSinkStatus(entity.getSinkId()).processingStatus.ready.incrementAndGet();
 
-        Set<DependencyTracking.Key> chunksToWaitFor = dependencyTrackingService.findChunksToWaitFor(entity, barrierMatchKey);
+        Set<TrackingKey> chunksToWaitFor = dependencyTrackingService.findChunksToWaitFor(entity, barrierMatchKey);
         entity.setWaitingOn(chunksToWaitFor);
         dependencyTrackingService.add(entity);
         dependencyTrackingService.boostPriorities(chunksToWaitFor, entity.getPriority());
@@ -81,7 +82,7 @@ public class JobSchedulerTransactionsBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
     public void addDependencies(DependencyTracking e) {
-        List<DependencyTracking.Key> chunksToWaitFor = dependencyTrackingService.findJobBarrier(e.getSinkId(), e.getKey().getJobId(), e.getMatchKeys());
+        List<TrackingKey> chunksToWaitFor = dependencyTrackingService.findJobBarrier(e.getSinkId(), e.getKey().getJobId(), e.getMatchKeys());
         e.setWaitingOn(chunksToWaitFor);
         e.setStatus(ChunkSchedulingStatus.BLOCKED);
 
@@ -131,7 +132,7 @@ public class JobSchedulerTransactionsBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
     public void submitToProcessing(ChunkEntity chunk, JobSchedulerSinkStatus.QueueStatus queueStatus, int priority) {
-        DependencyTracking.Key key = new DependencyTracking.Key(chunk.getKey());
+        TrackingKey key = new TrackingKey(chunk.getKey());
         dependencyTrackingService.modify(key, dependencyTracking -> {
             if (dependencyTracking == null) {
                 LOGGER.error("Internal Error unable to lookup chunk {} in submitToProcessing", key);
@@ -184,12 +185,12 @@ public class JobSchedulerTransactionsBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
     public void submitToDeliveringNewTransaction(Chunk chunk, JobSchedulerSinkStatus.QueueStatus sinkStatus) {
-        DependencyTracking.Key key = new DependencyTracking.Key(chunk);
+        TrackingKey key = new TrackingKey(chunk);
         dependencyTrackingService.modify(key, dt -> submitToDelivering(chunk, dt, sinkStatus));
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void attemptToUnblockChunk(DependencyTracking.Key chunkBlockedKey, DependencyTracking.Key chunkDoneKey,
+    public void attemptToUnblockChunk(TrackingKey chunkBlockedKey, TrackingKey chunkDoneKey,
                                       JobSchedulerSinkStatus.QueueStatus sinkQueueStatus) {
 
         dependencyTrackingService.modify(chunkBlockedKey, blockedChunk -> {
@@ -239,7 +240,7 @@ public class JobSchedulerTransactionsBean {
         }
     }
 
-    public Chunk getProcessedChunkFrom(DependencyTracking.Key dtKey) {
+    public Chunk getProcessedChunkFrom(TrackingKey dtKey) {
         try {
             ChunkEntity.Key chunkKey = new ChunkEntity.Key(dtKey.getChunkId(), dtKey.getJobId());
 

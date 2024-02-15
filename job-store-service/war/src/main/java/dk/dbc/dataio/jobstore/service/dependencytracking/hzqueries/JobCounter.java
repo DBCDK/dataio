@@ -2,12 +2,13 @@ package dk.dbc.dataio.jobstore.service.dependencytracking.hzqueries;
 
 import com.hazelcast.aggregation.Aggregator;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class JobCounter implements Aggregator<Map.Entry<DependencyTracking.Key, DependencyTracking>, Integer[]> {
+public class JobCounter implements Aggregator<Map.Entry<TrackingKey, DependencyTracking>, Integer[]> {
     private Set<Integer> jobs = new HashSet<>();
     private int chunkCount = 0;
     private final int sinkId;
@@ -17,7 +18,7 @@ public class JobCounter implements Aggregator<Map.Entry<DependencyTracking.Key, 
     }
 
     @Override
-    public void accumulate(Map.Entry<DependencyTracking.Key, DependencyTracking> entry) {
+    public void accumulate(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking dt = entry.getValue();
         if(dt.getSinkId() == sinkId) {
             jobs.add(dt.getKey().getJobId());

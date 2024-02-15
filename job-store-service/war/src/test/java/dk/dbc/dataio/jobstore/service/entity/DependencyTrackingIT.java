@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.dependencytracking.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking.Key;
+import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +36,7 @@ public class DependencyTrackingIT extends AbstractJobStoreIT {
             Arrays.stream(ChunkSchedulingStatus.values()).forEach(chunkSchedulingStatus -> {
                 DependencyTracking entity = new DependencyTracking();
                 entity.setStatus(chunkSchedulingStatus);
-                entity.setKey(new Key(1, i[0]));
+                entity.setKey(new TrackingKey(1, i[0]));
                 entity.setMatchKeys(Stream.of(
                                 "5 023 297 2",
                                 "2 004 091 2",
@@ -61,8 +61,8 @@ public class DependencyTrackingIT extends AbstractJobStoreIT {
                                 "f" + i[0])
                         .collect(Collectors.toSet()));
                 entity.setWaitingOn(Stream.of(
-                                new Key(1, 1),
-                                new Key(3, 0))
+                                new TrackingKey(1, 1),
+                                new TrackingKey(3, 0))
                         .collect(Collectors.toSet()));
                 entity.setPriority(Priority.NORMAL.getValue());
 
@@ -73,11 +73,11 @@ public class DependencyTrackingIT extends AbstractJobStoreIT {
 
         JPATestUtils.clearEntityManagerCache(entityManager);
 
-        final DependencyTracking entity = entityManager.find(DependencyTracking.class, new DependencyTracking.Key(1, 0));
+        final DependencyTracking entity = entityManager.find(DependencyTracking.class, new TrackingKey(1, 0));
         assertThat("status", entity.getStatus(), is(ChunkSchedulingStatus.READY_FOR_PROCESSING));
         assertThat("sink ID", entity.getSinkId(), is(0));
         assertThat("match keys", entity.getMatchKeys(), containsInAnyOrder("5 023 297 2", "2 004 091 2", "4 016 438 3", "0 198 393 8", "2 022 704 4", "2 017 916 3", "5 000 116 4", "5 017 224 4", "2 002 537 9", "5 005 396 2", "4 107 001 3", "2 017 919 8", "0 193 840 1", "0 189 413 7", "2 015 874 3", "5 017 504 9", "0 189 446 3", "2 015 875 1", "5 044 974 2", "5 007 721 7", "f0"));
-        assertThat("waitingOn", entity.getWaitingOn(), containsInAnyOrder(new Key(1, 1), new Key(3, 0)));
+        assertThat("waitingOn", entity.getWaitingOn(), containsInAnyOrder(new TrackingKey(1, 1), new TrackingKey(3, 0)));
         assertThat("priority", entity.getPriority(), is(Priority.NORMAL.getValue()));
     }
 
@@ -126,9 +126,9 @@ public class DependencyTrackingIT extends AbstractJobStoreIT {
                 .getResultList());
 
         assertThat("number of entities", entities.size(), is(4));
-        assertThat("1st entity", entities.get(0).getKey(), is(new DependencyTracking.Key(6, 21)));
-        assertThat("2nd entity", entities.get(1).getKey(), is(new DependencyTracking.Key(1, 20)));
-        assertThat("3rd entity", entities.get(2).getKey(), is(new DependencyTracking.Key(1, 21)));
-        assertThat("4th entity", entities.get(3).getKey(), is(new DependencyTracking.Key(6, 20)));
+        assertThat("1st entity", entities.get(0).getKey(), is(new TrackingKey(6, 21)));
+        assertThat("2nd entity", entities.get(1).getKey(), is(new TrackingKey(1, 20)));
+        assertThat("3rd entity", entities.get(2).getKey(), is(new TrackingKey(1, 21)));
+        assertThat("4th entity", entities.get(3).getKey(), is(new TrackingKey(6, 20)));
     }
 }

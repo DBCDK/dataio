@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking.Key;
+import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 import org.junit.jupiter.api.Test;
 import org.postgresql.util.PGobject;
 
@@ -20,16 +20,16 @@ public class KeySetJSONBConverterTest {
     public void encodeSmallList() throws Exception {
 
         KeySetJSONBConverter converter = new KeySetJSONBConverter();
-        Set<Key> input = new HashSet<>();
+        Set<TrackingKey> input = new HashSet<>();
 
-        input.add(new Key(1, 2));
-        input.add(new Key(3, 4));
+        input.add(new TrackingKey(1, 2));
+        input.add(new TrackingKey(3, 4));
 
         PGobject pgObject = converter.convertToDatabaseColumn(input);
 
-        Set<Key> res = converter.convertToEntityAttribute(pgObject);
+        Set<TrackingKey> res = converter.convertToEntityAttribute(pgObject);
 
-        assertThat(res, containsInAnyOrder(new Key(3, 4), new Key(1, 2)));
+        assertThat(res, containsInAnyOrder(new TrackingKey(3, 4), new TrackingKey(1, 2)));
     }
 
 

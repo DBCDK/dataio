@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.service.dependencytracking.hzqueries;
 import com.hazelcast.query.Predicate;
 import dk.dbc.dataio.commons.utils.lang.Hashcode;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -11,7 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ChunksToWaitFor implements Predicate<DependencyTracking.Key, DependencyTracking> {
+public class ChunksToWaitFor implements Predicate<TrackingKey, DependencyTracking> {
     private final int sinkId;
     private final int submitterNumber;
     private final Set<Integer> hashes;
@@ -26,7 +27,7 @@ public class ChunksToWaitFor implements Predicate<DependencyTracking.Key, Depend
     }
 
     @Override
-    public boolean apply(Map.Entry<DependencyTracking.Key, DependencyTracking> entry) {
+    public boolean apply(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking value = entry.getValue();
         return value.getSinkId() == sinkId &&
                 value.getSubmitterNumber() == submitterNumber &&

@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.service.dependencytracking.hzqueries;
 import com.hazelcast.aggregation.Aggregator;
 import dk.dbc.dataio.jobstore.service.dependencytracking.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +11,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class BlockedCounter implements Aggregator<Map.Entry<DependencyTracking.Key, DependencyTracking>, Map<Integer, Integer>> {
+public class BlockedCounter implements Aggregator<Map.Entry<TrackingKey, DependencyTracking>, Map<Integer, Integer>> {
     private final Map<Integer, AtomicInteger> map = new HashMap<>();
     private final ChunkSchedulingStatus status;
 
@@ -19,7 +20,7 @@ public class BlockedCounter implements Aggregator<Map.Entry<DependencyTracking.K
     }
 
     @Override
-    public void accumulate(Map.Entry<DependencyTracking.Key, DependencyTracking> entry) {
+    public void accumulate(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking dt = entry.getValue();
         if(dt.getStatus() == status) {
             map.computeIfAbsent(dt.getSinkId(), id -> new AtomicInteger(0)).incrementAndGet();

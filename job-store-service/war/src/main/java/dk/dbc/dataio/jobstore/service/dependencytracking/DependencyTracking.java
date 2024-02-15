@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore.service.dependencytracking;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.lang.Hashcode;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter;
@@ -22,7 +21,7 @@ import java.util.Set;
 public class DependencyTracking implements DependencyTrackingRO, Serializable {
     private static final long serialVersionUID = 1L;
 
-    private Key key;
+    private TrackingKey key;
     private int sinkId;
     private ChunkSchedulingStatus status = ChunkSchedulingStatus.READY_FOR_PROCESSING;
 
@@ -31,7 +30,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
 //    @Column(columnDefinition = "jsonb")
 //    @Mutable
 //    @Convert(converter = KeySetJSONBConverter.class)
-    private Set<Key> waitingOn;
+    private Set<TrackingKey> waitingOn;
 
 //    @Column(columnDefinition = "jsonb", nullable = false)
 //    @Convert(converter = StringSetConverter.class)
@@ -46,7 +45,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
     private int retries = 0;
 
     public DependencyTracking(ChunkEntity chunk, int sinkId, String extraKey) {
-        this.key = new Key(chunk.getKey());
+        this.key = new TrackingKey(chunk.getKey());
         this.sinkId = sinkId;
         if (chunk.getSequenceAnalysisData() != null) {
             matchKeys = new HashSet<>(chunk.getSequenceAnalysisData().getData());
@@ -63,12 +62,12 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
     }
 
     public DependencyTracking(int jobId, int chunkId, PGobject waitingOn) {
-        key = new Key(jobId, chunkId);
+        key = new TrackingKey(jobId, chunkId);
         this.waitingOn = new KeySetJSONBConverter().convertToEntityAttribute(waitingOn);
     }
 
     public DependencyTracking(ResultSet rs) throws SQLException {
-        key = new Key(rs.getInt("jobid"), rs.getInt("chunkid"));
+        key = new TrackingKey(rs.getInt("jobid"), rs.getInt("chunkid"));
         waitingOn = new KeySetJSONBConverter().convertToEntityAttribute((PGobject) rs.getObject("waitingon"));
         status = ChunkSchedulingStatus.from(rs.getInt("status"));
         matchKeys = new StringSetConverter().convertToEntityAttribute((PGobject) rs.getObject("matchkeys"));
@@ -81,7 +80,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
 
 
     @Override
-    public Key getKey() {
+    public TrackingKey getKey() {
         return key;
     }
 
@@ -111,16 +110,16 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
     }
 
     @Override
-    public Set<Key> getWaitingOn() {
+    public Set<TrackingKey> getWaitingOn() {
         return waitingOn;
     }
 
-    public DependencyTracking setWaitingOn(Set<Key> waitingOn) {
+    public DependencyTracking setWaitingOn(Set<TrackingKey> waitingOn) {
         this.waitingOn = waitingOn;
         return this;
     }
 
-    public DependencyTracking setWaitingOn(List<Key> chunksToWaitFor) {
+    public DependencyTracking setWaitingOn(List<TrackingKey> chunksToWaitFor) {
         this.waitingOn = new HashSet<>(chunksToWaitFor);
         return this;
     }
@@ -220,70 +219,6 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
             hashes[i++] = Hashcode.of(str);
         }
         return hashes;
-    }
-
-    public static class Key implements Serializable {
-        private static final long serialVersionUID = -5575195152198835462L;
-        private int jobId;
-        private int chunkId;
-
-        /* Private constructor in order to keep class static */
-        private Key() {
-        }
-
-        public Key(int jobId, int chunkId) {
-            this.jobId = jobId;
-            this.chunkId = chunkId;
-        }
-
-        public Key(ChunkEntity.Key chunkKey) {
-            this.jobId = chunkKey.getJobId();
-            this.chunkId = chunkKey.getId();
-        }
-
-        public Key(long jobId, long chunkId) {
-            this.jobId = (int) jobId;
-            this.chunkId = (int) chunkId;
-        }
-
-        public Key(Chunk chunk) {
-            jobId = chunk.getJobId();
-            chunkId = (int) chunk.getChunkId();
-        }
-
-        public int getChunkId() {
-            return chunkId;
-        }
-
-        public int getJobId() {
-            return jobId;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Key key = (Key) o;
-            return jobId == key.jobId &&
-                    chunkId == key.chunkId;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(jobId, chunkId);
-        }
-
-        @Override
-        public String toString() {
-            return "DependencyTrackingEntity.Key{" +
-                    "jobId=" + jobId +
-                    ", chunkId=" + chunkId +
-                    '}';
-        }
-
-        public String toChunkIdentifier() {
-            return jobId + "/" + chunkId;
-        }
     }
 
 }

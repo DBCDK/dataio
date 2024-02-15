@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.service.dependencytracking.loader;
 import com.hazelcast.map.MapStore;
 import dk.dbc.commons.jpa.converter.IntegerArrayToPgIntArrayConverter;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 import dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter;
 import dk.dbc.dataio.jobstore.service.entity.StringSetConverter;
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key, DependencyTracking> {
+public class DependencyTrackingLoader implements MapStore<TrackingKey, DependencyTracking> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTrackingLoader.class);
     private static final KeySetJSONBConverter KEY_SET_CONVERTER = new KeySetJSONBConverter();
     private static final StringSetConverter STRING_SET_CONVERTER = new StringSetConverter();
@@ -44,7 +45,7 @@ public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key
     }
 
     @Override
-    public void store(DependencyTracking.Key key, DependencyTracking dte) {
+    public void store(TrackingKey key, DependencyTracking dte) {
         store(UPSERT, ps -> {
             setRow(ps, dte);
             ps.executeUpdate();
@@ -53,7 +54,7 @@ public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key
 
 
     @Override
-    public void storeAll(Map<DependencyTracking.Key, DependencyTracking> map) {
+    public void storeAll(Map<TrackingKey, DependencyTracking> map) {
         store(UPSERT, ps -> {
             for (DependencyTracking dte : map.values()) {
                 setRow(ps, dte);
@@ -64,15 +65,15 @@ public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key
     }
 
     @Override
-    public void delete(DependencyTracking.Key key) {
+    public void delete(TrackingKey key) {
         deleteAll(List.of(key));
     }
 
     @Override
-    public void deleteAll(Collection<DependencyTracking.Key> keys) {
+    public void deleteAll(Collection<TrackingKey> keys) {
         String sql = "delete from dependencytracking where jobid = ? and chunkid = ?";
         store(sql, ps -> {
-            for (DependencyTracking.Key key : keys) {
+            for (TrackingKey key : keys) {
                 ps.setInt(1, key.getJobId());
                 ps.setInt(2, key.getChunkId());
                 ps.addBatch();
@@ -82,7 +83,7 @@ public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key
     }
 
     @Override
-    public DependencyTracking load(DependencyTracking.Key key) {
+    public DependencyTracking load(TrackingKey key) {
         return fetch(SELECT, ps -> {
             setKey(ps, key);
             ResultSet rs = ps.executeQuery();
@@ -92,13 +93,13 @@ public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key
     }
 
     @Override
-    public Map<DependencyTracking.Key, DependencyTracking> loadAll(Collection<DependencyTracking.Key> keys) {
-        Map<Integer, List<DependencyTracking.Key>> jobs = keys.stream().collect(Collectors.groupingBy(DependencyTracking.Key::getJobId));
+    public Map<TrackingKey, DependencyTracking> loadAll(Collection<TrackingKey> keys) {
+        Map<Integer, List<TrackingKey>> jobs = keys.stream().collect(Collectors.groupingBy(TrackingKey::getJobId));
         String sql = "select * from dependencytracking where jobid=? and chunkid in [?]";
         return fetch(sql, ps -> {
-            Map<DependencyTracking.Key, DependencyTracking> entities = new HashMap<>();
+            Map<TrackingKey, DependencyTracking> entities = new HashMap<>();
             for (Integer jobId : jobs.keySet()) {
-                String chunks = jobs.get(jobId).stream().mapToInt(DependencyTracking.Key::getChunkId).mapToObj(Integer::toString).collect(Collectors.joining(", "));
+                String chunks = jobs.get(jobId).stream().mapToInt(TrackingKey::getChunkId).mapToObj(Integer::toString).collect(Collectors.joining(", "));
                 ps.setInt(1, jobId);
                 ps.setString(2, chunks);
                 ResultSet rs = ps.executeQuery();
@@ -112,12 +113,12 @@ public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key
     }
 
     @Override
-    public Iterable<DependencyTracking.Key> loadAllKeys() {
+    public Iterable<TrackingKey> loadAllKeys() {
         String sql = "select jobid, chunkid from dependencytracking";
         return fetch(sql, ps -> {
             ResultSet rs = ps.executeQuery();
-            List<DependencyTracking.Key> keys = new ArrayList<>();
-            while(rs.next()) keys.add(new DependencyTracking.Key(rs.getInt("jobid"), rs.getInt("chunkid")));
+            List<TrackingKey> keys = new ArrayList<>();
+            while(rs.next()) keys.add(new TrackingKey(rs.getInt("jobid"), rs.getInt("chunkid")));
             return keys;
         });
     }
@@ -135,7 +136,7 @@ public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key
         ps.setInt(11, dte.getRetries());
     }
 
-    private static void setKey(PreparedStatement ps, DependencyTracking.Key key) throws SQLException {
+    private static void setKey(PreparedStatement ps, TrackingKey key) throws SQLException {
         ps.setInt(1, key.getJobId());
         ps.setInt(2, key.getChunkId());
     }

@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.service.dependencytracking.hzqueries;
 
 import com.hazelcast.aggregation.Aggregator;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerSinkStatus;
 
 import java.util.HashMap;
@@ -9,7 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class StatusCounter implements Aggregator<Map.Entry<DependencyTracking.Key, DependencyTracking>, Map<Integer, JobSchedulerSinkStatus>> {
+public class StatusCounter implements Aggregator<Map.Entry<TrackingKey, DependencyTracking>, Map<Integer, JobSchedulerSinkStatus>> {
     private final Map<Integer, JobSchedulerSinkStatus> map = new HashMap<>();
     private final Set<Integer> sinkFilter;
 
@@ -18,7 +19,7 @@ public class StatusCounter implements Aggregator<Map.Entry<DependencyTracking.Ke
     }
 
     @Override
-    public void accumulate(Map.Entry<DependencyTracking.Key, DependencyTracking> entry) {
+    public void accumulate(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking dt = entry.getValue();
         if(sinkFilter.isEmpty() || sinkFilter.contains(dt.getSinkId())) {
             JobSchedulerSinkStatus sinkStatus = map.computeIfAbsent(dt.getSinkId(), id -> new JobSchedulerSinkStatus());

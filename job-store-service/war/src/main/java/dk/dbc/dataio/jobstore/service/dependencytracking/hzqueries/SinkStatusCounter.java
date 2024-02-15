@@ -3,10 +3,11 @@ package dk.dbc.dataio.jobstore.service.dependencytracking.hzqueries;
 import com.hazelcast.aggregation.Aggregator;
 import dk.dbc.dataio.jobstore.service.dependencytracking.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 
 import java.util.Map;
 
-public class SinkStatusCounter implements Aggregator<Map.Entry<DependencyTracking.Key, DependencyTracking>, Integer> {
+public class SinkStatusCounter implements Aggregator<Map.Entry<TrackingKey, DependencyTracking>, Integer> {
     private int count = 0;
     private final int sinkId;
     private final ChunkSchedulingStatus status;
@@ -17,7 +18,7 @@ public class SinkStatusCounter implements Aggregator<Map.Entry<DependencyTrackin
     }
 
     @Override
-    public void accumulate(Map.Entry<DependencyTracking.Key, DependencyTracking> entry) {
+    public void accumulate(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking dt = entry.getValue();
         if(dt.getSinkId() == sinkId && (status == null || dt.getStatus() == status)) count++;
     }

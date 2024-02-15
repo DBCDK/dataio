@@ -4,13 +4,13 @@ import java.time.Instant;
 import java.util.Set;
 
 public interface DependencyTrackingRO {
-    DependencyTracking.Key getKey();
+    TrackingKey getKey();
 
     int getSinkId();
 
     ChunkSchedulingStatus getStatus();
 
-    Set<DependencyTracking.Key> getWaitingOn();
+    Set<TrackingKey> getWaitingOn();
 
     Set<String> getMatchKeys();
 

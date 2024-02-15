@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
@@ -27,7 +28,6 @@ import java.util.List;
 import java.util.Set;
 
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
-import static dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking.Key;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -55,8 +55,8 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         JobSchedulerBean bean = new JobSchedulerBean();
         bean.entityManager = entityManager;
 
-        List<Key> res = bean.findChunksWaitingForMe(new Key(3, 0), 1);
-        assertThat(res, containsInAnyOrder(new Key(2, 0), new Key(2, 1), new Key(2, 2), new Key(2, 3), new Key(2, 4)));
+        List<TrackingKey> res = bean.findChunksWaitingForMe(new TrackingKey(3, 0), 1);
+        assertThat(res, containsInAnyOrder(new TrackingKey(2, 0), new TrackingKey(2, 1), new TrackingKey(2, 2), new TrackingKey(2, 3), new TrackingKey(2, 4)));
     }
 
     @Test
@@ -219,7 +219,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         final JobEntity jobEntity = newPersistedJobEntity();
         jobEntity.setNumberOfChunks(43);
         newPersistedChunkEntity(new ChunkEntity.Key(42, jobEntity.getId()));
-        newPersistedDependencyTrackingEntity(new DependencyTracking.Key(jobEntity.getId(), 42));
+        newPersistedDependencyTrackingEntity(new TrackingKey(jobEntity.getId(), 42));
 
         final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
         jobSchedulerBean.entityManager = entityManager;
@@ -257,8 +257,8 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                 chunkEntity, sinkCacheEntity.getSink().getId(), jobEntity.getPriority().getValue());
     }
 
-    private Key mk(int jobId, int chunkId) {
-        return new Key(jobId, chunkId);
+    private TrackingKey mk(int jobId, int chunkId) {
+        return new TrackingKey(jobId, chunkId);
     }
 
     private SequenceAnalysisData makeSequenceAnalyceData(String... s) {
@@ -277,7 +277,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         entityManager.getTransaction().begin();
 
         LOGGER.info("Test Checker entityManager.find( job={}, chunk={} ) ", jobId, chunkId);
-        DependencyTracking dependencyTracking = entityManager.find(DependencyTracking.class, new DependencyTracking.Key(jobId, chunkId), LockModeType.PESSIMISTIC_READ);
+        DependencyTracking dependencyTracking = entityManager.find(DependencyTracking.class, new TrackingKey(jobId, chunkId), LockModeType.PESSIMISTIC_READ);
         assertThat(dependencyTracking, is(notNullValue()));
         entityManager.refresh(dependencyTracking);
         entityManager.getTransaction().rollback();

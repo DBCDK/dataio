@@ -131,7 +131,7 @@ public class JobsBean {
     }
 
     public static boolean isAborted(int jobId) {
-        return abortedJobs.contains(jobId);
+        return abortedJobs != null && abortedJobs.contains(jobId);
     }
 
     private void removeFromQueue(String fqn, int jobId) {

@@ -208,13 +208,17 @@ public class JobSchedulerBean {
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void ensureLastChunkIsScheduled(int jobId) {
-        JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
-        if(jobEntity.getState().isAborted() || JobsBean.isAborted(jobId)) return;
-        int chunkId = Math.max(0, jobEntity.getNumberOfChunks() - 1);
-        ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobId));
-        if (chunkEntity != null && !dependencyTrackingService.isScheduled(chunkEntity)) {
-            LOGGER.info("Ensuring chunk {}/{} is scheduled", jobId, chunkId);
-            scheduleChunk(chunkEntity, jobEntity);
+        try {
+            JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+            if (jobEntity.getState().isAborted() || JobsBean.isAborted(jobId)) return;
+            int chunkId = Math.max(0, jobEntity.getNumberOfChunks() - 1);
+            ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobId));
+            if (chunkEntity != null && !dependencyTrackingService.isScheduled(chunkEntity)) {
+                LOGGER.info("Ensuring chunk {}/{} is scheduled", jobId, chunkId);
+                scheduleChunk(chunkEntity, jobEntity);
+            }
+        } catch (Exception e) {
+            LOGGER.error("ensureLastChunkIsScheduled failed for {}", jobId, e);
         }
     }
 

@@ -5,6 +5,8 @@ import dk.dbc.commons.jpa.converter.IntegerArrayToPgIntArrayConverter;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
 import dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter;
 import dk.dbc.dataio.jobstore.service.entity.StringSetConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -22,6 +24,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key, DependencyTracking> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTrackingLoader.class);
     private static final KeySetJSONBConverter KEY_SET_CONVERTER = new KeySetJSONBConverter();
     private static final StringSetConverter STRING_SET_CONVERTER = new StringSetConverter();
     private static final IntegerArrayToPgIntArrayConverter INT_ARRAY_CONVERTER = new IntegerArrayToPgIntArrayConverter();
@@ -32,8 +35,8 @@ public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key
             "update set status=excluded.status, waitingon=excluded.waitingon, matchkeys=excluded.matchkeys, priority=excluded.priority, hashes=excluded.hashes, submitter=excluded.submitter, lastmodified=excluded.lastmodified, retries=excluded.retries";
     private static final String SELECT = "select * from dependencytracking where jobid=? and chunkid=?";
 
-    public DependencyTrackingLoader() throws NamingException {
-        this((DataSource) new InitialContext().lookup(DS_JNDI));
+    public DependencyTrackingLoader() {
+        this(lookupDataSource());
     }
 
     public DependencyTrackingLoader(DataSource dataSource) {
@@ -150,6 +153,14 @@ public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key
             block.accept(ps);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static DataSource lookupDataSource() {
+        try {
+            return (DataSource) new InitialContext().lookup(DS_JNDI);
+        } catch (NamingException e) {
+            LOGGER.error("Unable to lookup datasource {}", DS_JNDI, e);
         }
     }
 

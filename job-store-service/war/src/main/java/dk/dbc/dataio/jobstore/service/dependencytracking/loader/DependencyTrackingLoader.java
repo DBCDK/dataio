@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -25,7 +26,7 @@ public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key
     private static final StringSetConverter STRING_SET_CONVERTER = new StringSetConverter();
     private static final IntegerArrayToPgIntArrayConverter INT_ARRAY_CONVERTER = new IntegerArrayToPgIntArrayConverter();
     private static final String DS_JNDI = "jdbc/dataio/jobstore";
-    private DataSource dataSource;
+    private final DataSource dataSource;
 
     private static final String UPSERT = "insert into dependencytracking(jobid, chunkid, sinkid, status, waitingon, matchkeys, priority, hashes, submitter, lastmodified, retries) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) on conflict on constraint dependencytracking_pkey do " +
             "update set status=excluded.status, waitingon=excluded.waitingon, matchkeys=excluded.matchkeys, priority=excluded.priority, hashes=excluded.hashes, submitter=excluded.submitter, lastmodified=excluded.lastmodified, retries=excluded.retries";
@@ -127,7 +128,7 @@ public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key
         ps.setInt(7, dte.getPriority());
         ps.setObject(8, INT_ARRAY_CONVERTER.convertToDatabaseColumn(dte.getHashes()));
         ps.setInt(9, dte.getSubmitterNumber());
-        ps.setTimestamp(10, dte.getLastModified());
+        ps.setTimestamp(10, new Timestamp(dte.getLastModified().toEpochMilli()));
         ps.setInt(11, dte.getRetries());
     }
 

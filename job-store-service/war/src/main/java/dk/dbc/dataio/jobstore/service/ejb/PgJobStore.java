@@ -13,6 +13,7 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -83,6 +84,8 @@ public class PgJobStore {
     JobQueueRepository jobQueueRepository;
     @EJB
     JobNotificationRepository jobNotificationRepository;
+    @Inject
+    DependencyTrackingService dependencyTrackingService;
 
     @Inject
     @JobstoreDB
@@ -109,6 +112,7 @@ public class PgJobStore {
         LOGGER.info("Removing {} from job queue", jobId);
         jobQueueRepository.deleteByJobId(jobId);
         LOGGER.info("Removing {} from dependency tracking", jobId);
+
         removeFromDependencyTracking(jobEntity);
         jobSchedulerBean.loadSinkStatusOnBootstrap(Set.of(jobEntity.getCachedSink().getSink().getId()));
         LOGGER.info("Aborting job {} done", jobId);
@@ -380,8 +384,7 @@ public class PgJobStore {
     }
 
     public void removeFromDependencyTracking(JobEntity jobEntity) {
-        int count = jobStoreRepository.deleteDependencies(jobEntity.getId());
-        if(count > 0) LOGGER.info("Aborting job {} deleted {} dependency tracking rows", jobEntity.getId(), count);
+        dependencyTrackingService.removeJobId(jobEntity.getId());
     }
 
     private State endPartitioningPhase(JobEntity job) {

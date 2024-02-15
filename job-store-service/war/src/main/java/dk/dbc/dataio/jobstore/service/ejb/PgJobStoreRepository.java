@@ -57,7 +57,6 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.Query;
-import jakarta.persistence.TypedQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.profiler.Profiler;
@@ -126,12 +125,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new JobListQuery(entityManager).count(query);
     }
 
-    public long getChunksToBeResetForState(ChunkSchedulingStatus status) {
-        TypedQuery<Long> q = entityManager.createNamedQuery(DependencyTracking.CHUNKS_IN_STATE, Long.class);
-        q.setParameter("status", status);
-        return q.getSingleResult();
-    }
-
     public List<Integer> findDependingJobs(int jobId) {
         Query query = entityManager.createNativeQuery("select distinct jobid from dependencytracking where waitingon::jsonb @@ '$[*].jobId==" + jobId + "'");
         query.setParameter(1, jobId);
@@ -141,24 +134,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         return list;
     }
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public int deleteDependencies(int jobId) {
-        Query query = entityManager.createNamedQuery(DependencyTracking.DELETE_JOB);
-        query.setParameter("jobId", jobId);
-        return query.executeUpdate();
-    }
-
-    public int resetStatus(Set<Integer> jobIds, ChunkSchedulingStatus fromStatus,
-                           ChunkSchedulingStatus toStatus) {
-        Query q;
-        if(jobIds == null || jobIds.isEmpty()) q = entityManager.createNamedQuery(DependencyTracking.RESET_STATES_IN_DEPENDENCYTRACKING);
-        else {
-            q = entityManager.createNamedQuery(DependencyTracking.RESET_STATE_IN_DEPENDENCYTRACKING);
-            q.setParameter("jobIds", jobIds);
-        }
-        q.setParameter("fromStatus", fromStatus);
-        q.setParameter("toStatus", toStatus);
-        return q.executeUpdate();
+    public int resetStatus(Set<Integer> jobIds, ChunkSchedulingStatus fromStatus, ChunkSchedulingStatus toStatus) {
+        return dependencyTrackingService.resetStatus(fromStatus, toStatus, jobIds.toArray(Integer[]::new));
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)

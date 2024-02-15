@@ -277,7 +277,7 @@ public class JobSchedulerBean {
      */
     void createAndScheduleTerminationChunk(JobEntity jobEntity, Sink sink, int chunkId, String barrierMatchKey,
                                            ChunkItem.Status ItemStatus) throws JobStoreException {
-        int sinkId = (int) sink.getId();
+        int sinkId = sink.getId();
         ChunkEntity chunkEntity = pgJobStoreRepository.createJobTerminationChunkEntity(jobEntity.getId(), chunkId, "dummyDatafileId", ItemStatus);
         DependencyTracking endTracker = new DependencyTracking(chunkEntity, sinkId, barrierMatchKey)
                 .setSubmitterNumber(Math.toIntExact(jobEntity.getSpecification().getSubmitterId()))
@@ -377,7 +377,7 @@ public class JobSchedulerBean {
         sinkQueueStatus.ready.decrementAndGet();
 
         StopWatch findChunksWaitingForMeStopWatch = new StopWatch();
-        List<DependencyTracking.Key> chunksWaitingForMe = dependencyTrackingService.findChunksWaitingForMe(chunkDoneKey, (int)chunkDoneSinkId);
+        List<DependencyTracking.Key> chunksWaitingForMe = dependencyTrackingService.findChunksWaitingForMe(chunkDoneKey, chunkDoneSinkId);
         LOGGER.info("chunkDeliveringDone: findChunksWaitingForMe for {} took {} ms found {} chunks",
                 chunkDone.getKey(), findChunksWaitingForMeStopWatch.getElapsedTime(), chunksWaitingForMe.size());
 
@@ -402,7 +402,7 @@ public class JobSchedulerBean {
 
     @Asynchronous
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public Future<Integer> bulkScheduleToProcessingForSink(long sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus) {
+    public Future<Integer> bulkScheduleToProcessingForSink(int sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus) {
         int chunksPushedToQueue = 0;
         try {
             final int ready = queueStatus.ready.intValue();
@@ -413,7 +413,7 @@ public class JobSchedulerBean {
             if (spaceLeftInQueue > 0) {
                 LOGGER.debug("bulk scheduling for processing - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
 
-                List<DependencyTracking> chunks = dependencyTrackingService.findStream(ChunkSchedulingStatus.READY_FOR_PROCESSING, (int)sinkId)
+                List<DependencyTracking> chunks = dependencyTrackingService.findStream(ChunkSchedulingStatus.READY_FOR_PROCESSING, sinkId)
                         .limit(spaceLeftInQueue)
                         .collect(Collectors.toList());
 

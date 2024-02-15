@@ -12,6 +12,7 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
@@ -67,7 +68,10 @@ import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 @Path("/")
 public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
-    private Set<Integer> ABORTED_JOBS;
+    private static Set<Integer> abortedJobs = null;
+
+    @Inject
+    DependencyTrackingService dependencyTrackingService;
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -95,21 +99,24 @@ public class JobsBean {
     AdminClient adminClient = AdminClientFactory.getAdminClient();
 
     @Inject
-    public JobsBean(HazelcastInstance hz) {
-        ABORTED_JOBS = hz.getSet("aborted.jobs");
+    public JobsBean(HazelcastInstance hc) {
+        synchronized (this) {
+            if (abortedJobs == null) abortedJobs = hc.getSet("aborted.jobs");
+        }
     }
 
     @POST
     @Path(JobStoreServiceConstants.JOB_ABORT + "/{jobId}")
     public Response abortJob(@PathParam("jobId") int jobId) throws JobStoreException {
         LOGGER.warn("Aborting job {}", jobId);
-        ABORTED_JOBS.add(jobId);
+        abortedJobs.add(jobId);
         Set<Integer> abortedIds = new HashSet<>();
         List<JobEntity> jobs = jobStore.abortJob(jobId, abortedIds).collect(Collectors.toList());
         for (JobEntity job : jobs) {
             removeFromQueues(job);
             jobProcessorMessageProducerBean.sendAbort(job);
             sinkMessageProducerBean.sendAbort(job);
+
             jobStore.removeFromDependencyTracking(job);
         }
         LOGGER.info("Abort job {} and removed its dependencies", jobId);
@@ -123,7 +130,7 @@ public class JobsBean {
     }
 
     public static boolean isAborted(int jobId) {
-        return ABORTED_JOBS.contains(jobId);
+        return abortedJobs.contains(jobId);
     }
 
     private void removeFromQueue(String fqn, int jobId) {
@@ -821,7 +828,7 @@ public class JobsBean {
      * @throws JobStoreException on referenced entities not found
      */
     Response addChunk(UriInfo uriInfo, long jobId, long chunkId, Chunk.Type type, Chunk chunk) throws JobStoreException, JSONBException {
-        if(JobsBean.isAborted((int)jobId)) return Response.accepted().build();
+        if(isAborted((int)jobId)) return Response.accepted().build();
         try {
             JobError jobError = getChunkInputDataError(jobId, chunkId, chunk, type);
             if (jobError == null) {

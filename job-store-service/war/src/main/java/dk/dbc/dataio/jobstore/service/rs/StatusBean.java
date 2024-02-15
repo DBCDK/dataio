@@ -9,14 +9,13 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceStatus;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import jakarta.ejb.EJB;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -39,6 +38,8 @@ public class StatusBean implements ServiceStatus {
 
     @EJB
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @Inject
+    DependencyTrackingService dependencyTrackingService;
 
     @Inject
     @JobstoreDB
@@ -91,8 +92,6 @@ public class StatusBean implements ServiceStatus {
     }
 
     private Object[] executeQuery(Sink sink) {
-        final Query query = entityManager.createNamedQuery(DependencyTracking.JOB_COUNT_CHUNK_COUNT_QUERY);
-        query.setParameter(1, sink.getId());
-        return (Object[]) query.getSingleResult();
+        return dependencyTrackingService.jobCount(sink.getId());
     }
 }

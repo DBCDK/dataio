@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.service.dependencytracking.loader;
 
 import com.hazelcast.map.MapStore;
 import dk.dbc.commons.jpa.converter.IntegerArrayToPgIntArrayConverter;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
 import dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter;
 import dk.dbc.dataio.jobstore.service.entity.StringSetConverter;
 
@@ -120,7 +120,7 @@ public class DependencyTrackingLoader implements MapStore<DependencyTracking.Key
 
     private static void setRow(PreparedStatement ps, DependencyTracking dte) throws SQLException {
         setKey(ps, dte.getKey());
-        ps.setInt(3, dte.getSinkid());
+        ps.setInt(3, dte.getSinkId());
         ps.setInt(4, dte.getStatus().value);
         ps.setObject(5, KEY_SET_CONVERTER.convertToDatabaseColumn(dte.getWaitingOn()));
         ps.setObject(6, STRING_SET_CONVERTER.convertToDatabaseColumn(dte.getMatchKeys()));

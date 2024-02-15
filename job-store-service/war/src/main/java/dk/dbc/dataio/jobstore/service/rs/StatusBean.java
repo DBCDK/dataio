@@ -9,7 +9,7 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceStatus;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import jakarta.ejb.EJB;
 import jakarta.ejb.LocalBean;

@@ -13,10 +13,12 @@ import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.jobstore.service.dependencytracking.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowConverter;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -51,6 +53,7 @@ import dk.dbc.log.DBCTrackedLogContext;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.Query;
@@ -64,8 +67,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.CoderMalfunctionError;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -85,6 +86,8 @@ import static java.lang.String.format;
 public class PgJobStoreRepository extends RepositoryBase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStoreRepository.class);
+    @Inject
+    DependencyTrackingService dependencyTrackingService;
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -106,13 +109,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new JobListQuery(entityManager).execute(criteria);
     }
 
-    public List<DependencyTracking> getStaleDependencies(DependencyTracking.ChunkSchedulingStatus status, Duration timeout) {
-        TypedQuery<DependencyTracking> query = entityManager.createNamedQuery(DependencyTracking.BY_STATE_AND_LAST_MODIFIED, DependencyTracking.class);
-        query.setParameter("date", new Timestamp(Instant.now().minus(timeout).toEpochMilli()));
-        query.setParameter("status", status);
-        return query.getResultList();
-    }
-
     @Stopwatch
     public long countJobs(JobListCriteria criteria) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
@@ -130,7 +126,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new JobListQuery(entityManager).count(query);
     }
 
-    public long getChunksToBeResetForState(DependencyTracking.ChunkSchedulingStatus status) {
+    public long getChunksToBeResetForState(ChunkSchedulingStatus status) {
         TypedQuery<Long> q = entityManager.createNamedQuery(DependencyTracking.CHUNKS_IN_STATE, Long.class);
         q.setParameter("status", status);
         return q.getSingleResult();
@@ -152,8 +148,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         return query.executeUpdate();
     }
 
-    public int resetStatus(Set<Integer> jobIds, DependencyTracking.ChunkSchedulingStatus fromStatus,
-                           DependencyTracking.ChunkSchedulingStatus toStatus) {
+    public int resetStatus(Set<Integer> jobIds, ChunkSchedulingStatus fromStatus,
+                           ChunkSchedulingStatus toStatus) {
         Query q;
         if(jobIds == null || jobIds.isEmpty()) q = entityManager.createNamedQuery(DependencyTracking.RESET_STATES_IN_DEPENDENCYTRACKING);
         else {
@@ -166,7 +162,7 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void resetChunk(DependencyTracking e, DependencyTracking.ChunkSchedulingStatus status) {
+    public void resetChunk(DependencyTracking e, ChunkSchedulingStatus status) {
         e.setStatus(status);
         entityManager.persist(e);
     }

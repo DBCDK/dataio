@@ -10,6 +10,8 @@ import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.ejb.TimerService;
 
+import java.util.Set;
+
 @Singleton
 @Startup
 @DependsOn("DatabaseMigrator")
@@ -28,7 +30,7 @@ public class BootstrapBean {
         resetJobsInterruptedDuringPartitioning();
         resetInterruptedRerunTasks();
         jobSchedulerBean.registerMetrics();
-        jobSchedulerBean.loadSinkStatusOnBootstrap(null);
+        jobSchedulerBean.loadSinkStatusOnBootstrap(Set.of());
     }
 
     /*

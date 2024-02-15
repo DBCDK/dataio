@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -20,7 +21,7 @@ public class JobSchedulerTransactionsBeanTest {
                 new Dep(2, 0).wo(1, 0).wo(0, 0),
                 new Dep(3, 0).wo(2, 0).wo(1, 0).wo(0, 0).remain()
         );
-        Set<DependencyTracking.Key> result = JobSchedulerTransactionsBean.optimizeDependencies(list);
+        Set<DependencyTracking.Key> result = DependencyTrackingService.optimizeDependencies(list);
         Set<DependencyTracking.Key> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTracking::getKey).collect(Collectors.toSet());
         assertEquals(expected, result, "All dependencies marked to remain should be in the result and nothing else");
     }
@@ -38,7 +39,7 @@ public class JobSchedulerTransactionsBeanTest {
                 new Dep(0, 6).wo(0, 5).remain(),
                 new Dep(2, 0).remain()
         );
-        Set<DependencyTracking.Key> result = JobSchedulerTransactionsBean.optimizeDependencies(list);
+        Set<DependencyTracking.Key> result = DependencyTrackingService.optimizeDependencies(list);
         Set<DependencyTracking.Key> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTracking::getKey).collect(Collectors.toSet());
         assertEquals(expected, result, "All dependencies marked to remain should be in the result and nothing else");
     }
@@ -56,7 +57,7 @@ public class JobSchedulerTransactionsBeanTest {
                 new Dep(0, 6).wo(0, 0, 5).wo(1, 0).remain(),
                 new Dep(2, 0).remain()
         );
-        Set<DependencyTracking.Key> result = JobSchedulerTransactionsBean.optimizeDependencies(list);
+        Set<DependencyTracking.Key> result = DependencyTrackingService.optimizeDependencies(list);
         Set<DependencyTracking.Key> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTracking::getKey).collect(Collectors.toSet());
         assertEquals(expected, result, "All dependencies marked to remain should be in the result and nothing else");
     }

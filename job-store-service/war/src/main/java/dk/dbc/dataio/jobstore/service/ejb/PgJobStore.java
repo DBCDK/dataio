@@ -110,7 +110,7 @@ public class PgJobStore {
         jobQueueRepository.deleteByJobId(jobId);
         LOGGER.info("Removing {} from dependency tracking", jobId);
         removeFromDependencyTracking(jobEntity);
-        jobSchedulerBean.loadSinkStatusOnBootstrap((int)jobEntity.getCachedSink().getSink().getId());
+        jobSchedulerBean.loadSinkStatusOnBootstrap(Set.of(jobEntity.getCachedSink().getSink().getId()));
         LOGGER.info("Aborting job {} done", jobId);
         return Stream.concat(Stream.of(jobEntity), jobs);
     }
@@ -489,7 +489,7 @@ public class PgJobStore {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         LOGGER.info("addChunk: adding {} chunk {}/{}", chunk.getType(), chunk.getJobId(), chunk.getChunkId());
 
-        final ChunkEntity.Key chunkKey = new ChunkEntity.Key((int) chunk.getChunkId(), (int) chunk.getJobId());
+        final ChunkEntity.Key chunkKey = new ChunkEntity.Key((int) chunk.getChunkId(), chunk.getJobId());
         final ChunkEntity chunkEntity = jobStoreRepository.getExclusiveAccessFor(ChunkEntity.class, chunkKey);
         if (chunkEntity == null) {
             throw new JobStoreException(String.format("ChunkEntity.%s could not be found", chunkKey));

@@ -10,8 +10,8 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTracking.Key;
+import static dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking.Key;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;

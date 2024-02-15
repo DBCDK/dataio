@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import com.hazelcast.core.HazelcastInstance;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Chunk;
@@ -31,6 +32,7 @@ import dk.dbc.jms.artemis.AdminClient;
 import dk.dbc.jms.artemis.AdminClientFactory;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -48,11 +50,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static jakarta.ws.rs.core.Response.Status.ACCEPTED;
@@ -67,7 +67,7 @@ import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 @Path("/")
 public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
-    private static final Set<Integer> ABORTED_JOBS = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private Set<Integer> ABORTED_JOBS;
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -93,6 +93,11 @@ public class JobsBean {
     JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
+
+    @Inject
+    public JobsBean(HazelcastInstance hz) {
+        ABORTED_JOBS = hz.getSet("aborted.jobs");
+    }
 
     @POST
     @Path(JobStoreServiceConstants.JOB_ABORT + "/{jobId}")

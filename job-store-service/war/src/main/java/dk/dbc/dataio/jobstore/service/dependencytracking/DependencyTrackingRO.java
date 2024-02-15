@@ -1,16 +1,14 @@
 package dk.dbc.dataio.jobstore.service.dependencytracking;
 
-import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
-
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Set;
 
 public interface DependencyTrackingRO {
     DependencyTracking.Key getKey();
 
-    int getSinkid();
+    int getSinkId();
 
-    DependencyTracking.ChunkSchedulingStatus getStatus();
+    ChunkSchedulingStatus getStatus();
 
     Set<DependencyTracking.Key> getWaitingOn();
 
@@ -22,5 +20,7 @@ public interface DependencyTrackingRO {
 
     int getPriority();
 
-    Timestamp getLastModified();
+    Instant getLastModified();
+
+    int getRetries();
 }

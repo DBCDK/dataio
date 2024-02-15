@@ -1,51 +1,29 @@
-package dk.dbc.dataio.jobstore.service.entity;
+package dk.dbc.dataio.jobstore.service.dependencytracking;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.lang.Hashcode;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingRO;
-import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerSinkStatus;
+import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter;
+import dk.dbc.dataio.jobstore.service.entity.StringSetConverter;
 import org.postgresql.util.PGobject;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * Class for tracking chunk dependencies.
  */
 public class DependencyTracking implements DependencyTrackingRO, Serializable {
     private static final long serialVersionUID = 1L;
-//    static final String SINKID_STATUS_COUNT_RESULT = "SinkIdStatusCountResult";
-//    public static final String KEY_RESULT = "DependencyTrackingEntity.Key";
-//    public static final String KEY_WAITING_ON_RESULT = "DependencyTrackingEntity.KeyAndWaitingOn";
-//    public static final String SINKID_STATUS_COUNT_QUERY = "DependencyTrackingEntity.sinkIdStatusCount";
-//    public static final String SINKID_STATUS_COUNT_QUERY_ALL = "DependencyTrackingEntity.sinkIdStatusCountAll";
-//    public static final String JOB_COUNT_CHUNK_COUNT_QUERY = "DependencyTrackingEntity.jobCountChunkCount";
-//    public static final String RELATED_CHUNKS_QUERY = "DependencyTrackingEntity.relatedChunks";
-//    public static final String BY_SINKID_AND_STATE_QUERY = "DependencyTrackingEntity.bySinkIdAndState";
-//    public static final String CHUNKS_TO_WAIT_FOR_QUERY = "DependencyTrackingEntity.chunksToWaitFor";
-//    public static final String BLOCKED_GROUPED_BY_SINK = "DependencyTrackingEntity.blockedGroupedBySink";
-//    public static final String CHUNKS_IN_STATE = "DependencyTrackingEntity.inState";
-//    public static final String RESET_STATES_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetStates";
-//    public static final String RESET_STATE_IN_DEPENDENCYTRACKING = "DependencyTrackingEntity.resetState";
-//    public static final String BY_STATE_AND_LAST_MODIFIED = "DependencyTrackingEntity.bySinkIdAndLastModified";
-//    public static final String DELETE_JOB = "DependencyTrackingEntity.deleteJob";
 
     private Key key;
-    private int sinkid;
-
-//    @Column(nullable = false)
-//    @Convert(converter = ChunkSchedulingStatusConverter.class)
+    private int sinkId;
     private ChunkSchedulingStatus status = ChunkSchedulingStatus.READY_FOR_PROCESSING;
 
     private int priority;
@@ -64,12 +42,12 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
 
     private int submitter;
 
-    private Timestamp lastModified = new Timestamp(new Date().getTime());
+    private Instant lastModified = Instant.now();
     private int retries = 0;
 
     public DependencyTracking(ChunkEntity chunk, int sinkId, String extraKey) {
         this.key = new Key(chunk.getKey());
-        this.sinkid = sinkId;
+        this.sinkId = sinkId;
         if (chunk.getSequenceAnalysisData() != null) {
             matchKeys = new HashSet<>(chunk.getSequenceAnalysisData().getData());
         } else {
@@ -97,7 +75,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
         hashes = computeHashes(matchKeys);
         priority = rs.getInt("priority");
         submitter = rs.getInt("submitter");
-        lastModified = rs.getTimestamp("lastmodified");
+        lastModified = rs.getTimestamp("lastmodified").toInstant();
         retries = rs.getInt("retries");
     }
 
@@ -113,12 +91,12 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
 //    }
 
     @Override
-    public int getSinkid() {
-        return sinkid;
+    public int getSinkId() {
+        return sinkId;
     }
 
-    public DependencyTracking setSinkid(int sinkid) {
-        this.sinkid = sinkid;
+    public DependencyTracking setSinkId(int sinkId) {
+        this.sinkId = sinkId;
         return this;
     }
 
@@ -186,14 +164,15 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
     }
 
     public void updateLastModified() {
-        lastModified = new Timestamp(new Date().getTime());
+        lastModified = Instant.now();
     }
 
     @Override
-    public Timestamp getLastModified() {
+    public Instant getLastModified() {
         return lastModified;
     }
 
+    @Override
     public int getRetries() {
         return retries;
     }
@@ -212,41 +191,19 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
         return this;
     }
 
+    @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         DependencyTracking that = (DependencyTracking) o;
-
-        if (sinkid != that.sinkid) {
-            return false;
-        }
-        if (submitter != that.submitter) {
-            return false;
-        }
-        if (priority != that.priority) {
-            return false;
-        }
-        if (key != null ? !key.equals(that.key) : that.key != null) {
-            return false;
-        }
-        if (status != that.status) {
-            return false;
-        }
-        if (waitingOn != null ? !waitingOn.equals(that.waitingOn) : that.waitingOn != null) {
-            return false;
-        }
-        return matchKeys != null ? matchKeys.equals(that.matchKeys) : that.matchKeys == null;
+        return sinkId == that.sinkId && priority == that.priority && submitter == that.submitter &&
+                Objects.equals(key, that.key) && status == that.status && Objects.equals(waitingOn, that.waitingOn) && Objects.equals(matchKeys, that.matchKeys);
     }
 
     @Override
     public int hashCode() {
         int result = key != null ? key.hashCode() : 0;
-        result = 31 * result + sinkid;
+        result = 31 * result + sinkId;
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + submitter;
         result = 31 * result + priority;
@@ -265,13 +222,9 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
         return hashes;
     }
 
-//    @Embeddable
     public static class Key implements Serializable {
         private static final long serialVersionUID = -5575195152198835462L;
-//        @Column(name = "jobid")
         private int jobId;
-
-//        @Column(name = "chunkid")
         private int chunkId;
 
         /* Private constructor in order to keep class static */
@@ -294,8 +247,8 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
         }
 
         public Key(Chunk chunk) {
-            this.jobId = chunk.getJobId();
-            this.chunkId = (int) chunk.getChunkId();
+            jobId = chunk.getJobId();
+            chunkId = (int) chunk.getChunkId();
         }
 
         public int getChunkId() {
@@ -333,37 +286,5 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
         }
     }
 
-    public enum ChunkSchedulingStatus {
-        READY_FOR_PROCESSING(1, s -> s.getProcessingStatus().ready.incrementAndGet()),   // chunk is ready for processing
-        QUEUED_FOR_PROCESSING(2, READY_FOR_PROCESSING, s -> s.getProcessingStatus().enqueued.incrementAndGet()),  // chunk is sent to processor JMS queue
-        BLOCKED(3, null),                // chunk is waiting for other chunk(s) to return from sink
-        READY_FOR_DELIVERY(4, s -> s.getDeliveringStatus().ready.incrementAndGet()),     // chunk is ready for delivery
-        QUEUED_FOR_DELIVERY(5, READY_FOR_DELIVERY, s -> s.getDeliveringStatus().enqueued.incrementAndGet());     // chunk is sent to sink JMS queue
-
-        public final Integer value;
-        public final ChunkSchedulingStatus resend;
-        private static final Map<Integer, ChunkSchedulingStatus> VALUE_MAP = Arrays.stream(values()).collect(Collectors.toMap(c -> c.value, c -> c));
-        private final Consumer<JobSchedulerSinkStatus> counter;
-
-        ChunkSchedulingStatus(Integer value, Consumer<JobSchedulerSinkStatus> counter) {
-            this.value = value;
-            this.counter = counter;
-            resend = null;
-        }
-
-        ChunkSchedulingStatus(Integer value, ChunkSchedulingStatus resend, Consumer<JobSchedulerSinkStatus> counter) {
-            this.value = value;
-            this.resend = resend;
-            this.counter = counter;
-        }
-
-        public void countSinkStatus(JobSchedulerSinkStatus status) {
-            if(counter != null) counter.accept(status);
-        }
-
-        public static ChunkSchedulingStatus from(int value) {
-            return VALUE_MAP.get(value);
-        }
-    }
 }
 

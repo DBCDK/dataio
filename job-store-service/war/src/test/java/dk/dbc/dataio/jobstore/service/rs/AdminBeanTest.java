@@ -2,11 +2,10 @@ package dk.dbc.dataio.jobstore.service.rs;
 
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -21,16 +20,16 @@ public class AdminBeanTest {
 
     @Test
     public void getSinkName() {
-        DependencyTracking dte = new DependencyTracking().setSinkid(2);
-        String sinkName = new TestAdminBean().getSink(dte.getSinkid()).getContent().getName();
+        DependencyTracking dte = new DependencyTracking().setSinkId(2);
+        String sinkName = new TestAdminBean().getSink(dte.getSinkId()).getContent().getName();
         Assertions.assertEquals("sink2", sinkName);
     }
 
     @Test
     public void isTimeout() {
-        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now()).setSinkid(2)));
-        Assertions.assertTrue(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now().minus(Duration.ofHours(2))).setSinkid(2)));
-        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now().minus(Duration.ofHours(2))).setSinkid(3)));
+        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now()).setSinkId(2)));
+        Assertions.assertTrue(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now().minus(Duration.ofHours(2))).setSinkId(2)));
+        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now().minus(Duration.ofHours(2))).setSinkId(3)));
     }
 
     public static SinkContent newSinkContent(String name, int timeout) {
@@ -45,8 +44,8 @@ public class AdminBeanTest {
         }
 
         @Override
-        public Timestamp getLastModified() {
-            return new Timestamp(lm.toEpochMilli());
+        public Instant getLastModified() {
+            return lm;
         }
     }
 

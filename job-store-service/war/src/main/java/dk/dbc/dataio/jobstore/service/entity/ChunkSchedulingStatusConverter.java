@@ -1,11 +1,10 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
+import dk.dbc.dataio.jobstore.service.dependencytracking.ChunkSchedulingStatus;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 import java.util.Arrays;
-
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTracking.ChunkSchedulingStatus;
 
 /**
  * JPA Converter Class for enum ChunkSchedulingStatus

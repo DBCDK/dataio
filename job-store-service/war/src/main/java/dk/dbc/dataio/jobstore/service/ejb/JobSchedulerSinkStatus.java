@@ -52,7 +52,7 @@ public class JobSchedulerSinkStatus implements Serializable {
         public Future<Integer> lastAsyncPushResult = null;
         public int bulkToDirectCleanUpPushes;
 
-        void setMode(JobSchedulerBean.QueueSubmitMode newMode) {
+        public void setMode(JobSchedulerBean.QueueSubmitMode newMode) {
             modeLock.writeLock().lock();
             try {
                 queueSubmitMode = newMode;

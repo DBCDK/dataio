@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.ChunkSchedulingStatus;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Schedule;
 import jakarta.ejb.Singleton;
@@ -143,12 +143,12 @@ public class JobSchedulerBulkSubmitterBean {
         }
     }
 
-    private DependencyTracking.ChunkSchedulingStatus getReadyForPhase(ProcessingOrDelivering phase) {
+    private ChunkSchedulingStatus getReadyForPhase(ProcessingOrDelivering phase) {
         switch (phase) {
             case Processing:
-                return DependencyTracking.ChunkSchedulingStatus.READY_FOR_PROCESSING;
+                return ChunkSchedulingStatus.READY_FOR_PROCESSING;
             case Delivering:
-                return DependencyTracking.ChunkSchedulingStatus.READY_FOR_DELIVERY;
+                return ChunkSchedulingStatus.READY_FOR_DELIVERY;
             default:
                 throw new IllegalArgumentException("Unknown Phase " + phase);
         }

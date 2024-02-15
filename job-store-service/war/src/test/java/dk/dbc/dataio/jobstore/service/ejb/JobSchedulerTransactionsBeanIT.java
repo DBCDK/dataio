@@ -3,7 +3,8 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -14,7 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTracking.Key;
+import static dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking.Key;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -30,25 +31,25 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
 
         assertThat(bean.findChunksToWaitFor(new DependencyTracking()
                         .setSubmitterNumber(123456)
-                        .setSinkid(0)
+                        .setSinkId(0)
                         .setMatchKeys(Collections.emptySet()), null),
                 is(Collections.emptySet()));
 
         assertThat(bean.findChunksToWaitFor(new DependencyTracking()
                         .setSubmitterNumber(123456)
-                        .setSinkid(0)
+                        .setSinkId(0)
                         .setMatchKeys(asSet("K1")), null),
                 containsInAnyOrder(new Key(1, 1)));
 
         assertThat(bean.findChunksToWaitFor(new DependencyTracking()
                         .setSubmitterNumber(123456)
-                        .setSinkid(0)
+                        .setSinkId(0)
                         .setMatchKeys(asSet("C1")), null),
                 containsInAnyOrder(new Key(1, 1)));
 
         assertThat(bean.findChunksToWaitFor(new DependencyTracking()
                         .setSubmitterNumber(123456)
-                        .setSinkid(0)
+                        .setSinkId(0)
                         .setMatchKeys(asSet("KK2")), null),
                 containsInAnyOrder(
                         new Key(1, 0),
@@ -58,7 +59,7 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
 
         assertThat(bean.findChunksToWaitFor(new DependencyTracking()
                         .setSubmitterNumber(123456)
-                        .setSinkid(1)
+                        .setSinkId(1)
                         .setMatchKeys(asSet("K4", "K6", "C4")), null),
                 containsInAnyOrder(
                         new Key(2, 0),
@@ -67,7 +68,7 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
 
         assertThat(bean.findChunksToWaitFor(new DependencyTracking()
                         .setSubmitterNumber(123456)
-                        .setSinkid(1)
+                        .setSinkId(1)
                         .setMatchKeys(asSet("K4", "K6", "C4", "K5")), null),
                 containsInAnyOrder(
                         new Key(2, 1),
@@ -84,8 +85,8 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
         entity.setKey(new Key(4, 2));
         entity.setPriority(Priority.HIGH.getValue());
         entity.setMatchKeys(Stream.of("4_1", "4_2").collect(Collectors.toSet()));
-        entity.setSinkid(1);
-        entity.setStatus(DependencyTracking.ChunkSchedulingStatus.READY_FOR_PROCESSING);
+        entity.setSinkId(1);
+        entity.setStatus(ChunkSchedulingStatus.READY_FOR_PROCESSING);
 
         final JobSchedulerTransactionsBean bean = new JobSchedulerTransactionsBean();
         bean.entityManager = entityManager;

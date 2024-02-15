@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.service.entity;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.partioner.entity.ConverterJSONBContext;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import org.postgresql.util.PGobject;

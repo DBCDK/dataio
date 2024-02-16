@@ -312,7 +312,7 @@
                                                 </dependencySet>
                                             </dependencySets>
                                         </inline>
-                                        <targetDir>${docker.payaradir}/jars</targetDir>
+                                        <targetDir>${docker.deploydir}</targetDir>
                                     </assembly>
                                 </assemblies>
                             </build>

@@ -12,7 +12,7 @@
     <artifactId>distributed-objects</artifactId>
 
     <dependencies>
-
+        <!-- Only Payara provided dependencies are allowed here, as this module is not a port of the app, but deployed separately to jars -->
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-web-api</artifactId>

@@ -35,6 +35,7 @@
     <properties>
         <tag>devel</tag>
         <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest</java.image>
+        <docker.payaradir>/opt/payara6</docker.payaradir>
         <docker.deploydir>/opt/payara6/deployments</docker.deploydir>
 
         <ejb.version>3.2</ejb.version>
@@ -845,6 +846,7 @@
                                             <targetDir>${docker.deploydir}</targetDir>
                                         </assembly>
                                         <assembly>
+                                            <name>war</name>
                                             <descriptorRef>artifact</descriptorRef>
                                             <targetDir>${docker.deploydir}</targetDir>
                                         </assembly>

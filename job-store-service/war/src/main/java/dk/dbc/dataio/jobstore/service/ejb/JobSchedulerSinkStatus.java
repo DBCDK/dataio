@@ -1,5 +1,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -46,7 +48,7 @@ public class JobSchedulerSinkStatus implements Serializable {
         private JobSchedulerBean.QueueSubmitMode queueSubmitMode = JobSchedulerBean.QueueSubmitMode.DIRECT;
         public final AtomicInteger ready = new AtomicInteger(0);
         public final AtomicInteger enqueued = new AtomicInteger(0);
-        final transient ReadWriteLock modeLock = new ReentrantReadWriteLock();
+        transient ReadWriteLock modeLock = new ReentrantReadWriteLock();
 
         // owned and updated by singleton JobSchedulerBulkSubmitterBean
         public Future<Integer> lastAsyncPushResult = null;
@@ -68,6 +70,11 @@ public class JobSchedulerSinkStatus implements Serializable {
             } finally {
                 modeLock.readLock().unlock();
             }
+        }
+
+        private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
+            ois.defaultReadObject();
+            modeLock = new ReentrantReadWriteLock();
         }
 
         boolean isDirectSubmitMode() {

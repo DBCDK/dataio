@@ -1,9 +1,8 @@
-package dk.dbc.dataio.jobstore.service.dependencytracking;
+package dk.dbc.dataio.jobstore.distributed;
 
-import dk.dbc.dataio.commons.utils.lang.Hashcode;
-import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter;
-import dk.dbc.dataio.jobstore.service.entity.StringSetConverter;
+import dk.dbc.dataio.jobstore.distributed.tools.Hashcode;
+import dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter;
+import dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter;
 import org.postgresql.util.PGobject;
 
 import java.io.Serializable;
@@ -24,31 +23,19 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
     private TrackingKey key;
     private int sinkId;
     private ChunkSchedulingStatus status = ChunkSchedulingStatus.READY_FOR_PROCESSING;
-
     private int priority;
-
-//    @Column(columnDefinition = "jsonb")
-//    @Mutable
-//    @Convert(converter = KeySetJSONBConverter.class)
     private Set<TrackingKey> waitingOn;
-
-//    @Column(columnDefinition = "jsonb", nullable = false)
-//    @Convert(converter = StringSetConverter.class)
     private Set<String> matchKeys;
-
-//    @Convert(converter = IntegerArrayToPgIntArrayConverter.class)
     private Integer[] hashes;
-
     private int submitter;
-
     private Instant lastModified = Instant.now();
     private int retries = 0;
 
-    public DependencyTracking(ChunkEntity chunk, int sinkId, String extraKey) {
-        this.key = new TrackingKey(chunk.getKey());
+    public DependencyTracking(int jobId, int chunkId, int sinkId, String extraKey, Set<String> sequenceData) {
+        key = new TrackingKey(jobId, chunkId);
         this.sinkId = sinkId;
-        if (chunk.getSequenceAnalysisData() != null) {
-            matchKeys = new HashSet<>(chunk.getSequenceAnalysisData().getData());
+        if (sequenceData != null) {
+            matchKeys = new HashSet<>(sequenceData);
         } else {
             matchKeys = new HashSet<>();
         }
@@ -56,9 +43,6 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
             matchKeys.add(extraKey);
         }
         hashes = computeHashes(matchKeys);
-    }
-
-    public DependencyTracking() {
     }
 
     public DependencyTracking(int jobId, int chunkId, PGobject waitingOn) {

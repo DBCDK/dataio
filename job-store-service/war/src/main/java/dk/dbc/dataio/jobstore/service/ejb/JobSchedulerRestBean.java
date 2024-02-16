@@ -2,6 +2,8 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
+import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
+import dk.dbc.dataio.jobstore.distributed.QueueSubmitMode;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -28,8 +30,8 @@ public class JobSchedulerRestBean {
     @Stopwatch
     public Response forceSinkIntoBulkMode(String stuff, @PathParam(JobStoreServiceConstants.SINK_ID_VARIABLE) int sinkId) {
         JobSchedulerSinkStatus sinkStatus = dependencyTrackingService.getSinkStatus(sinkId);
-        sinkStatus.processingStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
-        sinkStatus.deliveringStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
+        sinkStatus.getProcessingStatus().setMode(QueueSubmitMode.BULK);
+        sinkStatus.getDeliveringStatus().setMode(QueueSubmitMode.BULK);
         return Response.ok().build();
     }
 
@@ -40,8 +42,8 @@ public class JobSchedulerRestBean {
     @Stopwatch
     public Response forceSinkIntoTransitionToDirectMode(String stuff, @PathParam(JobStoreServiceConstants.SINK_ID_VARIABLE) int sinkId) {
         JobSchedulerSinkStatus sinkStatus = dependencyTrackingService.getSinkStatus(sinkId);
-        sinkStatus.processingStatus.setMode(JobSchedulerBean.QueueSubmitMode.TRANSITION_TO_DIRECT);
-        sinkStatus.deliveringStatus.setMode(JobSchedulerBean.QueueSubmitMode.TRANSITION_TO_DIRECT);
+        sinkStatus.getProcessingStatus().setMode(QueueSubmitMode.TRANSITION_TO_DIRECT);
+        sinkStatus.getDeliveringStatus().setMode(QueueSubmitMode.TRANSITION_TO_DIRECT);
         return Response.ok().build();
     }
 }

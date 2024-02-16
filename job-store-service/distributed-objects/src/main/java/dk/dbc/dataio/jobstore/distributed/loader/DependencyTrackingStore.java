@@ -1,11 +1,11 @@
-package dk.dbc.dataio.jobstore.service.dependencytracking.loader;
+package dk.dbc.dataio.jobstore.distributed.loader;
 
 import com.hazelcast.map.MapStore;
-import dk.dbc.commons.jpa.converter.IntegerArrayToPgIntArrayConverter;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
-import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
-import dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter;
-import dk.dbc.dataio.jobstore.service.entity.StringSetConverter;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
+import dk.dbc.dataio.jobstore.distributed.tools.IntegerArrayToPgIntArrayConverter;
+import dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter;
+import dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

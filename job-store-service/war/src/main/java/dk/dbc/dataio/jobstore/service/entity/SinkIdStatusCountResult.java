@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
-import dk.dbc.dataio.jobstore.service.dependencytracking.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 
 /**
  * Created by ja7 on 19-07-16.

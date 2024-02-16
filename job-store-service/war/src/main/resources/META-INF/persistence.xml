@@ -24,10 +24,10 @@
     <class>dk.dbc.dataio.jobstore.service.entity.WorkflowNoteConverter</class>
     <class>dk.dbc.dataio.commons.partioner.entity.RecordInfoConverter</class>
     <class>dk.dbc.dataio.commons.partioner.entity.ReorderedItemEntity</class>
-    <class>dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter</class>
+    <class>dk.dbc.dataio.jobstore.distributed.DependencyTracking</class>
+    <class>dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkSchedulingStatusConverter</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.StringSetConverter</class>
+    <class>dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.RerunStateConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.RerunEntity</class>
     <shared-cache-mode>DISABLE_SELECTIVE</shared-cache-mode>
@@ -58,10 +58,10 @@
     <class>dk.dbc.dataio.jobstore.service.entity.WorkflowNoteConverter</class>
     <class>dk.dbc.dataio.commons.partioner.entity.RecordInfoConverter</class>
     <class>dk.dbc.dataio.commons.partioner.entity.ReorderedItemEntity</class>
-    <class>dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter</class>
+    <class>dk.dbc.dataio.jobstore.distributed.DependencyTracking</class>
+    <class>dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkSchedulingStatusConverter</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.StringSetConverter</class>
+    <class>dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.RerunStateConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.RerunEntity</class>
     <properties>

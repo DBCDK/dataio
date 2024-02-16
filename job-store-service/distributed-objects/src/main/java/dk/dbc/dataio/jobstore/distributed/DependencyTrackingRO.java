@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.service.dependencytracking;
+package dk.dbc.dataio.jobstore.distributed;
 
 import java.time.Instant;
 import java.util.Set;

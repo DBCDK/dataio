@@ -1,6 +1,4 @@
-package dk.dbc.dataio.jobstore.service.dependencytracking;
-
-import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerSinkStatus;
+package dk.dbc.dataio.jobstore.distributed;
 
 import java.util.Arrays;
 import java.util.Map;

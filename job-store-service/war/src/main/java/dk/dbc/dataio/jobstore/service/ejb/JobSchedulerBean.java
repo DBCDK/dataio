@@ -9,12 +9,13 @@ import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
+import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
-import dk.dbc.dataio.jobstore.service.dependencytracking.ChunkSchedulingStatus;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
-import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -80,12 +81,6 @@ public class JobSchedulerBean {
 
     private static final Set<SinkContent.SinkType> REQUIRES_TERMINATION_CHUNK = new HashSet<>(Set.of(SinkContent.SinkType.MARCCONV, SinkContent.SinkType.PERIODIC_JOBS, SinkContent.SinkType.TICKLE));
 
-    public enum QueueSubmitMode {
-        DIRECT,              // enqueue chunk directly
-        BULK,                // mark chunk ready for processing/delivery
-        TRANSITION_TO_DIRECT // transition from BULK to DIRECT mode
-    }
-
     // Max JMS Size pr Sink -- Test sizes overwritten for
     @SuppressWarnings("EjbClassWarningsInspection")
     static int MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK = 1000;
@@ -125,8 +120,8 @@ public class JobSchedulerBean {
                 Gauge<?> gauge = metricRegistry.getGauge(metricID);
                 if (gauge == null) metricRegistry.gauge(metricID, () -> getLongestRunningChunkDuration(sink.getId()));
                 LOGGER.info("Registered gauge for longest_running_delivery_in_ms -> {}", metricID);
-                metricRegistry.gauge("dataio_status_map", () -> getEnqueued(sink.getId(), s -> s.processingStatus), sinkTag, new Tag("state", "processing"));
-                metricRegistry.gauge("dataio_status_map", () -> getEnqueued(sink.getId(), s -> s.deliveringStatus), sinkTag, new Tag("state", "delivering"));
+                metricRegistry.gauge("dataio_status_map", () -> getEnqueued(sink.getId(), JobSchedulerSinkStatus::getProcessingStatus), sinkTag, new Tag("state", "processing"));
+                metricRegistry.gauge("dataio_status_map", () -> getEnqueued(sink.getId(), JobSchedulerSinkStatus::getDeliveringStatus), sinkTag, new Tag("state", "delivering"));
                 LOGGER.info("Registered status map metrics for sink -> {}", sink.getContent().getName());
             }
         } catch (FlowStoreServiceConnectorException e) {
@@ -167,7 +162,7 @@ public class JobSchedulerBean {
         int sinkId = job.getCachedSink().getSink().getId();
         String barrierMatchKey = getBarrierMatchKey(job);
 
-        DependencyTracking e = new DependencyTracking(chunk, sinkId, chunk.getKey().getId() == 0 ? barrierMatchKey : null);
+        DependencyTracking e = new DependencyTracking(chunk.getKey().getJobId(), chunk.getKey().getId(), sinkId, chunk.getKey().getId() == 0 ? barrierMatchKey : null, null);
         e.setSubmitterNumber(Math.toIntExact(job.getSpecification().getSubmitterId()));
         e.setPriority(job.getPriority().getValue());
 
@@ -284,13 +279,13 @@ public class JobSchedulerBean {
                                            ChunkItem.Status ItemStatus) throws JobStoreException {
         int sinkId = sink.getId();
         ChunkEntity chunkEntity = pgJobStoreRepository.createJobTerminationChunkEntity(jobEntity.getId(), chunkId, "dummyDatafileId", ItemStatus);
-        DependencyTracking endTracker = new DependencyTracking(chunkEntity, sinkId, barrierMatchKey)
+        DependencyTracking endTracker = new DependencyTracking(chunkEntity.getKey().getJobId(), chunkId, sinkId, barrierMatchKey, chunkEntity.getSequenceAnalysisData().getData())
                 .setSubmitterNumber(Math.toIntExact(jobEntity.getSpecification().getSubmitterId()))
                 .setPriority(Priority.HIGH.getValue());
         jobSchedulerTransactionsBean.addDependencies(endTracker);
         TrackingKey jobEndKey = dependencyTrackingService.add(endTracker);
         if (endTracker.getStatus() == ChunkSchedulingStatus.READY_FOR_DELIVERY) {
-            JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(sinkId).deliveringStatus;
+            JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(sinkId).getDeliveringStatus();
             sinkQueueStatus.ready.incrementAndGet();
         }
         Chunk processedChunk = jobSchedulerTransactionsBean.getProcessedChunkFrom(jobEndKey);
@@ -308,7 +303,7 @@ public class JobSchedulerBean {
     @Timed(name = "chunks", tags = "status=processed")
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void chunkProcessingDone(Chunk chunk) {
-        TrackingKey key = new TrackingKey(chunk.getJobId(), chunk.getChunkId());
+        TrackingKey key = new TrackingKey(chunk.getJobId(), (int)chunk.getChunkId());
 
         dependencyTrackingService.modify(key, dependencyTracking -> {
             if (dependencyTracking == null) {
@@ -322,7 +317,7 @@ public class JobSchedulerBean {
                 return;
             }
             int sinkId = dependencyTracking.getSinkId();
-            JobSchedulerSinkStatus.QueueStatus prSinkQueueStatus = dependencyTrackingService.getSinkStatus(sinkId).processingStatus;
+            JobSchedulerSinkStatus.QueueStatus prSinkQueueStatus = dependencyTrackingService.getSinkStatus(sinkId).getProcessingStatus();
             prSinkQueueStatus.enqueued.decrementAndGet();
             prSinkQueueStatus.ready.decrementAndGet();
             LOGGER.info("chunkProcessingDone: prSinkQueueStatus.jmsEnqueuedToProcessing for sink {}: {}",
@@ -334,7 +329,7 @@ public class JobSchedulerBean {
                         dependencyTracking.getWaitingOn());
             } else {
                 dependencyTracking.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
-                JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(sinkId).deliveringStatus;
+                JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(sinkId).getDeliveringStatus();
                 sinkQueueStatus.ready.incrementAndGet();
             }
 
@@ -356,7 +351,7 @@ public class JobSchedulerBean {
     @Timed(name = "chunks", tags = "status=delivered")
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void chunkDeliveringDone(Chunk chunk) {
-        TrackingKey chunkDoneKey = new TrackingKey(chunk.getJobId(), chunk.getChunkId());
+        TrackingKey chunkDoneKey = new TrackingKey(chunk.getJobId(), (int)chunk.getChunkId());
         DependencyTrackingRO chunkDone = dependencyTrackingService.get(chunkDoneKey);
 
         if (chunkDone == null) {
@@ -376,7 +371,7 @@ public class JobSchedulerBean {
         int chunkDoneSinkId = chunkDone.getSinkId();
         dependencyTrackingService.remove(chunkDoneKey);
 
-        JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(chunkDoneSinkId).deliveringStatus;
+        JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(chunkDoneSinkId).getDeliveringStatus();
 
         sinkQueueStatus.enqueued.decrementAndGet();
         sinkQueueStatus.ready.decrementAndGet();

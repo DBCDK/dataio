@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.service.ejb;
+package dk.dbc.dataio.jobstore.distributed;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -27,7 +27,7 @@ public class JobSchedulerSinkStatus implements Serializable {
         deliveringStatus.ready.addAndGet(status.deliveringStatus.ready.get());
     }
 
-    boolean isProcessingModeDirectSubmit() {
+    public boolean isProcessingModeDirectSubmit() {
         return processingStatus.isDirectSubmitMode();
     }
 
@@ -45,7 +45,7 @@ public class JobSchedulerSinkStatus implements Serializable {
 
     // Status for a single JMS queue..
     public static class QueueStatus implements Serializable {
-        private JobSchedulerBean.QueueSubmitMode queueSubmitMode = JobSchedulerBean.QueueSubmitMode.DIRECT;
+        private QueueSubmitMode queueSubmitMode = QueueSubmitMode.DIRECT;
         public final AtomicInteger ready = new AtomicInteger(0);
         public final AtomicInteger enqueued = new AtomicInteger(0);
         transient ReadWriteLock modeLock = new ReentrantReadWriteLock();
@@ -54,7 +54,7 @@ public class JobSchedulerSinkStatus implements Serializable {
         public Future<Integer> lastAsyncPushResult = null;
         public int bulkToDirectCleanUpPushes;
 
-        public void setMode(JobSchedulerBean.QueueSubmitMode newMode) {
+        public void setMode(QueueSubmitMode newMode) {
             modeLock.writeLock().lock();
             try {
                 queueSubmitMode = newMode;
@@ -63,7 +63,7 @@ public class JobSchedulerSinkStatus implements Serializable {
             }
         }
 
-        JobSchedulerBean.QueueSubmitMode getMode() {
+        public QueueSubmitMode getMode() {
             modeLock.readLock().lock();
             try {
                 return queueSubmitMode;
@@ -77,8 +77,8 @@ public class JobSchedulerSinkStatus implements Serializable {
             modeLock = new ReentrantReadWriteLock();
         }
 
-        boolean isDirectSubmitMode() {
-            return getMode() != JobSchedulerBean.QueueSubmitMode.BULK;
+        public boolean isDirectSubmitMode() {
+            return getMode() != QueueSubmitMode.BULK;
         }
 
         @Override

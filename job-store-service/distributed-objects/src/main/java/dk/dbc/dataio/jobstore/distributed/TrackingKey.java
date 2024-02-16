@@ -1,7 +1,4 @@
-package dk.dbc.dataio.jobstore.service.dependencytracking;
-
-import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+package dk.dbc.dataio.jobstore.distributed;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -17,21 +14,6 @@ public class TrackingKey implements Serializable {
     public TrackingKey(int jobId, int chunkId) {
         this.jobId = jobId;
         this.chunkId = chunkId;
-    }
-
-    public TrackingKey(ChunkEntity.Key chunkKey) {
-        this.jobId = chunkKey.getJobId();
-        this.chunkId = chunkKey.getId();
-    }
-
-    public TrackingKey(long jobId, long chunkId) {
-        this.jobId = (int) jobId;
-        this.chunkId = (int) chunkId;
-    }
-
-    public TrackingKey(Chunk chunk) {
-        jobId = chunk.getJobId();
-        chunkId = (int) chunk.getChunkId();
     }
 
     public int getChunkId() {

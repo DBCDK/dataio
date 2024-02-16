@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
-import dk.dbc.dataio.jobstore.service.dependencytracking.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

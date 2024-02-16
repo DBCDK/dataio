@@ -1,8 +1,8 @@
-package dk.dbc.dataio.jobstore.service.dependencytracking.hzqueries;
+package dk.dbc.dataio.jobstore.distributed.hzqueries;
 
 import com.hazelcast.aggregation.Aggregator;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
-import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 
 import java.util.HashSet;
 import java.util.Map;

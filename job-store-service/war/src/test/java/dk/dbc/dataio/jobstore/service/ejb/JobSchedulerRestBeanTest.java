@@ -1,9 +1,9 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.jobstore.distributed.QueueSubmitMode;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Created by ja7 on 19-07-16.
@@ -31,8 +31,8 @@ public class JobSchedulerRestBeanTest {
         assertThat(JobSchedulerBean.getSinkStatus(sinkId).isProcessingModeDirectSubmit(), is(true));
         assertThat(JobSchedulerBean.getSinkStatus(sinkId).isDeliveringModeDirectSubmit(), is(true));
 
-        assertThat(JobSchedulerBean.getSinkStatus(sinkId).processingStatus.getMode(), is(JobSchedulerBean.QueueSubmitMode.TRANSITION_TO_DIRECT));
-        assertThat(JobSchedulerBean.getSinkStatus(sinkId).deliveringStatus.getMode(), is(JobSchedulerBean.QueueSubmitMode.TRANSITION_TO_DIRECT));
+        assertThat(JobSchedulerBean.getSinkStatus(sinkId).processingStatus.getMode(), is(QueueSubmitMode.TRANSITION_TO_DIRECT));
+        assertThat(JobSchedulerBean.getSinkStatus(sinkId).deliveringStatus.getMode(), is(QueueSubmitMode.TRANSITION_TO_DIRECT));
     }
 
 }

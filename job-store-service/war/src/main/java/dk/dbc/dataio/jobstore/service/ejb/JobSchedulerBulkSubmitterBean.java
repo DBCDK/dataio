@@ -1,7 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.jobstore.service.dependencytracking.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Schedule;
@@ -14,9 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Future;
 
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.QueueSubmitMode.BULK;
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.QueueSubmitMode.DIRECT;
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.QueueSubmitMode.TRANSITION_TO_DIRECT;
+import static dk.dbc.dataio.jobstore.distributed.QueueSubmitMode.BULK;
+import static dk.dbc.dataio.jobstore.distributed.QueueSubmitMode.DIRECT;
+import static dk.dbc.dataio.jobstore.distributed.QueueSubmitMode.TRANSITION_TO_DIRECT;
 
 /**
  * Created by ja7 on 03-07-16.
@@ -40,7 +41,7 @@ public class JobSchedulerBulkSubmitterBean {
     public void bulkScheduleChunksForDelivering() {
         dependencyTrackingService.getSinkStatusMap().forEach((sinkId, sinkQueueStatus) -> {
             try {
-                JobSchedulerSinkStatus.QueueStatus queueStatus = sinkQueueStatus.deliveringStatus;
+                JobSchedulerSinkStatus.QueueStatus queueStatus = sinkQueueStatus.getDeliveringStatus();
 
                 if (queueStatus.getMode() == DIRECT) return;
 
@@ -59,7 +60,7 @@ public class JobSchedulerBulkSubmitterBean {
     public void bulkScheduleChunksForProcessing() {
         dependencyTrackingService.getSinkStatusMap().forEach((sinkId, sinkQueueStatus) -> {
             try {
-                JobSchedulerSinkStatus.QueueStatus queueStatus = sinkQueueStatus.processingStatus;
+                JobSchedulerSinkStatus.QueueStatus queueStatus = sinkQueueStatus.getProcessingStatus();
 
                 if (queueStatus.getMode() == DIRECT) return;
 

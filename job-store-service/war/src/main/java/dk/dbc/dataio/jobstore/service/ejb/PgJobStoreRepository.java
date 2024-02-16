@@ -13,8 +13,8 @@ import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
-import dk.dbc.dataio.jobstore.service.dependencytracking.ChunkSchedulingStatus;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
@@ -611,7 +611,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                 LOGGER.info("updateChunkItemEntities: updating {} chunk item {}/{}/{}",
                         chunk.getType(), chunk.getJobId(), chunk.getChunkId(), chunkItem.getId());
-                final ItemEntity.Key itemKey = new ItemEntity.Key((int) chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId());
+                final ItemEntity.Key itemKey = new ItemEntity.Key(chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId());
                 final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
                 if (itemEntity == null) {
                     throwInvalidInputException(format("ItemEntity.%s could not be found", itemKey), JobError.Code.INVALID_ITEM_IDENTIFIER);

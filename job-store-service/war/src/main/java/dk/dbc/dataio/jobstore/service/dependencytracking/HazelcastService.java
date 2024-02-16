@@ -15,6 +15,7 @@ public class HazelcastService {
     }
 
     public HazelcastInstance getInstance() {
+        instance.getConfig().setClassLoader(getClass().getClassLoader());
         return instance;
     }
 }

@@ -17,6 +17,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -114,13 +115,12 @@ public class DependencyTrackingLoader implements MapStore<TrackingKey, Dependenc
     @Override
     public Iterable<TrackingKey> loadAllKeys() {
         String sql = "select jobid, chunkid from dependencytracking";
-//        return fetch(sql, ps -> {
-//            ResultSet rs = ps.executeQuery();
-//            List<TrackingKey> keys = new ArrayList<>();
-//            while(rs.next()) keys.add(new TrackingKey(rs.getInt("jobid"), rs.getInt("chunkid")));
-//            return keys;
-//        });
-        return List.of();
+        return fetch(sql, ps -> {
+            ResultSet rs = ps.executeQuery();
+            List<TrackingKey> keys = new ArrayList<>();
+            while(rs.next()) keys.add(new TrackingKey(rs.getInt("jobid"), rs.getInt("chunkid")));
+            return keys;
+        });
     }
 
     private static void setRow(PreparedStatement ps, DependencyTracking dte) throws SQLException {
@@ -153,7 +153,7 @@ public class DependencyTrackingLoader implements MapStore<TrackingKey, Dependenc
         try(Connection c = dataSource.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             block.accept(ps);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Map loader store failed while executing: " + sql, e);
         }
     }
 

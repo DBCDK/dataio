@@ -1,6 +1,8 @@
 package dk.dbc.dataio.jobstore.service.dependencytracking;
 
+import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.IMap;
+import com.hazelcast.map.impl.MapListenerAdapter;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder;
 import com.hazelcast.query.Predicates;
@@ -46,35 +48,35 @@ public class DependencyTrackingService {
     public void init() {
         dependencyTracker = hc.getInstance().getMap("dependencies");
         sinkStatusMap = new ConcurrentHashMap<>(); //hc.getInstance().getReplicatedMap("sink.status");
-//        dependencyTracker.addEntryListener(new MapListenerAdapter<TrackingKey, DependencyTracking>() {
-//            @Override
-//            public void entryAdded(EntryEvent<TrackingKey, DependencyTracking> event) {
-//                if(!hc.isMaster()) return;
-//                DependencyTracking dt = event.getValue();
-//                dt.getStatus().incSinkStatusCount(statusFor(dt));
-//            }
-//
-//            @Override
-//            public void entryRemoved(EntryEvent<TrackingKey, DependencyTracking> event) {
-//                if(!hc.isMaster()) return;
-//                DependencyTracking dt = event.getValue();
-//                dt.getStatus().decSinkStatusCount(statusFor(dt));
-//            }
-//
-//            @Override
-//            public void entryUpdated(EntryEvent<TrackingKey, DependencyTracking> event) {
-//                if(!hc.isMaster()) return;
-//                DependencyTracking old = event.getOldValue();
-//                DependencyTracking dt = event.getValue();
-//                if(old.getStatus() == dt.getStatus()) return;
-//                old.getStatus().decSinkStatusCount(statusFor(old));
-//                dt.getStatus().incSinkStatusCount(statusFor(dt));
-//            }
-//
-//            private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {
-//                return sinkStatusMap.computeIfAbsent(dt.getSinkId(), id -> new JobSchedulerSinkStatus());
-//            }
-//        }, true);
+        dependencyTracker.addEntryListener(new MapListenerAdapter<TrackingKey, DependencyTracking>() {
+            @Override
+            public void entryAdded(EntryEvent<TrackingKey, DependencyTracking> event) {
+                if(!hc.isMaster()) return;
+                DependencyTracking dt = event.getValue();
+                dt.getStatus().incSinkStatusCount(statusFor(dt));
+            }
+
+            @Override
+            public void entryRemoved(EntryEvent<TrackingKey, DependencyTracking> event) {
+                if(!hc.isMaster()) return;
+                DependencyTracking dt = event.getValue();
+                dt.getStatus().decSinkStatusCount(statusFor(dt));
+            }
+
+            @Override
+            public void entryUpdated(EntryEvent<TrackingKey, DependencyTracking> event) {
+                if(!hc.isMaster()) return;
+                DependencyTracking old = event.getOldValue();
+                DependencyTracking dt = event.getValue();
+                if(old.getStatus() == dt.getStatus()) return;
+                old.getStatus().decSinkStatusCount(statusFor(old));
+                dt.getStatus().incSinkStatusCount(statusFor(dt));
+            }
+
+            private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {
+                return sinkStatusMap.computeIfAbsent(dt.getSinkId(), id -> new JobSchedulerSinkStatus());
+            }
+        }, true);
     }
 
     public TrackingKey add(DependencyTracking entity) {

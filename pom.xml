@@ -30,7 +30,6 @@
         <module>dlq-errorhandler</module>
         <module>jse-app</module>
         <module>integration-test</module>
-        <module>job-store-service/distributed-objects</module>
     </modules>
 
     <properties>

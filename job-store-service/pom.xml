@@ -16,6 +16,7 @@
 
     <modules>
         <module>test</module>
+        <module>distributed-objects</module>
         <module>types</module>
         <module>war</module>
         <module>developer-tools</module>

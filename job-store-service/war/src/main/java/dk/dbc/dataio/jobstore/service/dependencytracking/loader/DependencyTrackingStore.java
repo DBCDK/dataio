@@ -22,10 +22,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
-public class DependencyTrackingLoader implements MapStore<TrackingKey, DependencyTracking> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTrackingLoader.class);
+public class DependencyTrackingStore implements MapStore<TrackingKey, DependencyTracking> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTrackingStore.class);
     private static final KeySetJSONBConverter KEY_SET_CONVERTER = new KeySetJSONBConverter();
     private static final StringSetConverter STRING_SET_CONVERTER = new StringSetConverter();
     private static final IntegerArrayToPgIntArrayConverter INT_ARRAY_CONVERTER = new IntegerArrayToPgIntArrayConverter();
@@ -36,11 +37,11 @@ public class DependencyTrackingLoader implements MapStore<TrackingKey, Dependenc
             "update set status=excluded.status, waitingon=excluded.waitingon, matchkeys=excluded.matchkeys, priority=excluded.priority, hashes=excluded.hashes, submitter=excluded.submitter, lastmodified=excluded.lastmodified, retries=excluded.retries";
     private static final String SELECT = "select * from dependencytracking where jobid=? and chunkid=?";
 
-    public DependencyTrackingLoader() {
+    public DependencyTrackingStore() {
         this(lookupDataSource());
     }
 
-    public DependencyTrackingLoader(DataSource dataSource) {
+    public DependencyTrackingStore(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
@@ -114,6 +115,7 @@ public class DependencyTrackingLoader implements MapStore<TrackingKey, Dependenc
 
     @Override
     public Iterable<TrackingKey> loadAllKeys() {
+        LockSupport.parkNanos(60L * 1000_000_000);
         String sql = "select jobid, chunkid from dependencytracking";
         return fetch(sql, ps -> {
             ResultSet rs = ps.executeQuery();

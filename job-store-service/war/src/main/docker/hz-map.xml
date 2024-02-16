@@ -18,9 +18,9 @@
             <write-coalescing>true</write-coalescing>
         </map-store>
     </map>
-    <replicatedmap name="sink.status">
-        <async-fillup>false</async-fillup>
-    </replicatedmap>
+<!--    <replicatedmap name="sink.status">-->
+<!--        <async-fillup>false</async-fillup>-->
+<!--    </replicatedmap>-->
     <map name="aborted.jobs">
         <in-memory-format>BINARY</in-memory-format>
         <metadata-policy>CREATE_ON_UPDATE</metadata-policy>

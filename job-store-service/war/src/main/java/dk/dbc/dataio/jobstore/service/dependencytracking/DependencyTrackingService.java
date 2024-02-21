@@ -61,7 +61,7 @@ public class DependencyTrackingService {
             @Override
             public void entryRemoved(EntryEvent<TrackingKey, DependencyTracking> event) {
                 if(!Hazelcast.isMaster()) return;
-                DependencyTracking dt = event.getValue();
+                DependencyTracking dt = event.getOldValue();
                 dt.getStatus().decSinkStatusCount(statusFor(dt));
             }
 

@@ -23,7 +23,8 @@ import dk.dbc.dataio.jobstore.distributed.hzqueries.WaitForKey;
 import dk.dbc.dataio.jobstore.distributed.hzqueries.WaitingOn;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -40,9 +41,10 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@ApplicationScoped
+@Singleton
+@Startup
 public class DependencyTrackingService {
-    private IMap<TrackingKey, DependencyTracking> dependencyTracker = Hazelcast.INSTANCE.getMap("dependencies");
+    private final IMap<TrackingKey, DependencyTracking> dependencyTracker = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
     private Map<Integer, JobSchedulerSinkStatus> sinkStatusMap;
 
     @PostConstruct

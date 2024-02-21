@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class Hazelcast {
     public static final HazelcastInstance INSTANCE = startInstance();
@@ -28,5 +29,19 @@ public class Hazelcast {
 
     public static boolean isMaster() {
         return INSTANCE.getCluster().getMembers().stream().findFirst().map(Member::localMember).orElse(false);
+    }
+
+    public enum Objects {
+        DEPENDENCY_TRACKING(() -> INSTANCE.getMap("dependencies"));
+
+        Supplier supplier;
+
+        Objects(Supplier supplier) {
+            this.supplier = supplier;
+        }
+
+        public <T> T get() {
+            return (T)supplier.get();
+        }
     }
 }

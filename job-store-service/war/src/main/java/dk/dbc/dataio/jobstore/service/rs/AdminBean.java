@@ -9,6 +9,7 @@ import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -122,6 +123,15 @@ public class AdminBean {
         LOGGER.info("Cleaning stale artemis connections");
         Instant i = Instant.now().minus(Duration.ofMinutes(15));
         adminClient.closeConsumerConnections(c -> i.isAfter(c.getLastAcknowledgedTime()) && c.getDeliveringCount() > 0);
+    }
+
+    @GET
+    @Path(JobStoreServiceConstants.CLEAR_HZ)
+    @Produces({MediaType.TEXT_PLAIN})
+    public Response clearHazelcastCache(@PathParam("name") String cacheName) {
+        Map<?, ?> map = Hazelcast.Objects.valueOf(cacheName.toUpperCase()).get();
+        map.clear();
+        return Response.ok().build();
     }
 
     @GET

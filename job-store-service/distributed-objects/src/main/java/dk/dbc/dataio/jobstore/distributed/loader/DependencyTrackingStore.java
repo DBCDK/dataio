@@ -100,7 +100,7 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
             Map<TrackingKey, DependencyTracking> entities = new HashMap<>();
             for (Integer jobId : jobs.keySet()) {
                 String chunks = jobs.get(jobId).stream().mapToInt(TrackingKey::getChunkId).mapToObj(Integer::toString).collect(Collectors.joining(", "));
-                String sql = "select * from dependencytracking where jobid=? and chunkid in [" + chunks + "]";
+                String sql = "select * from dependencytracking where jobid=? and chunkid in (" + chunks + ")";
                 try(PreparedStatement ps = c.prepareStatement(sql)) {
                     ps.setInt(1, jobId);
                     ResultSet rs = ps.executeQuery();

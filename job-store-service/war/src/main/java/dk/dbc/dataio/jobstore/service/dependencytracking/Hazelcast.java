@@ -19,7 +19,7 @@ public class Hazelcast {
                 .orElse("/opt/payara6/deployments/hz-data.xml");
         try(InputStream is = new FileInputStream(configFile)) {
             Config config = new XmlConfigBuilder(is).build();
-            config.setInstanceName("jobstore-" + System.getenv("HOSTNAME"));
+            config.setInstanceName(System.getenv("HOSTNAME"));
             return com.hazelcast.core.Hazelcast.newHazelcastInstance(config);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to start hazelcast data instance", e);

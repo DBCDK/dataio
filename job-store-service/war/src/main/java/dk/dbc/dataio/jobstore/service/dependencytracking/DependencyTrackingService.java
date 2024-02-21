@@ -42,12 +42,11 @@ import java.util.stream.Stream;
 
 @ApplicationScoped
 public class DependencyTrackingService {
-    private IMap<TrackingKey, DependencyTracking> dependencyTracker;
+    private IMap<TrackingKey, DependencyTracking> dependencyTracker = Hazelcast.INSTANCE.getMap("dependencies");
     private Map<Integer, JobSchedulerSinkStatus> sinkStatusMap;
 
     @PostConstruct
     public void init() {
-        dependencyTracker = Hazelcast.INSTANCE.getMap("dependencies");
         sinkStatusMap = new ConcurrentHashMap<>(); //hc.getInstance().getReplicatedMap("sink.status");
         dependencyTracker.addEntryListener(new MapListenerAdapter<TrackingKey, DependencyTracking>() {
             @Override

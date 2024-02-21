@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import com.hazelcast.core.HazelcastInstance;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Chunk;
@@ -13,6 +12,7 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
@@ -31,7 +31,6 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.jms.artemis.AdminClient;
 import dk.dbc.jms.artemis.AdminClientFactory;
-import jakarta.annotation.PostConstruct;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -69,7 +68,7 @@ import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 @Path("/")
 public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
-    private static Set<Integer> abortedJobs = null;
+    private static Set<Integer> abortedJobs = Hazelcast.INSTANCE.getSet("aborted.jobs");
 
     @Inject
     DependencyTrackingService dependencyTrackingService;
@@ -96,15 +95,8 @@ public class JobsBean {
     SinkMessageProducerBean sinkMessageProducerBean;
     @EJB
     JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
-    @Inject
-    private HazelcastInstance hc;
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
-
-    @PostConstruct
-    public void init() {
-        if (abortedJobs == null) abortedJobs = hc.getSet("aborted.jobs");
-    }
 
     @POST
     @Path(JobStoreServiceConstants.JOB_ABORT + "/{jobId}")

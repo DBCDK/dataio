@@ -88,7 +88,7 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
         return fetch(SELECT, ps -> {
             setKey(ps, key);
             ResultSet rs = ps.executeQuery();
-            if(rs.next()) return new DependencyTracking(rs);
+            if (rs.next()) return new DependencyTracking(rs);
             return null;
         });
     }
@@ -96,21 +96,24 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
     @Override
     public Map<TrackingKey, DependencyTracking> loadAll(Collection<TrackingKey> keys) {
         Map<Integer, List<TrackingKey>> jobs = keys.stream().collect(Collectors.groupingBy(TrackingKey::getJobId));
-        String sql = "select * from dependencytracking where jobid=? and chunkid in [?]";
-        return fetch(sql, ps -> {
+        try (Connection c = dataSource.getConnection()) {
             Map<TrackingKey, DependencyTracking> entities = new HashMap<>();
             for (Integer jobId : jobs.keySet()) {
                 String chunks = jobs.get(jobId).stream().mapToInt(TrackingKey::getChunkId).mapToObj(Integer::toString).collect(Collectors.joining(", "));
-                ps.setInt(1, jobId);
-                ps.setString(2, chunks);
-                ResultSet rs = ps.executeQuery();
-                while (rs.next()) {
-                    DependencyTracking entity = new DependencyTracking(rs);
-                    entities.put(entity.getKey(), entity);
+                String sql = "select * from dependencytracking where jobid=? and chunkid in [" + chunks + "]";
+                try(PreparedStatement ps = c.prepareStatement(sql)) {
+                    ps.setInt(1, jobId);
+                    ResultSet rs = ps.executeQuery();
+                    while (rs.next()) {
+                        DependencyTracking entity = new DependencyTracking(rs);
+                        entities.put(entity.getKey(), entity);
+                    }
                 }
             }
             return entities;
-        });
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -120,7 +123,7 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
         return fetch(sql, ps -> {
             ResultSet rs = ps.executeQuery();
             List<TrackingKey> keys = new ArrayList<>();
-            while(rs.next()) keys.add(new TrackingKey(rs.getInt("jobid"), rs.getInt("chunkid")));
+            while (rs.next()) keys.add(new TrackingKey(rs.getInt("jobid"), rs.getInt("chunkid")));
             return keys;
         });
     }
@@ -144,7 +147,7 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
     }
 
     private <T> T fetch(String sql, SqlFunction<T> block) {
-        try(Connection c = dataSource.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = dataSource.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             return block.accept(ps);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -152,7 +155,7 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
     }
 
     private void store(String sql, SqlConsumer block) {
-        try(Connection c = dataSource.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = dataSource.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             block.accept(ps);
         } catch (SQLException e) {
             throw new RuntimeException("Map loader store failed while executing: " + sql, e);

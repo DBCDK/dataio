@@ -133,7 +133,7 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
         ps.setObject(6, STRING_SET_CONVERTER.convertToDatabaseColumn(dte.getMatchKeys()));
         ps.setInt(7, dte.getPriority());
         ps.setObject(8, INT_ARRAY_CONVERTER.convertToDatabaseColumn(dte.getHashes()));
-        ps.setInt(9, dte.getSubmitterNumber());
+        ps.setInt(9, dte.getSubmitter());
         ps.setTimestamp(10, new Timestamp(dte.getLastModified().toEpochMilli()));
         ps.setInt(11, dte.getRetries());
     }

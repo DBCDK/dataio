@@ -14,7 +14,6 @@
     }
   },
   "hazelcast": {
-    "clusterName": "${HZ_CLUSTER_NAME}",
-    "imports": ["file:////opt/payara6/deployments/hz-map.xml"]
+    "clusterName": "${HZ_CLUSTER_NAME}"
   }
 }

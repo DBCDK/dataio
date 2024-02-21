@@ -23,7 +23,7 @@ public class WaitForKey implements Predicate<TrackingKey, DependencyTracking> {
     public boolean apply(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking value = entry.getValue();
         return value.getSinkId() == sinkId &&
-                value.getSubmitterNumber() == submitterNumber &&
+                value.getSubmitter() == submitterNumber &&
                 value.getMatchKeys().stream().limit(1).anyMatch(matchKeys::contains); // Todo JEGA: Not entirely sure if this is correct, must test
     }
 }

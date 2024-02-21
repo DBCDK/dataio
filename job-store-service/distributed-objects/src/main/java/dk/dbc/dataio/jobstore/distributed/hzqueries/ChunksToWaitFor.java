@@ -30,7 +30,7 @@ public class ChunksToWaitFor implements Predicate<TrackingKey, DependencyTrackin
     public boolean apply(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking value = entry.getValue();
         return value.getSinkId() == sinkId &&
-                value.getSubmitterNumber() == submitterNumber &&
+                value.getSubmitter() == submitterNumber &&
                 Arrays.stream(value.getHashes()).anyMatch(hashes::contains);
     }
 }

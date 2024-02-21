@@ -163,7 +163,7 @@ public class JobSchedulerBean {
         String barrierMatchKey = getBarrierMatchKey(job);
 
         DependencyTracking e = new DependencyTracking(chunk.getKey().getJobId(), chunk.getKey().getId(), sinkId, chunk.getKey().getId() == 0 ? barrierMatchKey : null, null);
-        e.setSubmitterNumber(Math.toIntExact(job.getSpecification().getSubmitterId()));
+        e.setSubmitter(Math.toIntExact(job.getSpecification().getSubmitterId()));
         e.setPriority(job.getPriority().getValue());
 
         jobSchedulerTransactionsBean.persistDependencyEntity(e, barrierMatchKey);
@@ -280,7 +280,7 @@ public class JobSchedulerBean {
         int sinkId = sink.getId();
         ChunkEntity chunkEntity = pgJobStoreRepository.createJobTerminationChunkEntity(jobEntity.getId(), chunkId, "dummyDatafileId", ItemStatus);
         DependencyTracking endTracker = new DependencyTracking(chunkEntity.getKey().getJobId(), chunkId, sinkId, barrierMatchKey, chunkEntity.getSequenceAnalysisData().getData())
-                .setSubmitterNumber(Math.toIntExact(jobEntity.getSpecification().getSubmitterId()))
+                .setSubmitter(Math.toIntExact(jobEntity.getSpecification().getSubmitterId()))
                 .setPriority(Priority.HIGH.getValue());
         jobSchedulerTransactionsBean.addDependencies(endTracker);
         TrackingKey jobEndKey = dependencyTrackingService.add(endTracker);

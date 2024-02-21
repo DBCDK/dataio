@@ -272,11 +272,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <packagingExcludes>
-                        WEB-INF/lib/distributed-objects-*.jar
-                    </packagingExcludes>
-                </configuration>
             </plugin>
 
             <plugin>
@@ -299,22 +294,6 @@
                                         set server.thread-pools.thread-pool.thread-pool-1.min-thread-pool-size=50' >>scripts/prebootcommandfile.txt
                                     </run>
                                 </runCmds>
-                                <assemblies combine.children="append">
-                                    <assembly>
-                                        <name>distributed-objects</name>
-                                        <mode>dir</mode>
-                                        <inline>
-                                            <dependencySets>
-                                                <dependencySet>
-                                                    <includes>
-                                                        <include>dk.dbc:distributed-objects</include>
-                                                    </includes>
-                                                </dependencySet>
-                                            </dependencySets>
-                                        </inline>
-                                        <targetDir>${docker.deploydir}</targetDir>
-                                    </assembly>
-                                </assemblies>
                             </build>
                         </image>
                     </images>

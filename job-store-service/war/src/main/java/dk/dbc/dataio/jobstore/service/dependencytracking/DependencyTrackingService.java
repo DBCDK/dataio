@@ -24,7 +24,6 @@ import dk.dbc.dataio.jobstore.distributed.hzqueries.WaitingOn;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -43,33 +42,31 @@ import java.util.stream.Stream;
 
 @ApplicationScoped
 public class DependencyTrackingService {
-    @Inject
-    private HazelcastService hc;
     private IMap<TrackingKey, DependencyTracking> dependencyTracker;
     private Map<Integer, JobSchedulerSinkStatus> sinkStatusMap;
 
     @PostConstruct
     public void init() {
-        dependencyTracker = hc.getInstance().getMap("dependencies");
+        dependencyTracker = Hazelcast.INSTANCE.getMap("dependencies");
         sinkStatusMap = new ConcurrentHashMap<>(); //hc.getInstance().getReplicatedMap("sink.status");
         dependencyTracker.addEntryListener(new MapListenerAdapter<TrackingKey, DependencyTracking>() {
             @Override
             public void entryAdded(EntryEvent<TrackingKey, DependencyTracking> event) {
-                if(!hc.isMaster()) return;
+                if(!Hazelcast.isMaster()) return;
                 DependencyTracking dt = event.getValue();
                 dt.getStatus().incSinkStatusCount(statusFor(dt));
             }
 
             @Override
             public void entryRemoved(EntryEvent<TrackingKey, DependencyTracking> event) {
-                if(!hc.isMaster()) return;
+                if(!Hazelcast.isMaster()) return;
                 DependencyTracking dt = event.getValue();
                 dt.getStatus().decSinkStatusCount(statusFor(dt));
             }
 
             @Override
             public void entryUpdated(EntryEvent<TrackingKey, DependencyTracking> event) {
-                if(!hc.isMaster()) return;
+                if(!Hazelcast.isMaster()) return;
                 DependencyTracking old = event.getOldValue();
                 DependencyTracking dt = event.getValue();
                 if(old.getStatus() == dt.getStatus()) return;
@@ -238,7 +235,7 @@ public class DependencyTrackingService {
         if (entity.getMatchKeys().isEmpty() && barrierMatchKey == null) {
             return Collections.emptySet();
         }
-        ChunksToWaitFor query = new ChunksToWaitFor(entity.getSinkId(), entity.getSubmitterNumber(), entity.getHashes(), barrierMatchKey);
+        ChunksToWaitFor query = new ChunksToWaitFor(entity.getSinkId(), entity.getSubmitter(), entity.getHashes(), barrierMatchKey);
         Collection<DependencyTracking> values = dependencyTracker.values(query);
         return optimizeDependencies(values);
     }

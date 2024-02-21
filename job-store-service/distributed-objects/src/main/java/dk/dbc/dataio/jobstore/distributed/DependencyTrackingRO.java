@@ -16,7 +16,7 @@ public interface DependencyTrackingRO {
 
     Integer[] getHashes();
 
-    int getSubmitterNumber();
+    int getSubmitter();
 
     int getPriority();
 

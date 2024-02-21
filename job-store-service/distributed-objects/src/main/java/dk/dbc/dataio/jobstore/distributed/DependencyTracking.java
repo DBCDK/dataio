@@ -127,12 +127,12 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
     }
 
     @Override
-    public int getSubmitterNumber() {
+    public int getSubmitter() {
         return submitter;
     }
 
-    public DependencyTracking setSubmitterNumber(int submitterNumber) {
-        this.submitter = submitterNumber;
+    public DependencyTracking setSubmitter(int submitter) {
+        this.submitter = submitter;
         return this;
     }
 

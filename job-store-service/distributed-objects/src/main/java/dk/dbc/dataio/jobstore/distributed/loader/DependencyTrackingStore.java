@@ -47,6 +47,7 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
 
     @Override
     public void store(TrackingKey key, DependencyTracking dte) {
+        LOGGER.info("Storing: {}", dte);
         store(UPSERT, ps -> {
             setRow(ps, dte);
             ps.executeUpdate();
@@ -56,6 +57,7 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
 
     @Override
     public void storeAll(Map<TrackingKey, DependencyTracking> map) {
+        LOGGER.info("Storing {} trackers", map.size());
         store(UPSERT, ps -> {
             for (DependencyTracking dte : map.values()) {
                 setRow(ps, dte);
@@ -85,6 +87,7 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
 
     @Override
     public DependencyTracking load(TrackingKey key) {
+        LOGGER.info("Loading trackers: {}", key);
         return fetch(SELECT, ps -> {
             setKey(ps, key);
             ResultSet rs = ps.executeQuery();
@@ -95,12 +98,14 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
 
     @Override
     public Map<TrackingKey, DependencyTracking> loadAll(Collection<TrackingKey> keys) {
+        LOGGER.info("Loading {} trackers", keys.size());
+        String sql = null;
         Map<Integer, List<TrackingKey>> jobs = keys.stream().collect(Collectors.groupingBy(TrackingKey::getJobId));
         try (Connection c = dataSource.getConnection()) {
             Map<TrackingKey, DependencyTracking> entities = new HashMap<>();
             for (Integer jobId : jobs.keySet()) {
                 String chunks = jobs.get(jobId).stream().mapToInt(TrackingKey::getChunkId).mapToObj(Integer::toString).collect(Collectors.joining(", "));
-                String sql = "select * from dependencytracking where jobid=? and chunkid in (" + chunks + ")";
+                sql = "select * from dependencytracking where jobid=? and chunkid in (" + chunks + ")";
                 try(PreparedStatement ps = c.prepareStatement(sql)) {
                     ps.setInt(1, jobId);
                     ResultSet rs = ps.executeQuery();
@@ -112,6 +117,7 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
             }
             return entities;
         } catch (SQLException e) {
+            LOGGER.error("Statement failed {}", sql);
             throw new RuntimeException(e);
         }
     }
@@ -124,6 +130,7 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
             ResultSet rs = ps.executeQuery();
             List<TrackingKey> keys = new ArrayList<>();
             while (rs.next()) keys.add(new TrackingKey(rs.getInt("jobid"), rs.getInt("chunkid")));
+            LOGGER.info("Load all keys found " + keys.size() + " trackers to load");
             return keys;
         });
     }
@@ -150,7 +157,8 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
         try (Connection c = dataSource.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             return block.accept(ps);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Statement failed {}", sql);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -158,7 +166,8 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
         try (Connection c = dataSource.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             block.accept(ps);
         } catch (SQLException e) {
-            throw new RuntimeException("Map loader store failed while executing: " + sql, e);
+            LOGGER.error("Map loader store failed while executing: {}", sql);
+            throw new IllegalStateException("Map loader store failed while executing: " + sql, e);
         }
     }
 

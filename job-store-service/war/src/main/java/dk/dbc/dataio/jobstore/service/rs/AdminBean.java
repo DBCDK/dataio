@@ -1,5 +1,7 @@
 package dk.dbc.dataio.jobstore.service.rs;
 
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Sink;
@@ -73,6 +75,8 @@ public class AdminBean {
     @ConfigProperty(name = "PROCESSOR_TIMEOUT", defaultValue = "PT1H")
     private Duration processorTimeout;
 
+    JSONBContext jsonbContext = new JSONBContext();
+
     @Inject
     @JobstoreDB
     EntityManager entityManager;
@@ -123,6 +127,13 @@ public class AdminBean {
         LOGGER.info("Cleaning stale artemis connections");
         Instant i = Instant.now().minus(Duration.ofMinutes(15));
         adminClient.closeConsumerConnections(c -> i.isAfter(c.getLastAcknowledgedTime()) && c.getDeliveringCount() > 0);
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response recountSinkStatus() throws JSONBException {
+        dependencyTrackingService.recountSinkStatus(Set.of());
+        return Response.ok(jsonbContext.marshall(dependencyTrackingService.getSinkStatusMap())).build();
     }
 
     @GET

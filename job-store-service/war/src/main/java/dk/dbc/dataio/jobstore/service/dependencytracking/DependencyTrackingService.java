@@ -115,7 +115,7 @@ public class DependencyTrackingService {
     public int resetStatus(ChunkSchedulingStatus from, ChunkSchedulingStatus to, Integer... jobIds) {
         PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
         @SuppressWarnings("unchecked")
-        Predicate<TrackingKey, DependencyTracking> p = e.get("status").equal(from).and(e.get("jobId").in(jobIds));
+        Predicate<TrackingKey, DependencyTracking> p = e.get("status").equal(from).and(e.get("key").get("jobId").in(jobIds));
         Set<TrackingKey> entries = dependencyTracker.keySet(p);
         entries.forEach(key -> modify(key, dt -> dt.setStatus(to)));
         return entries.size();
@@ -124,7 +124,7 @@ public class DependencyTrackingService {
     public void removeJobId(int jobId) {
         PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
         @SuppressWarnings("unchecked")
-        Predicate<TrackingKey, DependencyTracking> p = e.get("jobId").equal(jobId);
+        Predicate<TrackingKey, DependencyTracking> p = e.get("key").get("jobId").equal(jobId);
         remove(p);
     }
 

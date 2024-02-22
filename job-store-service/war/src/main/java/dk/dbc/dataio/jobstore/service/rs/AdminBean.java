@@ -130,6 +130,7 @@ public class AdminBean {
     }
 
     @GET
+    @Path(JobStoreServiceConstants.SINKS_STATUS_RECOUNT)
     @Produces(MediaType.APPLICATION_JSON)
     public Response recountSinkStatus() throws JSONBException {
         dependencyTrackingService.recountSinkStatus(Set.of());

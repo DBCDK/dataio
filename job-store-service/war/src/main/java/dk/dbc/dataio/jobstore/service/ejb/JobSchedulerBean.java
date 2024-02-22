@@ -418,7 +418,7 @@ public class JobSchedulerBean {
                         final TrackingKey toScheduleKey = toSchedule.getKey();
                         LOGGER.info("bulk scheduling for processing - chunk {} to be scheduled for processing for sink {}", toScheduleKey, sinkId);
                         final ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
-                        jobSchedulerTransactionsBean.submitToProcessing(chunk, queueStatus, toSchedule.getPriority());
+                        jobSchedulerTransactionsBean.submitToProcessing(chunk, toSchedule.getPriority());
                         chunksPushedToQueue++;
                     }
                 }

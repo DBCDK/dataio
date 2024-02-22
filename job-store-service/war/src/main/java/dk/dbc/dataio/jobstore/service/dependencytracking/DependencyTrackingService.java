@@ -100,11 +100,15 @@ public class DependencyTrackingService {
         try {
             dependencyTracker.tryLock(key, 2, TimeUnit.MINUTES);
             DependencyTracking entity = dependencyTracker.get(key);
+            if(entity == null) {
+                LOGGER.info("Unable to modify tracker {} as i has been deleted", key);
+                return;
+            }
             consumer.accept(entity);
             entity.updateLastModified();
             dependencyTracker.set(key, entity);
-            dependencyTracker.unlock(key);
         } catch (InterruptedException ie) {
+        } finally {
             try {
                 dependencyTracker.unlock(key);
             } catch (Exception ignored) {}

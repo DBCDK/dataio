@@ -25,6 +25,8 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -44,6 +46,7 @@ import java.util.stream.Stream;
 @Singleton
 @Startup
 public class DependencyTrackingService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTrackingService.class);
     private final IMap<TrackingKey, DependencyTracking> dependencyTracker = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
     private Map<Integer, JobSchedulerSinkStatus> sinkStatusMap;
 
@@ -55,14 +58,18 @@ public class DependencyTrackingService {
             public void entryAdded(EntryEvent<TrackingKey, DependencyTracking> event) {
                 if(!Hazelcast.isMaster()) return;
                 DependencyTracking dt = event.getValue();
-                dt.getStatus().incSinkStatusCount(statusFor(dt));
+                JobSchedulerSinkStatus status = statusFor(dt);
+                dt.getStatus().incSinkStatusCount(status);
+                LOGGER.info("Added tracker {} with status {}", dt.getKey(), status);
             }
 
             @Override
             public void entryRemoved(EntryEvent<TrackingKey, DependencyTracking> event) {
                 if(!Hazelcast.isMaster()) return;
                 DependencyTracking dt = event.getOldValue();
-                dt.getStatus().decSinkStatusCount(statusFor(dt));
+                JobSchedulerSinkStatus status = statusFor(dt);
+                dt.getStatus().decSinkStatusCount(status);
+                LOGGER.info("Removed tracker {} with status {}", dt.getKey(), status);
             }
 
             @Override
@@ -71,8 +78,11 @@ public class DependencyTrackingService {
                 DependencyTracking old = event.getOldValue();
                 DependencyTracking dt = event.getValue();
                 if(old.getStatus() == dt.getStatus()) return;
-                old.getStatus().decSinkStatusCount(statusFor(old));
-                dt.getStatus().incSinkStatusCount(statusFor(dt));
+                JobSchedulerSinkStatus oldStatus = statusFor(old);
+                JobSchedulerSinkStatus newStatus = statusFor(dt);
+                old.getStatus().decSinkStatusCount(oldStatus);
+                dt.getStatus().incSinkStatusCount(newStatus);
+                LOGGER.info("Updated tracker {}: {} -> {}\n status: \n- {}\n+ {}", dt.getKey(), old.getStatus().name(), dt.getStatus().name(), oldStatus, newStatus);
             }
 
             private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {

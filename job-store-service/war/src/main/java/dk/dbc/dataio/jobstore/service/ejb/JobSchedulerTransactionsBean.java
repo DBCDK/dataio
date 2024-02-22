@@ -128,12 +128,12 @@ public class JobSchedulerTransactionsBean {
             queueStatus.setMode(QueueSubmitMode.BULK);
             return;
         }
-        submitToProcessing(chunk, queueStatus, priority);
+        submitToProcessing(chunk, priority);
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
-    public void submitToProcessing(ChunkEntity chunk, JobSchedulerSinkStatus.QueueStatus queueStatus, int priority) {
+    public void submitToProcessing(ChunkEntity chunk, int priority) {
         TrackingKey key = new TrackingKey(chunk.getKey().getJobId(), chunk.getKey().getId());
         dependencyTrackingService.modify(key, dependencyTracking -> {
             if (dependencyTracking == null) {
@@ -150,7 +150,7 @@ public class JobSchedulerTransactionsBean {
             try {
                 JobEntity jobEntity = entityManager.find(JobEntity.class, chunk.getKey().getJobId());
                 jobProcessorMessageProducerBean.send(getChunkFrom(chunk), jobEntity, priority);
-                queueStatus.enqueued.incrementAndGet();
+//                queueStatus.enqueued.incrementAndGet();
                 LOGGER.info("submitToProcessing: chunk {}/{} scheduled for processing", key.getJobId(), key.getChunkId());
             } catch (JobStoreException e) {
                 LOGGER.error("submitToProcessing: unable to send chunk {}/{} to JMS queue", key.getJobId(), key.getChunkId(), e);

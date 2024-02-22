@@ -284,13 +284,8 @@ public class JobSchedulerBean {
                 .setPriority(Priority.HIGH.getValue());
         jobSchedulerTransactionsBean.addDependencies(endTracker);
         TrackingKey jobEndKey = dependencyTrackingService.add(endTracker);
-        if (endTracker.getStatus() == ChunkSchedulingStatus.READY_FOR_DELIVERY) {
-            JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(sinkId).getDeliveringStatus();
-            sinkQueueStatus.ready.incrementAndGet();
-        }
         Chunk processedChunk = jobSchedulerTransactionsBean.getProcessedChunkFrom(jobEndKey);
-        dependencyTrackingService.modify(jobEndKey,
-                dt -> jobSchedulerTransactionsBean.submitToDeliveringIfPossible(processedChunk, dt));
+        dependencyTrackingService.modify(jobEndKey, dt -> jobSchedulerTransactionsBean.submitToDeliveringIfPossible(processedChunk, dt));
     }
 
     /**
@@ -316,12 +311,12 @@ public class JobSchedulerBean {
                         chunk.getJobId(), chunk.getChunkId(), dependencyTracking.getStatus());
                 return;
             }
-            int sinkId = dependencyTracking.getSinkId();
-            JobSchedulerSinkStatus.QueueStatus prSinkQueueStatus = dependencyTrackingService.getSinkStatus(sinkId).getProcessingStatus();
-            prSinkQueueStatus.enqueued.decrementAndGet();
-            prSinkQueueStatus.ready.decrementAndGet();
-            LOGGER.info("chunkProcessingDone: prSinkQueueStatus.jmsEnqueuedToProcessing for sink {}: {}",
-                    sinkId, prSinkQueueStatus.enqueued.intValue());
+//            int sinkId = dependencyTracking.getSinkId();
+//            JobSchedulerSinkStatus.QueueStatus prSinkQueueStatus = dependencyTrackingService.getSinkStatus(sinkId).getProcessingStatus();
+//            prSinkQueueStatus.enqueued.decrementAndGet();
+//            prSinkQueueStatus.ready.decrementAndGet();
+//            LOGGER.info("chunkProcessingDone: prSinkQueueStatus.jmsEnqueuedToProcessing for sink {}: {}",
+//                    sinkId, prSinkQueueStatus.enqueued.intValue());
 
             if (!dependencyTracking.getWaitingOn().isEmpty()) {
                 dependencyTracking.setStatus(ChunkSchedulingStatus.BLOCKED);
@@ -329,8 +324,8 @@ public class JobSchedulerBean {
                         dependencyTracking.getWaitingOn());
             } else {
                 dependencyTracking.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
-                JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(sinkId).getDeliveringStatus();
-                sinkQueueStatus.ready.incrementAndGet();
+//                JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(sinkId).getDeliveringStatus();
+//                sinkQueueStatus.ready.incrementAndGet();
             }
 
             jobSchedulerTransactionsBean.submitToDeliveringIfPossible(chunk, dependencyTracking);
@@ -373,8 +368,8 @@ public class JobSchedulerBean {
 
         JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(chunkDoneSinkId).getDeliveringStatus();
 
-        sinkQueueStatus.enqueued.decrementAndGet();
-        sinkQueueStatus.ready.decrementAndGet();
+//        sinkQueueStatus.enqueued.decrementAndGet();
+//        sinkQueueStatus.ready.decrementAndGet();
 
         StopWatch findChunksWaitingForMeStopWatch = new StopWatch();
         List<TrackingKey> chunksWaitingForMe = dependencyTrackingService.findChunksWaitingForMe(chunkDoneKey, chunkDoneSinkId);

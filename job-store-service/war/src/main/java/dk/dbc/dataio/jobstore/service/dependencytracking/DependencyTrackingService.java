@@ -60,7 +60,7 @@ public class DependencyTrackingService {
                 DependencyTracking dt = event.getValue();
                 JobSchedulerSinkStatus status = statusFor(dt);
                 dt.getStatus().incSinkStatusCount(status);
-                LOGGER.info("Added tracker {} with status {}", dt.getKey(), status);
+                LOGGER.info("Map listener added tracker {} with status {}", dt.getKey(), status);
             }
 
             @Override
@@ -69,7 +69,7 @@ public class DependencyTrackingService {
                 DependencyTracking dt = event.getOldValue();
                 JobSchedulerSinkStatus status = statusFor(dt);
                 dt.getStatus().decSinkStatusCount(status);
-                LOGGER.info("Removed tracker {} with status {}", dt.getKey(), status);
+                LOGGER.info("Map listener removed tracker {} with status {}", dt.getKey(), status);
             }
 
             @Override
@@ -78,11 +78,10 @@ public class DependencyTrackingService {
                 DependencyTracking old = event.getOldValue();
                 DependencyTracking dt = event.getValue();
                 if(old.getStatus() == dt.getStatus()) return;
-                JobSchedulerSinkStatus oldStatus = statusFor(old);
-                JobSchedulerSinkStatus newStatus = statusFor(dt);
-                old.getStatus().decSinkStatusCount(oldStatus);
-                dt.getStatus().incSinkStatusCount(newStatus);
-                LOGGER.info("Updated tracker {}: {} -> {}\n status: \n- {}\n+ {}", dt.getKey(), old.getStatus().name(), dt.getStatus().name(), oldStatus, newStatus);
+                JobSchedulerSinkStatus status = statusFor(dt);
+                old.getStatus().decSinkStatusCount(status);
+                dt.getStatus().incSinkStatusCount(status);
+                LOGGER.info("Map listener updated tracker {}: {} -> {}, status: {}", dt.getKey(), old.getStatus().name(), dt.getStatus().name(), status);
             }
 
             private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {

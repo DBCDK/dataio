@@ -205,5 +205,14 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
         return hashes;
     }
 
+    @Override
+    public String toString() {
+        return "DependencyTracking{" +
+                "key=" + key +
+                ", sinkId=" + sinkId +
+                ", status=" + status +
+                ", submitter=" + submitter +
+                '}';
+    }
 }
 

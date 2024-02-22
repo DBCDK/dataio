@@ -726,7 +726,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                     }
                 }
                 DBCTrackedLogContext.setTrackingId(trackingId);
-                LOGGER.info("Creating chunk item {}/{}/{}", jobId, chunkId, itemCounter);
+                LOGGER.debug("Creating chunk item {}/{}/{}", jobId, chunkId, itemCounter);
 
                 StateChange stateChange = new StateChange()
                         .setPhase(State.Phase.PARTITIONING)

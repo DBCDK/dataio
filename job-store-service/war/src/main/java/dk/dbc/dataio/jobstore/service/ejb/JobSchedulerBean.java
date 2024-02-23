@@ -448,9 +448,11 @@ public class JobSchedulerBean {
                 for (TrackingKey toSchedule : chunks) {
                     if(!JobsBean.isAborted(toSchedule.getJobId())) {
                         LOGGER.info("bulk scheduling for delivery - chunk {} to be scheduled for delivery for sink {}", toSchedule, sinkId);
-                        jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(
-                                jobSchedulerTransactionsBean.getProcessedChunkFrom(toSchedule), queueStatus);
-                        chunksPushedToQueue++;
+                        Chunk chunk = jobSchedulerTransactionsBean.getProcessedChunkFrom(toSchedule);
+                        if(chunk != null) {
+                            jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(chunk, queueStatus);
+                            chunksPushedToQueue++;
+                        } else dependencyTrackingService.remove(toSchedule);
                     }
                 }
             }

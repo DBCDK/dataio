@@ -108,7 +108,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new JobListQuery(entityManager).execute(criteria);
     }
 
-    @Stopwatch
     public long countJobs(JobListCriteria criteria) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
         return new JobListQuery(entityManager).execute_count(criteria);
@@ -167,7 +166,6 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @return list of information snapshots of selected items
      * @throws NullPointerException if given null-valued criteria argument
      */
-    @Stopwatch
     public List<ItemInfoSnapshot> listItems(ItemListCriteria criteria) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
         final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
@@ -186,7 +184,6 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @return byteArrayOutputStream containing the requested items.
      * @throws JobStoreException on general failure to write output stream
      */
-    @Stopwatch
     public ByteArrayOutputStream exportFailedItems(int jobId, State.Phase fromPhase, ChunkItem.Type type,
                                                    Charset encodedAs) throws JobStoreException {
         return new JobExporter(entityManager)

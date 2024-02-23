@@ -88,6 +88,7 @@ public class DependencyTrackingService {
                 return sinkStatusMap.computeIfAbsent(dt.getSinkId(), id -> new JobSchedulerSinkStatus());
             }
         }, true);
+        recountSinkStatus(Set.of());
     }
 
     public TrackingKey add(DependencyTracking entity) {

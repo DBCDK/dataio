@@ -56,7 +56,7 @@ public class DependencyTrackingService {
         dependencyTracker.addEntryListener(new MapListenerAdapter<TrackingKey, DependencyTracking>() {
             @Override
             public void entryAdded(EntryEvent<TrackingKey, DependencyTracking> event) {
-                if(!Hazelcast.isMaster()) return;
+//                if(!Hazelcast.isMaster()) return;
                 DependencyTracking dt = event.getValue();
                 JobSchedulerSinkStatus status = statusFor(dt);
                 dt.getStatus().incSinkStatusCount(status);
@@ -65,7 +65,7 @@ public class DependencyTrackingService {
 
             @Override
             public void entryRemoved(EntryEvent<TrackingKey, DependencyTracking> event) {
-                if(!Hazelcast.isMaster()) return;
+//                if(!Hazelcast.isMaster()) return;
                 DependencyTracking dt = event.getOldValue();
                 JobSchedulerSinkStatus status = statusFor(dt);
                 dt.getStatus().decSinkStatusCount(status);
@@ -74,7 +74,7 @@ public class DependencyTrackingService {
 
             @Override
             public void entryUpdated(EntryEvent<TrackingKey, DependencyTracking> event) {
-                if(!Hazelcast.isMaster()) return;
+//                if(!Hazelcast.isMaster()) return;
                 DependencyTracking old = event.getOldValue();
                 DependencyTracking dt = event.getValue();
                 if(old.getStatus() == dt.getStatus()) return;
@@ -92,9 +92,17 @@ public class DependencyTrackingService {
     }
 
     public TrackingKey add(DependencyTracking entity) {
-        dependencyTracker.set(entity.getKey(), entity);
-        return entity.getKey();
+        Set<TrackingKey> waitingOn = entity.getWaitingOn();
+        try {
+            waitingOn.forEach(dependencyTracker::lock);
+            entity.setWaitingOn(waitingOn.stream().filter(dependencyTracker::containsKey).collect(Collectors.toList()));
+            dependencyTracker.set(entity.getKey(), entity);
+            return entity.getKey();
+        } finally {
+            waitingOn.forEach(dependencyTracker::unlock);
+        }
     }
+
 
     public void modify(TrackingKey key, Consumer<DependencyTracking> consumer) {
         try {
@@ -208,8 +216,8 @@ public class DependencyTrackingService {
     }
 
     public List<TrackingKey> findChunksWaitingForMe(TrackingKey key, int sinkId) {
-        return dependencyTracker.keySet(new WaitingOn(sinkId, key)).stream().
-                sorted(Comparator.comparing(TrackingKey::getJobId).thenComparing(TrackingKey::getChunkId))
+        return dependencyTracker.keySet(new WaitingOn(sinkId, key)).stream()
+                .sorted(Comparator.comparing(TrackingKey::getJobId).thenComparing(TrackingKey::getChunkId))
                 .collect(Collectors.toList());
     }
 

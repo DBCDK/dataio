@@ -116,10 +116,6 @@
             <artifactId>dbc-commons-jdbc-util</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dbc-commons-metrics-handler</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

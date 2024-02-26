@@ -107,10 +107,6 @@
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
         </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dbc-commons-metrics-handler</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

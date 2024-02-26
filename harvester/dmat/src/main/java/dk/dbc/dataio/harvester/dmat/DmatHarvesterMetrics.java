@@ -1,9 +1,8 @@
 package dk.dbc.dataio.harvester.dmat;
 
-import dk.dbc.commons.metricshandler.CounterMetric;
 import org.eclipse.microprofile.metrics.Metadata;
 
-enum DmatHarvesterMetrics implements CounterMetric {
+enum DmatHarvesterMetrics {
 
     RECORDS_HARVESTED(Metadata.builder()
             .withName("dataio_harvester_dmat_records_harvested_counter")
@@ -36,7 +35,6 @@ enum DmatHarvesterMetrics implements CounterMetric {
         this.metadata = metadata;
     }
 
-    @Override
     public Metadata getMetadata() {
         return metadata;
     }

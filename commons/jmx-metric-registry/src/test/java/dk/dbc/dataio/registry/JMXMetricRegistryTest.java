@@ -3,8 +3,8 @@ package dk.dbc.dataio.registry;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.MetricID;
-import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -54,8 +54,8 @@ class JMXMetricRegistryTest {
     }
 
     @Test
-    public void testSimpleTimer() {
-        SimpleTimer timer = metricRegistry.simpleTimer("test");
+    public void testTimer() {
+        Timer timer = metricRegistry.timer("test");
         timer.update(Duration.ofSeconds(1));
         timer.update(Duration.ofSeconds(2));
         assertEquals(Duration.ofSeconds(3), timer.getElapsedTime(), "Elapsed time should be 3 seconds");

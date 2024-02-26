@@ -27,8 +27,8 @@ import jakarta.persistence.EntityManager;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -144,7 +144,7 @@ public class HarvestOperation_datawell_Test implements TempFiles {
 
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
     private final Counter counter = mock(Counter.class);
-    private final SimpleTimer timer = mock(SimpleTimer.class);
+    private final Timer timer = mock(Timer.class);
 
     @TempDir
     public Path tmpFolder;
@@ -183,7 +183,7 @@ public class HarvestOperation_datawell_Test implements TempFiles {
                 .thenReturn(QUEUE_DAO_CONFIGURATION);
 
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
-        when(metricRegistry.simpleTimer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
+        when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
         doNothing().when(counter).inc();
         doNothing().when(timer).update(any(Duration.class));
     }

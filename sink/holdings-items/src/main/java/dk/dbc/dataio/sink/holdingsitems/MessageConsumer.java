@@ -142,7 +142,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
             return status;
         } finally {
             Tag success = new Tag("success", status == null ? "false" : status.getOk().toString());
-            Metric.SET_HOLDINGS_REQUESTS.simpleTimer(success).update(Duration.between(start, Instant.now()));
+            Metric.SET_HOLDINGS_REQUESTS.timer(success).update(Duration.between(start, Instant.now()));
         }
     }
 }

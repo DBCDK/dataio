@@ -52,7 +52,7 @@ public class ImsMessageConsumer extends MessageConsumerAdapter {
                         String.format("%d-%d", chunk.getJobId(), chunk.getChunkId()), sinkResult.getMarcXchangeRecords());
                 sinkResult.update(marcXchangeResults);
             }
-            Metric.REQUEST_DURATION.simpleTimer().update(Duration.ofMillis(System.currentTimeMillis() - imsRequestStartTime));
+            Metric.REQUEST_DURATION.timer().update(Duration.ofMillis(System.currentTimeMillis() - imsRequestStartTime));
             addChunkToJobStore(sinkResult.toChunk());
         } catch (WebServiceException e) {
             Metric.IMS_FAILURES.counter().inc();

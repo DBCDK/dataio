@@ -1,6 +1,5 @@
 package dk.dbc.dataio.harvester.dmat;
 
-import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -14,6 +13,7 @@ import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarv
     RecordServiceConnector recordServiceConnector;
 
     @Inject
-    MetricsHandlerBean metricsHandler;
+    MetricRegistry metricsHandler;
 
     @Override
     public int executeFor(DMatHarvesterConfig config) throws HarvesterException {
@@ -60,11 +60,11 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarv
             throw e;
         } catch (RuntimeException e) {
             LOGGER.error(String.format("HarvestOperation resulted in RuntimeException %s", e.getMessage()), e);
-            metricsHandler.increment(DmatHarvesterMetrics.UNHANDLED_EXCEPTIONS);
+            metricsHandler.counter(DmatHarvesterMetrics.UNHANDLED_EXCEPTIONS.getMetadata()).inc();
             throw e;
         } catch(Exception e) {
             LOGGER.error(String.format("HarvestOperation resulted in unhandled exception %s", e.getMessage()), e);
-            metricsHandler.increment(DmatHarvesterMetrics.UNHANDLED_EXCEPTIONS);
+            metricsHandler.counter(DmatHarvesterMetrics.UNHANDLED_EXCEPTIONS.getMetadata()).inc();
             throw e;
         }
     }

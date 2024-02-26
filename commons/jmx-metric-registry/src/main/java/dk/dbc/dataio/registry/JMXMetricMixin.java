@@ -3,8 +3,8 @@ package dk.dbc.dataio.registry;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 
 import java.util.function.Supplier;
 
@@ -13,8 +13,8 @@ public interface JMXMetricMixin {
         return JMXMetricRegistry.create().gauge(getName(), supplier, tags);
     }
 
-    default SimpleTimer simpleTimer(MetricRegistry metricRegistry, Tag... tags) {
-        return JMXMetricRegistry.create().simpleTimer(getName(), tags);
+    default Timer timer(MetricRegistry metricRegistry, Tag... tags) {
+        return JMXMetricRegistry.create().timer(getName(), tags);
     }
 
     default Counter counter(MetricRegistry metricRegistry, Tag... tags) {

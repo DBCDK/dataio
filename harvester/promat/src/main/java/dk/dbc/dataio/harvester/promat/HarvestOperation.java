@@ -44,6 +44,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static dk.dbc.dataio.harvester.promat.PromatHarvesterMetrics.RECORDS_ADDED;
+
 public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
 
@@ -142,7 +144,7 @@ public class HarvestOperation {
                 Optional<JobInfoSnapshot> jobInfo = jobBuilder.build();
                 jobInfo.ifPresent(jobInfoSnapshot -> {
                     LOGGER.info("Created job {} with {} items", jobInfoSnapshot.getJobId(), recordsAdded);
-                    metricRegistry.counter(PromatHarvesterMetrics.RECORDS_ADDED.getMetadata()).inc(recordsAdded);
+                    RECORDS_ADDED.counter(metricRegistry).inc(recordsAdded);
                 });
             } else if (recordsHarvested == 0) {
                 LOGGER.info("No new records harvested from Promat");
@@ -164,24 +166,24 @@ public class HarvestOperation {
         } catch (PromatServiceConnectorException e) {
             LOGGER.error(String.format("Caught unexpected PromatServiceConnectorException: %s", e.getMessage()), e);
             LOGGER.error("Promat may now have stale records in status PROCESSING");
-            metricRegistry.counter(PromatHarvesterMetrics.EXCEPTIONS.getMetadata()).inc();
+            PromatHarvesterMetrics.EXCEPTIONS.counter(metricRegistry).inc();
             throw new HarvesterException("Caught DMatServiceConnectorException", e);
         } catch (HarvesterException e) {
             LOGGER.error(String.format("Caught HarvesterException: %s", e.getMessage()), e);
             LOGGER.error("Promat may now have stale records in status PROCESSING");
-            metricRegistry.counter(PromatHarvesterMetrics.EXCEPTIONS.getMetadata()).inc();
+            PromatHarvesterMetrics.EXCEPTIONS.counter(metricRegistry).inc();
             throw e;
         } catch (Exception e) {
             LOGGER.error(String.format("Caught unexpected Exception: %s", e.getMessage()), e);
             LOGGER.error("Promat may now have stale records in status PROCESSING");
-            metricRegistry.counter(PromatHarvesterMetrics.UNHANDLED_EXCEPTIONS.getMetadata()).inc();
+            PromatHarvesterMetrics.UNHANDLED_EXCEPTIONS.counter(metricRegistry).inc();
             throw new HarvesterException("Caught Exception", e);
         } finally {
             LOGGER.info("Harvested {} promat cases. {} was processed, {} was skipped, {} failed in {} ms", recordsHarvested,
                     recordsProcessed, recordsSkipped, recordsFailed.get(), stopwatch.getElapsedTime());
-            metricRegistry.counter(PromatHarvesterMetrics.RECORDS_HARVESTED.getMetadata()).inc(recordsHarvested);
-            metricRegistry.counter(PromatHarvesterMetrics.RECORDS_PROCESSED.getMetadata()).inc(recordsProcessed);
-            metricRegistry.counter(PromatHarvesterMetrics.RECORDS_FAILED.getMetadata()).inc(recordsFailed.get() + recordsSkipped);
+            PromatHarvesterMetrics.RECORDS_HARVESTED.counter(metricRegistry).inc(recordsHarvested);
+            PromatHarvesterMetrics.RECORDS_PROCESSED.counter(metricRegistry).inc(recordsProcessed);
+            PromatHarvesterMetrics.RECORDS_FAILED.counter(metricRegistry).inc(recordsFailed.get() + recordsSkipped);
         }
     }
 

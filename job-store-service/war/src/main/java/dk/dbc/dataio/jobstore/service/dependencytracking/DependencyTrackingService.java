@@ -115,7 +115,7 @@ public class DependencyTrackingService {
             consumer.accept(entity);
             entity.updateLastModified();
             dependencyTracker.set(key, entity);
-        } catch (InterruptedException ie) {
+        } catch (InterruptedException ignored) {
         } finally {
             try {
                 dependencyTracker.unlock(key);

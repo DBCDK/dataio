@@ -17,8 +17,8 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
-import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
 import dk.dbc.dataio.jobstore.service.ejb.JobQueueRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
@@ -242,9 +242,7 @@ public class AbstractJobStoreIT implements PostgresContainerJPAUtils {
     }
 
     protected DependencyTracking newDependencyTrackingEntity(TrackingKey key) {
-        DependencyTracking dependencyTracking = new DependencyTracking();
-        dependencyTracking.setKey(key);
-        dependencyTracking.setSinkId(1);
+        DependencyTracking dependencyTracking = new DependencyTracking(key, 1);
         dependencyTracking.setStatus(ChunkSchedulingStatus.READY_FOR_PROCESSING);
         return dependencyTracking;
     }

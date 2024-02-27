@@ -3,9 +3,9 @@ package dk.dbc.dataio.jobstore.service.entity;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
-import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,9 +34,8 @@ public class DependencyTrackingIT extends AbstractJobStoreIT {
         persistenceContext.run(() -> {
             final int[] i = {0};
             Arrays.stream(ChunkSchedulingStatus.values()).forEach(chunkSchedulingStatus -> {
-                DependencyTracking entity = new DependencyTracking();
+                DependencyTracking entity = new DependencyTracking(new TrackingKey(1, i[0]), 0);
                 entity.setStatus(chunkSchedulingStatus);
-                entity.setKey(new TrackingKey(1, i[0]));
                 entity.setMatchKeys(Stream.of(
                                 "5 023 297 2",
                                 "2 004 091 2",

@@ -32,8 +32,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
     private int retries = 0;
 
     public DependencyTracking(int jobId, int chunkId, int sinkId, String extraKey, Set<String> sequenceData) {
-        key = new TrackingKey(jobId, chunkId);
-        this.sinkId = sinkId;
+        this(new TrackingKey(jobId, chunkId), sinkId);
         if (sequenceData != null) {
             matchKeys = new HashSet<>(sequenceData);
         } else {
@@ -48,6 +47,11 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
     public DependencyTracking(int jobId, int chunkId, PGobject waitingOn) {
         key = new TrackingKey(jobId, chunkId);
         this.waitingOn = new KeySetJSONBConverter().convertToEntityAttribute(waitingOn);
+    }
+
+    public DependencyTracking(TrackingKey key, int sinkId) {
+        this.key = key;
+        this.sinkId = sinkId;
     }
 
     public DependencyTracking(ResultSet rs) throws SQLException {
@@ -105,6 +109,11 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
 
     public DependencyTracking setWaitingOn(List<TrackingKey> chunksToWaitFor) {
         this.waitingOn = new HashSet<>(chunksToWaitFor);
+        return this;
+    }
+
+    public DependencyTracking setWaitingOn(PGobject waitingOn) {
+        this.waitingOn = new KeySetJSONBConverter().convertToEntityAttribute(waitingOn);
         return this;
     }
 

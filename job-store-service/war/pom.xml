@@ -16,7 +16,6 @@
 
     <properties>
         <jobstore.it.persistence.unit.name>jobstoreIT</jobstore.it.persistence.unit.name>
-        <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:24</java.image>
     </properties>
 
     <dependencies>

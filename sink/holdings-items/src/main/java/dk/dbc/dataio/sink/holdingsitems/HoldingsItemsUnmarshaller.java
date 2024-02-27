@@ -116,7 +116,7 @@ public class HoldingsItemsUnmarshaller {
         try {
             return solrDocStoreConnector.holdingExists(agencyId, bibliographicRecordId);
         } finally {
-            Metric.HOLDING_EXISTS_REQUESTS.simpleTimer().update(Duration.between(start, Instant.now()));
+            Metric.HOLDING_EXISTS_REQUESTS.timer().update(Duration.between(start, Instant.now()));
         }
     }
 

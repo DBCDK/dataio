@@ -24,7 +24,6 @@ import dk.dbc.promat.service.persistence.PromatCase;
 import dk.dbc.promat.service.persistence.PromatTask;
 import dk.dbc.promat.service.persistence.TaskFieldType;
 import org.eclipse.microprofile.metrics.Counter;
-import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +67,7 @@ class HarvestOperationTest {
         jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class)))
                 .thenReturn(new JobInfoSnapshot());
-        when(metricsHandlerBean.counter(any(Metadata.class))).thenReturn(mock(Counter.class));
+        when(metricsHandlerBean.counter(any(String.class))).thenReturn(mock(Counter.class));
         flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         promatServiceConnector = mock(PromatServiceConnector.class);
     }

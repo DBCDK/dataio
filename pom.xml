@@ -659,17 +659,6 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-metrics-handler</artifactId>
-                <version>1.2-SNAPSHOT</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>javaee</groupId>
-                        <artifactId>javaee-api</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
                 <artifactId>dbc-commons-testutil-assert</artifactId>
                 <version>${dbc-commons.version}</version>
             </dependency>
@@ -791,7 +780,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-pmd-plugin</artifactId>
-                    <version>3.12.0</version>
+                    <version>3.21.0</version>
                     <configuration>
                         <sourceEncoding>utf-8</sourceEncoding>
                         <minimumTokens>100</minimumTokens>
@@ -804,7 +793,7 @@
                 <plugin>
                     <groupId>io.fabric8</groupId>
                     <artifactId>docker-maven-plugin</artifactId>
-                    <version>0.42.0</version>
+                    <version>0.43.4</version>
                     <executions>
                         <execution>
                             <id>build</id>

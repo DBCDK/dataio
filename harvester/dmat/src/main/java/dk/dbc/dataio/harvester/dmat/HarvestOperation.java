@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -29,6 +28,7 @@ import dk.dbc.dmat.service.persistence.enums.UpdateCode;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +58,7 @@ public class HarvestOperation {
     private final RecordServiceConnector recordServiceConnector;
     private final String dmatDownloadUrl;
 
-    private final MetricsHandlerBean metricsHandler;
+    private final MetricRegistry metricRegistry;
 
     public HarvestOperation(DMatHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
@@ -68,7 +68,7 @@ public class HarvestOperation {
                             DMatServiceConnector dmatServiceConnector,
                             RecordServiceConnector recordServiceConnector,
                             String dmatDownloadUrl,
-                            MetricsHandlerBean metricsHandler) throws HarvesterException {
+                            MetricRegistry metricRegistry) throws HarvesterException {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
@@ -77,7 +77,7 @@ public class HarvestOperation {
         this.dmatServiceConnector = dmatServiceConnector;
         this.recordServiceConnector = recordServiceConnector;
         this.dmatDownloadUrl = dmatDownloadUrl;
-        this.metricsHandler = metricsHandler;
+        this.metricRegistry = metricRegistry;
     }
 
     public int execute() throws HarvesterException {
@@ -147,7 +147,8 @@ public class HarvestOperation {
                 Optional<JobInfoSnapshot> jobInfo = rrJobBuilder.build();
                 jobInfo.ifPresent(jobInfoSnapshot -> {
                     LOGGER.info("Created job {} with {} items", jobInfoSnapshot.getJobId(), recordsAdded);
-                    metricsHandler.increment(DmatHarvesterMetrics.RECORDS_ADDED, recordsAdded);
+                    metricRegistry.counter(DmatHarvesterMetrics.RECORDS_ADDED.getMetadata()).inc(recordsAdded);
+                    metricRegistry.counter(DmatHarvesterMetrics.RECORDS_ADDED.getMetadata()).inc(recordsAdded);
                 });
             } else if (recordsHarvested == 0) {
                 LOGGER.info("No new records harvested from DMat");
@@ -169,24 +170,24 @@ public class HarvestOperation {
         } catch (DMatServiceConnectorException e) {
             LOGGER.error(String.format("Caught unexpected DMatServiceConnectorException: %s", e.getMessage()), e);
             LOGGER.error("DMat may now have stale records in status PROCESSING");
-            metricsHandler.increment(DmatHarvesterMetrics.EXCEPTIONS);
+            metricRegistry.counter(DmatHarvesterMetrics.EXCEPTIONS.getMetadata()).inc();
             throw new HarvesterException("Caught DMatServiceConnectorException", e);
         } catch (HarvesterException e) {
             LOGGER.error(String.format("Caught HarvesterException: %s", e.getMessage()), e);
             LOGGER.error("DMat may now have stale records in status PROCESSING");
-            metricsHandler.increment(DmatHarvesterMetrics.EXCEPTIONS);
+            metricRegistry.counter(DmatHarvesterMetrics.EXCEPTIONS.getMetadata()).inc();
             throw e;
         } catch (Exception e) {
             LOGGER.error(String.format("Caught unexpected Exception: %s", e.getMessage()), e);
             LOGGER.error("DMat may now have stale records in status PROCESSING");
-            metricsHandler.increment(DmatHarvesterMetrics.UNHANDLED_EXCEPTIONS);
+            metricRegistry.counter(DmatHarvesterMetrics.UNHANDLED_EXCEPTIONS.getMetadata()).inc();
             throw new HarvesterException("Caught Exception", e);
         } finally {
             LOGGER.info("Harvested {} dmat cases. {} was processed, {} was skipped, {} failed in {} ms", recordsHarvested,
                     recordsProcessed, recordsSkipped, recordsFailed.get(), stopwatch.getElapsedTime());
-            metricsHandler.increment(DmatHarvesterMetrics.RECORDS_HARVESTED, recordsHarvested);
-            metricsHandler.increment(DmatHarvesterMetrics.RECORDS_PROCESSED, recordsProcessed);
-            metricsHandler.increment(DmatHarvesterMetrics.RECORDS_FAILED, recordsFailed.get() + recordsSkipped);
+            metricRegistry.counter(DmatHarvesterMetrics.RECORDS_HARVESTED.getMetadata()).inc(recordsHarvested);
+            metricRegistry.counter(DmatHarvesterMetrics.RECORDS_PROCESSED.getMetadata()).inc(recordsProcessed);
+            metricRegistry.counter(DmatHarvesterMetrics.RECORDS_FAILED.getMetadata()).inc(recordsFailed.get() + recordsSkipped);
         }
     }
 

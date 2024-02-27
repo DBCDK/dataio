@@ -2,13 +2,12 @@ package dk.dbc.dataio.registry;
 
 import dk.dbc.dataio.registry.metrics.CounterMetric;
 import dk.dbc.dataio.registry.metrics.GaugeMetric;
-import dk.dbc.dataio.registry.metrics.SimpleTimerMetric;
+import dk.dbc.dataio.registry.metrics.TimerMetric;
 import dk.dbc.invariant.InvariantUtil;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.Metric;
 import org.eclipse.microprofile.metrics.MetricID;
-import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,12 +73,7 @@ public class JMXMetricRegistry implements IMetricRegistry {
 
     @Override
     public Timer timer(MetricID metricID) {
-        return null;
-    }
-
-    @Override
-    public SimpleTimer simpleTimer(MetricID metricID) {
-        return findOrRegister(metricID, SimpleTimerMetric::new);
+        return findOrRegister(metricID, TimerMetric::new);
     }
 
     private <T extends Metric> T findOrRegister(MetricID metricID, Supplier<T> s) {
@@ -99,6 +93,11 @@ public class JMXMetricRegistry implements IMetricRegistry {
 
     public Map<MetricID, Metric> getMetrics() {
         return Collections.unmodifiableMap(map);
+    }
+
+    @Override
+    public String getScope() {
+        return "APPLICATION_SCOPE";
     }
 
     public void resetAll() {

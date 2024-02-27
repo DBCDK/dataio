@@ -60,7 +60,7 @@ public class BatchFinalizer {
 
             for (BatchEntry batchEntry : batchEntries) {
                 if (batchEntry.getTimeOfCompletion() != null) {
-                    Metric.dataio_batch_entry_timer.simpleTimer().update(Duration.ofMillis(
+                    Metric.dataio_batch_entry_timer.timer().update(Duration.ofMillis(
                             batchEntry.getTimeOfCompletion().getTime() - batchEntry.getTimeOfCreation().getTime()));
                 }
             }

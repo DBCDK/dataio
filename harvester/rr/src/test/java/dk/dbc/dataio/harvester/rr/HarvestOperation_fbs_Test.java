@@ -26,8 +26,8 @@ import jakarta.persistence.EntityManager;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -99,7 +99,7 @@ public class HarvestOperation_fbs_Test {
 
     private final EntityManager entityManager = mock(EntityManager.class);
     private final TaskRepo taskRepo = new TaskRepo(entityManager);
-    private final SimpleTimer timer = mock(SimpleTimer.class);
+    private final Timer timer = mock(Timer.class);
     private final Counter counter = mock(Counter.class);
     @TempDir
     public Path tmpFolder;
@@ -126,7 +126,7 @@ public class HarvestOperation_fbs_Test {
         recordsAddiMetaDataExpectations = new ArrayList<>();
         recordsExpectations = new ArrayList<>();
 
-        when(metricRegistry.simpleTimer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
+        when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
         doNothing().when(timer).update(any(Duration.class));
         doNothing().when(counter).inc();

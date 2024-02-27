@@ -125,7 +125,7 @@ public class ChunkItemProcessor {
                     preprocessorResult.getBibliographicRecord(),
                     chunkItem.getTrackingId());
 
-            Metric.update_service_requests.simpleTimer(new Tag("queueProvider", queueProvider), new Tag("template", preprocessorResult.getTemplate()))
+            Metric.update_service_requests.timer(new Tag("queueProvider", queueProvider), new Tag("template", preprocessorResult.getTemplate()))
                     .update(Duration.ofMillis(System.currentTimeMillis() - updateServiceRequestStartTime));
             if (webserviceResult.getUpdateStatus() == UpdateStatusEnum.OK) {
                 crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.OK));

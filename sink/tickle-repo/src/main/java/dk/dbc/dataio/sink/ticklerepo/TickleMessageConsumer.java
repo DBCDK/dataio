@@ -269,7 +269,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
                 case SUCCESS:
                     long handleChunkItemStartTime = System.currentTimeMillis();
                     ChunkItem item = putInTickleBatch(batch, chunkItem, records, expandChunkItems, tickleRepo);
-                    Metric.HANDLE_CHUNK_ITEM.simpleTimer().update(Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime));
+                    Metric.HANDLE_CHUNK_ITEM.timer().update(Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime));
                     return item;
                 case FAILURE:
                     return ChunkItem.ignoredChunkItem()

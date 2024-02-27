@@ -2,7 +2,7 @@ package dk.dbc.dataio.registry.metrics;
 
 import java.time.Duration;
 
-public interface SimpleTimerMetricMBean {
+public interface TimerMetricMBean {
     Duration getElapsedTime();
 
     long getCount();

@@ -270,7 +270,7 @@ public class JobStoreServiceConnector {
             status = Metric.StatusTag.SUCCESS;
             return readResponseEntity(response, new GenericType<>() {});
         } finally {
-            if(metricRegistry != null) LIST_JOBS.simpleTimer(metricRegistry, status.tag).update(Duration.ofMillis(stopWatch.getElapsedTime()));
+            if(metricRegistry != null) LIST_JOBS.timer(metricRegistry, status.tag).update(Duration.ofMillis(stopWatch.getElapsedTime()));
         }
     }
 
@@ -510,7 +510,7 @@ public class JobStoreServiceConnector {
             status = Metric.StatusTag.SUCCESS;
             return readResponseEntity(response, genericType);
         } finally {
-            if(metricRegistry != null) metric.simpleTimer(metricRegistry, status.tag).update(Duration.ofMillis(stopWatch.getElapsedTime()));
+            if(metricRegistry != null) metric.timer(metricRegistry, status.tag).update(Duration.ofMillis(stopWatch.getElapsedTime()));
         }
     }
 
@@ -526,7 +526,7 @@ public class JobStoreServiceConnector {
             status = Metric.StatusTag.SUCCESS;
             return readResponseEntity(response, clazz);
         } finally {
-            if(metricRegistry != null) metric.simpleTimer(metricRegistry, status.tag).update(Duration.ofMillis(stopWatch.getElapsedTime()));
+            if(metricRegistry != null) metric.timer(metricRegistry, status.tag).update(Duration.ofMillis(stopWatch.getElapsedTime()));
         }
     }
 
@@ -538,7 +538,7 @@ public class JobStoreServiceConnector {
             status = Metric.StatusTag.SUCCESS;
             return readResponseEntity(response, clazz);
         } finally {
-            if(metricRegistry != null) metric.simpleTimer(metricRegistry, status.tag).update(Duration.ofMillis(stopWatch.getElapsedTime()));
+            if(metricRegistry != null) metric.timer(metricRegistry, status.tag).update(Duration.ofMillis(stopWatch.getElapsedTime()));
         }
     }
 
@@ -550,7 +550,7 @@ public class JobStoreServiceConnector {
             status = Metric.StatusTag.SUCCESS;
             return readResponseEntity(response, genericType);
         } finally {
-            if(metricRegistry != null) metric.simpleTimer(metricRegistry, status.tag).update(Duration.ofMillis(stopWatch.getElapsedTime()));
+            if(metricRegistry != null) metric.timer(metricRegistry, status.tag).update(Duration.ofMillis(stopWatch.getElapsedTime()));
         }
     }
 

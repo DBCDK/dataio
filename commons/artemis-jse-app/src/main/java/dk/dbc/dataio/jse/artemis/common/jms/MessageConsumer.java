@@ -117,7 +117,7 @@ public interface MessageConsumer extends MessageListener {
             RUNNING_TRANSACTIONS.decrementAndGet();
             Tag[] tagArray = tags.toArray(Tag[]::new);
             Metric.dataio_message_count.counter(tagArray).inc();
-            Metric.dataio_message_time.simpleTimer(tagArray).update(Duration.between(startTime, Instant.now()));
+            Metric.dataio_message_time.timer(tagArray).update(Duration.between(startTime, Instant.now()));
         }
     }
 

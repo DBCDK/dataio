@@ -123,7 +123,7 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
             Duration duration = Duration.between(start, Instant.now());
             if(duration.compareTo(SLOW_THRESHOLD_MS) > 0) {
                 Tag tag = new Tag("flow", flowId + ":" + flowVersion);
-                Metric.dataio_jobprocessor_slow_jobs.simpleTimer(tag).update(duration);
+                Metric.dataio_jobprocessor_slow_jobs.timer(tag).update(duration);
             }
         }
     }

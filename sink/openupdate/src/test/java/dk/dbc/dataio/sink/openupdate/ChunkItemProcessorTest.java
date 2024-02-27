@@ -12,7 +12,7 @@ import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.ws.WebServiceException;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.microprofile.metrics.SimpleTimer;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -54,7 +54,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private final String submitter = "870970";
     private final String updateTemplate = "bog";
     private final String queueProvider = "queue";
-    private final SimpleTimer mockedTimer = mock(SimpleTimer.class);
+    private final Timer mockedTimer = mock(Timer.class);
 
     private final AddiRecord addiRecord = newAddiRecord(
             getMetaXml(updateTemplate, submitter),

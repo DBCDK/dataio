@@ -177,7 +177,7 @@ public class DMatMessageConsumer extends MessageConsumerAdapter {
             long handleChunkItemStartTime = System.currentTimeMillis();
             try {
                 DMatRecord dMatRecord = connector.upsertRecord(recordData);
-                DMatSinkMetrics.DMAT_SERVICE_REQUESTS_TIMER.simpleTimer().update(Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime));
+                DMatSinkMetrics.DMAT_SERVICE_REQUESTS_TIMER.timer().update(Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime));
 
                 // Result. Status chunk/item id, record reference of processed record and
                 // the records seqno. (id) and current status (after processing)

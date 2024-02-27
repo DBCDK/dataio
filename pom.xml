@@ -660,17 +660,6 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-metrics-handler</artifactId>
-                <version>1.2-SNAPSHOT</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>javaee</groupId>
-                        <artifactId>javaee-api</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
                 <artifactId>dbc-commons-testutil-assert</artifactId>
                 <version>${dbc-commons.version}</version>
             </dependency>

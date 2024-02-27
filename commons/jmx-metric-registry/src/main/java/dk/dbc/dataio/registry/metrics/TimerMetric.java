@@ -1,13 +1,14 @@
 package dk.dbc.dataio.registry.metrics;
 
 import dk.dbc.dataio.registry.Resettable;
-import org.eclipse.microprofile.metrics.SimpleTimer;
+import org.eclipse.microprofile.metrics.Snapshot;
+import org.eclipse.microprofile.metrics.Timer;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.Callable;
 
-public class SimpleTimerMetric implements SimpleTimer, SimpleTimerMetricMBean, Resettable {
+public class TimerMetric implements Timer, TimerMetricMBean, Resettable {
     private Duration duration = Duration.ZERO;
     private Duration min = null;
     private Duration max = Duration.ZERO;
@@ -63,6 +64,11 @@ public class SimpleTimerMetric implements SimpleTimer, SimpleTimerMetricMBean, R
     @Override
     public long getCount() {
         return count;
+    }
+
+    @Override
+    public Snapshot getSnapshot() {
+        return null;
     }
 
     @Override

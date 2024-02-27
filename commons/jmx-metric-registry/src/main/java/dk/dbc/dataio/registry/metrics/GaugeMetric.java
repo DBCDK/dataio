@@ -4,7 +4,7 @@ import org.eclipse.microprofile.metrics.Gauge;
 
 import java.util.function.Supplier;
 
-public class GaugeMetric<T> implements Gauge<T>, GaugeMetricMBean<T> {
+public class GaugeMetric<T extends Number> implements Gauge<T>, GaugeMetricMBean<T> {
     private final Supplier<T> supplier;
 
     public GaugeMetric(Supplier<T> supplier) {

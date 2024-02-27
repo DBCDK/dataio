@@ -3,7 +3,7 @@
 String docker_images_log_stash_tag = "docker_images_log"
 String workerNode = "devel11"
 Boolean DEPLOY_TO_STAGING_CANDIDATE=false
-//Byg!!!
+//Byg!!!!
 pipeline {
     agent {label workerNode}
     tools {

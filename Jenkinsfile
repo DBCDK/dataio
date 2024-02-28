@@ -26,7 +26,7 @@ pipeline {
             cli/acc-test-runner"
     }
     triggers {
-        upstream(upstreamProjects: "Docker-payara5-bump-trigger",
+        upstream(upstreamProjects: "Docker-payara6-bump-trigger",
 			threshold: hudson.model.Result.SUCCESS)
     }
     options {

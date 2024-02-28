@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.types.Diagnostic;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumMap;
@@ -15,7 +16,7 @@ import java.util.Objects;
 /**
  * Class representing the current state of a job.
  */
-public class State {
+public class State implements Serializable {
 
     @JsonProperty
     private final Map<Phase, StateElement> states;

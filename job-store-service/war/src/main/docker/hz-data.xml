@@ -19,6 +19,9 @@
         </join>
         <port auto-increment="false">5801</port>
     </network>
+    <properties>
+        <property name="hazelcast.jmx">true</property>
+    </properties>
     <map name="dependencies">
         <in-memory-format>OBJECT</in-memory-format>
         <metadata-policy>CREATE_ON_UPDATE</metadata-policy>

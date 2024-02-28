@@ -35,6 +35,9 @@
       <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
       <property name="eclipselink.jdbc.batch-writing" value="JDBC" />
       <property name="eclipselink.jdbc.batch-writing.size" value="1000" />
+      <property name="eclipselink.cache.coordination.protocol"
+                value="fish.payara.persistence.eclipselink.cache.coordination.HazelcastPublishingTransportManager"/>
+      <property name="eclipselink.cache.coordination.channel" value="jobstorePUChannel"/>
     </properties>
   </persistence-unit>
   <persistence-unit name="jobstoreIT" transaction-type="RESOURCE_LOCAL">
@@ -75,6 +78,9 @@
       <property name="eclipselink.logging.level.cache" value="FINEST" />
       <property name="eclipselink.logging.parameters" value="true"/>
       <property name="eclipselink.canonicalmodel.subpackage" value="dev"/>
+      <property name="eclipselink.cache.coordination.protocol"
+                value="fish.payara.persistence.eclipselink.cache.coordination.HazelcastPublishingTransportManager"/>
+      <property name="eclipselink.cache.coordination.channel" value="jobstorePUChannel"/>
     </properties>
   </persistence-unit>
 </persistence>

@@ -48,7 +48,7 @@ public class JobStoreServiceConstants {
     public static final String SCHEDULER_SINK_FORCE_TRANSITION_MODE = "dependency/sinks/{" + SINK_ID_VARIABLE + "}/forceTransitionMode";
     public static final String FORCE_DEPENDENCY_TRACKING_RETRANSMIT = "dependency/retransmit";
     public static final String FORCE_DEPENDENCY_TRACKING_RETRANSMIT_ID = "dependency/retransmit/{jobIds}";
-    public static final String DEPENDENCY_CHECK_BLOCKED = "dependency/check_blocked";
+    public static final String DEPENDENCY_RELOAD = "dependency/reload";
 
     public static final String SINK_STATUS = "status/sinks/{sinkId}";
     public static final String SINKS_STATUS = "status/sinks";

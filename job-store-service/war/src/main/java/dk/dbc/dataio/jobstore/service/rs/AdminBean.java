@@ -144,6 +144,13 @@ public class AdminBean {
     }
 
     @GET
+    @Path(JobStoreServiceConstants.DEPENDENCY_CHECK_BLOCKED)
+    public Response checkBlocked() {
+        dependencyTrackingService.reload();
+        return Response.ok().build();
+    }
+
+    @GET
     @Path(JobStoreServiceConstants.CLEAR_HZ)
     @Produces({MediaType.TEXT_PLAIN})
     public Response clearHazelcastCache(@PathParam("name") String cacheName) {

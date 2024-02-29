@@ -180,6 +180,10 @@ public class DependencyTrackingService {
         }
     }
 
+    public void reload() {
+        dependencyTracker.loadAll(true);
+    }
+
     public void recountSinkStatus(Set<Integer> sinkIds) {
         Map<Integer, JobSchedulerSinkStatus> map = statusCount(sinkIds);
         map.values().forEach(s -> {

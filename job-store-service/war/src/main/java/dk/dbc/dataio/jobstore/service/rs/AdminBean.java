@@ -48,7 +48,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -202,8 +201,10 @@ public class AdminBean {
                 .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL)));
         for (JobInfoSnapshot job : jobs) {
             List<Timestamp> chunks = jobStoreRepository.listIncompleteChunks(job.getJobId());
-            if(job.getNumberOfChunks() <= chunks.size() && chunks.stream().noneMatch(Objects::isNull)) job.withTimeOfCompletion(new Date());
-            entityManager.merge(job);
+            if(job.getNumberOfChunks() <= chunks.size() && chunks.stream().noneMatch(Objects::isNull)) {
+                JobEntity entity = jobStoreRepository.getJobEntityById(job.getJobId());
+                entity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+            }
         }
         return Response.ok().build();
     }

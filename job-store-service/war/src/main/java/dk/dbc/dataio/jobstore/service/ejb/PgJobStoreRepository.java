@@ -176,6 +176,7 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     public List<Chunk> listIncompleteChunks(int jobId) {
         Query query = entityManager.createQuery("select c.key.id, c.timeOfCompletion from ChunkEntity c where c.key.jobId = :id");
+        query.setParameter("id", jobId);
         return query.getResultList();
     }
 

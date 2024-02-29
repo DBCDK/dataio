@@ -256,7 +256,7 @@ public class DependencyTrackingService {
         boolean unblock = dt.getWaitingOn().stream().anyMatch(d -> !dependencyTracker.containsKey(d));
         if(unblock) {
             dt.setWaitingOn(dt.getWaitingOn().stream().filter(dependencyTracker::containsKey).collect(Collectors.toList()));
-            if(dt.getWaitingOn().isEmpty()) dt.setStatus(ChunkSchedulingStatus.READY_FOR_PROCESSING);
+            if(dt.getWaitingOn().isEmpty()) dt.setStatus(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
             dependencyTracker.set(dt.getKey(), dt);
             return Stream.of(dt.getKey());
         }

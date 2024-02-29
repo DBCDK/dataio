@@ -144,8 +144,8 @@ public class AdminBean {
     }
 
     @GET
-    @Path(JobStoreServiceConstants.DEPENDENCY_CHECK_BLOCKED)
-    public Response checkBlocked() {
+    @Path(JobStoreServiceConstants.DEPENDENCY_RELOAD)
+    public Response reload() {
         dependencyTrackingService.reload();
         return Response.ok().build();
     }

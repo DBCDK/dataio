@@ -57,6 +57,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.profiler.Profiler;
@@ -174,8 +175,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         return itemInfoSnapshots;
     }
 
-    public List<Chunk> listIncompleteChunks(int jobId) {
-        Query query = entityManager.createQuery("select c.key.id, c.timeOfCompletion from ChunkEntity c where c.key.jobId = :id");
+    public List<Timestamp> listIncompleteChunks(int jobId) {
+        TypedQuery<Timestamp> query = entityManager.createQuery("select c.timeOfCompletion from ChunkEntity c where c.key.jobId = :id", Timestamp.class);
         query.setParameter("id", jobId);
         return query.getResultList();
     }

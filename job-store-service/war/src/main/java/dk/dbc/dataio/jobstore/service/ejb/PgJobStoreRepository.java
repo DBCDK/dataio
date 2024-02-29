@@ -174,6 +174,11 @@ public class PgJobStoreRepository extends RepositoryBase {
         return itemInfoSnapshots;
     }
 
+    public List<Chunk> listIncompleteChunks(int jobId) {
+        Query query = entityManager.createQuery("select c.key.id, c.timeOfCompletion from ChunkEntity c where c.key.jobId = :id");
+        return query.getResultList();
+    }
+
     /**
      * Exports from a job all chunk items which have failed in a specific phase
      *

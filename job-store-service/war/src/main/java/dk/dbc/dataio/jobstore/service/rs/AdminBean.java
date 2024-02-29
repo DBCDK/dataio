@@ -4,6 +4,7 @@ import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
@@ -16,6 +17,9 @@ import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.jms.artemis.AdminClient;
 import dk.dbc.jms.artemis.AdminClientFactory;
 import jakarta.ejb.EJB;
@@ -39,8 +43,10 @@ import org.glassfish.jersey.internal.guava.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -181,6 +187,23 @@ public class AdminBean {
     public Response retransmit(@PathParam("jobIds") String jobIds) {
         Set<Integer> ids = Arrays.stream(jobIds.split(" *, *")).map(Integer::valueOf).collect(Collectors.toSet());
         return retransmitJobs(ids);
+    }
+
+    @GET
+    @Path(JobStoreServiceConstants.CHECK_INCOMPLETE)
+    public Response completeFinishedJobs(@PathParam("days") int days) {
+        Instant from = LocalDate.now().minusDays(days).atStartOfDay(Constants.ZONE_CPH).toInstant();
+        Instant to = Instant.now().minusSeconds(60) ;
+        List<JobInfoSnapshot> jobs = jobStoreRepository.listJobs(new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.TIME_OF_CREATION, ListFilter.Op.GREATER_THAN_OR_EQUAL_TO, new Timestamp(from.toEpochMilli())))
+                .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, ListFilter.Op.LESS_THAN, new Timestamp(to.toEpochMilli())))
+                .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL)));
+        for (JobInfoSnapshot job : jobs) {
+            List chunks = jobStoreRepository.listIncompleteChunks(job.getJobId());
+            System.out.println(chunks);
+//            if(job.getNumberOfChunks() <= chunks.size())
+        }
+        return Response.ok().build();
     }
 
     private Response retransmitJobs(Set<Integer> jobIds) {

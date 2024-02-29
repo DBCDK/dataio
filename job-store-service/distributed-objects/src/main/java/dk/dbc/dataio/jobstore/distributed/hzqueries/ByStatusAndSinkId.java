@@ -9,10 +9,10 @@ import java.util.Map;
 import java.util.Objects;
 
 public class ByStatusAndSinkId implements Predicate<TrackingKey, DependencyTracking> {
-    private final int sinkId;
+    private final Integer sinkId;
     private final ChunkSchedulingStatus status;
 
-    public ByStatusAndSinkId(int sinkId, ChunkSchedulingStatus status) {
+    public ByStatusAndSinkId(Integer sinkId, ChunkSchedulingStatus status) {
         this.sinkId = sinkId;
         this.status = Objects.requireNonNull(status);
     }
@@ -20,6 +20,6 @@ public class ByStatusAndSinkId implements Predicate<TrackingKey, DependencyTrack
     @Override
     public boolean apply(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking value = entry.getValue();
-        return value.getSinkId() == sinkId && value.getStatus() == status;
+        return (sinkId == null || value.getSinkId() == sinkId) && value.getStatus() == status;
     }
 }

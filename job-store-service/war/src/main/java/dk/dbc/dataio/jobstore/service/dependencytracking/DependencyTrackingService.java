@@ -203,7 +203,7 @@ public class DependencyTrackingService {
         return dependencyTracker.aggregate(new BlockedCounter(status));
     }
 
-    public Stream<DependencyTracking> findStream(ChunkSchedulingStatus status, int sinkId) {
+    public Stream<DependencyTracking> findStream(ChunkSchedulingStatus status, Integer sinkId) {
         return dependencyTracker.values(new ByStatusAndSinkId(sinkId, status)).stream()
                 .sorted(Comparator.comparing(DependencyTracking::getPriority).reversed());
     }
@@ -244,6 +244,20 @@ public class DependencyTrackingService {
      */
     public boolean isScheduled(ChunkEntity chunkEntity) {
         return dependencyTracker.containsKey(new TrackingKey(chunkEntity.getKey().getJobId(), chunkEntity.getKey().getId()));
+    }
+
+    public Set<TrackingKey> recheckBlocks() {
+        Stream<DependencyTracking> stream = findStream(ChunkSchedulingStatus.BLOCKED, null);
+        return stream.map(this::checkBlocks).flatMap(s -> s).collect(Collectors.toSet());
+    }
+
+    private Stream<TrackingKey> checkBlocks(DependencyTracking dt) {
+        boolean unblock = dt.getWaitingOn().stream().anyMatch(d -> !dependencyTracker.containsKey(d));
+        if(unblock) {
+            dt.setWaitingOn(dt.getWaitingOn().stream().filter(dependencyTracker::containsKey).collect(Collectors.toList()));
+            return Stream.of(dt.getKey());
+        }
+        return Stream.of();
     }
 
     /**

@@ -248,13 +248,16 @@ public class DependencyTrackingService {
 
     public Set<TrackingKey> recheckBlocks() {
         Stream<DependencyTracking> stream = findStream(ChunkSchedulingStatus.BLOCKED, null);
-        return stream.map(this::checkBlocks).flatMap(s -> s).collect(Collectors.toSet());
+        return stream.flatMap(this::checkBlocks).collect(Collectors.toSet());
+
     }
 
     private Stream<TrackingKey> checkBlocks(DependencyTracking dt) {
         boolean unblock = dt.getWaitingOn().stream().anyMatch(d -> !dependencyTracker.containsKey(d));
         if(unblock) {
             dt.setWaitingOn(dt.getWaitingOn().stream().filter(dependencyTracker::containsKey).collect(Collectors.toList()));
+            if(dt.getWaitingOn().isEmpty()) dt.setStatus(ChunkSchedulingStatus.READY_FOR_PROCESSING);
+            dependencyTracker.set(dt.getKey(), dt);
             return Stream.of(dt.getKey());
         }
         return Stream.of();

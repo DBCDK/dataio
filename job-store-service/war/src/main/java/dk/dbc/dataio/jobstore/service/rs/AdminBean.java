@@ -203,6 +203,7 @@ public class AdminBean {
         for (JobInfoSnapshot job : jobs) {
             List<Timestamp> chunks = jobStoreRepository.listIncompleteChunks(job.getJobId());
             if(job.getNumberOfChunks() <= chunks.size() && chunks.stream().noneMatch(Objects::isNull)) job.withTimeOfCompletion(new Date());
+            entityManager.merge(job);
         }
         return Response.ok().build();
     }

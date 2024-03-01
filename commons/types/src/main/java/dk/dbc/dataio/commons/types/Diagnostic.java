@@ -7,8 +7,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.invariant.InvariantUtil;
 
+import java.io.Serializable;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Diagnostic {
+public class Diagnostic implements Serializable {
     public enum Level {
         ERROR,      // an action returned an error response
         FATAL,      // an unexpected exception prevented us from completing an action

@@ -18,6 +18,7 @@ import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.jms.artemis.AdminClient;
@@ -48,6 +49,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -203,6 +205,9 @@ public class AdminBean {
             List<Timestamp> chunks = jobStoreRepository.listIncompleteChunks(job.getJobId());
             if(job.getNumberOfChunks() <= chunks.size() && chunks.stream().noneMatch(Objects::isNull)) {
                 JobEntity entity = jobStoreRepository.getJobEntityById(job.getJobId());
+                Arrays.stream(State.Phase.values())
+                        .filter(p -> entity.getState().getPhase(p).getEndDate() == null)
+                        .forEach(p -> entity.getState().getPhase(p).withEndDate(new Date()));
                 entity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
             }
         }

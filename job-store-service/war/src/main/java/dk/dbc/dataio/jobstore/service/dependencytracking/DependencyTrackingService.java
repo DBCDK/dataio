@@ -7,6 +7,7 @@ import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder;
 import com.hazelcast.query.Predicates;
 import dk.dbc.dataio.commons.types.Priority;
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
@@ -251,10 +252,10 @@ public class DependencyTrackingService {
         return dependencyTracker.containsKey(new TrackingKey(chunkEntity.getKey().getJobId(), chunkEntity.getKey().getId()));
     }
 
+    @Stopwatch
     public Set<TrackingKey> recheckBlocks() {
         Stream<DependencyTracking> stream = findStream(ChunkSchedulingStatus.BLOCKED, null);
         return stream.flatMap(this::checkBlocks).collect(Collectors.toSet());
-
     }
 
     private Stream<TrackingKey> checkBlocks(DependencyTracking dt) {

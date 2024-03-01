@@ -114,6 +114,7 @@ public class DependencyTrackingService {
             }
             consumer.accept(entity);
             entity.updateLastModified();
+            entity.setWaitingOn(entity.getWaitingOn().stream().filter(dependencyTracker::containsKey).collect(Collectors.toList()));
             dependencyTracker.set(key, entity);
         } catch (InterruptedException ignored) {
         } finally {

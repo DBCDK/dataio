@@ -196,9 +196,13 @@ public class DependencyTrackingService {
 
     public void boostPriorities(Set<TrackingKey> keys, int priority) {
         if (priority > Priority.LOW.getValue()) {
-            Map<TrackingKey, Set<TrackingKey>> map = dependencyTracker.executeOnKeys(keys, new UpdatePriorityProcessor(priority));
-            Set<TrackingKey> waitingOn = map.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
-            boostPriorities(waitingOn, priority);
+            try {
+                Map<TrackingKey, Set<TrackingKey>> map = dependencyTracker.executeOnKeys(keys, new UpdatePriorityProcessor(priority));
+                Set<TrackingKey> waitingOn = map.values().stream().filter(Objects::nonNull).flatMap(Collection::stream).collect(Collectors.toSet());
+                boostPriorities(waitingOn, priority);
+            } catch (Exception e) {
+                LOGGER.error("Got exception while boosting key", e);
+            }
         }
     }
 

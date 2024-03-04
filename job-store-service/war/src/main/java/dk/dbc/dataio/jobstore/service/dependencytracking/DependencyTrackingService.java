@@ -199,7 +199,7 @@ public class DependencyTrackingService {
             try {
                 Map<TrackingKey, Set<TrackingKey>> map = dependencyTracker.executeOnKeys(keys, new UpdatePriorityProcessor(priority));
                 Set<TrackingKey> waitingOn = map.values().stream().filter(Objects::nonNull).flatMap(Collection::stream).collect(Collectors.toSet());
-                boostPriorities(waitingOn, priority);
+                if(!waitingOn.isEmpty()) boostPriorities(waitingOn, priority);
             } catch (Exception e) {
                 LOGGER.error("Got exception while boosting key", e);
             }

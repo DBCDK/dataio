@@ -125,7 +125,8 @@ public class AdminBean {
         LOGGER.warn("Retrying stale trackers: {}", retries.stream()
                 .map(e -> e.getKey().toChunkIdentifier())
                 .collect(Collectors.joining(", ")));
-        list.forEach(dt -> dependencyTrackingService.modify(dt.getKey(), DependencyTracking::resend));
+
+        retries.forEach(dt -> dependencyTrackingService.modify(dt.getKey(), DependencyTracking::resend));
         Set<Integer> sinks = list.stream().map(DependencyTrackingRO::getSinkId).collect(Collectors.toSet());
         jobSchedulerBean.loadSinkStatusOnBootstrap(sinks);
     }

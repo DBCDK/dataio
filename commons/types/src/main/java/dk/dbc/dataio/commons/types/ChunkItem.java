@@ -212,12 +212,12 @@ public class ChunkItem implements Serializable {
     }
 
     public ChunkItem withEncoding(Charset encoding) {
-        this.encoding = encoding.name();
+        this.encoding = encoding == null ? null : encoding.name();
         return this;
     }
 
     public Charset getEncoding() {
-        return Charset.forName(encoding);
+        return encoding == null ? null : Charset.forName(encoding);
     }
 
     @Override

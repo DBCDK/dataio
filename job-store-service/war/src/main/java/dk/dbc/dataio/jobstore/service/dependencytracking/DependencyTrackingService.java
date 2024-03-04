@@ -18,8 +18,10 @@ import dk.dbc.dataio.jobstore.distributed.hzqueries.BlockedCounter;
 import dk.dbc.dataio.jobstore.distributed.hzqueries.ByStatusAndSinkId;
 import dk.dbc.dataio.jobstore.distributed.hzqueries.ChunksToWaitFor;
 import dk.dbc.dataio.jobstore.distributed.hzqueries.JobCounter;
+import dk.dbc.dataio.jobstore.distributed.hzqueries.RemoveWaitingOnProcessor;
 import dk.dbc.dataio.jobstore.distributed.hzqueries.SinkStatusCounter;
 import dk.dbc.dataio.jobstore.distributed.hzqueries.StatusCounter;
+import dk.dbc.dataio.jobstore.distributed.hzqueries.UpdateStatusProcessor;
 import dk.dbc.dataio.jobstore.distributed.hzqueries.WaitForKey;
 import dk.dbc.dataio.jobstore.distributed.hzqueries.WaitingOn;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
@@ -104,6 +106,15 @@ public class DependencyTrackingService {
         }
     }
 
+    public void lock(TrackingKey key, Consumer<Void> block) {
+        try {
+            dependencyTracker.lock(key);
+            block.accept(null);
+        } finally {
+            dependencyTracker.unlock(key);
+        }
+    }
+
 
     public void modify(TrackingKey key, Consumer<DependencyTracking> consumer) {
         try {
@@ -141,7 +152,7 @@ public class DependencyTrackingService {
         @SuppressWarnings("unchecked")
         Predicate<TrackingKey, DependencyTracking> p = e.get("status").equal(from).and(e.key().get("jobId").in(jobIds));
         Set<TrackingKey> entries = dependencyTracker.keySet(p);
-        entries.forEach(key -> modify(key, dt -> dt.setStatus(to)));
+        entries.forEach(key -> setStatus(key, to));
         return entries.size();
     }
 
@@ -150,6 +161,16 @@ public class DependencyTrackingService {
         @SuppressWarnings("unchecked")
         Predicate<TrackingKey, DependencyTracking> p = e.key().get("jobId").equal(jobId);
         remove(p);
+    }
+
+    public Set<TrackingKey> removeFromWaitingOn(TrackingKey key) {
+        RemoveWaitingOnProcessor processor = new RemoveWaitingOnProcessor(key);
+        Map<TrackingKey, Boolean> map = dependencyTracker.executeOnEntries(processor, processor);
+        return map.entrySet().stream().filter(Map.Entry::getValue).map(Map.Entry::getKey).collect(Collectors.toSet());
+    }
+
+    public void setStatus(TrackingKey key, ChunkSchedulingStatus status) {
+        dependencyTracker.executeOnKey(key, new UpdateStatusProcessor(status));
     }
 
     public void remove(TrackingKey key) {

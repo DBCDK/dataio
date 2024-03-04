@@ -133,6 +133,13 @@ public class DependencyTrackingService {
         }
     }
 
+    public List<DependencyTracking> getSnapshot(int jobId) {
+        PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
+        Predicate<TrackingKey, DependencyTracking> p = e.key().get("jobId").equal(jobId);
+        Collection<DependencyTracking> values = dependencyTracker.values(p);
+        return values.stream().sorted(Comparator.comparing(k -> k.getKey().getChunkId())).collect(Collectors.toList());
+    }
+
     public Stream<DependencyTrackingRO> getStaleDependencies(ChunkSchedulingStatus status, Duration timeout) {
         PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
         @SuppressWarnings("unchecked")

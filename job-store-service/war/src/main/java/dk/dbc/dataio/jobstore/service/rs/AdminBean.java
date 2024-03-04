@@ -161,6 +161,13 @@ public class AdminBean {
     }
 
     @GET
+    @Path(JobStoreServiceConstants.DEPENDENCIES)
+    public Response dependencies(int jobId) throws JSONBException {
+        List<DependencyTracking> snapshot = dependencyTrackingService.getSnapshot(jobId);
+        return Response.ok(jsonbContext.marshall(snapshot)).build();
+    }
+
+    @GET
     @Path(JobStoreServiceConstants.CLEAR_HZ)
     @Produces({MediaType.TEXT_PLAIN})
     public Response clearHazelcastCache(@PathParam("name") String cacheName) {

@@ -28,6 +28,6 @@ public class RemoveWaitingOnProcessor implements EntryProcessor<TrackingKey, Dep
 
     @Override
     public boolean apply(Map.Entry<TrackingKey, DependencyTracking> entry) {
-        return entry.getValue().getWaitingOn().contains(key);
+        return entry.getKey().getJobId() == key.getJobId();
     }
 }

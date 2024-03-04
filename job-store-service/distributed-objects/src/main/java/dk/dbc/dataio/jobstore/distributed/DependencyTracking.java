@@ -44,8 +44,9 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
         hashes = computeHashes(matchKeys);
     }
 
-    public DependencyTracking(int jobId, int chunkId, PGobject waitingOn) {
+    public DependencyTracking(int jobId, int chunkId, int sinkId, PGobject waitingOn) {
         key = new TrackingKey(jobId, chunkId);
+        this.sinkId = sinkId;
         this.waitingOn = new HashSet<>(new KeySetJSONBConverter().convertToEntityAttribute(waitingOn));
     }
 
@@ -56,6 +57,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
 
     public DependencyTracking(ResultSet rs) throws SQLException {
         key = new TrackingKey(rs.getInt("jobid"), rs.getInt("chunkid"));
+        sinkId = rs.getInt("sinkid");
         waitingOn = new HashSet<>(new KeySetJSONBConverter().convertToEntityAttribute((PGobject) rs.getObject("waitingon")));
         status = ChunkSchedulingStatus.from(rs.getInt("status"));
         matchKeys = new StringSetConverter().convertToEntityAttribute((PGobject) rs.getObject("matchkeys"));

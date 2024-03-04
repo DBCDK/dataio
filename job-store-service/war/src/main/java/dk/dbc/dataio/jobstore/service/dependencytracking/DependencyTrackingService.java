@@ -14,16 +14,17 @@ import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
 import dk.dbc.dataio.jobstore.distributed.QueueSubmitMode;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.distributed.hzqueries.BlockedCounter;
-import dk.dbc.dataio.jobstore.distributed.hzqueries.ByStatusAndSinkId;
-import dk.dbc.dataio.jobstore.distributed.hzqueries.ChunksToWaitFor;
-import dk.dbc.dataio.jobstore.distributed.hzqueries.JobCounter;
+import dk.dbc.dataio.jobstore.distributed.hz.aggregator.JobCounter;
+import dk.dbc.dataio.jobstore.distributed.hz.aggregator.SinkStatusCounter;
+import dk.dbc.dataio.jobstore.distributed.hz.aggregator.StatusCounter;
+import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdatePriorityProcessor;
+import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateStatusProcessor;
+import dk.dbc.dataio.jobstore.distributed.hz.query.BlockedCounter;
+import dk.dbc.dataio.jobstore.distributed.hz.query.ByStatusAndSinkId;
+import dk.dbc.dataio.jobstore.distributed.hz.query.ChunksToWaitFor;
+import dk.dbc.dataio.jobstore.distributed.hz.query.WaitForKey;
+import dk.dbc.dataio.jobstore.distributed.hz.query.WaitingOn;
 import dk.dbc.dataio.jobstore.distributed.hzqueries.RemoveWaitingOnProcessor;
-import dk.dbc.dataio.jobstore.distributed.hzqueries.SinkStatusCounter;
-import dk.dbc.dataio.jobstore.distributed.hzqueries.StatusCounter;
-import dk.dbc.dataio.jobstore.distributed.hzqueries.UpdateStatusProcessor;
-import dk.dbc.dataio.jobstore.distributed.hzqueries.WaitForKey;
-import dk.dbc.dataio.jobstore.distributed.hzqueries.WaitingOn;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Singleton;
@@ -195,15 +196,9 @@ public class DependencyTrackingService {
 
     public void boostPriorities(Set<TrackingKey> keys, int priority) {
         if (priority > Priority.LOW.getValue()) {
-            for (TrackingKey key : keys) {
-                modify(key, dependency -> {
-                    if (dependency.getPriority() < priority) {
-                        dependency.setPriority(priority);
-                        dependencyTracker.set(key, dependency);
-                        boostPriorities(dependency.getWaitingOn(), priority);
-                    }
-                });
-            }
+            Map<TrackingKey, Set<TrackingKey>> map = dependencyTracker.executeOnKeys(keys, new UpdatePriorityProcessor(priority));
+            Set<TrackingKey> waitingOn = map.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
+            boostPriorities(waitingOn, priority);
         }
     }
 

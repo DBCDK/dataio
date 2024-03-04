@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.distributed.hzqueries;
+package dk.dbc.dataio.jobstore.distributed.hz.aggregator;
 
 import com.hazelcast.aggregation.Aggregator;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;

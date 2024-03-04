@@ -162,7 +162,7 @@ public class AdminBean {
 
     @GET
     @Path(JobStoreServiceConstants.DEPENDENCIES)
-    public Response dependencies(int jobId) throws JSONBException {
+    public Response dependencies(@PathParam("jobId") int jobId) throws JSONBException {
         List<DependencyTracking> snapshot = dependencyTrackingService.getSnapshot(jobId);
         return Response.ok(jsonbContext.marshall(snapshot)).build();
     }

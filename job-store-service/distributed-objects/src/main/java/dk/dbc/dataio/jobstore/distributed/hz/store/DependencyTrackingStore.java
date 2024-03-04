@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.distributed.loader;
+package dk.dbc.dataio.jobstore.distributed.hz.store;
 
 import com.hazelcast.map.MapStore;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;

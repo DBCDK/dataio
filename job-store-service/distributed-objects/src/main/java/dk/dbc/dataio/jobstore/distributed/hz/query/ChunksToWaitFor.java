@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.distributed.hzqueries;
+package dk.dbc.dataio.jobstore.distributed.hz.query;
 
 import com.hazelcast.query.Predicate;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;

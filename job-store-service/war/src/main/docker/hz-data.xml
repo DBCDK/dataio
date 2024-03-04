@@ -32,7 +32,7 @@
         <eviction eviction-policy="NONE" max-size-policy="PER_NODE" size="0"/>
         <statistics-enabled>true</statistics-enabled>
         <map-store initial-mode="EAGER">
-            <class-name>dk.dbc.dataio.jobstore.distributed.loader.DependencyTrackingStore</class-name>
+            <class-name>dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore</class-name>
             <write-delay-seconds>1</write-delay-seconds>
             <write-batch-size>1000</write-batch-size>
             <write-coalescing>true</write-coalescing>

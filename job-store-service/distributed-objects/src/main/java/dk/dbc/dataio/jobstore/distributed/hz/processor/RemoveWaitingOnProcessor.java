@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.distributed.hzqueries;
+package dk.dbc.dataio.jobstore.distributed.hz.processor;
 
 import com.hazelcast.map.EntryProcessor;
 import com.hazelcast.query.Predicate;
@@ -28,6 +28,6 @@ public class RemoveWaitingOnProcessor implements EntryProcessor<TrackingKey, Dep
 
     @Override
     public boolean apply(Map.Entry<TrackingKey, DependencyTracking> entry) {
-        return entry.getKey().getJobId() == key.getJobId();
+        return entry.getValue().getWaitingOn().contains(key);
     }
 }

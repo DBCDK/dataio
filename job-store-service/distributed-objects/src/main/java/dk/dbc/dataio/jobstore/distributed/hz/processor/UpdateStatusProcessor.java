@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.distributed.hzqueries;
+package dk.dbc.dataio.jobstore.distributed.hz.processor;
 
 import com.hazelcast.map.EntryProcessor;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;

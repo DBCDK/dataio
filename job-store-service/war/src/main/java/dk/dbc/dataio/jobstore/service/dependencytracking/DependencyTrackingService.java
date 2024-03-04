@@ -96,14 +96,11 @@ public class DependencyTrackingService {
 
     public TrackingKey add(DependencyTracking entity) {
         Set<TrackingKey> waitingOn = entity.getWaitingOn();
-        try {
-            waitingOn.forEach(dependencyTracker::lock);
-            entity.setWaitingOn(waitingOn.stream().filter(dependencyTracker::containsKey).collect(Collectors.toList()));
-            dependencyTracker.set(entity.getKey(), entity);
-            return entity.getKey();
-        } finally {
-            waitingOn.forEach(dependencyTracker::unlock);
-        }
+        dependencyTracker.set(entity.getKey(), entity);
+        waitingOn.stream()
+                .filter(k -> !dependencyTracker.containsKey(k))
+                .forEach(k -> dependencyTracker.executeOnKey(k, new RemoveWaitingOnProcessor(k)));
+        return entity.getKey();
     }
 
     public void lock(TrackingKey key, Consumer<Void> block) {

@@ -551,7 +551,7 @@ public class PgJobStore {
         // to wait for an explicit termination chunk,
         // ie. if jobEntity.getNumberOfItems() == jobState.getPhase(State.Phase.PARTITIONING).getNumberOfItems() + 1
         // and the given chunk is not itself a termination chunk.
-        return jobEntity.getNumberOfItems() == jobState.getPhase(State.Phase.PARTITIONING).getNumberOfItems()
+        return jobEntity.getNumberOfItems() >= jobState.getPhase(State.Phase.PARTITIONING).getNumberOfItems()
                 || chunk.isTerminationChunk();
     }
 

@@ -101,11 +101,10 @@ public class DependencyTrackingService {
 
     public TrackingKey add(DependencyTracking entity) {
         Set<TrackingKey> waitingOn = entity.getWaitingOn();
-        dependencyTracker.set(entity.getKey(), entity);
-        waitingOn.stream()
-                .filter(k -> !dependencyTracker.containsKey(k))
-                .forEach(k -> dependencyTracker.executeOnKey(k, new RemoveWaitingOnProcessor(k)));
-        return entity.getKey();
+        TrackingKey key = entity.getKey();
+        dependencyTracker.set(key, entity);
+        removeDeadWOs(key, waitingOn);
+        return key;
     }
 
     public void lock(TrackingKey key, Consumer<Void> block) {
@@ -115,6 +114,12 @@ public class DependencyTrackingService {
         } finally {
             dependencyTracker.unlock(key);
         }
+    }
+
+    private void removeDeadWOs(TrackingKey key, Set<TrackingKey> waitingOn) {
+        waitingOn.stream()
+                .filter(k -> !dependencyTracker.containsKey(k))
+                .forEach(k -> dependencyTracker.executeOnKey(key, new RemoveWaitingOnProcessor(k)));
     }
 
 
@@ -128,8 +133,8 @@ public class DependencyTrackingService {
             }
             consumer.accept(entity);
             entity.updateLastModified();
-            entity.setWaitingOn(entity.getWaitingOn().stream().filter(dependencyTracker::containsKey).collect(Collectors.toList()));
             dependencyTracker.set(key, entity);
+            removeDeadWOs(key, entity.getWaitingOn());
         } catch (InterruptedException ignored) {
         } finally {
             try {

@@ -58,6 +58,10 @@ public class DependencyTrackingService {
     private Map<Integer, JobSchedulerSinkStatus> sinkStatusMap;
 
     @PostConstruct
+    public void config() {
+        init();
+    }
+
     public DependencyTrackingService init() {
         sinkStatusMap = new ConcurrentHashMap<>(); //hc.getInstance().getReplicatedMap("sink.status");
         dependencyTracker.addEntryListener(new MapListenerAdapter<TrackingKey, DependencyTracking>() {

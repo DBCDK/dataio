@@ -350,7 +350,6 @@ public class JobSchedulerBean {
 
         long startTime = System.currentTimeMillis();
 
-        // Decrement early to make space for in queue -- most important when queue size is 1 when unit testing
         int chunkDoneSinkId = chunkDone.getSinkId();
         dependencyTrackingService.remove(chunkDoneKey);
 

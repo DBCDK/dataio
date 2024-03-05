@@ -8,7 +8,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -35,7 +34,7 @@ public class State implements Serializable {
     }
 
     public State(State state) {
-        states = new HashMap<>(state.states);
+        states = new EnumMap<>(Phase.class);
         for (Map.Entry<Phase, StateElement> entry : state.states.entrySet()) {
             states.put(entry.getKey(), new StateElement(entry.getValue()));
         }
@@ -211,7 +210,7 @@ public class State implements Serializable {
      */
     private boolean phaseDone(StateElement partitioning, StateElement stateElement) {
         return stateElement.getSucceeded() + stateElement.getIgnored() + stateElement.getFailed()
-                == partitioning.getSucceeded() + partitioning.getIgnored() + partitioning.getFailed()
+                >= partitioning.getSucceeded() + partitioning.getIgnored() + partitioning.getFailed()
                 && partitioning.getEndDate() != null;
     }
 

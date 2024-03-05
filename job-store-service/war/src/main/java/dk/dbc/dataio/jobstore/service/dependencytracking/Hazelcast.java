@@ -8,9 +8,7 @@ import com.hazelcast.core.HazelcastInstance;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public class Hazelcast {
@@ -51,15 +49,13 @@ public class Hazelcast {
     }
 
     public enum Objects {
-        DEPENDENCY_TRACKING(() -> INSTANCE.getMap("dependencies"), ConcurrentHashMap::new),
-        ABORTED_JOBS(() -> INSTANCE.getSet("aborted.jobs"), HashSet::new);
+        DEPENDENCY_TRACKING(() -> getInstance().getMap("dependencies")),
+        ABORTED_JOBS(() -> getInstance().getSet("aborted.jobs"));
 
         final Supplier<?> supplier;
-        final Supplier<?> fallback;
 
-        Objects(Supplier<?> supplier, Supplier<?> fallback) {
+        Objects(Supplier<?> supplier) {
             this.supplier = supplier;
-            this.fallback = fallback;
         }
 
         @SuppressWarnings("unchecked")

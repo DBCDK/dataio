@@ -29,6 +29,9 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
+import org.eclipse.microprofile.health.HealthCheck;
+import org.eclipse.microprofile.health.HealthCheckResponse;
+import org.eclipse.microprofile.health.Readiness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +58,7 @@ public class DependencyTrackingService {
     private Map<Integer, JobSchedulerSinkStatus> sinkStatusMap;
 
     @PostConstruct
-    public void init() {
+    public DependencyTrackingService init() {
         sinkStatusMap = new ConcurrentHashMap<>(); //hc.getInstance().getReplicatedMap("sink.status");
         dependencyTracker.addEntryListener(new MapListenerAdapter<TrackingKey, DependencyTracking>() {
             @Override
@@ -64,7 +67,7 @@ public class DependencyTrackingService {
                 DependencyTracking dt = event.getValue();
                 JobSchedulerSinkStatus status = statusFor(dt);
                 dt.getStatus().incSinkStatusCount(status);
-                LOGGER.debug("Map listener added tracker {} with status {}", dt.getKey(), status);
+                LOGGER.info("Map listener added sink/tracker {}/{} with status {}", dt.getSinkId(), dt.getKey(), status);
             }
 
             @Override
@@ -73,7 +76,7 @@ public class DependencyTrackingService {
                 DependencyTracking dt = event.getOldValue();
                 JobSchedulerSinkStatus status = statusFor(dt);
                 dt.getStatus().decSinkStatusCount(status);
-                LOGGER.debug("Map listener removed tracker {} with status {}", dt.getKey(), status);
+                LOGGER.info("Map listener removed sink/tracker {}/{} with status {}", dt.getSinkId(), dt.getKey(), status);
             }
 
             @Override
@@ -85,7 +88,7 @@ public class DependencyTrackingService {
                 JobSchedulerSinkStatus status = statusFor(dt);
                 old.getStatus().decSinkStatusCount(status);
                 dt.getStatus().incSinkStatusCount(status);
-                LOGGER.debug("Map listener updated tracker {}: {} -> {}, status: {}", dt.getKey(), old.getStatus().name(), dt.getStatus().name(), status);
+                LOGGER.info("Map listener updated sink/tracker {}/{}: {} -> {}, status: {}", dt.getSinkId(), dt.getKey(), old.getStatus().name(), dt.getStatus().name(), status);
             }
 
             private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {
@@ -93,6 +96,7 @@ public class DependencyTrackingService {
             }
         }, true);
         recountSinkStatus(Set.of());
+        return this;
     }
 
     public TrackingKey add(DependencyTracking entity) {
@@ -322,5 +326,10 @@ public class DependencyTrackingService {
 
     public Integer[] jobCount(int sinkId) {
         return dependencyTracker.aggregate(new JobCounter(sinkId));
+    }
+
+    @Readiness
+    public HealthCheck readyCheck() {
+        return () -> HealthCheckResponse.named("hazelcast-ready").status(Hazelcast.isReady()).build();
     }
 }

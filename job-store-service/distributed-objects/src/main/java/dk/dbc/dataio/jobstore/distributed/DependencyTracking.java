@@ -89,11 +89,6 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
         return sinkId;
     }
 
-    public DependencyTracking setSinkId(int sinkId) {
-        this.sinkId = sinkId;
-        return this;
-    }
-
     @Override
     public ChunkSchedulingStatus getStatus() {
         return status;

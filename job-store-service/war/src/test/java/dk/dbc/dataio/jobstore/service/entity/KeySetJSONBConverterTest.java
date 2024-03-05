@@ -1,13 +1,14 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter;
-import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 import org.junit.jupiter.api.Test;
 import org.postgresql.util.PGobject;
 
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 
 /**

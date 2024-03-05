@@ -269,6 +269,16 @@
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-testcontainers</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.health</groupId>
+            <artifactId>microprofile-health-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>${hazelcast.version}</version>
+            <classifier>tests</classifier>
+        </dependency>
     </dependencies>
 
     <build>

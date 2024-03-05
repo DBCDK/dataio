@@ -2,7 +2,8 @@ package dk.dbc.dataio.jobstore.service.rs;
 
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -20,16 +21,16 @@ public class AdminBeanTest {
 
     @Test
     public void getSinkName() {
-        DependencyTracking dte = new DependencyTracking().setSinkId(2);
+        DependencyTracking dte = new DependencyTracking(new TrackingKey(0, 0), 2);
         String sinkName = new TestAdminBean().getSink(dte.getSinkId()).getContent().getName();
         Assertions.assertEquals("sink2", sinkName);
     }
 
     @Test
     public void isTimeout() {
-        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now()).setSinkId(2)));
-        Assertions.assertTrue(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now().minus(Duration.ofHours(2))).setSinkId(2)));
-        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now().minus(Duration.ofHours(2))).setSinkId(3)));
+        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now(), 2)));
+        Assertions.assertTrue(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now().minus(Duration.ofHours(2)), 2)));
+        Assertions.assertFalse(new TestAdminBean().isTimeout(new TestDependencyTracking(Instant.now().minus(Duration.ofHours(2)), 3)));
     }
 
     public static SinkContent newSinkContent(String name, int timeout) {
@@ -39,7 +40,8 @@ public class AdminBeanTest {
     private static class TestDependencyTracking extends DependencyTracking {
         private final Instant lm;
 
-        private TestDependencyTracking(Instant lm) {
+        private TestDependencyTracking(Instant lm, int sinkId) {
+            super(new TrackingKey(0, 0), sinkId);
             this.lm = lm;
         }
 

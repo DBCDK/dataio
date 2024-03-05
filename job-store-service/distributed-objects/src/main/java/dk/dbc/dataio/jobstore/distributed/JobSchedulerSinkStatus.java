@@ -31,7 +31,7 @@ public class JobSchedulerSinkStatus implements Serializable {
         return processingStatus.isDirectSubmitMode();
     }
 
-    boolean isDeliveringModeDirectSubmit() {
+    public boolean isDeliveringModeDirectSubmit() {
         return deliveringStatus.isDirectSubmitMode();
     }
 

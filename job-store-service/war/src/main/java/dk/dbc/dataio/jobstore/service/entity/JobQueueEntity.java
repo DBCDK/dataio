@@ -69,7 +69,7 @@ public class JobQueueEntity {
     private JobEntity job;
 
     @Column(updatable = false)
-    private long sinkId;
+    private int sinkId;
 
     @Enumerated(EnumType.STRING)
     private State state;
@@ -109,11 +109,11 @@ public class JobQueueEntity {
         return this;
     }
 
-    public long getSinkId() {
+    public int getSinkId() {
         return sinkId;
     }
 
-    public JobQueueEntity withSinkId(long sinkId) {
+    public JobQueueEntity withSinkId(int sinkId) {
         this.sinkId = sinkId;
         return this;
     }

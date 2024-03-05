@@ -9,7 +9,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedS
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
@@ -49,7 +49,7 @@ public class StatusBeanTest {
 
     @Test
     public void getSinkStatusList_noSinksFound_returnsStatusOkResponseWithEmptyList() throws JSONBException, FlowStoreServiceConnectorException {
-        final Response response = statusBean.getSinkStatusList();
+        Response response = statusBean.getSinkStatusList();
         assertOkResponse(response);
         List<SinkStatusSnapshot> sinkStatusSnapshots = jsonbContext.unmarshall((String) response.getEntity(), getSinkStatusSnapshotListType());
         assertThat("ItemInfoSnapshots", sinkStatusSnapshots, is(notNullValue()));
@@ -58,20 +58,19 @@ public class StatusBeanTest {
 
     @Test
     public void getSinkStatusList_sinksFound_returnsStatusOkResponseWithSinkStatusSnapshotList() throws JSONBException, FlowStoreServiceConnectorException {
-        final Sink sink = new SinkBuilder().setId(1).build();
-        final SinkStatusSnapshot expectedSinkStatusSnapshot = new SinkStatusSnapshot()
+        Sink sink = new SinkBuilder().setId(1).build();
+        SinkStatusSnapshot expectedSinkStatusSnapshot = new SinkStatusSnapshot()
                 .withName(sink.getContent().getName())
                 .withSinkType(sink.getContent().getSinkType()).withNumberOfJobs(1).withNumberOfChunks(2);
 
         when(flowStoreServiceConnector.getSink(1)).thenReturn(sink);
         when(flowStoreServiceConnector.findAllSinks()).thenReturn(Collections.singletonList(sink));
-        when(statusBean.entityManager.createNamedQuery(DependencyTracking.JOB_COUNT_CHUNK_COUNT_QUERY)).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(new Object[]{1L, 2L});
+        when(statusBean.dependencyTrackingService.jobCount(1)).thenReturn(new Integer[]{1, 2});
 
-        final Response response = statusBean.getSinkStatusList();
+        Response response = statusBean.getSinkStatusList();
         assertOkResponse(response);
 
-        final List<SinkStatusSnapshot> sinkStatusSnapshots = jsonbContext.unmarshall((String) response.getEntity(), getSinkStatusSnapshotListType());
+        List<SinkStatusSnapshot> sinkStatusSnapshots = jsonbContext.unmarshall((String) response.getEntity(), getSinkStatusSnapshotListType());
         assertThat("SinkStatusSnapshots", sinkStatusSnapshots, is(notNullValue()));
         assertThat("SinkStatusSnapshots size", sinkStatusSnapshots.size(), is(1));
         assertThat("SinkStatusSnapshots element", sinkStatusSnapshots.get(0), is(expectedSinkStatusSnapshot));
@@ -81,19 +80,18 @@ public class StatusBeanTest {
 
     @Test
     public void getSinkStatus_dependencyTrackingEntityFound_returnsStatusOkResponseWithSinkStatusSnapshot() throws JSONBException, FlowStoreServiceConnectorException {
-        final Sink sink = new SinkBuilder().setId(1).build();
-        final SinkStatusSnapshot expectedSinkStatusSnapshot = new SinkStatusSnapshot()
+        Sink sink = new SinkBuilder().setId(1).build();
+        SinkStatusSnapshot expectedSinkStatusSnapshot = new SinkStatusSnapshot()
                 .withName(sink.getContent().getName())
                 .withSinkType(sink.getContent().getSinkType()).withNumberOfJobs(1).withNumberOfChunks(2);
 
         when(flowStoreServiceConnector.getSink(1)).thenReturn(sink);
-        when(statusBean.entityManager.createNamedQuery(DependencyTracking.JOB_COUNT_CHUNK_COUNT_QUERY)).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(new Object[]{1L, 2L});
+        when(statusBean.dependencyTrackingService.jobCount(1)).thenReturn(new Integer[]{1, 2});
 
         Response response = statusBean.getSinkStatus(1);
         assertOkResponse(response);
 
-        final SinkStatusSnapshot sinkStatusSnapshot = jsonbContext.unmarshall((String) response.getEntity(), SinkStatusSnapshot.class);
+        SinkStatusSnapshot sinkStatusSnapshot = jsonbContext.unmarshall((String) response.getEntity(), SinkStatusSnapshot.class);
         assertThat("SinkStatusSnapshots", sinkStatusSnapshot, is(notNullValue()));
         assertThat("SinkStatusSnapshots element", sinkStatusSnapshot, is(expectedSinkStatusSnapshot));
     }
@@ -103,7 +101,7 @@ public class StatusBeanTest {
         when(flowStoreServiceConnector.getSink(1))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("not found", Response.Status.NOT_FOUND.getStatusCode()));
 
-        final Response response = statusBean.getSinkStatus(1);
+        Response response = statusBean.getSinkStatus(1);
         assertNotFoundResponse(response);
     }
 
@@ -114,6 +112,7 @@ public class StatusBeanTest {
     private void initializeStatusBean() {
         statusBean = new StatusBean();
         statusBean.jsonbContext = new JSONBContext();
+        statusBean.dependencyTrackingService = mock(DependencyTrackingService.class);
         statusBean.entityManager = mock(EntityManager.class);
         statusBean.flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     }

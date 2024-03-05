@@ -21,7 +21,12 @@ import jakarta.ws.rs.core.Response;
 @Stateless
 @Path("/")
 public class JobSchedulerRestBean {
-    @Inject DependencyTrackingService dependencyTrackingService;
+    DependencyTrackingService dependencyTrackingService;
+
+    @Inject
+    public JobSchedulerRestBean(DependencyTrackingService dependencyTrackingService) {
+        this.dependencyTrackingService = dependencyTrackingService;
+    }
 
     @POST
     @Path(JobStoreServiceConstants.SCHEDULER_SINK_FORCE_BULK_MODE)

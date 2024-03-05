@@ -1,8 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
-import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -67,7 +67,7 @@ public class JobSchedulerTransactionsBeanTest {
         public boolean mustRemain;
 
         public Dep(int jobId, int chunkId) {
-            setKey(new TrackingKey(jobId, chunkId));
+            super(new TrackingKey(jobId, chunkId), 0);
             setWaitingOn(new HashSet<>());
         }
 

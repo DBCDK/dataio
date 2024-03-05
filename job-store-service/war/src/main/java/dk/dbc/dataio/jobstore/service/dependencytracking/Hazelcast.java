@@ -8,11 +8,13 @@ import com.hazelcast.core.HazelcastInstance;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public class Hazelcast {
-    public static final HazelcastInstance INSTANCE = startInstance();
+    private static HazelcastInstance INSTANCE;
 
     private static HazelcastInstance startInstance() {
         String configFile = Optional.ofNullable(System.getenv("JOBSTORE_HZ_CONFIG"))
@@ -28,19 +30,39 @@ public class Hazelcast {
         }
     }
 
+    private static HazelcastInstance getInstance() {
+        if(INSTANCE != null) return INSTANCE;
+        synchronized (Hazelcast.class) {
+            if(INSTANCE == null) INSTANCE = startInstance();
+        }
+        return INSTANCE;
+    }
+
+    public static void testInstance(HazelcastInstance instance) {
+        INSTANCE = instance;
+    }
+
     public static boolean isMaster() {
         return INSTANCE.getCluster().getMembers().stream().findFirst().map(Member::localMember).orElse(false);
     }
 
+    public static boolean isReady() {
+        return Hazelcast.getInstance().getLifecycleService().isRunning() && Hazelcast.getInstance().getPartitionService().isClusterSafe();
+    }
+
     public enum Objects {
-        DEPENDENCY_TRACKING(() -> INSTANCE.getMap("dependencies"));
+        DEPENDENCY_TRACKING(() -> INSTANCE.getMap("dependencies"), ConcurrentHashMap::new),
+        ABORTED_JOBS(() -> INSTANCE.getSet("aborted.jobs"), HashSet::new);
 
-        Supplier supplier;
+        final Supplier<?> supplier;
+        final Supplier<?> fallback;
 
-        Objects(Supplier supplier) {
+        Objects(Supplier<?> supplier, Supplier<?> fallback) {
             this.supplier = supplier;
+            this.fallback = fallback;
         }
 
+        @SuppressWarnings("unchecked")
         public <T> T get() {
             return (T)supplier.get();
         }

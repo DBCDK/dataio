@@ -9,9 +9,10 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracking;
-import dk.dbc.dataio.jobstore.service.dependencytracking.TrackingKey;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
@@ -52,10 +53,9 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     public void findChunksWaitingForMe() throws Exception {
         JPATestUtils.runSqlFromResource(entityManager, this, "JobSchedulerBeanIT_findWaitForChunks.sql");
 
-        JobSchedulerBean bean = new JobSchedulerBean();
-        bean.entityManager = entityManager;
+        DependencyTrackingService service = new DependencyTrackingService();
 
-        List<TrackingKey> res = bean.findChunksWaitingForMe(new TrackingKey(3, 0), 1);
+        List<TrackingKey> res = service.findChunksWaitingForMe(new TrackingKey(3, 0), 1);
         assertThat(res, containsInAnyOrder(new TrackingKey(2, 0), new TrackingKey(2, 1), new TrackingKey(2, 2), new TrackingKey(2, 3), new TrackingKey(2, 4)));
     }
 
@@ -88,7 +88,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         JPATestUtils.clearEntityManagerCache(entityManager);
 
         // check no statuses is modified
-        List<DependencyTracking> res = entityManager.createNativeQuery("SELECT * FROM dependencytracking WHERE jobid=3 AND chunkId != status ").getResultList();
+        List<DependencyTracking> res =   entityManager.createNativeQuery("SELECT * FROM dependencytracking WHERE jobid=3 AND chunkId != status ").getResultList();
         assertThat("Test chunkProcessingDone did not change any chunk ", res.size(), is(0));
 
 
@@ -126,7 +126,6 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean();
         bean.pgJobStoreRepository = newPgJobStoreRepository();
         jtbean.entityManager = bean.entityManager;
-        jtbean.enableOptimizer = false;
         jtbean.sinkMessageProducerBean = mock(SinkMessageProducerBean.class);
         jtbean.jobStoreRepository = bean.pgJobStoreRepository;
         bean.jobSchedulerTransactionsBean = jtbean;
@@ -199,19 +198,15 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
 
     @Test
     public void isScheduled() {
-        JPATestUtils.runSqlFromResource(entityManager, this,
-                "JobSchedulerBeanIT_findWaitForChunks.sql");
-
         final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
-        jobSchedulerBean.entityManager = entityManager;
-
+        DependencyTrackingService service = new DependencyTrackingService();
         final ChunkEntity notScheduled = new ChunkEntity();
         notScheduled.setKey(new ChunkEntity.Key(42, 42));
-        assertThat("not scheduled", jobSchedulerBean.isScheduled(notScheduled), is(false));
+        assertThat("not scheduled", service.isScheduled(notScheduled), is(false));
 
         final ChunkEntity scheduled = new ChunkEntity();
         notScheduled.setKey(new ChunkEntity.Key(1, 1));
-        assertThat("scheduled", jobSchedulerBean.isScheduled(scheduled), is(false));
+        assertThat("scheduled", service.isScheduled(scheduled), is(false));
     }
 
     @Test

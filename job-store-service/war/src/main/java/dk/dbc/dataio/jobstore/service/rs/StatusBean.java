@@ -82,16 +82,16 @@ public class StatusBean implements ServiceStatus {
      * Private methods
      */
 
-    private SinkStatusSnapshot toSinkStatusSnapshot(Sink sink, Object[] resultList) {
+    private SinkStatusSnapshot toSinkStatusSnapshot(Sink sink, Integer[] resultList) {
         return new SinkStatusSnapshot()
                 .withSinkId(sink.getId())
                 .withSinkType(sink.getContent().getSinkType())
                 .withName(sink.getContent().getName())
-                .withNumberOfJobs(((Long) resultList[0]).intValue())
-                .withNumberOfChunks(((Long) resultList[1]).intValue());
+                .withNumberOfJobs(resultList[0])
+                .withNumberOfChunks(resultList[1]);
     }
 
-    private Object[] executeQuery(Sink sink) {
+    private Integer[] executeQuery(Sink sink) {
         return dependencyTrackingService.jobCount(sink.getId());
     }
 }

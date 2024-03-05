@@ -68,7 +68,7 @@ import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 @Path("/")
 public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
-    private static Set<Integer> abortedJobs = Hazelcast.INSTANCE.getSet("aborted.jobs");
+    private static final Set<Integer> abortedJobs = Hazelcast.Objects.ABORTED_JOBS.get();
 
     @Inject
     DependencyTrackingService dependencyTrackingService;
@@ -95,6 +95,8 @@ public class JobsBean {
     SinkMessageProducerBean sinkMessageProducerBean;
     @EJB
     JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
+
+
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
 

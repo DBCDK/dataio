@@ -55,7 +55,7 @@ import java.util.stream.Stream;
 public class DependencyTrackingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTrackingService.class);
     private final IMap<TrackingKey, DependencyTracking> dependencyTracker = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
-    private Map<Integer, JobSchedulerSinkStatus> sinkStatusMap;
+    private final Map<Integer, JobSchedulerSinkStatus> sinkStatusMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void config() {
@@ -63,44 +63,55 @@ public class DependencyTrackingService {
     }
 
     public DependencyTrackingService init() {
-        sinkStatusMap = new ConcurrentHashMap<>(); //hc.getInstance().getReplicatedMap("sink.status");
-        dependencyTracker.addEntryListener(new MapListenerAdapter<TrackingKey, DependencyTracking>() {
-            @Override
-            public void entryAdded(EntryEvent<TrackingKey, DependencyTracking> event) {
-//                if(!Hazelcast.isMaster()) return;
-                DependencyTracking dt = event.getValue();
-                JobSchedulerSinkStatus status = statusFor(dt);
-                dt.getStatus().incSinkStatusCount(status);
-                LOGGER.info("Map listener added sink/tracker {}/{} with status {}", dt.getSinkId(), dt.getKey(), status);
-            }
-
-            @Override
-            public void entryRemoved(EntryEvent<TrackingKey, DependencyTracking> event) {
-//                if(!Hazelcast.isMaster()) return;
-                DependencyTracking dt = event.getOldValue();
-                JobSchedulerSinkStatus status = statusFor(dt);
-                dt.getStatus().decSinkStatusCount(status);
-                LOGGER.info("Map listener removed sink/tracker {}/{} with status {}", dt.getSinkId(), dt.getKey(), status);
-            }
-
-            @Override
-            public void entryUpdated(EntryEvent<TrackingKey, DependencyTracking> event) {
-//                if(!Hazelcast.isMaster()) return;
-                DependencyTracking old = event.getOldValue();
-                DependencyTracking dt = event.getValue();
-                if(old.getStatus() == dt.getStatus()) return;
-                JobSchedulerSinkStatus status = statusFor(dt);
-                old.getStatus().decSinkStatusCount(status);
-                dt.getStatus().incSinkStatusCount(status);
-                LOGGER.info("Map listener updated sink/tracker {}/{}: {} -> {}, status: {}", dt.getSinkId(), dt.getKey(), old.getStatus().name(), dt.getStatus().name(), status);
-            }
-
-            private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {
-                return sinkStatusMap.computeIfAbsent(dt.getSinkId(), id -> new JobSchedulerSinkStatus());
-            }
-        }, true);
+        dependencyTracker.addEntryListener(new StatusMapUpdater(sinkStatusMap), true);
         recountSinkStatus(Set.of());
         return this;
+    }
+
+    public static class StatusMapUpdater extends MapListenerAdapter<TrackingKey, DependencyTracking> {
+        private final Map<Integer, JobSchedulerSinkStatus> sinkStatusMap;
+
+        public StatusMapUpdater(Map<Integer, JobSchedulerSinkStatus> sinkStatusMap) {
+            this.sinkStatusMap = sinkStatusMap;
+        }
+
+        public void entryAdded(EntryEvent<TrackingKey, DependencyTracking> event) {
+//                if(!Hazelcast.isMaster()) return;
+            DependencyTracking dt = event.getValue();
+            JobSchedulerSinkStatus status = statusFor(dt);
+            dt.getStatus().incSinkStatusCount(status);
+            LOGGER.info("Map listener added sink/tracker {}/{} with status {}", dt.getSinkId(), dt.getKey(), status);
+        }
+
+        @Override
+        public void entryRemoved(EntryEvent<TrackingKey, DependencyTracking> event) {
+//                if(!Hazelcast.isMaster()) return;
+            DependencyTracking dt = event.getOldValue();
+            JobSchedulerSinkStatus status = statusFor(dt);
+            dt.getStatus().decSinkStatusCount(status);
+            LOGGER.info("Map listener removed sink/tracker {}/{} with status {}", dt.getSinkId(), dt.getKey(), status);
+        }
+
+        @Override
+        public void entryUpdated(EntryEvent<TrackingKey, DependencyTracking> event) {
+//                if(!Hazelcast.isMaster()) return;
+            DependencyTracking old = event.getOldValue();
+            DependencyTracking dt = event.getValue();
+            if(old.getStatus() == dt.getStatus()) return;
+            JobSchedulerSinkStatus status = statusFor(dt);
+            old.getStatus().decSinkStatusCount(status);
+            dt.getStatus().incSinkStatusCount(status);
+            LOGGER.info("Map listener updated sink/tracker {}/{}: {} -> {}, status: {}", dt.getSinkId(), dt.getKey(), old.getStatus().name(), dt.getStatus().name(), status);
+        }
+
+        @Override
+        public void onEntryEvent(EntryEvent<TrackingKey, DependencyTracking> event) {
+            LOGGER.info("Map Listener got entry event: {}", event);
+        }
+
+        private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {
+            return sinkStatusMap.computeIfAbsent(dt.getSinkId(), id -> new JobSchedulerSinkStatus());
+        }
     }
 
     public TrackingKey add(DependencyTracking entity) {

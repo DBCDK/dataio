@@ -48,6 +48,10 @@ public class Hazelcast {
         return Hazelcast.getInstance().getLifecycleService().isRunning() && Hazelcast.getInstance().getPartitionService().isClusterSafe();
     }
 
+    public static void shutdownNode() {
+        INSTANCE.shutdown();
+    }
+
     public enum Objects {
         DEPENDENCY_TRACKING(() -> getInstance().getMap("dependencies")),
         ABORTED_JOBS(() -> getInstance().getSet("aborted.jobs"));

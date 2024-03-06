@@ -26,6 +26,7 @@ import dk.dbc.dataio.jobstore.distributed.hz.query.WaitForKey;
 import dk.dbc.dataio.jobstore.distributed.hz.query.WaitingOn;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import org.eclipse.microprofile.health.HealthCheck;
@@ -59,6 +60,11 @@ public class DependencyTrackingService {
     @PostConstruct
     public void config() {
         init();
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        Hazelcast.shutdownNode();
     }
 
     public DependencyTrackingService init() {

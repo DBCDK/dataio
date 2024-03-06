@@ -338,7 +338,7 @@ public class DependencyTrackingService {
 
             if(dt1 != null) dt1.getStatus().decSinkStatusCount(statusFor(dt1));
             if(dt2 != null) dt2.getStatus().incSinkStatusCount(statusFor(dt2));
-            LOGGER.info("Map listener updated sink/tracker {}/{}: {} -> {}, status: {}", dt2.getSinkId(), dt2.getKey(), dt1.getStatus().name(), dt2.getStatus().name(), dt2.getStatus());
+            LOGGER.info("Map listener updated sink/tracker {}/{}: {} -> {}", dt2.getSinkId(), dt2.getKey(), dt1 == null ? null : dt1.getStatus(), dt2.getStatus());
             return null;
         }
 

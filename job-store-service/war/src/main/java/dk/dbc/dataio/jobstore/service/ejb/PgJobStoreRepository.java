@@ -613,7 +613,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             for (ChunkItem chunkItem : chunk) {
                 if(JobsBean.isAborted(chunk.getJobId())) throw new JobAborted(chunk.getJobId());
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                LOGGER.info("updateChunkItemEntities: updating {} chunk item {}/{}/{}",
+                LOGGER.debug("updateChunkItemEntities: updating {} chunk item {}/{}/{}",
                         chunk.getType(), chunk.getJobId(), chunk.getChunkId(), chunkItem.getId());
                 final ItemEntity.Key itemKey = new ItemEntity.Key(chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId());
                 final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);

@@ -1,14 +1,9 @@
 package dk.dbc.dataio.jobstore.distributed;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-import dk.dbc.dataio.jobstore.distributed.hz.DataIODataSerializableFactory;
-
-import java.io.IOException;
+import java.io.Serializable;
 import java.util.Objects;
 
-public class TrackingKey implements IdentifiedDataSerializable {
+public class TrackingKey implements Serializable {
     private static final long serialVersionUID = -5575195152198835462L;
     private int jobId;
     private int chunkId;
@@ -53,27 +48,5 @@ public class TrackingKey implements IdentifiedDataSerializable {
 
     public String toChunkIdentifier() {
         return jobId + "/" + chunkId;
-    }
-
-    @Override
-    public int getFactoryId() {
-        return DataIODataSerializableFactory.FACTORY_ID;
-    }
-
-    @Override
-    public int getClassId() {
-        return DataIODataSerializableFactory.Objects.TRACKING_KEY.ordinal();
-    }
-
-    @Override
-    public void writeData(ObjectDataOutput objectDataOutput) throws IOException {
-        objectDataOutput.writeInt(jobId);
-        objectDataOutput.writeInt(chunkId);
-    }
-
-    @Override
-    public void readData(ObjectDataInput objectDataInput) throws IOException {
-        jobId = objectDataInput.readInt();
-        chunkId = objectDataInput.readInt();
     }
 }

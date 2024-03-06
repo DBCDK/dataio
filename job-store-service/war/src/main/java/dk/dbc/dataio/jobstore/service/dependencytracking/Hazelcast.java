@@ -4,7 +4,6 @@ import com.hazelcast.cluster.Member;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.HazelcastInstance;
-import dk.dbc.dataio.jobstore.distributed.hz.DataIODataSerializableFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,7 +22,6 @@ public class Hazelcast {
             Config config = new XmlConfigBuilder(is).build();
             config.setInstanceName(System.getenv("HOSTNAME"));
             config.setClassLoader(Hazelcast.class.getClassLoader());
-            config.getSerializationConfig().addDataSerializableFactory(DataIODataSerializableFactory.FACTORY_ID, new DataIODataSerializableFactory());
             return com.hazelcast.core.Hazelcast.newHazelcastInstance(config);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to start hazelcast data instance", e);

@@ -1,8 +1,8 @@
 package dk.dbc.dataio.jobstore.service.dependencytracking;
 
+import com.hazelcast.core.EntryAdapter;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.IMap;
-import com.hazelcast.map.impl.MapListenerAdapter;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder;
 import com.hazelcast.query.Predicates;
@@ -68,7 +68,7 @@ public class DependencyTrackingService {
         return this;
     }
 
-    public static class StatusMapUpdater extends MapListenerAdapter<TrackingKey, DependencyTracking> {
+    public static class StatusMapUpdater extends EntryAdapter<TrackingKey, DependencyTracking> {
         private final Map<Integer, JobSchedulerSinkStatus> sinkStatusMap;
 
         public StatusMapUpdater(Map<Integer, JobSchedulerSinkStatus> sinkStatusMap) {

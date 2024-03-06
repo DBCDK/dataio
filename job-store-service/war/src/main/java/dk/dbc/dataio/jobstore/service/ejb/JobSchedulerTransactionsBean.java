@@ -206,14 +206,15 @@ public class JobSchedulerTransactionsBean {
         if(jobEntity.getState().isAborted() || JobsBean.isAborted(jobEntity.getId())) return;
         // chunk is ready for sink
         try {
+            dependencyTrackingService.setStatus(dependencyTracking.getKey(), ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
             sinkMessageProducerBean.send(chunk, jobEntity, dependencyTracking.getPriority());
             LOGGER.info("submitToDelivering: chunk {}/{} scheduled for delivery for sink {}",
                     chunk.getJobId(), chunk.getChunkId(), dependencyTracking.getSinkId());
-            dependencyTrackingService.setStatus(dependencyTracking.getKey(), ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
         } catch (JobStoreException e) {
             LOGGER.error("submitToDelivering: unable to send chunk {}/{} to JMS queue - update to BULK mode for retransmit",
                     chunk.getJobId(), chunk.getChunkId(), e);
             sinkStatus.setMode(QueueSubmitMode.BULK);
+            dependencyTrackingService.setStatus(dependencyTracking.getKey(), ChunkSchedulingStatus.READY_FOR_DELIVERY);
         }
     }
 

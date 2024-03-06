@@ -4,12 +4,13 @@ import com.hazelcast.map.EntryProcessor;
 import com.hazelcast.query.Predicate;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 
 import java.util.Map;
 import java.util.Set;
 
-public class RemoveWaitingOnProcessor implements EntryProcessor<TrackingKey, DependencyTracking, Boolean>, Predicate<TrackingKey, DependencyTracking> {
+public class RemoveWaitingOnProcessor implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent>, Predicate<TrackingKey, DependencyTracking> {
     private final TrackingKey key;
 
     public RemoveWaitingOnProcessor(TrackingKey key) {
@@ -17,14 +18,14 @@ public class RemoveWaitingOnProcessor implements EntryProcessor<TrackingKey, Dep
     }
 
     @Override
-    public Boolean process(Map.Entry<TrackingKey, DependencyTracking> entry) {
+    public StatusChangeEvent process(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking dt = entry.getValue();
         dt.getWaitingOn().remove(key);
         if(dt.getStatus() == ChunkSchedulingStatus.BLOCKED && dt.getWaitingOn().isEmpty()) {
-            dt.setStatus(ChunkSchedulingStatus.READY_FOR_PROCESSING);
-            return Boolean.TRUE;
+            dt.setStatus(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
+            return new StatusChangeEvent(dt.getSinkId(), ChunkSchedulingStatus.BLOCKED, ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
         }
-        return Boolean.FALSE;
+        return null;
     }
 
     @Override

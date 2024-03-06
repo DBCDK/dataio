@@ -66,8 +66,6 @@ public class JobSchedulerTransactionsBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
     public void persistDependencyEntity(DependencyTracking entity, String barrierMatchKey) {
-//        dependencyTrackingService.getSinkStatus(entity.getSinkId()).getProcessingStatus().ready.incrementAndGet();
-
         Set<TrackingKey> chunksToWaitFor = dependencyTrackingService.findChunksToWaitFor(entity, barrierMatchKey);
         entity.setWaitingOn(chunksToWaitFor);
         dependencyTrackingService.add(entity);

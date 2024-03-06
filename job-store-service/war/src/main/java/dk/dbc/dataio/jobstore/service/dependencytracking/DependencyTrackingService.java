@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobstore.service.dependencytracking;
 
 import com.hazelcast.map.IMap;
-import com.hazelcast.map.MapInterceptor;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder;
 import com.hazelcast.query.Predicates;
@@ -12,6 +11,7 @@ import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
 import dk.dbc.dataio.jobstore.distributed.QueueSubmitMode;
+import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.BlockedCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.JobCounter;
@@ -62,8 +62,6 @@ public class DependencyTrackingService {
     }
 
     public DependencyTrackingService init() {
-        dependencyTracker.addInterceptor(new StatusMapUpdater(sinkStatusMap));
-//        dependencyTracker.addEntryListener(new StatusMapUpdater(sinkStatusMap), true);
         recountSinkStatus(Set.of());
         return this;
     }
@@ -72,7 +70,7 @@ public class DependencyTrackingService {
         Set<TrackingKey> waitingOn = entity.getWaitingOn();
         TrackingKey key = entity.getKey();
         dependencyTracker.set(key, entity);
-//        entity.getStatus().incSinkStatusCount(statusFor(entity));
+        entity.getStatus().incSinkStatusCount(statusFor(entity));
         removeDeadWOs(key, waitingOn);
         return key;
     }
@@ -89,7 +87,9 @@ public class DependencyTrackingService {
     private void removeDeadWOs(TrackingKey key, Set<TrackingKey> waitingOn) {
         waitingOn.stream()
                 .filter(k -> !dependencyTracker.containsKey(k))
-                .forEach(k -> dependencyTracker.executeOnKey(key, new RemoveWaitingOnProcessor(k)));
+                .map(k -> dependencyTracker.executeOnKey(key, new RemoveWaitingOnProcessor(k)))
+                .filter(Objects::nonNull)
+                .forEach(statusChangeEvent -> statusChangeEvent.apply(sinkStatusMap));
     }
 
 
@@ -98,10 +98,17 @@ public class DependencyTrackingService {
             dependencyTracker.tryLock(key, 2, TimeUnit.MINUTES);
             DependencyTracking entity = dependencyTracker.get(key);
             if(entity == null) {
-                LOGGER.info("Unable to modify tracker {} as i has been deleted", key);
+                LOGGER.info("Unable to modify tracker {} as it has been deleted", key);
                 return;
             }
+            ChunkSchedulingStatus oldStatus = entity.getStatus();
             consumer.accept(entity);
+            ChunkSchedulingStatus status = entity.getStatus();
+            if(oldStatus != status) {
+                JobSchedulerSinkStatus sinkStatus = statusFor(entity);
+                oldStatus.decSinkStatusCount(sinkStatus);
+                status.incSinkStatusCount(sinkStatus);
+            }
             entity.updateLastModified();
             dependencyTracker.set(key, entity);
             removeDeadWOs(key, entity.getWaitingOn());
@@ -150,17 +157,22 @@ public class DependencyTrackingService {
 
     public Set<TrackingKey> removeFromWaitingOn(TrackingKey key) {
         RemoveWaitingOnProcessor processor = new RemoveWaitingOnProcessor(key);
-        Map<TrackingKey, Boolean> map = dependencyTracker.executeOnEntries(processor, processor);
-        return map.entrySet().stream().filter(Map.Entry::getValue).map(Map.Entry::getKey).collect(Collectors.toSet());
+        Map<TrackingKey, StatusChangeEvent> map = dependencyTracker.executeOnEntries(processor, processor);
+        map.values().stream().filter(Objects::nonNull).forEach(e -> e.apply(sinkStatusMap));
+        return map.entrySet().stream()
+                .filter(e -> e.getValue() != null)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
     }
 
     public void setStatus(TrackingKey key, ChunkSchedulingStatus status) {
-        dependencyTracker.executeOnKey(key, new UpdateStatusProcessor(status));
+        StatusChangeEvent statusChangeEvent = dependencyTracker.executeOnKey(key, new UpdateStatusProcessor(status));
+        statusChangeEvent.apply(sinkStatusMap);
     }
 
     public void remove(TrackingKey key) {
         DependencyTracking removed = dependencyTracker.remove(key);
-//        removed.getStatus().decSinkStatusCount(statusFor(removed));
+        removed.getStatus().decSinkStatusCount(statusFor(removed));
     }
 
     public void remove(Predicate<TrackingKey, DependencyTracking> predicate) {
@@ -192,14 +204,17 @@ public class DependencyTrackingService {
         dependencyTracker.loadAll(true);
     }
 
+    @Stopwatch
     public void recountSinkStatus(Set<Integer> sinkIds) {
         Map<Integer, JobSchedulerSinkStatus> map = statusCount(sinkIds);
         map.values().forEach(s -> {
             s.getDeliveringStatus().setMode(QueueSubmitMode.BULK);
             s.getProcessingStatus().setMode(QueueSubmitMode.BULK);
         });
-        sinkStatusMap.clear();
+        if(sinkIds.isEmpty()) sinkStatusMap.clear();
+        else sinkIds.forEach(sinkStatusMap::remove);
         sinkStatusMap.putAll(map);
+        LOGGER.info("Completed status map recount for {}", sinkIds);
     }
 
     public int statusCount(int sinkId, ChunkSchedulingStatus status) {
@@ -311,55 +326,7 @@ public class DependencyTrackingService {
         return () -> HealthCheckResponse.named("hazelcast-ready").status(Hazelcast.isReady()).build();
     }
 
-//    private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {
-//        return sinkStatusMap.computeIfAbsent(dt.getSinkId(), id -> new JobSchedulerSinkStatus());
-//    }
-
-    public static class StatusMapUpdater implements MapInterceptor {
-        private final Map<Integer, JobSchedulerSinkStatus> sinkStatusMap;
-
-        public StatusMapUpdater(Map<Integer, JobSchedulerSinkStatus> sinkStatusMap) {
-            this.sinkStatusMap = sinkStatusMap;
-        }
-
-        @Override
-        public Object interceptGet(Object o) {
-            return null;
-        }
-
-        @Override
-        public void afterGet(Object o) {
-        }
-
-        @Override
-        public Object interceptPut(Object o1, Object o2) {
-            DependencyTracking dt1 = (DependencyTracking) o1;
-            DependencyTracking dt2 = (DependencyTracking) o2;
-
-            if(dt1 != null) dt1.getStatus().decSinkStatusCount(statusFor(dt1));
-            if(dt2 != null) dt2.getStatus().incSinkStatusCount(statusFor(dt2));
-            LOGGER.info("Map listener updated sink/tracker {}/{}: {} -> {}", dt2.getSinkId(), dt2.getKey(), dt1 == null ? null : dt1.getStatus(), dt2.getStatus());
-            return null;
-        }
-
-        @Override
-        public void afterPut(Object o) {
-        }
-
-        @Override
-        public Object interceptRemove(Object o) {
-            return null;
-        }
-
-        @Override
-        public void afterRemove(Object o) {
-            DependencyTracking dt = (DependencyTracking) o;
-            dt.getStatus().decSinkStatusCount(statusFor(dt));
-        }
-
-        private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {
-            return sinkStatusMap.computeIfAbsent(dt.getSinkId(), id -> new JobSchedulerSinkStatus());
-        }
+    private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {
+        return getSinkStatus(dt.getSinkId());
     }
-
 }

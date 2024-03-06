@@ -17,7 +17,7 @@ public class DataIODataSerializableFactory implements DataSerializableFactory {
         return Objects.values()[i].supplier.get();
     }
 
-    public static enum Objects {
+    public enum Objects {
         UPDATE_STATUS_PROCESSOR(UpdateStatusProcessor::new),
         STATUS_CHANGE_EVENT(StatusChangeEvent::new),
         TRACKING_KEY(TrackingKey::new),

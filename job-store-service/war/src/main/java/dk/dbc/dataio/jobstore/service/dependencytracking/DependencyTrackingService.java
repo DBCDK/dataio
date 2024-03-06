@@ -1,8 +1,7 @@
 package dk.dbc.dataio.jobstore.service.dependencytracking;
 
-import com.hazelcast.core.EntryAdapter;
-import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.IMap;
+import com.hazelcast.map.MapInterceptor;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder;
 import com.hazelcast.query.Predicates;
@@ -63,61 +62,17 @@ public class DependencyTrackingService {
     }
 
     public DependencyTrackingService init() {
-        dependencyTracker.addEntryListener(new StatusMapUpdater(sinkStatusMap), true);
+        dependencyTracker.addInterceptor(new StatusMapUpdater(sinkStatusMap));
+//        dependencyTracker.addEntryListener(new StatusMapUpdater(sinkStatusMap), true);
         recountSinkStatus(Set.of());
         return this;
-    }
-
-    public static class StatusMapUpdater extends EntryAdapter<TrackingKey, DependencyTracking> {
-        private final Map<Integer, JobSchedulerSinkStatus> sinkStatusMap;
-
-        public StatusMapUpdater(Map<Integer, JobSchedulerSinkStatus> sinkStatusMap) {
-            this.sinkStatusMap = sinkStatusMap;
-        }
-
-        public void entryAdded(EntryEvent<TrackingKey, DependencyTracking> event) {
-//                if(!Hazelcast.isMaster()) return;
-            DependencyTracking dt = event.getValue();
-            JobSchedulerSinkStatus status = statusFor(dt);
-            dt.getStatus().incSinkStatusCount(status);
-            LOGGER.info("Map listener added sink/tracker {}/{} with status {}", dt.getSinkId(), dt.getKey(), status);
-        }
-
-        @Override
-        public void entryRemoved(EntryEvent<TrackingKey, DependencyTracking> event) {
-//                if(!Hazelcast.isMaster()) return;
-            DependencyTracking dt = event.getOldValue();
-            JobSchedulerSinkStatus status = statusFor(dt);
-            dt.getStatus().decSinkStatusCount(status);
-            LOGGER.info("Map listener removed sink/tracker {}/{} with status {}", dt.getSinkId(), dt.getKey(), status);
-        }
-
-        @Override
-        public void entryUpdated(EntryEvent<TrackingKey, DependencyTracking> event) {
-//                if(!Hazelcast.isMaster()) return;
-            DependencyTracking old = event.getOldValue();
-            DependencyTracking dt = event.getValue();
-            if(old.getStatus() == dt.getStatus()) return;
-            JobSchedulerSinkStatus status = statusFor(dt);
-            old.getStatus().decSinkStatusCount(status);
-            dt.getStatus().incSinkStatusCount(status);
-            LOGGER.info("Map listener updated sink/tracker {}/{}: {} -> {}, status: {}", dt.getSinkId(), dt.getKey(), old.getStatus().name(), dt.getStatus().name(), status);
-        }
-
-        @Override
-        public void onEntryEvent(EntryEvent<TrackingKey, DependencyTracking> event) {
-            LOGGER.info("Map Listener got entry event: {}", event);
-        }
-
-        private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {
-            return sinkStatusMap.computeIfAbsent(dt.getSinkId(), id -> new JobSchedulerSinkStatus());
-        }
     }
 
     public TrackingKey add(DependencyTracking entity) {
         Set<TrackingKey> waitingOn = entity.getWaitingOn();
         TrackingKey key = entity.getKey();
         dependencyTracker.set(key, entity);
+//        entity.getStatus().incSinkStatusCount(statusFor(entity));
         removeDeadWOs(key, waitingOn);
         return key;
     }
@@ -190,6 +145,7 @@ public class DependencyTrackingService {
         @SuppressWarnings("unchecked")
         Predicate<TrackingKey, DependencyTracking> p = e.key().get("jobId").equal(jobId);
         remove(p);
+        recountSinkStatus(Set.of());
     }
 
     public Set<TrackingKey> removeFromWaitingOn(TrackingKey key) {
@@ -203,11 +159,13 @@ public class DependencyTrackingService {
     }
 
     public void remove(TrackingKey key) {
-        dependencyTracker.remove(key);
+        DependencyTracking removed = dependencyTracker.remove(key);
+//        removed.getStatus().decSinkStatusCount(statusFor(removed));
     }
 
     public void remove(Predicate<TrackingKey, DependencyTracking> predicate) {
         dependencyTracker.removeAll(predicate);
+        recountSinkStatus(Set.of());
     }
 
     public Map<Integer, JobSchedulerSinkStatus> getSinkStatusMap() {
@@ -352,4 +310,55 @@ public class DependencyTrackingService {
     public HealthCheck readyCheck() {
         return () -> HealthCheckResponse.named("hazelcast-ready").status(Hazelcast.isReady()).build();
     }
+
+//    private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {
+//        return sinkStatusMap.computeIfAbsent(dt.getSinkId(), id -> new JobSchedulerSinkStatus());
+//    }
+
+    public static class StatusMapUpdater implements MapInterceptor {
+        private final Map<Integer, JobSchedulerSinkStatus> sinkStatusMap;
+
+        public StatusMapUpdater(Map<Integer, JobSchedulerSinkStatus> sinkStatusMap) {
+            this.sinkStatusMap = sinkStatusMap;
+        }
+
+        @Override
+        public Object interceptGet(Object o) {
+            return null;
+        }
+
+        @Override
+        public void afterGet(Object o) {
+        }
+
+        @Override
+        public Object interceptPut(Object o1, Object o2) {
+            DependencyTracking dt1 = (DependencyTracking) o1;
+            DependencyTracking dt2 = (DependencyTracking) o2;
+
+            if(dt1 != null) dt1.getStatus().decSinkStatusCount(statusFor(dt1));
+            if(dt2 != null) dt2.getStatus().incSinkStatusCount(statusFor(dt2));
+            return null;
+        }
+
+        @Override
+        public void afterPut(Object o) {
+        }
+
+        @Override
+        public Object interceptRemove(Object o) {
+            return null;
+        }
+
+        @Override
+        public void afterRemove(Object o) {
+            DependencyTracking dt = (DependencyTracking) o;
+            dt.getStatus().decSinkStatusCount(statusFor(dt));
+        }
+
+        private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {
+            return sinkStatusMap.computeIfAbsent(dt.getSinkId(), id -> new JobSchedulerSinkStatus());
+        }
+    }
+
 }

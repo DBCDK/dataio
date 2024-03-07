@@ -35,9 +35,10 @@ public class JobSchedulerSinkStatus implements Serializable {
                 '}';
     }
 
-    public void bulk() {
+    public JobSchedulerSinkStatus bulk() {
         processingStatus.setMode(QueueSubmitMode.BULK);
         deliveringStatus.setMode(QueueSubmitMode.BULK);
+        return this;
     }
 
     // Status for a single JMS queue..

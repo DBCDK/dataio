@@ -231,8 +231,8 @@ public class DependencyTrackingService {
     @Stopwatch
     public void recountSinkStatus(Set<Integer> sinkIds) {
         Map<Integer, Map<ChunkSchedulingStatus, Integer>> map = statusCount(sinkIds);
-        Set<Integer> resetSinks = sinkIds.isEmpty() ? sinkStatusMap.keySet() : sinkIds;
-        resetSinks.forEach(s -> Optional.ofNullable(sinkStatusMap.get(s)).ifPresent(JobSchedulerSinkStatus::bulk));
+        Set<Integer> resetSinks = sinkIds.isEmpty() ? map.keySet() : sinkIds;
+        resetSinks.forEach(s -> sinkStatusMap.put(s, new JobSchedulerSinkStatus().bulk()));
         if(sinkIds.isEmpty()) countersMap.clear();
         else sinkIds.forEach(countersMap::remove);
         countersMap.putAll(map);

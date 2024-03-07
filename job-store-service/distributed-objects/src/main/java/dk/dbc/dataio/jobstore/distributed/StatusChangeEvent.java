@@ -29,9 +29,8 @@ public class StatusChangeEvent implements Serializable {
         return newStatus;
     }
 
-    public void apply(Map<Integer, JobSchedulerSinkStatus> sinkStatusMap) {
-        JobSchedulerSinkStatus sinkStatus = sinkStatusMap.get(sinkId);
-        if(oldStatus != null) oldStatus.decSinkStatusCount(sinkStatus);
-        if(newStatus != null) newStatus.incSinkStatusCount(sinkStatus);
+    public void apply(Map<ChunkSchedulingStatus, Integer> diff) {
+        diff.merge(oldStatus, -1, Integer::sum);
+        diff.merge(newStatus, 1, Integer::sum);
     }
 }

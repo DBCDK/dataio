@@ -26,9 +26,6 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Set;
 
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK;
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK;
-
 /**
  * Helper Bean for JobScheduler and JobSchedulerBulkSubmitterBean.
  * Methods needing to run in isolated transactions are pushed to this class.
@@ -123,7 +120,7 @@ public class JobSchedulerTransactionsBean {
 
         if (!queueStatus.isDirectSubmitMode()) return;
 
-        if (queueStatus.enqueued.intValue() >= MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
+        if (dependencyTrackingService.capacity(sinkId, ChunkSchedulingStatus.QUEUED_FOR_PROCESSING) >= 0) {
             queueStatus.setMode(QueueSubmitMode.BULK);
             return;
         }
@@ -171,10 +168,11 @@ public class JobSchedulerTransactionsBean {
 
         if (!sinkStatus.isDirectSubmitMode()) return;
 
-        int queuedToDelivering = sinkStatus.enqueued.intValue();
-        if (queuedToDelivering >= MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK) {
+
+        int capacity = dependencyTrackingService.capacity(dependencyTracking.getSinkId(), ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
+        if (capacity >= 0) {
             sinkStatus.setMode(QueueSubmitMode.BULK);
-            LOGGER.info("submitToDeliveringIfPossible: chunk {}/{} blocked by queue size {}", chunk.getJobId(), chunk.getChunkId(), queuedToDelivering);
+            LOGGER.info("submitToDeliveringIfPossible: chunk {}/{} blocked by queue capacity {}", chunk.getJobId(), chunk.getChunkId(), capacity);
             return;
         }
 

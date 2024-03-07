@@ -10,7 +10,6 @@ import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
-import dk.dbc.dataio.jobstore.distributed.QueueSubmitMode;
 import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.BlockedCounter;
@@ -18,6 +17,7 @@ import dk.dbc.dataio.jobstore.distributed.hz.aggregator.JobCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.SinkStatusCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.StatusCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.RemoveWaitingOnProcessor;
+import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateCounterProcessor;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdatePriorityProcessor;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateStatusProcessor;
 import dk.dbc.dataio.jobstore.distributed.hz.query.ByStatusAndSinkId;
@@ -40,9 +40,11 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -55,6 +57,7 @@ import java.util.stream.Stream;
 public class DependencyTrackingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTrackingService.class);
     private final IMap<TrackingKey, DependencyTracking> dependencyTracker = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
+    private final IMap<Integer, Map<ChunkSchedulingStatus, Integer>> countersMap = Hazelcast.Objects.SINK_STATUS.get();
     private final Map<Integer, JobSchedulerSinkStatus> sinkStatusMap = new ConcurrentHashMap<>();
 
     @PostConstruct
@@ -76,7 +79,7 @@ public class DependencyTrackingService {
         Set<TrackingKey> waitingOn = entity.getWaitingOn();
         TrackingKey key = entity.getKey();
         dependencyTracker.set(key, entity);
-        entity.getStatus().incSinkStatusCount(statusFor(entity));
+        countersMap.executeOnKey(entity.getSinkId(), new UpdateCounterProcessor(entity.getStatus(), 1));
         removeDeadWOs(key, waitingOn);
         return key;
     }
@@ -91,11 +94,26 @@ public class DependencyTrackingService {
     }
 
     private void removeDeadWOs(TrackingKey key, Set<TrackingKey> waitingOn) {
-        waitingOn.stream()
+        Stream<StatusChangeEvent> changes = waitingOn.stream()
                 .filter(k -> !dependencyTracker.containsKey(k))
-                .map(k -> dependencyTracker.executeOnKey(key, new RemoveWaitingOnProcessor(k)))
-                .filter(Objects::nonNull)
-                .forEach(statusChangeEvent -> statusChangeEvent.apply(sinkStatusMap));
+                .map(k -> dependencyTracker.executeOnKey(key, new RemoveWaitingOnProcessor(k)));
+        updateCounters(changes);
+    }
+
+    public int capacity(int sinkId, ChunkSchedulingStatus status) {
+        if(status.capacity == null) throw new IllegalArgumentException("This status does not have a capacity");
+        return status.capacity - getCount(sinkId, status);
+    }
+
+    private void updateCounters(Stream<StatusChangeEvent> changes) {
+        Map<Integer, List<StatusChangeEvent>> bySink = changes.filter(Objects::nonNull).collect(Collectors.groupingBy(StatusChangeEvent::getSinkId));
+        bySink.forEach(this::updateCounters);
+    }
+
+    private void updateCounters(Integer sinkId, List<StatusChangeEvent> statusChangeEvents) {
+        EnumMap<ChunkSchedulingStatus, Integer> deltas = new EnumMap<>(ChunkSchedulingStatus.class);
+        statusChangeEvents.forEach(e -> e.apply(deltas));
+        countersMap.executeOnKey(sinkId, new UpdateCounterProcessor(deltas));
     }
 
 
@@ -111,9 +129,7 @@ public class DependencyTrackingService {
             consumer.accept(entity);
             ChunkSchedulingStatus status = entity.getStatus();
             if(oldStatus != status) {
-                JobSchedulerSinkStatus sinkStatus = statusFor(entity);
-                oldStatus.decSinkStatusCount(sinkStatus);
-                status.incSinkStatusCount(sinkStatus);
+                countersMap.executeOnKey(entity.getSinkId(), new UpdateCounterProcessor(Map.of(oldStatus, -1, status, 1)));
             }
             entity.updateLastModified();
             dependencyTracker.set(key, entity);
@@ -164,7 +180,7 @@ public class DependencyTrackingService {
     public Set<TrackingKey> removeFromWaitingOn(TrackingKey key) {
         RemoveWaitingOnProcessor processor = new RemoveWaitingOnProcessor(key);
         Map<TrackingKey, StatusChangeEvent> map = dependencyTracker.executeOnEntries(processor, processor);
-        map.values().stream().filter(Objects::nonNull).forEach(e -> e.apply(sinkStatusMap));
+        updateCounters(map.values().stream());
         return map.entrySet().stream()
                 .filter(e -> e.getValue() != null)
                 .map(Map.Entry::getKey)
@@ -173,12 +189,12 @@ public class DependencyTrackingService {
 
     public void setStatus(TrackingKey key, ChunkSchedulingStatus status) {
         StatusChangeEvent statusChangeEvent = dependencyTracker.executeOnKey(key, new UpdateStatusProcessor(status));
-        statusChangeEvent.apply(sinkStatusMap);
+        updateCounters(Stream.of(statusChangeEvent));
     }
 
     public void remove(TrackingKey key) {
         DependencyTracking removed = dependencyTracker.remove(key);
-        removed.getStatus().decSinkStatusCount(statusFor(removed));
+        countersMap.executeOnKey(removed.getSinkId(), new UpdateCounterProcessor(removed.getStatus(), -1));
     }
 
     public void remove(Predicate<TrackingKey, DependencyTracking> predicate) {
@@ -212,22 +228,28 @@ public class DependencyTrackingService {
 
     @Stopwatch
     public void recountSinkStatus(Set<Integer> sinkIds) {
-        Map<Integer, JobSchedulerSinkStatus> map = statusCount(sinkIds);
-        map.values().forEach(s -> {
-            s.getDeliveringStatus().setMode(QueueSubmitMode.BULK);
-            s.getProcessingStatus().setMode(QueueSubmitMode.BULK);
-        });
-        if(sinkIds.isEmpty()) sinkStatusMap.clear();
-        else sinkIds.forEach(sinkStatusMap::remove);
-        sinkStatusMap.putAll(map);
+        Map<Integer, Map<ChunkSchedulingStatus, Integer>> map = statusCount(sinkIds);
+        Set<Integer> resetSinks = sinkIds.isEmpty() ? sinkStatusMap.keySet() : sinkIds;
+        resetSinks.forEach(s -> Optional.ofNullable(sinkStatusMap.get(s)).ifPresent(JobSchedulerSinkStatus::bulk));
+        if(sinkIds.isEmpty()) countersMap.clear();
+        else sinkIds.forEach(countersMap::remove);
+        countersMap.putAll(map);
         LOGGER.info("Completed status map recount for {}", sinkIds);
+    }
+
+    public Map<Integer, Map<ChunkSchedulingStatus, Integer>> getCountersForSinks() {
+        return countersMap.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Collections.unmodifiableMap(e.getValue())));
+    }
+
+    public Integer getCount(int sinkId, ChunkSchedulingStatus cs) {
+        return Optional.ofNullable(countersMap.get(sinkId)).map(m -> m.get(cs)).orElse(0);
     }
 
     public int statusCount(int sinkId, ChunkSchedulingStatus status) {
         return dependencyTracker.aggregate(new SinkStatusCounter(sinkId, status));
     }
 
-    public Map<Integer, JobSchedulerSinkStatus> statusCount(Set<Integer> sinkIds) {
+    public Map<Integer, Map<ChunkSchedulingStatus, Integer>> statusCount(Set<Integer> sinkIds) {
         StatusCounter statusCounter = new StatusCounter(sinkIds);
         return dependencyTracker.aggregate(statusCounter);
     }
@@ -330,9 +352,5 @@ public class DependencyTrackingService {
     @Readiness
     public HealthCheck readyCheck() {
         return () -> HealthCheckResponse.named("hazelcast-ready").status(Hazelcast.isReady()).build();
-    }
-
-    private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {
-        return getSinkStatus(dt.getSinkId());
     }
 }

@@ -54,9 +54,10 @@ public class Hazelcast {
 
     public enum Objects {
         DEPENDENCY_TRACKING(() -> getInstance().getMap("dependencies")),
-        ABORTED_JOBS(() -> getInstance().getSet("aborted.jobs"));
+        ABORTED_JOBS(() -> getInstance().getSet("aborted.jobs")),
+        SINK_STATUS(() -> getInstance().getMap("status.map"));
 
-        final Supplier<?> supplier;
+        private final Supplier<?> supplier;
 
         Objects(Supplier<?> supplier) {
             this.supplier = supplier;

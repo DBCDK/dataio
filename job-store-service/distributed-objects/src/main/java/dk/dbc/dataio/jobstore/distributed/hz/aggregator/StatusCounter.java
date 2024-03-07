@@ -1,17 +1,19 @@
 package dk.dbc.dataio.jobstore.distributed.hz.aggregator;
 
 import com.hazelcast.aggregation.Aggregator;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
-import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 
+import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class StatusCounter implements Aggregator<Map.Entry<TrackingKey, DependencyTracking>, Map<Integer, JobSchedulerSinkStatus>> {
-    private final Map<Integer, JobSchedulerSinkStatus> map = new HashMap<>();
+public class StatusCounter implements Aggregator<Map.Entry<TrackingKey, DependencyTracking>, Map<Integer, Map<ChunkSchedulingStatus, Integer>>> {
+    private final Map<Integer, Map<ChunkSchedulingStatus, Integer>> map = new HashMap<>();
     private final Set<Integer> sinkFilter;
 
     public StatusCounter(Set<Integer> sinkFilter) {
@@ -22,23 +24,28 @@ public class StatusCounter implements Aggregator<Map.Entry<TrackingKey, Dependen
     public void accumulate(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking dt = entry.getValue();
         if(sinkFilter.isEmpty() || sinkFilter.contains(dt.getSinkId())) {
-            JobSchedulerSinkStatus sinkStatus = map.computeIfAbsent(dt.getSinkId(), id -> new JobSchedulerSinkStatus());
-            dt.getStatus().incSinkStatusCount(sinkStatus);
+            Map<ChunkSchedulingStatus, Integer> sinkStatus = map.computeIfAbsent(dt.getSinkId(), k -> new EnumMap<>(ChunkSchedulingStatus.class));
+            sinkStatus.merge(entry.getValue().getStatus(), 1, Integer::sum);
         }
     }
 
     @Override
     public void combine(Aggregator aggregator) {
-        StatusCounter other = getClass().cast(aggregator);
-        for (Map.Entry<Integer, JobSchedulerSinkStatus> entry : other.map.entrySet()) {
-            JobSchedulerSinkStatus sinkStatus = map.computeIfAbsent(entry.getKey(), k -> new JobSchedulerSinkStatus());
-            sinkStatus.mergeCounters(entry.getValue());
+        StatusCounter oCounter = (StatusCounter) aggregator;
+        for (Map.Entry<Integer, Map<ChunkSchedulingStatus, Integer>> oMap : oCounter.map.entrySet()) {
+            map.merge(oMap.getKey(), oMap.getValue(), this::mergeSink);
         }
+    }
+
+    private Map<ChunkSchedulingStatus, Integer> mergeSink(Map<ChunkSchedulingStatus, Integer> map1, Map<ChunkSchedulingStatus, Integer> map2) {
+        EnumMap<ChunkSchedulingStatus, Integer> result = new EnumMap<>(ChunkSchedulingStatus.class);
+        Arrays.stream(ChunkSchedulingStatus.values()).forEach(cs -> result.put(cs, map1.getOrDefault(cs, 0) + map2.getOrDefault(cs, 0)));
+        return result;
     }
 
     @Override
 
-    public Map<Integer, JobSchedulerSinkStatus> aggregate() {
+    public Map<Integer, Map<ChunkSchedulingStatus, Integer>> aggregate() {
         return map;
     }
 }

@@ -144,7 +144,7 @@ public class AdminBean {
     @Produces(MediaType.APPLICATION_JSON)
     public Response recountSinkStatus() throws JSONBException {
         dependencyTrackingService.recountSinkStatus(Set.of());
-        return Response.ok(jsonbContext.marshall(dependencyTrackingService.getSinkStatusMap())).build();
+        return Response.ok(jsonbContext.marshall(dependencyTrackingService.getCountersForSinks())).build();
     }
 
     @GET

@@ -73,8 +73,9 @@ public class JobSchedulerBulkSubmitterBean {
     }
 
     private void doBulkJmsQueueSubmit(Integer sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus, ChunkSchedulingStatus phase) {
-        LOGGER.debug("prSink {} queue test {} < {} -> {} ", phase, queueStatus.ready.intValue(), JobSchedulerBean.TRANSITION_TO_DIRECT_MARK, queueStatus.ready.intValue() < (JobSchedulerBean.TRANSITION_TO_DIRECT_MARK));
-        if (queueStatus.getMode() == BULK && queueStatus.ready.intValue() < JobSchedulerBean.TRANSITION_TO_DIRECT_MARK) {
+        int ready = dependencyTrackingService.getCount(sinkId, phase);
+        LOGGER.debug("prSink {} queue test {} < {} -> {} ", phase, ready, JobSchedulerBean.TRANSITION_TO_DIRECT_MARK, ready < (JobSchedulerBean.TRANSITION_TO_DIRECT_MARK));
+        if (queueStatus.getMode() == BULK && ready < JobSchedulerBean.TRANSITION_TO_DIRECT_MARK) {
             LOGGER.debug("prSink {} Queue starting switch to DirectMode", phase);
             queueStatus.setMode(TRANSITION_TO_DIRECT);
             queueStatus.bulkToDirectCleanUpPushes = 0;
@@ -89,8 +90,8 @@ public class JobSchedulerBulkSubmitterBean {
 
         // A Future is present, if not done check again on next schedule
         if (!queueStatus.lastAsyncPushResult.isDone()) return;
-
-        LOGGER.debug("{} Async Result for sink {}, ready({}), enqueued({})", phase, sinkId, queueStatus.ready.intValue(), queueStatus.enqueued.intValue());
+        ready = dependencyTrackingService.getCount(sinkId, phase);
+        LOGGER.debug("{} Async Result for sink {}, ready({})", phase, sinkId, ready);
         int lastAsyncPushedToQueue = -1;
         try {
             lastAsyncPushedToQueue = queueStatus.lastAsyncPushResult.get();
@@ -120,7 +121,7 @@ public class JobSchedulerBulkSubmitterBean {
     private Future<Integer> doAsyncBulkScheduleCallForPhase(Integer sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus, ChunkSchedulingStatus phase) {
         switch (phase) {
             case READY_FOR_PROCESSING:
-                return jobSchedulerBean.bulkScheduleToProcessingForSink(sinkId, queueStatus);
+                return jobSchedulerBean.bulkScheduleToProcessingForSink(sinkId);
             case READY_FOR_DELIVERY:
                 return jobSchedulerBean.bulkScheduleToDeliveringForSink(sinkId, queueStatus);
             default:

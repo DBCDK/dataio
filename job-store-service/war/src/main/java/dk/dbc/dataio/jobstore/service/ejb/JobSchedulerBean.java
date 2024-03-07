@@ -42,13 +42,16 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.BLOCKED;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
 
 /**
  * Handles chunk scheduling as they pass through partitioning, processing and delivery phases.
@@ -80,12 +83,6 @@ public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
 
     private static final Set<SinkContent.SinkType> REQUIRES_TERMINATION_CHUNK = new HashSet<>(Set.of(SinkContent.SinkType.MARCCONV, SinkContent.SinkType.PERIODIC_JOBS, SinkContent.SinkType.TICKLE));
-
-    // Max JMS Size pr Sink -- Test sizes overwritten for
-    @SuppressWarnings("EjbClassWarningsInspection")
-    static int MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK = 1000;
-    @SuppressWarnings("EjbClassWarningsInspection")
-    static int MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK = 1000;
 
     // if Number of Chunks in JMS Queue
     @SuppressWarnings("EjbClassWarningsInspection")
@@ -120,8 +117,8 @@ public class JobSchedulerBean {
                 Gauge<?> gauge = metricRegistry.getGauge(metricID);
                 if (gauge == null) metricRegistry.gauge(metricID, () -> getLongestRunningChunkDuration(sink.getId()));
                 LOGGER.info("Registered gauge for longest_running_delivery_in_ms -> {}", metricID);
-                metricRegistry.gauge("dataio_status_map", () -> getEnqueued(sink.getId(), JobSchedulerSinkStatus::getProcessingStatus), sinkTag, new Tag("state", "processing"));
-                metricRegistry.gauge("dataio_status_map", () -> getEnqueued(sink.getId(), JobSchedulerSinkStatus::getDeliveringStatus), sinkTag, new Tag("state", "delivering"));
+                metricRegistry.gauge("dataio_status_map", () -> dependencyTrackingService.getCount(sink.getId(), QUEUED_FOR_PROCESSING), sinkTag, new Tag("state", "processing"));
+                metricRegistry.gauge("dataio_status_map", () -> dependencyTrackingService.getCount(sink.getId(), ChunkSchedulingStatus.QUEUED_FOR_DELIVERY), sinkTag, new Tag("state", "delivering"));
                 LOGGER.info("Registered status map metrics for sink -> {}", sink.getContent().getName());
             }
         } catch (FlowStoreServiceConnectorException e) {
@@ -129,10 +126,6 @@ public class JobSchedulerBean {
         } catch (ProcessingException e1) {
             LOGGER.error("Flowstore unavailable:", e1);
         }
-    }
-
-    private Integer getEnqueued(int sinkId, Function<JobSchedulerSinkStatus, JobSchedulerSinkStatus.QueueStatus> f) {
-        return Optional.ofNullable(dependencyTrackingService.getSinkStatusMap().get(sinkId)).map(f).map(q -> q.enqueued).map(AtomicInteger::get).orElse(0);
     }
 
     private long getLongestRunningChunkDuration(int sinkId) {
@@ -175,12 +168,12 @@ public class JobSchedulerBean {
     }
 
     @SuppressWarnings("unused")
-    @Schedule(second = "0", minute = "*", hour = "*", persistent = false)
+    @Schedule(minute = "*", hour = "*", persistent = false)
     public void updateSinks() {
         try {
             LOGGER.info("Updating chunks.blocked metrics");
             List<Sink> sinks = flowStore.getConnector().findAllSinks();
-            Map<Integer, Integer> counts = dependencyTrackingService.sinkStatusCount(ChunkSchedulingStatus.BLOCKED);
+            Map<Integer, Integer> counts = dependencyTrackingService.sinkStatusCount(BLOCKED);
             Map<String, Integer> bc = sinks.stream().collect(Collectors.toMap(s -> s.getContent().getName(), s -> counts.getOrDefault(s.getId(), 0)));
             blockedCounts.putAll(bc);
             for (String sinkName : bc.keySet()) {
@@ -305,16 +298,16 @@ public class JobSchedulerBean {
                 LOGGER.info("chunkProcessingDone: called with unknown chunk {}/{} - assuming it is already completed ", chunk.getJobId(), chunk.getChunkId());
                 return;
             }
-            if (dependencyTracking.getStatus() != ChunkSchedulingStatus.QUEUED_FOR_PROCESSING) {
+            if (dependencyTracking.getStatus() != QUEUED_FOR_PROCESSING) {
                 LOGGER.info("chunkProcessingDone: called with chunk {}/{} not in state QUEUED_FOR_PROCESSING: was {}", chunk.getJobId(), chunk.getChunkId(), dependencyTracking.getStatus());
                 return;
             }
             if (!dependencyTracking.getWaitingOn().isEmpty()) {
-                dependencyTrackingService.setStatus(key, ChunkSchedulingStatus.BLOCKED);
+                dependencyTrackingService.setStatus(key, BLOCKED);
                 LOGGER.debug("chunkProcessingDone: chunk {}/{} blocked by {}", chunk.getJobId(), chunk.getChunkId(),
                         dependencyTracking.getWaitingOn());
             } else {
-                dependencyTrackingService.setStatus(key, ChunkSchedulingStatus.READY_FOR_DELIVERY);
+                dependencyTrackingService.setStatus(key, READY_FOR_DELIVERY);
             }
         });
         jobSchedulerTransactionsBean.submitToDeliveringIfPossible(chunk, key);
@@ -383,32 +376,27 @@ public class JobSchedulerBean {
 
     @Asynchronous
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public Future<Integer> bulkScheduleToProcessingForSink(int sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus) {
+    public Future<Integer> bulkScheduleToProcessingForSink(int sinkId) {
         int chunksPushedToQueue = 0;
         try {
-            final int ready = queueStatus.ready.intValue();
-            final int enqueued = queueStatus.enqueued.intValue();
-            LOGGER.info("bulk scheduling for processing - sink {} enqueued={} ready={}", sinkId, enqueued, ready);
-
-            final int spaceLeftInQueue = JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK - enqueued;
+            int ready = dependencyTrackingService.getCount(sinkId, READY_FOR_PROCESSING);
+            int spaceLeftInQueue = dependencyTrackingService.capacity(sinkId, QUEUED_FOR_PROCESSING);
             if (spaceLeftInQueue > 0) {
-                LOGGER.debug("bulk scheduling for processing - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
-
-                List<DependencyTracking> chunks = dependencyTrackingService.findStream(ChunkSchedulingStatus.READY_FOR_PROCESSING, sinkId)
+                List<DependencyTracking> chunks = dependencyTrackingService.findStream(READY_FOR_PROCESSING, sinkId)
                         .limit(spaceLeftInQueue)
                         .collect(Collectors.toList());
 
                 if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for processing - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
                 for (DependencyTracking toSchedule : chunks) {
                     if(!JobsBean.isAborted(toSchedule.getKey().getJobId())) {
-                        final TrackingKey toScheduleKey = toSchedule.getKey();
+                        TrackingKey toScheduleKey = toSchedule.getKey();
                         LOGGER.info("bulk scheduling for processing - chunk {} to be scheduled for processing for sink {}", toScheduleKey, sinkId);
-                        final ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
+                        ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
                         jobSchedulerTransactionsBean.submitToProcessing(chunk, toSchedule.getPriority());
                         chunksPushedToQueue++;
                     }
                 }
-            }
+            } else LOGGER.info("bulk scheduling for processing - sink {} capacity={} ready={}", sinkId, spaceLeftInQueue, ready);
         } catch (Exception ex) {
             LOGGER.error("Error in bulk scheduling for processing for sink {}", sinkId, ex);
         }
@@ -417,18 +405,15 @@ public class JobSchedulerBean {
 
     @Asynchronous
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public Future<Integer> bulkScheduleToDeliveringForSink(long sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus) {
+    public Future<Integer> bulkScheduleToDeliveringForSink(int sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus) {
         int chunksPushedToQueue = 0;
         try {
-            int ready = queueStatus.ready.intValue();
-            int enqueued = queueStatus.enqueued.intValue();
-            LOGGER.info("bulk scheduling for delivery - sink {} enqueued={} ready={}", sinkId, enqueued, ready);
-
-            int spaceLeftInQueue = MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK - enqueued;
+            int ready = dependencyTrackingService.getCount(sinkId, READY_FOR_PROCESSING);
+            int spaceLeftInQueue = dependencyTrackingService.capacity(sinkId, QUEUED_FOR_DELIVERY);
             if (spaceLeftInQueue > 0) {
                 LOGGER.debug("bulk scheduling for delivery - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
 
-                List<TrackingKey> chunks = dependencyTrackingService.find(ChunkSchedulingStatus.READY_FOR_DELIVERY, (int)sinkId);
+                List<TrackingKey> chunks = dependencyTrackingService.find(READY_FOR_DELIVERY, sinkId);
 
                 if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for delivery - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
                 for (TrackingKey toSchedule : chunks) {
@@ -441,7 +426,7 @@ public class JobSchedulerBean {
                         } else dependencyTrackingService.remove(toSchedule);
                     }
                 }
-            }
+            } else LOGGER.info("bulk scheduling for delivery - sink {} capacity={} ready={}", sinkId, spaceLeftInQueue, ready);
         } catch (Exception ex) {
             LOGGER.error("Error in bulk scheduling for delivery for sink {}", sinkId, ex);
         }

@@ -9,7 +9,6 @@ import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
@@ -118,7 +117,7 @@ public class JobSchedulerBean {
                 if (gauge == null) metricRegistry.gauge(metricID, () -> getLongestRunningChunkDuration(sink.getId()));
                 LOGGER.info("Registered gauge for longest_running_delivery_in_ms -> {}", metricID);
                 metricRegistry.gauge("dataio_status_map", () -> dependencyTrackingService.getCount(sink.getId(), QUEUED_FOR_PROCESSING), sinkTag, new Tag("state", "processing"));
-                metricRegistry.gauge("dataio_status_map", () -> dependencyTrackingService.getCount(sink.getId(), ChunkSchedulingStatus.QUEUED_FOR_DELIVERY), sinkTag, new Tag("state", "delivering"));
+                metricRegistry.gauge("dataio_status_map", () -> dependencyTrackingService.getCount(sink.getId(), QUEUED_FOR_DELIVERY), sinkTag, new Tag("state", "delivering"));
                 LOGGER.info("Registered status map metrics for sink -> {}", sink.getContent().getName());
             }
         } catch (FlowStoreServiceConnectorException e) {
@@ -335,7 +334,7 @@ public class JobSchedulerBean {
                     chunk.getJobId(), chunk.getChunkId());
             return;
         }
-        if (chunkDone.getStatus() != ChunkSchedulingStatus.QUEUED_FOR_DELIVERY) {
+        if (chunkDone.getStatus() != QUEUED_FOR_DELIVERY) {
             LOGGER.info("chunkDeliveringDone: ignoring chunk {}/{} not in state QUEUED_FOR_DELIVERY - was {}",
                     chunk.getJobId(), chunk.getChunkId(), chunkDone.getStatus());
             return;

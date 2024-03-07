@@ -17,7 +17,9 @@ public class UpdatePriorityProcessor implements EntryProcessor<TrackingKey, Depe
 
     @Override
     public Set<TrackingKey> process(Map.Entry<TrackingKey, DependencyTracking> entry) {
-        entry.getValue().setPriority(priority);
-        return entry.getValue().getWaitingOn();
+        DependencyTracking dt = entry.getValue();
+        dt.setPriority(priority);
+        entry.setValue(dt);
+        return dt.getWaitingOn();
     }
 }

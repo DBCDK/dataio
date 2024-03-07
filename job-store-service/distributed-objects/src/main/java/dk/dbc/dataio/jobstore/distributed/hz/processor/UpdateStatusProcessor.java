@@ -20,9 +20,12 @@ public class UpdateStatusProcessor implements EntryProcessor<TrackingKey, Depend
 
     @Override
     public StatusChangeEvent process(Map.Entry<TrackingKey, DependencyTracking> entry) {
-        StatusChangeEvent event = new StatusChangeEvent(entry.getValue().getSinkId(), entry.getValue().getStatus(), schedulingStatus);
-        entry.getValue().setStatus(schedulingStatus);
+        DependencyTracking dt = entry.getValue();
+        StatusChangeEvent event = new StatusChangeEvent(dt.getSinkId(), dt.getStatus(), schedulingStatus);
+        dt.setStatus(schedulingStatus);
+        entry.setValue(dt);
         LOGGER.debug("Status update on {} - {}", entry.getKey(), schedulingStatus);
+
         return event;
     }
 }

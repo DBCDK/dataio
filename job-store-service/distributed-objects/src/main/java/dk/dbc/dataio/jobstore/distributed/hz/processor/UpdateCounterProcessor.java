@@ -20,6 +20,7 @@ public class UpdateCounterProcessor implements EntryProcessor<Integer, Map<Chunk
     public Void process(Map.Entry<Integer, Map<ChunkSchedulingStatus, Integer>> entry) {
         Map<ChunkSchedulingStatus, Integer> current = entry.getValue();
         deltas.forEach((k, v) -> current.merge(k, v, Integer::sum));
+        entry.setValue(current);
         return null;
     }
 }

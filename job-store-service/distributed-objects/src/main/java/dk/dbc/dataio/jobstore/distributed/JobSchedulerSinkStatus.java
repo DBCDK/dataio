@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -17,6 +18,13 @@ public class JobSchedulerSinkStatus implements Serializable {
 
     public QueueStatus getDeliveringStatus() {
         return deliveringStatus;
+    }
+
+    public void mergeCounters(JobSchedulerSinkStatus status) {
+        processingStatus.enqueued.addAndGet(status.processingStatus.enqueued.get());
+        processingStatus.ready.addAndGet(status.processingStatus.ready.get());
+        deliveringStatus.enqueued.addAndGet(status.deliveringStatus.enqueued.get());
+        deliveringStatus.ready.addAndGet(status.deliveringStatus.ready.get());
     }
 
     public boolean isProcessingModeDirectSubmit() {
@@ -44,6 +52,8 @@ public class JobSchedulerSinkStatus implements Serializable {
     // Status for a single JMS queue..
     public static class QueueStatus implements Serializable {
         private QueueSubmitMode queueSubmitMode = QueueSubmitMode.DIRECT;
+        public final AtomicInteger ready = new AtomicInteger(0);
+        public final AtomicInteger enqueued = new AtomicInteger(0);
         transient ReadWriteLock modeLock = new ReentrantReadWriteLock();
 
         // owned and updated by singleton JobSchedulerBulkSubmitterBean
@@ -81,6 +91,8 @@ public class JobSchedulerSinkStatus implements Serializable {
         public String toString() {
             return "Queue{" +
                     "mode=" + queueSubmitMode +
+                    ", ready=" + ready +
+                    ", enqueued=" + enqueued +
                     '}';
         }
     }

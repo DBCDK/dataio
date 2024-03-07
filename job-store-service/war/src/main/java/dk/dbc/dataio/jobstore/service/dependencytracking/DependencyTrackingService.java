@@ -76,9 +76,11 @@ public class DependencyTrackingService {
     }
 
     public TrackingKey add(DependencyTracking entity) {
+        int sinkId = entity.getSinkId();
         Set<TrackingKey> waitingOn = entity.getWaitingOn();
         TrackingKey key = entity.getKey();
         dependencyTracker.set(key, entity);
+        countersMap.putIfAbsent(sinkId, new EnumMap<>(ChunkSchedulingStatus.class));
         countersMap.executeOnKey(entity.getSinkId(), new UpdateCounterProcessor(entity.getStatus(), 1));
         removeDeadWOs(key, waitingOn);
         return key;

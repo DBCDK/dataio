@@ -21,6 +21,8 @@
     </network>
     <properties>
         <property name="hazelcast.jmx">true</property>
+        <property name="hazelcast.operation.thread.count">8</property>
+        <property name="hazelcast.operation.generic.thread.count">8</property>
     </properties>
     <map name="dependencies">
         <in-memory-format>OBJECT</in-memory-format>
@@ -29,7 +31,7 @@
         <async-backup-count>0</async-backup-count>
         <time-to-live-seconds>0</time-to-live-seconds>
         <max-idle-seconds>0</max-idle-seconds>
-        <eviction eviction-policy="NONE" max-size-policy="PER_NODE" size="0"/>
+        <eviction eviction-policy="NONE"/>
         <statistics-enabled>true</statistics-enabled>
         <map-store initial-mode="EAGER">
             <class-name>dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore</class-name>
@@ -38,9 +40,20 @@
             <write-coalescing>true</write-coalescing>
         </map-store>
     </map>
-<!--    <replicatedmap name="sink.status">-->
-<!--        <async-fillup>false</async-fillup>-->
-<!--    </replicatedmap>-->
+    <map name="sink.status">
+        <in-memory-format>BINARY</in-memory-format>
+        <metadata-policy>CREATE_ON_UPDATE</metadata-policy>
+        <backup-count>0</backup-count>
+        <async-backup-count>0</async-backup-count>
+        <time-to-live-seconds>0</time-to-live-seconds>
+        <eviction eviction-policy="NONE"/>
+        <statistics-enabled>true</statistics-enabled>
+        <near-cache>
+            <in-memory-format>OBJECT</in-memory-format>
+            <time-to-live-seconds>5</time-to-live-seconds>
+            <invalidate-on-change>false</invalidate-on-change>
+        </near-cache>
+    </map>
     <map name="aborted.jobs">
         <in-memory-format>BINARY</in-memory-format>
         <metadata-policy>CREATE_ON_UPDATE</metadata-policy>

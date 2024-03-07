@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.dependencytracking;
 
 import com.hazelcast.map.IMap;
+import com.hazelcast.map.listener.EntryUpdatedListener;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder;
 import com.hazelcast.query.Predicates;
@@ -72,6 +73,7 @@ public class DependencyTrackingService {
 
     public DependencyTrackingService init() {
         recountSinkStatus(Set.of());
+        dependencyTracker.addEntryListener((EntryUpdatedListener<TrackingKey, DependencyTracking>) e -> LOGGER.info("Test map listener {}", e.getKey()), true);
         return this;
     }
 

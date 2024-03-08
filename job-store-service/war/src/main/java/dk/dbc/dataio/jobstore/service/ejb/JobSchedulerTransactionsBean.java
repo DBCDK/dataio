@@ -120,7 +120,7 @@ public class JobSchedulerTransactionsBean {
 
         if (!queueStatus.isDirectSubmitMode()) return;
 
-        if (dependencyTrackingService.capacity(sinkId, ChunkSchedulingStatus.QUEUED_FOR_PROCESSING) >= 0) {
+        if (dependencyTrackingService.capacity(sinkId, ChunkSchedulingStatus.QUEUED_FOR_PROCESSING) <= 0) {
             queueStatus.setMode(QueueSubmitMode.BULK);
             return;
         }
@@ -170,7 +170,7 @@ public class JobSchedulerTransactionsBean {
 
 
         int capacity = dependencyTrackingService.capacity(dependencyTracking.getSinkId(), ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
-        if (capacity >= 0) {
+        if (capacity <= 0) {
             sinkStatus.setMode(QueueSubmitMode.BULK);
             LOGGER.info("submitToDeliveringIfPossible: chunk {}/{} blocked by queue capacity {}", chunk.getJobId(), chunk.getChunkId(), capacity);
             return;

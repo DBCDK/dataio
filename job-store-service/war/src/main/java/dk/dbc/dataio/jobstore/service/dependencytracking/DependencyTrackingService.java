@@ -1,8 +1,6 @@
 package dk.dbc.dataio.jobstore.service.dependencytracking;
 
-import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.IMap;
-import com.hazelcast.map.impl.MapListenerAdapter;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder;
 import com.hazelcast.query.Predicates;
@@ -74,41 +72,6 @@ public class DependencyTrackingService {
 
     public DependencyTrackingService init() {
         recountSinkStatus(Set.of());
-        dependencyTracker.addEntryListener(new MapListenerAdapter<TrackingKey, DependencyTracking>() {
-            @Override
-            public void entryAdded(EntryEvent<TrackingKey, DependencyTracking> event) {
-//                if(!Hazelcast.isMaster()) return;
-                DependencyTracking dt = event.getValue();
-                JobSchedulerSinkStatus status = statusFor(dt);
-                dt.getStatus().enterStatus(status);
-                LOGGER.info("Map listener added sink/tracker {}/{} with status {}", dt.getSinkId(), dt.getKey(), status);
-            }
-
-            @Override
-            public void entryRemoved(EntryEvent<TrackingKey, DependencyTracking> event) {
-//                if(!Hazelcast.isMaster()) return;
-                DependencyTracking dt = event.getOldValue();
-                JobSchedulerSinkStatus status = statusFor(dt);
-                dt.getStatus().leaveStatus(status);
-                LOGGER.info("Map listener removed sink/tracker {}/{} with status {}", dt.getSinkId(), dt.getKey(), status);
-            }
-
-            @Override
-            public void entryUpdated(EntryEvent<TrackingKey, DependencyTracking> event) {
-//                if(!Hazelcast.isMaster()) return;
-                DependencyTracking old = event.getOldValue();
-                DependencyTracking dt = event.getValue();
-                if(old.getStatus() == dt.getStatus()) return;
-                JobSchedulerSinkStatus status = statusFor(dt);
-                old.getStatus().leaveStatus(status);
-                dt.getStatus().enterStatus(status);
-                LOGGER.info("Map listener updated sink/tracker {}/{}: {} -> {}, status: {}", dt.getSinkId(), dt.getKey(), old.getStatus().name(), dt.getStatus().name(), status);
-            }
-
-            private JobSchedulerSinkStatus statusFor(DependencyTracking dt) {
-                return sinkStatusMap.computeIfAbsent(dt.getSinkId(), id -> new JobSchedulerSinkStatus());
-            }
-        }, true);
         return this;
     }
 

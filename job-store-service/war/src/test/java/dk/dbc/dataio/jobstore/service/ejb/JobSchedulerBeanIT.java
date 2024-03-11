@@ -93,12 +93,13 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
 
     @Test
     public void tickleChunkDependency() throws Exception {
-        JPATestUtils.runSqlFromResource(entityManager, this,
-                "JobSchedulerBeanIT_findWaitForChunks.sql");
-
+        startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
+        DependencyTrackingService trackingService = new DependencyTrackingService().init();
         JobSchedulerBean bean = new JobSchedulerBean();
         bean.entityManager = entityManager;
+        bean.dependencyTrackingService = trackingService;
         JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean();
+        jtbean.dependencyTrackingService = trackingService;
         bean.pgJobStoreRepository = newPgJobStoreRepository();
         jtbean.entityManager = bean.entityManager;
         jtbean.sinkMessageProducerBean = mock(SinkMessageProducerBean.class);
@@ -174,7 +175,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     @Test
     public void isScheduled() {
         final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
-        DependencyTrackingService service = new DependencyTrackingService();
+        DependencyTrackingService service = new DependencyTrackingService().init();
         final ChunkEntity notScheduled = new ChunkEntity();
         notScheduled.setKey(new ChunkEntity.Key(42, 42));
         assertThat("not scheduled", service.isScheduled(notScheduled), is(false));

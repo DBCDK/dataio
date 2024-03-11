@@ -23,7 +23,6 @@ import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -77,16 +76,10 @@ public class JobSchedulerTransactionsBean {
      *
      * @param e Dependency tracking Entity
      */
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
-    public void addDependencies(DependencyTracking e) {
-        List<TrackingKey> chunksToWaitFor = dependencyTrackingService.findJobBarrier(e.getSinkId(), e.getKey().getJobId(), e.getMatchKeys());
-        e.setWaitingOn(chunksToWaitFor);
-        e.setStatus(ChunkSchedulingStatus.BLOCKED);
-
-        if (chunksToWaitFor.isEmpty()) {
-            e.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
-        }
+    public void addDependencies(DependencyTrackingRO e) {
+        Set<TrackingKey> chunksToWaitFor = dependencyTrackingService.findJobBarrier(e.getSinkId(), e.getKey().getJobId(), e.getMatchKeys());
+        dependencyTrackingService.addToChunksToWaitFor(e.getKey(), chunksToWaitFor);
     }
 
 

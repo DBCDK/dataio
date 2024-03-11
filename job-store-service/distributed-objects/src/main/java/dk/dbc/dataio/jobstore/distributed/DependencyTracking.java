@@ -61,6 +61,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
     public DependencyTracking(TrackingKey key, int sinkId) {
         this.key = key;
         this.sinkId = sinkId;
+        waitingOn = new HashSet<>();
     }
 
     public DependencyTracking(ResultSet rs) throws SQLException {

@@ -270,8 +270,8 @@ public class JobSchedulerBean {
         DependencyTracking endTracker = new DependencyTracking(chunkEntity.getKey().getJobId(), chunkId, sinkId, barrierMatchKey, chunkEntity.getSequenceAnalysisData().getData())
                 .setSubmitter(Math.toIntExact(jobEntity.getSpecification().getSubmitterId()))
                 .setPriority(Priority.HIGH.getValue());
-        jobSchedulerTransactionsBean.addDependencies(endTracker);
         TrackingKey jobEndKey = dependencyTrackingService.add(endTracker);
+        jobSchedulerTransactionsBean.addDependencies(endTracker);
         Chunk processedChunk = jobSchedulerTransactionsBean.getProcessedChunkFrom(jobEndKey);
         jobSchedulerTransactionsBean.submitToDeliveringIfPossible(processedChunk, jobEndKey);
     }

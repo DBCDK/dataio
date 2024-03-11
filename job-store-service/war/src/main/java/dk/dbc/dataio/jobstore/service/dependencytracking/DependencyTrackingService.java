@@ -16,6 +16,7 @@ import dk.dbc.dataio.jobstore.distributed.hz.aggregator.BlockedCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.JobCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.SinkStatusCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.StatusCounter;
+import dk.dbc.dataio.jobstore.distributed.hz.processor.AddWaitingOnProcessor;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.RemoveWaitingOnProcessor;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateCounterProcessor;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdatePriorityProcessor;
@@ -179,6 +180,12 @@ public class DependencyTrackingService {
         recountSinkStatus(Set.of());
     }
 
+    public void addToChunksToWaitFor(TrackingKey key, Set<TrackingKey> chunksToWaitFor) {
+        if(chunksToWaitFor.isEmpty()) return;
+        dependencyTracker.executeOnKey(key, new AddWaitingOnProcessor(chunksToWaitFor));
+        removeDeadWOs(key, chunksToWaitFor);
+    }
+
     public Set<TrackingKey> removeFromWaitingOn(TrackingKey key) {
         RemoveWaitingOnProcessor processor = new RemoveWaitingOnProcessor(key);
         Map<TrackingKey, StatusChangeEvent> map = dependencyTracker.executeOnEntries(processor, processor);
@@ -287,10 +294,8 @@ public class DependencyTrackingService {
      * @param waitForKey dataSetID
      * @return Returns List of Chunks To wait for.
      */
-    public List<TrackingKey> findJobBarrier(int sinkId, int jobId, Set<String> waitForKey) {
-        return dependencyTracker.keySet(new WaitForKey(sinkId, jobId, waitForKey)).stream()
-                .sorted(Comparator.comparing(TrackingKey::getJobId).thenComparing(TrackingKey::getChunkId))
-                .collect(Collectors.toList());
+    public Set<TrackingKey> findJobBarrier(int sinkId, int jobId, Set<String> waitForKey) {
+        return dependencyTracker.keySet(new WaitForKey(sinkId, jobId, waitForKey));
     }
 
     /**

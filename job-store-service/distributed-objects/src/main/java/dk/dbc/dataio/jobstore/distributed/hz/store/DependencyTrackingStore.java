@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
 public class DependencyTrackingStore implements MapStore<TrackingKey, DependencyTracking> {
@@ -30,7 +29,7 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
     private static final KeySetJSONBConverter KEY_SET_CONVERTER = new KeySetJSONBConverter();
     private static final StringSetConverter STRING_SET_CONVERTER = new StringSetConverter();
     private static final IntegerArrayToPgIntArrayConverter INT_ARRAY_CONVERTER = new IntegerArrayToPgIntArrayConverter();
-    private static final String DS_JNDI = "jdbc/dataio/jobstore";
+    public static final String DS_JNDI = "jdbc/dataio/jobstore";
     private final DataSource dataSource;
 
     private static final String UPSERT = "insert into dependencytracking(jobid, chunkid, sinkid, status, waitingon, matchkeys, priority, hashes, submitter, lastmodified, retries) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) on conflict on constraint dependencytracking_pkey do " +
@@ -124,7 +123,6 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
 
     @Override
     public Iterable<TrackingKey> loadAllKeys() {
-        LockSupport.parkNanos(60L * 1000_000_000);
         String sql = "select jobid, chunkid from dependencytracking";
         return fetch(sql, ps -> {
             ResultSet rs = ps.executeQuery();

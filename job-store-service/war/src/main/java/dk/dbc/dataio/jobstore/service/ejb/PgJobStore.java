@@ -204,7 +204,7 @@ public class PgJobStore {
     }
 
 
-    private PgJobStore self() {
+    protected PgJobStore self() {
         return sessionContext.getBusinessObject(PgJobStore.class);
     }
 
@@ -492,12 +492,17 @@ public class PgJobStore {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         LOGGER.info("addChunk: adding {} chunk {}/{}", chunk.getType(), chunk.getJobId(), chunk.getChunkId());
 
+        JobEntity jobEntity = self().updateJob(chunk);
+        return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public JobEntity updateJob(Chunk chunk) throws JobStoreException {
         final ChunkEntity.Key chunkKey = new ChunkEntity.Key((int) chunk.getChunkId(), chunk.getJobId());
         final ChunkEntity chunkEntity = jobStoreRepository.getExclusiveAccessFor(ChunkEntity.class, chunkKey);
         if (chunkEntity == null) {
             throw new JobStoreException(String.format("ChunkEntity.%s could not be found", chunkKey));
         }
-
         // update items
         final PgJobStoreRepository.ChunkItemEntities chunkItemEntities = jobStoreRepository.updateChunkItemEntities(chunk);
         if (chunkItemEntities.size() != chunkEntity.getNumberOfItems()) {
@@ -535,11 +540,7 @@ public class PgJobStore {
             addNotificationIfSpecificationHasDestination(Notification.Type.JOB_COMPLETED, jobEntity);
             logTimerMessage(jobEntity);
         }
-
-        jobStoreRepository.flushEntityManager();
-        jobStoreRepository.refreshFromDatabase(jobEntity);
-
-        return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
+        return jobEntity;
     }
 
     private boolean chunkCompletesJob(JobEntity jobEntity, Chunk chunk) {
@@ -551,7 +552,7 @@ public class PgJobStore {
         // to wait for an explicit termination chunk,
         // ie. if jobEntity.getNumberOfItems() == jobState.getPhase(State.Phase.PARTITIONING).getNumberOfItems() + 1
         // and the given chunk is not itself a termination chunk.
-        return jobEntity.getNumberOfItems() >= jobState.getPhase(State.Phase.PARTITIONING).getNumberOfItems()
+        return jobEntity.getNumberOfItems() == jobState.getPhase(State.Phase.PARTITIONING).getNumberOfItems()
                 || chunk.isTerminationChunk();
     }
 

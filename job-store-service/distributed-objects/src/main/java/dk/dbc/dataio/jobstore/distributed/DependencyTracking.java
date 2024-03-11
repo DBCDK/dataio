@@ -6,6 +6,8 @@ import dk.dbc.dataio.jobstore.distributed.tools.Hashcode;
 import dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter;
 import dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter;
 import org.postgresql.util.PGobject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
@@ -23,6 +25,7 @@ import java.util.Set;
  */
 public class DependencyTracking implements DependencyTrackingRO, Serializable {
     private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTracking.class);
     private static final ZoneId ZONE_ID_DK = ZoneId.of("Europe/Copenhagen");
 
     private TrackingKey key;
@@ -65,8 +68,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
         sinkId = rs.getInt("sinkid");
         waitingOn = new HashSet<>(new KeySetJSONBConverter().convertToEntityAttribute((PGobject) rs.getObject("waitingon")));
         status = ChunkSchedulingStatus.from(rs.getInt("status"));
-        matchKeys = new StringSetConverter().convertToEntityAttribute((PGobject) rs.getObject("matchkeys"));
-        hashes = computeHashes(matchKeys);
+        setMatchKeys(new StringSetConverter().convertToEntityAttribute((PGobject) rs.getObject("matchkeys")));
         priority = rs.getInt("priority");
         submitter = rs.getInt("submitter");
         lastModified = rs.getTimestamp("lastmodified").toInstant();
@@ -127,7 +129,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
     public DependencyTracking setMatchKeys(Set<String> matchKeys) {
         this.matchKeys = matchKeys;
         if (this.matchKeys != null) {
-            this.hashes = computeHashes(this.matchKeys);
+            hashes = computeHashes(this.matchKeys);
         }
         return this;
     }
@@ -216,7 +218,6 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
         final Integer[] hashes = new Integer[strings.size()];
         int i = 0;
         for (String str : strings) {
-            // There is an autoboxing penalty being paid here for int -> Integer
             hashes[i++] = Hashcode.of(str);
         }
         return hashes;

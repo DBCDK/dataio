@@ -19,13 +19,17 @@ public class Hazelcast {
                 .filter(s -> !s.isEmpty())
                 .orElse("/opt/payara6/deployments/hz-data.xml");
         try(InputStream is = new FileInputStream(configFile)) {
-            Config config = new XmlConfigBuilder(is).build();
-            config.setInstanceName(System.getenv("HOSTNAME"));
-            config.setClassLoader(Hazelcast.class.getClassLoader());
-            return com.hazelcast.core.Hazelcast.newHazelcastInstance(config);
+            return com.hazelcast.core.Hazelcast.newHazelcastInstance(makeConfig(is));
         } catch (IOException e) {
             throw new IllegalStateException("Failed to start hazelcast data instance", e);
         }
+    }
+
+    public static Config makeConfig(InputStream configStream) {
+        Config config = new XmlConfigBuilder(configStream).build();
+        config.setInstanceName(System.getenv("HOSTNAME"));
+        config.setClassLoader(Hazelcast.class.getClassLoader());
+        return config;
     }
 
     private static HazelcastInstance getInstance() {

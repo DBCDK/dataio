@@ -13,9 +13,6 @@ import java.util.Set;
 public class RemoveWaitingOnProcessor implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent>, Predicate<TrackingKey, DependencyTracking> {
     private TrackingKey key;
 
-    public RemoveWaitingOnProcessor() {
-    }
-
     public RemoveWaitingOnProcessor(TrackingKey key) {
         this.key = key;
     }

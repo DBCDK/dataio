@@ -25,7 +25,6 @@ public class UpdateStatusProcessor implements EntryProcessor<TrackingKey, Depend
         dt.setStatus(schedulingStatus);
         entry.setValue(dt);
         LOGGER.debug("Status update on {} - {}", entry.getKey(), schedulingStatus);
-
         return event;
     }
 }

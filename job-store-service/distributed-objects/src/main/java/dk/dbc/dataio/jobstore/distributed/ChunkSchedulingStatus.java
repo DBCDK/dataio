@@ -13,8 +13,9 @@ public enum ChunkSchedulingStatus {
     READY_FOR_DELIVERY(4, s -> s.getDeliveringStatus().ready),     // chunk is ready for delivery
     QUEUED_FOR_DELIVERY(5, 1000, READY_FOR_DELIVERY, s -> s.getDeliveringStatus().enqueued);     // chunk is sent to sink JMS queue
 
+    static int transitionToDirectMark = 50;
     public final Integer value;
-    public final Integer capacity;
+    Integer max;
 
     public final ChunkSchedulingStatus resend;
     private static final Map<Integer, ChunkSchedulingStatus> VALUE_MAP = Arrays.stream(values()).collect(Collectors.toMap(c -> c.value, c -> c));
@@ -24,11 +25,19 @@ public enum ChunkSchedulingStatus {
         this(value, null, null, counter);
     }
 
-    ChunkSchedulingStatus(Integer value, Integer capacity, ChunkSchedulingStatus resend, Function<JobSchedulerSinkStatus, AtomicInteger> counter) {
+    ChunkSchedulingStatus(Integer value, Integer max, ChunkSchedulingStatus resend, Function<JobSchedulerSinkStatus, AtomicInteger> counter) {
         this.value = value;
-        this.capacity = capacity;
+        this.max = max;
         this.resend = resend;
         this.counter = counter;
+    }
+
+    public static int getTransitionToDirectMark() {
+        return transitionToDirectMark;
+    }
+
+    public Integer getMax() {
+        return max;
     }
 
     public void enterStatus(JobSchedulerSinkStatus status) {

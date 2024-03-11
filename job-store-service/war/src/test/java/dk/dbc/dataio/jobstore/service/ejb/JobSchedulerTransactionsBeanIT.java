@@ -9,7 +9,6 @@ import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,9 +21,9 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
     @Test
     public void findChunksToWaitFor() throws Exception {
-        JPATestUtils.runSqlFromResource(entityManager, this, "JobSchedulerBeanIT_findWaitForChunks.sql");
+        startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
 
-        DependencyTrackingService service = new DependencyTrackingService();
+        DependencyTrackingService service = new DependencyTrackingService().init();
 
         assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0)
                         .setSubmitter(123456)
@@ -92,7 +91,7 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
     }
 
     private Set<String> asSet(String... values) {
-        return Arrays.stream(values).collect(Collectors.toSet());
+        return Set.of(values);
     }
 }
 

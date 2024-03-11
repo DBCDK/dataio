@@ -1131,7 +1131,14 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     private PgJobStore newPgJobStore() throws FileStoreServiceConnectorException {
 
         // Subjects Under Test -> hence no mocks!
-        final PgJobStore pgJobStore = new PgJobStore();
+        final PgJobStore pgJobStore = new PgJobStore() {
+            @Override
+            protected PgJobStore self() {
+                entityManager.getTransaction().commit();
+                entityManager.getTransaction().begin();
+                return super.self();
+            }
+        };
         pgJobStore.entityManager = entityManager;
 
         pgJobStore.jobStoreRepository = new PgJobStoreRepository();

@@ -210,7 +210,7 @@ public class State implements Serializable {
      */
     private boolean phaseDone(StateElement partitioning, StateElement stateElement) {
         return stateElement.getSucceeded() + stateElement.getIgnored() + stateElement.getFailed()
-                >= partitioning.getSucceeded() + partitioning.getIgnored() + partitioning.getFailed()
+                == partitioning.getSucceeded() + partitioning.getIgnored() + partitioning.getFailed()
                 && partitioning.getEndDate() != null;
     }
 

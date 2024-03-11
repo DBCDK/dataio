@@ -83,10 +83,6 @@ public class JobSchedulerBean {
 
     private static final Set<SinkContent.SinkType> REQUIRES_TERMINATION_CHUNK = new HashSet<>(Set.of(SinkContent.SinkType.MARCCONV, SinkContent.SinkType.PERIODIC_JOBS, SinkContent.SinkType.TICKLE));
 
-    // if Number of Chunks in JMS Queue
-    @SuppressWarnings("EjbClassWarningsInspection")
-    static int TRANSITION_TO_DIRECT_MARK = 50;
-
     @Inject
     @JobstoreDB
     EntityManager entityManager;

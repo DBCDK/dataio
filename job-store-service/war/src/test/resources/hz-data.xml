@@ -2,28 +2,6 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://www.hazelcast.com/schema/config
            http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
-    <network>
-        <join>
-            <auto-detection enabled="false"/>
-            <multicast enabled="false"/>
-            <tcp-ip enabled="false"/>
-            <aws enabled="false"/>
-            <gcp enabled="false"/>
-            <eureka enabled="false"/>
-            <azure enabled="false"/>
-            <kubernetes enabled="true">
-                <service-dns>dataio-jobstore-data-cluster</service-dns>
-                <kubernetes-api-retries>0</kubernetes-api-retries>
-                <service-port>5801</service-port>
-            </kubernetes>
-        </join>
-        <port auto-increment="false">5801</port>
-    </network>
-    <properties>
-        <property name="hazelcast.jmx">true</property>
-        <property name="hazelcast.operation.thread.count">8</property>
-        <property name="hazelcast.operation.generic.thread.count">8</property>
-    </properties>
     <map name="dependencies">
         <in-memory-format>OBJECT</in-memory-format>
         <metadata-policy>CREATE_ON_UPDATE</metadata-policy>

@@ -4,6 +4,8 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -111,17 +113,16 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
     }
 
     private BootstrapBean newBootstrapBean() throws FlowStoreServiceConnectorException {
+        Hazelcast.testInstance(createHazelcastInstance());
         final BootstrapBean bootstrapBean = new BootstrapBean();
         bootstrapBean.jobQueueRepository = newJobQueueRepository();
         bootstrapBean.jobSchedulerBean = newJobSchedulerBean();
         bootstrapBean.rerunsRepository = newRerunsRepository();
         bootstrapBean.timerService = timerService;
-        bootstrapBean.jobSchedulerBean.jobSchedulerTransactionsBean =
-                mock(JobSchedulerTransactionsBean.class);
-        bootstrapBean.jobSchedulerBean.metricRegistry =
-                mock(MetricRegistry.class);
-        bootstrapBean.jobSchedulerBean.flowStore =
-                mock(FlowStoreServiceConnectorBean.class);
+        bootstrapBean.jobSchedulerBean.jobSchedulerTransactionsBean = mock(JobSchedulerTransactionsBean.class);
+        bootstrapBean.jobSchedulerBean.dependencyTrackingService = new DependencyTrackingService().init();
+        bootstrapBean.jobSchedulerBean.metricRegistry = mock(MetricRegistry.class);
+        bootstrapBean.jobSchedulerBean.flowStore = mock(FlowStoreServiceConnectorBean.class);
         FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         when(bootstrapBean.jobSchedulerBean.flowStore.getConnector()).thenReturn(flowStoreServiceConnector);
         when(bootstrapBean.jobSchedulerBean.flowStore.getConnector().findAllSinks()).thenReturn(Collections.emptyList());

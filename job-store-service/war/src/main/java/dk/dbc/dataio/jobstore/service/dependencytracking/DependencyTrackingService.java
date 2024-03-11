@@ -103,8 +103,8 @@ public class DependencyTrackingService {
     }
 
     public int capacity(int sinkId, ChunkSchedulingStatus status) {
-        if(status.capacity == null) throw new IllegalArgumentException("This status does not have a capacity");
-        return status.capacity - getCount(sinkId, status);
+        if(status.getMax() == null) throw new IllegalArgumentException("This status does not have a capacity");
+        return status.getMax() - getCount(sinkId, status);
     }
 
     private void updateCounters(Stream<StatusChangeEvent> changes) {

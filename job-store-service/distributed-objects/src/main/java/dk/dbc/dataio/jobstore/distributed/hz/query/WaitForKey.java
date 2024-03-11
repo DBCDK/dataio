@@ -10,12 +10,12 @@ import java.util.Set;
 
 public class WaitForKey implements Predicate<TrackingKey, DependencyTracking> {
     private final int sinkId;
-    private final int submitterNumber;
+    private final int jobId;
     private final Set<String> matchKeys;
 
-    public WaitForKey(int sinkId, int submitterNumber, Set<String> matchKeys) {
+    public WaitForKey(int sinkId, int jobId, Set<String> matchKeys) {
         this.sinkId = sinkId;
-        this.submitterNumber = submitterNumber;
+        this.jobId = jobId;
         this.matchKeys = Objects.requireNonNull(matchKeys);
     }
 
@@ -23,7 +23,8 @@ public class WaitForKey implements Predicate<TrackingKey, DependencyTracking> {
     public boolean apply(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking value = entry.getValue();
         return value.getSinkId() == sinkId &&
-                value.getSubmitter() == submitterNumber &&
-                value.getMatchKeys().stream().limit(1).anyMatch(matchKeys::contains); // Todo JEGA: Not entirely sure if this is correct, must test
+                (value.getKey().getJobId() == jobId ||
+                matchKeys.stream().limit(1).anyMatch(value.getMatchKeys()::contains)); // Todo JEGA: Not entirely sure if this is correct, must test
     }
+    // SELECT jobId, chunkId FROM dependencyTracking WHERE sinkId=? AND (jobId=? or matchKeys @> '["?"]' ) ORDER BY jobId, chunkId FOR NO KEY UPDATE
 }

@@ -111,8 +111,7 @@ public class JobsBean {
             removeFromQueues(job);
             jobProcessorMessageProducerBean.sendAbort(job);
             sinkMessageProducerBean.sendAbort(job);
-
-            jobStore.removeFromDependencyTracking(job);
+            dependencyTrackingService.removeJobId(job.getId());
         }
         LOGGER.info("Abort job {} and removed its dependencies", jobId);
         return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(jobs.stream().findFirst().orElse(null))).build();

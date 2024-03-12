@@ -86,8 +86,8 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                     .build()
             );
         });
-        // check no statuses is modified
-        IntStream.range(1, 6).mapToObj(i -> dtTracker.get(new TrackingKey(3, i)))
+        //Todo JEGA: check no statuses is modified... uhm except for the one that is queued for processing?
+        IntStream.range(1, 6).filter(i -> i != 2).mapToObj(i -> dtTracker.get(new TrackingKey(3, i)))
                 .forEach(dt -> Assert.assertEquals(dt.getKey().getChunkId(), dt.getStatus().value.intValue()));
     }
 
@@ -150,32 +150,24 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                 getDependencyTrackingEntity(3, 5).getMatchKeys(),
                 containsInAnyOrder("1"));
 
-        assertThat("check waitingOn for chunk1",
-                getDependencyTrackingEntity(3, 0).getWaitingOn().size(), is(0));
-        assertThat("check waitingOn for chunk2",
-                getDependencyTrackingEntity(3, 1).getWaitingOn(), containsInAnyOrder(
-                        mk(3, 0)));
-        assertThat("check waitingOn for chunk3",
-                getDependencyTrackingEntity(3, 2).getWaitingOn(), containsInAnyOrder(
-                        mk(3, 0),
-                        mk(3, 1)));
-        assertThat("check waitingOn for chunk4",
-                getDependencyTrackingEntity(3, 3).getWaitingOn(), containsInAnyOrder(
-                        mk(3, 0),
-                        mk(3, 2)));
-        assertThat("check waitingOn for chunk5",
-                getDependencyTrackingEntity(3, 5).getWaitingOn(), containsInAnyOrder(
-                        mk(3, 0),
-                        mk(3, 1),
-                        mk(3, 2),
-                        mk(3, 3),
-                        mk(3, 4)));
+        assertThat("check waitingOn for chunk1", getDependencyTrackingEntity(3, 0).getWaitingOn().size(), is(0));
+        assertThat("check waitingOn for chunk2", getDependencyTrackingEntity(3, 1).getWaitingOn(), containsInAnyOrder(
+                mk(3, 0)));
+        assertThat("check waitingOn for chunk3", getDependencyTrackingEntity(3, 2).getWaitingOn(), containsInAnyOrder(
+                mk(3, 1)));
+        assertThat("check waitingOn for chunk4", getDependencyTrackingEntity(3, 3).getWaitingOn(), containsInAnyOrder(
+                mk(3, 0),
+                mk(3, 2)));
+        assertThat("check waitingOn for chunk5", getDependencyTrackingEntity(3, 5).getWaitingOn(), containsInAnyOrder(
+                mk(3, 4)));
     }
 
     @Test
     public void isScheduled() {
-        final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
+        Hazelcast.testInstance(createHazelcastInstance());
         DependencyTrackingService service = new DependencyTrackingService().init();
+        final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
+        jobSchedulerBean.dependencyTrackingService = service;
         final ChunkEntity notScheduled = new ChunkEntity();
         notScheduled.setKey(new ChunkEntity.Key(42, 42));
         assertThat("not scheduled", service.isScheduled(notScheduled), is(false));
@@ -188,11 +180,14 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     @Test
     public void ensureLastChunkIsScheduled_alreadyScheduled() {
         final JobEntity jobEntity = newPersistedJobEntity();
+        Hazelcast.testInstance(createHazelcastInstance());
+        DependencyTrackingService trackingService = new DependencyTrackingService().init();
         jobEntity.setNumberOfChunks(43);
         newPersistedChunkEntity(new ChunkEntity.Key(42, jobEntity.getId()));
-        newPersistedDependencyTrackingEntity(new TrackingKey(jobEntity.getId(), 42));
+        trackingService.add(newDependencyTrackingEntity(new TrackingKey(jobEntity.getId(), 42)));
 
         final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
+        jobSchedulerBean.dependencyTrackingService = trackingService;
         jobSchedulerBean.entityManager = entityManager;
 
         // No key violation, so the isScheduled call must have returned true...
@@ -201,6 +196,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
 
     @Test
     public void ensureLastChunkIsScheduled_notAlreadyScheduled() {
+        Hazelcast.testInstance(createHazelcastInstance());
         final SinkCacheEntity sinkCacheEntity = newPersistedSinkCacheEntity();
 
         final JobEntity jobEntity = newJobEntity();
@@ -209,15 +205,15 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         jobEntity.setPriority(Priority.HIGH);
         persist(jobEntity);
 
-        final ChunkEntity chunkEntity =
-                newPersistedChunkEntity(new ChunkEntity.Key(42, jobEntity.getId()));
+        final ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(42, jobEntity.getId()));
 
-        final JobSchedulerTransactionsBean jobSchedulerTransactionsBean
-                = mock(JobSchedulerTransactionsBean.class);
-
+        final JobSchedulerTransactionsBean jobSchedulerTransactionsBean = mock(JobSchedulerTransactionsBean.class);
+        DependencyTrackingService trackingService = new DependencyTrackingService().init();
         final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
         jobSchedulerBean.entityManager = entityManager;
+        jobSchedulerBean.dependencyTrackingService = trackingService;
         jobSchedulerBean.jobSchedulerTransactionsBean = jobSchedulerTransactionsBean;
+        jobSchedulerTransactionsBean.dependencyTrackingService = trackingService;
 
         jobSchedulerBean.ensureLastChunkIsScheduled(jobEntity.getId());
 

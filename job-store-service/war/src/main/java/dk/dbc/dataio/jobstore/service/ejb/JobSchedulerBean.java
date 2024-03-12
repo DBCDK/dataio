@@ -150,7 +150,7 @@ public class JobSchedulerBean {
         int sinkId = job.getCachedSink().getSink().getId();
         String barrierMatchKey = getBarrierMatchKey(job);
 
-        DependencyTracking e = new DependencyTracking(chunk.getKey().getJobId(), chunk.getKey().getId(), sinkId, chunk.getKey().getId() == 0 ? barrierMatchKey : null, null);
+        DependencyTracking e = new DependencyTracking(chunk.getKey().getJobId(), chunk.getKey().getId(), sinkId, chunk.getKey().getId() == 0 ? barrierMatchKey : null, chunk.getSequenceAnalysisData().getData());
         e.setSubmitter(Math.toIntExact(job.getSpecification().getSubmitterId()));
         e.setPriority(job.getPriority().getValue());
 

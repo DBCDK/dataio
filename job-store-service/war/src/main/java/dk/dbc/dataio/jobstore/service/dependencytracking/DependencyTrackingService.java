@@ -181,9 +181,12 @@ public class DependencyTrackingService {
     }
 
     public void addToChunksToWaitFor(TrackingKey key, Set<TrackingKey> chunksToWaitFor) {
-        if(chunksToWaitFor.isEmpty()) return;
-        dependencyTracker.executeOnKey(key, new AddWaitingOnProcessor(chunksToWaitFor));
-        removeDeadWOs(key, chunksToWaitFor);
+        Set<DependencyTrackingRO> allWOs = chunksToWaitFor.stream().filter(k -> !key.equals(k)).map(this::get).filter(Objects::nonNull).collect(Collectors.toSet());
+        if(allWOs.isEmpty()) return;
+        Set<TrackingKey> reducedWOs = optimizeDependencies(allWOs);
+        LOGGER.info("Adding dependencies on {}: reduced {}, chunksToWaitFor: {}", key, reducedWOs, allWOs);
+        dependencyTracker.executeOnKey(key, new AddWaitingOnProcessor(reducedWOs));
+        removeDeadWOs(key, reducedWOs);
     }
 
     public Set<TrackingKey> removeFromWaitingOn(TrackingKey key) {
@@ -342,14 +345,14 @@ public class DependencyTrackingService {
         return optimizeDependencies(values);
     }
 
-    public static Set<TrackingKey> optimizeDependencies(Collection<? extends DependencyTracking> dependencies) {
+    public static Set<TrackingKey> optimizeDependencies(Collection<? extends DependencyTrackingRO> dependencies) {
         if(dependencies.isEmpty()) return Set.of();
         Set<TrackingKey> keys = dependencies.stream()
-                .map(DependencyTracking::getWaitingOn)
+                .map(DependencyTrackingRO::getWaitingOn)
                 .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
-        return dependencies.stream().map(DependencyTracking::getKey).filter(k -> !keys.contains(k)).collect(Collectors.toSet());
+        return dependencies.stream().map(DependencyTrackingRO::getKey).filter(k -> !keys.contains(k)).collect(Collectors.toSet());
     }
 
     public Integer[] jobCount(int sinkId) {

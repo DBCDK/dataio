@@ -85,9 +85,6 @@ public class PgJobStore {
     @EJB
     JobNotificationRepository jobNotificationRepository;
     @Inject
-    DependencyTrackingService dependencyTrackingService;
-
-    @Inject
     @JobstoreDB
     EntityManager entityManager;
 
@@ -113,7 +110,6 @@ public class PgJobStore {
         jobQueueRepository.deleteByJobId(jobId);
         LOGGER.info("Removing {} from dependency tracking", jobId);
 
-        removeFromDependencyTracking(jobEntity);
         jobSchedulerBean.loadSinkStatusOnBootstrap(Set.of(jobEntity.getCachedSink().getSink().getId()));
         LOGGER.info("Aborting job {} done", jobId);
         return Stream.concat(Stream.of(jobEntity), jobs);
@@ -381,10 +377,6 @@ public class PgJobStore {
         List<Integer> dependingJobs = jobStoreRepository.findDependingJobs(jobId).stream().filter(id -> !jobids.contains(id)).collect(Collectors.toList());
         if(!dependingJobs.isEmpty()) LOGGER.info("Aborting {} will also abort dependent jobs {}", jobId, dependingJobs);
         return dependingJobs.stream().flatMap(j -> abortJob(j, jobids));
-    }
-
-    public void removeFromDependencyTracking(JobEntity jobEntity) {
-        dependencyTrackingService.removeJobId(jobEntity.getId());
     }
 
     private State endPartitioningPhase(JobEntity job) {

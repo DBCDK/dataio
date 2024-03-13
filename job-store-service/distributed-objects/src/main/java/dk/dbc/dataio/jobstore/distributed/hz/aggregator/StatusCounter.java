@@ -44,7 +44,6 @@ public class StatusCounter implements Aggregator<Map.Entry<TrackingKey, Dependen
     }
 
     @Override
-
     public Map<Integer, Map<ChunkSchedulingStatus, Integer>> aggregate() {
         return map;
     }

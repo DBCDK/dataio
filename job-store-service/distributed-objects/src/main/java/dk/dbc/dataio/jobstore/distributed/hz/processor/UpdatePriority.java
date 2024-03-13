@@ -7,10 +7,10 @@ import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import java.util.Map;
 import java.util.Set;
 
-public class UpdatePriorityProcessor implements EntryProcessor<TrackingKey, DependencyTracking, Set<TrackingKey>> {
+public class UpdatePriority implements EntryProcessor<TrackingKey, DependencyTracking, Set<TrackingKey>> {
     final int priority;
 
-    public UpdatePriorityProcessor(int priority) {
+    public UpdatePriority(int priority) {
         this.priority = priority;
     }
 
@@ -18,6 +18,7 @@ public class UpdatePriorityProcessor implements EntryProcessor<TrackingKey, Depe
     @Override
     public Set<TrackingKey> process(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking dt = entry.getValue();
+        if(dt == null) return null;
         dt.setPriority(priority);
         entry.setValue(dt);
         return dt.getWaitingOn();

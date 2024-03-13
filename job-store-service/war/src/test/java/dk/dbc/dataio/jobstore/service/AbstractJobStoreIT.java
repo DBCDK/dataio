@@ -14,7 +14,6 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
@@ -25,8 +24,8 @@ import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore;
-import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.ejb.JobQueueRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
@@ -53,8 +52,6 @@ import org.junit.BeforeClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -87,7 +84,7 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     protected static final String REORDERED_ITEM_TABLE_NAME = "reordereditem";
     protected static final String RERUN_TABLE_NAME = "rerun";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobStoreIT.class);
-    protected static final DataSource datasource = dbContainer.datasource();
+    protected static final DataSource datasource = dbContainer.bindDatasource(DependencyTrackingStore.DS_JNDI).datasource();
     private static final long SUBMITTERID = 123456;
     protected final FileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
     protected final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
@@ -100,11 +97,7 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
 
     @BeforeClass
     public static void createDb() throws NamingException {
-        DatabaseMigrator databaseMigrator = new DatabaseMigrator()
-                .withDataSource(datasource);
-        databaseMigrator.onStartup();
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
-        new InitialContext().bind(DependencyTrackingStore.DS_JNDI, datasource);
+        DatabaseMigrator databaseMigrator = new DatabaseMigrator().withDataSource(datasource).onStartup();
         HazelcastInstance hz = mock(HazelcastInstance.class);
         ISet set = mock(ISet.class);
         when(hz.getSet(eq("aborted.jobs"))).thenReturn(set);

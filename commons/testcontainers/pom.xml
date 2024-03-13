@@ -39,5 +39,10 @@
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-jdbc-util</artifactId>
         </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-test</artifactId>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>

@@ -1,9 +1,9 @@
 package dk.dbc.dataio.jobstore.distributed.hz.store;
 
 import com.hazelcast.map.MapStore;
+import dk.dbc.commons.jpa.converter.IntegerArrayToPgIntArrayConverter;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.distributed.tools.IntegerArrayToPgIntArrayConverter;
 import dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter;
 import dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter;
 import org.slf4j.Logger;

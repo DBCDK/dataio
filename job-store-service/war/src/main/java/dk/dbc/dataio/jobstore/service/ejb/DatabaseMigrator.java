@@ -20,8 +20,8 @@ public class DatabaseMigrator {
     DataSource dataSource;
 
     @PostConstruct
-    public void onStartup() {
-        final Flyway flyway = Flyway.configure()
+    public DatabaseMigrator onStartup() {
+        Flyway flyway = Flyway.configure()
                 .table("schema_version_2")
                 .baselineOnMigrate(true)
                 .baselineVersion("1")
@@ -31,6 +31,7 @@ public class DatabaseMigrator {
             LOGGER.info("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
         }
         flyway.migrate();
+        return this;
     }
 
 

@@ -11,21 +11,24 @@ import java.util.Objects;
 import java.util.Set;
 
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.BLOCKED;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
 
-public class AddWaitingOnProcessor implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent> {
+public class AddTerminationWaitingOn implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent> {
     private final Set<TrackingKey> keys;
 
-    public AddWaitingOnProcessor(Set<TrackingKey> keys) {
+    public AddTerminationWaitingOn(Set<TrackingKey> keys) {
         this.keys = Objects.requireNonNull(keys);
-        if(keys.isEmpty()) throw new IllegalArgumentException("There should be at least one key added");
     }
 
     @Override
     public StatusChangeEvent process(Map.Entry<TrackingKey, DependencyTracking> entry) {
         Set<TrackingKey> waitingOn = entry.getValue().getWaitingOn();
-        keys.forEach(waitingOn::add);
+        waitingOn.addAll(keys);
         ChunkSchedulingStatus oldStatus = entry.getValue().getStatus();
-        entry.getValue().setStatus(BLOCKED);
-        return oldStatus == BLOCKED ? null : new StatusChangeEvent(entry.getValue().getSinkId(), oldStatus, BLOCKED);
+        ChunkSchedulingStatus newStatus = waitingOn.isEmpty() ? READY_FOR_DELIVERY : BLOCKED;
+        if(oldStatus == newStatus) return null;
+        entry.getValue().setStatus(newStatus);
+        entry.setValue(entry.getValue());
+        return new StatusChangeEvent(entry.getValue().getSinkId(), oldStatus, newStatus);
     }
 }

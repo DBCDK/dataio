@@ -13,16 +13,11 @@ import java.util.stream.Collectors;
 
 public class BlockedCounter implements Aggregator<Map.Entry<TrackingKey, DependencyTracking>, Map<Integer, Integer>> {
     private final Map<Integer, AtomicInteger> map = new HashMap<>();
-    private final ChunkSchedulingStatus status;
-
-    public BlockedCounter(ChunkSchedulingStatus status) {
-        this.status = Objects.requireNonNull(status);
-    }
 
     @Override
     public void accumulate(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking dt = entry.getValue();
-        if(dt.getStatus() == status) {
+        if(dt.getStatus() == ChunkSchedulingStatus.BLOCKED) {
             map.computeIfAbsent(dt.getSinkId(), id -> new AtomicInteger(0)).incrementAndGet();
         }
     }

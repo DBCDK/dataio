@@ -10,10 +10,10 @@ import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import java.util.Map;
 import java.util.Set;
 
-public class RemoveWaitingOnProcessor implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent>, Predicate<TrackingKey, DependencyTracking> {
+public class RemoveWaitingOn implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent>, Predicate<TrackingKey, DependencyTracking> {
     private TrackingKey key;
 
-    public RemoveWaitingOnProcessor(TrackingKey key) {
+    public RemoveWaitingOn(TrackingKey key) {
         this.key = key;
     }
 
@@ -31,6 +31,7 @@ public class RemoveWaitingOnProcessor implements EntryProcessor<TrackingKey, Dep
 
     @Override
     public boolean apply(Map.Entry<TrackingKey, DependencyTracking> entry) {
+        if(entry.getKey() == null) return false;
         Set<TrackingKey> waitingOn = entry.getValue().getWaitingOn();
         return waitingOn != null && waitingOn.contains(key);
     }

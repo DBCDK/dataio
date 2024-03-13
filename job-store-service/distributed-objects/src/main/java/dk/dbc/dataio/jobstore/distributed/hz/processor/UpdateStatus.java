@@ -10,17 +10,18 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-public class UpdateStatusProcessor implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UpdateStatusProcessor.class);
+public class UpdateStatus implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UpdateStatus.class);
     private ChunkSchedulingStatus schedulingStatus;
 
-    public UpdateStatusProcessor(ChunkSchedulingStatus schedulingStatus) {
+    public UpdateStatus(ChunkSchedulingStatus schedulingStatus) {
         this.schedulingStatus = schedulingStatus;
     }
 
     @Override
     public StatusChangeEvent process(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking dt = entry.getValue();
+        if(dt == null) return null;
         StatusChangeEvent event = new StatusChangeEvent(dt.getSinkId(), dt.getStatus(), schedulingStatus);
         dt.setStatus(schedulingStatus);
         entry.setValue(dt);

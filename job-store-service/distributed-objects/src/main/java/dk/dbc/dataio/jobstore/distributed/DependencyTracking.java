@@ -2,12 +2,10 @@ package dk.dbc.dataio.jobstore.distributed;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.dataio.jobstore.distributed.tools.Hashcode;
+import dk.dbc.dataio.commons.utils.lang.Hashcode;
 import dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter;
 import dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter;
 import org.postgresql.util.PGobject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
@@ -25,11 +23,10 @@ import java.util.Set;
  */
 public class DependencyTracking implements DependencyTrackingRO, Serializable {
     private static final long serialVersionUID = 1L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTracking.class);
     private static final ZoneId ZONE_ID_DK = ZoneId.of("Europe/Copenhagen");
 
-    private TrackingKey key;
-    private int sinkId;
+    private final TrackingKey key;
+    private final int sinkId;
     private ChunkSchedulingStatus status = ChunkSchedulingStatus.READY_FOR_PROCESSING;
     private int priority;
     private Set<TrackingKey> waitingOn;

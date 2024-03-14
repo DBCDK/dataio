@@ -1,12 +1,10 @@
-package dk.dbc.dataio.jobstore.distributed.hz;
+package dk.dbc.dataio.jobstore.distributed.hz.processor;
 
 import com.hazelcast.map.impl.MapEntrySimple;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.distributed.hz.processor.AddTerminationWaitingOn;
-import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateCounter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

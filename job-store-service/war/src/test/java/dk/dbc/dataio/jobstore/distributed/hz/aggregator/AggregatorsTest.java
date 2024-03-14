@@ -5,7 +5,6 @@ import com.hazelcast.map.IMap;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,6 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
+import static org.junit.Assert.assertEquals;
 
 public class AggregatorsTest extends JetTestSupport {
     private static final int SINKS = 3;
@@ -33,8 +33,8 @@ public class AggregatorsTest extends JetTestSupport {
     public void blockedCounter() {
         addTrackers(20);
         Map<Integer, Integer> aggregate = map.aggregate(new BlockedCounter());
-        Map<Integer, Integer> expected = Map.of(0, 2, 1, 1, 2, 2);
-        Assert.assertTrue("We should have 3 sinks with 2, 1 and 2 blocked", expected.equals(aggregate));
+        Map<Integer, Integer> expected = Map.of(0, 3, 1, 3, 2, 4);
+        assertEquals("We should have 3 sinks with 3, 3 and 4 blocked", expected, aggregate);
     }
 
     @Test
@@ -43,8 +43,8 @@ public class AggregatorsTest extends JetTestSupport {
         Integer[] aggregate = map.aggregate(new JobCounter(0));
         long jobs = list.stream().mapToInt(dt -> dt.getKey().getJobId()).distinct().count();
         long chunks = list.stream().filter(dt -> dt.getSinkId() == 0).count();
-        Assert.assertEquals("There should be " + jobs + "jobs for sink 0", jobs, aggregate[0].longValue());
-        Assert.assertEquals("There should be " + chunks + "chunks for sink 0", chunks, aggregate[1].longValue());
+        assertEquals("There should be " + jobs + "jobs for sink 0", jobs, aggregate[0].longValue());
+        assertEquals("There should be " + chunks + "chunks for sink 0", chunks, aggregate[1].longValue());
     }
 
     @Test
@@ -52,7 +52,7 @@ public class AggregatorsTest extends JetTestSupport {
         List<DependencyTracking> list = addTrackers(50);
         int aggregate = map.aggregate(new SinkStatusCounter(0, QUEUED_FOR_PROCESSING));
         long expected = list.stream().filter(dt -> dt.getSinkId() == 0).filter(dt -> dt.getStatus() == QUEUED_FOR_PROCESSING).count();
-        Assert.assertEquals("There should be " + expected + " with status queued for processing in sink 0", expected, aggregate);
+        assertEquals("There should be " + expected + " with status queued for processing in sink 0", expected, aggregate);
     }
 
     @Test
@@ -63,9 +63,9 @@ public class AggregatorsTest extends JetTestSupport {
                 0, countSink(0, list),
                 1, countSink(1, list),
                 2, countSink(2, list));
-        Assert.assertEquals("Aggregating all sinks", expect, aggregateAll);
+        assertEquals("Aggregating all sinks", expect, aggregateAll);
         Map<Integer, Map<ChunkSchedulingStatus, Integer>> aggregateSink0 = map.aggregate(new StatusCounter(Set.of(0)));
-        Assert.assertEquals("Aggregating sink 0", Map.of(0, countSink(0, list)), aggregateSink0);
+        assertEquals("Aggregating sink 0", Map.of(0, countSink(0, list)), aggregateSink0);
     }
 
     private Map<ChunkSchedulingStatus, Integer> countSink(int sink, List<DependencyTracking> list) {

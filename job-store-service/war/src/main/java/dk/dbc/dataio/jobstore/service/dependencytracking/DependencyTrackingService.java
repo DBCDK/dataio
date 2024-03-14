@@ -23,7 +23,7 @@ import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdatePriority;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateStatus;
 import dk.dbc.dataio.jobstore.distributed.hz.query.ByStatusAndSinkId;
 import dk.dbc.dataio.jobstore.distributed.hz.query.ChunksToWaitFor;
-import dk.dbc.dataio.jobstore.distributed.hz.query.WaitForKey;
+import dk.dbc.dataio.jobstore.distributed.hz.query.JobChunksWaitForKey;
 import dk.dbc.dataio.jobstore.distributed.hz.query.WaitingOn;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import jakarta.annotation.PostConstruct;
@@ -297,7 +297,7 @@ public class DependencyTrackingService {
      * @return Returns List of Chunks To wait for.
      */
     public Set<TrackingKey> findJobBarrier(int sinkId, int jobId, Set<String> waitForKey) {
-        return dependencyTracker.keySet(new WaitForKey(sinkId, jobId, waitForKey));
+        return dependencyTracker.keySet(new JobChunksWaitForKey(sinkId, jobId, waitForKey));
     }
 
     /**

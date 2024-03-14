@@ -176,7 +176,6 @@
                                 <env>
                                     <TZ default-value="Europe/Copenhagen"/>
                                 </env>
-                                <runCmds>chown gfish:gfish /work</runCmds>
                                 <workdir>/work</workdir>
                                 <assemblies>
                                     <assembly>
@@ -202,7 +201,7 @@
                                         </inline>
                                     </assembly>
                                 </assemblies>
-                                <user>gfish</user>
+                                <user>java</user>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <cmd>/bin/bash -c "envsubst &lt; config.yaml > config-x.yaml &amp;&amp; java -jar -Xmx256m ${prometheus.jar} 8080 config-x.yaml"</cmd>
                             </build>

@@ -153,9 +153,7 @@
                                 <from>${java.image}</from>
                                 <user>root</user>
                                 <runCmds>
-                                    <run>apt-get update</run>
-                                    <run>apt-get install libxml2-utils -y</run>
-                                    <run>apt-get install jq -y</run>
+                                    <run>apt-install install libxml2-utils</run>
                                 </runCmds>
                                 <user>java</user>
                                 <assemblies>

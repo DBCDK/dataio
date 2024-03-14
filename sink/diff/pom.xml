@@ -156,7 +156,6 @@
                                     <run>id</run>
                                     <run>apt-install libxml2-utils</run>
                                 </runCmds>
-                                <user>java</user>
                                 <assemblies>
                                     <assembly>
                                         <mode>dir</mode>
@@ -180,6 +179,7 @@
                                         <targetDir>/work</targetDir>
                                     </assembly>
                                 </assemblies>
+                                <user>java</user>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-256m} -jar /work/${project.build.finalName}.jar</cmd>
                             </build>

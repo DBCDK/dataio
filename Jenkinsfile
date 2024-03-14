@@ -8,7 +8,7 @@ pipeline {
     agent {label workerNode}
     tools {
 		jdk 'jdk17'
-		maven 'Maven 3'
+		maven 'Maven 3.9'
     }
     environment {
         MAVEN_OPTS="-Dmaven.repo.local=/home/isworker/.m2/dataio-repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"

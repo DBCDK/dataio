@@ -153,7 +153,8 @@
                                 <from>${java.image}</from>
                                 <user>root</user>
                                 <runCmds>
-                                    <run>apt-install install libxml2-utils</run>
+                                    <run>id</run>
+                                    <run>apt-install libxml2-utils</run>
                                 </runCmds>
                                 <user>java</user>
                                 <assemblies>

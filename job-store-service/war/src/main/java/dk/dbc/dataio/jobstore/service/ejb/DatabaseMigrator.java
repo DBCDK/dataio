@@ -20,6 +20,11 @@ public class DatabaseMigrator {
     DataSource dataSource;
 
     @PostConstruct
+    public void init() {
+        onStartup();
+    }
+
+
     public DatabaseMigrator onStartup() {
         Flyway flyway = Flyway.configure()
                 .table("schema_version_2")

@@ -151,12 +151,13 @@
                             <name>docker-metascrum.artifacts.dbccloud.dk/%a:${tag}</name>
                             <build>
                                 <from>${java.image}</from>
+                                <user>root</user>
                                 <runCmds>
                                     <run>apt-get update</run>
                                     <run>apt-get install libxml2-utils -y</run>
                                     <run>apt-get install jq -y</run>
                                 </runCmds>
-                                <user>gfish</user>
+                                <user>java</user>
                                 <assemblies>
                                     <assembly>
                                         <mode>dir</mode>

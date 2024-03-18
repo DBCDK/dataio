@@ -151,9 +151,9 @@
                             <name>docker-metascrum.artifacts.dbccloud.dk/%a:${tag}</name>
                             <build>
                                 <from>${java.image}</from>
-                                <user>root</user>
+                                <user>java</user>
                                 <runCmds>
-                                    <run>id</run>
+                                    <user>root</user>
                                     <run>apt-install libxml2-utils</run>
                                 </runCmds>
                                 <assemblies>
@@ -179,7 +179,6 @@
                                         <targetDir>/work</targetDir>
                                     </assembly>
                                 </assemblies>
-                                <user>java</user>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-256m} -jar /work/${project.build.finalName}.jar</cmd>
                             </build>

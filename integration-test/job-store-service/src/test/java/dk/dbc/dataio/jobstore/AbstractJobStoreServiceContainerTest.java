@@ -39,6 +39,7 @@ import java.util.Arrays;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
 import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN_DAYS;
+import static org.testcontainers.containers.PostgreSQLContainer.POSTGRESQL_PORT;
 
 @SuppressWarnings({"SameParameterValue", "resource"})
 public abstract class AbstractJobStoreServiceContainerTest {
@@ -91,7 +92,8 @@ public abstract class AbstractJobStoreServiceContainerTest {
     private static DBCPostgreSQLContainer startJobstoreDB(Network network) {
         DBCPostgreSQLContainer container = new DBCPostgreSQLContainer().withNetwork(network)
                 .withReuse(false)
-                .withNetworkAliases("jobstoreDB");
+                .withNetworkAliases("jobstoreDB")
+                .waitingFor(Wait.forListeningPorts(POSTGRESQL_PORT));
         container.start();
         container.exposeHostPort();
         populateJobstoreDB(container);
@@ -126,7 +128,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("LOGSTORE_DB_URL", logStoreDBContainer.getPayaraDockerJdbcUrl())
                 .withEnv("LOG_FORMAT", "text")
                 .withEnv("JAVA_MAX_HEAP_SIZE", "2G")
-                .waitingFor(Wait.forHttp("/dataio/log-store-service/status"))
+                .waitingFor(Wait.forHttp("/dataio/log-store-service/status").forPort(8080))
                 .withExposedPorts(8080);
         container.start();
         Connection logstoreDbConnection = connectToDB(logStoreDBContainer);
@@ -152,6 +154,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("RAWREPO_HARVESTER_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
                 .withEnv("TICKLE_REPO_HARVESTER_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
                 .withEnv("VIPCORE_ENDPOINT", "http://vipcore-dummy")
+                .withEnv("HZ_CLUSTER_NAME", "localhost")
                 .withEnv("MAIL_HOST", "webmail.dbc.dk")
                 .withEnv("MAIL_USER", "mailuser")
                 .withEnv("MAIL_FROM", "danbib")
@@ -171,6 +174,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
     private static String getDebuggingHost() {
         try {
             String host = InetAddress.getLocalHost().getHostAddress() + ":5005";
+            host = "172.17.33.25:5005";
             return host;
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);

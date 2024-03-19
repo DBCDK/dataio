@@ -273,7 +273,7 @@ public class DependencyTrackingService {
      * Note only First key in waitForKey is checked.
      *
      * @param sinkId     sinkId
-     * @param jobId      jobId for witch chunks to wait for barrier
+     * @param jobId      jobId for which chunks to wait for barrier
      * @param waitForKey dataSetID
      * @return Returns List of Chunks To wait for.
      */

@@ -27,7 +27,7 @@ public enum Metric {
     SET_WORKFLOW_NOTE2,
     SINK_STATUS;
 
-    public Timer timer(MetricRegistry metricRegistry, Tag... tags) {
+    public Timer simpleTimer(MetricRegistry metricRegistry, Tag... tags) {
         return metricRegistry.timer(prefix() + "_" + name().toLowerCase(), tags);
     }
 

@@ -171,8 +171,7 @@ public class HarvestOperation implements AutoCloseable {
                         .addRecord(
                                 createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
 
-                metricRegistry.timer(taskDurationTimerMetadata,
-                                new Tag("config", config.getContent().getId()))
+                metricRegistry.timer(taskDurationTimerMetadata, new Tag("config", config.getContent().getId()))
                         .update(Duration.ofMillis(System.currentTimeMillis() - taskStartTime));
             }
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {

@@ -96,29 +96,10 @@ public class DependencyTrackingService {
         }
     }
 
-    private void removeDeadWOs(TrackingKey key, Set<TrackingKey> waitingOn) {
-        Stream<StatusChangeEvent> changes = waitingOn.stream()
-                .filter(k -> !dependencyTracker.containsKey(k))
-                .map(k -> dependencyTracker.executeOnKey(key, new RemoveWaitingOn(k)));
-        updateCounters(changes);
-    }
-
     public int capacity(int sinkId, ChunkSchedulingStatus status) {
         if(status.getMax() == null) throw new IllegalArgumentException("This status does not have a capacity");
         return status.getMax() - getCount(sinkId, status);
     }
-
-    private void updateCounters(Stream<StatusChangeEvent> changes) {
-        Map<Integer, List<StatusChangeEvent>> bySink = changes.filter(Objects::nonNull).collect(Collectors.groupingBy(StatusChangeEvent::getSinkId));
-        bySink.forEach(this::updateCounters);
-    }
-
-    private void updateCounters(Integer sinkId, List<StatusChangeEvent> statusChangeEvents) {
-        EnumMap<ChunkSchedulingStatus, Integer> deltas = new EnumMap<>(ChunkSchedulingStatus.class);
-        statusChangeEvents.forEach(e -> e.apply(deltas));
-        countersMap.executeOnKey(sinkId, new UpdateCounter(deltas));
-    }
-
 
     public void modify(TrackingKey key, Consumer<DependencyTracking> consumer) {
         try {
@@ -316,17 +297,6 @@ public class DependencyTrackingService {
         return stream.flatMap(this::checkBlocks).collect(Collectors.toSet());
     }
 
-    private Stream<TrackingKey> checkBlocks(DependencyTracking dt) {
-        boolean unblock = dt.getWaitingOn().stream().anyMatch(d -> !dependencyTracker.containsKey(d));
-        if(unblock) {
-            dt.setWaitingOn(dt.getWaitingOn().stream().filter(dependencyTracker::containsKey).collect(Collectors.toList()));
-            if(dt.getWaitingOn().isEmpty()) dt.setStatus(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
-            dependencyTracker.set(dt.getKey(), dt);
-            return Stream.of(dt.getKey());
-        }
-        return Stream.of();
-    }
-
     /**
      * Finds chunks matching keys in given dependency tracking entity
      * and given barrier match key
@@ -361,5 +331,34 @@ public class DependencyTrackingService {
     @Readiness
     public HealthCheck readyCheck() {
         return () -> HealthCheckResponse.named("hazelcast-ready").status(Hazelcast.isReady()).build();
+    }
+
+    private Stream<TrackingKey> checkBlocks(DependencyTracking dt) {
+        boolean unblock = dt.getWaitingOn().stream().anyMatch(d -> !dependencyTracker.containsKey(d));
+        if(unblock) {
+            dt.setWaitingOn(dt.getWaitingOn().stream().filter(dependencyTracker::containsKey).collect(Collectors.toList()));
+            if(dt.getWaitingOn().isEmpty()) dt.setStatus(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
+            dependencyTracker.set(dt.getKey(), dt);
+            return Stream.of(dt.getKey());
+        }
+        return Stream.of();
+    }
+
+    private void removeDeadWOs(TrackingKey key, Set<TrackingKey> waitingOn) {
+        Stream<StatusChangeEvent> changes = waitingOn.stream()
+                .filter(k -> !dependencyTracker.containsKey(k))
+                .map(k -> dependencyTracker.executeOnKey(key, new RemoveWaitingOn(k)));
+        updateCounters(changes);
+    }
+
+    private void updateCounters(Stream<StatusChangeEvent> changes) {
+        Map<Integer, List<StatusChangeEvent>> bySink = changes.filter(Objects::nonNull).collect(Collectors.groupingBy(StatusChangeEvent::getSinkId));
+        bySink.forEach(this::updateCounters);
+    }
+
+    private void updateCounters(Integer sinkId, List<StatusChangeEvent> statusChangeEvents) {
+        EnumMap<ChunkSchedulingStatus, Integer> deltas = new EnumMap<>(ChunkSchedulingStatus.class);
+        statusChangeEvents.forEach(e -> e.apply(deltas));
+        countersMap.executeOnKey(sinkId, new UpdateCounter(deltas));
     }
 }

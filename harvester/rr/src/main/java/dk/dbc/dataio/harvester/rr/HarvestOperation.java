@@ -27,7 +27,6 @@ import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
@@ -75,17 +74,14 @@ public class HarvestOperation implements AutoCloseable {
     static final Metadata taskDurationTimerMetadata = Metadata.builder()
             .withName("dataio_harvester_rr_task_duration_timer")
             .withDescription("Duration of harvester tasks")
-            .withType(MetricType.SIMPLE_TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
     static final Metadata taskErrorCounterMetadata = Metadata.builder()
             .withName("dataio_harvester_rr_task_error_counter")
             .withDescription("Number of failing tasks")
-            .withType(MetricType.COUNTER)
             .withUnit("tasks").build();
     static final Metadata exceptionCounterMetadata = Metadata.builder()
             .withName("dataio_harvester_rr_exception_counter")
             .withDescription("Number of unhandled exceptions caught")
-            .withType(MetricType.COUNTER)
             .withUnit("exceptions").build();
 
     public HarvestOperation(RRHarvesterConfig config,
@@ -175,8 +171,7 @@ public class HarvestOperation implements AutoCloseable {
                         .addRecord(
                                 createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
 
-                metricRegistry.simpleTimer(taskDurationTimerMetadata,
-                                new Tag("config", config.getContent().getId()))
+                metricRegistry.timer(taskDurationTimerMetadata, new Tag("config", config.getContent().getId()))
                         .update(Duration.ofMillis(System.currentTimeMillis() - taskStartTime));
             }
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {

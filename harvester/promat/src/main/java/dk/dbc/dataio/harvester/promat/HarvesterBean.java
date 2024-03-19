@@ -13,7 +13,6 @@ import jakarta.ejb.Singleton;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,13 +24,11 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHa
     static final Metadata caseCounterMetadata = Metadata.builder()
             .withName("dataio_harvester_promat_case_counter")
             .withDescription("Number of cases harvested")
-            .withType(MetricType.COUNTER)
             .withUnit("case")
             .build();
     static final Metadata exceptionCounterMetadata = Metadata.builder()
             .withName("dataio_harvester_promat_exception_counter")
             .withDescription("Number of unhandled exceptions caught")
-            .withType(MetricType.COUNTER)
             .withUnit("exception")
             .build();
 

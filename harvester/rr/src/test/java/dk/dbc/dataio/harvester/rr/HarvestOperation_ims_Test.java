@@ -25,8 +25,8 @@ import jakarta.persistence.EntityManager;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -70,7 +70,7 @@ public class HarvestOperation_ims_Test implements TempFiles {
     private final VipCoreConnection vipCoreConnection = mock(VipCoreConnection.class);
     private final HoldingsItemsConnector holdingsItemsConnector = mock(HoldingsItemsConnector.class);
     private final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
-    private final SimpleTimer timer = mock(SimpleTimer.class);
+    private final Timer timer = mock(Timer.class);
     private final Counter counter = mock(Counter.class);
     @TempDir
     public Path tmpFolder;
@@ -96,7 +96,7 @@ public class HarvestOperation_ims_Test implements TempFiles {
         hasHoldingsResponse.add(123456);
         when(holdingsItemsConnector.hasHoldings("dbc", imsLibraries)).thenReturn(hasHoldingsResponse);
         when(vipCoreConnection.getFbsImsLibraries()).thenReturn(imsLibraries);
-        when(metricRegistry.simpleTimer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
+        when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
         doNothing().when(timer).update(any(Duration.class));
         doNothing().when(counter).inc();

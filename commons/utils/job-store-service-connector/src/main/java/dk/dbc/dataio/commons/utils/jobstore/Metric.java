@@ -1,8 +1,8 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 
 public enum Metric {
     ADD_ACC_TEST_JOB,
@@ -27,8 +27,8 @@ public enum Metric {
     SET_WORKFLOW_NOTE2,
     SINK_STATUS;
 
-    public SimpleTimer simpleTimer(MetricRegistry metricRegistry, Tag... tags) {
-        return metricRegistry.simpleTimer(prefix() + "_" + name().toLowerCase(), tags);
+    public Timer simpleTimer(MetricRegistry metricRegistry, Tag... tags) {
+        return metricRegistry.timer(prefix() + "_" + name().toLowerCase(), tags);
     }
 
     private String prefix() {

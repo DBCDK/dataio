@@ -8,8 +8,8 @@ import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.Metric;
 import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -87,7 +87,7 @@ public class MetricsService {
 
     public enum MetricType {
         COUNTER("counter", m -> m instanceof Counting, MetricType::counter),
-        SIMPLE_TIMER("counter", m -> m instanceof SimpleTimer, MetricType::counter),
+        SIMPLE_TIMER("counter", m -> m instanceof Timer, MetricType::counter),
         GAUGE("gauge", m -> m instanceof Gauge, MetricType::gauge);
 
         private final String name;

@@ -89,7 +89,7 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
                     }
                 }
                 Duration duration = Duration.between(chunkStart, Instant.now());
-                WCIRU_CHUNK_UPDATE.simpleTimer().update(duration);
+                WCIRU_CHUNK_UPDATE.timer().update(duration);
                 LOGGER.info("{} upload to worldcat took {}", chunk, duration);
             } finally {
                 DBCTrackedLogContext.remove();
@@ -177,7 +177,7 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
                 transaction.commit();
                 Tag tag = new Tag("status", brokerResult == null ? "timeout" : brokerResult.isFailed() ? "failed" : "success");
                 WCIRU_UPDATE.counter(tag).inc();
-                WCIRU_SERVICE_REQUESTS.simpleTimer().update(Duration.between(handleChunkItemStartTime, Instant.now()));
+                WCIRU_SERVICE_REQUESTS.timer().update(Duration.between(handleChunkItemStartTime, Instant.now()));
             }
         } catch (IllegalArgumentException e) {
             return FormattedOutput.of(e)

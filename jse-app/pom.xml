@@ -255,7 +255,7 @@
                 <plugin>
                     <groupId>io.fabric8</groupId>
                     <artifactId>docker-maven-plugin</artifactId>
-                    <version>0.42.0</version>
+                    <version>0.45-SNAPSHOT</version>
                     <executions>
                         <execution>
                             <id>build</id>
@@ -272,7 +272,7 @@
                                 <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
                                 <build>
                                     <from>${java.image}</from>
-                                    <user>gfish</user>
+                                    <user>java</user>
                                     <env>
                                         <LOG_FORMAT default-value="json"/>
                                         <LOG_LEVEL default-value="INFO"/>

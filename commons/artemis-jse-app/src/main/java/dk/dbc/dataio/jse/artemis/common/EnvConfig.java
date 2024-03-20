@@ -92,8 +92,8 @@ public interface EnvConfig {
                 + "?user=" + URLEncoder.encode(map.get(DBProperty.USER), UTF_8) + "&password=" + URLEncoder.encode(map.get(DBProperty.PASSWORD), UTF_8);
     }
 
-    default void setTestOverride(String value) {};
-    default void clearAllTestOverrides() {};
+    default void setTestOverride(String value) {}
+    default void clearAllTestOverrides() {}
 
     default String getDefaultValue() {
         //noinspection ReturnOfNull

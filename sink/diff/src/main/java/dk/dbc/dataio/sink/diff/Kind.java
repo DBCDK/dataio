@@ -46,14 +46,14 @@ public enum Kind {
                     .newTag(f -> "+")
                     .build();
             List<DiffRow> rows = generator.generateDiffRows(List.of(new String(data1, UTF_8).split("\n")), List.of(new String(data2, UTF_8).split("\n")));
-            List<DiffRow> diff = rows.stream().filter(r -> r.getTag() != DiffRow.Tag.EQUAL).collect(Collectors.toList());
+            List<DiffRow> diff = rows.stream().filter(r -> r.getTag() != DiffRow.Tag.EQUAL).toList();
             if(diff.isEmpty()) return "";
             return rows.stream().flatMap(Kind::lineDiff).collect(Collectors.joining("\n"));
         }
     };
 
     private final String tool;
-    static String toolPath = SinkConfig.TOOL_PATH.asString();;
+    static String toolPath = SinkConfig.TOOL_PATH.asString();
 
     Kind(String tool) {
         this.tool = tool;

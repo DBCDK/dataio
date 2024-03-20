@@ -3,7 +3,7 @@
 String docker_images_log_stash_tag = "docker_images_log"
 String workerNode = "devel11"
 Boolean DEPLOY_TO_STAGING_CANDIDATE=false
-//Byg!!!
+//Byg!!
 pipeline {
     agent {label workerNode}
     tools {
@@ -150,7 +150,7 @@ pipeline {
                     if (DEPLOY_TO_STAGING_CANDIDATE) {
                         sh """
                             echo "Gogo staging gadget!!!"
-                            mvn install -B -T 6 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+                            mvn install -B -T 3 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
                             mvn deploy -T 6 -B -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}"
                         """
                     }

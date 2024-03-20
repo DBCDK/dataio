@@ -62,6 +62,11 @@
             <artifactId>java-diff-utils</artifactId>
             <version>4.12</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.deblockt</groupId>
+            <artifactId>json-diff</artifactId>
+            <version>1.0.1</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -151,12 +156,12 @@
                             <name>docker-metascrum.artifacts.dbccloud.dk/%a:${tag}</name>
                             <build>
                                 <from>${java.image}</from>
+                                <user>java</user>
                                 <runCmds>
-                                    <run>apt-get update</run>
-                                    <run>apt-get install libxml2-utils -y</run>
-                                    <run>apt-get install jq -y</run>
+                                    <user>root</user>
+                                    <run>apt-install libxml2-utils</run>
                                 </runCmds>
-                                <user>gfish</user>
+                                <user>java</user>
                                 <assemblies>
                                     <assembly>
                                         <mode>dir</mode>

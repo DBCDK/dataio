@@ -62,6 +62,11 @@
             <artifactId>java-diff-utils</artifactId>
             <version>4.12</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.deblockt</groupId>
+            <artifactId>json-diff</artifactId>
+            <version>1.0.1</version>
+        </dependency>
     </dependencies>
 
     <build>

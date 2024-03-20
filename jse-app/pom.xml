@@ -272,7 +272,7 @@
                                 <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
                                 <build>
                                     <from>${java.image}</from>
-                                    <user>gfish</user>
+                                    <user>java</user>
                                     <env>
                                         <LOG_FORMAT default-value="json"/>
                                         <LOG_LEVEL default-value="INFO"/>

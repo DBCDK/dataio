@@ -1,6 +1,7 @@
 package dk.dbc.dataio.registry.metrics;
 
 import dk.dbc.dataio.registry.Resettable;
+import org.eclipse.microprofile.metrics.Counting;
 import org.eclipse.microprofile.metrics.Snapshot;
 import org.eclipse.microprofile.metrics.Timer;
 
@@ -8,7 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.Callable;
 
-public class TimerMetric implements Timer, TimerMetricMBean, Resettable {
+public class TimerMetric implements Counting, Timer, TimerMetricMBean, Resettable {
     private Duration duration = Duration.ZERO;
     private Duration min = null;
     private Duration max = Duration.ZERO;

@@ -14,7 +14,7 @@ import java.util.Set;
 
 @Singleton
 @Startup
-@DependsOn("DatabaseMigrator")
+@DependsOn({"DatabaseMigrator", "DependencyTrackingService"})
 public class BootstrapBean {
     @EJB
     JobQueueRepository jobQueueRepository;

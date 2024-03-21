@@ -27,10 +27,10 @@ import dk.dbc.dataio.jobstore.distributed.hz.query.JobChunksWaitForKey;
 import dk.dbc.dataio.jobstore.distributed.hz.query.WaitingOn;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.ejb.DependsOn;
 import jakarta.ejb.Singleton;
-import jakarta.servlet.ServletContextEvent;
-import jakarta.servlet.ServletContextListener;
-import jakarta.servlet.annotation.WebListener;
+import jakarta.ejb.Startup;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
@@ -55,10 +55,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Singleton
-//@Startup
-@WebListener
-//@DependsOn("DatabaseMigrator")
-public class DependencyTrackingService implements ServletContextListener {
+@Startup
+@DependsOn("DatabaseMigrator")
+public class DependencyTrackingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTrackingService.class);
     private final IMap<TrackingKey, DependencyTracking> dependencyTracker = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
     private final IMap<Integer, Map<ChunkSchedulingStatus, Integer>> countersMap = Hazelcast.Objects.SINK_STATUS.get();
@@ -69,11 +68,7 @@ public class DependencyTrackingService implements ServletContextListener {
         init();
     }
 
-    @Override
-    public void contextDestroyed(ServletContextEvent sce) {
-        shutdown();
-    }
-
+    @PreDestroy
     public void shutdown() {
         LOGGER.info("Commence Hazelcast node shutdown");
         Hazelcast.shutdownNode();

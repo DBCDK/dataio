@@ -78,6 +78,7 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR
  */
 
 @Stateless
+@SuppressWarnings("PMD.TooManyStaticImports")
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
 

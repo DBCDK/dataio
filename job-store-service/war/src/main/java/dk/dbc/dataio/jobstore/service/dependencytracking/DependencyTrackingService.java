@@ -27,11 +27,10 @@ import dk.dbc.dataio.jobstore.distributed.hz.query.JobChunksWaitForKey;
 import dk.dbc.dataio.jobstore.distributed.hz.query.WaitingOn;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.ejb.DependsOn;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.event.Shutdown;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
@@ -55,8 +54,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static jakarta.interceptor.Interceptor.Priority.LIBRARY_AFTER;
-
 @Singleton
 @Startup
 @DependsOn("DatabaseMigrator")
@@ -71,9 +68,11 @@ public class DependencyTrackingService {
         init();
     }
 
-    public void shutdown(@Observes @jakarta.annotation.Priority(LIBRARY_AFTER) Shutdown shutdown) {
+    @PreDestroy
+    public void shutdown() {
         LOGGER.info("Commence Hazelcast node shutdown");
         Hazelcast.shutdownNode();
+        LOGGER.info("Hazelcast node shutdown completed");
     }
 
     public DependencyTrackingService init() {

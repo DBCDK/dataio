@@ -166,7 +166,7 @@ public class JobSchedulerBean {
     @Schedule(minute = "*", hour = "*", persistent = false)
     public void updateSinks() {
         try {
-            LOGGER.info("Updating chunks.blocked metrics");
+            LOGGER.debug("Updating chunks.blocked metrics");
             List<Sink> sinks = flowStore.getConnector().findAllSinks();
             Map<Integer, Integer> counts = dependencyTrackingService.sinkStatusCount(BLOCKED);
             Map<String, Integer> bc = sinks.stream().collect(Collectors.toMap(s -> s.getContent().getName(), s -> counts.getOrDefault(s.getId(), 0)));

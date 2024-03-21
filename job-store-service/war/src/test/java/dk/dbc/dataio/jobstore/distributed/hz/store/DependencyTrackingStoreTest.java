@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore.distributed.hz.store;
 
-import com.hazelcast.jet.core.JetTestSupport;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;

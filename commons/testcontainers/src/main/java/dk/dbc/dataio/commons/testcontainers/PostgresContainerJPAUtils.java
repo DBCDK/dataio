@@ -17,7 +17,7 @@ public interface PostgresContainerJPAUtils {
         return container;
     }
 
-    public class DataIOPostgresSQLContainer extends DBCPostgreSQLContainer {
+    class DataIOPostgresSQLContainer extends DBCPostgreSQLContainer {
         public DataIOPostgresSQLContainer bindDatasource(String jndi) {
             System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
             try {

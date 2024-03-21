@@ -27,9 +27,7 @@ import dk.dbc.dataio.jobstore.distributed.hz.query.JobChunksWaitForKey;
 import dk.dbc.dataio.jobstore.distributed.hz.query.WaitingOn;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import jakarta.annotation.PostConstruct;
-import jakarta.ejb.DependsOn;
 import jakarta.ejb.Singleton;
-import jakarta.ejb.Startup;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
@@ -57,9 +55,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Singleton
-@Startup
+//@Startup
 @WebListener
-@DependsOn("DatabaseMigrator")
+//@DependsOn("DatabaseMigrator")
 public class DependencyTrackingService implements ServletContextListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTrackingService.class);
     private final IMap<TrackingKey, DependencyTracking> dependencyTracker = Hazelcast.Objects.DEPENDENCY_TRACKING.get();

@@ -222,7 +222,6 @@ public class DependencyTrackingService {
         dependencyTracker.loadAll(true);
     }
 
-    @Stopwatch
     public void recountSinkStatus(Set<Integer> sinkIds) {
         Map<Integer, Map<ChunkSchedulingStatus, Integer>> map = statusCount(sinkIds);
         Set<Integer> resetSinks = sinkIds.isEmpty() ? map.keySet() : sinkIds;

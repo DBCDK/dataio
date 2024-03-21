@@ -4,11 +4,13 @@ import com.hazelcast.cluster.Member;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.LifecycleEvent;
 import jakarta.interceptor.AroundInvoke;
 import jakarta.interceptor.Interceptor;
 import jakarta.interceptor.InterceptorBinding;
 import jakarta.interceptor.InvocationContext;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
+import jakarta.servlet.annotation.WebListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,10 +27,16 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-public class Hazelcast {
+@WebListener
+public class Hazelcast implements ServletContextListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(Hazelcast.class);
     private static HazelcastInstance INSTANCE;
     private static final AtomicBoolean STOPPING = new AtomicBoolean(false);
+
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {
+        shutdownNode();
+    }
 
     private static HazelcastInstance startInstance() {
         String configFile = Optional.ofNullable(System.getenv("JOBSTORE_HZ_CONFIG"))
@@ -36,10 +44,6 @@ public class Hazelcast {
                 .orElse("/opt/payara6/deployments/hz-data.xml");
         try(InputStream is = new FileInputStream(configFile)) {
             HazelcastInstance instance = com.hazelcast.core.Hazelcast.newHazelcastInstance(makeConfig(is));
-            instance.getLifecycleService().addLifecycleListener(lifecycleEvent -> {
-                LOGGER.warn("Hazelcast is shutting down");
-                STOPPING.set(lifecycleEvent.getState() == LifecycleEvent.LifecycleState.SHUTTING_DOWN);
-            });
             return instance;
         } catch (IOException e) {
             throw new IllegalStateException("Failed to start hazelcast data instance", e);
@@ -74,6 +78,7 @@ public class Hazelcast {
     }
 
     public static void shutdownNode() {
+        LOGGER.warn("Hazelcast is shutting down");
         STOPPING.set(true);
         INSTANCE.shutdown();
     }

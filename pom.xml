@@ -836,6 +836,14 @@
                                                         </includes>
                                                         <outputDirectory>.</outputDirectory>
                                                     </fileSet>
+                                                    <fileSet>
+                                                        <directory>${basedir}/src/main/docker</directory>
+                                                        <includes>
+                                                            <include>*.bash</include>
+                                                            <include>*.sh</include>
+                                                        </includes>
+                                                        <outputDirectory>/opt/payara6/scripts</outputDirectory>
+                                                    </fileSet>
                                                 </fileSets>
                                             </inline>
                                             <targetDir>${docker.deploydir}</targetDir>

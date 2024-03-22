@@ -44,6 +44,7 @@ public class Hazelcast implements ServletContextListener {
                 .orElse("/opt/payara6/deployments/hz-data.xml");
         try(InputStream is = new FileInputStream(configFile)) {
             HazelcastInstance instance = com.hazelcast.core.Hazelcast.newHazelcastInstance(makeConfig(is));
+            Runtime.getRuntime().addShutdownHook(new Thread(Hazelcast::shutdownNode));
             return instance;
         } catch (IOException e) {
             throw new IllegalStateException("Failed to start hazelcast data instance", e);

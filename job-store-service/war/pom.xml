@@ -308,7 +308,6 @@
                                         set server.thread-pools.thread-pool.thread-pool-1.min-thread-pool-size=50' >> scripts/prebootcommandfile.txt
                                     </run>
                                 </runCmds>
-                                <user>gfish</user>
                             </build>
                         </image>
                     </images>

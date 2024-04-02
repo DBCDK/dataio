@@ -301,12 +301,11 @@
                             <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
                             <build>
                                 <runCmds>
-                                    <user>root</user>
                                     <run>
                                         echo 'set server.thread-pools.thread-pool.http-thread-pool.max-thread-pool-size=200\n\
                                         set server.thread-pools.thread-pool.http-thread-pool.min-thread-pool-size=50\n\
                                         set server.thread-pools.thread-pool.thread-pool-1.max-thread-pool-size=200\n\
-                                        set server.thread-pools.thread-pool.thread-pool-1.min-thread-pool-size=50' >>scripts/prebootcommandfile.txt
+                                        set server.thread-pools.thread-pool.thread-pool-1.min-thread-pool-size=50' >> scripts/prebootcommandfile.txt
                                     </run>
                                 </runCmds>
                                 <user>gfish</user>

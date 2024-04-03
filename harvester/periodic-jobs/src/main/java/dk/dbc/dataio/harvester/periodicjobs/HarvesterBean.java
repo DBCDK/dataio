@@ -85,6 +85,15 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
                         weekresolverConnector,
                         WITH_HOLDINGS_EXECUTOR);
                 break;
+            case STANDARD_WITHOUT_EXPANSION:
+                harvestOperation = new RecordsWithoutExpansionHarvestOperation(config,
+                        binaryFileStoreBean,
+                        fileStoreServiceConnectorBean.getConnector(),
+                        flowStoreServiceConnectorBean.getConnector(),
+                        jobStoreServiceConnectorBean.getConnector(),
+                        weekresolverConnector,
+                        executor);
+                break;
             default:
                 harvestOperation = new HarvestOperation(config,
                         binaryFileStoreBean,

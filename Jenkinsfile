@@ -7,7 +7,7 @@ Boolean DEPLOY_TO_STAGING_CANDIDATE=false
 pipeline {
     agent {label workerNode}
     tools {
-		jdk 'jdk11'
+		jdk 'jdk17'
 		maven 'Maven 3'
     }
     environment {

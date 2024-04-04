@@ -34,7 +34,7 @@
 
     <properties>
         <tag>devel</tag>
-        <java.image>docker-metascrum.artifacts.dbccloud.dk/payara6-micro:graceful_promas-3</java.image>
+        <java.image>docker-metascrum.artifacts.dbccloud.dk/payara6-micro:graceful_promas-4</java.image>
         <docker.payaradir>/opt/payara6</docker.payaradir>
         <docker.deploydir>/opt/payara6/deployments</docker.deploydir>
 

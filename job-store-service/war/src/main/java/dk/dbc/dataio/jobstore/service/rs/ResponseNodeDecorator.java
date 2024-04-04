@@ -17,6 +17,6 @@ public class ResponseNodeDecorator implements ContainerResponseFilter {
     @Override
     public void filter(ContainerRequestContext containerRequestContext, ContainerResponseContext containerResponseContext) throws IOException {
         containerResponseContext.getHeaders().add("Cluster-Node", InetAddress.getLocalHost().getHostName());
-        containerResponseContext.getHeaders().add("Connection", "close");
+//        containerResponseContext.getHeaders().add("Connection", "close");
     }
 }

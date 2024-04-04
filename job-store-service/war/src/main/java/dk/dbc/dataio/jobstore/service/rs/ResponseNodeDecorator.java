@@ -18,5 +18,6 @@ public class ResponseNodeDecorator implements ContainerResponseFilter {
     public void filter(ContainerRequestContext containerRequestContext, ContainerResponseContext containerResponseContext) throws IOException {
         LOGGER.info("Adding header");
         containerResponseContext.getHeaders().add("Cluster-Node", InetAddress.getLocalHost().getHostName());
+        containerResponseContext.getHeaders().add("Connection", "close");
     }
 }

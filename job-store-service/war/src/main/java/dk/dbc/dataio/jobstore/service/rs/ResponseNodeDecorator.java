@@ -15,8 +15,8 @@ public class ResponseNodeDecorator implements ContainerResponseFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResponseNodeDecorator.class);
 
     @Override
-    public void filter(ContainerRequestContext containerRequestContext, ContainerResponseContext containerResponseContext) throws IOException {
-        containerResponseContext.getHeaders().add("Cluster-Node", InetAddress.getLocalHost().getHostName());
-//        containerResponseContext.getHeaders().add("Connection", "close");
+    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
+        responseContext.getHeaders().add("Cluster-Node", InetAddress.getLocalHost().getHostName());
+        responseContext.getHeaders().add("Connection", "close");
     }
 }

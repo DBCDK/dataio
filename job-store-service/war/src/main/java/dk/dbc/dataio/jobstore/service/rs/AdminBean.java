@@ -23,12 +23,16 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.jms.artemis.AdminClient;
 import dk.dbc.jms.artemis.AdminClientFactory;
+import fish.payara.micro.BootstrapException;
+import fish.payara.micro.PayaraMicro;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Schedule;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.persistence.Cache;
 import jakarta.persistence.EntityManager;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -137,6 +141,14 @@ public class AdminBean {
         LOGGER.info("Cleaning stale artemis connections");
         Instant i = Instant.now().minus(Duration.ofMinutes(15));
         adminClient.closeConsumerConnections(c -> i.isAfter(c.getLastAcknowledgedTime()) && c.getDeliveringCount() > 0);
+    }
+
+    @GET
+    @Path("/shutdown")
+    public Response shutdown(HttpServletRequest request) throws BootstrapException {
+        LOGGER.info(Optional.ofNullable(request).map(ServletRequest::getRemoteHost).orElse("someone") + " told me to shutdown");
+        PayaraMicro.getInstance().shutdown();
+        return Response.ok("shutting down").build();
     }
 
     @GET

@@ -27,7 +27,7 @@ public class JobStoreApplication extends Application {
 
     private static Set<Class<?>> makeClasses() {
         Stream<Class<?>> stream = Stream.of(JobsBean.class, JobsExportsBean.class, NotificationsBean.class, StatusBean.class, JobSchedulerRestBean.class,
-                RerunsBean.class, SinkMessageProducerBean.class, AdminBean.class, ResponseNodeDecorator.class);
+                RerunsBean.class, SinkMessageProducerBean.class, AdminBean.class);
 
         if("on".equals(System.getenv("DEVELOPER"))) {
             LOGGER.info("DEVELOPER signalled. Adding developer bean to pool of beans in JobstoreApplication");

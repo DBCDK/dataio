@@ -16,7 +16,6 @@
 
     <properties>
         <jobstore.it.persistence.unit.name>jobstoreIT</jobstore.it.persistence.unit.name>
-        <java.image>docker-metascrum.artifacts.dbccloud.dk/payara6-full:graceful_promas-10</java.image>
     </properties>
 
     <dependencies>

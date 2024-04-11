@@ -191,11 +191,13 @@ public class DependencyTrackingService {
     public void remove(TrackingKey key) {
         DependencyTracking removed = dependencyTracker.remove(key);
         countersMap.executeOnKey(removed.getSinkId(), new UpdateCounter(removed.getStatus(), -1));
+        LOGGER.info("Removed tracking key {} from dependency tracker", key);
     }
 
     public void remove(Predicate<TrackingKey, DependencyTracking> predicate) {
         dependencyTracker.removeAll(predicate);
         recountSinkStatus(Set.of());
+        LOGGER.info("Removed tracking keys matched by predicate: {}", predicate);
     }
 
     public Map<Integer, JobSchedulerSinkStatus> getSinkStatusMap() {

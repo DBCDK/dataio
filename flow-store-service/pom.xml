@@ -15,10 +15,6 @@
     <artifactId>dataio-flow-store-service</artifactId>
     <packaging>war</packaging>
 
-    <properties>
-        <java.image>docker-metascrum.artifacts.dbccloud.dk/payara6-full:graceful_promas-11</java.image>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>jakarta.platform</groupId>

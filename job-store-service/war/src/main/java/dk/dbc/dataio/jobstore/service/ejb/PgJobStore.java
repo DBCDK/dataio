@@ -408,8 +408,8 @@ public class PgJobStore {
 
             if (job.getNumberOfChunks() > 0) {
                 LOGGER.info("Resuming Partition of Job {} after {} chunks", job.getId(), job.getNumberOfChunks());
-                chunkId = job.getNumberOfChunks();
-                partitioningParam.getDataPartitioner().drainItems(job.getNumberOfItems() + job.getSkipped() - 1);
+                chunkId = job.getNumberOfChunks() - 1;
+                partitioningParam.getDataPartitioner().drainItems(job.getNumberOfItems() + job.getSkipped() - 10);
             }
 
             long submitterId = partitioningParam.getJobEntity().getSpecification().getSubmitterId();

@@ -414,7 +414,6 @@ public class PgJobStore {
                 LOGGER.info("Resuming Partition of Job {} after {} chunks", job.getId(), job.getNumberOfChunks());
                 chunkId = job.getNumberOfChunks();
                 partitioningParam.getDataPartitioner().drainItems(job.getNumberOfItems() + job.getSkipped());
-                int missingChunk = chunkId;
                 addMissingDependencies(job, chunkId);
             }
 
@@ -459,7 +458,7 @@ public class PgJobStore {
             ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobId));
             if(chunk.getTimeOfCompletion() != null) return;
             jobSchedulerBean.scheduleChunk(chunk, job);
-        };
+        }
     }
 
     /* Verifies that the input stream was processed entirely during partitioning */

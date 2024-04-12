@@ -452,15 +452,14 @@ public class PgJobStore {
         return job;
     }
 
-    private void addMissingDependencies(JobEntity job, int startingChunk) {
+    private void addMissingDependencies(JobEntity job, int chunkId) {
         int jobId = job.getId();
-        int chunkId = startingChunk;
-        do {
+        while (--chunkId > 0) {
             if(dependencyTrackingService.contains(new TrackingKey(jobId, chunkId))) return;
             ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobId));
             if(chunk.getTimeOfCompletion() != null) return;
             jobSchedulerBean.scheduleChunk(chunk, job);
-        } while (--chunkId > 0);
+        };
     }
 
     /* Verifies that the input stream was processed entirely during partitioning */

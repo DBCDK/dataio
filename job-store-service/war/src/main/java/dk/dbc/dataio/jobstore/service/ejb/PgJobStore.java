@@ -415,7 +415,7 @@ public class PgJobStore {
                 chunkId = job.getNumberOfChunks();
                 partitioningParam.getDataPartitioner().drainItems(job.getNumberOfItems() + job.getSkipped());
                 int missingChunk = chunkId;
-                addMissingDependencies(job.getId(), chunkId);
+                addMissingDependencies(job, chunkId);
             }
 
             long submitterId = partitioningParam.getJobEntity().getSpecification().getSubmitterId();

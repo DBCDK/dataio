@@ -148,6 +148,10 @@ public class DependencyTrackingService {
         return dependencyTracker.get(key);
     }
 
+    public boolean contains(TrackingKey key) {
+        return dependencyTracker.containsKey(key);
+    }
+
     public int resetStatus(ChunkSchedulingStatus from, ChunkSchedulingStatus to, Integer... jobIds) {
         PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
         @SuppressWarnings("unchecked")

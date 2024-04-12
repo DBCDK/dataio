@@ -12,7 +12,9 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -86,6 +88,8 @@ public class PgJobStore {
     @Inject
     @JobstoreDB
     EntityManager entityManager;
+    @Inject
+    DependencyTrackingService dependencyTrackingService;
 
     @Resource
     SessionContext sessionContext;
@@ -408,8 +412,10 @@ public class PgJobStore {
 
             if (job.getNumberOfChunks() > 0) {
                 LOGGER.info("Resuming Partition of Job {} after {} chunks", job.getId(), job.getNumberOfChunks());
-                chunkId = job.getNumberOfChunks() - 1;
-                partitioningParam.getDataPartitioner().drainItems(job.getNumberOfItems() + job.getSkipped() - 10);
+                chunkId = job.getNumberOfChunks();
+                partitioningParam.getDataPartitioner().drainItems(job.getNumberOfItems() + job.getSkipped());
+                int missingChunk = chunkId;
+                addMissingDependencies(job.getId(), chunkId);
             }
 
             long submitterId = partitioningParam.getJobEntity().getSpecification().getSubmitterId();
@@ -444,6 +450,17 @@ public class PgJobStore {
 
         }
         return job;
+    }
+
+    private void addMissingDependencies(JobEntity job, int startingChunk) {
+        int jobId = job.getId();
+        int chunkId = startingChunk;
+        do {
+            if(dependencyTrackingService.contains(new TrackingKey(jobId, chunkId))) return;
+            ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobId));
+            if(chunk.getTimeOfCompletion() != null) return;
+            jobSchedulerBean.scheduleChunk(chunk, job);
+        } while (--chunkId > 0);
     }
 
     /* Verifies that the input stream was processed entirely during partitioning */

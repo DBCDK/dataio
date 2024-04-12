@@ -457,6 +457,7 @@ public class PgJobStore {
             if(dependencyTrackingService.contains(new TrackingKey(jobId, chunkId))) return;
             ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobId));
             if(chunk.getTimeOfCompletion() != null) return;
+            LOGGER.info("Creating missing dependency {}", jobId + "/" + chunkId);
             jobSchedulerBean.scheduleChunk(chunk, job);
         }
     }

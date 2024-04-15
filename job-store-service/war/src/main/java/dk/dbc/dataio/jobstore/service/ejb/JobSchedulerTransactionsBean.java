@@ -155,7 +155,7 @@ public class JobSchedulerTransactionsBean {
     @Stopwatch
     public void submitToDeliveringIfPossible(Chunk chunk, TrackingKey trackingKey) {
         DependencyTrackingRO dependencyTracking = dependencyTrackingService.get(trackingKey);
-        if (dependencyTracking.getStatus() != ChunkSchedulingStatus.READY_FOR_DELIVERY) return;
+        if (dependencyTracking == null || dependencyTracking.getStatus() != ChunkSchedulingStatus.READY_FOR_DELIVERY) return;
 
         JobSchedulerSinkStatus.QueueStatus sinkStatus = dependencyTrackingService.getSinkStatus(dependencyTracking.getSinkId()).getDeliveringStatus();
 

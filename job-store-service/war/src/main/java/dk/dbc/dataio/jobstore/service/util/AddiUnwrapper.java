@@ -61,7 +61,7 @@ public class AddiUnwrapper implements ChunkItemUnwrapper {
         final List<ChunkItem.Type> unwrappedType = getUnwrappedType(wrappedChunkItem);
         final ArrayList<ChunkItem> unwrappedChunkItems = new ArrayList<>();
         try {
-            final ArrayList<Diagnostic> diagnostics = wrappedChunkItem.getDiagnostics();
+            final List<Diagnostic> diagnostics = wrappedChunkItem.getDiagnostics();
             final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(wrappedChunkItem.getData()));
             AddiRecord record = addiReader.getNextRecord();
             while (record != null) {

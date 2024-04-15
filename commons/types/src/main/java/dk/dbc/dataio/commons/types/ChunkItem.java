@@ -207,7 +207,7 @@ public class ChunkItem implements Serializable {
         }
     }
 
-    public ArrayList<Diagnostic> getDiagnostics() {
+    public List<Diagnostic> getDiagnostics() {
         return diagnostics;
     }
 

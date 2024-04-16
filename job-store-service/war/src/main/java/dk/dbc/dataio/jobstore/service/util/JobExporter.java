@@ -21,7 +21,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -398,7 +397,7 @@ public class JobExporter {
             if (chunkItem == null) {
                 return Collections.emptyList();
             }
-            final ArrayList<Diagnostic> diagnostics = chunkItem.getDiagnostics();
+            final List<Diagnostic> diagnostics = chunkItem.getDiagnostics();
             if (diagnostics == null) {
                 return Collections.emptyList();
             }

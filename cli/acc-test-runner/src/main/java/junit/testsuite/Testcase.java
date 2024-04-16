@@ -13,6 +13,7 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlType;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -244,7 +245,7 @@ public class Testcase {
 
     public static Testcase from(ChunkItem ci) {
         Testcase testcase = new Testcase().withName("Post " + ci.getId());
-        Optional<Diagnostic> diag = ci.getDiagnostics().stream().findFirst();
+        Optional<Diagnostic> diag = Optional.ofNullable(ci.getDiagnostics()).stream().flatMap(Collection::stream).findFirst();
         Supplier<TestInfo> supplier = STATUS_MAPPING.get(ci.getStatus());
         if(supplier != null) {
             TestInfo info = supplier.get().withContent(new String(ci.getData(), ci.getEncoding()));

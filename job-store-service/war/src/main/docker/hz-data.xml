@@ -27,7 +27,7 @@
     <map name="dependencies">
         <in-memory-format>OBJECT</in-memory-format>
         <metadata-policy>CREATE_ON_UPDATE</metadata-policy>
-        <backup-count>1</backup-count>
+        <backup-count>0</backup-count>
         <async-backup-count>0</async-backup-count>
         <time-to-live-seconds>0</time-to-live-seconds>
         <max-idle-seconds>0</max-idle-seconds>

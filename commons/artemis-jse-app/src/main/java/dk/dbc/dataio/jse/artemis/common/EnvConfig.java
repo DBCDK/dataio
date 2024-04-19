@@ -17,7 +17,7 @@ public interface EnvConfig {
     }
 
     default Optional<Boolean> asOptionalBoolean() {
-       return getProperty().or(() -> Optional.of("false"))
+       return getProperty().or(() -> Optional.ofNullable(getDefaultValue()).or(() -> Optional.of("false")))
                .map(s -> List.of("TRUE", "ON", "1").contains(s.toUpperCase()));
     }
 

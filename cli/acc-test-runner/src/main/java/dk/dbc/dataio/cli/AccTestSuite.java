@@ -20,13 +20,15 @@ public class AccTestSuite {
     private String name;
     private Path testSpec;
     private final Path dataFile;
+    private final Path reportPath;
     private final JobSpecification jobSpecification;
     private RecordSplitter recordSplitter;
 
-    public AccTestSuite(Path testSpec) {
+    public AccTestSuite(Path testSpec, Path reportDir) {
         this.testSpec = testSpec;
         name = ACC_TEXT_EXT_PATTERN.matcher(testSpec.getFileName().toString()).replaceFirst("");
         jobSpecification = readTestSpec(testSpec);
+        reportPath = reportDir == null ? null : reportDir.resolve("/TESTS-dbc_" + getName() + ".xml");
         try(Stream<Path> dataStream = Files.find(testSpec.getParent(), 1, this::isAccTestDataFile)) {
             dataFile = dataStream.findFirst().orElseThrow(() -> new IllegalArgumentException("Unable to find datafile for acc-test " + getName()));
         } catch (IOException e) {
@@ -38,6 +40,7 @@ public class AccTestSuite {
         this.jobSpecification = jobSpecification;
         dataFile = Path.of(jobSpecification.getDataFile());
         this.recordSplitter = recordSplitter;
+        reportPath = null;
     }
 
     private JobSpecification readTestSpec(Path testSpec) {
@@ -80,5 +83,9 @@ public class AccTestSuite {
 
     public boolean isAccTestDataFile(Path path, BasicFileAttributes fa) {
         return fa.isRegularFile() && !path.equals(testSpec) && path.getFileName().toString().startsWith(getName());
+    }
+
+    public Path getReportPath() {
+        return reportPath;
     }
 }

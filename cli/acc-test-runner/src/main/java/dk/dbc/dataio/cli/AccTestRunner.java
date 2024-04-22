@@ -52,6 +52,8 @@ public class AccTestRunner implements Callable<Integer> {
     @CommandLine.Option(names = "-rs", description = "Record splitter <ADDI|ADDI_MARC_XML|CSV|DANMARC2_LINE_FORMAT|DANMARC2_LINE_FORMAT_COLLECTION|" +
             "DSD_CSV|ISO2709|ISO2709_COLLECTION|JSON|VIAF|VIP_CSV|XML|TARRED_XML|ZIPPED_XML>")
     private RecordSplitter recordSplitter;
+    @CommandLine.Option(names = "-rp", description = "Report output path", defaultValue = "reports")
+    private Path reportPath;
 
 
     public static void main(String[] args) {
@@ -94,7 +96,7 @@ public class AccTestRunner implements Callable<Integer> {
     private List<AccTestSuite> findSuites() throws IOException {
         if(Files.isRegularFile(dataPath)) return List.of(new AccTestSuite(new ObjectMapper().readValue(jobSpec.toFile(), JobSpecification.class), recordSplitter));
         try(Stream<Path> accFiles =  Files.find(dataPath, 10, AccTestSuite::isAccTestSpec)) {
-            return accFiles.map(AccTestSuite::new).collect(Collectors.toList());
+            return accFiles.map(f -> new AccTestSuite(f, reportPath)).collect(Collectors.toList());
         }
     }
 

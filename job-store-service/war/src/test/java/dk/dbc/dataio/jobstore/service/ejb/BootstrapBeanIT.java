@@ -13,12 +13,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
-import jakarta.ejb.ScheduleExpression;
-import jakarta.ejb.Timer;
-import jakarta.ejb.TimerConfig;
-import jakarta.ejb.TimerService;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -26,20 +21,10 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class BootstrapBeanIT extends AbstractJobStoreIT {
-    private final TimerService timerService = mock(TimerService.class);
-    private final Timer timer = mock(Timer.class);
-
-    @Before
-    public void setupMocks() {
-        when(timerService.createCalendarTimer(any(ScheduleExpression.class), any(TimerConfig.class)))
-                .thenReturn(timer);
-    }
-
     /**
      * Given: a job queue with multiple entries marked as in-progress
      * When : job-store bootstrap process is executed
@@ -118,7 +103,6 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
         bootstrapBean.jobQueueRepository = newJobQueueRepository();
         bootstrapBean.jobSchedulerBean = newJobSchedulerBean();
         bootstrapBean.rerunsRepository = newRerunsRepository();
-        bootstrapBean.timerService = timerService;
         bootstrapBean.jobSchedulerBean.jobSchedulerTransactionsBean = mock(JobSchedulerTransactionsBean.class);
         bootstrapBean.jobSchedulerBean.dependencyTrackingService = new DependencyTrackingService().init();
         bootstrapBean.jobSchedulerBean.metricRegistry = mock(MetricRegistry.class);

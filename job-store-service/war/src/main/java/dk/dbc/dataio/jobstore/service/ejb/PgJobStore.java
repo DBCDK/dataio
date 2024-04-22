@@ -452,16 +452,20 @@ public class PgJobStore {
     }
 
     private void addMissingDependencies(JobEntity job, int chunkId) {
+        findMissingDependencies(job, chunkId).forEach(chunk -> jobSchedulerBean.scheduleChunk(chunk, job));
+    }
+
+    private List<ChunkEntity> findMissingDependencies(JobEntity job, int chunkId) {
         int jobId = job.getId();
         List<ChunkEntity> missing = new ArrayList<>();
         while (--chunkId > 0) {
             if(dependencyTrackingService.contains(new TrackingKey(jobId, chunkId))) return;
             ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobId));
-            if(chunk.getTimeOfCompletion() != null) return;
-            LOGGER.info("Creating missing dependency {}", jobId + "/" + chunkId);
+            if(chunk.getTimeOfCompletion() != null) return missing;
+            LOGGER.info("Found missing dependency {}", jobId + "/" + chunkId);
             missing.add(0, chunk);
         }
-        missing.forEach(chunk -> jobSchedulerBean.scheduleChunk(chunk, job));
+        return missing;
     }
 
     /* Verifies that the input stream was processed entirely during partitioning */

@@ -4,11 +4,6 @@ import com.hazelcast.cluster.Member;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.HazelcastInstance;
-import jakarta.interceptor.AroundInvoke;
-import jakarta.interceptor.Interceptor;
-import jakarta.interceptor.InterceptorBinding;
-import jakarta.interceptor.InvocationContext;
-import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 import org.slf4j.Logger;
@@ -17,26 +12,15 @@ import org.slf4j.LoggerFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @WebListener
 public class Hazelcast implements ServletContextListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(Hazelcast.class);
     private static HazelcastInstance INSTANCE;
     private static final AtomicBoolean STOPPING = new AtomicBoolean(false);
-
-    @Override
-    public void contextDestroyed(ServletContextEvent sce) {
-        shutdownNode();
-    }
 
     private static HazelcastInstance startInstance() {
         String configFile = Optional.ofNullable(System.getenv("JOBSTORE_HZ_CONFIG"))
@@ -100,21 +84,4 @@ public class Hazelcast implements ServletContextListener {
             return (T)supplier.get();
         }
     }
-
-    @Interceptor
-    @ServiceUp
-    public static class ShuttingDownInterceptor {
-        @AroundInvoke
-        public Object isStopping(InvocationContext ic) throws Exception {
-            if(!STOPPING.get()) return ic.proceed();
-            else throw new IllegalStateException("Server is shutting down");
-        }
-    }
-
-    @InterceptorBinding
-    @Retention(RUNTIME)
-    @Target({METHOD, TYPE})
-    public @interface ServiceUp {
-    }
-
 }

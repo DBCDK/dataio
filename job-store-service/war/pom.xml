@@ -302,8 +302,7 @@
                             <build>
                                 <runCmds>
                                     <run>
-                                        echo 'set configs.config.server-config.network-config.protocols.protocol.http-listener-1.http.timeout-seconds=5\n\
-                                        set server.thread-pools.thread-pool.http-thread-pool.max-thread-pool-size=200\n\
+                                        echo 'set server.thread-pools.thread-pool.http-thread-pool.max-thread-pool-size=200\n\
                                         set server.thread-pools.thread-pool.http-thread-pool.min-thread-pool-size=50\n\
                                         set server.thread-pools.thread-pool.thread-pool-1.max-thread-pool-size=200\n\
                                         set server.thread-pools.thread-pool.thread-pool-1.min-thread-pool-size=50' >> scripts/prebootcommandfile.txt

@@ -66,7 +66,6 @@ import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
  */
 @Stateless
 @Path("/")
-@Hazelcast.ServiceUp
 public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
     private static final Set<Integer> abortedJobs = Hazelcast.Objects.ABORTED_JOBS.get();

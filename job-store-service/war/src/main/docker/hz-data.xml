@@ -39,11 +39,6 @@
             <write-batch-size>1000</write-batch-size>
             <write-coalescing>true</write-coalescing>
         </map-store>
-<!--        <near-cache>-->
-<!--            <eviction max-size-policy="ENTRY_COUNT" size="1000" eviction-policy="LRU"/>-->
-<!--            <max-idle-seconds>60</max-idle-seconds>-->
-<!--            <in-memory-format>OBJECT</in-memory-format>-->
-<!--        </near-cache>-->
     </map>
     <map name="sink.status">
         <in-memory-format>OBJECT</in-memory-format>

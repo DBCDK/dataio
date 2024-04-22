@@ -52,7 +52,7 @@ public class AccTestRunner implements Callable<Integer> {
     @CommandLine.Option(names = "-rs", description = "Record splitter <ADDI|ADDI_MARC_XML|CSV|DANMARC2_LINE_FORMAT|DANMARC2_LINE_FORMAT_COLLECTION|" +
             "DSD_CSV|ISO2709|ISO2709_COLLECTION|JSON|VIAF|VIP_CSV|XML|TARRED_XML|ZIPPED_XML>")
     private RecordSplitter recordSplitter;
-    @CommandLine.Option(names = "-rp", description = "Report output path", defaultValue = "reports")
+    @CommandLine.Option(names = "-rp", description = "Report output path", defaultValue = "target/reports")
     private Path reportPath;
 
 

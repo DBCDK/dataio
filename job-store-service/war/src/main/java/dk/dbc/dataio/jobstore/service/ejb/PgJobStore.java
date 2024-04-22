@@ -459,7 +459,7 @@ public class PgJobStore {
         int jobId = job.getId();
         List<ChunkEntity> missing = new ArrayList<>();
         while (--chunkId > 0) {
-            if(dependencyTrackingService.contains(new TrackingKey(jobId, chunkId))) return;
+            if(dependencyTrackingService.contains(new TrackingKey(jobId, chunkId))) return missing;
             ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobId));
             if(chunk.getTimeOfCompletion() != null) return missing;
             LOGGER.info("Found missing dependency {}", jobId + "/" + chunkId);

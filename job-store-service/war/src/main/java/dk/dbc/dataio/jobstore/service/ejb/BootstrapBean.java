@@ -56,9 +56,9 @@ public class BootstrapBean {
                 .sorted(Comparator.comparing(Sink::getVersion).reversed())
                 .filter(s -> sinkIds.add(s.getId()))
                 .collect(Collectors.toSet());
-        LOGGER.info("jumpStart(): found {} sinks to jump-start", sinks.size());
+        LOGGER.info("resumePartitioning(): found {} sinks to jump-start", sinks.size());
         sinks.forEach(sink -> {
-            LOGGER.info("jumpStart(): jump-starting partitioning for sink {}({})", sink.getId(), sink.getContent().getName());
+            LOGGER.info("Resuming partitioning for sink {}({})", sink.getId(), sink.getContent().getName());
             jobStore.partitionNextJobForSinkIfAvailable(sink);
         });
         partitioningInitialized = true;

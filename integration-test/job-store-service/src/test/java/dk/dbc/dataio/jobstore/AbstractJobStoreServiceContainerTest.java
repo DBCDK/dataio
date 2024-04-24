@@ -174,7 +174,6 @@ public abstract class AbstractJobStoreServiceContainerTest {
     private static String getDebuggingHost() {
         try {
             String host = InetAddress.getLocalHost().getHostAddress() + ":5005";
-            host = "172.17.33.25:5005";
             return host;
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);

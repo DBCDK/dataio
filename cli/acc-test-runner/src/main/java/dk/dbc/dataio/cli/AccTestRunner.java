@@ -20,6 +20,7 @@ import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import picocli.CommandLine;
+import picocli.CommandLine.Option;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -38,24 +39,26 @@ import java.util.stream.StreamSupport;
 
 @CommandLine.Command(name = "acc-test-runner.sh", mixinStandardHelpOptions = true, showDefaultValues = true, version = "1.0")
 public class AccTestRunner implements Callable<Integer> {
+    @CommandLine.Parameters(description = "Action <TEST|COMMIT>, can be either test for running tests or commit for committing previously run tests", defaultValue = "TEST")
+    private Action action;
     @CommandLine.Parameters(description = "Data Path", defaultValue = ".")
     private Path dataPath;
-    @CommandLine.Option(names = "-f", description = "FlowStore url (prod flowstore is default)", defaultValue = "http://dataio-flowstore-service.metascrum-prod.svc.cloud.dbc.dk/dataio/flow-store-service")
+    @Option(names = "-f", description = "FlowStore url (prod flowstore is default)", defaultValue = "http://dataio-flowstore-service.metascrum-prod.svc.cloud.dbc.dk/dataio/flow-store-service")
     private FlowManager flowManager;
-    @CommandLine.Option(names = "-s", description = "Path to local script", required = true)
+    @Option(names = "-s", description = "Path to local script", required = true)
     private Path nextScripts;
-    @CommandLine.Option(names = "-d", description = "Search path for dependencies", required = true)
+    @Option(names = "-d", description = "Search path for dependencies", required = true)
     private Path dependencies;
-    @CommandLine.Option(names = "-r", description = "Report format <TEXT|XML>", defaultValue = "TEXT")
+    @Option(names = "-r", description = "Report format <TEXT|XML>", defaultValue = "TEXT")
     private ReportFormat reportFormat;
-    @CommandLine.Option(names = "-j", description = "Job specification file")
+    @Option(names = "-j", description = "Job specification file")
     private Path jobSpec;
-    @CommandLine.Option(names = "-rs", description = "Record splitter <ADDI|ADDI_MARC_XML|CSV|DANMARC2_LINE_FORMAT|DANMARC2_LINE_FORMAT_COLLECTION|" +
+    @Option(names = "-rs", description = "Record splitter <ADDI|ADDI_MARC_XML|CSV|DANMARC2_LINE_FORMAT|DANMARC2_LINE_FORMAT_COLLECTION|" +
             "DSD_CSV|ISO2709|ISO2709_COLLECTION|JSON|VIAF|VIP_CSV|XML|TARRED_XML|ZIPPED_XML>")
     private RecordSplitter recordSplitter;
-    @CommandLine.Option(names = "-rp", description = "Report output path", defaultValue = "target/reports")
+    @Option(names = "-rp", description = "Report output path", defaultValue = "target/reports")
     private Path reportPath;
-    @CommandLine.Option(names = "-c", description = "Commit tested revision")
+    @Option(names = "-v", description = "Version")
     private Long revision;
     private JavaScriptProject project;
 
@@ -69,36 +72,40 @@ public class AccTestRunner implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        if(!Files.isRegularFile(nextScripts)) throw new IllegalArgumentException("Local script file " + nextScripts + " is not a readable file");
-        if(!Files.isDirectory(dependencies)) throw new IllegalArgumentException("Path for dependencies " + dependencies + " is not valid");
         project = JavaScriptProject.of(nextScripts, dependencies);
-        if(revision != null) {
-            flowManager.commit(project, revision);
-        } else runTest();
-        return 0;
+        if(action == Action.COMMIT) return flowManager.commit(project);
+        if(action == Action.TEST) return runTest();
+        return -255;
     }
 
-    private void runTest() throws Exception {
+    private int runTest() throws Exception {
+        if(!Files.isRegularFile(nextScripts)) throw new IllegalArgumentException("Local script file " + nextScripts + " is not a readable file");
+        if(!Files.isDirectory(dependencies)) throw new IllegalArgumentException("Path for dependencies " + dependencies + " is not valid");
         if(!Files.isReadable(dataPath)) throw new IllegalArgumentException("Datafile " + dataPath + " is not a readable file");
+        if(revision == null) throw new IllegalStateException("Please state the version being tested using -v <version>");
         List<AccTestSuite> testSuites = findSuites();
         if(testSuites.isEmpty()) {
             throw new IllegalArgumentException("No test suites where found");
         }
-        runTest(testSuites);
+        return runTest(testSuites);
     }
 
-    private void runTest(List<AccTestSuite> testSuites) throws Exception {
+    private Integer runTest(List<AccTestSuite> testSuites) throws Exception {
         ServiceHub serviceHub = new ServiceHub.Builder().withJobStoreServiceConnector(null).build();
-        Set<Flow> flows = new HashSet<>();
+        Set<Long> flows = new HashSet<>();
+        boolean isDiverging = false;
+        Flow flow = null;
         for (AccTestSuite suite : testSuites) {
-            Flow flow = flowManager.getFlow(suite.getJobSpecification());
-            flows.add(flow);
-            if(flows.size() > 1) throw new IllegalArgumentException("All test data, within an acceptance test, must address the same flow");
+            flow = flowManager.getFlow(suite.getJobSpecification());
+            flows.add(flow.getId());
+            if(flows.size() > 1) throw new IllegalArgumentException("All test data, within an acceptance test, must address the same flowId. Flows: " + flows);
             Chunk processed = processSuite(suite, flow);
             Chunk diff = new MessageConsumerBean(serviceHub).handleChunk(processed);
+            isDiverging |= diff.getItems().stream().anyMatch(ci -> ci.getStatus() == ChunkItem.Status.FAILURE);
             reportFormat.printDiff(suite, flow, diff);
         }
-        flows.stream().findFirst().ifPresent(flowManager::createFlowCommitTmpFile);
+        flowManager.createFlowCommitTmpFile(flow, revision);
+        return isDiverging ? 1 : 0;
     }
 
     private Chunk processSuite(AccTestSuite accTestSuite, Flow flow) {
@@ -143,5 +150,9 @@ public class AccTestRunner implements Callable<Integer> {
 
     private static FlowManager flowManager(String serviceUrl) {
         return new FlowManager(new FlowStoreServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), serviceUrl));
+    }
+
+    public static enum Action {
+        TEST, COMMIT
     }
 }

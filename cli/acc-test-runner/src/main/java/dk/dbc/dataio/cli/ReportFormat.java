@@ -11,6 +11,7 @@ import junit.testsuite.Testsuites;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,10 +31,11 @@ public enum ReportFormat {
             Testsuite testsuite = new Testsuite().withName(suite.getName()).withGroup(flowName).withHostname(HOSTNAME)
                     .withTests(Integer.toString(chunk.getItems().size())).withTestsuiteOrPropertiesOrTestcase(cases);
             Testsuites testsuites = new Testsuites().withTestsuite(List.of(testsuite));
+            Path reportsDir = suite.getReportPath().getParent();
             try {
-                Files.createDirectories(suite.getReportPath());
+                Files.createDirectories(reportsDir);
             } catch (IOException e) {
-                throw new RuntimeException("Unable to create report output directory", e);
+                throw new RuntimeException("Unable to create report output directory " + reportsDir, e);
             }
             File file = suite.getReportPath().toFile();
             JAXB.marshal(testsuites, file);

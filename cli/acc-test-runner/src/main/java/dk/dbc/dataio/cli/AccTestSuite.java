@@ -28,7 +28,7 @@ public class AccTestSuite {
         this.testSpec = testSpec;
         name = ACC_TEXT_EXT_PATTERN.matcher(testSpec.getFileName().toString()).replaceFirst("");
         jobSpecification = readTestSpec(testSpec);
-        reportPath = reportDir == null ? null : reportDir.resolve("/TESTS-dbc_" + getName() + ".xml");
+        reportPath = reportDir == null ? null : reportDir.resolve("TESTS-dbc_" + getName() + ".xml");
         try(Stream<Path> dataStream = Files.find(testSpec.getParent(), 1, this::isAccTestDataFile)) {
             dataFile = dataStream.findFirst().orElseThrow(() -> new IllegalArgumentException("Unable to find datafile for acc-test " + getName()));
         } catch (IOException e) {

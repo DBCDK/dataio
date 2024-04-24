@@ -2,7 +2,6 @@ package dk.dbc.dataio.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.javascript.JavaScriptProject;
 import dk.dbc.dataio.commons.partioner.DataPartitioner;
 import dk.dbc.dataio.commons.partioner.DataPartitionerFactory;
@@ -10,7 +9,6 @@ import dk.dbc.dataio.commons.partioner.DataPartitionerResult;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -26,9 +24,12 @@ import picocli.CommandLine;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -37,10 +38,10 @@ import java.util.stream.StreamSupport;
 
 @CommandLine.Command(name = "acc-test-runner.sh", mixinStandardHelpOptions = true, showDefaultValues = true, version = "1.0")
 public class AccTestRunner implements Callable<Integer> {
-    @CommandLine.Parameters(index = "0", description = "Data Path", defaultValue = ".")
+    @CommandLine.Parameters(description = "Data Path", defaultValue = ".")
     private Path dataPath;
     @CommandLine.Option(names = "-f", description = "FlowStore url (prod flowstore is default)", defaultValue = "http://dataio-flowstore-service.metascrum-prod.svc.cloud.dbc.dk/dataio/flow-store-service")
-    private FlowStoreServiceConnector flowStore;
+    private FlowManager flowManager;
     @CommandLine.Option(names = "-s", description = "Path to local script", required = true)
     private Path nextScripts;
     @CommandLine.Option(names = "-d", description = "Search path for dependencies", required = true)
@@ -54,30 +55,50 @@ public class AccTestRunner implements Callable<Integer> {
     private RecordSplitter recordSplitter;
     @CommandLine.Option(names = "-rp", description = "Report output path", defaultValue = "target/reports")
     private Path reportPath;
-
+    @CommandLine.Option(names = "-c", description = "Commit tested revision")
+    private Long revision;
+    private JavaScriptProject project;
 
     public static void main(String[] args) {
         new CommandLine(new AccTestRunner())
                 .setCaseInsensitiveEnumValuesAllowed(true)
                 .registerConverter(Path.class, Path::of)
-                .registerConverter(FlowStoreServiceConnector.class, AccTestRunner::flowStoreServiceConnector)
+                .registerConverter(FlowManager.class, AccTestRunner::flowManager)
                 .execute(args);
     }
 
     @Override
     public Integer call() throws Exception {
-        if(!Files.isReadable(dataPath)) throw new IllegalArgumentException("Datafile " + dataPath + " is not a readable file");
         if(!Files.isRegularFile(nextScripts)) throw new IllegalArgumentException("Local script file " + nextScripts + " is not a readable file");
         if(!Files.isDirectory(dependencies)) throw new IllegalArgumentException("Path for dependencies " + dependencies + " is not valid");
+        project = JavaScriptProject.of(nextScripts, dependencies);
+        if(revision != null) {
+            flowManager.commit(project, revision);
+        } else runTest();
+        return 0;
+    }
+
+    private void runTest() throws Exception {
+        if(!Files.isReadable(dataPath)) throw new IllegalArgumentException("Datafile " + dataPath + " is not a readable file");
         List<AccTestSuite> testSuites = findSuites();
+        if(testSuites.isEmpty()) {
+            throw new IllegalArgumentException("No test suites where found");
+        }
+        runTest(testSuites);
+    }
+
+    private void runTest(List<AccTestSuite> testSuites) throws Exception {
         ServiceHub serviceHub = new ServiceHub.Builder().withJobStoreServiceConnector(null).build();
+        Set<Flow> flows = new HashSet<>();
         for (AccTestSuite suite : testSuites) {
-            Flow flow = getFlow(suite.getJobSpecification());
+            Flow flow = flowManager.getFlow(suite.getJobSpecification());
+            flows.add(flow);
+            if(flows.size() > 1) throw new IllegalArgumentException("All test data, within an acceptance test, must address the same flow");
             Chunk processed = processSuite(suite, flow);
             Chunk diff = new MessageConsumerBean(serviceHub).handleChunk(processed);
             reportFormat.printDiff(suite, flow, diff);
         }
-        return 0;
+        flows.stream().findFirst().ifPresent(flowManager::createFlowCommitTmpFile);
     }
 
     private Chunk processSuite(AccTestSuite accTestSuite, Flow flow) {
@@ -95,14 +116,9 @@ public class AccTestRunner implements Callable<Integer> {
 
     private List<AccTestSuite> findSuites() throws IOException {
         if(Files.isRegularFile(dataPath)) return List.of(new AccTestSuite(new ObjectMapper().readValue(jobSpec.toFile(), JobSpecification.class), recordSplitter));
-        try(Stream<Path> accFiles =  Files.find(dataPath, 10, AccTestSuite::isAccTestSpec)) {
+        try(Stream<Path> accFiles =  Files.find(dataPath, 10, AccTestSuite::isAccTestSpec, FileVisitOption.FOLLOW_LINKS)) {
             return accFiles.map(f -> new AccTestSuite(f, reportPath)).collect(Collectors.toList());
         }
-    }
-
-    private Flow getFlow(JobSpecification jobSpecification) throws FlowStoreServiceConnectorException {
-        FlowBinder flowBinder = flowStore.getFlowBinder(jobSpecification.getPackaging(), jobSpecification.getFormat(), jobSpecification.getCharset(), jobSpecification.getSubmitterId(), jobSpecification.getDestination());
-        return flowStore.getFlow(flowBinder.getContent().getFlowId());
     }
 
     private Chunk processChunk(Flow flow, Chunk chunk, String additionalStuff) throws Exception {
@@ -111,8 +127,7 @@ public class AccTestRunner implements Callable<Integer> {
         return processor.process(chunk, flow.getId(), flow.getVersion(), additionalStuff);
     }
 
-    private void overwriteNext(Flow flow) throws Exception {
-        JavaScriptProject project = JavaScriptProject.of(nextScripts, dependencies);
+    private void overwriteNext(Flow flow) {
         FlowComponent component = flow.getContent().getComponents().get(0);
         FlowComponentContent next = component.getNext();
         component.withNext(new FlowComponentContent(next.getName(), next.getSvnProjectForInvocationJavascript(), 1, next.getInvocationJavascriptName(), project.getJavaScripts(), next.getInvocationMethod(), next.getDescription()));
@@ -126,7 +141,7 @@ public class AccTestRunner implements Callable<Integer> {
         return chunk;
     }
 
-    private static FlowStoreServiceConnector flowStoreServiceConnector(String serviceUrl) {
-        return new FlowStoreServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), serviceUrl);
+    private static FlowManager flowManager(String serviceUrl) {
+        return new FlowManager(new FlowStoreServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), serviceUrl));
     }
 }

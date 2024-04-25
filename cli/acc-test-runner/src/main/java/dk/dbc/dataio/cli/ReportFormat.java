@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public enum ReportFormat {
     TEXT {
-        public void printDiff(AccTestSuite suite, Flow flow, Chunk chunk) {
+        public void printDiff(AccTestSuite suite, Flow flow, Chunk chunk, Long revision) {
             chunk.getItems().stream().filter(ci -> ci.getStatus() != ChunkItem.Status.SUCCESS).forEach(ci -> {
                 System.out.println(ci.getStatus() + " - ChunkItem: " + ci.getId());
                 System.out.println(new String(ci.getData(), ci.getEncoding()));
@@ -25,10 +25,10 @@ public enum ReportFormat {
         }
     },
     XML {
-        public void printDiff(AccTestSuite suite, Flow flow, Chunk chunk) {
-            String flowName = flow.getContent().getName();
+        public void printDiff(AccTestSuite suite, Flow flow, Chunk chunk, Long revision) {
+            String flowName = flow.getContent().getName().replace('.', '_');
             List<Object> cases = chunk.getItems().stream().map(Testcase::from).collect(Collectors.toList());
-            Testsuite testsuite = new Testsuite().withName(suite.getName()).withGroup(flowName).withHostname(HOSTNAME)
+            Testsuite testsuite = new Testsuite().withName(suite.getName()).withGroup(flowName).withVersion(revision == null ? null : revision.toString()).withHostname(HOSTNAME)
                     .withTests(Integer.toString(chunk.getItems().size())).withTestsuiteOrPropertiesOrTestcase(cases);
             Testsuites testsuites = new Testsuites().withTestsuite(List.of(testsuite));
             Path reportsDir = suite.getReportPath().getParent();
@@ -49,5 +49,5 @@ public enum ReportFormat {
         return System.getenv("HOSTNAME");
     }
 
-    public abstract void printDiff(AccTestSuite suite, Flow flow, Chunk chunk);
+    public abstract void printDiff(AccTestSuite suite, Flow flow, Chunk chunk, Long revision);
 }

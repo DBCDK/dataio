@@ -102,7 +102,7 @@ public class AccTestRunner implements Callable<Integer> {
             Chunk processed = processSuite(suite, flow);
             Chunk diff = new MessageConsumerBean(serviceHub).handleChunk(processed);
             isDiverging |= diff.getItems().stream().anyMatch(ci -> ci.getStatus() == ChunkItem.Status.FAILURE);
-            reportFormat.printDiff(suite, flow, diff);
+            reportFormat.printDiff(suite, flow, diff, revision);
         }
         flowManager.createFlowCommitTmpFile(flow, revision);
         return isDiverging ? 1 : 0;

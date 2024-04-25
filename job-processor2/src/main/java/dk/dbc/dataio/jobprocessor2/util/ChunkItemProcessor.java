@@ -39,7 +39,7 @@ public class ChunkItemProcessor {
         while (retriesRemaining-- > 0) {
             try {
                 final ChunkItem result = process(chunkItem);
-                LOGGER.info("Chunk item needed " + (3 - retriesRemaining) + " attempts before succeeding");
+                LOGGER.debug("Chunk item needed " + (3 - retriesRemaining) + " attempts before succeeding");
                 return result;
             } catch (IllegalArgumentException e) {
                 if ("argument is not an array".equalsIgnoreCase(e.getMessage())) {
@@ -148,7 +148,6 @@ public class ChunkItemProcessor {
         MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY, "true");
         // This timing assumes the use of LogStoreMergingJdbcAppender to be meaningful
         final StopWatch timer = new StopWatch();
-        LOGGER.info("Done");
         MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY);
         MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY);
         LOGGER.info("logstoreMdcRemove(): log-store batch insert for item {}/{}/{} took {} milliseconds",

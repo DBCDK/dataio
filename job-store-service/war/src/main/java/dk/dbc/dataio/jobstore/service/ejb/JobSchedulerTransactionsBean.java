@@ -1,14 +1,16 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.commons.jpa.converter.PgIntArray;
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.commons.utils.lang.Hashcode;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
+import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
+import dk.dbc.dataio.jobstore.distributed.QueueSubmitMode;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import jakarta.ejb.Asynchronous;
@@ -18,22 +20,10 @@ import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
-import jakarta.persistence.Query;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK;
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK;
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.getSinkStatus;
 
 /**
  * Helper Bean for JobScheduler and JobSchedulerBulkSubmitterBean.
@@ -42,10 +32,6 @@ import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.getSinkStatus;
 @Stateless
 public class JobSchedulerTransactionsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerTransactionsBean.class);
-
-    @Inject
-    @ConfigProperty(name = "ENABLE_DEPENDENCY_OPTIMIZER", defaultValue = "true")
-    protected Boolean enableOptimizer;
 
     @Inject
     @JobstoreDB
@@ -60,6 +46,9 @@ public class JobSchedulerTransactionsBean {
     @EJB
     JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
 
+    @Inject
+    DependencyTrackingService dependencyTrackingService;
+
     /**
      * Persists new dependency tracking entity in its own transaction
      * to ensure flush to disk before async submit.
@@ -72,14 +61,11 @@ public class JobSchedulerTransactionsBean {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
-    public void persistDependencyEntity(DependencyTrackingEntity entity, String barrierMatchKey) {
-        getSinkStatus(entity.getSinkid()).processingStatus.ready.incrementAndGet();
-
-        final Set<DependencyTrackingEntity.Key> chunksToWaitFor = findChunksToWaitFor(entity, barrierMatchKey);
+    public void persistDependencyEntity(DependencyTracking entity, String barrierMatchKey) {
+        Set<TrackingKey> chunksToWaitFor = dependencyTrackingService.findChunksToWaitFor(entity, barrierMatchKey);
         entity.setWaitingOn(chunksToWaitFor);
-        entityManager.persist(entity);
-
-        boostPriorities(chunksToWaitFor, entity.getPriority());
+        dependencyTrackingService.add(entity);
+        dependencyTrackingService.boostPriorities(chunksToWaitFor, entity.getPriority());
     }
 
     /**
@@ -90,26 +76,15 @@ public class JobSchedulerTransactionsBean {
      *
      * @param e Dependency tracking Entity
      */
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
-    public void persistJobTerminationDependencyEntity(DependencyTrackingEntity e) {
-
-
-        final List<DependencyTrackingEntity.Key> chunksToWaitFor = findJobBarrier(e.getSinkid(), e.getKey().getJobId(), e.getMatchKeys());
-
-        e.setWaitingOn(chunksToWaitFor);
-        e.setStatus(ChunkSchedulingStatus.BLOCKED);
-
-        if (chunksToWaitFor.isEmpty()) {
-            e.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
-        }
-        getSinkStatus(e.getSinkid()).deliveringStatus.ready.incrementAndGet();
-        entityManager.persist(e);
+    public void addDependencies(DependencyTrackingRO e) {
+        Set<TrackingKey> chunksToWaitFor = dependencyTrackingService.findJobBarrier(e.getSinkId(), e.getKey().getJobId(), e.getMatchKeys());
+        dependencyTrackingService.addToChunksToWaitFor(e.getKey(), chunksToWaitFor);
     }
 
 
     /**
-     * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
+     * Send JMS message to Processing, if queue size is lower than MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
      *
      * @param chunk    chunk to send to JMS queue
      * @param sinkId   sink ID
@@ -118,14 +93,14 @@ public class JobSchedulerTransactionsBean {
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Asynchronous
-    public void submitToProcessingIfPossibleAsync(ChunkEntity chunk, long sinkId, int priority) {
+    public void submitToProcessingIfPossibleAsync(ChunkEntity chunk, int sinkId, int priority) {
         if(JobsBean.isAborted(chunk.getKey().getJobId())) return;
         submitToProcessingIfPossible(chunk, sinkId, priority);
     }
 
 
     /**
-     * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
+     * Send JMS message to Processing, if queue size is lower than MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
      *
      * @param chunk    chunk to send to JMS queue
      * @param sinkId   sink ID
@@ -133,188 +108,105 @@ public class JobSchedulerTransactionsBean {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     @Stopwatch
-    public void submitToProcessingIfPossible(ChunkEntity chunk, long sinkId, int priority) {
-        final JobSchedulerSinkStatus.QueueStatus queueStatus = getSinkStatus(sinkId).processingStatus;
+    public void submitToProcessingIfPossible(ChunkEntity chunk, int sinkId, int priority) {
+        JobSchedulerSinkStatus.QueueStatus queueStatus = dependencyTrackingService.getSinkStatus(sinkId).getProcessingStatus();
 
         if (!queueStatus.isDirectSubmitMode()) return;
 
-        if (queueStatus.enqueued.intValue() >= MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
-            queueStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
+        if (dependencyTrackingService.capacity(sinkId, ChunkSchedulingStatus.QUEUED_FOR_PROCESSING) <= 0) {
+            queueStatus.setMode(QueueSubmitMode.BULK);
             return;
         }
-        submitToProcessing(chunk, queueStatus, priority);
+        submitToProcessing(chunk, priority);
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
-    public void submitToProcessing(ChunkEntity chunk, JobSchedulerSinkStatus.QueueStatus queueStatus, int priority) {
-        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getKey());
-        final DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
-        if (dependencyTrackingEntity == null) {
+    public void submitToProcessing(ChunkEntity chunk, int priority) {
+        TrackingKey key = new TrackingKey(chunk.getKey().getJobId(), chunk.getKey().getId());
+        DependencyTrackingRO dependencyTracking = dependencyTrackingService.get(key);
+        if (dependencyTracking == null) {
             LOGGER.error("Internal Error unable to lookup chunk {} in submitToProcessing", key);
             return;
         }
 
         // recheck if chunk is found by BULK and DIRECT mode
-        if (dependencyTrackingEntity.getStatus() != ChunkSchedulingStatus.READY_FOR_PROCESSING) {
+        if (dependencyTracking.getStatus() != ChunkSchedulingStatus.READY_FOR_PROCESSING) {
             return;
         }
-
-        dependencyTrackingEntity.setStatus(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
+        dependencyTrackingService.setStatus(key, ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
         try {
             JobEntity jobEntity = entityManager.find(JobEntity.class, chunk.getKey().getJobId());
             jobProcessorMessageProducerBean.send(getChunkFrom(chunk), jobEntity, priority);
-            queueStatus.enqueued.incrementAndGet();
             LOGGER.info("submitToProcessing: chunk {}/{} scheduled for processing", key.getJobId(), key.getChunkId());
         } catch (JobStoreException e) {
-            LOGGER.error("submitToProcessing: unable to send chunk {}/{} to JMS queue",
-                    key.getJobId(), key.getChunkId(), e);
+            LOGGER.error("submitToProcessing: unable to send chunk {}/{} to JMS queue", key.getJobId(), key.getChunkId(), e);
         }
+
     }
 
     /**
      * Send JMS message to Sink with chunk.
      *
-     * @param chunk                    The chunk to submit to delivering queue
-     * @param dependencyTrackingEntity Tracking Entity for chunk
+     * @param chunk       The chunk to submit to delivering queue
+     * @param trackingKey Tracking Key for chunk
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     @Stopwatch
-    public void submitToDeliveringIfPossible(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity) {
-        if (dependencyTrackingEntity.getStatus() != ChunkSchedulingStatus.READY_FOR_DELIVERY) return;
+    public void submitToDeliveringIfPossible(Chunk chunk, TrackingKey trackingKey) {
+        DependencyTrackingRO dependencyTracking = dependencyTrackingService.get(trackingKey);
+        if (dependencyTracking == null || dependencyTracking.getStatus() != ChunkSchedulingStatus.READY_FOR_DELIVERY) return;
 
-        JobSchedulerSinkStatus.QueueStatus sinkStatus = getSinkStatus(dependencyTrackingEntity.getSinkid()).deliveringStatus;
+        JobSchedulerSinkStatus.QueueStatus sinkStatus = dependencyTrackingService.getSinkStatus(dependencyTracking.getSinkId()).getDeliveringStatus();
 
         if (!sinkStatus.isDirectSubmitMode()) return;
 
-        int queuedToDelivering = sinkStatus.enqueued.intValue();
-        if (queuedToDelivering >= MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK) {
-            sinkStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
-            LOGGER.info("submitToDeliveringIfPossible: chunk {}/{} blocked by queue size {}",
-                    chunk.getJobId(), chunk.getChunkId(), queuedToDelivering);
+
+        int capacity = dependencyTrackingService.capacity(dependencyTracking.getSinkId(), ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
+        if (capacity <= 0) {
+            sinkStatus.setMode(QueueSubmitMode.BULK);
+            LOGGER.info("submitToDeliveringIfPossible: chunk {}/{} blocked by queue capacity {}", chunk.getJobId(), chunk.getChunkId(), capacity);
             return;
         }
 
-        submitToDelivering(chunk, dependencyTrackingEntity, sinkStatus);
+        submitToDelivering(chunk, trackingKey, sinkStatus);
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
     public void submitToDeliveringNewTransaction(Chunk chunk, JobSchedulerSinkStatus.QueueStatus sinkStatus) {
-        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk);
-        final DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
-
-        submitToDelivering(chunk, dependencyTrackingEntity, sinkStatus);
-
+        TrackingKey key = new TrackingKey(chunk.getJobId(), (int)chunk.getChunkId());
+        submitToDelivering(chunk, key, sinkStatus);
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void attemptToUnblockChunk(DependencyTrackingEntity.Key chunkBlockedKey, DependencyTrackingEntity.Key chunkDoneKey,
-            JobSchedulerSinkStatus.QueueStatus sinkQueueStatus) {
-
-        DependencyTrackingEntity blockedChunk = entityManager.find(
-                DependencyTrackingEntity.class, chunkBlockedKey, LockModeType.PESSIMISTIC_WRITE);
-
-        blockedChunk.getWaitingOn().remove(chunkDoneKey);
-
-        if (blockedChunk.getWaitingOn().size() == 0
-                && blockedChunk.getStatus() == ChunkSchedulingStatus.BLOCKED) {
-            blockedChunk.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
-            sinkQueueStatus.ready.incrementAndGet();
-            if (sinkQueueStatus.isDirectSubmitMode()) {
-                submitToDeliveringIfPossible(getProcessedChunkFrom(blockedChunk), blockedChunk);
-            }
+    public void attemptToUnblockChunk(TrackingKey chunkBlockedKey, JobSchedulerSinkStatus.QueueStatus sinkQueueStatus) {
+        if (sinkQueueStatus.isDirectSubmitMode()) {
+            submitToDeliveringIfPossible(getProcessedChunkFrom(chunkBlockedKey), chunkBlockedKey);
         }
     }
 
-    private void submitToDelivering(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity, JobSchedulerSinkStatus.QueueStatus sinkStatus) {
+    private void submitToDelivering(Chunk chunk, TrackingKey trackingKey, JobSchedulerSinkStatus.QueueStatus sinkStatus) {
         // recheck with chunk status with chunk locked before sending
-        if (dependencyTrackingEntity.getStatus() != ChunkSchedulingStatus.READY_FOR_DELIVERY) {
+        DependencyTrackingRO dependencyTracking = dependencyTrackingService.get(trackingKey);
+        if (dependencyTracking.getStatus() != ChunkSchedulingStatus.READY_FOR_DELIVERY) {
             return;
         }
 
-        final JobEntity jobEntity = jobStoreRepository.getJobEntityById((int) chunk.getJobId());
+        JobEntity jobEntity = jobStoreRepository.getJobEntityById(chunk.getJobId());
         if(jobEntity.getState().isAborted() || JobsBean.isAborted(jobEntity.getId())) return;
         // chunk is ready for sink
         try {
-            sinkMessageProducerBean.send(chunk, jobEntity, dependencyTrackingEntity.getPriority());
-            sinkStatus.enqueued.incrementAndGet();
+            dependencyTrackingService.setStatus(dependencyTracking.getKey(), ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
+            sinkMessageProducerBean.send(chunk, jobEntity, dependencyTracking.getPriority());
             LOGGER.info("submitToDelivering: chunk {}/{} scheduled for delivery for sink {}",
-                    chunk.getJobId(), chunk.getChunkId(), dependencyTrackingEntity.getSinkid());
-            dependencyTrackingEntity.setStatus(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
+                    chunk.getJobId(), chunk.getChunkId(), dependencyTracking.getSinkId());
         } catch (JobStoreException e) {
             LOGGER.error("submitToDelivering: unable to send chunk {}/{} to JMS queue - update to BULK mode for retransmit",
                     chunk.getJobId(), chunk.getChunkId(), e);
-            sinkStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
+            sinkStatus.setMode(QueueSubmitMode.BULK);
+            dependencyTrackingService.setStatus(dependencyTracking.getKey(), ChunkSchedulingStatus.READY_FOR_DELIVERY);
         }
-    }
-
-    private void boostPriorities(Set<DependencyTrackingEntity.Key> keys, int priority) {
-        if (priority > Priority.LOW.getValue()) {
-            for (DependencyTrackingEntity.Key key : keys) {
-                final DependencyTrackingEntity dependency = entityManager.find(DependencyTrackingEntity.class, key);
-                if (dependency.getPriority() < priority) {
-                    dependency.setPriority(priority);
-                    boostPriorities(dependency.getWaitingOn(), priority);
-                }
-            }
-        }
-    }
-
-    /**
-     * Finds chunks matching keys in given dependency tracking entity
-     * and given barrier match key
-     *
-     * @param entity          dependency tracking entity
-     * @param barrierMatchKey special key for barrier chunks
-     * @return Returns set of chunks to wait for.
-     */
-    @SuppressWarnings("unchecked")
-    Set<DependencyTrackingEntity.Key> findChunksToWaitFor(DependencyTrackingEntity entity, String barrierMatchKey) {
-        if (entity.getMatchKeys().isEmpty() && barrierMatchKey == null) {
-            return Collections.emptySet();
-        }
-
-        Query query = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_TO_WAIT_FOR_QUERY);
-        query.setParameter(1, entity.getSinkid());
-        query.setParameter(2, entity.getSubmitterNumber());
-        if (barrierMatchKey != null) {
-            query.setParameter(3, PgIntArray.toPgString(entity.getHashes(), Hashcode.of(barrierMatchKey)));
-        } else {
-            query.setParameter(3, PgIntArray.toPgString(entity.getHashes()));
-        }
-        List<DependencyTrackingEntity> list = query.getResultList();
-        if(enableOptimizer) return optimizeDependencies(list);
-        return list.stream().map(DependencyTrackingEntity::getKey).collect(Collectors.toSet());
-    }
-
-    public static Set<DependencyTrackingEntity.Key> optimizeDependencies(List<? extends DependencyTrackingEntity> dependencies) {
-        if(dependencies.isEmpty()) return Set.of();
-        Set<DependencyTrackingEntity.Key> keys = dependencies.stream()
-                .map(DependencyTrackingEntity::getWaitingOn)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
-        return dependencies.stream().map(DependencyTrackingEntity::getKey).filter(k -> !keys.contains(k)).collect(Collectors.toSet());
-    }
-
-    /**
-     * Finding lists of chunks in dependency Tracking with this jobId and MatchKey.
-     * Note only First key in waitForKey is checked.
-     *
-     * @param sinkId     sinkId
-     * @param jobId      jobId for witch chunks to wait for barrier
-     * @param waitForKey dataSetID
-     * @return Returns List of Chunks To wait for.
-     */
-    List<DependencyTrackingEntity.Key> findJobBarrier(int sinkId, int jobId, Set<String> waitForKey) {
-
-        Query query = entityManager.createNamedQuery(DependencyTrackingEntity.RELATED_CHUNKS_QUERY);
-        query.setParameter(1, sinkId);
-        query.setParameter(2, jobId);
-        query.setParameter(3, waitForKey);
-
-        return query.getResultList();
     }
 
 
@@ -328,19 +220,14 @@ public class JobSchedulerTransactionsBean {
         }
     }
 
-    public Chunk getProcessedChunkFrom(DependencyTrackingEntity dependencyTrackingEntity) {
+    public Chunk getProcessedChunkFrom(TrackingKey dtKey) {
         try {
-            DependencyTrackingEntity.Key dtKey = dependencyTrackingEntity.getKey();
             ChunkEntity.Key chunkKey = new ChunkEntity.Key(dtKey.getChunkId(), dtKey.getJobId());
 
             return jobStoreRepository.getChunk(Chunk.Type.PROCESSED, chunkKey.getJobId(), chunkKey.getId());
         } catch (RuntimeException ex) {
-            LOGGER.error("Internal error Unable to get PROCESSED items for {}", dependencyTrackingEntity.getKey(), ex);
+            LOGGER.error("Internal error Unable to get PROCESSED items for {}", dtKey, ex);
             throw ex;
         }
-    }
-
-    public DependencyTrackingEntity merge(DependencyTrackingEntity dependencyTrackingEntity) {
-        return entityManager.merge(dependencyTrackingEntity);
     }
 }

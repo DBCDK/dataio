@@ -4,11 +4,11 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 
 public class SinkBuilder {
-    private long id = 42L;
+    private int id = 42;
     private long version = 1L;
     private SinkContent content = new SinkContentBuilder().build();
 
-    public SinkBuilder setId(long id) {
+    public SinkBuilder setId(int id) {
         this.id = id;
         return this;
     }

@@ -1,6 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -20,8 +22,8 @@ public class JobSchedulerTransactionsBeanTest {
                 new Dep(2, 0).wo(1, 0).wo(0, 0),
                 new Dep(3, 0).wo(2, 0).wo(1, 0).wo(0, 0).remain()
         );
-        Set<DependencyTrackingEntity.Key> result = JobSchedulerTransactionsBean.optimizeDependencies(list);
-        Set<DependencyTrackingEntity.Key> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTrackingEntity::getKey).collect(Collectors.toSet());
+        Set<TrackingKey> result = DependencyTrackingService.optimizeDependencies(list);
+        Set<TrackingKey> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTracking::getKey).collect(Collectors.toSet());
         assertEquals(expected, result, "All dependencies marked to remain should be in the result and nothing else");
     }
 
@@ -38,8 +40,8 @@ public class JobSchedulerTransactionsBeanTest {
                 new Dep(0, 6).wo(0, 5).remain(),
                 new Dep(2, 0).remain()
         );
-        Set<DependencyTrackingEntity.Key> result = JobSchedulerTransactionsBean.optimizeDependencies(list);
-        Set<DependencyTrackingEntity.Key> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTrackingEntity::getKey).collect(Collectors.toSet());
+        Set<TrackingKey> result = DependencyTrackingService.optimizeDependencies(list);
+        Set<TrackingKey> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTracking::getKey).collect(Collectors.toSet());
         assertEquals(expected, result, "All dependencies marked to remain should be in the result and nothing else");
     }
 
@@ -56,21 +58,21 @@ public class JobSchedulerTransactionsBeanTest {
                 new Dep(0, 6).wo(0, 0, 5).wo(1, 0).remain(),
                 new Dep(2, 0).remain()
         );
-        Set<DependencyTrackingEntity.Key> result = JobSchedulerTransactionsBean.optimizeDependencies(list);
-        Set<DependencyTrackingEntity.Key> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTrackingEntity::getKey).collect(Collectors.toSet());
+        Set<TrackingKey> result = DependencyTrackingService.optimizeDependencies(list);
+        Set<TrackingKey> expected = list.stream().filter(d -> d.mustRemain).map(DependencyTracking::getKey).collect(Collectors.toSet());
         assertEquals(expected, result, "All dependencies marked to remain should be in the result and nothing else");
     }
 
-    public static class Dep extends DependencyTrackingEntity {
+    public static class Dep extends DependencyTracking {
         public boolean mustRemain;
 
         public Dep(int jobId, int chunkId) {
-            setKey(new Key(jobId, chunkId));
+            super(new TrackingKey(jobId, chunkId), 0);
             setWaitingOn(new HashSet<>());
         }
 
         public Dep wo(int jobId, int... chunkIds) {
-            getWaitingOn().addAll(Arrays.stream(chunkIds).mapToObj(cid -> new DependencyTrackingEntity.Key(jobId, cid)).collect(Collectors.toSet()));
+            getWaitingOn().addAll(Arrays.stream(chunkIds).mapToObj(cid -> new TrackingKey(jobId, cid)).collect(Collectors.toSet()));
             return this;
         }
 

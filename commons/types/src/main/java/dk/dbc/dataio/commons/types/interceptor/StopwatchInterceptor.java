@@ -21,7 +21,7 @@ public class StopwatchInterceptor {
         try {
             businessCall = invocationContext.proceed();
         } finally {
-            LOGGER.info("calling method {}.{} took {} milliseconds",
+            LOGGER.debug("calling method {}.{} took {} milliseconds",
                     systemClassName, systemMethodName, System.currentTimeMillis() - startTime);
         }
         return businessCall;

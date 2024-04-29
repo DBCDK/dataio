@@ -74,7 +74,6 @@ public class JobNotificationRepository extends RepositoryBase {
      * Flushes all waiting notifications in a separate transactional
      * scope to avoid tearing down any controlling timers in case of an exception
      */
-    @Stopwatch
     @Asynchronous
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void flushNotifications() {

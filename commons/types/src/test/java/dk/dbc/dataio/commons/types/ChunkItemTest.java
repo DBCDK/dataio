@@ -51,8 +51,7 @@ public class ChunkItemTest {
 
     @Test
     public void withEncoding_encodingArgCanBeNull() {
-        ChunkItem chunkItem = new ChunkItem()
-                .withEncoding(null);
+        ChunkItem chunkItem = new ChunkItem().withEncoding(null);
         assertThat(chunkItem.getEncoding(), is(nullValue()));
     }
 

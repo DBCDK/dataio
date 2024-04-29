@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class SinkTest {
-    private static final long ID = 42L;
+    private static final int ID = 42;
     private static final long VERSION = 1L;
     private static final SinkContent CONTENT = SinkContentTest.newSinkContentInstance();
 

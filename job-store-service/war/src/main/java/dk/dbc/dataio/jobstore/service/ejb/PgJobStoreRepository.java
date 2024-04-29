@@ -13,10 +13,12 @@ import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowConverter;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -51,6 +53,7 @@ import dk.dbc.log.DBCTrackedLogContext;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.Query;
@@ -64,8 +67,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.CoderMalfunctionError;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -85,6 +86,8 @@ import static java.lang.String.format;
 public class PgJobStoreRepository extends RepositoryBase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStoreRepository.class);
+    @Inject
+    DependencyTrackingService dependencyTrackingService;
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -106,14 +109,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new JobListQuery(entityManager).execute(criteria);
     }
 
-    public List<DependencyTrackingEntity> getStaleDependencies(DependencyTrackingEntity.ChunkSchedulingStatus status, Duration timeout) {
-        TypedQuery<DependencyTrackingEntity> query = entityManager.createNamedQuery(DependencyTrackingEntity.BY_STATE_AND_LAST_MODIFIED, DependencyTrackingEntity.class);
-        query.setParameter("date", new Timestamp(Instant.now().minus(timeout).toEpochMilli()));
-        query.setParameter("status", status);
-        return query.getResultList();
-    }
-
-    @Stopwatch
     public long countJobs(JobListCriteria criteria) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
         return new JobListQuery(entityManager).execute_count(criteria);
@@ -130,12 +125,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new JobListQuery(entityManager).count(query);
     }
 
-    public long getChunksToBeResetForState(DependencyTrackingEntity.ChunkSchedulingStatus status) {
-        TypedQuery<Long> q = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_IN_STATE, Long.class);
-        q.setParameter("status", status);
-        return q.getSingleResult();
-    }
-
     public List<Integer> findDependingJobs(int jobId) {
         Query query = entityManager.createNativeQuery("select distinct jobid from dependencytracking where waitingon::jsonb @@ '$[*].jobId==" + jobId + "'");
         query.setParameter(1, jobId);
@@ -145,28 +134,12 @@ public class PgJobStoreRepository extends RepositoryBase {
         return list;
     }
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public int deleteDependencies(int jobId) {
-        Query query = entityManager.createNamedQuery(DependencyTrackingEntity.DELETE_JOB);
-        query.setParameter("jobId", jobId);
-        return query.executeUpdate();
-    }
-
-    public int resetStatus(Set<Integer> jobIds, DependencyTrackingEntity.ChunkSchedulingStatus fromStatus,
-                           DependencyTrackingEntity.ChunkSchedulingStatus toStatus) {
-        Query q;
-        if(jobIds == null || jobIds.isEmpty()) q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATES_IN_DEPENDENCYTRACKING);
-        else {
-            q = entityManager.createNamedQuery(DependencyTrackingEntity.RESET_STATE_IN_DEPENDENCYTRACKING);
-            q.setParameter("jobIds", jobIds);
-        }
-        q.setParameter("fromStatus", fromStatus);
-        q.setParameter("toStatus", toStatus);
-        return q.executeUpdate();
+    public int resetStatus(Set<Integer> jobIds, ChunkSchedulingStatus fromStatus, ChunkSchedulingStatus toStatus) {
+        return dependencyTrackingService.resetStatus(fromStatus, toStatus, jobIds.toArray(Integer[]::new));
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void resetChunk(DependencyTrackingEntity e, DependencyTrackingEntity.ChunkSchedulingStatus status) {
+    public void resetChunk(DependencyTracking e, ChunkSchedulingStatus status) {
         e.setStatus(status);
         entityManager.persist(e);
     }
@@ -194,13 +167,18 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @return list of information snapshots of selected items
      * @throws NullPointerException if given null-valued criteria argument
      */
-    @Stopwatch
     public List<ItemInfoSnapshot> listItems(ItemListCriteria criteria) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
         final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
         final List<ItemInfoSnapshot> itemInfoSnapshots = new ArrayList<>(itemEntities.size());
         itemInfoSnapshots.addAll(itemEntities.stream().map(ItemEntity::toItemInfoSnapshot).collect(Collectors.toList()));
         return itemInfoSnapshots;
+    }
+
+    public List<Timestamp> listIncompleteChunks(int jobId) {
+        TypedQuery<Timestamp> query = entityManager.createQuery("select c.timeOfCompletion from ChunkEntity c where c.key.jobId = :id", Timestamp.class);
+        query.setParameter("id", jobId);
+        return query.getResultList();
     }
 
     /**
@@ -213,7 +191,6 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @return byteArrayOutputStream containing the requested items.
      * @throws JobStoreException on general failure to write output stream
      */
-    @Stopwatch
     public ByteArrayOutputStream exportFailedItems(int jobId, State.Phase fromPhase, ChunkItem.Type type,
                                                    Charset encodedAs) throws JobStoreException {
         return new JobExporter(entityManager)
@@ -636,9 +613,9 @@ public class PgJobStoreRepository extends RepositoryBase {
             for (ChunkItem chunkItem : chunk) {
                 if(JobsBean.isAborted(chunk.getJobId())) throw new JobAborted(chunk.getJobId());
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                LOGGER.info("updateChunkItemEntities: updating {} chunk item {}/{}/{}",
+                LOGGER.debug("updateChunkItemEntities: updating {} chunk item {}/{}/{}",
                         chunk.getType(), chunk.getJobId(), chunk.getChunkId(), chunkItem.getId());
-                final ItemEntity.Key itemKey = new ItemEntity.Key((int) chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId());
+                final ItemEntity.Key itemKey = new ItemEntity.Key(chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId());
                 final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
                 if (itemEntity == null) {
                     throwInvalidInputException(format("ItemEntity.%s could not be found", itemKey), JobError.Code.INVALID_ITEM_IDENTIFIER);
@@ -753,7 +730,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                     }
                 }
                 DBCTrackedLogContext.setTrackingId(trackingId);
-                LOGGER.info("Creating chunk item {}/{}/{}", jobId, chunkId, itemCounter);
+                LOGGER.debug("Creating chunk item {}/{}/{}", jobId, chunkId, itemCounter);
 
                 StateChange stateChange = new StateChange()
                         .setPhase(State.Phase.PARTITIONING)

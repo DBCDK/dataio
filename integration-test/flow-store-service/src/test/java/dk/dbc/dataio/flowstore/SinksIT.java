@@ -394,7 +394,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
                 .setName("SinksIT.deleteSink_optimisticLocking")
                 .build();
         Sink sink = flowStoreServiceConnector.createSink(sinkContent);
-        long sinkId = sink.getId();
+        int sinkId = sink.getId();
         long versionFirst = sink.getVersion();
         long versionSecond = versionFirst + 1;
 

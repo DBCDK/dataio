@@ -161,7 +161,6 @@
                                     <user>root</user>
                                     <run>apt-install libxml2-utils</run>
                                 </runCmds>
-                                <user>java</user>
                                 <assemblies>
                                     <assembly>
                                         <mode>dir</mode>

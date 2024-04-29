@@ -3,7 +3,7 @@
 String docker_images_log_stash_tag = "docker_images_log"
 String workerNode = "devel11"
 Boolean DEPLOY_TO_STAGING_CANDIDATE=false
-//Byg!!
+//Byg!!!
 pipeline {
     agent {label workerNode}
     tools {
@@ -26,7 +26,7 @@ pipeline {
             cli/acc-test-runner"
     }
     triggers {
-        upstream(upstreamProjects: "Docker-payara5-bump-trigger",
+        upstream(upstreamProjects: "Docker-payara6-bump-trigger",
 			threshold: hudson.model.Result.SUCCESS)
     }
     options {

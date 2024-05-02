@@ -23,6 +23,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
 import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileVisitOption;
@@ -33,6 +34,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -61,6 +64,8 @@ public class AccTestRunner implements Callable<Integer> {
     @Option(names = "-v", description = "Version")
     private Long revision;
     private JavaScriptProject project;
+
+    private static final Path MANIFEST_FILE = Path.of("target", "META-INF", "MANIFEST.MF");
 
     public static void main(String[] args) {
         new CommandLine(new AccTestRunner())
@@ -104,8 +109,26 @@ public class AccTestRunner implements Callable<Integer> {
             isDiverging |= diff.getItems().stream().anyMatch(ci -> ci.getStatus() == ChunkItem.Status.FAILURE);
             reportFormat.printDiff(suite, flow, diff, revision);
         }
+        writeManifestFile(flow);
         flowManager.createFlowCommitTmpFile(flow, revision);
         return isDiverging ? 1 : 0;
+    }
+
+    private void writeManifestFile(Flow flow) throws IOException {
+        if (!Files.isDirectory(MANIFEST_FILE.getParent())) {
+            Files.createDirectories(MANIFEST_FILE.getParent());
+        }
+
+        FlowComponent flowComponent = flow.getContent().getComponents().get(0);
+        FlowComponentContent next = flowComponent.getNext();
+        try (FileOutputStream fout = new FileOutputStream(MANIFEST_FILE.toFile(), false)) {
+            Manifest manifest = new Manifest();
+            manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+            manifest.getMainAttributes().put(new Attributes.Name("Flow-Name"), flow.getContent().getName());
+            manifest.getMainAttributes().put(new Attributes.Name("Flow-Entrypoint-Script"), next.getInvocationJavascriptName());
+            manifest.getMainAttributes().put(new Attributes.Name("Flow-Entrypoint-Function"), next.getInvocationMethod());
+            manifest.write(fout);
+        }
     }
 
     private Chunk processSuite(AccTestSuite accTestSuite, Flow flow) {

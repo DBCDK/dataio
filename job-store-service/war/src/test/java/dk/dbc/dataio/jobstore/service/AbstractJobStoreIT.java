@@ -1,5 +1,8 @@
 package dk.dbc.dataio.jobstore.service;
 
+import com.hazelcast.collection.ISet;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.jet.core.JetTestSupport;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
@@ -11,18 +14,23 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
+import dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
 import dk.dbc.dataio.jobstore.service.ejb.JobQueueRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
 import dk.dbc.dataio.jobstore.service.ejb.RerunsRepository;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -44,7 +52,10 @@ import org.junit.BeforeClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.naming.NamingException;
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -57,9 +68,11 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIV
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-public class AbstractJobStoreIT implements PostgresContainerJPAUtils {
+public class AbstractJobStoreIT extends JetTestSupport implements PostgresContainerJPAUtils {
     protected static final String JOB_TABLE_NAME = "job";
     protected static final String CHUNK_TABLE_NAME = "chunk";
     protected static final String ITEM_TABLE_NAME = "item";
@@ -71,7 +84,7 @@ public class AbstractJobStoreIT implements PostgresContainerJPAUtils {
     protected static final String REORDERED_ITEM_TABLE_NAME = "reordereditem";
     protected static final String RERUN_TABLE_NAME = "rerun";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobStoreIT.class);
-    protected static final DataSource datasource = dbContainer.datasource();
+    protected static final DataSource datasource = dbContainer.bindDatasource(DependencyTrackingStore.DS_JNDI).datasource();
     private static final long SUBMITTERID = 123456;
     protected final FileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
     protected final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
@@ -83,10 +96,12 @@ public class AbstractJobStoreIT implements PostgresContainerJPAUtils {
     protected JSONBContext jsonbContext = new JSONBContext();
 
     @BeforeClass
-    public static void createDb() {
-        DatabaseMigrator databaseMigrator = new DatabaseMigrator()
-                .withDataSource(datasource);
-        databaseMigrator.onStartup();
+    public static void createDb() throws NamingException {
+        DatabaseMigrator databaseMigrator = new DatabaseMigrator().withDataSource(datasource).onStartup();
+        HazelcastInstance hz = mock(HazelcastInstance.class);
+        ISet set = mock(ISet.class);
+        when(hz.getSet(eq("aborted.jobs"))).thenReturn(set);
+        Hazelcast.testInstance(hz);
     }
 
     @Before
@@ -133,6 +148,13 @@ public class AbstractJobStoreIT implements PostgresContainerJPAUtils {
     public void clearEntityManagerCache() {
         entityManager.clear();
         entityManager.getEntityManagerFactory().getCache().evictAll();
+    }
+
+    protected void startHazelcastWith(String sql) throws IOException {
+        if(sql != null) JPATestUtils.runSqlFromResource(entityManager, this, sql);
+        try(InputStream is = getClass().getClassLoader().getResourceAsStream("hz-data.xml")) {
+            Hazelcast.testInstance(createHazelcastInstance(Hazelcast.makeConfig(is)));
+        }
     }
 
     protected Connection newConnection() throws SQLException {
@@ -239,18 +261,16 @@ public class AbstractJobStoreIT implements PostgresContainerJPAUtils {
         return jobQueueEntity;
     }
 
-    protected DependencyTrackingEntity newDependencyTrackingEntity(DependencyTrackingEntity.Key key) {
-        DependencyTrackingEntity dependencyTrackingEntity = new DependencyTrackingEntity();
-        dependencyTrackingEntity.setKey(key);
-        dependencyTrackingEntity.setSinkid(1);
-        dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING);
-        return dependencyTrackingEntity;
+    protected DependencyTracking newDependencyTrackingEntity(TrackingKey key) {
+        DependencyTracking dependencyTracking = new DependencyTracking(key, 1);
+        dependencyTracking.setStatus(ChunkSchedulingStatus.READY_FOR_PROCESSING);
+        return dependencyTracking;
     }
 
-    protected DependencyTrackingEntity newPersistedDependencyTrackingEntity(DependencyTrackingEntity.Key key) {
-        DependencyTrackingEntity dependencyTrackingEntity = newDependencyTrackingEntity(key);
-        persist(dependencyTrackingEntity);
-        return dependencyTrackingEntity;
+    protected DependencyTracking newPersistedDependencyTrackingEntity(TrackingKey key) {
+        DependencyTracking dependencyTracking = newDependencyTrackingEntity(key);
+        persist(dependencyTracking);
+        return dependencyTracking;
     }
 
     protected JobQueueRepository newJobQueueRepository() {

@@ -13,7 +13,7 @@ public class Sink implements Serializable {
     private static final long serialVersionUID = -1110221413046923805L;
     public static final Sink DIFF = createDiffSink();
 
-    private final long id;
+    private final int id;
     private final long version;
     private final SinkContent content;
 
@@ -27,16 +27,16 @@ public class Sink implements Serializable {
      * @throws IllegalArgumentException if value of id or version is not larger than or equal to lower bound
      */
     @JsonCreator
-    public Sink(@JsonProperty("id") long id,
+    public Sink(@JsonProperty("id") int id,
                 @JsonProperty("version") long version,
                 @JsonProperty("content") SinkContent content) {
 
-        this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.PERSISTENCE_ID_LOWER_BOUND);
+        this.id = InvariantUtil.checkIntLowerBoundOrThrow(id, "id", Constants.PERSISTENCE_ID_LOWER_BOUND);
         this.version = InvariantUtil.checkLowerBoundOrThrow(version, "version", Constants.PERSISTENCE_VERSION_LOWER_BOUND);
         this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
     }
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 

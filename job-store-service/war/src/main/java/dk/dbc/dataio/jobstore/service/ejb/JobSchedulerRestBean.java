@@ -2,7 +2,11 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
+import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
+import dk.dbc.dataio.jobstore.distributed.QueueSubmitMode;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -17,6 +21,12 @@ import jakarta.ws.rs.core.Response;
 @Stateless
 @Path("/")
 public class JobSchedulerRestBean {
+    DependencyTrackingService dependencyTrackingService;
+
+    @Inject
+    public JobSchedulerRestBean(DependencyTrackingService dependencyTrackingService) {
+        this.dependencyTrackingService = dependencyTrackingService;
+    }
 
     @POST
     @Path(JobStoreServiceConstants.SCHEDULER_SINK_FORCE_BULK_MODE)
@@ -24,9 +34,9 @@ public class JobSchedulerRestBean {
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response forceSinkIntoBulkMode(String stuff, @PathParam(JobStoreServiceConstants.SINK_ID_VARIABLE) int sinkId) {
-        JobSchedulerSinkStatus sinkStatus = JobSchedulerBean.getSinkStatus(sinkId);
-        sinkStatus.processingStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
-        sinkStatus.deliveringStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
+        JobSchedulerSinkStatus sinkStatus = dependencyTrackingService.getSinkStatus(sinkId);
+        sinkStatus.getProcessingStatus().setMode(QueueSubmitMode.BULK);
+        sinkStatus.getDeliveringStatus().setMode(QueueSubmitMode.BULK);
         return Response.ok().build();
     }
 
@@ -36,9 +46,9 @@ public class JobSchedulerRestBean {
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response forceSinkIntoTransitionToDirectMode(String stuff, @PathParam(JobStoreServiceConstants.SINK_ID_VARIABLE) int sinkId) {
-        JobSchedulerSinkStatus sinkStatus = JobSchedulerBean.getSinkStatus(sinkId);
-        sinkStatus.processingStatus.setMode(JobSchedulerBean.QueueSubmitMode.TRANSITION_TO_DIRECT);
-        sinkStatus.deliveringStatus.setMode(JobSchedulerBean.QueueSubmitMode.TRANSITION_TO_DIRECT);
+        JobSchedulerSinkStatus sinkStatus = dependencyTrackingService.getSinkStatus(sinkId);
+        sinkStatus.getProcessingStatus().setMode(QueueSubmitMode.TRANSITION_TO_DIRECT);
+        sinkStatus.getDeliveringStatus().setMode(QueueSubmitMode.TRANSITION_TO_DIRECT);
         return Response.ok().build();
     }
 }

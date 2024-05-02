@@ -41,6 +41,7 @@ public class JobStoreServiceConstants {
     public static final String EXPORT_ITEMS_PARTITIONED_FAILED = "jobs/{jobId}/exports/items/partitioned/failed";
     public static final String EXPORT_ITEMS_PROCESSED_FAILED = "jobs/{jobId}/exports/items/processed/failed";
     public static final String EXPORT_ITEMS_DELIVERED_FAILED = "jobs/{jobId}/exports/items/delivered/failed";
+    public static final String CHECK_INCOMPLETE = "jobs/check_incomplete/{days}";
     public static final String ACTIVATE_JOB_PURGE = "jobs/purge";
     public static final String QUERY_PARAM_FORMAT = "format";
 
@@ -48,10 +49,15 @@ public class JobStoreServiceConstants {
     public static final String SCHEDULER_SINK_FORCE_TRANSITION_MODE = "dependency/sinks/{" + SINK_ID_VARIABLE + "}/forceTransitionMode";
     public static final String FORCE_DEPENDENCY_TRACKING_RETRANSMIT = "dependency/retransmit";
     public static final String FORCE_DEPENDENCY_TRACKING_RETRANSMIT_ID = "dependency/retransmit/{jobIds}";
+    public static final String DEPENDENCY_CHECK_BLOCKED = "dependency/check_blocked";
+    public static final String DEPENDENCY_RELOAD = "dependency/reload";
+    public static final String DEPENDENCIES = "dependencies/{jobId}";
 
     public static final String SINK_STATUS = "status/sinks/{sinkId}";
     public static final String SINKS_STATUS = "status/sinks";
+    public static final String SINKS_STATUS_RECOUNT = "status/sinks/recount";
     public static final String CLEAR_CACHE = "cache/clear";
+    public static final String CLEAR_HZ = "cache/clear_hz/{name}";
 
     private JobStoreServiceConstants() {
     }

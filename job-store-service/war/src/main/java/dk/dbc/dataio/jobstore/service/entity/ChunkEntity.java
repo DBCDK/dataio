@@ -11,6 +11,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -139,7 +140,8 @@ public class ChunkEntity {
     }
 
     @Embeddable
-    public static class Key {
+    public static class Key implements Serializable {
+        private static final long serialVersionUID = 1L;
         @Column(name = "id")
         private int id;
 

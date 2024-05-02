@@ -12,7 +12,9 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -83,10 +85,11 @@ public class PgJobStore {
     JobQueueRepository jobQueueRepository;
     @EJB
     JobNotificationRepository jobNotificationRepository;
-
     @Inject
     @JobstoreDB
     EntityManager entityManager;
+    @Inject
+    DependencyTrackingService dependencyTrackingService;
 
     @Resource
     SessionContext sessionContext;
@@ -109,8 +112,8 @@ public class PgJobStore {
         LOGGER.info("Removing {} from job queue", jobId);
         jobQueueRepository.deleteByJobId(jobId);
         LOGGER.info("Removing {} from dependency tracking", jobId);
-        removeFromDependencyTracking(jobEntity);
-        jobSchedulerBean.loadSinkStatusOnBootstrap((int)jobEntity.getCachedSink().getSink().getId());
+
+        jobSchedulerBean.loadSinkStatusOnBootstrap(Set.of(jobEntity.getCachedSink().getSink().getId()));
         LOGGER.info("Aborting job {} done", jobId);
         return Stream.concat(Stream.of(jobEntity), jobs);
     }
@@ -200,7 +203,7 @@ public class PgJobStore {
     }
 
 
-    private PgJobStore self() {
+    protected PgJobStore self() {
         return sessionContext.getBusinessObject(PgJobStore.class);
     }
 
@@ -379,11 +382,6 @@ public class PgJobStore {
         return dependingJobs.stream().flatMap(j -> abortJob(j, jobids));
     }
 
-    public void removeFromDependencyTracking(JobEntity jobEntity) {
-        int count = jobStoreRepository.deleteDependencies(jobEntity.getId());
-        if(count > 0) LOGGER.info("Aborting job {} deleted {} dependency tracking rows", jobEntity.getId(), count);
-    }
-
     private State endPartitioningPhase(JobEntity job) {
         final Date now = new Date();
 
@@ -416,6 +414,7 @@ public class PgJobStore {
                 LOGGER.info("Resuming Partition of Job {} after {} chunks", job.getId(), job.getNumberOfChunks());
                 chunkId = job.getNumberOfChunks();
                 partitioningParam.getDataPartitioner().drainItems(job.getNumberOfItems() + job.getSkipped());
+                addMissingDependencies(job, chunkId);
             }
 
             long submitterId = partitioningParam.getJobEntity().getSpecification().getSubmitterId();
@@ -450,6 +449,23 @@ public class PgJobStore {
 
         }
         return job;
+    }
+
+    private void addMissingDependencies(JobEntity job, int chunkId) {
+        findMissingDependencies(job, chunkId).forEach(chunk -> jobSchedulerBean.scheduleChunk(chunk, job));
+    }
+
+    private List<ChunkEntity> findMissingDependencies(JobEntity job, int chunkId) {
+        int jobId = job.getId();
+        List<ChunkEntity> missing = new ArrayList<>();
+        while (--chunkId > 0) {
+            if(dependencyTrackingService.contains(new TrackingKey(jobId, chunkId))) return missing;
+            ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobId));
+            if(chunk.getTimeOfCompletion() != null) return missing;
+            LOGGER.info("Found missing dependency {}", jobId + "/" + chunkId);
+            missing.add(0, chunk);
+        }
+        return missing;
     }
 
     /* Verifies that the input stream was processed entirely during partitioning */
@@ -489,12 +505,17 @@ public class PgJobStore {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         LOGGER.info("addChunk: adding {} chunk {}/{}", chunk.getType(), chunk.getJobId(), chunk.getChunkId());
 
-        final ChunkEntity.Key chunkKey = new ChunkEntity.Key((int) chunk.getChunkId(), (int) chunk.getJobId());
+        JobEntity jobEntity = self().updateJob(chunk);
+        return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public JobEntity updateJob(Chunk chunk) throws JobStoreException {
+        final ChunkEntity.Key chunkKey = new ChunkEntity.Key((int) chunk.getChunkId(), chunk.getJobId());
         final ChunkEntity chunkEntity = jobStoreRepository.getExclusiveAccessFor(ChunkEntity.class, chunkKey);
         if (chunkEntity == null) {
             throw new JobStoreException(String.format("ChunkEntity.%s could not be found", chunkKey));
         }
-
         // update items
         final PgJobStoreRepository.ChunkItemEntities chunkItemEntities = jobStoreRepository.updateChunkItemEntities(chunk);
         if (chunkItemEntities.size() != chunkEntity.getNumberOfItems()) {
@@ -532,11 +553,7 @@ public class PgJobStore {
             addNotificationIfSpecificationHasDestination(Notification.Type.JOB_COMPLETED, jobEntity);
             logTimerMessage(jobEntity);
         }
-
-        jobStoreRepository.flushEntityManager();
-        jobStoreRepository.refreshFromDatabase(jobEntity);
-
-        return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
+        return jobEntity;
     }
 
     private boolean chunkCompletesJob(JobEntity jobEntity, Chunk chunk) {

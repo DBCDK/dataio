@@ -46,7 +46,7 @@ public class ChunkItem implements Serializable {
     private Status status;
     private List<Type> type;
     private ArrayList<Diagnostic> diagnostics;
-    private Charset encoding;
+    private String encoding;
     private String trackingId;
 
     public static ChunkItem successfulChunkItem() {
@@ -65,7 +65,7 @@ public class ChunkItem implements Serializable {
     }
 
     public ChunkItem() {
-        this.encoding = StandardCharsets.UTF_8;
+        this.encoding = StandardCharsets.UTF_8.name();
     }
 
     /**
@@ -212,12 +212,12 @@ public class ChunkItem implements Serializable {
     }
 
     public ChunkItem withEncoding(Charset encoding) {
-        this.encoding = encoding;
+        this.encoding = encoding == null ? null : encoding.name();
         return this;
     }
 
     public Charset getEncoding() {
-        return encoding;
+        return encoding == null ? null : Charset.forName(encoding);
     }
 
     @Override

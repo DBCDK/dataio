@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.types.Diagnostic;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -15,7 +15,7 @@ import java.util.Objects;
 /**
  * Class representing the current state of a job.
  */
-public class State {
+public class State implements Serializable {
 
     @JsonProperty
     private final Map<Phase, StateElement> states;
@@ -34,7 +34,7 @@ public class State {
     }
 
     public State(State state) {
-        states = new HashMap<>(state.states);
+        states = new EnumMap<>(Phase.class);
         for (Map.Entry<Phase, StateElement> entry : state.states.entrySet()) {
             states.put(entry.getKey(), new StateElement(entry.getValue()));
         }

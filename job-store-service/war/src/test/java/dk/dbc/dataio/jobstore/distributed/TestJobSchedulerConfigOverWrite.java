@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.service.ejb;
+package dk.dbc.dataio.jobstore.distributed;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Singleton;
@@ -17,8 +17,8 @@ public class TestJobSchedulerConfigOverWrite {
     @PostConstruct
     void do_startupQueueSizeOverWrite() {
         LOGGER.info("in do_startupQueueSizeOverWrite()");
-        JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK = 10;
-        JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK = 10;
-        JobSchedulerBean.TRANSITION_TO_DIRECT_MARK = 5;
+        ChunkSchedulingStatus.QUEUED_FOR_PROCESSING.max = 10;
+        ChunkSchedulingStatus.QUEUED_FOR_DELIVERY.max = 10;
+        ChunkSchedulingStatus.transitionToDirectMark = 5;
     }
 }

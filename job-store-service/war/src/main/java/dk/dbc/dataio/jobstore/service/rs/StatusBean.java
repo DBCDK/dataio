@@ -9,14 +9,13 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceStatus;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import jakarta.ejb.EJB;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -39,6 +38,8 @@ public class StatusBean implements ServiceStatus {
 
     @EJB
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @Inject
+    DependencyTrackingService dependencyTrackingService;
 
     @Inject
     @JobstoreDB
@@ -81,18 +82,16 @@ public class StatusBean implements ServiceStatus {
      * Private methods
      */
 
-    private SinkStatusSnapshot toSinkStatusSnapshot(Sink sink, Object[] resultList) {
+    private SinkStatusSnapshot toSinkStatusSnapshot(Sink sink, Integer[] resultList) {
         return new SinkStatusSnapshot()
                 .withSinkId(sink.getId())
                 .withSinkType(sink.getContent().getSinkType())
                 .withName(sink.getContent().getName())
-                .withNumberOfJobs(((Long) resultList[0]).intValue())
-                .withNumberOfChunks(((Long) resultList[1]).intValue());
+                .withNumberOfJobs(resultList[0])
+                .withNumberOfChunks(resultList[1]);
     }
 
-    private Object[] executeQuery(Sink sink) {
-        final Query query = entityManager.createNamedQuery(DependencyTrackingEntity.JOB_COUNT_CHUNK_COUNT_QUERY);
-        query.setParameter(1, sink.getId());
-        return (Object[]) query.getSingleResult();
+    private Integer[] executeQuery(Sink sink) {
+        return dependencyTrackingService.jobCount(sink.getId());
     }
 }

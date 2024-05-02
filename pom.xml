@@ -34,7 +34,8 @@
 
     <properties>
         <tag>devel</tag>
-        <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest</java.image>
+        <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:31</java.image>
+        <docker.payaradir>/opt/payara6</docker.payaradir>
         <docker.deploydir>/opt/payara6/deployments</docker.deploydir>
 
         <ejb.version>3.2</ejb.version>
@@ -698,6 +699,12 @@
                 <version>2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
+                <groupId>org.eclipse.microprofile.health</groupId>
+                <artifactId>microprofile-health-api</artifactId>
+                <version>${microprofile-health-api.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dbc-commons-testee</artifactId>
                 <version>2.0-SNAPSHOT</version>
@@ -825,14 +832,24 @@
                                                         <directory>${basedir}/src/main/docker</directory>
                                                         <includes>
                                                             <include>*.json</include>
+                                                            <include>*.xml</include>
                                                         </includes>
                                                         <outputDirectory>.</outputDirectory>
+                                                    </fileSet>
+                                                    <fileSet>
+                                                        <directory>${basedir}/src/main/docker</directory>
+                                                        <includes>
+                                                            <include>*.bash</include>
+                                                            <include>*.sh</include>
+                                                        </includes>
+                                                        <outputDirectory>/opt/payara6/scripts</outputDirectory>
                                                     </fileSet>
                                                 </fileSets>
                                             </inline>
                                             <targetDir>${docker.deploydir}</targetDir>
                                         </assembly>
                                         <assembly>
+                                            <name>war</name>
                                             <descriptorRef>artifact</descriptorRef>
                                             <targetDir>${docker.deploydir}</targetDir>
                                         </assembly>
@@ -957,13 +974,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.12.0</version>
-                <configuration>
-                    <targetJdk>11</targetJdk>
-                    <excludeRoots>
-                        <excludeRoot>${project.build.directory}/generated-sources</excludeRoot>
-                    </excludeRoots>
-                </configuration>
             </plugin>
 
             <plugin>

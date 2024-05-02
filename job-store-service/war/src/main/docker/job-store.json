@@ -12,5 +12,8 @@
       "from": "${MAIL_FROM}",
       "user": "${MAIL_USER}"
     }
+  },
+  "hazelcast": {
+    "clusterName": "${HZ_CLUSTER_NAME}"
   }
 }

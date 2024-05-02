@@ -16,6 +16,7 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Optional;
@@ -200,7 +201,7 @@ public class ItemEntity {
     }
 
     @Embeddable
-    public static class Key {
+    public static class Key implements Serializable {
         @Column(name = "id")
         private short id;
 

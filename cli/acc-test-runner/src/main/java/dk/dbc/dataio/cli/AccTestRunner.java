@@ -98,7 +98,7 @@ public class AccTestRunner implements Callable<Integer> {
         for (AccTestSuite suite : testSuites) {
             flow = flowManager.getFlow(suite.getJobSpecification());
             flows.add(flow.getId());
-            if(flows.size() > 1) throw new IllegalArgumentException("All test data, within an acceptance test, must address the same flowId. Flows: " + flows);
+            if(flows.size() > 1) throw new IllegalArgumentException("Stopped at testsuite " + suite.getName() + ". All test data, within an acceptance test, must address the same flowId. Flows: " + flows);
             Chunk processed = processSuite(suite, flow);
             Chunk diff = new MessageConsumerBean(serviceHub).handleChunk(processed);
             isDiverging |= diff.getItems().stream().anyMatch(ci -> ci.getStatus() == ChunkItem.Status.FAILURE);

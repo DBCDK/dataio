@@ -258,7 +258,7 @@ public class FlowsBean extends AbstractResourceBean {
             flowComponentsWithLatestVersion.add(updatedFlowComponent);
         }
 
-        FlowContent updatedFlowContent = new FlowContent(flowContent.getName(), flowContent.getDescription(), flowComponentsWithLatestVersion, flowContent.getTimeOfFlowComponentUpdate());
+        FlowContent updatedFlowContent = new FlowContent(flowContent.getName(), flowContent.getDescription(), null, null, null, null, flowComponentsWithLatestVersion, flowContent.getTimeOfFlowComponentUpdate());
         if (hasFlowComponentsChanged) {
             updatedFlowContent.withTimeOfFlowComponentUpdate(new Date());
         }

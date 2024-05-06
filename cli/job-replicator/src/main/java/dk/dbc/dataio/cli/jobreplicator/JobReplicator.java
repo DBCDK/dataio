@@ -214,8 +214,13 @@ public class JobReplicator {
                 .collect(Collectors.toSet());
         if (!flowNames.contains(sourceFlow.getContent().getName())) {
             FlowContent targetFlowContent = new FlowContent(
-                    sourceFlow.getContent().getName(), sourceFlow.getContent()
-                    .getDescription(), targetComponents, null);
+                    sourceFlow.getContent().getName(),
+                    sourceFlow.getContent().getDescription(),
+                    sourceFlow.getContent().getEntrypointScript(),
+                    sourceFlow.getContent().getEntrypointFunction(),
+                    sourceFlow.getContent().getJsar(),
+                    sourceFlow.getContent().getTimeOfLastModification(),
+                    targetComponents, null);
             return targetFlowStoreConnector.createFlow(targetFlowContent);
         } else {
             List<FlowView> targetFlow = existingFlows.stream()

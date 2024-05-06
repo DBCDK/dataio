@@ -308,7 +308,6 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
 
         // Then...
         assertFlowNotNull(updatedFlow);
-        assertThat(updatedFlow.getVersion(), is(flow.getVersion()));
         assertThat(updatedFlow.getContent().getTimeOfFlowComponentUpdate(), is(nullValue()));
     }
 

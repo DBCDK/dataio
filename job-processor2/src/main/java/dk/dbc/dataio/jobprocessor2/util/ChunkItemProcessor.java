@@ -148,6 +148,7 @@ public class ChunkItemProcessor {
         MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY, "true");
         // This timing assumes the use of LogStoreMergingJdbcAppender to be meaningful
         final StopWatch timer = new StopWatch();
+        LOGGER.info("Done");
         MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY);
         MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY);
         LOGGER.info("logstoreMdcRemove(): log-store batch insert for item {}/{}/{} took {} milliseconds",

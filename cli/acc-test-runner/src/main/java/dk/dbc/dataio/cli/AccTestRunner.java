@@ -77,9 +77,13 @@ public class AccTestRunner implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        project = JavaScriptProject.of(nextScripts, dependencies);
-        if(action == Action.COMMIT) return flowManager.commit(project);
-        if(action == Action.TEST) return runTest();
+        try {
+            project = JavaScriptProject.of(nextScripts, dependencies);
+            if (action == Action.COMMIT) return flowManager.commit(project);
+            if (action == Action.TEST) return runTest();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
         return -255;
     }
 

@@ -404,12 +404,12 @@ public class JobSchedulerBean {
     public Future<Integer> bulkScheduleToDeliveringForSink(int sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus) {
         int chunksPushedToQueue = 0;
         try {
-            int ready = dependencyTrackingService.getCount(sinkId, READY_FOR_PROCESSING);
+            int ready = dependencyTrackingService.getCount(sinkId, READY_FOR_DELIVERY);
             int spaceLeftInQueue = dependencyTrackingService.capacity(sinkId, QUEUED_FOR_DELIVERY);
             if (spaceLeftInQueue > 0) {
                 LOGGER.debug("bulk scheduling for delivery - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
 
-                List<TrackingKey> chunks = dependencyTrackingService.find(READY_FOR_DELIVERY, sinkId);
+                List<TrackingKey> chunks = dependencyTrackingService.find(READY_FOR_DELIVERY, sinkId, spaceLeftInQueue);
 
                 if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for delivery - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
                 for (TrackingKey toSchedule : chunks) {

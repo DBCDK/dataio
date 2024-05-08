@@ -10,7 +10,8 @@ import dk.dbc.dataio.commons.utils.service.DataIOConnectorException;
 import dk.dbc.dataio.jobprocessor2.ProcessorConfig;
 import dk.dbc.dataio.jobprocessor2.util.ChunkItemProcessor;
 import dk.dbc.dataio.jobprocessor2.util.FlowCache;
-import dk.dbc.dataio.jse.artemis.common.JobProcessorException;
+import dk.dbc.dataio.jse.artemis.common.JobProcessorException
+;
 import dk.dbc.dataio.jse.artemis.common.service.HealthService;
 import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;

@@ -6,12 +6,15 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessor2.Metric;
 import dk.dbc.dataio.jobprocessor2.ProcessorConfig;
+import dk.dbc.dataio.jobprocessor2.javascript.JsarScript;
 import dk.dbc.dataio.jobprocessor2.javascript.Script;
 import dk.dbc.dataio.jobprocessor2.javascript.StringSourceSchemeHandler;
+import dk.dbc.dataio.jobprocessor2.javascript.StringSourceScript;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +58,17 @@ public class FlowCache {
         return flowCache.get(key, () -> new FlowCacheEntry(loader.call()));
     }
 
+    private static Script createScript(Flow flow) throws Exception {
+        final StopWatch stopWatch = new StopWatch();
+        final FlowContent flowContent = flow.getContent();
+        try {
+            return new JsarScript(flowContent.getEntrypointScript(), flowContent.getEntrypointFunction(), flowContent.getJsar());
+        } finally {
+            LOGGER.info("Creating javascript for flow id={} version={} name='{}' took {} ms",
+                    flow.getId(), flow.getVersion(), flowContent.getName(), stopWatch.getElapsedTime());
+        }
+    }
+
     private static Script createScript(FlowComponentContent componentContent) throws Exception {
         StopWatch stopWatch = new StopWatch();
         try {
@@ -68,7 +82,7 @@ public class FlowCache {
             if (componentContent.getRequireCache() != null) {
                 requireCacheJson = StringUtil.base64decode(componentContent.getRequireCache());
             }
-            return new Script(componentContent.getName(), componentContent.getInvocationMethod(), javaScripts, requireCacheJson);
+            return new StringSourceScript(componentContent.getName(), componentContent.getInvocationMethod(), javaScripts, requireCacheJson);
         } finally {
             LOGGER.info("Creating javascript for flow component '{}' took {} ms",
                     componentContent.getName(), stopWatch.getElapsedTime());
@@ -87,11 +101,16 @@ public class FlowCache {
             List<Script> scripts = new ArrayList<>();
             List<Script> next = new ArrayList<>();
             this.flow = Objects.requireNonNull(flow);
-            for (FlowComponent flowComponent : flow.getContent().getComponents()) {
-                scripts.add(createScript(flowComponent.getContent()));
-                FlowComponentContent flowComponentNextContent = flowComponent.getNext();
-                if (flowComponentNextContent != FlowComponent.UNDEFINED_NEXT) {
-                    next.add(createScript(flowComponentNextContent));
+            if (flow.getContent().getJsar() != null) {
+                scripts.add(createScript(flow));
+            } else {
+                // The use of flow components will be deprecated in the near future together with the 'next' concept
+                for (FlowComponent flowComponent : flow.getContent().getComponents()) {
+                    scripts.add(createScript(flowComponent.getContent()));
+                    FlowComponentContent flowComponentNextContent = flowComponent.getNext();
+                    if (flowComponentNextContent != FlowComponent.UNDEFINED_NEXT) {
+                        next.add(createScript(flowComponentNextContent));
+                    }
                 }
             }
             this.scripts = Collections.unmodifiableList(scripts);

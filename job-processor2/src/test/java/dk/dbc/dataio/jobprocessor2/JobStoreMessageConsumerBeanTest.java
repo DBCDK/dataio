@@ -92,8 +92,8 @@ public class JobStoreMessageConsumerBeanTest {
 
     @Test
     public void handleConsumedMessage() throws Exception {
-        ChunkProcessorTest jsFactory = new ChunkProcessorTest();
-        Flow flow = jsFactory.getFlow(new ChunkProcessorTest.ScriptWrapper(ChunkProcessorTest.javaScriptReturnUpperCase, ChunkProcessorTest.getJavaScript(ChunkProcessorTest.getJavaScriptReturnUpperCaseFunction())));
+        DeprecatedChunkProcessorTest jsFactory = new DeprecatedChunkProcessorTest();
+        Flow flow = jsFactory.getFlow(new DeprecatedChunkProcessorTest.ScriptWrapper(DeprecatedChunkProcessorTest.javaScriptReturnUpperCase, DeprecatedChunkProcessorTest.getJavaScript(DeprecatedChunkProcessorTest.getJavaScriptReturnUpperCaseFunction())));
 
         when(SERVICE_HUB.jobStoreServiceConnector.getCachedFlow(((Long)headers.get(JmsConstants.FLOW_ID_PROPERTY_NAME)).intValue())).thenReturn(flow);
 

@@ -27,7 +27,7 @@ public class FlowView implements Serializable {
     }
 
     @JsonCreator
-    public FlowView(@JsonProperty("id") long id, @JsonProperty("version") long version, @JsonProperty("name") String name, @JsonProperty("description") String description,
+    public FlowView(@JsonProperty("id") long id , @JsonProperty("version") long version, @JsonProperty("name") String name, @JsonProperty("description") String description,
                     @JsonProperty("components") List<FlowComponentView> components) {
         this.id = id;
         this.version = version;

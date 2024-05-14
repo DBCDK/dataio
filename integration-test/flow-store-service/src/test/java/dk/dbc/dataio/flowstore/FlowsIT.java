@@ -27,6 +27,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -45,6 +46,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -62,9 +64,12 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
     @Test
     public void createJsarFlow() throws URISyntaxException, IOException, FlowStoreServiceConnectorException {
         URI uri = getClass().getClassLoader().getResource("publizon-dmat.jsar").toURI();
-        FlowView flow = flowStoreServiceConnector.updateFlow(Instant.now().toEpochMilli(), Path.of(uri));
+        byte[] jsar = Files.readAllBytes(Path.of(uri));
+        FlowView flow = flowStoreServiceConnector.updateFlow(Instant.now().toEpochMilli(), jsar);
+        byte[] jsarResult = flowStoreServiceConnector.getJsar(flow.getId());
         assertEquals("Publizon2Dmat", flow.getName());
         assertEquals(1, flow.getVersion());
+        assertArrayEquals("Downloaded jsar should be identical to the local one", jsar, jsarResult);
     }
 
     /**

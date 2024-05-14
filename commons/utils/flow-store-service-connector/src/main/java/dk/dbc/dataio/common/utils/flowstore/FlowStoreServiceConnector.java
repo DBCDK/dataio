@@ -661,6 +661,18 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    public byte[] getJsar(long id) throws FlowStoreServiceConnectorUnexpectedStatusCodeException {
+        PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_JSAR)
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
+        try (Response response = new HttpGet(failSafeHttpClient)
+                .withBaseUrl(baseUrl)
+                .withPathElements(path.build())
+                .execute()) {
+            verifyResponseStatus(response, Status.OK);
+            return response.readEntity(byte[].class);
+        }
+    }
+
     /**
      * Retrieves the specified flow from the flow-store
      *

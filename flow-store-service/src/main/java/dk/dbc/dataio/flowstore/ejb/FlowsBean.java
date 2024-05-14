@@ -197,7 +197,7 @@ public class FlowsBean extends AbstractResourceBean {
         try {
             Flow flow = self().updateFlow(flowContent);
             return Response.ok()
-                    .entity(jsonbContext.marshall(flow.getView()))
+                    .entity(flow.getView())
                     .tag(Long.toString(flow.getVersion()))
                     .status(flow.getVersion().intValue() == 1 ? Response.Status.CREATED : Response.Status.OK)
                     .build();

@@ -24,9 +24,14 @@ import dk.dbc.httpclient.HttpClient;
 import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -42,11 +47,26 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Integration tests for the flows collection part of the flow store service
  */
 public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
+    @Test
+    public void flowViewSer() throws JSONBException {
+        String value = "{\"id\":1201,\"version\":1,\"name\":\"Publizon2Dmat\",\"description\":\"Something wonderfully descriptive\",\"components\":[]}";
+        jsonbContext.unmarshall(value, FlowView.class);
+    }
+
+    @Test
+    public void createJsarFlow() throws URISyntaxException, IOException, FlowStoreServiceConnectorException {
+        URI uri = getClass().getClassLoader().getResource("publizon-dmat.jsar").toURI();
+        FlowView flow = flowStoreServiceConnector.updateFlow(Instant.now().toEpochMilli(), Path.of(uri));
+        assertEquals("Publizon2Dmat", flow.getName());
+        assertEquals(1, flow.getVersion());
+    }
+
     /**
      * Given: a deployed flow-store service
      * When : valid JSON is POSTed to the flows path without an identifier

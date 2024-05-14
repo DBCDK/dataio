@@ -31,13 +31,18 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -109,7 +114,7 @@ public class FlowStoreServiceConnector {
                     .withPathElements(FlowStoreServiceConstants.SINKS)
                     .withJsonData(sinkContent)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.CREATED);
+                verifyResponseStatus(response, Status.CREATED);
                 return readResponseEntity(response, Sink.class);
             }
         } finally {
@@ -135,7 +140,7 @@ public class FlowStoreServiceConnector {
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, Sink.class);
             }
         } finally {
@@ -158,7 +163,7 @@ public class FlowStoreServiceConnector {
                     .withBaseUrl(baseUrl)
                     .withPathElements(FlowStoreServiceConstants.SINKS)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
@@ -190,7 +195,7 @@ public class FlowStoreServiceConnector {
                     .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
                     .withJsonData(sinkContent)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, Sink.class);
             }
         } finally {
@@ -274,7 +279,7 @@ public class FlowStoreServiceConnector {
                     .withPathElements(FlowStoreServiceConstants.SUBMITTERS)
                     .withJsonData(submitterContent)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.CREATED);
+                verifyResponseStatus(response, Status.CREATED);
                 return readResponseEntity(response, Submitter.class);
             }
         } finally {
@@ -301,7 +306,7 @@ public class FlowStoreServiceConnector {
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, Submitter.class);
             }
         } finally {
@@ -328,7 +333,7 @@ public class FlowStoreServiceConnector {
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, Submitter.class);
             }
         } finally {
@@ -360,7 +365,7 @@ public class FlowStoreServiceConnector {
                     .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
                     .withJsonData(submitterContent)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, Submitter.class);
             }
         } finally {
@@ -383,7 +388,7 @@ public class FlowStoreServiceConnector {
                     .withBaseUrl(baseUrl)
                     .withPathElements(FlowStoreServiceConstants.SUBMITTERS)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
@@ -405,7 +410,7 @@ public class FlowStoreServiceConnector {
                 .withPathElements(FlowStoreServiceConstants.SUBMITTERS_QUERIES)
                 .withData(query, MediaType.TEXT_PLAIN)
                 .execute()) {
-            verifyResponseStatus(response, Response.Status.OK);
+            verifyResponseStatus(response, Status.OK);
             return readResponseGenericTypeEntity(response, new GenericType<>() {});
         } finally {
             LOGGER.debug("FlowStoreServiceConnector: querySubmitters took {} milliseconds", stopWatch.getElapsedTime());
@@ -431,7 +436,7 @@ public class FlowStoreServiceConnector {
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
@@ -461,7 +466,7 @@ public class FlowStoreServiceConnector {
                     .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS)
                     .withJsonData(flowComponentContent)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.CREATED);
+                verifyResponseStatus(response, Status.CREATED);
                 return readResponseEntity(response, FlowComponent.class);
             }
         } finally {
@@ -483,7 +488,7 @@ public class FlowStoreServiceConnector {
                 .withBaseUrl(baseUrl)
                 .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS)
                 .execute()) {
-            verifyResponseStatus(response, Response.Status.OK);
+            verifyResponseStatus(response, Status.OK);
             return readResponseGenericTypeEntity(response, new GenericType<>() {});
         } finally {
             LOGGER.debug("FlowStoreServiceConnector: findAllFlowComponents took {} milliseconds",
@@ -510,7 +515,7 @@ public class FlowStoreServiceConnector {
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, FlowComponent.class);
             }
         } finally {
@@ -542,7 +547,7 @@ public class FlowStoreServiceConnector {
                     .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
                     .withJsonData(flowComponentContent)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, FlowComponent.class);
             }
         } finally {
@@ -573,7 +578,7 @@ public class FlowStoreServiceConnector {
                     .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
                     .withJsonData(next)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, FlowComponent.class);
             }
         } finally {
@@ -631,11 +636,28 @@ public class FlowStoreServiceConnector {
                     .withPathElements(FlowStoreServiceConstants.FLOWS)
                     .withJsonData(flowContent)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.CREATED);
+                verifyResponseStatus(response, Status.CREATED, Status.OK);
                 return readResponseEntity(response, Flow.class);
             }
         } finally {
             LOGGER.debug("FlowStoreServiceConnector: createFlow took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    public FlowView updateFlow(Long lastModified, Path jsar) throws IOException, FlowStoreServiceConnectorException {
+        return updateFlow(lastModified, Files.readAllBytes(jsar));
+    }
+
+    public FlowView updateFlow(Long lastModified, byte[] jsar) throws FlowStoreServiceConnectorException {
+        PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_JSAR_UPDATE)
+                .bind(FlowStoreServiceConstants.LM_VARIABLE, lastModified);
+        try (Response response = new HttpPost(failSafeHttpClient)
+                .withBaseUrl(baseUrl)
+                .withPathElements(path.build())
+                .withData(jsar, MediaType.APPLICATION_OCTET_STREAM)
+                .execute()) {
+            verifyResponseStatus(response, Status.CREATED, Status.OK);
+            return readResponseEntity(response, FlowView.class);
         }
     }
 
@@ -658,7 +680,7 @@ public class FlowStoreServiceConnector {
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, Flow.class);
             }
         } finally {
@@ -684,7 +706,7 @@ public class FlowStoreServiceConnector {
             queryParameters.forEach(httpGet::withQueryParameter);
 
             try (Response response = httpGet.execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
@@ -707,7 +729,7 @@ public class FlowStoreServiceConnector {
                     .withPathElements(FlowStoreServiceConstants.FLOWS);
 
             try (Response response = httpGet.execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
@@ -756,7 +778,7 @@ public class FlowStoreServiceConnector {
                     .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
                     .withJsonData("")
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, Flow.class);
             }
         } finally {
@@ -789,7 +811,7 @@ public class FlowStoreServiceConnector {
                     .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
                     .withJsonData(flowContent)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, Flow.class);
             }
         } finally {
@@ -847,7 +869,7 @@ public class FlowStoreServiceConnector {
                     .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS)
                     .withJsonData(flowBinderContent)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.CREATED);
+                verifyResponseStatus(response, Status.CREATED);
                 return readResponseEntity(response, FlowBinder.class);
             }
         } finally {
@@ -870,7 +892,7 @@ public class FlowStoreServiceConnector {
                     .withBaseUrl(baseUrl)
                     .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
@@ -902,7 +924,7 @@ public class FlowStoreServiceConnector {
                     .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
                     .withJsonData(flowBinderContent)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, FlowBinder.class);
             }
         } finally {
@@ -956,7 +978,7 @@ public class FlowStoreServiceConnector {
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, FlowBinder.class);
             }
         } finally {
@@ -989,7 +1011,7 @@ public class FlowStoreServiceConnector {
                     .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_SUBMITTER, Long.toString(submitterNumber))
                     .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_DESTINATION, destination)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, FlowBinder.class);
             }
         } finally {
@@ -1011,7 +1033,7 @@ public class FlowStoreServiceConnector {
                 .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS_QUERIES)
                 .withData(query, MediaType.TEXT_PLAIN)
                 .execute()) {
-            verifyResponseStatus(response, Response.Status.OK);
+            verifyResponseStatus(response, Status.OK);
             return readResponseGenericTypeEntity(response, new GenericType<>() {});
         } finally {
             LOGGER.debug("FlowStoreServiceConnector: queryFlowBinders took {} milliseconds", stopWatch.getElapsedTime());
@@ -1044,7 +1066,7 @@ public class FlowStoreServiceConnector {
                     .withPathElements(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS)
                     .withJsonData(gatekeeperDestination)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.CREATED);
+                verifyResponseStatus(response, Status.CREATED);
                 return readResponseEntity(response, GatekeeperDestination.class);
             }
         } finally {
@@ -1067,7 +1089,7 @@ public class FlowStoreServiceConnector {
                     .withBaseUrl(baseUrl)
                     .withPathElements(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseGenericTypeEntity(response, new GenericType<>() {});
             }
         } finally {
@@ -1122,7 +1144,7 @@ public class FlowStoreServiceConnector {
                     .withPathElements(path.build())
                     .withJsonData(gatekeeperDestination)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, GatekeeperDestination.class);
             }
         } finally {
@@ -1159,7 +1181,7 @@ public class FlowStoreServiceConnector {
                     .withPathElements(path.build())
                     .withJsonData(configContent)
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.CREATED);
+                verifyResponseStatus(response, Status.CREATED);
                 return readResponseEntity(response, type);
             }
         } finally {
@@ -1192,7 +1214,7 @@ public class FlowStoreServiceConnector {
                     .withHeader(FlowStoreServiceConstants.RESOURCE_TYPE_HEADER, harvesterConfig.getType())
                     .withJsonData(harvesterConfig.getContent())
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 //noinspection unchecked
                 return (T) readResponseEntity(response, harvesterConfig.getClass());
             }
@@ -1226,7 +1248,7 @@ public class FlowStoreServiceConnector {
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseEntity(response, type);
             }
         } finally {
@@ -1284,7 +1306,7 @@ public class FlowStoreServiceConnector {
                     .withPathElements(path.build());
             LOGGER.info("Retrieving harvester config from, {}", httpGet);
             try (Response response = httpGet.execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseGenericTypeEntity(response, new GenericType<>(createListGenericType(type)));
             }
         } finally {
@@ -1312,7 +1334,7 @@ public class FlowStoreServiceConnector {
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
                     .execute()) {
-                verifyResponseStatus(response, Response.Status.OK);
+                verifyResponseStatus(response, Status.OK);
                 return readResponseGenericTypeEntity(response, new GenericType<>(createListGenericType(type)));
             }
         } finally {
@@ -1322,9 +1344,9 @@ public class FlowStoreServiceConnector {
 
     // ******************************************** Private helper methods ********************************************
 
-    private void verifyResponseStatus(Response response, Response.Status expectedStatus) throws FlowStoreServiceConnectorUnexpectedStatusCodeException {
-        final Response.Status actualStatus = Response.Status.fromStatusCode(response.getStatus());
-        if (actualStatus != expectedStatus) {
+    private void verifyResponseStatus(Response response, Status... expectedStatus) throws FlowStoreServiceConnectorUnexpectedStatusCodeException {
+        final Status actualStatus = Status.fromStatusCode(response.getStatus());
+        if (!Arrays.asList(expectedStatus).contains(actualStatus)) {
             final FlowStoreServiceConnectorUnexpectedStatusCodeException exception =
                     new FlowStoreServiceConnectorUnexpectedStatusCodeException(String.format(
                             "flow-store service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
@@ -1347,17 +1369,18 @@ public class FlowStoreServiceConnector {
     }
 
     private <T> T readResponseEntity(Response response, Class<T> tClass) throws FlowStoreServiceConnectorException {
-        response.bufferEntity(); // must be done in order to possible avoid a timeout-exception from readEntity.
+        response.bufferEntity(); // must be done in order to possibly avoid a timeout-exception from readEntity.
+
         final T entity = response.readEntity(tClass);
-        if (entity == null) {
-            throw new FlowStoreServiceConnectorException(
-                    String.format("flow-store service returned with null-valued %s entity", tClass.getName()));
-        }
-        return entity;
+            if (entity == null) {
+                throw new FlowStoreServiceConnectorException(
+                        String.format("flow-store service returned with null-valued %s entity", tClass.getName()));
+            }
+            return entity;
     }
 
     private <T> T readResponseGenericTypeEntity(Response response, GenericType<T> tGenericType) throws FlowStoreServiceConnectorException {
-        response.bufferEntity(); // must be done in order to possible avoid a timeout-exception from readEntity.
+        response.bufferEntity(); // must be done in order to possibly avoid a timeout-exception from readEntity.
         final T entity = response.readEntity(tGenericType);
         if (entity == null) {
             throw new FlowStoreServiceConnectorException(

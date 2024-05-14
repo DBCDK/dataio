@@ -1,5 +1,10 @@
 package dk.dbc.dataio.commons.types;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -8,13 +13,28 @@ import java.util.List;
 /**
  * Brief view for Flow DTO
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FlowView implements Serializable {
     private long id;
     private long version;
     private String name;
     private String description;
     private List<FlowComponentView> components;
+    @JsonIgnore
     private Date timeOfComponentUpdate;
+
+    public FlowView() {
+    }
+
+    @JsonCreator
+    public FlowView(@JsonProperty("id") long id, @JsonProperty("version") long version, @JsonProperty("name") String name, @JsonProperty("description") String description,
+                    @JsonProperty("components") List<FlowComponentView> components) {
+        this.id = id;
+        this.version = version;
+        this.name = name;
+        this.description = description;
+        this.components = components;
+    }
 
     public long getId() {
         return id;

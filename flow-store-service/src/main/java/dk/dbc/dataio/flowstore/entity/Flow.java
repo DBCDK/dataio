@@ -1,5 +1,6 @@
 package dk.dbc.dataio.flowstore.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.FlowComponent;
@@ -17,9 +18,12 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.SqlResultSetMapping;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Persistence domain class for flow objects where id is auto
@@ -52,6 +56,12 @@ public class Flow extends Versioned {
     @Convert(converter = JsonConverter.class)
     private String view;
 
+    @Lob
+    @JsonIgnore
+    private byte[] jsar;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastModified;
+
     public String getView() {
         return view;
     }
@@ -67,6 +77,22 @@ public class Flow extends Versioned {
         view = generateView(version == null ? 1 : version + 1);
     }
 
+    public byte[] getJsar() {
+        return jsar;
+    }
+
+    public void setJsar(byte[] jsar) {
+        this.jsar = jsar;
+    }
+
+    public Date getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(Date lastModified) {
+        this.lastModified = lastModified;
+    }
+
     public String generateView() {
         // Used during database migration
         return generateView(getVersion());
@@ -74,14 +100,14 @@ public class Flow extends Versioned {
 
     public String generateView(Long version) {
         try {
-            final FlowContent flowContent = JSONB_CONTEXT.unmarshall(getContent(), FlowContent.class);
-            final FlowView view = new FlowView()
+            FlowContent flowContent = jsar == null ? JSONB_CONTEXT.unmarshall(getContent(), FlowContent.class) : new FlowContent(jsar, lastModified);
+            FlowView view = new FlowView()
                     .withId(getId())
                     .withVersion(version)
                     .withName(flowContent.getName())
                     .withDescription(flowContent.getDescription())
-                    .withTimeOfComponentUpdate(flowContent.getTimeOfFlowComponentUpdate())
-                    .withComponents(generateComponentViews(flowContent.getComponents()));
+                    .withTimeOfComponentUpdate(lastModified) // Components are no more
+                    .withComponents(generateComponentViews(flowContent.getComponents() == null ? List.of() : flowContent.getComponents()));
             return JSONB_CONTEXT.marshall(view);
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
@@ -89,18 +115,6 @@ public class Flow extends Versioned {
     }
 
     private List<FlowComponentView> generateComponentViews(List<FlowComponent> components) {
-        final List<FlowComponentView> componentViews = new ArrayList<>(components.size());
-        for (FlowComponent component : components) {
-            final FlowComponentView view = new FlowComponentView()
-                    .withId(component.getId())
-                    .withVersion(component.getVersion())
-                    .withName(component.getContent().getName())
-                    .withRevision(String.valueOf(component.getContent().getSvnRevision()));
-            if (component.getNext() != null) {
-                view.withNextRevision(String.valueOf(component.getNext().getSvnRevision()));
-            }
-            componentViews.add(view);
-        }
-        return componentViews;
+        return components.stream().map(FlowComponent::toView).collect(Collectors.toList());
     }
 }

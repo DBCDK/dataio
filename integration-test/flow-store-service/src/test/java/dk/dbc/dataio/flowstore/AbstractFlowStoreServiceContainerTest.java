@@ -8,6 +8,8 @@ import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
 import net.jodah.failsafe.RetryPolicy;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
@@ -16,8 +18,10 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -42,6 +46,7 @@ public abstract class AbstractFlowStoreServiceContainerTest implements PostgresC
                 .withEnv("HZ_CLUSTER_NAME", "dataio-flowstore-cluster")
                 .withExposedPorts(8080)
                 .waitingFor(Wait.forHttp(System.getProperty("flowstore.it.service.context") + "/status").forPort(8080))
+//                .withEnv("REMOTE_DEBUGGING_HOST", getDebuggingHost())
                 .withStartupTimeout(Duration.ofMinutes(5));
         flowstoreServiceContainer.start();
         try {
@@ -53,7 +58,7 @@ public abstract class AbstractFlowStoreServiceContainerTest implements PostgresC
                 ":" + flowstoreServiceContainer.getMappedPort(8080) +
                 System.getProperty("flowstore.it.service.context");
         flowStoreServiceConnector = new FlowStoreServiceConnector(
-                FailSafeHttpClient.create(HttpClient.newClient(), new RetryPolicy().withMaxRetries(0)),
+                FailSafeHttpClient.create(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), new RetryPolicy().withMaxRetries(0)),
                 flowStoreServiceBaseUrl);
     }
 
@@ -71,4 +76,12 @@ public abstract class AbstractFlowStoreServiceContainerTest implements PostgresC
         return dbContainer.datasource().getConnection();
     }
 
+    private static String getDebuggingHost() {
+        try {
+            String host = InetAddress.getLocalHost().getHostAddress() + ":5005";
+            return host;
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

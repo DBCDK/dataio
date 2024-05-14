@@ -3,7 +3,6 @@ package dk.dbc.dataio.commons.types;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.invariant.InvariantUtil;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -85,7 +84,7 @@ public class FlowContent implements Serializable {
         this.jsar = jsar;
         this.timeOfLastModification = timeOfLastModification;
 
-        this.components = new ArrayList<>(InvariantUtil.checkNotNullOrThrow(components, "components"));
+        this.components = components == null ? List.of() : new ArrayList<>(components);
         this.timeOfFlowComponentUpdate = timeOfFlowComponentUpdate;
     }
 
@@ -166,6 +165,7 @@ public class FlowContent implements Serializable {
     }
 
     public List<FlowComponent> getComponents() {
+        if(components == null) return List.of();
         return new ArrayList<>(components);
     }
 

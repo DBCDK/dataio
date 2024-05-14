@@ -15,6 +15,7 @@ import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.ws.rs.Consumes;
@@ -187,6 +188,33 @@ public class FlowsBean extends AbstractResourceBean {
                 .build();
     }
 
+    @POST
+    @Path(FlowStoreServiceConstants.FLOW_JSAR_UPDATE)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public Response updateFlow(@PathParam(FlowStoreServiceConstants.LM_VARIABLE) long lastModified, byte[] jsArchive) throws JSONBException {
+        FlowContent flowContent = new FlowContent(jsArchive, new Date(lastModified));
+        try {
+            Flow flow = self().updateFlow(flowContent);
+            return Response.ok()
+                    .entity(jsonbContext.marshall(flow.getView()))
+                    .tag(Long.toString(flow.getVersion()))
+                    .status(flow.getVersion().intValue() == 1 ? Response.Status.CREATED : Response.Status.OK)
+                    .build();
+        } catch (Exception e) {
+            System.out.println(e);
+            return null;
+        }
+    }
+
+    @GET
+    @Path(FlowStoreServiceConstants.FLOW_JSAR)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getJsar(@PathParam("id") Long id) {
+        Flow flow = entityManager.find(Flow.class, id);
+        return Response.ok(flow.getJsar()).build();
+    }
+
     protected FlowsBean self() {
         return sessionContext.getBusinessObject(FlowsBean.class);
     }
@@ -208,6 +236,32 @@ public class FlowsBean extends AbstractResourceBean {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         return Response.ok().entity(jsonbContext.marshall(flows)).build();
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public Flow updateFlow(FlowContent flowContent) {
+        TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_BY_NAME, Flow.class).setParameter(1, flowContent.getName());
+        try {
+            Flow flow = query.getSingleResult();
+            flow.setJsar(flowContent.getJsar());
+            flow.setLastModified(flowContent.getTimeOfLastModification());
+            return flow;
+        } catch (NoResultException e) {
+            return createFlow(flowContent);
+        }
+    }
+
+    private Flow createFlow(FlowContent flowContent) {
+        Flow flow = new Flow();
+        try {
+            flow.setContent("{}");
+            flow.setJsar(flowContent.getJsar());
+            flow.setLastModified(flowContent.getTimeOfLastModification());
+            entityManager.persist(flow);
+            return flow;
+        } catch (JSONBException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

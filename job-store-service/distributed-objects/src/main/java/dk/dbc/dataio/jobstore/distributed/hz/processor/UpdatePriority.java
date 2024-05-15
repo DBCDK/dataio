@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class UpdatePriority implements EntryProcessor<TrackingKey, DependencyTracking, Set<TrackingKey>> {
+    private static final long serialVersionUID = 1L;
     final int priority;
 
     public UpdatePriority(int priority) {

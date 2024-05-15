@@ -19,7 +19,7 @@ public class ScheduledJobPurgeBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledJobPurgeBean.class);
 
-    @Schedule(hour = "23", persistent = false)
+    @Schedule(hour = "23")
     public void run() {
         try {
             jobPurgeBean.purgeJobs();

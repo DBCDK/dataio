@@ -187,9 +187,14 @@ public class DependencyTrackingService {
                 .collect(Collectors.toSet());
     }
 
-    public void setStatus(TrackingKey key, ChunkSchedulingStatus status) {
-        StatusChangeEvent statusChangeEvent = dependencyTracker.executeOnKey(key, new UpdateStatus(status));
+    public StatusChangeEvent setStatus(TrackingKey key, ChunkSchedulingStatus status) {
+        return setStatus(key, null, status);
+    }
+
+    public StatusChangeEvent setStatus(TrackingKey key, ChunkSchedulingStatus expectedStatus, ChunkSchedulingStatus newStatus) {
+        StatusChangeEvent statusChangeEvent = dependencyTracker.executeOnKey(key, new UpdateStatus(expectedStatus, newStatus));
         updateCounters(Stream.of(statusChangeEvent));
+        return statusChangeEvent;
     }
 
     public void remove(TrackingKey key) {

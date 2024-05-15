@@ -47,4 +47,13 @@ public class StatusChangeEvent implements Serializable {
     public int hashCode() {
         return Objects.hash(sinkId, oldStatus, newStatus);
     }
+
+    @Override
+    public String toString() {
+        return "StatusChangeEvent{" +
+                "sinkId=" + sinkId +
+                ", oldStatus=" + oldStatus +
+                ", newStatus=" + newStatus +
+                '}';
+    }
 }

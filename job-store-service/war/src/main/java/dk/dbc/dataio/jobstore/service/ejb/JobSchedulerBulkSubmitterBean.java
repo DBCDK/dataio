@@ -35,7 +35,7 @@ public class JobSchedulerBulkSubmitterBean {
     @EJB
     JobSchedulerBean jobSchedulerBean;
 
-    @Schedule(second = "*/1", minute = "*", hour = "*", persistent = false)
+    @Schedule(second = "*/1", minute = "*", hour = "*")
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void bulkScheduleChunksForDelivering() {
@@ -54,7 +54,7 @@ public class JobSchedulerBulkSubmitterBean {
     }
 
 
-    @Schedule(second = "*/1", minute = "*", hour = "*", persistent = false)
+    @Schedule(second = "*/1", minute = "*", hour = "*")
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void bulkScheduleChunksForProcessing() {

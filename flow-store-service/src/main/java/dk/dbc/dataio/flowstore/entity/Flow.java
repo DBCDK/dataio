@@ -98,6 +98,13 @@ public class Flow extends Versioned {
         return generateView(getVersion());
     }
 
+    public Flow updateContent(FlowContent content) throws JSONBException {
+        setContent(JSONB_CONTEXT.marshall(content));
+        setJsar(content.getJsar());
+        setLastModified(content.getTimeOfLastModification());
+        return this;
+    }
+
     public String generateView(Long version) {
         try {
             FlowContent flowContent = jsar == null ? JSONB_CONTEXT.unmarshall(getContent(), FlowContent.class) : new FlowContent(jsar, lastModified);

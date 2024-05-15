@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -36,6 +37,7 @@ public class FlowContent implements Serializable {
     private final String description;
     private String entrypointScript;
     private String entrypointFunction;
+    @JsonIgnore
     private byte[] jsar;
     private Date timeOfLastModification;
 

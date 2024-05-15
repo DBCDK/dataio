@@ -79,7 +79,7 @@ public abstract class AbstractFlowStoreServiceContainerTest implements PostgresC
     private static String getDebuggingHost() {
         try {
             String host = InetAddress.getLocalHost().getHostAddress() + ":5005";
-            return host;
+            return "192.168.0.191:5005";
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }

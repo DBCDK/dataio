@@ -6,6 +6,7 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.flowstore.FlowStoreException;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowComponent;
 import dk.dbc.invariant.InvariantUtil;
@@ -239,29 +240,24 @@ public class FlowsBean extends AbstractResourceBean {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public Flow updateFlow(FlowContent flowContent) {
+    public Flow updateFlow(FlowContent flowContent) throws FlowStoreException {
         TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_BY_NAME, Flow.class).setParameter(1, flowContent.getName());
         try {
-            Flow flow = query.getSingleResult();
-            flow.setJsar(flowContent.getJsar());
-            flow.setLastModified(flowContent.getTimeOfLastModification());
-            return flow;
-        } catch (NoResultException e) {
-            return createFlow(flowContent);
+            try {
+                Flow flow = query.getSingleResult().updateContent(flowContent);
+                return flow;
+            } catch (NoResultException e) {
+                return createFlow(flowContent);
+            }
+        } catch (JSONBException e) {
+            throw new FlowStoreException("Failed to marshal flowcontent for " + flowContent.getName(), e);
         }
     }
 
-    private Flow createFlow(FlowContent flowContent) {
-        Flow flow = new Flow();
-        try {
-            flow.setContent("{}");
-            flow.setJsar(flowContent.getJsar());
-            flow.setLastModified(flowContent.getTimeOfLastModification());
-            entityManager.persist(flow);
-            return flow;
-        } catch (JSONBException e) {
-            throw new RuntimeException(e);
-        }
+    private Flow createFlow(FlowContent flowContent) throws JSONBException {
+        Flow flow = new Flow().updateContent(flowContent);
+        entityManager.persist(flow);
+        return flow;
     }
 
     /**

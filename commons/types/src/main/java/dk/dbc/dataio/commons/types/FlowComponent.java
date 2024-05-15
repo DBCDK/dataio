@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.invariant.InvariantUtil;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * FlowComponent DTO class.
@@ -76,11 +77,14 @@ public class FlowComponent implements Serializable {
 
     @JsonIgnore
     public FlowComponentView toView() {
-        return new FlowComponentView()
+        FlowComponentView view = new FlowComponentView()
                 .withId(getId())
                 .withVersion(getVersion())
                 .withName(getContent().getName())
                 .withRevision(String.valueOf(getContent().getSvnRevision()));
+        Optional.ofNullable(getNext()).map(FlowComponentContent::getSvnRevision).map(String::valueOf)
+                .ifPresent(view::withNextRevision);
+        return view;
     }
 
     @Override

@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>acc-test-runner</artifactId>
+    <version>3.0-SNAPSHOT</version>
 
     <properties>
         <main-class>dk.dbc.dataio.cli.AccTestRunner</main-class>
@@ -34,10 +35,6 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dataio-commons-utils-javascript</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
             <artifactId>dataio-partitioner</artifactId>
         </dependency>
         <dependency>
@@ -56,6 +53,14 @@
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <USE_NATIVE_DIFF>false</USE_NATIVE_DIFF>
+                    </environmentVariables>
+                </configuration>
             </plugin>
         </plugins>
     </build>

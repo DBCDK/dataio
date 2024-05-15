@@ -2,56 +2,59 @@ package dk.dbc.dataio.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
-import dk.dbc.dataio.commons.javascript.JavaScriptProject;
 import dk.dbc.dataio.commons.partioner.DataPartitioner;
 import dk.dbc.dataio.commons.partioner.DataPartitionerFactory;
 import dk.dbc.dataio.commons.partioner.DataPartitionerResult;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.diff.MessageConsumerBean;
+import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.Response;
+import net.jodah.failsafe.RetryPolicy;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
 import java.io.BufferedInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-@CommandLine.Command(name = "acc-test-runner.sh", mixinStandardHelpOptions = true, showDefaultValues = true, version = "1.0")
+@CommandLine.Command(name = "acc-test-runner", mixinStandardHelpOptions = true, showDefaultValues = true, version = "3.0")
 public class AccTestRunner implements Callable<Integer> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AccTestRunner.class);
+
     @CommandLine.Parameters(description = "Action <TEST|COMMIT>, can be either test for running tests or commit for committing previously run tests", defaultValue = "TEST")
     private Action action;
-    @CommandLine.Parameters(description = "Data Path", defaultValue = ".")
+    @CommandLine.Parameters(description = "Path to local script as JavaScript ARchive file (.jsar)")
+    private Path jsar;
+    @CommandLine.Parameters(description = "Data path", defaultValue = ".")
     private Path dataPath;
     @Option(names = "-f", description = "FlowStore url (prod flowstore is default)", defaultValue = "http://dataio-flowstore-service.metascrum-prod.svc.cloud.dbc.dk/dataio/flow-store-service")
     private FlowManager flowManager;
-    @Option(names = "-s", description = "Path to local script", required = true)
-    private Path nextScripts;
-    @Option(names = "-d", description = "Search path for dependencies", required = true)
-    private Path dependencies;
     @Option(names = "-r", description = "Report format <TEXT|XML>", defaultValue = "TEXT")
     private ReportFormat reportFormat;
     @Option(names = "-j", description = "Job specification file")
@@ -59,80 +62,114 @@ public class AccTestRunner implements Callable<Integer> {
     @Option(names = "-rs", description = "Record splitter <ADDI|ADDI_MARC_XML|CSV|DANMARC2_LINE_FORMAT|DANMARC2_LINE_FORMAT_COLLECTION|" +
             "DSD_CSV|ISO2709|ISO2709_COLLECTION|JSON|VIAF|VIP_CSV|XML|TARRED_XML|ZIPPED_XML>")
     private RecordSplitter recordSplitter;
+    @Option(names = "-cp", description = "Directory for temporary commit file", defaultValue = "target")
+    private Path commitPath;
     @Option(names = "-rp", description = "Report output path", defaultValue = "target/reports")
     private Path reportPath;
     @Option(names = "-v", description = "Version")
     private Long revision;
-    private JavaScriptProject project;
 
-    private static final Path MANIFEST_FILE = Path.of("target", "META-INF", "MANIFEST.MF");
+    private boolean foundFlowByName = false;
 
     public static void main(String[] args) {
-        new CommandLine(new AccTestRunner())
+        System.exit(runWith(args));
+    }
+
+    static int runWith(String... args) {
+        return runWith(AccTestRunner::flowManager, args);
+    }
+
+    static int runWith(Function<String, FlowManager> f, String... args) {
+        final CommandLine cli = new CommandLine(new AccTestRunner())
                 .setCaseInsensitiveEnumValuesAllowed(true)
-                .registerConverter(Path.class, Path::of)
-                .registerConverter(FlowManager.class, AccTestRunner::flowManager)
-                .execute(args);
+                .registerConverter(Path.class, java.nio.file.Path::of)
+                .registerConverter(FlowManager.class, f::apply);
+        return cli.execute(args);
     }
 
     @Override
-    public Integer call() throws Exception {
+    public Integer call() {
         try {
-            project = JavaScriptProject.of(nextScripts, dependencies);
-            if (action == Action.COMMIT) return flowManager.commit(project);
+            if(!Files.isRegularFile(jsar)) throw new IllegalArgumentException("JavaScript ARchive file " + jsar + " is not a readable file");
+            if (action == Action.COMMIT) return flowManager.commit(jsar);
             if (action == Action.TEST) return runTest();
         } catch (Exception e) {
-            System.out.println(e);
+            LOGGER.error("Error during acctest", e);
         }
         return -255;
     }
 
     private int runTest() throws Exception {
-        if(!Files.isRegularFile(nextScripts)) throw new IllegalArgumentException("Local script file " + nextScripts + " is not a readable file");
-        if(!Files.isDirectory(dependencies)) throw new IllegalArgumentException("Path for dependencies " + dependencies + " is not valid");
+        Flow localFlow = flowManager.getFlow(jsar);
+        foundFlowByName = flowManager.foundFlowByName();
         if(!Files.isReadable(dataPath)) throw new IllegalArgumentException("Datafile " + dataPath + " is not a readable file");
         if(revision == null) throw new IllegalStateException("Please state the version being tested using -v <version>");
         List<AccTestSuite> testSuites = findSuites();
         if(testSuites.isEmpty()) {
             throw new IllegalArgumentException("No test suites where found");
         }
-        return runTest(testSuites);
+        return runTest(localFlow, testSuites);
     }
 
-    private Integer runTest(List<AccTestSuite> testSuites) throws Exception {
+    private Integer runTest(Flow localFlow, List<AccTestSuite> testSuites) throws Exception {
         ServiceHub serviceHub = new ServiceHub.Builder().withJobStoreServiceConnector(null).build();
         Set<Long> flows = new HashSet<>();
+
+        Flow resolvedRemotely = null;
+        if (foundFlowByName) {
+            LOGGER.info("found existing flow by name: id={} version={} name='{}'",
+                    localFlow.getId(), localFlow.getVersion(), localFlow.getContent().getName());
+            flows.add(localFlow.getId());
+            resolvedRemotely = localFlow;
+        }
+
         boolean isDiverging = false;
-        Flow flow = null;
         for (AccTestSuite suite : testSuites) {
-            flow = flowManager.getFlow(suite.getJobSpecification());
-            flows.add(flow.getId());
+            Flow remoteFlow = flowManager.getFlow(suite.getJobSpecification());
+            if (resolvedRemotely == null && remoteFlow == null) {
+                /* Not finding flow by name or specification probably indicates a new flow
+                   that is about to be created, so we allow the runner to complete its
+                   course knowing full well that should the actual cause turn out to be an
+                   invalid specification, it will be caught by the next acctest run. */
+                remoteFlow = localFlow;
+            } else {
+                resolvedRemotely = remoteFlow;
+            }
+
+            if (remoteFlow == null) {
+                throw new IllegalArgumentException("Testsuite " + suite.getName() + " failed to resolve a flow");
+            }
+
+            flows.add(remoteFlow.getId());
             if(flows.size() > 1) throw new IllegalArgumentException("Stopped at testsuite " + suite.getName() + ". All test data, within an acceptance test, must address the same flowId. Flows: " + flows);
-            Chunk processed = processSuite(suite, flow);
+
+            LOGGER.info("running test suite with local flow");
+            Chunk localOutputChunk = processSuite(suite, localFlow);
+
+            LOGGER.info("running test suite with remote flow");
+            Chunk remoteOutputChunk = processSuite(suite, remoteFlow);
+
+            final Chunk processed = new Chunk(localOutputChunk.getJobId(), localOutputChunk.getChunkId(), localOutputChunk.getType());
+            processed.addAllItems(remoteOutputChunk.getItems(), localOutputChunk.getItems());
             Chunk diff = new MessageConsumerBean(serviceHub).handleChunk(processed);
             isDiverging |= diff.getItems().stream().anyMatch(ci -> ci.getStatus() == ChunkItem.Status.FAILURE);
-            reportFormat.printDiff(suite, flow, diff, revision);
+            reportFormat.printDiff(suite, remoteFlow, diff, revision);
         }
-        writeManifestFile(flow);
-        flowManager.createFlowCommitTmpFile(flow, revision);
+
+        if (!foundFlowByName && resolvedRemotely != null) {
+            // Existing flow could not be found by name,
+            // but could be resolved by testsuite specification.
+            // This indicates a name update via the MANIFEST.MF file.
+            localFlow = new Flow(resolvedRemotely.getId(), resolvedRemotely.getVersion(), localFlow.getContent());
+        }
+
+        LOGGER.info("resulting flow: id={} version={} name='{}'",
+                localFlow.getId(), localFlow.getVersion(), localFlow.getContent().getName());
+
+        flowManager.createFlowCommitTmpFile(commitPath, localFlow, resolvedRemotely == null ? FlowManager.CommitTempFile.Action.CREATE
+                : FlowManager.CommitTempFile.Action.UPDATE);
+
         return isDiverging ? 1 : 0;
-    }
-
-    private void writeManifestFile(Flow flow) throws IOException {
-        if (!Files.isDirectory(MANIFEST_FILE.getParent())) {
-            Files.createDirectories(MANIFEST_FILE.getParent());
-        }
-
-        FlowComponent flowComponent = flow.getContent().getComponents().get(0);
-        FlowComponentContent next = flowComponent.getNext();
-        try (FileOutputStream fout = new FileOutputStream(MANIFEST_FILE.toFile(), false)) {
-            Manifest manifest = new Manifest();
-            manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-            manifest.getMainAttributes().put(new Attributes.Name("Flow-Name"), flow.getContent().getName());
-            manifest.getMainAttributes().put(new Attributes.Name("Flow-Entrypoint-Script"), next.getInvocationJavascriptName());
-            manifest.getMainAttributes().put(new Attributes.Name("Flow-Entrypoint-Function"), next.getInvocationMethod());
-            manifest.write(fout);
-        }
     }
 
     private Chunk processSuite(AccTestSuite accTestSuite, Flow flow) {
@@ -156,15 +193,8 @@ public class AccTestRunner implements Callable<Integer> {
     }
 
     private Chunk processChunk(Flow flow, Chunk chunk, String additionalStuff) throws Exception {
-        if(nextScripts != null) overwriteNext(flow);
         ChunkProcessor processor = new ChunkProcessor(null, id -> flow);
         return processor.process(chunk, flow.getId(), flow.getVersion(), additionalStuff);
-    }
-
-    private void overwriteNext(Flow flow) {
-        FlowComponent component = flow.getContent().getComponents().get(0);
-        FlowComponentContent next = component.getNext();
-        component.withNext(new FlowComponentContent(next.getName(), next.getSvnProjectForInvocationJavascript(), 1, next.getInvocationJavascriptName(), project.getJavaScripts(), next.getInvocationMethod(), next.getDescription()));
     }
 
     private Chunk readChunk(Stream<DataPartitionerResult> stream) {
@@ -175,8 +205,18 @@ public class AccTestRunner implements Callable<Integer> {
         return chunk;
     }
 
+    private void setFlowManager(FlowManager flowManager) {
+        this.flowManager = flowManager;
+    }
+
     private static FlowManager flowManager(String serviceUrl) {
-        return new FlowManager(new FlowStoreServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), serviceUrl));
+        Client httpClient = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
+        FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(httpClient, new RetryPolicy<Response>()
+            .handle(ProcessingException.class)
+            .handleResultIf(response -> response.getStatus() == 500 || response.getStatus() == 502)
+            .withDelay(Duration.ofSeconds(10))
+            .withMaxRetries(6));
+        return new FlowManager(new FlowStoreServiceConnector(failSafeHttpClient, serviceUrl));
     }
 
     public static enum Action {

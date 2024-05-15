@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -67,6 +68,7 @@ public class FlowContent implements Serializable {
                         "Invalid jsar - %s missing value for %s", MANIFEST_FILE, ATTRIBUTE_ENTRYPOINT_FUNCTION)));
         this.jsar = jsar;
         this.timeOfLastModification = timeOfLastModification;
+        this.components = Collections.emptyList();
     }
 
     @JsonCreator

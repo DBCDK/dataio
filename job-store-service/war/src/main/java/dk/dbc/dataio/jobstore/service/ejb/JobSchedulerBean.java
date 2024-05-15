@@ -334,17 +334,15 @@ public class JobSchedulerBean {
         int chunkDoneSinkId = chunkDone.getSinkId();
         dependencyTrackingService.remove(chunkDoneKey);
 
-        JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(chunkDoneSinkId).getDeliveringStatus();
-
         StopWatch findChunksWaitingForMeStopWatch = new StopWatch();
         Set<TrackingKey> unblocked = dependencyTrackingService.removeFromWaitingOn(chunkDoneKey);
 
         LOGGER.info("chunkDeliveringDone: findChunksWaitingForMe for {} took {} ms unblocked {} chunks", chunkDone.getKey(), findChunksWaitingForMeStopWatch.getElapsedTime(), unblocked.size());
 
         StopWatch removeFromWaitingOnStopWatch = new StopWatch();
+        JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(chunkDoneSinkId).getDeliveringStatus();
 
         for (TrackingKey chunkBlockedKey : unblocked) {
-
             // Attempts to unblock all chunks found waiting for "me" must happen
             // in separate transactions or else there is a risk of exhausting the
             // JMS connection pool and also of ending up stuck in DIRECT mode when

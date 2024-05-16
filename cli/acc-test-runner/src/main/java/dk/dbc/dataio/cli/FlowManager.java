@@ -9,6 +9,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedS
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,11 +84,13 @@ public class FlowManager {
         CommitTempFile tmp = new ObjectMapper().readValue(tempFile.toFile(), CommitTempFile.class);
         CommitTempFile.Action action = tmp.action;
         Flow flow = tmp.flow;
+        byte[] jsar = flow.getContent().getJsar();
+        final long timeOfLastModification = flow.getContent().getTimeOfLastModification().getTime();
         if (action == CommitTempFile.Action.CREATE) {
-            Flow flowCreated = flowStore.createFlow(flow.getContent());
+            final FlowView flowCreated = flowStore.createFlow(timeOfLastModification, jsar);
             LOGGER.info("Created new flow with ID={}", flowCreated.getId());
         } else {
-            flowStore.updateFlow(flow.getContent(), flow.getId(), flow.getVersion());
+            flowStore.updateFlow(flow.getId(), timeOfLastModification, jsar);
             LOGGER.info("Updated existing flow with ID={}", flow.getId());
         }
         Files.delete(tempFile);

@@ -64,14 +64,14 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
     @Test
     public void createAndUpdateJsarFlow() throws URISyntaxException, IOException, FlowStoreServiceConnectorException {
         byte[] jsar = readFile("publizon-dmat.jsar");
-        FlowView flow = flowStoreServiceConnector.updateFlow(Instant.now().toEpochMilli(), jsar);
+        FlowView flow = flowStoreServiceConnector.createFlow(Instant.now().toEpochMilli(), jsar);
         byte[] jsarResult = flowStoreServiceConnector.getJsar(flow.getId());
         assertEquals("Publizon2Dmat", flow.getName());
         assertEquals(1, flow.getVersion());
         assertEquals("Something wonderfully descriptive", flow.getDescription());
         assertArrayEquals("Downloaded jsar should be identical to the local one", jsar, jsarResult);
         byte[] jsar2 = readFile("publizon-dmat-modified.jsar");
-        FlowView flow2 = flowStoreServiceConnector.updateFlow(Instant.now().toEpochMilli(), jsar2);
+        FlowView flow2 = flowStoreServiceConnector.updateFlow(flow.getId(), Instant.now().toEpochMilli(), jsar2);
         assertEquals("Publizon2Dmat", flow2.getName());
         assertEquals(2, flow2.getVersion());
         assertEquals("Something even more wonderfully descriptive", flow2.getDescription());

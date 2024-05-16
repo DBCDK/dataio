@@ -6,7 +6,6 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.dataio.flowstore.FlowStoreException;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowComponent;
 import dk.dbc.invariant.InvariantUtil;
@@ -16,7 +15,6 @@ import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.ws.rs.Consumes;
@@ -190,28 +188,38 @@ public class FlowsBean extends AbstractResourceBean {
     }
 
     @POST
+    @Path(FlowStoreServiceConstants.FLOW_JSAR_CREATE)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public Response createFlow(@PathParam(FlowStoreServiceConstants.LM_VARIABLE) long lastModified, byte[] jsArchive) throws JSONBException {
+        FlowContent flowContent = new FlowContent(jsArchive, new Date(lastModified));
+        Flow flow = self().createFlow(flowContent);
+        return Response.ok()
+                .entity(flow.getView())
+                .tag(Long.toString(flow.getVersion()))
+                .status(flow.getVersion().intValue() == 1 ? Response.Status.CREATED : Response.Status.OK)
+                .build();
+    }
+
+    @POST
     @Path(FlowStoreServiceConstants.FLOW_JSAR_UPDATE)
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public Response updateFlow(@PathParam(FlowStoreServiceConstants.LM_VARIABLE) long lastModified, byte[] jsArchive) throws JSONBException {
+    public Response updateFlow(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,  @PathParam(FlowStoreServiceConstants.LM_VARIABLE) long lastModified, byte[] jsArchive) throws JSONBException {
         FlowContent flowContent = new FlowContent(jsArchive, new Date(lastModified));
-        try {
-            Flow flow = self().updateFlow(flowContent);
+            Flow flow = self().updateFlow(id, flowContent);
             return Response.ok()
                     .entity(flow.getView())
                     .tag(Long.toString(flow.getVersion()))
                     .status(flow.getVersion().intValue() == 1 ? Response.Status.CREATED : Response.Status.OK)
                     .build();
-        } catch (Exception e) {
-            System.out.println(e);
-            return null;
-        }
+
     }
 
     @GET
     @Path(FlowStoreServiceConstants.FLOW_JSAR)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getJsar(@PathParam("id") Long id) {
+    public Response getJsar(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) {
         Flow flow = entityManager.find(Flow.class, id);
         return Response.ok(flow.getJsar()).build();
     }
@@ -240,21 +248,13 @@ public class FlowsBean extends AbstractResourceBean {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public Flow updateFlow(FlowContent flowContent) throws FlowStoreException {
-        TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_BY_NAME, Flow.class).setParameter(1, flowContent.getName());
-        try {
-            try {
-                Flow flow = query.getSingleResult().updateContent(flowContent);
-                return flow;
-            } catch (NoResultException e) {
-                return createFlow(flowContent);
-            }
-        } catch (JSONBException e) {
-            throw new FlowStoreException("Failed to marshal flowcontent for " + flowContent.getName(), e);
-        }
+    public Flow updateFlow(long flowId, FlowContent flowContent) throws JSONBException {
+        Flow flow = entityManager.find(Flow.class, flowId);
+        return flow.updateContent(flowContent);
     }
 
-    private Flow createFlow(FlowContent flowContent) throws JSONBException {
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public Flow createFlow(FlowContent flowContent) throws JSONBException {
         Flow flow = new Flow().updateContent(flowContent);
         entityManager.persist(flow);
         return flow;

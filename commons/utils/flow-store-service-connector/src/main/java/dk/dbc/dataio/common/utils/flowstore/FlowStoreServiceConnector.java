@@ -644,12 +644,32 @@ public class FlowStoreServiceConnector {
         }
     }
 
-    public FlowView updateFlow(Long lastModified, Path jsar) throws IOException, FlowStoreServiceConnectorException {
-        return updateFlow(lastModified, Files.readAllBytes(jsar));
+    public FlowView createFlow(long lastModified, Path jsar) throws IOException, FlowStoreServiceConnectorException {
+        return createFlow(lastModified, Files.readAllBytes(jsar));
     }
 
-    public FlowView updateFlow(Long lastModified, byte[] jsar) throws FlowStoreServiceConnectorException {
+    public FlowView updateFlow(long id, Long lastModified, Path jsar) throws IOException, FlowStoreServiceConnectorException {
+        return updateFlow(id, lastModified, Files.readAllBytes(jsar));
+    }
+
+
+
+    public FlowView createFlow(Long lastModified, byte[] jsar) throws FlowStoreServiceConnectorException {
+        PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_JSAR_CREATE)
+                .bind(FlowStoreServiceConstants.LM_VARIABLE, lastModified);
+        try (Response response = new HttpPost(failSafeHttpClient)
+                .withBaseUrl(baseUrl)
+                .withPathElements(path.build())
+                .withData(jsar, MediaType.APPLICATION_OCTET_STREAM)
+                .execute()) {
+            verifyResponseStatus(response, Status.CREATED, Status.OK);
+            return readResponseEntity(response, FlowView.class);
+        }
+    }
+
+    public FlowView updateFlow(long id, Long lastModified, byte[] jsar) throws FlowStoreServiceConnectorException {
         PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_JSAR_UPDATE)
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, id)
                 .bind(FlowStoreServiceConstants.LM_VARIABLE, lastModified);
         try (Response response = new HttpPost(failSafeHttpClient)
                 .withBaseUrl(baseUrl)

@@ -171,7 +171,7 @@ public class DependencyTrackingService {
     public Set<TrackingKey> removeFromWaitingOn(TrackingKey key) {
         RemoveWaitingOn processor = new RemoveWaitingOn(key);
         long start = System.currentTimeMillis();
-        Map<TrackingKey, StatusChangeEvent> map = dependencyTracker.executeOnEntries(processor, processor);//Predicates.equal("waitingOn[any]", key));
+        Map<TrackingKey, StatusChangeEvent> map = dependencyTracker.executeOnEntries(processor, Predicates.equal("waitingOn[any]", key));
         if(!map.isEmpty()) LOGGER.info("TESTING INDEX: {} ms, found: {}", System.currentTimeMillis() - start, map.size());
         updateCounters(map.values().stream());
         return map.entrySet().stream()

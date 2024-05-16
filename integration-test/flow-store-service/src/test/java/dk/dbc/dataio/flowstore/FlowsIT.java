@@ -24,9 +24,15 @@ import dk.dbc.httpclient.HttpClient;
 import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -40,13 +46,44 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Integration tests for the flows collection part of the flow store service
  */
 public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
+    @Test
+    public void flowViewSer() throws JSONBException {
+        String value = "{\"id\":1201,\"version\":1,\"name\":\"Publizon2Dmat\",\"description\":\"Something wonderfully descriptive\",\"components\":[]}";
+        jsonbContext.unmarshall(value, FlowView.class);
+    }
+
+    @Test
+    public void createAndUpdateJsarFlow() throws URISyntaxException, IOException, FlowStoreServiceConnectorException {
+        byte[] jsar = readFile("publizon-dmat.jsar");
+        FlowView flow = flowStoreServiceConnector.createFlow(Instant.now().toEpochMilli(), jsar);
+        byte[] jsarResult = flowStoreServiceConnector.getJsar(flow.getId());
+        assertEquals("Publizon2Dmat", flow.getName());
+        assertEquals(1, flow.getVersion());
+        assertEquals("Something wonderfully descriptive", flow.getDescription());
+        assertArrayEquals("Downloaded jsar should be identical to the local one", jsar, jsarResult);
+        byte[] jsar2 = readFile("publizon-dmat-modified.jsar");
+        FlowView flow2 = flowStoreServiceConnector.updateFlow(flow.getId(), Instant.now().toEpochMilli(), jsar2);
+        assertEquals("Publizon2Dmat", flow2.getName());
+        assertEquals(2, flow2.getVersion());
+        assertEquals("Something even more wonderfully descriptive", flow2.getDescription());
+        byte[] jsar2Result = flowStoreServiceConnector.getJsar(flow.getId());
+        assertArrayEquals("Downloaded jsar should be identical to the local one", jsar2, jsar2Result);
+    }
+
+    private byte[] readFile(String name) throws URISyntaxException, IOException {
+        URI uri = getClass().getClassLoader().getResource(name).toURI();
+        return Files.readAllBytes(Path.of(uri));
+    }
+
     /**
      * Given: a deployed flow-store service
      * When : valid JSON is POSTed to the flows path without an identifier

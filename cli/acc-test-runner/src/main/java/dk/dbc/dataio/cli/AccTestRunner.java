@@ -127,17 +127,16 @@ public class AccTestRunner implements Callable<Integer> {
         for (AccTestSuite suite : testSuites) {
             Flow remoteFlow = flowManager.getFlow(suite.getJobSpecification());
             if (resolvedRemotely == null && remoteFlow == null) {
-                /* Not finding flow by name or specification probably indicates a new flow
+                /* Not resolving flow by name or specification probably indicates a new flow
                    that is about to be created, so we allow the runner to complete its
                    course knowing full well that should the actual cause turn out to be an
                    invalid specification, it will be caught by the next acctest run. */
                 remoteFlow = localFlow;
             } else {
+                if (remoteFlow == null) {
+                    throw new IllegalArgumentException("Testsuite " + suite.getName() + " failed to resolve a flow");
+                }
                 resolvedRemotely = remoteFlow;
-            }
-
-            if (remoteFlow == null) {
-                throw new IllegalArgumentException("Testsuite " + suite.getName() + " failed to resolve a flow");
             }
 
             flows.add(remoteFlow.getId());
@@ -157,9 +156,9 @@ public class AccTestRunner implements Callable<Integer> {
         }
 
         if (!foundFlowByName && resolvedRemotely != null) {
-            // Existing flow could not be found by name,
-            // but could be resolved by testsuite specification.
-            // This indicates a name update via the MANIFEST.MF file.
+            /* Existing flow could not be resolved by name,
+               but could be resolved by testsuite specification.
+               This indicates a name update via the MANIFEST.MF file. */
             localFlow = new Flow(resolvedRemotely.getId(), resolvedRemotely.getVersion(), localFlow.getContent());
         }
 

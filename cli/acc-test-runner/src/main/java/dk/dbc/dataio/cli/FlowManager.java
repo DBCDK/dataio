@@ -3,7 +3,6 @@ package dk.dbc.dataio.cli;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
@@ -26,7 +25,6 @@ public class FlowManager {
     public static final String FLOW_COMMIT_TMP = "flow.commit.tmp";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowManager.class);
-    private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
 
     private final FlowStoreServiceConnector flowStore;
     boolean foundFlowByName = false;
@@ -79,18 +77,20 @@ public class FlowManager {
         return foundFlowByName;
     }
 
-    public Integer commit(Path jsar) throws IOException, FlowStoreServiceConnectorException {
-        /*
-        Path tempFile = Path.of(FLOW_COMMIT_TMP);
-        if(!Files.isRegularFile(tempFile)) throw new IllegalStateException("Please run the test before committing the version");
+    public Integer commit(Path commitDir) throws IOException, FlowStoreServiceConnectorException {
+        Path tempFile = commitDir.resolve(FLOW_COMMIT_TMP);
+        if (!Files.isRegularFile(tempFile)) throw new IllegalStateException("Please run the test before committing");
         CommitTempFile tmp = new ObjectMapper().readValue(tempFile.toFile(), CommitTempFile.class);
+        CommitTempFile.Action action = tmp.action;
         Flow flow = tmp.flow;
-        Long revision = tmp.version;
-        validateSvnRevision(flow, revision);
-        FlowComponent updatedFlowComponent = updateFlowComponent(flow, project, revision);
-        Flow updatedFlow = commit(flow, updatedFlowComponent);
+        if (action == CommitTempFile.Action.CREATE) {
+            Flow flowCreated = flowStore.createFlow(flow.getContent());
+            LOGGER.info("Created new flow with ID={}", flowCreated.getId());
+        } else {
+            flowStore.updateFlow(flow.getContent(), flow.getId(), flow.getVersion());
+            LOGGER.info("Updated existing flow with ID={}", flow.getId());
+        }
         Files.delete(tempFile);
-         */
         return 0;
     }
 

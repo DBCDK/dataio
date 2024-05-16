@@ -41,12 +41,3 @@ Usage: acc-test-runner.sh [-hV] [-cp=<commitPath>] [-f=<flowManager>]
 |:-----------------|:-----------:|:--------|:-------------------------------------------|
 | USE_NATIVE_DIFF  | true, false | true    | Use native scripts to produce the diffs    |
 | TOOL_PATH        |             | /work   | Path to jsondiff, plaintextdiff & xmldiff |
-
-
-### Example 
-```
-TESTDATA="../../developer-tools/testdata"
-JS_SCRIPTS="dam-js"
-./acc-test-runner.sh "${TESTDATA}/dmat-staging.jobspec.json" ADDI_MARC_XML "${TESTDATA}/8017302.dmat-staging" \
-    -s "${DAM_JS}/publizon-dmat/js/publizon_dmat.js" -d "${DAM_JS}" -r XML
-```

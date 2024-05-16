@@ -187,6 +187,43 @@ public class FlowsBean extends AbstractResourceBean {
                 .build();
     }
 
+    @POST
+    @Path(FlowStoreServiceConstants.FLOW_JSAR_CREATE)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public Response createFlow(@PathParam(FlowStoreServiceConstants.LM_VARIABLE) long lastModified, byte[] jsArchive) throws JSONBException {
+        FlowContent flowContent = new FlowContent(jsArchive, new Date(lastModified));
+        Flow flow = self().createFlow(flowContent);
+        return Response.ok()
+                .entity(flow.getView())
+                .tag(Long.toString(flow.getVersion()))
+                .status(flow.getVersion().intValue() == 1 ? Response.Status.CREATED : Response.Status.OK)
+                .build();
+    }
+
+    @POST
+    @Path(FlowStoreServiceConstants.FLOW_JSAR_UPDATE)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public Response updateFlow(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,  @PathParam(FlowStoreServiceConstants.LM_VARIABLE) long lastModified, byte[] jsArchive) throws JSONBException {
+        FlowContent flowContent = new FlowContent(jsArchive, new Date(lastModified));
+            Flow flow = self().updateFlow(id, flowContent);
+            return Response.ok()
+                    .entity(flow.getView())
+                    .tag(Long.toString(flow.getVersion()))
+                    .status(flow.getVersion().intValue() == 1 ? Response.Status.CREATED : Response.Status.OK)
+                    .build();
+
+    }
+
+    @GET
+    @Path(FlowStoreServiceConstants.FLOW_JSAR)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getJsar(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) {
+        Flow flow = entityManager.find(Flow.class, id);
+        return Response.ok(flow.getJsar()).build();
+    }
+
     protected FlowsBean self() {
         return sessionContext.getBusinessObject(FlowsBean.class);
     }
@@ -208,6 +245,19 @@ public class FlowsBean extends AbstractResourceBean {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         return Response.ok().entity(jsonbContext.marshall(flows)).build();
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public Flow updateFlow(long flowId, FlowContent flowContent) throws JSONBException {
+        Flow flow = entityManager.find(Flow.class, flowId);
+        return flow.updateContent(flowContent);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public Flow createFlow(FlowContent flowContent) throws JSONBException {
+        Flow flow = new Flow().updateContent(flowContent);
+        entityManager.persist(flow);
+        return flow;
     }
 
     /**

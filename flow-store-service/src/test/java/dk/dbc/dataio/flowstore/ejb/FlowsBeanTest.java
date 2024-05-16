@@ -304,7 +304,6 @@ public class FlowsBeanTest {
         assertThat(response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
     }
 
-
     private String createEmptyFlowContentJSON() {
         try {
             dk.dbc.dataio.commons.types.FlowComponent flowComponent = new FlowComponentBuilder().build();

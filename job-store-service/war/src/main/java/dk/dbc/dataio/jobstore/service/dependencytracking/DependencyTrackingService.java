@@ -91,15 +91,6 @@ public class DependencyTrackingService {
         return key;
     }
 
-    public void lock(TrackingKey key, Consumer<Void> block) {
-        try {
-            dependencyTracker.lock(key);
-            block.accept(null);
-        } finally {
-            dependencyTracker.unlock(key);
-        }
-    }
-
     public int capacity(int sinkId, ChunkSchedulingStatus status) {
         if(status.getMax() == null) throw new IllegalArgumentException("This status does not have a capacity");
         return status.getMax() - getCount(sinkId, status);
@@ -179,7 +170,7 @@ public class DependencyTrackingService {
 
     public Set<TrackingKey> removeFromWaitingOn(TrackingKey key) {
         RemoveWaitingOn processor = new RemoveWaitingOn(key);
-        Map<TrackingKey, StatusChangeEvent> map = dependencyTracker.executeOnEntries(processor, processor);
+        Map<TrackingKey, StatusChangeEvent> map = dependencyTracker.executeOnEntries(processor, Predicates.equal("waitingOn[any]", key));
         updateCounters(map.values().stream());
         return map.entrySet().stream()
                 .filter(e -> e.getValue() != null)

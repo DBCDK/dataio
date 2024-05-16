@@ -90,7 +90,6 @@ public class AccTestRunner implements Callable<Integer> {
     @Override
     public Integer call() {
         try {
-            if(!Files.isRegularFile(jsar)) throw new IllegalArgumentException("JavaScript ARchive file " + jsar + " is not a readable file");
             if (action == Action.COMMIT) return flowManager.commit(jsar);
             if (action == Action.TEST) return runTest();
         } catch (Exception e) {
@@ -100,6 +99,7 @@ public class AccTestRunner implements Callable<Integer> {
     }
 
     private int runTest() throws Exception {
+        if(!Files.isRegularFile(jsar)) throw new IllegalArgumentException("JavaScript ARchive file " + jsar + " is not a readable file");
         Flow localFlow = flowManager.getFlow(jsar);
         foundFlowByName = flowManager.foundFlowByName();
         if(!Files.isReadable(dataPath)) throw new IllegalArgumentException("Datafile " + dataPath + " is not a readable file");

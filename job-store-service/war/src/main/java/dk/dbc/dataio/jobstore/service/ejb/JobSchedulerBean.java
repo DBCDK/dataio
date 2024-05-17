@@ -339,7 +339,6 @@ public class JobSchedulerBean {
 
         LOGGER.info("chunkDeliveringDone: findChunksWaitingForMe for {} took {} ms unblocked {} chunks", chunkDone.getKey(), findChunksWaitingForMeStopWatch.getElapsedTime(), unblocked.size());
 
-        StopWatch removeFromWaitingOnStopWatch = new StopWatch();
         JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(chunkDoneSinkId).getDeliveringStatus();
 
         for (TrackingKey chunkBlockedKey : unblocked) {
@@ -353,7 +352,7 @@ public class JobSchedulerBean {
 
         }
         if (!unblocked.isEmpty()) {
-            LOGGER.info("chunkDeliveringDone: removing {} took {}", chunkDone.getKey(), removeFromWaitingOnStopWatch.getElapsedTime());
+            LOGGER.info("chunkDeliveringDone: removing {}", chunkDone.getKey());
         }
 
         long thisDuration = System.currentTimeMillis() - startTime;

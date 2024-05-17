@@ -34,6 +34,7 @@ import jakarta.ejb.Startup;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,11 +169,10 @@ public class DependencyTrackingService {
         removeDeadWOs(key, reducedWOs);
     }
 
+    @Timed(name = "removeWaitingOn")
     public Set<TrackingKey> removeFromWaitingOn(TrackingKey key) {
         RemoveWaitingOn processor = new RemoveWaitingOn(key);
-        long start = System.currentTimeMillis();
         Map<TrackingKey, StatusChangeEvent> map = dependencyTracker.executeOnEntries(processor, Predicates.equal("waitingOn[any]", key));
-        if(!map.isEmpty()) LOGGER.info("TESTING INDEX: {} ms, found: {}", System.currentTimeMillis() - start, map.size());
         updateCounters(map.values().stream());
         return map.entrySet().stream()
                 .filter(e -> e.getValue() != null)

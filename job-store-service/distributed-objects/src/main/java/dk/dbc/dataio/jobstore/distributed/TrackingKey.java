@@ -6,7 +6,7 @@ import java.util.Objects;
 
 public class TrackingKey implements Serializable, Comparable<TrackingKey> {
     private static final long serialVersionUID = -5575195152198835462L;
-    private static final Comparator<TrackingKey> COMP = Comparator.comparing(TrackingKey::getJobId).thenComparing(TrackingKey::getChunkId);
+    private static final Comparator<TrackingKey> COMPARATOR = Comparator.comparing(TrackingKey::getJobId).thenComparing(TrackingKey::getChunkId);
     private int jobId;
     private int chunkId;
 
@@ -54,6 +54,6 @@ public class TrackingKey implements Serializable, Comparable<TrackingKey> {
 
     @Override
     public int compareTo(TrackingKey o) {
-        return COMP.compare(this, o);
+        return COMPARATOR.compare(this, o);
     }
 }

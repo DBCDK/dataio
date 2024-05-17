@@ -99,7 +99,7 @@ public class AdminBean {
     private final org.glassfish.jersey.internal.guava.Cache<Integer, Sink> sinkMap = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
 
     @SuppressWarnings("unused")
-    @Schedule(minute = "*", hour = "*")
+    @Schedule(minute = "*", hour = "*", persistent = false)
     public void updateStaleChunks() {
         try {
             Stream<DependencyTrackingRO> delStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).filter(this::isTimeout);
@@ -117,7 +117,7 @@ public class AdminBean {
         }
     }
 
-    @Schedule(minute = "10", hour = "*")
+    @Schedule(minute = "10", hour = "*", persistent = false)
     public void recheckBlocks() {
         Set<TrackingKey> keys = dependencyTrackingService.recheckBlocks();
         if(!keys.isEmpty()) LOGGER.info("Hourly blocked check has released {}", keys);
@@ -139,7 +139,7 @@ public class AdminBean {
     }
 
     @SuppressWarnings("unused")
-    @Schedule(minute = "5", hour = "*")
+    @Schedule(minute = "5", hour = "*", persistent = false)
     public void cleanStaleJMSConnections() {
         LOGGER.info("Cleaning stale artemis connections");
         Instant i = Instant.now().minus(Duration.ofMinutes(15));

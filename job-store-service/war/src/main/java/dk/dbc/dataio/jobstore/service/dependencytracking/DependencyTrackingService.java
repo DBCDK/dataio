@@ -172,7 +172,7 @@ public class DependencyTrackingService {
     @Timed(name = "removeWaitingOn")
     public Set<TrackingKey> removeFromWaitingOn(TrackingKey key) {
         RemoveWaitingOn processor = new RemoveWaitingOn(key);
-        Map<TrackingKey, StatusChangeEvent> map = dependencyTracker.executeOnEntries(processor, Predicates.equal("waitingOn[any]", key));
+        Map<TrackingKey, StatusChangeEvent> map = dependencyTracker.executeOnEntries(processor, processor);//Predicates.equal("waitingOn[any]", key));
         updateCounters(map.values().stream());
         return map.entrySet().stream()
                 .filter(e -> e.getValue() != null)

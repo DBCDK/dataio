@@ -1,0 +1,6 @@
+submitterId=123456
+packaging=json
+format=test
+destination=acctest
+charset=utf8
+recordSplitter=JSON

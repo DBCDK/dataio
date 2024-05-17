@@ -55,11 +55,6 @@ public class FlowContentTest {
     private static final Date TIME_OF_FLOW_COMPONENT_UPDATE = new Date();
 
     @Test
-    public void constructor_componentsArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new FlowContent(NAME, DESCRIPTION, null, null, null, null, null, TIME_OF_FLOW_COMPONENT_UPDATE));
-    }
-
-    @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
         FlowContent instance = new FlowContent(NAME, DESCRIPTION, null, null, null, null, COMPONENTS, TIME_OF_FLOW_COMPONENT_UPDATE);
         assertThat(instance, is(notNullValue()));

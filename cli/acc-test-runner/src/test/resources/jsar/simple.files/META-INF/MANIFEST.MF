@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Flow-Name: AccTestRunnerTest
+Flow-Description: Used for testing the AccTestRunner
+Flow-Entrypoint-Script: entrypoint.js
+Flow-Entrypoint-Function: process

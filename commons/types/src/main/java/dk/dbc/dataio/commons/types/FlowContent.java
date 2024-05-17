@@ -1,9 +1,9 @@
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.invariant.InvariantUtil;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -37,6 +38,7 @@ public class FlowContent implements Serializable {
     private final String description;
     private String entrypointScript;
     private String entrypointFunction;
+    @JsonIgnore
     private byte[] jsar;
     private Date timeOfLastModification;
 
@@ -66,6 +68,7 @@ public class FlowContent implements Serializable {
                         "Invalid jsar - %s missing value for %s", MANIFEST_FILE, ATTRIBUTE_ENTRYPOINT_FUNCTION)));
         this.jsar = jsar;
         this.timeOfLastModification = timeOfLastModification;
+        this.components = Collections.emptyList();
     }
 
     @JsonCreator
@@ -85,7 +88,7 @@ public class FlowContent implements Serializable {
         this.jsar = jsar;
         this.timeOfLastModification = timeOfLastModification;
 
-        this.components = new ArrayList<>(InvariantUtil.checkNotNullOrThrow(components, "components"));
+        this.components = components == null ? List.of() : new ArrayList<>(components);
         this.timeOfFlowComponentUpdate = timeOfFlowComponentUpdate;
     }
 
@@ -166,6 +169,7 @@ public class FlowContent implements Serializable {
     }
 
     public List<FlowComponent> getComponents() {
+        if(components == null) return List.of();
         return new ArrayList<>(components);
     }
 

@@ -39,6 +39,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -145,7 +146,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
                 .map(TickleAttributes::getBibliographicRecordId)
                 .collect(Collectors.toList());
         List<Record> records = tickleRepo.lookupRecords(batch.getDataset(), recordIds);
-        return records.stream().collect(Collectors.toMap(Record::getLocalId, r -> r));
+        return records.stream().collect(Collectors.toMap(Record::getLocalId, r -> r, (k1, k2) -> k1, HashMap::new));
     }
 
     @Override
@@ -341,6 +342,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
                     }
                 } else {
                     tickleRecord = createTickleRecord(batch, tickleAttributes, item, content, recordNo, dataBuffer, tickleRepo);
+                    records.put(tickleAttributes.getBibliographicRecordId(), tickleRecord);
                 }
 
                 LOGGER.debug("Handled record {} in dataset {}", tickleRecord.getLocalId(), tickleRecord.getDataset());

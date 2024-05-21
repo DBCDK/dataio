@@ -101,6 +101,7 @@ public class AdminBean {
     @SuppressWarnings("unused")
     @Schedule(minute = "*", hour = "*", persistent = false)
     public void updateStaleChunks() {
+        if(Hazelcast.isSlave()) return;
         try {
             Stream<DependencyTrackingRO> delStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).filter(this::isTimeout);
             Stream<DependencyTrackingRO> procStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout);
@@ -119,6 +120,7 @@ public class AdminBean {
 
     @Schedule(minute = "10", hour = "*", persistent = false)
     public void recheckBlocks() {
+        if(Hazelcast.isSlave()) return;
         Set<TrackingKey> keys = dependencyTrackingService.recheckBlocks();
         if(!keys.isEmpty()) LOGGER.info("Hourly blocked check has released {}", keys);
     }
@@ -141,6 +143,7 @@ public class AdminBean {
     @SuppressWarnings("unused")
     @Schedule(minute = "5", hour = "*", persistent = false)
     public void cleanStaleJMSConnections() {
+        if(Hazelcast.isSlave()) return;
         LOGGER.info("Cleaning stale artemis connections");
         Instant i = Instant.now().minus(Duration.ofMinutes(15));
         adminClient.closeConsumerConnections(c -> i.isAfter(c.getLastAcknowledgedTime()) && c.getDeliveringCount() > 0);

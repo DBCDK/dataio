@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Schedule;
 import jakarta.ejb.Singleton;
@@ -22,6 +23,7 @@ public class ScheduledJobPurgeBean {
     @Schedule(hour = "23", persistent = false)
     public void run() {
         try {
+            if(Hazelcast.isSlave()) return;
             jobPurgeBean.purgeJobs();
         } catch (Exception e) {
             LOGGER.error("Exception caught during scheduled job purge", e);

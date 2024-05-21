@@ -16,6 +16,7 @@ import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -171,6 +172,7 @@ public class JobSchedulerBean {
     @SuppressWarnings("unused")
     @Schedule(minute = "*", hour = "*", persistent = false)
     public void updateSinks() {
+        if(Hazelcast.isSlave()) return;
         try {
             LOGGER.info("Updating chunks.blocked metrics");
             List<Sink> sinks = flowStore.getConnector().findAllSinks();

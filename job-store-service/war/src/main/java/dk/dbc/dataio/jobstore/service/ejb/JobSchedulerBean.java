@@ -123,6 +123,7 @@ public class JobSchedulerBean {
                 metricRegistry.gauge("dataio_sink_mode", () -> dependencyTrackingService.getSinkStatus(sink.getId()).getDeliveringStatus().getMode().ordinal(), DEL_TAG);
                 LOGGER.info("Registered status map metrics for sink -> {}", sink.getContent().getName());
             }
+            metricRegistry.gauge("dataio_master", () -> Hazelcast.isMaster() ? 1 : 0);
         } catch (FlowStoreServiceConnectorException e) {
             LOGGER.error("Unable to get sinks list from flowstore:", e);
         } catch (ProcessingException e1) {

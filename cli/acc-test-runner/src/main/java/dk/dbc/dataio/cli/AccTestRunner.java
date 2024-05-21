@@ -90,7 +90,7 @@ public class AccTestRunner implements Callable<Integer> {
     @Override
     public Integer call() {
         try {
-            if (action == Action.COMMIT) return flowManager.commit(jsar);
+            if (action == Action.COMMIT) return flowManager.commit(commitPath);
             if (action == Action.TEST) return runTest();
         } catch (Exception e) {
             LOGGER.error("Error during acctest", e);

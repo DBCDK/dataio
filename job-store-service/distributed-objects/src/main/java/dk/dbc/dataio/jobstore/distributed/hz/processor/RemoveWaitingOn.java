@@ -8,13 +8,14 @@ import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class RemoveWaitingOn implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent>, Predicate<TrackingKey, DependencyTracking> {
     public final TrackingKey key;
 
     public RemoveWaitingOn(TrackingKey key) {
-        this.key = key;
+        this.key = Objects.requireNonNull(key);
     }
 
     @Override

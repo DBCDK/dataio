@@ -7,15 +7,16 @@ import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.RemoveWaitingOn;
 
 public class RemoveWaitingOnSer implements CompactSerializer<RemoveWaitingOn> {
+    private static final TrackingKeySer T_SER = new TrackingKeySer();
     @Override
     public RemoveWaitingOn read(CompactReader compactReader) {
-        TrackingKey key = new TrackingKeySer().read(compactReader);
+        TrackingKey key = T_SER.read(compactReader);
         return new RemoveWaitingOn(key);
     }
 
     @Override
     public void write(CompactWriter compactWriter, RemoveWaitingOn removeWaitingOn) {
-        new TrackingKeySer().write(compactWriter, removeWaitingOn.key);
+        T_SER.write(compactWriter, removeWaitingOn.key);
     }
 
     @Override

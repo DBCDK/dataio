@@ -1,10 +1,12 @@
 package dk.dbc.dataio.jobstore.distributed;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Objects;
 
-public class TrackingKey implements Comparable<TrackingKey> {
+public class TrackingKey implements Comparable<TrackingKey>, Serializable {
     private static final Comparator<TrackingKey> COMPARATOR = Comparator.comparing(TrackingKey::getJobId).thenComparing(TrackingKey::getChunkId);
+    private static final long serialVersionUID = -5575195152198835462L;
     private int jobId;
     private int chunkId;
 

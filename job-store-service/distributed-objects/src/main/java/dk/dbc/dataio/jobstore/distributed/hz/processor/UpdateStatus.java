@@ -14,8 +14,8 @@ import java.util.Objects;
 public class UpdateStatus implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent> {
     private static final Logger LOGGER = LoggerFactory.getLogger(UpdateStatus.class);
     private static final long serialVersionUID = 1L;
-    private ChunkSchedulingStatus expectedStatus;
-    private ChunkSchedulingStatus schedulingStatus;
+    public final ChunkSchedulingStatus expectedStatus;
+    public final ChunkSchedulingStatus schedulingStatus;
 
     public UpdateStatus(ChunkSchedulingStatus schedulingStatus) {
         this(null, schedulingStatus);

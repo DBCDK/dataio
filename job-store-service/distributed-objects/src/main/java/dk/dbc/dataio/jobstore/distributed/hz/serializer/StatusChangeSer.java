@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.distributed.hz;
+package dk.dbc.dataio.jobstore.distributed.hz.serializer;
 
 import com.hazelcast.nio.serialization.compact.CompactReader;
 import com.hazelcast.nio.serialization.compact.CompactSerializer;
@@ -24,7 +24,7 @@ public class StatusChangeSer implements CompactSerializer<StatusChangeEvent> {
 
     @Override
     public String getTypeName() {
-        return "statusChange";
+        return "statCh";
     }
 
     @Override

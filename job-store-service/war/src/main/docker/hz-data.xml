@@ -75,6 +75,7 @@
                 <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.RemoveWaitingOnSer</class>
                 <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.StatusChangeSer</class>
                 <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.TrackingKeySer</class>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateCounterSer</class>
                 <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateStatusSer</class>
             </classes>
         </compact-serialization>

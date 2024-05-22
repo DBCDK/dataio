@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class UpdateCounter implements EntryProcessor<Integer, Map<ChunkSchedulingStatus, Integer>, Void> {
     private static final long serialVersionUID = 1L;
-    private final Map<ChunkSchedulingStatus, Integer> deltas;
+    public final Map<ChunkSchedulingStatus, Integer> deltas;
 
     public UpdateCounter(Map<ChunkSchedulingStatus, Integer> deltas) {
         this.deltas = deltas;

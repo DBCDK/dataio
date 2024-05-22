@@ -69,4 +69,11 @@
             <in-memory-format>OBJECT</in-memory-format>
         </near-cache>
     </map>
+    <serialization>
+        <compact-serialization>
+            <classes>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.StatusChangeSer</class>
+            </classes>
+        </compact-serialization>
+    </serialization>
 </hazelcast>

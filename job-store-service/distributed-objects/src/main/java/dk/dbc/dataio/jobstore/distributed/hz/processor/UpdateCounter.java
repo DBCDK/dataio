@@ -6,7 +6,6 @@ import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import java.util.Map;
 
 public class UpdateCounter implements EntryProcessor<Integer, Map<ChunkSchedulingStatus, Integer>, Void> {
-    private static final long serialVersionUID = 1L;
     public final Map<ChunkSchedulingStatus, Integer> deltas;
 
     public UpdateCounter(Map<ChunkSchedulingStatus, Integer> deltas) {

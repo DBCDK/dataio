@@ -1,10 +1,9 @@
 package dk.dbc.dataio.jobstore.distributed;
 
-import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-public class StatusChangeEvent implements Serializable {
+public class StatusChangeEvent {
     private int sinkId;
     private ChunkSchedulingStatus oldStatus;
     private ChunkSchedulingStatus newStatus;

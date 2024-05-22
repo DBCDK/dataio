@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class RemoveWaitingOn implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent>, Predicate<TrackingKey, DependencyTracking> {
-    private static final long serialVersionUID = 1L;
     public final TrackingKey key;
 
     public RemoveWaitingOn(TrackingKey key) {

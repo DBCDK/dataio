@@ -12,9 +12,11 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
+import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -81,6 +83,8 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR
 @SuppressWarnings("PMD.TooManyStaticImports")
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
+    private static final Tag PROC_TAG = new Tag("state", "processing");
+    private static final Tag DEL_TAG = new Tag("state", "delivering");
 
     private static final Set<SinkContent.SinkType> REQUIRES_TERMINATION_CHUNK = new HashSet<>(Set.of(SinkContent.SinkType.MARCCONV, SinkContent.SinkType.PERIODIC_JOBS, SinkContent.SinkType.TICKLE));
 
@@ -113,10 +117,13 @@ public class JobSchedulerBean {
                 Gauge<?> gauge = metricRegistry.getGauge(metricID);
                 if (gauge == null) metricRegistry.gauge(metricID, () -> getLongestRunningChunkDuration(sink.getId()));
                 LOGGER.info("Registered gauge for longest_running_delivery_in_ms -> {}", metricID);
-                metricRegistry.gauge("dataio_status_map", () -> dependencyTrackingService.getCount(sink.getId(), QUEUED_FOR_PROCESSING), sinkTag, new Tag("state", "processing"));
-                metricRegistry.gauge("dataio_status_map", () -> dependencyTrackingService.getCount(sink.getId(), QUEUED_FOR_DELIVERY), sinkTag, new Tag("state", "delivering"));
+                metricRegistry.gauge("dataio_status_map", () -> dependencyTrackingService.getCount(sink.getId(), QUEUED_FOR_PROCESSING), sinkTag, PROC_TAG);
+                metricRegistry.gauge("dataio_status_map", () -> dependencyTrackingService.getCount(sink.getId(), QUEUED_FOR_DELIVERY), sinkTag, DEL_TAG);
+                metricRegistry.gauge("dataio_sink_mode", () -> dependencyTrackingService.getSinkStatus(sink.getId()).getProcessingStatus().getMode().ordinal(), PROC_TAG);
+                metricRegistry.gauge("dataio_sink_mode", () -> dependencyTrackingService.getSinkStatus(sink.getId()).getDeliveringStatus().getMode().ordinal(), DEL_TAG);
                 LOGGER.info("Registered status map metrics for sink -> {}", sink.getContent().getName());
             }
+            metricRegistry.gauge("dataio_master", () -> Hazelcast.isMaster() ? 1 : 0);
         } catch (FlowStoreServiceConnectorException e) {
             LOGGER.error("Unable to get sinks list from flowstore:", e);
         } catch (ProcessingException e1) {
@@ -166,8 +173,9 @@ public class JobSchedulerBean {
     @SuppressWarnings("unused")
     @Schedule(minute = "*", hour = "*", persistent = false)
     public void updateSinks() {
+        if(Hazelcast.isSlave()) return;
         try {
-            LOGGER.debug("Updating chunks.blocked metrics");
+            LOGGER.info("Updating chunks.blocked metrics");
             List<Sink> sinks = flowStore.getConnector().findAllSinks();
             Map<Integer, Integer> counts = dependencyTrackingService.sinkStatusCount(BLOCKED);
             Map<String, Integer> bc = sinks.stream().collect(Collectors.toMap(s -> s.getContent().getName(), s -> counts.getOrDefault(s.getId(), 0)));
@@ -288,24 +296,11 @@ public class JobSchedulerBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void chunkProcessingDone(Chunk chunk) {
         TrackingKey key = new TrackingKey(chunk.getJobId(), (int)chunk.getChunkId());
-        dependencyTrackingService.lock(key, d -> {
-            DependencyTrackingRO dependencyTracking = dependencyTrackingService.get(key);
-            if (dependencyTracking == null) {
-                LOGGER.info("chunkProcessingDone: called with unknown chunk {}/{} - assuming it is already completed ", chunk.getJobId(), chunk.getChunkId());
-                return;
-            }
-            if (dependencyTracking.getStatus() != QUEUED_FOR_PROCESSING) {
-                LOGGER.info("chunkProcessingDone: called with chunk {}/{} not in state QUEUED_FOR_PROCESSING: was {}", chunk.getJobId(), chunk.getChunkId(), dependencyTracking.getStatus());
-                return;
-            }
-            if (!dependencyTracking.getWaitingOn().isEmpty()) {
-                dependencyTrackingService.setStatus(key, BLOCKED);
-                LOGGER.debug("chunkProcessingDone: chunk {}/{} blocked by {}", chunk.getJobId(), chunk.getChunkId(),
-                        dependencyTracking.getWaitingOn());
-            } else {
-                dependencyTrackingService.setStatus(key, READY_FOR_DELIVERY);
-            }
-        });
+        StatusChangeEvent changeEvent = dependencyTrackingService.setStatus(key, QUEUED_FOR_PROCESSING, READY_FOR_DELIVERY);
+        if(changeEvent == null || changeEvent.getNewStatus() != READY_FOR_DELIVERY) {
+            LOGGER.info("chunkProcessingDone: Conditional status update got undesirable result: {}, skipping", changeEvent);
+            return;
+        }
         jobSchedulerTransactionsBean.submitToDeliveringIfPossible(chunk, key);
     }
 
@@ -342,17 +337,14 @@ public class JobSchedulerBean {
         int chunkDoneSinkId = chunkDone.getSinkId();
         dependencyTrackingService.remove(chunkDoneKey);
 
-        JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(chunkDoneSinkId).getDeliveringStatus();
-
         StopWatch findChunksWaitingForMeStopWatch = new StopWatch();
         Set<TrackingKey> unblocked = dependencyTrackingService.removeFromWaitingOn(chunkDoneKey);
 
         LOGGER.info("chunkDeliveringDone: findChunksWaitingForMe for {} took {} ms unblocked {} chunks", chunkDone.getKey(), findChunksWaitingForMeStopWatch.getElapsedTime(), unblocked.size());
 
-        StopWatch removeFromWaitingOnStopWatch = new StopWatch();
+        JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = dependencyTrackingService.getSinkStatus(chunkDoneSinkId).getDeliveringStatus();
 
         for (TrackingKey chunkBlockedKey : unblocked) {
-
             // Attempts to unblock all chunks found waiting for "me" must happen
             // in separate transactions or else there is a risk of exhausting the
             // JMS connection pool and also of ending up stuck in DIRECT mode when
@@ -363,7 +355,7 @@ public class JobSchedulerBean {
 
         }
         if (!unblocked.isEmpty()) {
-            LOGGER.info("chunkDeliveringDone: removing {} took {}", chunkDone.getKey(), removeFromWaitingOnStopWatch.getElapsedTime());
+            LOGGER.info("chunkDeliveringDone: removing {}", chunkDone.getKey());
         }
 
         long thisDuration = System.currentTimeMillis() - startTime;

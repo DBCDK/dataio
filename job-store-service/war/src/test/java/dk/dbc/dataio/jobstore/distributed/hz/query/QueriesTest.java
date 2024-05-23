@@ -1,15 +1,24 @@
 package dk.dbc.dataio.jobstore.distributed.hz.query;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.jet.core.JetTestSupport;
 import com.hazelcast.map.IMap;
+import com.hazelcast.nio.serialization.compact.CompactSerializer;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.commons.utils.lang.Hashcode;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.RemoveWaitingOnSer;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.StatusChangeSer;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.TrackingKeySer;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateCounterSer;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateStatusSer;
 import org.junit.Test;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -63,6 +72,18 @@ public class QueriesTest extends JetTestSupport implements PostgresContainerJPAU
         Collection<DependencyTracking> result = dependencies.values(new ChunksToWaitFor(0, 123456, hashes, ""));
         assertEquals(40, result.size());
         assertTrue(result.stream().map(DependencyTracking::getKey).mapToInt(TrackingKey::getJobId).allMatch(jobId -> jobId == 1 || jobId == 5));
+    }
+
+    @Override
+    protected HazelcastInstance createHazelcastInstance() {
+        return createHazelcastInstance(makeConfig());
+    }
+
+    private Config makeConfig() {
+        Config config = smallInstanceConfig();
+        List<CompactSerializer<?>> compactSerializers = List.of(new RemoveWaitingOnSer(), new StatusChangeSer(), new TrackingKeySer(), new UpdateCounterSer(), new UpdateStatusSer());
+        compactSerializers.forEach(ser -> config.getSerializationConfig().getCompactSerializationConfig().addSerializer(ser));
+        return config;
     }
 
     @Test

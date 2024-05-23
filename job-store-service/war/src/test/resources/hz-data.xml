@@ -40,4 +40,15 @@
             <in-memory-format>OBJECT</in-memory-format>
         </near-cache>
     </map>
+    <serialization>
+        <compact-serialization>
+            <classes>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.RemoveWaitingOnSer</class>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.StatusChangeSer</class>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.TrackingKeySer</class>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateCounterSer</class>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateStatusSer</class>
+            </classes>
+        </compact-serialization>
+    </serialization>
 </hazelcast>

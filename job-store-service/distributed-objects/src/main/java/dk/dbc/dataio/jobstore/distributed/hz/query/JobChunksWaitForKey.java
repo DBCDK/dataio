@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class JobChunksWaitForKey implements Predicate<TrackingKey, DependencyTracking> {
+    private static final long serialVersionUID = 1L;
     private final int sinkId;
     private final int jobId;
     private final Set<String> matchKeys;

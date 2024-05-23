@@ -8,13 +8,14 @@ import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class RemoveWaitingOn implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent>, Predicate<TrackingKey, DependencyTracking> {
-    private TrackingKey key;
+    public final TrackingKey key;
 
     public RemoveWaitingOn(TrackingKey key) {
-        this.key = key;
+        this.key = Objects.requireNonNull(key);
     }
 
     @Override
@@ -23,6 +24,7 @@ public class RemoveWaitingOn implements EntryProcessor<TrackingKey, DependencyTr
         dt.getWaitingOn().remove(key);
         if(dt.getStatus() == ChunkSchedulingStatus.BLOCKED && dt.getWaitingOn().isEmpty()) {
             dt.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
+            entry.setValue(dt);
             return new StatusChangeEvent(dt.getSinkId(), ChunkSchedulingStatus.BLOCKED, ChunkSchedulingStatus.READY_FOR_DELIVERY);
         }
         entry.setValue(dt);

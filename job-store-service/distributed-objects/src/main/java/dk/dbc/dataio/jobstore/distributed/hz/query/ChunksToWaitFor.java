@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ChunksToWaitFor implements Predicate<TrackingKey, DependencyTracking> {
+    private static final long serialVersionUID = 1L;
     private final int sinkId;
     private final int submitterNumber;
     private final Set<Integer> hashes;

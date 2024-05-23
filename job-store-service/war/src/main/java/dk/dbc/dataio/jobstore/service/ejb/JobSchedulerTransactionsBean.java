@@ -7,6 +7,7 @@ import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
 import dk.dbc.dataio.jobstore.distributed.QueueSubmitMode;
+import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
@@ -24,6 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
+
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
 
 /**
  * Helper Bean for JobScheduler and JobSchedulerBulkSubmitterBean.
@@ -113,7 +117,7 @@ public class JobSchedulerTransactionsBean {
 
         if (!queueStatus.isDirectSubmitMode()) return;
 
-        if (dependencyTrackingService.capacity(sinkId, ChunkSchedulingStatus.QUEUED_FOR_PROCESSING) <= 0) {
+        if (dependencyTrackingService.capacity(sinkId, QUEUED_FOR_PROCESSING) <= 0) {
             queueStatus.setMode(QueueSubmitMode.BULK);
             return;
         }
@@ -124,17 +128,11 @@ public class JobSchedulerTransactionsBean {
     @Stopwatch
     public void submitToProcessing(ChunkEntity chunk, int priority) {
         TrackingKey key = new TrackingKey(chunk.getKey().getJobId(), chunk.getKey().getId());
-        DependencyTrackingRO dependencyTracking = dependencyTrackingService.get(key);
-        if (dependencyTracking == null) {
-            LOGGER.error("Internal Error unable to lookup chunk {} in submitToProcessing", key);
+        StatusChangeEvent changeEvent = dependencyTrackingService.setStatus(key, READY_FOR_PROCESSING, QUEUED_FOR_PROCESSING);
+        if(changeEvent == null) {
+            LOGGER.error("Tracker state could not be set to QUEUED_FOR_PROCESSING current status is {}", key);
             return;
         }
-
-        // recheck if chunk is found by BULK and DIRECT mode
-        if (dependencyTracking.getStatus() != ChunkSchedulingStatus.READY_FOR_PROCESSING) {
-            return;
-        }
-        dependencyTrackingService.setStatus(key, ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
         try {
             JobEntity jobEntity = entityManager.find(JobEntity.class, chunk.getKey().getJobId());
             jobProcessorMessageProducerBean.send(getChunkFrom(chunk), jobEntity, priority);
@@ -197,7 +195,7 @@ public class JobSchedulerTransactionsBean {
         if(jobEntity.getState().isAborted() || JobsBean.isAborted(jobEntity.getId())) return;
         // chunk is ready for sink
         try {
-            dependencyTrackingService.setStatus(dependencyTracking.getKey(), ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
+            dependencyTrackingService.setStatus(trackingKey, ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
             sinkMessageProducerBean.send(chunk, jobEntity, dependencyTracking.getPriority());
             LOGGER.info("submitToDelivering: chunk {}/{} scheduled for delivery for sink {}",
                     chunk.getJobId(), chunk.getChunkId(), dependencyTracking.getSinkId());

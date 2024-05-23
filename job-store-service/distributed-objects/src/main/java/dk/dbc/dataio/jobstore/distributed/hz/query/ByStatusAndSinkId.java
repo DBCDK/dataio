@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class ByStatusAndSinkId implements Predicate<TrackingKey, DependencyTracking> {
+    private static final long serialVersionUID = 1L;
     private final Integer sinkId;
     private final ChunkSchedulingStatus status;
 

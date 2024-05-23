@@ -35,11 +35,12 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -47,12 +48,15 @@ import java.util.stream.StreamSupport;
 public class AccTestRunner implements Callable<Integer> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccTestRunner.class);
 
-    @CommandLine.Parameters(description = "Action <TEST|COMMIT>, can be either test for running tests or commit for committing previously run tests", defaultValue = "TEST")
+    @CommandLine.Parameters(description = "Action <TEST|UPLOAD|COMMIT>, can be either test for running tests or commit for committing previously run tests. " +
+            "Upload allows the user to bypass tests, mostly for creating new flows, or for projects where tests are not desirable", defaultValue = "TEST")
     private Action action;
     @CommandLine.Parameters(description = "Path to local script as JavaScript ARchive file (.jsar)")
     private Path jsar;
     @CommandLine.Parameters(description = "Data path", defaultValue = ".")
     private Path dataPath;
+    @Option(names = "-d", description = "Default project properties", defaultValue = "settings/default.properties")
+    private String defaultProperties;
     @Option(names = "-f", description = "FlowStore url (prod flowstore is default)", defaultValue = "http://dataio-flowstore-service.metascrum-prod.svc.cloud.dbc.dk/dataio/flow-store-service")
     private FlowManager flowManager;
     @Option(names = "-r", description = "Report format <TEXT|XML>", defaultValue = "TEXT")
@@ -76,13 +80,17 @@ public class AccTestRunner implements Callable<Integer> {
     }
 
     static int runWith(String... args) {
-        return runWith(AccTestRunner::flowManager, args);
+        return runWith(AccTestRunner::new, AccTestRunner::flowManager, args);
     }
 
     static int runWith(Function<String, FlowManager> f, String... args) {
-        final CommandLine cli = new CommandLine(new AccTestRunner())
+        return runWith(AccTestRunner::new, f, args);
+    }
+
+    static int runWith(Supplier<AccTestRunner> constructor, Function<String, FlowManager> f, String... args) {
+        final CommandLine cli = new CommandLine(constructor.get())
                 .setCaseInsensitiveEnumValuesAllowed(true)
-                .registerConverter(Path.class, java.nio.file.Path::of)
+                .registerConverter(Path.class, Path::of)
                 .registerConverter(FlowManager.class, f::apply);
         return cli.execute(args);
     }
@@ -91,6 +99,7 @@ public class AccTestRunner implements Callable<Integer> {
     public Integer call() {
         try {
             if (action == Action.COMMIT) return flowManager.commit(commitPath);
+            if (action == Action.UPLOAD) return flowManager.upload(jsar);
             if (action == Action.TEST) return runTest();
         } catch (Exception e) {
             LOGGER.error("Error during acctest", e);
@@ -111,7 +120,7 @@ public class AccTestRunner implements Callable<Integer> {
         return runTest(localFlow, testSuites);
     }
 
-    private Integer runTest(Flow localFlow, List<AccTestSuite> testSuites) throws Exception {
+    Integer runTest(Flow localFlow, List<AccTestSuite> testSuites) throws Exception {
         ServiceHub serviceHub = new ServiceHub.Builder().withJobStoreServiceConnector(null).build();
         Set<Long> flows = new HashSet<>();
 
@@ -184,28 +193,24 @@ public class AccTestRunner implements Callable<Integer> {
         }
     }
 
-    private List<AccTestSuite> findSuites() throws IOException {
+    List<AccTestSuite> findSuites() throws IOException {
         if(Files.isRegularFile(dataPath)) return List.of(new AccTestSuite(new ObjectMapper().readValue(jobSpec.toFile(), JobSpecification.class), recordSplitter));
         try(Stream<Path> accFiles =  Files.find(dataPath, 10, AccTestSuite::isAccTestSpec, FileVisitOption.FOLLOW_LINKS)) {
-            return accFiles.map(f -> new AccTestSuite(f, reportPath)).collect(Collectors.toList());
+            return accFiles.map(f -> new AccTestSuite(loadProperties(), f, reportPath)).toList();
         }
     }
 
-    private Chunk processChunk(Flow flow, Chunk chunk, String additionalStuff) throws Exception {
+    private Chunk processChunk(Flow flow, Chunk chunk, String additionalStuff) {
         ChunkProcessor processor = new ChunkProcessor(null, id -> flow);
         return processor.process(chunk, flow.getId(), flow.getVersion(), additionalStuff);
     }
 
     private Chunk readChunk(Stream<DataPartitionerResult> stream) {
         AtomicLong id = new AtomicLong(0);
-        List<ChunkItem> items = stream.map(DataPartitionerResult::getChunkItem).map(ci -> ci.withId(id.getAndIncrement())).collect(Collectors.toList());
+        List<ChunkItem> items = stream.map(DataPartitionerResult::getChunkItem).map(ci -> ci.withId(id.getAndIncrement())).toList();
         Chunk chunk = new Chunk(0, 0, Chunk.Type.PARTITIONED);
         chunk.addAllItems(items);
         return chunk;
-    }
-
-    private void setFlowManager(FlowManager flowManager) {
-        this.flowManager = flowManager;
     }
 
     private static FlowManager flowManager(String serviceUrl) {
@@ -218,7 +223,20 @@ public class AccTestRunner implements Callable<Integer> {
         return new FlowManager(new FlowStoreServiceConnector(failSafeHttpClient, serviceUrl));
     }
 
-    public static enum Action {
-        TEST, COMMIT
+    Properties loadProperties() {
+        Properties properties = new Properties();
+        if(defaultProperties == null) return properties;
+        Path p = Path.of(defaultProperties);
+        if(!Files.isRegularFile(p)) return properties;
+        try {
+            properties.load(Files.newBufferedReader(p));
+            return properties;
+        } catch (IOException e) {
+            throw new IllegalStateException("Found default properties " + p.toAbsolutePath() + " file, but not able to read it", e);
+        }
+    }
+
+    public enum Action {
+        TEST, UPLOAD, COMMIT
     }
 }

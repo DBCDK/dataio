@@ -12,9 +12,13 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.function.Supplier;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class AccTestRunnerTest {
 
@@ -46,6 +50,36 @@ class AccTestRunnerTest {
     }
 
     @Test
+    void testSuiteDefaults() {
+        Supplier<AccTestRunner> testRunnerSupplier = () -> new AccTestRunner() {
+            @Override
+            Integer runTest(Flow localFlow, List<AccTestSuite> testSuites) throws Exception {
+                JobSpecification js = new JobSpecification().withSubmitterId(123456).withCharset("utf8").withDestination("acctest").withFormat("test").withPackaging("json");
+                assertEquals(js, testSuites.get(0).getJobSpecification());
+                return 0;
+            }
+        };
+         int exitCode = AccTestRunner.runWith(testRunnerSupplier, AccTestRunnerTest::flowManagerMock,
+                "TEST", simpleJsar.toString(), dataPath.toString(),
+                arg("cp", tempDir), arg("v", "1"), defProps());
+        assertEquals(0, exitCode);
+    }
+
+    @Test
+    void testSuiteNoDefaults() {
+        Supplier<AccTestRunner> testRunnerSupplier = () -> new AccTestRunner() {
+            @Override
+            Integer runTest(Flow localFlow, List<AccTestSuite> testSuites) throws Exception {
+                return 0;
+            }
+        };
+        int exitCode = AccTestRunner.runWith(testRunnerSupplier, AccTestRunnerTest::flowManagerMock,
+                "TEST", simpleJsar.toString(), dataPath.toString(),
+                arg("cp", tempDir), arg("v", "1"));
+        assertNotEquals(0, exitCode);
+    }
+
+    @Test
     void test_flowNotFoundRemotely() throws IOException {
         FlowContent flowContent = flowManagerMock.getFlowContent(simpleJsar);
         flowManagerMock.setFlowByJsar(new Flow(1, 1, flowContent));
@@ -54,7 +88,7 @@ class AccTestRunnerTest {
 
         int exitCode = AccTestRunner.runWith(AccTestRunnerTest::flowManagerMock,
                 "TEST", simpleJsar.toString(), dataPath.toString(),
-                arg("cp", tempDir), arg("rs", "JSON"), arg("v", "1"));
+                arg("cp", tempDir), arg("rs", "JSON"), arg("v", "1"), defProps());
         assertThat("exit code", exitCode, is(0));
 
         Path commitFile = tempDir.resolve(FlowManager.FLOW_COMMIT_TMP);
@@ -72,7 +106,7 @@ class AccTestRunnerTest {
         // Flow resolved by name, but test suite failed to resolve to a flow
 
         int exitCode = AccTestRunner.runWith(AccTestRunnerTest::flowManagerMock, "TEST", dataPath.toString(),
-                arg("jsar", simpleJsar), arg("cp", tempDir), arg("rs", "JSON"), arg("v", "1"));
+                arg("jsar", simpleJsar), arg("cp", tempDir), arg("rs", "JSON"), arg("v", "1"), defProps());
         assertThat("exit code", exitCode, is(-255));
         assertThat("commit file found", Files.exists(tempDir.resolve(FlowManager.FLOW_COMMIT_TMP)), is(false));
     }
@@ -88,7 +122,7 @@ class AccTestRunnerTest {
 
         int exitCode = AccTestRunner.runWith(AccTestRunnerTest::flowManagerMock,
                 "TEST", simpleJsar.toString(), dataPath.toString(),
-                arg("cp", tempDir), arg("rs", "JSON"), arg("v", "1"));
+                arg("cp", tempDir), arg("rs", "JSON"), arg("v", "1"), defProps());
         assertThat("exit code", exitCode, is(0));
 
         Path commitFile = tempDir.resolve(FlowManager.FLOW_COMMIT_TMP);
@@ -111,7 +145,7 @@ class AccTestRunnerTest {
 
         int exitCode = AccTestRunner.runWith(AccTestRunnerTest::flowManagerMock,
                 "TEST", simpleJsar.toString(), dataPath.toString(),
-                arg("cp", tempDir), arg("rs", "JSON"), arg("v", "1"));
+                arg("cp", tempDir), arg("rs", "JSON"), arg("v", "1"), defProps());
         assertThat("exit code", exitCode, is(0));
 
         Path commitFile = tempDir.resolve(FlowManager.FLOW_COMMIT_TMP);
@@ -133,7 +167,7 @@ class AccTestRunnerTest {
 
         int exitCode = AccTestRunner.runWith(AccTestRunnerTest::flowManagerMock,
                 "TEST", simpleJsar.toString(), dataPath.toString(),
-                arg("cp", tempDir), arg("rs", "JSON"), arg("v", "1"));
+                arg("cp", tempDir), arg("rs", "JSON"), arg("v", "1"), defProps());
         assertThat("exit code", exitCode, is(-255));
         assertThat("commit file found", Files.exists(tempDir.resolve(FlowManager.FLOW_COMMIT_TMP)), is(false));
     }
@@ -147,7 +181,7 @@ class AccTestRunnerTest {
 
         int exitCode = AccTestRunner.runWith(AccTestRunnerTest::flowManagerMock,
                 "TEST", simpleJsar.toString(), dataPath.toString(),
-                arg("cp", tempDir), arg("rs", "JSON"), arg("v", "1"));
+                arg("cp", tempDir), arg("rs", "JSON"), arg("v", "1"), defProps());
         assertThat("exit code", exitCode, is(1));
 
         Path commitFile = tempDir.resolve(FlowManager.FLOW_COMMIT_TMP);
@@ -165,6 +199,10 @@ class AccTestRunnerTest {
 
     private String arg(String name, String value) {
         return String.format("-%s=%s", name, value);
+    }
+
+    private String defProps() {
+        return arg("d", getClass().getClassLoader().getResource("settings/default.properties").getFile());
     }
 
     private static FlowManager.CommitTempFile getCommitTempFile(Path commitFile) {

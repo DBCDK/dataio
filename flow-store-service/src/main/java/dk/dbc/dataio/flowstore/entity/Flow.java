@@ -113,6 +113,7 @@ public class Flow extends Versioned {
                     .withVersion(version)
                     .withName(flowContent.getName())
                     .withDescription(flowContent.getDescription())
+                    .withTimeOfLastModification(lastModified)
                     .withTimeOfComponentUpdate(lastModified) // Components are no more
                     .withComponents(generateComponentViews(flowContent.getComponents() == null ? List.of() : flowContent.getComponents()));
             return JSONB_CONTEXT.marshall(view);

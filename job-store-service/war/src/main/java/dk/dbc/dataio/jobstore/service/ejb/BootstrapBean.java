@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -46,9 +47,9 @@ public class BootstrapBean {
     /**
      * Resumes partially partitioned jobs
      */
-    @Schedule(minute = "*", hour = "*")
+    @Schedule(minute = "*", hour = "*", persistent = false)
     public void resumePartitioning() {
-        if(partitioningInitialized) return;
+        if(partitioningInitialized || Hazelcast.isSlave()) return;
         HashSet<Integer> sinkIds = new HashSet<>();
         @SuppressWarnings("RedundantStreamOptionalCall") // sort used to filter out old sink versions
         Set<Sink> sinks = jobQueueRepository.getWaiting().stream()

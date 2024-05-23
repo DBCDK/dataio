@@ -98,7 +98,7 @@ public class AccTestRunner implements Callable<Integer> {
     @Override
     public Integer call() {
         try {
-            if (action == Action.COMMIT) return flowManager.commit(jsar);
+            if (action == Action.COMMIT) return flowManager.commit(commitPath);
             if (action == Action.UPLOAD) return flowManager.upload(jsar);
             if (action == Action.TEST) return runTest();
         } catch (Exception e) {
@@ -113,7 +113,6 @@ public class AccTestRunner implements Callable<Integer> {
         foundFlowByName = flowManager.foundFlowByName();
         if(!Files.isReadable(dataPath)) throw new IllegalArgumentException("Datafile " + dataPath + " is not a readable file");
         if(revision == null) throw new IllegalStateException("Please state the version being tested using -v <version>");
-
         List<AccTestSuite> testSuites = findSuites();
         if(testSuites.isEmpty()) {
             throw new IllegalArgumentException("No test suites where found");

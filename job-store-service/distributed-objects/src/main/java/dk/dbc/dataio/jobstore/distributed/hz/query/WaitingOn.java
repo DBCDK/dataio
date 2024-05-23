@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class WaitingOn implements Predicate<TrackingKey, DependencyTracking> {
+    private static final long serialVersionUID = 1L;
     private final int sinkId;
     private final TrackingKey key;
 

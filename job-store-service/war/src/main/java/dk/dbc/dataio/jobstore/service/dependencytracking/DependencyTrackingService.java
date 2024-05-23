@@ -34,6 +34,7 @@ import jakarta.ejb.Startup;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,15 +90,6 @@ public class DependencyTrackingService {
         countersMap.executeOnKey(entity.getSinkId(), new UpdateCounter(entity.getStatus(), 1));
         removeDeadWOs(key, waitingOn);
         return key;
-    }
-
-    public void lock(TrackingKey key, Consumer<Void> block) {
-        try {
-            dependencyTracker.lock(key);
-            block.accept(null);
-        } finally {
-            dependencyTracker.unlock(key);
-        }
     }
 
     public int capacity(int sinkId, ChunkSchedulingStatus status) {
@@ -177,9 +169,10 @@ public class DependencyTrackingService {
         removeDeadWOs(key, reducedWOs);
     }
 
+    @Timed(name = "removeWaitingOn")
     public Set<TrackingKey> removeFromWaitingOn(TrackingKey key) {
         RemoveWaitingOn processor = new RemoveWaitingOn(key);
-        Map<TrackingKey, StatusChangeEvent> map = dependencyTracker.executeOnEntries(processor, processor);
+        Map<TrackingKey, StatusChangeEvent> map = dependencyTracker.executeOnEntries(processor, Predicates.equal("waitingOn[any]", key));
         updateCounters(map.values().stream());
         return map.entrySet().stream()
                 .filter(e -> e.getValue() != null)
@@ -187,9 +180,14 @@ public class DependencyTrackingService {
                 .collect(Collectors.toSet());
     }
 
-    public void setStatus(TrackingKey key, ChunkSchedulingStatus status) {
-        StatusChangeEvent statusChangeEvent = dependencyTracker.executeOnKey(key, new UpdateStatus(status));
+    public StatusChangeEvent setStatus(TrackingKey key, ChunkSchedulingStatus status) {
+        return setStatus(key, null, status);
+    }
+
+    public StatusChangeEvent setStatus(TrackingKey key, ChunkSchedulingStatus expectedStatus, ChunkSchedulingStatus newStatus) {
+        StatusChangeEvent statusChangeEvent = dependencyTracker.executeOnKey(key, new UpdateStatus(expectedStatus, newStatus));
         updateCounters(Stream.of(statusChangeEvent));
+        return statusChangeEvent;
     }
 
     public void remove(TrackingKey key) {

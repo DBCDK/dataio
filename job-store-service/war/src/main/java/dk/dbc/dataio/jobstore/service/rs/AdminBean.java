@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
@@ -100,6 +101,7 @@ public class AdminBean {
     @SuppressWarnings("unused")
     @Schedule(minute = "*", hour = "*", persistent = false)
     public void updateStaleChunks() {
+        if(Hazelcast.isSlave()) return;
         try {
             Stream<DependencyTrackingRO> delStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).filter(this::isTimeout);
             Stream<DependencyTrackingRO> procStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout);
@@ -114,6 +116,13 @@ public class AdminBean {
             LOGGER.error("Caught runtime exception un update stale chunks", e);
             throw e;
         }
+    }
+
+    @Schedule(minute = "10", hour = "*", persistent = false)
+    public void recheckBlocks() {
+        if(Hazelcast.isSlave()) return;
+        Set<TrackingKey> keys = dependencyTrackingService.recheckBlocks();
+        if(!keys.isEmpty()) LOGGER.info("Hourly blocked check has released {}", keys);
     }
 
     public void resendIfNeeded(List<DependencyTrackingRO> list) {
@@ -134,6 +143,7 @@ public class AdminBean {
     @SuppressWarnings("unused")
     @Schedule(minute = "5", hour = "*", persistent = false)
     public void cleanStaleJMSConnections() {
+        if(Hazelcast.isSlave()) return;
         LOGGER.info("Cleaning stale artemis connections");
         Instant i = Instant.now().minus(Duration.ofMinutes(15));
         adminClient.closeConsumerConnections(c -> i.isAfter(c.getLastAcknowledgedTime()) && c.getDeliveringCount() > 0);

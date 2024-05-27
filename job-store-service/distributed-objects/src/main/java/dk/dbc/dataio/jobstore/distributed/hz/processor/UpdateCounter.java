@@ -4,16 +4,17 @@ import com.hazelcast.map.EntryProcessor;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class UpdateCounter implements EntryProcessor<Integer, Map<ChunkSchedulingStatus, Integer>, Void> {
-    private final Map<ChunkSchedulingStatus, Integer> deltas;
+    public final Map<ChunkSchedulingStatus, Integer> deltas;
 
     public UpdateCounter(Map<ChunkSchedulingStatus, Integer> deltas) {
-        this.deltas = deltas;
+        this.deltas = Objects.requireNonNull(deltas);
     }
 
     public UpdateCounter(ChunkSchedulingStatus status, int delta) {
-        this(Map.of(status, delta));
+        this(Map.of(Objects.requireNonNull(status), delta));
     }
 
     @Override

@@ -14,6 +14,7 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.BLOCKED;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
 
 public class AddTerminationWaitingOn implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent> {
+    private static final long serialVersionUID = 1L;
     private final Set<TrackingKey> keys;
 
     public AddTerminationWaitingOn(Set<TrackingKey> keys) {

@@ -39,6 +39,13 @@
             <write-batch-size>1000</write-batch-size>
             <write-coalescing>true</write-coalescing>
         </map-store>
+        <indexes>
+            <index type="HASH">
+                <attributes>
+                    <attribute>waitingOn[any]</attribute>
+                </attributes>
+            </index>
+        </indexes>
     </map>
     <map name="sink.status">
         <in-memory-format>OBJECT</in-memory-format>
@@ -62,4 +69,15 @@
             <in-memory-format>OBJECT</in-memory-format>
         </near-cache>
     </map>
+    <serialization>
+        <compact-serialization>
+            <classes>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.RemoveWaitingOnSer</class>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.StatusChangeSer</class>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.TrackingKeySer</class>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateCounterSer</class>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateStatusSer</class>
+            </classes>
+        </compact-serialization>
+    </serialization>
 </hazelcast>

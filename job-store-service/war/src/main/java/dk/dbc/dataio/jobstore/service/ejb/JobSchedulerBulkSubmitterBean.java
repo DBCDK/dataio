@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Schedule;
 import jakarta.ejb.Singleton;
@@ -39,6 +40,7 @@ public class JobSchedulerBulkSubmitterBean {
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void bulkScheduleChunksForDelivering() {
+        if(Hazelcast.isSlave()) return;
         dependencyTrackingService.getSinkStatusMap().forEach((sinkId, sinkQueueStatus) -> {
             try {
                 JobSchedulerSinkStatus.QueueStatus queueStatus = sinkQueueStatus.getDeliveringStatus();
@@ -58,6 +60,7 @@ public class JobSchedulerBulkSubmitterBean {
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void bulkScheduleChunksForProcessing() {
+        if(Hazelcast.isSlave()) return;
         dependencyTrackingService.getSinkStatusMap().forEach((sinkId, sinkQueueStatus) -> {
             try {
                 JobSchedulerSinkStatus.QueueStatus queueStatus = sinkQueueStatus.getProcessingStatus();

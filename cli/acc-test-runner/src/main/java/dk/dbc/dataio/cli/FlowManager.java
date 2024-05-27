@@ -51,8 +51,11 @@ public class FlowManager {
     }
 
     public Flow getFlow(Path jsar) throws IOException, FlowStoreServiceConnectorException {
+        return getFlow(getFlowContent(jsar));
+    }
+
+    public Flow getFlow(FlowContent flowContent) throws IOException, FlowStoreServiceConnectorException {
         foundFlowByName = false;
-        FlowContent flowContent = getFlowContent(jsar);
         Flow flowByName = null;
         try {
             flowByName = flowStore.findFlowByName(flowContent.getName());
@@ -67,7 +70,7 @@ public class FlowManager {
             foundFlowByName = true;
             return new Flow(flowByName.getId(), flowByName.getVersion(), flowContent);
         }
-        return new Flow(1, 1, getFlowContent(jsar));
+        return new Flow(1, 1, flowContent);
     }
 
     public FlowContent getFlowContent(Path jsar) throws IOException {
@@ -103,6 +106,20 @@ public class FlowManager {
         } catch (IOException e) {
             throw new IllegalStateException("Failed to write temporary flow file", e);
         }
+    }
+
+    public Integer upload(Path jsar) throws FlowStoreServiceConnectorException, IOException {
+        FlowContent flowContent = getFlowContent(jsar);
+        long modified = flowContent.getTimeOfLastModification().getTime();
+        Flow flow = getFlow(flowContent);
+        if(flow == null) {
+            flowStore.createFlow(modified, flowContent.getJsar());
+            LOGGER.info("Created new flow: id={}, name={}", flow.getId(), flow.getContent().getName());
+        } else {
+            flowStore.updateFlow(flow.getId(), modified, flowContent.getJsar());
+            LOGGER.info("Updated flow: id={}, name={}", flow.getId(), flow.getContent().getName());
+        }
+        return 0;
     }
 
     public static class CommitTempFile {

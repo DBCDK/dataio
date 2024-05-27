@@ -24,10 +24,10 @@ public class AccTestSuite {
     private final JobSpecification jobSpecification;
     private RecordSplitter recordSplitter;
 
-    public AccTestSuite(Path testSpec, Path reportDir) {
+    public AccTestSuite(Properties defaultProperties, Path testSpec, Path reportDir) {
         this.testSpec = testSpec;
         name = ACC_TEXT_EXT_PATTERN.matcher(testSpec.getFileName().toString()).replaceFirst("");
-        jobSpecification = readTestSpec(testSpec);
+        jobSpecification = readTestSpec(defaultProperties, testSpec);
         reportPath = reportDir == null ? null : reportDir.resolve("TESTS-dbc_" + getName() + ".xml");
         try(Stream<Path> dataStream = Files.find(testSpec.getParent(), 1, this::isAccTestDataFile)) {
             dataFile = dataStream.findFirst().orElseThrow(() -> new IllegalArgumentException("Unable to find datafile for acc-test " + getName()));
@@ -43,7 +43,7 @@ public class AccTestSuite {
         reportPath = null;
     }
 
-    private JobSpecification readTestSpec(Path testSpec) {
+    private JobSpecification readTestSpec(Properties defaultProperties, Path testSpec) {
         Properties p = new Properties();
         try (Reader reader = Files.newBufferedReader(testSpec)) {
             p.load(reader);
@@ -51,13 +51,13 @@ public class AccTestSuite {
             throw new RuntimeException("Unable to read acc-test spec " + testSpec, e);
         }
         JobSpecification js = new JobSpecification();
-        Map<Object, Consumer<String>> map = Map.of("submitterId", v -> js.withSubmitterId(Long.parseLong(v)),
+        Map<String, Consumer<String>> map = Map.of("submitterId", v -> js.withSubmitterId(Long.parseLong(v)),
                 "packaging", js::withPackaging,
                 "format", js::withFormat,
                 "destination", js::withDestination,
                 "charset", js::withCharset,
                 "recordSplitter", v -> recordSplitter = RecordSplitter.valueOf(v));
-        p.forEach((k, v) -> map.get(k).accept((String) v));
+        map.forEach((k, v) -> v.accept(p.getProperty(k, defaultProperties.getProperty(k))));
         return js;
     }
 

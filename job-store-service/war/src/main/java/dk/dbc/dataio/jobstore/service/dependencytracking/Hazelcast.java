@@ -58,6 +58,10 @@ public class Hazelcast implements ServletContextListener {
         return INSTANCE.getCluster().getMembers().stream().findFirst().map(Member::localMember).orElse(false);
     }
 
+    public static boolean isSlave() {
+        return !isMaster();
+    }
+
     public static boolean isReady() {
         return !STOPPING.get() && Hazelcast.getInstance().getLifecycleService().isRunning() && Hazelcast.getInstance().getPartitionService().isClusterSafe();
     }

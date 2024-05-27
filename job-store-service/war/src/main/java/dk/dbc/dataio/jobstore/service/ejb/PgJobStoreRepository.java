@@ -534,17 +534,16 @@ public class PgJobStoreRepository extends RepositoryBase {
             profiler.start("execute Query");
             final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
             profiler.stop();
-            if (!itemEntities.isEmpty()) {
+            if (itemEntities.size() > 0) {
                 profiler.start("Loop itemEntities");
                 final Chunk chunk = new Chunk(jobId, chunkId, type);
+                int i = 0;
                 for (ItemEntity itemEntity : itemEntities) {
                     if (PROCESSED == type) {
                         // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
-                        ChunkItem outcome = getChunkItemOrMsg(itemEntity::getProcessingOutcome, "Chunk outcome is missing");
-                        ChunkItem nextOutcome = getChunkItemOrMsg(itemEntity::getNextProcessingOutcome, "Chunk next outcome is missing").withId(outcome.getId());
-                        chunk.insertItem(outcome, nextOutcome);
+                        chunk.insertItem(itemEntity.getProcessingOutcome(), itemEntity.getNextProcessingOutcome());
                     } else {
-                        chunk.insertItem(getChunkItemOrMsg(() -> itemEntity.getChunkItemForPhase(phase), "ChunkItem for phase " + phase + " is missing"));
+                        chunk.insertItem(itemEntity.getChunkItemForPhase(phase));
                     }
                 }
                 return chunk;

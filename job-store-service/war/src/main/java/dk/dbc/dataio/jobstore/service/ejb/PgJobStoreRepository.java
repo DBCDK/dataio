@@ -74,6 +74,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
@@ -533,18 +534,18 @@ public class PgJobStoreRepository extends RepositoryBase {
             profiler.start("execute Query");
             final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
             profiler.stop();
-            if (itemEntities.size() > 0) {
+            if (!itemEntities.isEmpty()) {
                 profiler.start("Loop itemEntities");
                 final Chunk chunk = new Chunk(jobId, chunkId, type);
-                int i = 0;
                 for (ItemEntity itemEntity : itemEntities) {
                     if (PROCESSED == type) {
                         // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
-                        chunk.insertItem(itemEntity.getProcessingOutcome(), itemEntity.getNextProcessingOutcome());
+                        ChunkItem outcome = getChunkItemOrMsg(itemEntity::getProcessingOutcome, "Chunk outcome is missing");
+                        ChunkItem nextOutcome = getChunkItemOrMsg(itemEntity::getNextProcessingOutcome, "Chunk next outcome is missing");
+                        chunk.insertItem(outcome, nextOutcome);
                     } else {
-                        chunk.insertItem(itemEntity.getChunkItemForPhase(phase));
+                        chunk.insertItem(getChunkItemOrMsg(() -> itemEntity.getChunkItemForPhase(phase), "ChunkItem for phase " + phase + " is missing"));
                     }
-                    ++i;
                 }
                 return chunk;
             }
@@ -552,6 +553,12 @@ public class PgJobStoreRepository extends RepositoryBase {
         } finally {
             LOGGER.info("pgJobStoreRepository.getChunk timings:\n" + profiler.toString());
         }
+    }
+
+    private ChunkItem getChunkItemOrMsg(Supplier<ChunkItem> sup, String msg) {
+        ChunkItem chunkItem = sup.get();
+        if(chunkItem == null) return ChunkItem.failedChunkItem().withData(msg).withType(ChunkItem.Type.STRING).withDiagnostics(ObjectFactory.buildFatalDiagnostic(msg));
+        return chunkItem;
     }
 
     @Stopwatch

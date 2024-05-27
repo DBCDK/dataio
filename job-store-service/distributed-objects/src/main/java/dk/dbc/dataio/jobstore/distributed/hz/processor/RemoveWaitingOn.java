@@ -23,9 +23,9 @@ public class RemoveWaitingOn implements EntryProcessor<TrackingKey, DependencyTr
         DependencyTracking dt = entry.getValue();
         dt.getWaitingOn().remove(key);
         if(dt.getStatus() == ChunkSchedulingStatus.BLOCKED && dt.getWaitingOn().isEmpty()) {
-            dt.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
+            dt.setStatus(ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY);
             entry.setValue(dt);
-            return new StatusChangeEvent(dt.getSinkId(), ChunkSchedulingStatus.BLOCKED, ChunkSchedulingStatus.READY_FOR_DELIVERY);
+            return new StatusChangeEvent(dt.getSinkId(), ChunkSchedulingStatus.BLOCKED, ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY);
         }
         entry.setValue(dt);
         return null;

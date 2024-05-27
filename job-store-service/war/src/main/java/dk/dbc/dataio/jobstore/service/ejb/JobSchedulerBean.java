@@ -51,7 +51,6 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.BLOCKED;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
-import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
 
@@ -291,7 +290,11 @@ public class JobSchedulerBean {
     public void chunkProcessingDone(Chunk chunk) {
         TrackingKey key = new TrackingKey(chunk.getJobId(), (int)chunk.getChunkId());
         StatusChangeEvent changeEvent = dependencyTrackingService.setValidatedStatus(key, READY_FOR_DELIVERY);
-        if(changeEvent == null || changeEvent.getNewStatus() != READY_FOR_DELIVERY) {
+        if(changeEvent == null) {
+            LOGGER.info("chunkProcessingDone: Conditional status update got undesirable result skipping");
+            return;
+        }
+        if(changeEvent.getNewStatus() != READY_FOR_DELIVERY) {
             LOGGER.info("chunkProcessingDone: Conditional status update got undesirable result: {}, skipping", changeEvent);
             return;
         }
@@ -359,7 +362,6 @@ public class JobSchedulerBean {
     public Future<Integer> bulkScheduleToProcessingForSink(int sinkId) {
         int chunksPushedToQueue = 0;
         try {
-            int ready = dependencyTrackingService.getCount(sinkId, READY_FOR_PROCESSING);
             int spaceLeftInQueue = dependencyTrackingService.capacity(sinkId, QUEUED_FOR_PROCESSING);
             if (spaceLeftInQueue > 0) {
                 List<DependencyTracking> chunks = dependencyTrackingService.findStream(SCHEDULED_FOR_PROCESSING, sinkId)
@@ -376,7 +378,7 @@ public class JobSchedulerBean {
                         chunksPushedToQueue++;
                     }
                 }
-            } else LOGGER.info("bulk scheduling for processing - sink {} capacity={} ready={}", sinkId, spaceLeftInQueue, ready);
+            } else LOGGER.info("bulk scheduling for processing - sink {} capacity={}", sinkId, spaceLeftInQueue);
         } catch (Exception ex) {
             LOGGER.error("Error in bulk scheduling for processing for sink {}", sinkId, ex);
         }

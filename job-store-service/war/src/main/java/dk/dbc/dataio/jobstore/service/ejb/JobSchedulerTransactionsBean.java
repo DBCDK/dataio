@@ -186,7 +186,7 @@ public class JobSchedulerTransactionsBean {
             LOGGER.info("submitToDelivering: chunk {}/{} scheduled for delivery for sink {}",
                     chunk.getJobId(), chunk.getChunkId(), dependencyTracking.getSinkId());
         } catch (JobStoreException e) {
-            dependencyTrackingService.setStatus(dependencyTracking.getKey(), SCHEDULED_FOR_DELIVERY);
+            dependencyTrackingService.setStatus(trackingKey, SCHEDULED_FOR_DELIVERY);
             LOGGER.error("submitToDelivering: unable to send chunk {}/{} to JMS queue - chunk has been scheduled for delivery",
                     chunk.getJobId(), chunk.getChunkId(), e);
         }

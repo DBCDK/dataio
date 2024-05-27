@@ -13,9 +13,9 @@ import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
@@ -33,7 +33,7 @@ public class JobSchedulerBulkSubmitterBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBulkSubmitterBean.class);
     @Inject
     DependencyTrackingService dependencyTrackingService;
-    private final Map<BulkSchedulerKey, Future<Integer>> bulkFutures = new HashMap<>();
+    private final Map<BulkSchedulerKey, Future<Integer>> bulkFutures = new ConcurrentHashMap<>();
 
     @EJB
     JobSchedulerBean jobSchedulerBean;

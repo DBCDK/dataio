@@ -541,7 +541,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                     if (PROCESSED == type) {
                         // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
                         ChunkItem outcome = getChunkItemOrMsg(itemEntity::getProcessingOutcome, "Chunk outcome is missing");
-                        ChunkItem nextOutcome = getChunkItemOrMsg(itemEntity::getNextProcessingOutcome, "Chunk next outcome is missing");
+                        ChunkItem nextOutcome = getChunkItemOrMsg(itemEntity::getNextProcessingOutcome, "Chunk next outcome is missing").withId(outcome.getId());
                         chunk.insertItem(outcome, nextOutcome);
                     } else {
                         chunk.insertItem(getChunkItemOrMsg(() -> itemEntity.getChunkItemForPhase(phase), "ChunkItem for phase " + phase + " is missing"));

@@ -21,7 +21,8 @@ public enum ChunkSchedulingStatus {
     Integer max;
 
     public final ChunkSchedulingStatus resend;
-    private final Set<ChunkSchedulingStatus> validStatusChanges;
+    private final int[] canChangeTo;
+    private Set<ChunkSchedulingStatus> validStatusChanges;
     private static final Map<Integer, ChunkSchedulingStatus> VALUE_MAP = Arrays.stream(values()).collect(Collectors.toMap(c -> c.value, c -> c));
 
     ChunkSchedulingStatus(Integer value, int... canChangeTo) {
@@ -32,7 +33,7 @@ public enum ChunkSchedulingStatus {
         this.value = value;
         this.max = max;
         this.resend = resend;
-        validStatusChanges = IntStream.of(canChangeTo).mapToObj(ChunkSchedulingStatus::from).collect(Collectors.toSet());
+        this.canChangeTo = canChangeTo;
     }
 
     public static int getTransitionToDirectMark() {
@@ -47,15 +48,22 @@ public enum ChunkSchedulingStatus {
         return VALUE_MAP.get(value);
     }
 
+    private Set<ChunkSchedulingStatus> validStatusChanges() {
+        if(validStatusChanges == null) {
+            validStatusChanges = IntStream.of(canChangeTo).mapToObj(ChunkSchedulingStatus::from).collect(Collectors.toSet());
+        }
+        return validStatusChanges;
+    }
+
     public ChunkSchedulingStatus[] getValidStatusChanges() {
-        return validStatusChanges.toArray(new ChunkSchedulingStatus[0]);
+        return validStatusChanges().toArray(new ChunkSchedulingStatus[0]);
     }
 
     public boolean isValidStatusChange(ChunkSchedulingStatus status) {
-        return validStatusChanges.contains(status);
+        return validStatusChanges().contains(status);
     }
 
     public boolean isInvalidStatusChange(ChunkSchedulingStatus status) {
-        return !validStatusChanges.contains(status);
+        return !validStatusChanges().contains(status);
     }
 }

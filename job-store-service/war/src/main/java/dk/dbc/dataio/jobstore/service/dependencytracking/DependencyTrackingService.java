@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobstore.service.dependencytracking;
 
 import com.hazelcast.map.IMap;
-import com.hazelcast.query.PagingPredicate;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder;
 import com.hazelcast.query.Predicates;
@@ -256,18 +255,19 @@ public class DependencyTrackingService {
     }
 
     public Collection<DependencyTracking> findDependencies(ChunkSchedulingStatus status, Integer sinkId, Integer limit) {
+        return dependencyTracker.values(makeDependencyPredicate(status, sinkId, limit));
+    }
+
+    public Set<TrackingKey> find(ChunkSchedulingStatus status, int sinkId, Integer limit) {
+        return dependencyTracker.keySet(makeDependencyPredicate(status, sinkId, limit));
+    }
+
+    private Predicate<TrackingKey, DependencyTracking> makeDependencyPredicate(ChunkSchedulingStatus status, int sinkId, Integer limit) {
         PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
         @SuppressWarnings("unchecked")
         Predicate<TrackingKey, DependencyTracking> p = e.get("sinkId").equal(sinkId).and(e.get("status").equal(status));
-        if(limit == null) return dependencyTracker.values(p);
-        PagingPredicate<TrackingKey, DependencyTracking> pagingPredicate = Predicates.pagingPredicate(p, DependencyTracking.comparePriorityAndJobId(), limit);
-        return dependencyTracker.values(pagingPredicate);
-    }
-
-    public List<TrackingKey> find(ChunkSchedulingStatus status, int sinkId, int limit) {
-        return findDependencies(status, sinkId, limit).stream()
-                .map(DependencyTracking::getKey)
-                .collect(Collectors.toList());
+        if(limit == null) return p;
+        return Predicates.pagingPredicate(p, DependencyTracking.comparePriorityAndJobId(), limit);
     }
 
     public List<TrackingKey> findChunksWaitingForMe(TrackingKey key, int sinkId) {

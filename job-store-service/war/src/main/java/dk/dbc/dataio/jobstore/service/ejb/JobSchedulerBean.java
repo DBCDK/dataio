@@ -403,7 +403,7 @@ public class JobSchedulerBean {
             if (spaceLeftInQueue > 0) {
                 LOGGER.debug("bulk scheduling for delivery - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
 
-                List<TrackingKey> chunks = dependencyTrackingService.find(SCHEDULED_FOR_DELIVERY, sinkId, spaceLeftInQueue);
+                Set<TrackingKey> chunks = dependencyTrackingService.find(SCHEDULED_FOR_DELIVERY, sinkId, spaceLeftInQueue);
 
                 if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for delivery - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
                 for (TrackingKey toSchedule : chunks) {

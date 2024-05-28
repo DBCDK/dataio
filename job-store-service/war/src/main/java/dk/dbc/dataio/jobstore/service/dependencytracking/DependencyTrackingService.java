@@ -21,7 +21,6 @@ import dk.dbc.dataio.jobstore.distributed.hz.processor.RemoveWaitingOn;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdatePriority;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateStatus;
-import dk.dbc.dataio.jobstore.distributed.hz.query.ByStatusAndSinkId;
 import dk.dbc.dataio.jobstore.distributed.hz.query.ChunksToWaitFor;
 import dk.dbc.dataio.jobstore.distributed.hz.query.JobChunksWaitForKey;
 import dk.dbc.dataio.jobstore.distributed.hz.query.WaitingOn;
@@ -266,9 +265,7 @@ public class DependencyTrackingService {
     }
 
     public List<TrackingKey> find(ChunkSchedulingStatus status, int sinkId, int limit) {
-        return dependencyTracker.values(new ByStatusAndSinkId(sinkId, status)).stream()
-                .sorted(Comparator.comparing(DependencyTracking::getPriority).reversed().thenComparing(DependencyTracking::getKey))
-                .limit(limit)
+        return findDependencies(status, sinkId, limit).stream()
                 .map(DependencyTracking::getKey)
                 .collect(Collectors.toList());
     }

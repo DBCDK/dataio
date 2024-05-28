@@ -52,6 +52,17 @@ public class JobSchedulerTransactionsBean {
     @Inject
     DependencyTrackingService dependencyTrackingService;
 
+    public JobSchedulerTransactionsBean() {
+    }
+
+    public JobSchedulerTransactionsBean(EntityManager entityManager, PgJobStoreRepository jobStoreRepository, SinkMessageProducerBean sinkMessageProducerBean, JobProcessorMessageProducerBean jobProcessorMessageProducerBean, DependencyTrackingService dependencyTrackingService) {
+        this.entityManager = entityManager;
+        this.jobStoreRepository = jobStoreRepository;
+        this.sinkMessageProducerBean = sinkMessageProducerBean;
+        this.jobProcessorMessageProducerBean = jobProcessorMessageProducerBean;
+        this.dependencyTrackingService = dependencyTrackingService;
+    }
+
     /**
      * Persists new dependency tracking entity in its own transaction
      * to ensure flush to disk before async submit.

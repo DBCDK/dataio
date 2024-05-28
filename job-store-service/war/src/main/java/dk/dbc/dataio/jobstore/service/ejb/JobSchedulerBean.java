@@ -109,6 +109,16 @@ public class JobSchedulerBean {
     private static final Map<String, Integer> blockedCounts = new ConcurrentHashMap<>();
     private static final Map<Integer, Long> maxDeliveryDurations = new ConcurrentHashMap<>();
 
+    public JobSchedulerBean() {
+    }
+
+    public JobSchedulerBean(EntityManager entityManager, JobSchedulerTransactionsBean jobSchedulerTransactionsBean, PgJobStoreRepository pgJobStoreRepository, FlowStoreServiceConnectorBean flowStore, DependencyTrackingService dependencyTrackingService) {
+        this.entityManager = entityManager;
+        this.jobSchedulerTransactionsBean = jobSchedulerTransactionsBean;
+        this.pgJobStoreRepository = pgJobStoreRepository;
+        this.flowStore = flowStore;
+        this.dependencyTrackingService = dependencyTrackingService;
+    }
 
     public void registerMetrics() {
         try {

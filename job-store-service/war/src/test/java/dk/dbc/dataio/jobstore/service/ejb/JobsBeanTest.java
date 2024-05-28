@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.hazelcast.core.HazelcastInstance;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Chunk;
@@ -17,6 +18,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
@@ -44,12 +46,14 @@ import jakarta.ws.rs.core.UriInfo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -66,6 +70,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -636,6 +641,7 @@ public class JobsBeanTest {
     }
 
     private void initializeJobsBean() {
+        Hazelcast.testInstance(mock(HazelcastInstance.class));
         jobsBean = new JobsBean();
         jobsBean.jobStore = mock(PgJobStore.class);
         jobsBean.jobStoreRepository = mock(PgJobStoreRepository.class);
@@ -666,5 +672,12 @@ public class JobsBeanTest {
         JobError jobError = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
         assertThat("JobError", jobError, is(notNullValue()));
         assertThat("JobError code", jobError.getCode(), is(code));
+    }
+
+    public static void notAborted(int jobId, Consumer<MockedStatic<JobsBean>> block) {
+        try(MockedStatic<JobsBean> jobsBeanMock = mockStatic(JobsBean.class)) {
+            jobsBeanMock.when(() -> JobsBean.isAborted(jobId)).thenReturn(false);
+            block.accept(jobsBeanMock);
+        }
     }
 }

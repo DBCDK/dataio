@@ -9,9 +9,9 @@ import java.util.stream.IntStream;
 public enum ChunkSchedulingStatus {
     READY_FOR_PROCESSING(1, 6, 2),   // chunk is ready for processing
     SCHEDULED_FOR_PROCESSING(6, 2),   // chunk is ready for processing
-    QUEUED_FOR_PROCESSING(2, 1000, SCHEDULED_FOR_PROCESSING, 4),  // chunk is sent to processor JMS queue
+    QUEUED_FOR_PROCESSING(2, 1000, SCHEDULED_FOR_PROCESSING, 3, 4),  // chunk is sent to processor JMS queue
     BLOCKED(3, 7),                // chunk is waiting for other chunk(s) to return from sink
-    READY_FOR_DELIVERY(4, 3, 7, 5),     // chunk is ready for delivery
+    READY_FOR_DELIVERY(4, 7, 5),     // chunk is ready for delivery
     SCHEDULED_FOR_DELIVERY(7, 5),     // chunk is ready for delivery
     QUEUED_FOR_DELIVERY(5, 1000, SCHEDULED_FOR_DELIVERY);     // chunk is sent to sink JMS queue
 

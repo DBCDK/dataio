@@ -36,6 +36,7 @@ public class SinkResult {
                         ChunkItem failedChunkItem = ChunkItem.failedChunkItem().withId(chunkItem.getId())
                                 .withData(message).withTrackingId(chunkItem.getTrackingId()).withType(ChunkItem.Type.STRING)
                                 .withDiagnostics(ObjectFactory.buildFatalDiagnostic(message, e));
+                        chunkItems[(int) chunkItem.getId()] = failedChunkItem;
                     }
                     break;
 

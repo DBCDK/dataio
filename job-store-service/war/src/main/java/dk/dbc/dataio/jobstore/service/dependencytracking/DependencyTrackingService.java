@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.dependencytracking;
 
 import com.hazelcast.map.IMap;
+import com.hazelcast.query.PagingPredicate;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder;
 import com.hazelcast.query.Predicates;
@@ -255,9 +256,13 @@ public class DependencyTrackingService {
         return dependencyTracker.aggregate(new BlockedCounter());
     }
 
-    public Stream<DependencyTracking> findStream(ChunkSchedulingStatus status, Integer sinkId) {
-        return dependencyTracker.values(new ByStatusAndSinkId(sinkId, status)).stream()
-                .sorted(Comparator.comparing(DependencyTracking::getPriority).reversed());
+    public Collection<DependencyTracking> findDependencies(ChunkSchedulingStatus status, Integer sinkId, Integer limit) {
+        PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
+        @SuppressWarnings("unchecked")
+        Predicate<TrackingKey, DependencyTracking> p = e.get("sinkId").equal(sinkId).and(e.get("status").equal(status));
+        if(limit == null) return dependencyTracker.values(p);
+        PagingPredicate<TrackingKey, DependencyTracking> pagingPredicate = Predicates.pagingPredicate(p, DependencyTracking.comparePriorityAndJobId(), limit);
+        return dependencyTracker.values(pagingPredicate);
     }
 
     public List<TrackingKey> find(ChunkSchedulingStatus status, int sinkId, int limit) {
@@ -299,8 +304,8 @@ public class DependencyTrackingService {
 
     @Stopwatch
     public Set<TrackingKey> recheckBlocks() {
-        Stream<DependencyTracking> stream = findStream(ChunkSchedulingStatus.BLOCKED, null);
-        return stream.flatMap(this::checkBlocks).collect(Collectors.toSet());
+        Collection<DependencyTracking> deps = findDependencies(ChunkSchedulingStatus.BLOCKED, null, null);
+        return deps.stream().flatMap(this::checkBlocks).collect(Collectors.toSet());
     }
 
     /**

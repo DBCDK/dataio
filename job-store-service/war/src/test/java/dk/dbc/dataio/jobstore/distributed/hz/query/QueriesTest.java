@@ -53,7 +53,7 @@ public class QueriesTest extends JetTestSupport implements PostgresContainerJPAU
         addToTrackersToMap(dependencies, 2, 1, 20, this::setStatusByChunkMod);
         addToTrackersToMap(dependencies, 3, 0, 20, this::setStatusByChunkMod);
         Collection<DependencyTracking> result = dependencies.values(new ByStatusAndSinkId(1, ChunkSchedulingStatus.BLOCKED));
-        assertEquals("There should be 4 hits", 4, result.size());
+        assertEquals("There should be 3 hits", 3, result.size());
         assertTrue("Jobs for sink 0 should not have any hits", result.stream().mapToInt(DependencyTracking::getSinkId).noneMatch(i -> i == 0));
     }
 

@@ -39,6 +39,7 @@ import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -364,9 +365,7 @@ public class JobSchedulerBean {
         try {
             int spaceLeftInQueue = dependencyTrackingService.capacity(sinkId, QUEUED_FOR_PROCESSING);
             if (spaceLeftInQueue > 0) {
-                List<DependencyTracking> chunks = dependencyTrackingService.findStream(SCHEDULED_FOR_PROCESSING, sinkId)
-                        .limit(spaceLeftInQueue)
-                        .collect(Collectors.toList());
+                Collection<DependencyTracking> chunks = dependencyTrackingService.findDependencies(SCHEDULED_FOR_PROCESSING, sinkId, spaceLeftInQueue);
 
                 if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for processing - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
                 for (DependencyTracking toSchedule : chunks) {

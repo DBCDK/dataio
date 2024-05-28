@@ -1,6 +1,9 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
+import com.hazelcast.nio.serialization.compact.CompactSerializer;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Priority;
@@ -13,6 +16,11 @@ import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.RemoveWaitingOnSer;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.StatusChangeSer;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.TrackingKeySer;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateCounterSer;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateStatusSer;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
@@ -24,6 +32,7 @@ import dk.dbc.dataio.jobstore.types.State;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.MockedStatic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,15 +51,18 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 
 /**
  * Chunk states
- * 1.  READY_FOR_PROCESSING  ( marks chunk as partitioned and analyzed
- * 2.  QUEUED_FOR_PROCESSING ( marks chunk as sent to processing JMS queue )
- * 3a. READY_FOR_DELIVERY    ( marks chunk as ready for sink delivery )
- * 3b. BLOCKED               ( marks chunk as waiting for delivery of one or more other chunks )
- * 4.  QUEUED_FOR_DELIVERY   ( marks chunk as sent to sink JMS queue )
+ * 1a. READY_FOR_PROCESSING      ( marks chunk as partitioned and analyzed
+ * 1b. SCHEDULED_FOR_PROCESSING  ( marks chunk as scheduled for bulk processing
+ * 2.  QUEUED_FOR_PROCESSING     ( marks chunk as sent to processing JMS queue )
+ * 3a. READY_FOR_DELIVERY        ( marks chunk as ready for sink delivery )
+ * 3b. SCHEDULE_FOR_DELIVERY     ( marks chunk as scheduled for bulk delivery )
+ * 3c. BLOCKED                   ( marks chunk as waiting for delivery of one or more other chunks )
+ * 4.  QUEUED_FOR_DELIVERY       ( marks chunk as sent to sink JMS queue )
  */
 public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBeanIT.class);
@@ -86,7 +98,6 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                     .build()
             );
         });
-        //Todo JEGA: check no statuses is modified... uhm except for the one that is queued for processing?
         IntStream.range(1, 6).filter(i -> i != 2).mapToObj(i -> dtTracker.get(new TrackingKey(3, i)))
                 .forEach(dt -> Assert.assertEquals(dt.getKey().getChunkId(), dt.getStatus().value.intValue()));
     }
@@ -103,6 +114,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         bean.pgJobStoreRepository = newPgJobStoreRepository();
         jtbean.entityManager = bean.entityManager;
         jtbean.sinkMessageProducerBean = mock(SinkMessageProducerBean.class);
+        jtbean.jobProcessorMessageProducerBean = mock(JobProcessorMessageProducerBean.class);
         jtbean.jobStoreRepository = bean.pgJobStoreRepository;
         bean.jobSchedulerTransactionsBean = jtbean;
 
@@ -214,14 +226,16 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         jobSchedulerBean.dependencyTrackingService = trackingService;
         jobSchedulerBean.jobSchedulerTransactionsBean = jobSchedulerTransactionsBean;
         jobSchedulerTransactionsBean.dependencyTrackingService = trackingService;
+        try(MockedStatic<JobsBean> jobsBeanMock = mockStatic(JobsBean.class)) {
+            jobsBeanMock.when(() -> JobsBean.isAborted(jobEntity.getId())).thenReturn(false);
+            jobSchedulerBean.ensureLastChunkIsScheduled(jobEntity.getId());
 
-        jobSchedulerBean.ensureLastChunkIsScheduled(jobEntity.getId());
+            verify(jobSchedulerTransactionsBean).persistDependencyEntity(
+                    any(DependencyTracking.class), nullable(String.class));
 
-        verify(jobSchedulerTransactionsBean).persistDependencyEntity(
-                any(DependencyTracking.class), nullable(String.class));
-
-        verify(jobSchedulerTransactionsBean).submitToProcessingIfPossibleAsync(
-                chunkEntity, sinkCacheEntity.getSink().getId(), jobEntity.getPriority().getValue());
+            verify(jobSchedulerTransactionsBean).submitToProcessingIfPossibleAsync(
+                    chunkEntity, sinkCacheEntity.getSink().getId(), jobEntity.getPriority().getValue());
+        }
     }
 
     private TrackingKey mk(int jobId, int chunkId) {
@@ -242,5 +256,17 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     private DependencyTracking getDependencyTrackingEntity(int jobId, int chunkId) {
         IMap<TrackingKey, DependencyTracking> map = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
         return map.get(new TrackingKey(jobId, chunkId));
+    }
+
+    @Override
+    protected HazelcastInstance createHazelcastInstance() {
+        return createHazelcastInstance(makeConfig());
+    }
+
+    private Config makeConfig() {
+        Config config = smallInstanceConfig();
+        List<CompactSerializer<?>> compactSerializers = List.of(new RemoveWaitingOnSer(), new StatusChangeSer(), new TrackingKeySer(), new UpdateCounterSer(), new UpdateStatusSer());
+        compactSerializers.forEach(ser -> config.getSerializationConfig().getCompactSerializationConfig().addSerializer(ser));
+        return config;
     }
 }

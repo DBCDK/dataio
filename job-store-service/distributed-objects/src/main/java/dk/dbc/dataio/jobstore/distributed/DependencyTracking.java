@@ -13,8 +13,10 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -79,10 +81,10 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
         return key;
     }
 
-//    public DependencyTracking setKey(Key key) {
-//        this.key = key;
-//        return this;
-//    }
+    public static Comparator<Map.Entry<TrackingKey, DependencyTracking>> comparePriorityAndJobId() {
+        return Comparator.comparing((Map.Entry<TrackingKey, DependencyTracking> entry) -> entry.getValue().getPriority()).reversed()
+                .thenComparing((Map.Entry<TrackingKey, DependencyTracking> entry) -> entry.getValue().getKey().getJobId());
+    }
 
     @Override
     public int getSinkId() {

@@ -175,6 +175,79 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
+    public void scheduleOnBlockedTest() throws Exception {
+        startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
+        DependencyTrackingService trackingService = new DependencyTrackingService().init();
+        JobSchedulerBean bean = new JobSchedulerBean();
+        bean.entityManager = entityManager;
+        bean.dependencyTrackingService = trackingService;
+        JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean();
+        jtbean.dependencyTrackingService = trackingService;
+        bean.pgJobStoreRepository = newPgJobStoreRepository();
+        jtbean.entityManager = bean.entityManager;
+        jtbean.sinkMessageProducerBean = mock(SinkMessageProducerBean.class);
+        jtbean.jobProcessorMessageProducerBean = mock(JobProcessorMessageProducerBean.class);
+        jtbean.jobStoreRepository = bean.pgJobStoreRepository;
+        bean.jobSchedulerTransactionsBean = jtbean;
+
+        final JobEntity jobEntity = new JobEntity(3);
+        jobEntity.setPriority(Priority.NORMAL);
+        jobEntity.setSpecification(new JobSpecification()
+                .withSubmitterId(1));
+        jobEntity.setState(new State());
+        jobEntity.setCachedSink(SinkCacheEntity.create(new SinkBuilder()
+                .setId(1)
+                .setContent(new SinkContentBuilder()
+                        .setSinkType(SinkContent.SinkType.TICKLE)
+                        .build())
+                .build()));
+
+        entityManager.getTransaction().begin();
+        for (int chunkId : new int[]{0, 1, 2, 3, 4}) {
+            final ChunkEntity chunkEntity = new ChunkEntity()
+                    .withJobId(3)
+                    .withChunkId(chunkId)
+                    .withNumberOfItems((short) 1)
+                    .withSequenceAnalysisData(makeSequenceAnalyceData(
+                            String.format("CK%d", chunkId),
+                            String.format("CK%d", chunkId - 1)));
+
+            bean.scheduleChunk(chunkEntity, jobEntity);
+        }
+        bean.createAndScheduleTerminationChunk(jobEntity, jobEntity.getCachedSink().getSink(),
+                5, "1", ChunkItem.Status.SUCCESS);
+        entityManager.getTransaction().commit();
+
+        assertThat("check match key for chunk0",
+                getDependencyTrackingEntity(3, 0).getMatchKeys(),
+                containsInAnyOrder("CK-1", "CK0", "1"));
+        assertThat("check barrier match key for chunk1",
+                getDependencyTrackingEntity(3, 1).getMatchKeys(),
+                containsInAnyOrder("CK0", "CK1"));
+        assertThat("check barrier match key for chunk2",
+                getDependencyTrackingEntity(3, 2).getMatchKeys(),
+                containsInAnyOrder("CK1", "CK2"));
+        assertThat("check barrier match key for chunk3",
+                getDependencyTrackingEntity(3, 3).getMatchKeys(),
+                containsInAnyOrder("CK2", "CK3"));
+        assertThat("check barrier match key for chunk5",
+                getDependencyTrackingEntity(3, 5).getMatchKeys(),
+                containsInAnyOrder("1"));
+
+        assertThat("check waitingOn for chunk1", getDependencyTrackingEntity(3, 0).getWaitingOn().size(), is(0));
+        assertThat("check waitingOn for chunk2", getDependencyTrackingEntity(3, 1).getWaitingOn(), containsInAnyOrder(
+                mk(3, 0)));
+        assertThat("check waitingOn for chunk3", getDependencyTrackingEntity(3, 2).getWaitingOn(), containsInAnyOrder(
+                mk(3, 1)));
+        assertThat("check waitingOn for chunk4", getDependencyTrackingEntity(3, 3).getWaitingOn(), containsInAnyOrder(
+                mk(3, 0),
+                mk(3, 2)));
+        assertThat("check waitingOn for chunk5", getDependencyTrackingEntity(3, 5).getWaitingOn(), containsInAnyOrder(
+                mk(3, 4)));
+    }
+
+
+    @Test
     public void isScheduled() {
         Hazelcast.testInstance(createHazelcastInstance());
         DependencyTrackingService service = new DependencyTrackingService().init();

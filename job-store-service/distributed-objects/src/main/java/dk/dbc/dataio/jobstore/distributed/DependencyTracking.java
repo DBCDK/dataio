@@ -83,7 +83,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
 
     public static Comparator<Map.Entry<TrackingKey, DependencyTracking>> comparePriorityAndJobId() {
         return Comparator.comparing((Map.Entry<TrackingKey, DependencyTracking> entry) -> entry.getValue().getPriority()).reversed()
-                .thenComparing((Map.Entry<TrackingKey, DependencyTracking> entry) -> entry.getValue().getKey().getJobId());
+                .thenComparing((Map.Entry<TrackingKey, DependencyTracking> entry) -> entry.getValue().getKey());
     }
 
     @Override

@@ -267,7 +267,7 @@ public class DependencyTrackingService {
 
     public List<TrackingKey> find(ChunkSchedulingStatus status, int sinkId, int limit) {
         return dependencyTracker.values(new ByStatusAndSinkId(sinkId, status)).stream()
-                .sorted(Comparator.comparing(DependencyTracking::getPriority).reversed().thenComparing(dt -> dt.getKey().getJobId()))
+                .sorted(Comparator.comparing(DependencyTracking::getPriority).reversed().thenComparing(DependencyTracking::getKey))
                 .limit(limit)
                 .map(DependencyTracking::getKey)
                 .collect(Collectors.toList());

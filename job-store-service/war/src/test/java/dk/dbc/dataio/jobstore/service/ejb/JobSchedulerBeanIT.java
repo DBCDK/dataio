@@ -96,7 +96,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         dtTracker.compute(new TrackingKey(3, 3), (k, dt) -> dt.setWaitingOn(Set.of(new TrackingKey(3, 5))));
         JobSchedulerBean bean = new JobSchedulerBean(null, mock(JobSchedulerTransactionsBean.class), null, null, new DependencyTrackingService().init());
 
-        IntStream.range(1, 6).forEach(chunkId -> {
+        IntStream.range(1, 8).forEach(chunkId -> {
             bean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
                     .setJobId(3).setChunkId(chunkId)
                     .appendItem(new ChunkItemBuilder().setData("ProcessedChunk").build())
@@ -104,7 +104,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
             );
         });
         List<ChunkSchedulingStatus> expected = List.of(READY_FOR_PROCESSING, READY_FOR_DELIVERY, BLOCKED, READY_FOR_DELIVERY, QUEUED_FOR_DELIVERY, SCHEDULED_FOR_PROCESSING, SCHEDULED_FOR_DELIVERY);
-        IntStream.range(1, 6).mapToObj(i -> dtTracker.get(new TrackingKey(3, i)))
+        IntStream.range(1, 8).mapToObj(i -> dtTracker.get(new TrackingKey(3, i)))
                 .forEach(dt -> Assert.assertEquals(expected.get(dt.getKey().getChunkId() -  1), dt.getStatus()));
     }
 

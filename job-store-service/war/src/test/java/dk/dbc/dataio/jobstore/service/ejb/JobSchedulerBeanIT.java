@@ -45,7 +45,12 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.BLOCKED;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -82,12 +87,13 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
-    public void multipleCallesToChunkXxxxxxDoneIsIgnored() throws Exception {
+    public void testValidTransitions() throws Exception {
         startHazelcastWith(null);
         JPATestUtils.runSqlFromResource(entityManager, this, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
         Function<Integer, DependencyTracking> f = i -> new DependencyTracking(new TrackingKey(3, i), 1).setStatus(ChunkSchedulingStatus.from(i)).setMatchKeys(Set.of("K8", "KK2", "C4"));
         Map<TrackingKey, DependencyTracking> dtTracker = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
-        IntStream.range(1, 6).mapToObj(f::apply).forEach(dt -> dtTracker.put(dt.getKey(), dt));
+        IntStream.range(1, 8).mapToObj(f::apply).forEach(dt -> dtTracker.put(dt.getKey(), dt));
+        dtTracker.compute(new TrackingKey(3, 3), (k, dt) -> dt.setWaitingOn(Set.of(new TrackingKey(3, 5))));
         JobSchedulerBean bean = new JobSchedulerBean(null, mock(JobSchedulerTransactionsBean.class), null, null, new DependencyTrackingService().init());
 
         IntStream.range(1, 6).forEach(chunkId -> {
@@ -97,8 +103,9 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                     .build()
             );
         });
-        IntStream.range(1, 6).filter(i -> i != 2).mapToObj(i -> dtTracker.get(new TrackingKey(3, i)))
-                .forEach(dt -> Assert.assertEquals(dt.getKey().getChunkId(), dt.getStatus().value.intValue()));
+        List<ChunkSchedulingStatus> expected = List.of(READY_FOR_PROCESSING, READY_FOR_DELIVERY, BLOCKED, READY_FOR_DELIVERY, QUEUED_FOR_DELIVERY, SCHEDULED_FOR_PROCESSING, SCHEDULED_FOR_DELIVERY);
+        IntStream.range(1, 6).mapToObj(i -> dtTracker.get(new TrackingKey(3, i)))
+                .forEach(dt -> Assert.assertEquals(expected.get(dt.getKey().getChunkId() -  1), dt.getStatus()));
     }
 
     @Test

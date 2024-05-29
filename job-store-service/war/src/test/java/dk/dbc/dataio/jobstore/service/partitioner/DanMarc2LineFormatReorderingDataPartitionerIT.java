@@ -10,7 +10,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.io.InputStream;
 import java.util.ArrayList;

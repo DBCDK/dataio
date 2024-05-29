@@ -35,6 +35,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -207,7 +208,7 @@ public class AccTestRunner implements Callable<Integer> {
 
     private Chunk readChunk(Stream<DataPartitionerResult> stream) {
         AtomicLong id = new AtomicLong(0);
-        List<ChunkItem> items = stream.map(DataPartitionerResult::getChunkItem).map(ci -> ci.withId(id.getAndIncrement())).toList();
+        List<ChunkItem> items = stream.map(DataPartitionerResult::getChunkItem).filter(Objects::nonNull).map(ci -> ci.withId(id.getAndIncrement())).toList();
         Chunk chunk = new Chunk(0, 0, Chunk.Type.PARTITIONED);
         chunk.addAllItems(items);
         return chunk;

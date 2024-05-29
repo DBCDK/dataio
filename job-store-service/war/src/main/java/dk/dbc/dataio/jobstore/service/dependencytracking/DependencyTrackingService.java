@@ -266,8 +266,7 @@ public class DependencyTrackingService {
         PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
         @SuppressWarnings("unchecked")
         Predicate<TrackingKey, DependencyTracking> p = e.get("sinkId").equal(sinkId).and(e.get("status").equal(status));
-        if(limit == null) return p;
-        return Predicates.pagingPredicate(p, DependencyTracking.comparePriorityAndJobId(), limit);
+        return Predicates.pagingPredicate(p, DependencyTracking.comparePriorityAndJobId(), limit == null ? Integer.MAX_VALUE : limit);
     }
 
     public List<TrackingKey> findChunksWaitingForMe(TrackingKey key, int sinkId) {

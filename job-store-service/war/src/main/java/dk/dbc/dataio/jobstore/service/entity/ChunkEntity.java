@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import jakarta.persistence.Column;
@@ -171,6 +172,10 @@ public class ChunkEntity {
 
         public void setJobId(int jobId) {
             this.jobId = jobId;
+        }
+
+        public TrackingKey toTrackingKey() {
+            return new TrackingKey(jobId, id);
         }
 
         @Override

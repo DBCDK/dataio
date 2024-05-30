@@ -1,6 +1,9 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
+import com.hazelcast.nio.serialization.compact.CompactSerializer;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Priority;
@@ -13,6 +16,11 @@ import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.RemoveWaitingOnSer;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.StatusChangeSer;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.TrackingKeySer;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateCounterSer;
+import dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateStatusSer;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
@@ -24,6 +32,7 @@ import dk.dbc.dataio.jobstore.types.State;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +45,13 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.BLOCKED;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -46,11 +62,13 @@ import static org.mockito.Mockito.verify;
 
 /**
  * Chunk states
- * 1.  READY_FOR_PROCESSING  ( marks chunk as partitioned and analyzed
- * 2.  QUEUED_FOR_PROCESSING ( marks chunk as sent to processing JMS queue )
- * 3a. READY_FOR_DELIVERY    ( marks chunk as ready for sink delivery )
- * 3b. BLOCKED               ( marks chunk as waiting for delivery of one or more other chunks )
- * 4.  QUEUED_FOR_DELIVERY   ( marks chunk as sent to sink JMS queue )
+ * 1a. READY_FOR_PROCESSING      ( marks chunk as partitioned and analyzed
+ * 1b. SCHEDULED_FOR_PROCESSING  ( marks chunk as scheduled for bulk processing
+ * 2.  QUEUED_FOR_PROCESSING     ( marks chunk as sent to processing JMS queue )
+ * 3a. READY_FOR_DELIVERY        ( marks chunk as ready for sink delivery )
+ * 3b. SCHEDULE_FOR_DELIVERY     ( marks chunk as scheduled for bulk delivery )
+ * 3c. BLOCKED                   ( marks chunk as waiting for delivery of one or more other chunks )
+ * 4.  QUEUED_FOR_DELIVERY       ( marks chunk as sent to sink JMS queue )
  */
 public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBeanIT.class);
@@ -69,42 +87,34 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
-    public void multipleCallesToChunkXxxxxxDoneIsIgnored() throws Exception {
+    public void testValidTransitions() throws Exception {
         startHazelcastWith(null);
         JPATestUtils.runSqlFromResource(entityManager, this, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
         Function<Integer, DependencyTracking> f = i -> new DependencyTracking(new TrackingKey(3, i), 1).setStatus(ChunkSchedulingStatus.from(i)).setMatchKeys(Set.of("K8", "KK2", "C4"));
         Map<TrackingKey, DependencyTracking> dtTracker = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
-        IntStream.range(1, 6).mapToObj(f::apply).forEach(dt -> dtTracker.put(dt.getKey(), dt));
-        JobSchedulerBean bean = new JobSchedulerBean();
-        bean.dependencyTrackingService = new DependencyTrackingService().init();
-        bean.jobSchedulerTransactionsBean = mock(JobSchedulerTransactionsBean.class);
+        IntStream.range(1, 8).mapToObj(f::apply).forEach(dt -> dtTracker.put(dt.getKey(), dt));
+        dtTracker.compute(new TrackingKey(3, 3), (k, dt) -> dt.setWaitingOn(Set.of(new TrackingKey(3, 5))));
+        JobSchedulerBean bean = new JobSchedulerBean(null, mock(JobSchedulerTransactionsBean.class), null, null, new DependencyTrackingService().init());
 
-        IntStream.range(1, 6).forEach(chunkId -> {
+        IntStream.range(1, 8).forEach(chunkId -> {
             bean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
                     .setJobId(3).setChunkId(chunkId)
                     .appendItem(new ChunkItemBuilder().setData("ProcessedChunk").build())
                     .build()
             );
         });
-        //Todo JEGA: check no statuses is modified... uhm except for the one that is queued for processing?
-        IntStream.range(1, 6).filter(i -> i != 2).mapToObj(i -> dtTracker.get(new TrackingKey(3, i)))
-                .forEach(dt -> Assert.assertEquals(dt.getKey().getChunkId(), dt.getStatus().value.intValue()));
+        List<ChunkSchedulingStatus> expected = List.of(READY_FOR_PROCESSING, READY_FOR_DELIVERY, BLOCKED, READY_FOR_DELIVERY, QUEUED_FOR_DELIVERY, SCHEDULED_FOR_PROCESSING, SCHEDULED_FOR_DELIVERY);
+        IntStream.range(1, 8).mapToObj(i -> dtTracker.get(new TrackingKey(3, i)))
+                .forEach(dt -> Assert.assertEquals(expected.get(dt.getKey().getChunkId() -  1), dt.getStatus()));
     }
 
     @Test
     public void tickleChunkDependency() throws Exception {
         startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
         DependencyTrackingService trackingService = new DependencyTrackingService().init();
-        JobSchedulerBean bean = new JobSchedulerBean();
-        bean.entityManager = entityManager;
-        bean.dependencyTrackingService = trackingService;
-        JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean();
-        jtbean.dependencyTrackingService = trackingService;
-        bean.pgJobStoreRepository = newPgJobStoreRepository();
-        jtbean.entityManager = bean.entityManager;
-        jtbean.sinkMessageProducerBean = mock(SinkMessageProducerBean.class);
-        jtbean.jobStoreRepository = bean.pgJobStoreRepository;
-        bean.jobSchedulerTransactionsBean = jtbean;
+        PgJobStoreRepository jobStoreRepository = newPgJobStoreRepository();
+        JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean(entityManager, jobStoreRepository, mock(SinkMessageProducerBean.class), mock(JobProcessorMessageProducerBean.class), trackingService);
+        JobSchedulerBean bean = new JobSchedulerBean(entityManager, jtbean, jobStoreRepository, null, trackingService);
 
         final JobEntity jobEntity = new JobEntity(3);
         jobEntity.setPriority(Priority.NORMAL);
@@ -119,17 +129,19 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                 .build()));
 
         entityManager.getTransaction().begin();
-        for (int chunkId : new int[]{0, 1, 2, 3, 4}) {
-            final ChunkEntity chunkEntity = new ChunkEntity()
-                    .withJobId(3)
-                    .withChunkId(chunkId)
-                    .withNumberOfItems((short) 1)
-                    .withSequenceAnalysisData(makeSequenceAnalyceData(
-                            String.format("CK%d", chunkId),
-                            String.format("CK%d", chunkId - 1)));
+        JobsBeanTest.notAborted(jobEntity.getId(), jb -> {
+            for (int chunkId : new int[]{0, 1, 2, 3, 4}) {
+                ChunkEntity chunkEntity = new ChunkEntity()
+                        .withJobId(3)
+                        .withChunkId(chunkId)
+                        .withNumberOfItems((short) 1)
+                        .withSequenceAnalysisData(makeSequenceAnalyseData(
+                                String.format("CK%d", chunkId),
+                                String.format("CK%d", chunkId - 1)));
 
-            bean.scheduleChunk(chunkEntity, jobEntity);
-        }
+                bean.scheduleChunk(chunkEntity, jobEntity);
+            }
+        });
         bean.createAndScheduleTerminationChunk(jobEntity, jobEntity.getCachedSink().getSink(),
                 5, "1", ChunkItem.Status.SUCCESS);
         entityManager.getTransaction().commit();
@@ -163,6 +175,54 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
+    public void scheduleOnBlockedTest() throws Exception {
+        startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
+        int maxCap = 10;
+        DependencyTrackingService trackingService = new DependencyTrackingService() {
+            @Override
+            public int capacity(int sinkId, ChunkSchedulingStatus status) {
+                return maxCap - getCount(sinkId, status);
+            }
+        }.init();
+        int startingCap = trackingService.getCount(1, QUEUED_FOR_PROCESSING);
+        PgJobStoreRepository jobStoreRepository = newPgJobStoreRepository();
+        JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean(entityManager, jobStoreRepository, mock(SinkMessageProducerBean.class), mock(JobProcessorMessageProducerBean.class), trackingService);
+        JobSchedulerBean bean = new JobSchedulerBean(entityManager, jtbean, jobStoreRepository, null, trackingService);
+
+        final JobEntity jobEntity = new JobEntity(3);
+        jobEntity.setPriority(Priority.NORMAL);
+        jobEntity.setSpecification(new JobSpecification()
+                .withSubmitterId(1));
+        jobEntity.setState(new State());
+        jobEntity.setCachedSink(SinkCacheEntity.create(new SinkBuilder()
+                .setId(1)
+                .setContent(new SinkContentBuilder()
+                        .setSinkType(SinkContent.SinkType.TICKLE)
+                        .build())
+                .build()));
+
+        entityManager.getTransaction().begin();
+        int msgCount = 5;
+        IntStream.range(0, msgCount).forEach(chunkId -> {
+            ChunkEntity chunkEntity = new ChunkEntity()
+                    .withJobId(3)
+                    .withChunkId(chunkId)
+                    .withNumberOfItems((short) 1)
+                    .withSequenceAnalysisData(makeSequenceAnalyseData(String.format("CK%d", chunkId)));
+
+            bean.scheduleChunk(chunkEntity, jobEntity);
+        });
+        bean.createAndScheduleTerminationChunk(jobEntity, jobEntity.getCachedSink().getSink(),
+                5, "1", ChunkItem.Status.SUCCESS);
+        entityManager.getTransaction().commit();
+        Assertions.assertEquals(maxCap, trackingService.getCount(1, QUEUED_FOR_PROCESSING));
+        Assertions.assertEquals(startingCap + msgCount - maxCap, trackingService.getCount(1, SCHEDULED_FOR_PROCESSING));
+
+        System.out.println("");
+    }
+
+
+    @Test
     public void isScheduled() {
         Hazelcast.testInstance(createHazelcastInstance());
         DependencyTrackingService service = new DependencyTrackingService().init();
@@ -186,9 +246,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         newPersistedChunkEntity(new ChunkEntity.Key(42, jobEntity.getId()));
         trackingService.add(newDependencyTrackingEntity(new TrackingKey(jobEntity.getId(), 42)));
 
-        final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
-        jobSchedulerBean.dependencyTrackingService = trackingService;
-        jobSchedulerBean.entityManager = entityManager;
+        final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean(entityManager, null, null, null, trackingService);
 
         // No key violation, so the isScheduled call must have returned true...
         jobSchedulerBean.ensureLastChunkIsScheduled(jobEntity.getId());
@@ -209,26 +267,24 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
 
         final JobSchedulerTransactionsBean jobSchedulerTransactionsBean = mock(JobSchedulerTransactionsBean.class);
         DependencyTrackingService trackingService = new DependencyTrackingService().init();
-        final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
-        jobSchedulerBean.entityManager = entityManager;
-        jobSchedulerBean.dependencyTrackingService = trackingService;
-        jobSchedulerBean.jobSchedulerTransactionsBean = jobSchedulerTransactionsBean;
+        final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean(entityManager, jobSchedulerTransactionsBean, null, null, trackingService);
         jobSchedulerTransactionsBean.dependencyTrackingService = trackingService;
+        JobsBeanTest.notAborted(jobEntity.getId(), jb -> {
+            jobSchedulerBean.ensureLastChunkIsScheduled(jobEntity.getId());
 
-        jobSchedulerBean.ensureLastChunkIsScheduled(jobEntity.getId());
+            verify(jobSchedulerTransactionsBean).persistDependencyEntity(
+                    any(DependencyTracking.class), nullable(String.class));
 
-        verify(jobSchedulerTransactionsBean).persistDependencyEntity(
-                any(DependencyTracking.class), nullable(String.class));
-
-        verify(jobSchedulerTransactionsBean).submitToProcessingIfPossibleAsync(
-                chunkEntity, sinkCacheEntity.getSink().getId(), jobEntity.getPriority().getValue());
+            verify(jobSchedulerTransactionsBean).submitToProcessingIfPossibleAsync(
+                    chunkEntity, sinkCacheEntity.getSink().getId(), jobEntity.getPriority().getValue());
+        });
     }
 
     private TrackingKey mk(int jobId, int chunkId) {
         return new TrackingKey(jobId, chunkId);
     }
 
-    private SequenceAnalysisData makeSequenceAnalyceData(String... s) {
+    private SequenceAnalysisData makeSequenceAnalyseData(String... s) {
         return new SequenceAnalysisData(makeSet(s));
     }
 
@@ -242,5 +298,17 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     private DependencyTracking getDependencyTrackingEntity(int jobId, int chunkId) {
         IMap<TrackingKey, DependencyTracking> map = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
         return map.get(new TrackingKey(jobId, chunkId));
+    }
+
+    @Override
+    protected HazelcastInstance createHazelcastInstance() {
+        return createHazelcastInstance(makeConfig());
+    }
+
+    private Config makeConfig() {
+        Config config = smallInstanceConfig();
+        List<CompactSerializer<?>> compactSerializers = List.of(new RemoveWaitingOnSer(), new StatusChangeSer(), new TrackingKeySer(), new UpdateCounterSer(), new UpdateStatusSer());
+        compactSerializers.forEach(ser -> config.getSerializationConfig().getCompactSerializationConfig().addSerializer(ser));
+        return config;
     }
 }

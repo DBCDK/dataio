@@ -358,7 +358,7 @@ public class JobsBean {
     public Response addChunkProcessed(
             @Context UriInfo uriInfo,
             String chunkData,
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
+            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JSONBException, JobStoreException {
 
         final Chunk processedChunk;
@@ -395,10 +395,9 @@ public class JobsBean {
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response addChunkDelivered(
-
             @Context UriInfo uriInfo,
             String chunkData,
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
+            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JSONBException, JobStoreException {
 
         final Chunk deliveredChunk;
@@ -821,8 +820,8 @@ public class JobsBean {
      * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on referenced entities not found
      */
-    Response addChunk(UriInfo uriInfo, long jobId, long chunkId, Chunk.Type type, Chunk chunk) throws JobStoreException, JSONBException {
-        if(isAborted((int)jobId)) return Response.accepted().build();
+    Response addChunk(UriInfo uriInfo, int jobId, long chunkId, Chunk.Type type, Chunk chunk) throws JobStoreException, JSONBException {
+        if(isAborted(jobId)) return Response.accepted().build();
         try {
             JobError jobError = getChunkInputDataError(jobId, chunkId, chunk, type);
             if (jobError == null) {
@@ -848,7 +847,7 @@ public class JobsBean {
      * @param type    chunk type
      * @return jobError containing the relevant error message, null if input data is valid
      */
-    private JobError getChunkInputDataError(long jobId, long chunkId, Chunk chunk, Chunk.Type type) {
+    private JobError getChunkInputDataError(int jobId, long chunkId, Chunk chunk, Chunk.Type type) {
         JobError jobError = null;
         if (jobId != chunk.getJobId()) {
             jobError = new JobError(

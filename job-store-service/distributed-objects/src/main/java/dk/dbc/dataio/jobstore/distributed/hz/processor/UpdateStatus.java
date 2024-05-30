@@ -13,23 +13,23 @@ import java.util.Objects;
 
 public class UpdateStatus implements EntryProcessor<TrackingKey, DependencyTracking, StatusChangeEvent> {
     private static final Logger LOGGER = LoggerFactory.getLogger(UpdateStatus.class);
-    public final ChunkSchedulingStatus expectedStatus;
+    public final boolean validateUpdate;
     public final ChunkSchedulingStatus schedulingStatus;
 
     public UpdateStatus(ChunkSchedulingStatus schedulingStatus) {
-        this(null, schedulingStatus);
+        this(schedulingStatus, false);
     }
 
-    public UpdateStatus(ChunkSchedulingStatus expectedStatus, ChunkSchedulingStatus schedulingStatus) {
-        this.expectedStatus = expectedStatus;
+    public UpdateStatus(ChunkSchedulingStatus schedulingStatus, boolean validateUpdate) {
         this.schedulingStatus = Objects.requireNonNull(schedulingStatus, "schedulingStatus cannot be null");
+        this.validateUpdate = validateUpdate;
     }
 
     @Override
     public StatusChangeEvent process(Map.Entry<TrackingKey, DependencyTracking> entry) {
         DependencyTracking dt = entry.getValue();
         if(dt == null) return null;
-        if(expectedStatus != null && expectedStatus != dt.getStatus()) return null;
+        if(validateUpdate && dt.getStatus().isInvalidStatusChange(schedulingStatus)) return null;
         ChunkSchedulingStatus status = schedulingStatus;
         if(status == ChunkSchedulingStatus.READY_FOR_DELIVERY && !dt.getWaitingOn().isEmpty()) status = ChunkSchedulingStatus.BLOCKED;
         StatusChangeEvent event = new StatusChangeEvent(dt.getSinkId(), dt.getStatus(), status);

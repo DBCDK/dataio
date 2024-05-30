@@ -74,7 +74,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
@@ -552,12 +551,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         } finally {
             LOGGER.info("pgJobStoreRepository.getChunk timings:\n" + profiler.toString());
         }
-    }
-
-    private ChunkItem getChunkItemOrMsg(Supplier<ChunkItem> sup, String msg) {
-        ChunkItem chunkItem = sup.get();
-        if(chunkItem == null) return ChunkItem.failedChunkItem().withData(msg).withType(ChunkItem.Type.STRING).withDiagnostics(ObjectFactory.buildFatalDiagnostic(msg));
-        return chunkItem;
     }
 
     @Stopwatch

@@ -2,11 +2,8 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
-import dk.dbc.dataio.jobstore.distributed.JobSchedulerSinkStatus;
-import dk.dbc.dataio.jobstore.distributed.QueueSubmitMode;
 import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
@@ -26,8 +23,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
-import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
 
 /**
  * Helper Bean for JobScheduler and JobSchedulerBulkSubmitterBean.
@@ -52,6 +51,17 @@ public class JobSchedulerTransactionsBean {
 
     @Inject
     DependencyTrackingService dependencyTrackingService;
+
+    public JobSchedulerTransactionsBean() {
+    }
+
+    public JobSchedulerTransactionsBean(EntityManager entityManager, PgJobStoreRepository jobStoreRepository, SinkMessageProducerBean sinkMessageProducerBean, JobProcessorMessageProducerBean jobProcessorMessageProducerBean, DependencyTrackingService dependencyTrackingService) {
+        this.entityManager = entityManager;
+        this.jobStoreRepository = jobStoreRepository;
+        this.sinkMessageProducerBean = sinkMessageProducerBean;
+        this.jobProcessorMessageProducerBean = jobProcessorMessageProducerBean;
+        this.dependencyTrackingService = dependencyTrackingService;
+    }
 
     /**
      * Persists new dependency tracking entity in its own transaction
@@ -113,12 +123,8 @@ public class JobSchedulerTransactionsBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     @Stopwatch
     public void submitToProcessingIfPossible(ChunkEntity chunk, int sinkId, int priority) {
-        JobSchedulerSinkStatus.QueueStatus queueStatus = dependencyTrackingService.getSinkStatus(sinkId).getProcessingStatus();
-
-        if (!queueStatus.isDirectSubmitMode()) return;
-
         if (dependencyTrackingService.capacity(sinkId, QUEUED_FOR_PROCESSING) <= 0) {
-            queueStatus.setMode(QueueSubmitMode.BULK);
+            dependencyTrackingService.setStatus(chunk.getKey().toTrackingKey(), SCHEDULED_FOR_PROCESSING);
             return;
         }
         submitToProcessing(chunk, priority);
@@ -128,15 +134,15 @@ public class JobSchedulerTransactionsBean {
     @Stopwatch
     public void submitToProcessing(ChunkEntity chunk, int priority) {
         TrackingKey key = new TrackingKey(chunk.getKey().getJobId(), chunk.getKey().getId());
-        StatusChangeEvent changeEvent = dependencyTrackingService.setStatus(key, READY_FOR_PROCESSING, QUEUED_FOR_PROCESSING);
+        StatusChangeEvent changeEvent = dependencyTrackingService.setValidatedStatus(key, QUEUED_FOR_PROCESSING);
         if(changeEvent == null) {
-            LOGGER.error("Tracker state could not be set to QUEUED_FOR_PROCESSING current status is {}", key);
+            LOGGER.error("Tracker state could not be set to QUEUED_FOR_PROCESSING: {}", key);
             return;
         }
         try {
             JobEntity jobEntity = entityManager.find(JobEntity.class, chunk.getKey().getJobId());
             jobProcessorMessageProducerBean.send(getChunkFrom(chunk), jobEntity, priority);
-            LOGGER.info("submitToProcessing: chunk {}/{} scheduled for processing", key.getJobId(), key.getChunkId());
+            LOGGER.info("submitToProcessing: chunk {}/{} queued for processing", key.getJobId(), key.getChunkId());
         } catch (JobStoreException e) {
             LOGGER.error("submitToProcessing: unable to send chunk {}/{} to JMS queue", key.getJobId(), key.getChunkId(), e);
         }
@@ -153,57 +159,47 @@ public class JobSchedulerTransactionsBean {
     @Stopwatch
     public void submitToDeliveringIfPossible(Chunk chunk, TrackingKey trackingKey) {
         DependencyTrackingRO dependencyTracking = dependencyTrackingService.get(trackingKey);
-        if (dependencyTracking == null || dependencyTracking.getStatus() != ChunkSchedulingStatus.READY_FOR_DELIVERY) return;
+        if (dependencyTracking == null || dependencyTracking.getStatus().isInvalidStatusChange(QUEUED_FOR_DELIVERY)) return;
 
-        JobSchedulerSinkStatus.QueueStatus sinkStatus = dependencyTrackingService.getSinkStatus(dependencyTracking.getSinkId()).getDeliveringStatus();
-
-        if (!sinkStatus.isDirectSubmitMode()) return;
-
-
-        int capacity = dependencyTrackingService.capacity(dependencyTracking.getSinkId(), ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
+        int capacity = dependencyTrackingService.capacity(dependencyTracking.getSinkId(), QUEUED_FOR_DELIVERY);
         if (capacity <= 0) {
-            sinkStatus.setMode(QueueSubmitMode.BULK);
+            dependencyTrackingService.setStatus(trackingKey, SCHEDULED_FOR_DELIVERY);
             LOGGER.info("submitToDeliveringIfPossible: chunk {}/{} blocked by queue capacity {}", chunk.getJobId(), chunk.getChunkId(), capacity);
             return;
         }
 
-        submitToDelivering(chunk, trackingKey, sinkStatus);
+        submitToDelivering(chunk, trackingKey);
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
-    public void submitToDeliveringNewTransaction(Chunk chunk, JobSchedulerSinkStatus.QueueStatus sinkStatus) {
+    public void submitToDeliveringNewTransaction(Chunk chunk) {
         TrackingKey key = new TrackingKey(chunk.getJobId(), (int)chunk.getChunkId());
-        submitToDelivering(chunk, key, sinkStatus);
+        submitToDelivering(chunk, key);
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void attemptToUnblockChunk(TrackingKey chunkBlockedKey, JobSchedulerSinkStatus.QueueStatus sinkQueueStatus) {
-        if (sinkQueueStatus.isDirectSubmitMode()) {
-            submitToDeliveringIfPossible(getProcessedChunkFrom(chunkBlockedKey), chunkBlockedKey);
-        }
+    public void attemptToUnblockChunk(TrackingKey chunkBlockedKey) {
+        submitToDeliveringIfPossible(getProcessedChunkFrom(chunkBlockedKey), chunkBlockedKey);
     }
 
-    private void submitToDelivering(Chunk chunk, TrackingKey trackingKey, JobSchedulerSinkStatus.QueueStatus sinkStatus) {
+    private void submitToDelivering(Chunk chunk, TrackingKey trackingKey) {
         // recheck with chunk status with chunk locked before sending
         DependencyTrackingRO dependencyTracking = dependencyTrackingService.get(trackingKey);
-        if (dependencyTracking.getStatus() != ChunkSchedulingStatus.READY_FOR_DELIVERY) {
-            return;
-        }
+        if (dependencyTracking.getStatus().isInvalidStatusChange(QUEUED_FOR_DELIVERY)) return;
 
         JobEntity jobEntity = jobStoreRepository.getJobEntityById(chunk.getJobId());
         if(jobEntity.getState().isAborted() || JobsBean.isAborted(jobEntity.getId())) return;
         // chunk is ready for sink
         try {
-            dependencyTrackingService.setStatus(trackingKey, ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
+            dependencyTrackingService.setStatus(trackingKey, QUEUED_FOR_DELIVERY);
             sinkMessageProducerBean.send(chunk, jobEntity, dependencyTracking.getPriority());
             LOGGER.info("submitToDelivering: chunk {}/{} scheduled for delivery for sink {}",
                     chunk.getJobId(), chunk.getChunkId(), dependencyTracking.getSinkId());
         } catch (JobStoreException e) {
-            LOGGER.error("submitToDelivering: unable to send chunk {}/{} to JMS queue - update to BULK mode for retransmit",
+            dependencyTrackingService.setStatus(trackingKey, SCHEDULED_FOR_DELIVERY);
+            LOGGER.error("submitToDelivering: unable to send chunk {}/{} to JMS queue - chunk has been scheduled for delivery",
                     chunk.getJobId(), chunk.getChunkId(), e);
-            sinkStatus.setMode(QueueSubmitMode.BULK);
-            dependencyTrackingService.setStatus(dependencyTracking.getKey(), ChunkSchedulingStatus.READY_FOR_DELIVERY);
         }
     }
 

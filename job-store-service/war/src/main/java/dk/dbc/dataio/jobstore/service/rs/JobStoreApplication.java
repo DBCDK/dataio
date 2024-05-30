@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore.service.rs;
 
-import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerRestBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobsBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobsExportsBean;
 import dk.dbc.dataio.jobstore.service.ejb.NotificationsBean;
@@ -26,7 +25,7 @@ public class JobStoreApplication extends Application {
     private static final Set<Class<?>> classes = makeClasses();
 
     private static Set<Class<?>> makeClasses() {
-        Stream<Class<?>> stream = Stream.of(JobsBean.class, JobsExportsBean.class, NotificationsBean.class, StatusBean.class, JobSchedulerRestBean.class,
+        Stream<Class<?>> stream = Stream.of(JobsBean.class, JobsExportsBean.class, NotificationsBean.class, StatusBean.class,
                 RerunsBean.class, SinkMessageProducerBean.class, AdminBean.class);
 
         if("on".equals(System.getenv("DEVELOPER"))) {

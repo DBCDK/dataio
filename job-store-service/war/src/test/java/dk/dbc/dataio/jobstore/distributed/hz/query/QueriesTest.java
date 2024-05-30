@@ -15,15 +15,22 @@ import dk.dbc.dataio.jobstore.distributed.hz.serializer.StatusChangeSer;
 import dk.dbc.dataio.jobstore.distributed.hz.serializer.TrackingKeySer;
 import dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateCounterSer;
 import dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateStatusSer;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -53,7 +60,7 @@ public class QueriesTest extends JetTestSupport implements PostgresContainerJPAU
         addToTrackersToMap(dependencies, 2, 1, 20, this::setStatusByChunkMod);
         addToTrackersToMap(dependencies, 3, 0, 20, this::setStatusByChunkMod);
         Collection<DependencyTracking> result = dependencies.values(new ByStatusAndSinkId(1, ChunkSchedulingStatus.BLOCKED));
-        assertEquals("There should be 4 hits", 4, result.size());
+        assertEquals("There should be 3 hits", 3, result.size());
         assertTrue("Jobs for sink 0 should not have any hits", result.stream().mapToInt(DependencyTracking::getSinkId).noneMatch(i -> i == 0));
     }
 
@@ -97,6 +104,26 @@ public class QueriesTest extends JetTestSupport implements PostgresContainerJPAU
         Collection<DependencyTracking> result = dependencies.values(new JobChunksWaitForKey(0, 1, matchKeys));
         assertEquals("There should be 20 hits from job 1 and 10 from job 2", 30, result.size());
         assertTrue(result.stream().map(DependencyTracking::getKey).mapToInt(TrackingKey::getJobId).allMatch(jobId -> jobId == 1 || jobId == 2));
+    }
+
+    @Test
+    public void find() {
+        Hazelcast.testInstance(createHazelcastInstance());
+        DependencyTrackingService service = new DependencyTrackingService();
+        List<DependencyTracking> trackers = IntStream.range(0, 30)
+                .mapToObj(i -> new DependencyTracking(i / 5, i % 5, 1, null, Set.of())
+                    .setPriority(i % 4)
+                    .setStatus(i % 2 == 0 ? READY_FOR_PROCESSING : SCHEDULED_FOR_PROCESSING))
+                .collect(Collectors.toList());
+        trackers.forEach(service::add);
+        Collection<DependencyTracking> result = service.findDependencies(SCHEDULED_FOR_PROCESSING, 1, 10);
+        List<DependencyTracking> expected = trackers.stream()
+                .filter(dt -> dt.getSinkId() == 1)
+                .filter(dt -> dt.getStatus() == SCHEDULED_FOR_PROCESSING)
+                .sorted(Comparator.comparing(DependencyTracking::getPriority).reversed().thenComparing(DependencyTracking::getKey))
+                .limit(10)
+                .collect(Collectors.toList());
+        Assertions.assertIterableEquals(expected, result);
     }
 
     private DependencyTracking setStatusByChunkMod(Integer chunkId, DependencyTracking dt) {

@@ -33,7 +33,7 @@ public class AggregatorsTest extends JetTestSupport {
     public void blockedCounter() {
         addTrackers(20);
         Map<Integer, Integer> aggregate = map.aggregate(new BlockedCounter());
-        Map<Integer, Integer> expected = Map.of(0, 3, 1, 3, 2, 4);
+        Map<Integer, Integer> expected = Map.of(0, 3, 1, 2, 2, 2);
         assertEquals("We should have 3 sinks with 3, 3 and 4 blocked", expected, aggregate);
     }
 

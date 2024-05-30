@@ -9,16 +9,14 @@ import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateStatus;
 public class UpdateStatusSer implements CompactSerializer<UpdateStatus> {
     @Override
     public UpdateStatus read(CompactReader compactReader) {
-        Byte ex = compactReader.readNullableInt8("e");
-        ChunkSchedulingStatus expected = ex == null ? null : ChunkSchedulingStatus.from(ex.intValue());
+        boolean validate = compactReader.readBoolean("v");
         ChunkSchedulingStatus status = ChunkSchedulingStatus.from(compactReader.readInt8("s"));
-        return new UpdateStatus(expected, status);
+        return new UpdateStatus(status, validate);
     }
 
     @Override
     public void write(CompactWriter compactWriter, UpdateStatus updateStatus) {
-        Byte ex = updateStatus.expectedStatus == null ? null : updateStatus.expectedStatus.value.byteValue();
-        compactWriter.writeNullableInt8("e", ex);
+        compactWriter.writeBoolean("v", updateStatus.validateUpdate);
         compactWriter.writeInt8("s", updateStatus.schedulingStatus.value.byteValue());
     }
 

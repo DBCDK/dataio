@@ -134,8 +134,8 @@ pipeline {
             steps {
                 script {
                     sh """
-                    set-new-version services/dataio-project ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets DIT-${env.BUILD_NUMBER} -b master
-                """
+                        java -jar buildstuff/target/buildstuff.jar generate dataio.xml -t ${env.GITLAB_PRIVATE_TOKEN} -v DIT-${env.BUILD_NUMBER}
+                    """
                 }
             }
         }

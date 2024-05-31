@@ -121,20 +121,13 @@ pipeline {
             }
         }
         stage("bump docker tags in dit-gitops-secrets") {
-            agent {
-                docker {
-                    label workerNode
-                    image "docker-dbc.artifacts.dbccloud.dk/build-env:latest"
-                    alwaysPull true
-                }
-            }
             when {
-                branch "DO_NOT_BUMP_DIT_GITOPS_UNTIL_IMAGES_NAMES_ARE_IN_PLACE"
+                branch "master"
             }
             steps {
                 script {
                     sh """
-                        java -jar buildstuff/target/buildstuff.jar generate dataio.xml -t ${env.GITLAB_PRIVATE_TOKEN} -v DIT-${env.BUILD_NUMBER}
+                        java -jar buildstuff/target/buildstuff.jar generate dataio.xml -n d -t ${env.GITLAB_PRIVATE_TOKEN} -v DIT-${env.BUILD_NUMBER}
                     """
                 }
             }

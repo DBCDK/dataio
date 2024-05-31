@@ -262,9 +262,9 @@ public class DependencyTrackingService {
         return dependencyTracker.keySet(makeDependencyPredicate(status, sinkId, limit));
     }
 
+    @SuppressWarnings("unchecked")
     private Predicate<TrackingKey, DependencyTracking> makeDependencyPredicate(ChunkSchedulingStatus status, Integer sinkId, Integer limit) {
         PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
-        @SuppressWarnings("unchecked")
         Predicate<TrackingKey, DependencyTracking> p;
         if(sinkId != null) p = e.get("sinkId").equal(sinkId).and(e.get("status").equal(status));
         else p = e.get("status").equal(status);

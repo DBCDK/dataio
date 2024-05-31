@@ -112,12 +112,12 @@ public class FlowManager {
         FlowContent flowContent = getFlowContent(jsar);
         long modified = flowContent.getTimeOfLastModification().getTime();
         Flow flow = getFlow(flowContent);
-        if(flow == null) {
-            flowStore.createFlow(modified, flowContent.getJsar());
-            LOGGER.info("Created new flow: id={}, name={}", flow.getId(), flow.getContent().getName());
-        } else {
+        if (foundFlowByName) {
             flowStore.updateFlow(flow.getId(), modified, flowContent.getJsar());
             LOGGER.info("Updated flow: id={}, name={}", flow.getId(), flow.getContent().getName());
+        } else {
+            flowStore.createFlow(modified, flowContent.getJsar());
+            LOGGER.info("Created new flow: id={}, name={}", flow.getId(), flow.getContent().getName());
         }
         return 0;
     }

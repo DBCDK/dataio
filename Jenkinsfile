@@ -5,17 +5,17 @@ String workerNode = "devel11"
 Boolean DEPLOY_TO_STAGING_CANDIDATE=false
 //Byg!!
 pipeline {
-    agent {label workerNode}
+    agent { label workerNode }
     tools {
-		jdk 'jdk17'
-		maven 'Maven 3'
+        jdk 'jdk17'
+        maven 'Maven 3'
     }
     environment {
-        MAVEN_OPTS="-Dmaven.repo.local=/home/isworker/.m2/dataio-repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
+        MAVEN_OPTS = "-Dmaven.repo.local=/home/isworker/.m2/dataio-repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
-        BUILD_NUMBER="${env.BUILD_NUMBER}"
-        DEPLOY_ARTIFACTS="commons/utils/flow-store-service-connector, \
+        BUILD_NUMBER = "${env.BUILD_NUMBER}"
+        DEPLOY_ARTIFACTS = "commons/utils/flow-store-service-connector, \
             commons/utils/tickle-harvester-service-connector, \
             harvester/framework, \
             gatekeeper, \
@@ -27,12 +27,12 @@ pipeline {
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara6-bump-trigger",
-			threshold: hudson.model.Result.SUCCESS)
+                threshold: hudson.model.Result.SUCCESS)
     }
     options {
         skipDefaultCheckout(true)
         buildDiscarder(logRotator(artifactDaysToKeepStr: "",
-            artifactNumToKeepStr: "", daysToKeepStr: "30", numToKeepStr: "30"))
+                artifactNumToKeepStr: "", daysToKeepStr: "30", numToKeepStr: "30"))
         timestamps()
         timeout(time: 1, unit: "HOURS")
         disableConcurrentBuilds(abortPrevious: true)
@@ -47,7 +47,7 @@ pipeline {
                 """
                 checkout scm
                 script {
-                    DEPLOY_TO_STAGING_CANDIDATE|=sh(
+                    DEPLOY_TO_STAGING_CANDIDATE |= sh(
                             returnStatus: true,
                             script: """#!/bin/bash
                                 git log -1 | tail +5 | grep -E ' *!'
@@ -108,7 +108,7 @@ pipeline {
             """
             }
         }
-        stage("bump version in dataio-secrets") {
+        stage("Update staging config") {
             when {
                 branch "master"
             }
@@ -120,7 +120,7 @@ pipeline {
                 }
             }
         }
-        stage("bump docker tags in dit-gitops-secrets") {
+        stage("Update dit config") {
             when {
                 branch "master"
             }
@@ -132,7 +132,7 @@ pipeline {
                 }
             }
         }
-        stage("deploy this branch to staging? (then push dockers to artifactory first)") {
+        stage("Build branch artifacts for staging") {
             when {
                 not {
                     branch "master"
@@ -150,7 +150,7 @@ pipeline {
                 }
             }
         }
-        stage("bump docker tags in dataio-secrets for non-master branches") {
+        stage("Deploy branch to staging") {
             when {
                 not {
                     branch "master"
@@ -168,10 +168,11 @@ pipeline {
                 }
             }
         }
-//    post {
-//        always {
-//            echo 'Cleaning up'
-//            cleanWs()
-//        }
+        post {
+            always {
+                echo 'Cleaning up'
+                cleanWs()
+            }
+        }
     }
 }

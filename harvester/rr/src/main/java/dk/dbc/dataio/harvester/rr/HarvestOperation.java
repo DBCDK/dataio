@@ -139,7 +139,7 @@ public class HarvestOperation implements AutoCloseable {
 
             recordHarvestTaskQueue.commit();
 
-            LOGGER.info("Processed {} items from {} queue in {} ms",
+            if(itemsProcessed > 0) LOGGER.info("Processed {} items from {} queue in {} ms",
                     itemsProcessed, configContent.getConsumerId(), stopWatch.getElapsedTime());
 
             return itemsProcessed;

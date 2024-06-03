@@ -44,7 +44,7 @@ public class RawRepoConnector {
             try {
                 return getRawRepoQueueDAO(connection).dequeue(consumerId);
             } finally {
-                LOGGER.info("RawRepo dequeue operation took {} milliseconds", stopWatch.getElapsedTime());
+                LOGGER.debug("RawRepo dequeue operation took {} milliseconds", stopWatch.getElapsedTime());
             }
         }
     }

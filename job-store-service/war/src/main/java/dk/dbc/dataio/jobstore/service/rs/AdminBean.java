@@ -64,6 +64,7 @@ import java.util.stream.Stream;
 
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
 
@@ -103,6 +104,8 @@ public class AdminBean {
     public void updateStaleChunks() {
         if(Hazelcast.isSlave()) return;
         try {
+            Stream<DependencyTrackingRO> readyStream = dependencyTrackingService.getStaleDependencies(READY_FOR_DELIVERY, Duration.ofMinutes(5));
+            readyStream.forEach(dt -> dependencyTrackingService.setStatus(dt.getKey(), SCHEDULED_FOR_DELIVERY));
             Stream<DependencyTrackingRO> delStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).filter(this::isTimeout);
             Stream<DependencyTrackingRO> procStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout);
             List<DependencyTrackingRO> list = Stream.concat(delStream, procStream).collect(Collectors.toList());

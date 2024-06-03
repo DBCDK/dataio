@@ -216,6 +216,7 @@ public class DependencyTrackingService {
 
     public void reload() {
         dependencyTracker.loadAll(true);
+        recountSinkStatus(Set.of());
     }
 
     public void recountSinkStatus(Set<Integer> sinkIds) {

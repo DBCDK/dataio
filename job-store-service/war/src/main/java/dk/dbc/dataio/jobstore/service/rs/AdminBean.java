@@ -64,8 +64,8 @@ import java.util.stream.Stream;
 
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
-import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
-import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
 
 @Stateless
 @Path("/")
@@ -238,10 +238,10 @@ public class AdminBean {
                 .map(SinkCacheEntity::getSink)
                 .map(Sink::getId)
                 .collect(Collectors.toSet());
-        int rowsUpdated = jobStoreRepository.resetStatus(jobIds, QUEUED_FOR_PROCESSING, READY_FOR_PROCESSING);
-        LOGGER.info("Reset dependency tracking states. Sets status = 1 for status = 2 for {} entities", rowsUpdated);
-        rowsUpdated = jobStoreRepository.resetStatus(jobIds, QUEUED_FOR_DELIVERY, READY_FOR_DELIVERY);
-        LOGGER.info("Reset dependency tracking states. Sets status = 4 for status = 5 for {} entities", rowsUpdated);
+        int rowsUpdated = jobStoreRepository.resetStatus(jobIds, QUEUED_FOR_PROCESSING, SCHEDULED_FOR_PROCESSING);
+        LOGGER.info("Reset dependency tracking states. Sets status QUEUED_FOR_PROCESSING -> SCHEDULED_FOR_PROCESSING for {} entities", rowsUpdated);
+        rowsUpdated = jobStoreRepository.resetStatus(jobIds, QUEUED_FOR_DELIVERY, SCHEDULED_FOR_DELIVERY);
+        LOGGER.info("Reset dependency tracking states. Sets status QUEUED_FOR_DELIVERY -> SCHEDULED_FOR_DELIVERY for {} entities", rowsUpdated);
         jobSchedulerBean.loadSinkStatusOnBootstrap(sinkId);
         return Response.ok().build();
     }

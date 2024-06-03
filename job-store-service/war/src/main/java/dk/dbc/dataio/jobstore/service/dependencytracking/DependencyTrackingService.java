@@ -269,7 +269,7 @@ public class DependencyTrackingService {
         Predicate<TrackingKey, DependencyTracking> p;
         if(sinkId != null) p = e.get("sinkId").equal(sinkId).and(e.get("status").equal(status));
         else p = e.get("status").equal(status);
-        return Predicates.pagingPredicate(p, DependencyTracking.comparePriorityAndKey(), limit == null ? Integer.MAX_VALUE : limit);
+        return Predicates.pagingPredicate(p, limit == null ? Integer.MAX_VALUE : limit);
     }
 
     public List<TrackingKey> findChunksWaitingForMe(TrackingKey key, int sinkId) {

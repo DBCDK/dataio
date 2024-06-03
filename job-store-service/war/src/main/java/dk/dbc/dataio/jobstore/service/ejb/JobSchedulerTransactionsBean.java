@@ -209,7 +209,7 @@ public class JobSchedulerTransactionsBean {
             ChunkEntity.Key chunkKey = chunk.getKey();
             return jobStoreRepository.getChunk(Chunk.Type.PARTITIONED, chunkKey.getJobId(), chunkKey.getId());
         } catch (RuntimeException ex) {
-            LOGGER.error("Internal error Unable to get PARTITIONED items for {}", chunk.getKey());
+            LOGGER.warn("Internal error Unable to get PARTITIONED items for {}", chunk.getKey());
             throw ex;
         }
     }
@@ -217,10 +217,10 @@ public class JobSchedulerTransactionsBean {
     public Chunk getProcessedChunkFrom(TrackingKey dtKey) {
         try {
             ChunkEntity.Key chunkKey = new ChunkEntity.Key(dtKey.getChunkId(), dtKey.getJobId());
-
             return jobStoreRepository.getChunk(Chunk.Type.PROCESSED, chunkKey.getJobId(), chunkKey.getId());
         } catch (RuntimeException ex) {
-            LOGGER.error("Internal error Unable to get PROCESSED items for {}", dtKey, ex);
+            LOGGER.warn("Internal error Unable to get PROCESSED items for {}", dtKey, ex);
+            dependencyTrackingService.setStatus(dtKey, SCHEDULED_FOR_DELIVERY);
             throw ex;
         }
     }

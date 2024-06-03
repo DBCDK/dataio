@@ -533,7 +533,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             profiler.start("execute Query");
             final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
             profiler.stop();
-            if (itemEntities.size() > 0) {
+            if (!itemEntities.isEmpty()) {
                 profiler.start("Loop itemEntities");
                 final Chunk chunk = new Chunk(jobId, chunkId, type);
                 int i = 0;

@@ -1,4 +1,4 @@
-Rere accessnew
+Rerun accessnew
 ===
 Cronjob for rerunning records with collection identifier 870970-accessnew, by queryíng corepo-searcher and submitting the records to the appropriate rr harvester 
 

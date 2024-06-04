@@ -28,7 +28,7 @@ pipeline {
             cli/acc-test-runner"
         SONAR_SCANNER_HOME = tool 'SonarQube Scanner from Maven Central'
         SONAR_SCANNER = "$SONAR_SCANNER_HOME/bin/sonar-scanner"
-        SONAR_PROJECT_KEY = "DataIO"
+        SONAR_PROJECT_KEY = "dataio"
         SONAR_SOURCES="src"
         SONAR_TESTS="test"
     }

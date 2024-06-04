@@ -115,7 +115,7 @@ pipeline {
                         def status = 0
 
                         // then trigger sonarqube analysis
-                        def sonarOptions = "-Dsonar.branch.name=$BRANCH_NAME"
+                        def sonarOptions = "-Dsonar.branch.name=${BRANCH_NAME}"
                         if (env.BRANCH_NAME != 'main') {
                             sonarOptions += " -Dsonar.newCode.referenceBranch=master"
                         }
@@ -123,11 +123,6 @@ pipeline {
                         // for java/maven projects
                         status += sh returnStatus: true, script: """
                             mvn -B $sonarOptions sonar:sonar
-                        """
-
-                        // for non-java projects
-                        status += sh returnStatus: true, script: """
-                            $SONAR_SCANNER $sonarOptions -Dsonar.token=$SONAR_AUTH_TOKEN -Dsonar.projectKey=$SONAR_PROJECT_KEY -Dsonar.sources=$SONAR_SOURCES -Dsonar.tests=$SONAR_TESTS
                         """
 
                         if (status != 0) {

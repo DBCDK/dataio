@@ -48,7 +48,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.BLOCKED;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
@@ -181,7 +180,7 @@ public class JobSchedulerBean {
         try {
             LOGGER.info("Updating chunks.blocked metrics");
             List<Sink> sinks = flowStore.getConnector().findAllSinks();
-            Map<Integer, Integer> counts = dependencyTrackingService.sinkStatusCount(BLOCKED);
+            Map<Integer, Integer> counts = dependencyTrackingService.sinkBlockedCount();
             Map<String, Integer> bc = sinks.stream().collect(Collectors.toMap(s -> s.getContent().getName(), s -> counts.getOrDefault(s.getId(), 0)));
             blockedCounts.putAll(bc);
             for (String sinkName : bc.keySet()) {

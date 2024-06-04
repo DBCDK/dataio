@@ -251,7 +251,7 @@ public class DependencyTrackingService {
         return dependencyTracker.aggregate(statusCounter);
     }
 
-    public Map<Integer, Integer> sinkStatusCount(ChunkSchedulingStatus status) {
+    public Map<Integer, Integer> sinkBlockedCount() {
         return dependencyTracker.aggregate(new BlockedCounter());
     }
 

@@ -218,7 +218,7 @@ public class JobStoreServiceConnector {
         log.info("JobStoreServiceConnector: addChunk({}/{});", jobId, chunkId);
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         final PathBuilder path = new PathBuilder(chunkTypeToJobStorePath(chunk.getType()))
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
+                .bind(JobStoreServiceConstants.JOB_ID, jobId)
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId);
         return post(chunk, Response.Status.CREATED, JobInfoSnapshot.class, ADD_CHUNK, path.build());
     }
@@ -328,7 +328,7 @@ public class JobStoreServiceConnector {
         log.trace("JobStoreServiceConnector: getCachedFlow({});", jobId);
         InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
         final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CACHED_FLOW)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+                .bind(JobStoreServiceConstants.JOB_ID, jobId);
         return get(Flow.class, Response.Status.OK, GET_CACHED_FLOW, path.build());
     }
 
@@ -337,7 +337,7 @@ public class JobStoreServiceConnector {
         log.trace("JobStoreServiceConnector: getChunkItem({}, {}, {});", jobId, chunkId, itemId);
         InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
         final PathBuilder path = new PathBuilder(phaseToJobStorePath(phase))
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
+                .bind(JobStoreServiceConstants.JOB_ID, jobId)
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
                 .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, itemId);
         return get(ChunkItem.class, Response.Status.OK, GET_CHUNK_ITEM, path.build());
@@ -357,7 +357,7 @@ public class JobStoreServiceConnector {
         log.trace("JobStoreServiceConnector: getProcessedNextResult({}, {}, {});", jobId, chunkId, itemId);
         InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
         final PathBuilder path = new PathBuilder(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
+                .bind(JobStoreServiceConstants.JOB_ID, jobId)
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
                 .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, itemId);
         return get(ChunkItem.class, Response.Status.OK, GET_PROCESSED_NEXT_RESULT, path.build());
@@ -374,7 +374,7 @@ public class JobStoreServiceConnector {
         log.trace("JobStoreServiceConnector: listJobNotificationsForJob();");
         InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
         final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_NOTIFICATIONS)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+                .bind(JobStoreServiceConstants.JOB_ID, jobId);
         return get(new GenericType<>() {}, Response.Status.OK, LIST_JOB_NOTIFICATIONS_FOR_JOB, path.build());
     }
 
@@ -386,7 +386,7 @@ public class JobStoreServiceConnector {
         log.trace("JobStoreServiceConnector: setWorkflowNote({});", jobId);
         InvariantUtil.checkNotNullOrThrow(workflowNote, "workflowNote");
         final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_WORKFLOW_NOTE)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
+                .bind(JobStoreServiceConstants.JOB_ID, Long.toString(jobId));
         return post(workflowNote, Response.Status.OK, JobInfoSnapshot.class, SET_WORKFLOW_NOTE, path.build());
     }
 
@@ -394,7 +394,7 @@ public class JobStoreServiceConnector {
         log.trace("JobStoreServiceConnector: setWorkflowNote({}, {}, {});", jobId, chunkId, itemId);
         InvariantUtil.checkNotNullOrThrow(workflowNote, "workflowNote");
         PathBuilder path = new PathBuilder(JobStoreServiceConstants.ITEM_WORKFLOW_NOTE)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId))
+                .bind(JobStoreServiceConstants.JOB_ID, Long.toString(jobId))
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, Long.toString(chunkId))
                 .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, Long.toString(itemId));
         return post(workflowNote, Response.Status.OK, ItemInfoSnapshot.class, SET_WORKFLOW_NOTE2, path.build());

@@ -464,7 +464,7 @@ public class JobStoreServiceConnectorTest {
     private Flow callGetCachedFlowWithMockedHttpResponse(int jobId, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
         PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CACHED_FLOW)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+                .bind(JobStoreServiceConstants.JOB_ID, jobId);
 
         HttpGet httpGet = new HttpGet(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
@@ -611,7 +611,7 @@ public class JobStoreServiceConnectorTest {
             throws JobStoreServiceConnectorException {
 
         PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_NOTIFICATIONS)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+                .bind(JobStoreServiceConstants.JOB_ID, jobId);
         HttpGet httpGet = new HttpGet(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(path.build());
@@ -753,7 +753,7 @@ public class JobStoreServiceConnectorTest {
             throws JobStoreServiceConnectorException {
 
         PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_WORKFLOW_NOTE)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
+                .bind(JobStoreServiceConstants.JOB_ID, Long.toString(jobId));
         HttpPost httpPost = new HttpPost(httpClient)
                 .withBaseUrl(JOB_STORE_URL)
                 .withPathElements(path.build())
@@ -800,7 +800,7 @@ public class JobStoreServiceConnectorTest {
             throws JobStoreServiceConnectorException {
 
         PathBuilder path = new PathBuilder(JobStoreServiceConstants.ITEM_WORKFLOW_NOTE)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId))
+                .bind(JobStoreServiceConstants.JOB_ID, Long.toString(jobId))
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, Long.toString(chunkId))
                 .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, Long.toString(itemId));
 
@@ -853,13 +853,13 @@ public class JobStoreServiceConnectorTest {
 
     private String[] buildAddChunkPath(long jobId, long chunkId, String pathString) {
         return new PathBuilder(pathString)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
+                .bind(JobStoreServiceConstants.JOB_ID, jobId)
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId).build();
     }
 
     private String[] buildGetChunkItemPath(int jobId, int chunkId, short itemId, String pathString) {
         return new PathBuilder(pathString)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
+                .bind(JobStoreServiceConstants.JOB_ID, jobId)
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
                 .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, itemId)
                 .build();

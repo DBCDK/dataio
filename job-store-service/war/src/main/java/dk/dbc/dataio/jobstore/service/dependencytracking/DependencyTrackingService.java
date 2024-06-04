@@ -52,6 +52,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants.JOB_ID;
+import static dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants.STATUS;
+
 @Singleton
 @Startup
 @DependsOn("DatabaseMigrator")
@@ -111,6 +114,7 @@ public class DependencyTrackingService {
             dependencyTracker.set(key, entity);
             removeDeadWOs(key, entity.getWaitingOn());
         } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
         } finally {
             try {
                 dependencyTracker.unlock(key);
@@ -120,7 +124,7 @@ public class DependencyTrackingService {
 
     public List<DependencyTracking> getSnapshot(int jobId) {
         PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
-        Predicate<TrackingKey, DependencyTracking> p = e.key().get("jobId").equal(jobId);
+        Predicate<TrackingKey, DependencyTracking> p = e.key().get(JOB_ID).equal(jobId);
         Collection<DependencyTracking> values = dependencyTracker.values(p);
         return values.stream().sorted(Comparator.comparing(k -> k.getKey().getChunkId())).collect(Collectors.toList());
     }
@@ -128,7 +132,7 @@ public class DependencyTrackingService {
     public Stream<DependencyTrackingRO> getStaleDependencies(ChunkSchedulingStatus status, Duration timeout) {
         PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
         @SuppressWarnings("unchecked")
-        Predicate<TrackingKey, DependencyTracking> p = e.get("status").equal(status).and(e.get("lastModified").lessThan(Instant.now().minus(timeout)));
+        Predicate<TrackingKey, DependencyTracking> p = e.get(STATUS).equal(status).and(e.get("lastModified").lessThan(Instant.now().minus(timeout)));
         return dependencyTracker.values(p).stream().map(DependencyTrackingRO.class::cast);
     }
 
@@ -143,7 +147,7 @@ public class DependencyTrackingService {
     public int resetStatus(ChunkSchedulingStatus from, ChunkSchedulingStatus to, Integer... jobIds) {
         PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
         @SuppressWarnings("unchecked")
-        Predicate<TrackingKey, DependencyTracking> p = e.get("status").equal(from).and(e.key().get("jobId").in(jobIds));
+        Predicate<TrackingKey, DependencyTracking> p = e.get(STATUS).equal(from).and(e.key().get(JOB_ID).in(jobIds));
         Set<TrackingKey> entries = dependencyTracker.keySet(p);
         entries.forEach(key -> setStatus(key, to));
         return entries.size();
@@ -152,7 +156,7 @@ public class DependencyTrackingService {
     public void removeJobId(int jobId) {
         PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
         @SuppressWarnings("unchecked")
-        Predicate<TrackingKey, DependencyTracking> p = e.key().get("jobId").equal(jobId);
+        Predicate<TrackingKey, DependencyTracking> p = e.key().get(JOB_ID).equal(jobId);
         remove(p);
         recountSinkStatus(Set.of());
     }
@@ -267,8 +271,8 @@ public class DependencyTrackingService {
     private Predicate<TrackingKey, DependencyTracking> makeDependencyPredicate(ChunkSchedulingStatus status, Integer sinkId, Integer limit) {
         PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
         Predicate<TrackingKey, DependencyTracking> p;
-        if(sinkId != null) p = e.get("sinkId").equal(sinkId).and(e.get("status").equal(status));
-        else p = e.get("status").equal(status);
+        if(sinkId != null) p = e.get("sinkId").equal(sinkId).and(e.get(STATUS).equal(status));
+        else p = e.get(STATUS).equal(status);
         return Predicates.pagingPredicate(p, limit == null ? Integer.MAX_VALUE : limit);
     }
 

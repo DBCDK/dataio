@@ -279,7 +279,7 @@ public class JobsBean {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
-    public Response setWorkflowNote(String workflowNoteString, @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
+    public Response setWorkflowNote(String workflowNoteString, @PathParam(JobStoreServiceConstants.JOB_ID) int jobId) throws JSONBException, JobStoreException {
         LOGGER.trace("jobId: {}, workflowNote: {}", jobId, workflowNoteString);
         final JobInfoSnapshot jobInfoSnapshot;
         try {
@@ -315,7 +315,7 @@ public class JobsBean {
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response setWorkflowNote(String workflowNoteString,
-                                    @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+                                    @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
                                     @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
                                     @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
         LOGGER.trace("jobId: {}, chunkId: {}, itemId: {}, workflowNote: {}", jobId, chunkId, itemId, workflowNoteString);
@@ -358,7 +358,7 @@ public class JobsBean {
     public Response addChunkProcessed(
             @Context UriInfo uriInfo,
             String chunkData,
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JSONBException, JobStoreException {
 
         final Chunk processedChunk;
@@ -397,7 +397,7 @@ public class JobsBean {
     public Response addChunkDelivered(
             @Context UriInfo uriInfo,
             String chunkData,
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JSONBException, JobStoreException {
 
         final Chunk deliveredChunk;
@@ -653,7 +653,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_CACHED_FLOW)
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
-    public Response getCachedFlow(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
+    public Response getCachedFlow(@PathParam(JobStoreServiceConstants.JOB_ID) int jobId) throws JSONBException, JobStoreException {
         try {
             Flow flow = jobStoreRepository.getCachedFlow(jobId);
             return Response.ok().entity(jsonbContext.marshall(flow)).build();
@@ -678,7 +678,7 @@ public class JobsBean {
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getPartitionedResult(
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
             @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
 
@@ -701,7 +701,7 @@ public class JobsBean {
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getProcessingResult(
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
             @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
 
@@ -724,7 +724,7 @@ public class JobsBean {
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getDeliveringResult(
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
             @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
 
@@ -766,7 +766,7 @@ public class JobsBean {
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getProcessedNextResult(
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
             @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
 
@@ -790,7 +790,7 @@ public class JobsBean {
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getNotificationsForJob(
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException {
+            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId) throws JSONBException {
         final List<NotificationEntity> notifications = jobNotificationRepository.getNotificationsForJob(jobId);
         return Response.ok().entity(jsonbContext.marshall(notifications)).build();
     }

@@ -26,7 +26,6 @@ public class Rerun {
     public static void main(String[] args) throws SolrServerException, IOException, HarvesterTaskServiceConnectorException {
         Rerun rerun = new Rerun();
         List<Env> list = Arrays.stream(args).map(String::toUpperCase).map(Env::valueOf).collect(Collectors.toList());
-        if(list.isEmpty()) list = List.of(Env.STAGING_CISTERNE);
         int rc = 0;
         for(Env env : list) {
             try {
@@ -42,7 +41,7 @@ public class Rerun {
 
     private void runEnv(Env env) throws SolrServerException, IOException, HarvesterTaskServiceConnectorException {
         try (Http2SolrClient client = new Http2SolrClient.Builder(env.solr).useHttp1_1(true).build()) {
-            SolrQuery query = new SolrQuery("rec.collectionIdentifier:710100\\-inaktive").setFields("rec.manifestationId").setRows(3);
+            SolrQuery query = new SolrQuery("rec.collectionIdentifier:710100\\-inaktive").setFields("rec.manifestationId").setRows(1_000_000);
             SolrDocumentList results = client.query(query).getResults();
             LOGGER.info("Got {} results from Solr", results.getNumFound());
             HarvesterTaskServiceConnector taskServiceConnector = new HarvesterTaskServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), env.harvester);

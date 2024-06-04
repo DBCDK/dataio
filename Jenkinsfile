@@ -105,7 +105,7 @@ pipeline {
             when {
                 anyOf {
                     branch "master"
-                    !FAST_BUILD
+                    !$ {FAST_BUILD}
                 }
             }
             steps {

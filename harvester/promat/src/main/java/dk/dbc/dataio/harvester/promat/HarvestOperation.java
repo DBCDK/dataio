@@ -183,7 +183,7 @@ public class HarvestOperation {
                     recordsProcessed, recordsSkipped, recordsFailed.get(), stopwatch.getElapsedTime());
             PromatHarvesterMetrics.RECORDS_HARVESTED.counter(metricRegistry).inc(recordsHarvested);
             PromatHarvesterMetrics.RECORDS_PROCESSED.counter(metricRegistry).inc(recordsProcessed);
-            PromatHarvesterMetrics.RECORDS_FAILED.counter(metricRegistry).inc(recordsFailed.get() + recordsSkipped);
+            PromatHarvesterMetrics.RECORDS_FAILED.counter(metricRegistry).inc((long)recordsFailed.get() + recordsSkipped);
         }
     }
 

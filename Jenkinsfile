@@ -3,6 +3,8 @@
 String docker_images_log_stash_tag = "docker_images_log"
 String workerNode = "devel11"
 Boolean DEPLOY_TO_STAGING_CANDIDATE=false
+Boolean FAST_BUILD=false
+
 //Byg!!
 pipeline {
     agent { label workerNode }
@@ -24,6 +26,11 @@ pipeline {
             commons/utils, \
             commons/utils/binary-file-store, \
             cli/acc-test-runner"
+        SONAR_SCANNER_HOME = tool 'SonarQube Scanner from Maven Central'
+        SONAR_SCANNER = "$SONAR_SCANNER_HOME/bin/sonar-scanner"
+        SONAR_PROJECT_KEY = "dataio"
+        SONAR_SOURCES="src"
+        SONAR_TESTS="test"
     }
     triggers {
         upstream(upstreamProjects: "Docker-payara6-bump-trigger",
@@ -54,13 +61,23 @@ pipeline {
                             """
                     ) == 0
                 }
+                script {
+                    FAST_BUILD |= sh(
+                            returnStatus: true,
+                            script: """#!/bin/bash
+                                git log -1 | tail +5 | grep -E ' *!!'
+                            """
+                    ) == 0
+                }
+
             }
         }
         stage("build") {
             steps {
                 sh """#!/bin/bash
                     FAST=""
-                    if [ "master" != "${env.BRANCH_NAME}" ] && [ -n "\$(git log -1 | tail +5 | grep -E ' *!!')" ]; then
+                    echo FAST: ${FAST_BUILD}
+                    if [ "master" != "${env.BRANCH_NAME}" ] && [ ${FAST_BUILD} -eq "true" ]; then
                         echo Fast branch deployment skip all tests
                         FAST=" -P !integration-test -Dmaven.test.skip=true "
                     fi
@@ -79,10 +96,39 @@ pipeline {
                     def pmd = scanForIssues tool: [$class: 'Pmd']
                     publishIssues issues: [pmd], unstableTotalAll: 1
 
-                    def spotbugs = scanForIssues tool: [$class: 'SpotBugs']
-                    publishIssues issues: [spotbugs], unstableTotalAll: 1
                     archiveArtifacts artifacts: "cli/acceptance-test/target/dataio-cli-acctest.jar,gatekeeper/target/dataio-gatekeeper*.jar,cli/dataio-cli",
                             fingerprint: true
+                }
+            }
+        }
+        stage("sonarqube") {
+            when {
+                anyOf {
+                    branch "master"
+                    expression { return !FAST_BUILD}
+                }
+            }
+            steps {
+                withSonarQubeEnv(installationName: 'sonarqube.dbc.dk') {
+                    script {
+                        // first run actual build
+                        def status = 0
+
+                        // then trigger sonarqube analysis
+                        def sonarOptions = "-Dsonar.branch.name=${BRANCH_NAME}"
+                        if (env.BRANCH_NAME != 'master') {
+                            sonarOptions += " -Dsonar.newCode.referenceBranch=master"
+                        }
+
+                        // for java/maven projects
+                        status += sh returnStatus: true, script: """
+                            mvn -B $sonarOptions sonar:sonar
+                        """
+
+                        if (status != 0) {
+                            error("build failed")
+                        }
+                    }
                 }
             }
         }

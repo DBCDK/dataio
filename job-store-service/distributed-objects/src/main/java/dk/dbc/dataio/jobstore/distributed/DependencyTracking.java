@@ -13,17 +13,15 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 /**
  * Class for tracking chunk dependencies.
  */
-public class DependencyTracking implements DependencyTrackingRO, Serializable {
+public class DependencyTracking implements DependencyTrackingRO, Serializable, Comparable<DependencyTracking> {
     private static final long serialVersionUID = 1L;
     private static final ZoneId ZONE_ID_DK = ZoneId.of("Europe/Copenhagen");
 
@@ -79,11 +77,6 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
     @Override
     public TrackingKey getKey() {
         return key;
-    }
-
-    public static Comparator<Map.Entry<TrackingKey, DependencyTracking>> comparePriorityAndKey() {
-        return Comparator.comparing((Map.Entry<TrackingKey, DependencyTracking> entry) -> entry.getValue().getPriority()).reversed()
-                .thenComparing((Map.Entry<TrackingKey, DependencyTracking> entry) -> entry.getValue().getKey());
     }
 
     @Override
@@ -231,6 +224,13 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable {
                 ", status=" + status +
                 ", submitter=" + submitter +
                 '}';
+    }
+
+    @Override
+    public int compareTo(DependencyTracking o) {
+        int result = Integer.compare(o.priority, priority);
+        if(result != 0) return result;
+        return key.compareTo(o.getKey());
     }
 }
 

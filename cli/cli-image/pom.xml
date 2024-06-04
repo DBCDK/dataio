@@ -11,6 +11,10 @@
 
     <artifactId>cli-image</artifactId>
 
+    <properties>
+        <sonar.skip>true</sonar.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>dk.dbc</groupId>

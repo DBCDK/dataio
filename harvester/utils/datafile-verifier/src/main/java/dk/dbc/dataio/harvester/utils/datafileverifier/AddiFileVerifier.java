@@ -68,6 +68,7 @@ public class AddiFileVerifier {
         final String prefix = String.format("metadata(%d)", recordNo);
         if (actual == null || expected == null) {
             assertThat(prefix, actual, is(expected));
+            return;
         }
 
         assertThat(prefix + ".submitterNumber", actual.submitterNumber(), is(expected.submitterNumber()));

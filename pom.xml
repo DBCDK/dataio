@@ -28,7 +28,6 @@
         <module>sink</module>
         <module>job-processor2</module>
         <module>dlq-errorhandler</module>
-        <module>jse-app</module>
         <module>integration-test</module>
     </modules>
 
@@ -100,6 +99,8 @@
         <mockftpserver.version>2.7.1</mockftpserver.version>
         <dbc-commons-json-binding.version>1.4-SNAPSHOT</dbc-commons-json-binding.version>
         <angus-mail.version>2.0.1</angus-mail.version>
+        <sonar.projectKey>dataio</sonar.projectKey>
+        <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
     </properties>
 
     <dependencies>

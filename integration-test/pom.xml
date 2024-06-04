@@ -13,6 +13,10 @@
   <artifactId>dataio-integration-test</artifactId>
   <packaging>pom</packaging>
 
+  <properties>
+    <sonar.skip>true</sonar.skip>
+  </properties>
+
   <profiles>
     <profile>
       <id>integration-test</id>

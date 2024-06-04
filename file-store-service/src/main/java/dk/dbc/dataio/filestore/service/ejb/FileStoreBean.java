@@ -6,22 +6,21 @@ import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.filestore.service.entity.FileAttributes;
 import dk.dbc.invariant.InvariantUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jakarta.ejb.EJB;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -190,11 +189,11 @@ public class FileStoreBean {
      */
     @Stopwatch
     public void purge() {
-        final Map<String, String> purgeOriginRules = new HashMap<String, String>() {{
-            put("{\"origin\": \"dataio/jobstore/jobs/export\"}", "1 day");
-            put("{\"origin\": \"dataio/sink/marcconv\"}", "3 months");
-            put("{\"origin\": \"dataio/sink/periodic-jobs\"}", "6 months");
-        }};
+        final Map<String, String> purgeOriginRules = Map.of(
+                "{\"origin\": \"dataio/jobstore/jobs/export\"}", "1 day",
+                "{\"origin\": \"dataio/sink/marcconv\"}", "3 months",
+                "{\"origin\": \"dataio/sink/periodic-jobs\"}", "6 months"
+        );
         purgeOriginRules.forEach(this::purgeFilesByOrigin);
 
         purgeFilesNeverRead("6 months");

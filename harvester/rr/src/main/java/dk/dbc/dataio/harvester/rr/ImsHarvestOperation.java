@@ -138,9 +138,9 @@ public class ImsHarvestOperation extends HarvestOperation {
         for (MarcRecord record : records) {
             final Optional<String> f001b = record.getSubFieldValue("001", 'b');
             if (f001b.isPresent() && !f001b.get().equals("870970") && isDeletedHeadOrSectionRecord(record)) {
-                final Optional<String> f001a = record.getSubFieldValue("001", 'a');
+                String f001a = record.getSubFieldValue("001", 'a').orElseThrow(() -> new IllegalArgumentException("Record is missing mandatory 001a field"));
                 RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(true).withMode(RecordServiceConnector.Params.Mode.EXPANDED);
-                RecordIdDTO recordId = new RecordIdDTO(f001a.get(), HarvestOperation.DBC_LIBRARY);
+                RecordIdDTO recordId = new RecordIdDTO(f001a, HarvestOperation.DBC_LIBRARY);
                 try {
                     final RecordDTO replaceRecord = rawRepoRecordServiceConnector.recordFetch(recordId, params);
                     result.addMember(replaceRecord.getContent());

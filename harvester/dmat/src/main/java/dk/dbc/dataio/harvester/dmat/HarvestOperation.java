@@ -187,7 +187,7 @@ public class HarvestOperation {
                     recordsProcessed, recordsSkipped, recordsFailed.get(), stopwatch.getElapsedTime());
             metricRegistry.counter(DmatHarvesterMetrics.RECORDS_HARVESTED.getMetadata()).inc(recordsHarvested);
             metricRegistry.counter(DmatHarvesterMetrics.RECORDS_PROCESSED.getMetadata()).inc(recordsProcessed);
-            metricRegistry.counter(DmatHarvesterMetrics.RECORDS_FAILED.getMetadata()).inc(recordsFailed.get() + recordsSkipped);
+            metricRegistry.counter(DmatHarvesterMetrics.RECORDS_FAILED.getMetadata()).inc((long)recordsFailed.get() + recordsSkipped);
         }
     }
 

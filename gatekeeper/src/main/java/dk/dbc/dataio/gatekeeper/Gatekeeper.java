@@ -62,7 +62,7 @@ public class Gatekeeper {
                     if (shutdownManager.isReadyToExit())
                         break;
                     try {
-                        wait(1000);
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         LOGGER.warn("Interrupted in shutdown hook", e);
                     }

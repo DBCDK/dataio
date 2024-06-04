@@ -29,6 +29,7 @@ import picocli.CommandLine.Option;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -229,8 +230,8 @@ public class AccTestRunner implements Callable<Integer> {
         if(defaultProperties == null) return properties;
         Path p = Path.of(defaultProperties);
         if(!Files.isRegularFile(p)) return properties;
-        try {
-            properties.load(Files.newBufferedReader(p));
+        try(Reader reader = Files.newBufferedReader(p)) {
+            properties.load(reader);
             return properties;
         } catch (IOException e) {
             throw new IllegalStateException("Found default properties " + p.toAbsolutePath() + " file, but not able to read it", e);

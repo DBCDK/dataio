@@ -79,7 +79,7 @@ public class HarvesterTaskServiceConnector {
                 log.error("Harvester request failed: {}", post);
                 throw he;
             } catch (RuntimeException e) {
-                if(post != null) log.error("Harvester request failed: {}", post);
+                log.error("Harvester request failed: {}", post);
                 throw new ProcessingException(e);
             }
         } finally {

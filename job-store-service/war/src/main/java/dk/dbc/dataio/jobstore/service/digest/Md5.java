@@ -35,11 +35,12 @@ public class Md5 {
 
     private static String hashAsString(byte[] hashBytes) {
         StringBuilder hexString = new StringBuilder(hashBytes.length * 2);
-        Formatter hexStringFormatter = new Formatter(hexString);
-        for (byte b : hashBytes) {
-            // each java byte is represented as a 2-digit hex string
-            hexStringFormatter.format("%02x", b);
+        try(Formatter hexStringFormatter = new Formatter(hexString)) {
+            for (byte b : hashBytes) {
+                // each java byte is represented as a 2-digit hex string
+                hexStringFormatter.format("%02x", b);
+            }
+            return hexString.toString();
         }
-        return hexString.toString();
     }
 }

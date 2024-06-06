@@ -20,7 +20,6 @@
     </properties>
 
     <modules>
-        <module>acceptance-test</module>
         <module>datafile-exporter</module>
         <module>job-replicator</module>
         <module>lhr-retriever</module>

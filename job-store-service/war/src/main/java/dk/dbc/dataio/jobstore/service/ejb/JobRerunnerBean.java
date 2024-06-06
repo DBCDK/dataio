@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Tools;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.harvester.connector.ejb.TickleHarvesterServiceConnectorBean;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
@@ -37,6 +38,7 @@ import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Optional;
@@ -139,10 +141,7 @@ public class JobRerunnerBean {
                 // catching a null pointer here could lead to an infinite
                 // loop leading to a stack overflow
                 LOGGER.error("Caught exception: ", e);
-                try {
-                    Thread.sleep(60000);
-                } catch (InterruptedException e2) {
-                }
+                Tools.sleep(Duration.ofMinutes(1));
             } finally {
                 self().rerunNextIfAvailable();
             }

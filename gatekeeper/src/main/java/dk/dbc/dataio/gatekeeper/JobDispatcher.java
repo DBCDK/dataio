@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 
 
 public class JobDispatcher {
-    public static final long STALLED_TRANSFILE_THRESHOLD_IN_MS = 60 * 60 * 1000; // 1 hour
+    public static final long STALLED_TRANSFILE_THRESHOLD_IN_MS = 60 * 60 * 1000L; // 1 hour
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobDispatcher.class);
     private static final AtomicLong LIVENESS_COUNTER = new AtomicLong(0);

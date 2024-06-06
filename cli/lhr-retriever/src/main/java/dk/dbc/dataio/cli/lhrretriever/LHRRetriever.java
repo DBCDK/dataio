@@ -49,6 +49,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -64,7 +65,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class LHRRetriever {
+public class LHRRetriever implements Closeable {
+    private final Client client;
     private final DataSource dataSource;
     private final RawRepoConnector rawRepoConnector;
     private final RecordServiceConnector rawRepoRecordServiceConnector;
@@ -77,8 +79,7 @@ public class LHRRetriever {
             ConfigurationException, QueueException, ConfigParseException {
         ConfigJson config = ConfigJson.parseConfig(arguments.configPath);
         dataSource = setupDataSource(config);
-        final Client client = HttpClient.newClient(new ClientConfig()
-                .register(new JacksonFeature()));
+        client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
         rawRepoConnector = setupRRConnector(dataSource);
         rawRepoRecordServiceConnector = RecordServiceConnectorFactory.create(rawRepoConnector.getRecordServiceUrl());
         ocn2PidServiceConnector = new Ocn2PidServiceConnector(
@@ -346,5 +347,10 @@ public class LHRRetriever {
      */
     private RawRepoConnector setupRRConnector(DataSource dataSource) {
         return new RawRepoConnector(dataSource);
+    }
+
+    @Override
+    public void close() {
+        client.close();
     }
 }

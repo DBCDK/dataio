@@ -29,11 +29,13 @@ import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
 import dk.dbc.weekresolver.model.WeekResolverResult;
+import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.util.Collections;
 import java.util.List;
 
@@ -45,9 +47,10 @@ import static dk.dbc.dataio.sink.dpf.SinkConfig.UPDATE_SERVICE_WS_URL;
 import static dk.dbc.dataio.sink.dpf.SinkConfig.WEEKRESOLVER_SERVICE_URL;
 
 @SuppressWarnings("PMD")
-public class ServiceBroker {
+public class ServiceBroker implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
     private static final String UPDATE_SERVICE_WS = UPDATE_SERVICE_WS_URL.asString();
+    private final Client client;
     private final BibliographicRecordFactory bibliographicRecordFactory = new BibliographicRecordFactory();
     private final LobbyConnector lobbyConnector;
     private final UpdateServiceDoubleRecordCheckConnector doubleRecordCheckConnector;
@@ -60,20 +63,12 @@ public class ServiceBroker {
 
     public ServiceBroker() {
         configBean = new ConfigBean();
-        lobbyConnector = new LobbyConnector(ClientBuilder.newClient().register(new JacksonFeature()), LOBBY_SERVICE_URL.asString());
-        doubleRecordCheckConnector = new UpdateServiceDoubleRecordCheckConnector(ClientBuilder.newClient().register(new JacksonFeature()), UPDATE_SERVICE_URL.asString());
-        recordServiceConnector = new RecordServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), RAWREPO_RECORD_SERVICE_URL.asString());
-        weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient().register(new JacksonFeature()), WEEKRESOLVER_SERVICE_URL.asString());
-        opennumberRollConnector = new OpennumberRollConnector(ClientBuilder.newClient().register(new JacksonFeature()), OPENNUMBERROLL_SERVICE_URL.asString());
-    }
-
-    public ServiceBroker(WeekResolverConnector weekResolverConnector) {
-        this.weekResolverConnector = weekResolverConnector;
-        configBean = null;
-        lobbyConnector = null;
-        doubleRecordCheckConnector = null;
-        recordServiceConnector = null;
-        opennumberRollConnector = null;
+        client = ClientBuilder.newClient().register(new JacksonFeature());
+        lobbyConnector = new LobbyConnector(client, LOBBY_SERVICE_URL.asString());
+        doubleRecordCheckConnector = new UpdateServiceDoubleRecordCheckConnector(client, UPDATE_SERVICE_URL.asString());
+        recordServiceConnector = new RecordServiceConnector(client, RAWREPO_RECORD_SERVICE_URL.asString());
+        weekResolverConnector = new WeekResolverConnector(client, WEEKRESOLVER_SERVICE_URL.asString());
+        opennumberRollConnector = new OpennumberRollConnector(client, OPENNUMBERROLL_SERVICE_URL.asString());
     }
 
     public void sendToLobby(DpfRecord dpfRecord) throws LobbyConnectorException, JsonProcessingException {
@@ -145,4 +140,8 @@ public class ServiceBroker {
         return openUpdateConnector;
     }
 
+    @Override
+    public void close() {
+        client.close();
+    }
 }

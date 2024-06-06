@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.diff;
 
+import dk.dbc.dataio.commons.types.Tools;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 
 import java.io.BufferedReader;
@@ -26,20 +27,17 @@ public class ExternalToolDiffGenerator implements DiffGenerator {
      * @return the diff string
      * @throws DiffGeneratorException on failure to create diff
      */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public String getDiff(Kind kind, byte[] current, byte[] next) throws DiffGeneratorException, InvalidMessageException {
         File tempFile1 = null;
         File tempFile2 = null;
         try {
             tempFile1 = File.createTempFile("doc1", ".tmp.file");
             tempFile2 = File.createTempFile("doc2", ".tmp.file");
-
-            FileOutputStream fos1 = new FileOutputStream(tempFile1);
-            FileOutputStream fos2 = new FileOutputStream(tempFile2);
-            fos1.write(current);
-            fos2.write(next);
-            fos1.close();
-            fos2.close();
-
+            try(FileOutputStream fos1 = new FileOutputStream(tempFile1); FileOutputStream fos2 = new FileOutputStream(tempFile2)) {
+                fos1.write(current);
+                fos2.write(next);
+            }
             AtomicBoolean stdoutDone = new AtomicBoolean();
             AtomicBoolean stderrDone = new AtomicBoolean();
             Process p = Runtime.getRuntime().exec(String.format("%s %s %s\n",
@@ -58,15 +56,13 @@ public class ExternalToolDiffGenerator implements DiffGenerator {
 
             int res = p.waitFor();
             // wait a bit until the threads are done
-            while (!stderrDone.get() || !stdoutDone.get())
-                Thread.sleep(20);
-
-            if (err.length() > 0) {
+            while (!stderrDone.get() || !stdoutDone.get()) Tools.sleep(20);
+            if (!err.isEmpty()) {
                 throw new DiffGeneratorException(kind.getTool() +
                         " failed to compare input: " + err);
             }
 
-            if (res != 0 && out.length() > 0) {
+            if (res != 0 && !out.isEmpty()) {
                 return out.toString();
             }
             return EMPTY;
@@ -85,7 +81,7 @@ public class ExternalToolDiffGenerator implements DiffGenerator {
         }
     }
 
-    private class StreamHandler implements Runnable {
+    private static class StreamHandler implements Runnable {
         private final InputStream is;
         private final Consumer<String> consumer;
         private final Runnable done;

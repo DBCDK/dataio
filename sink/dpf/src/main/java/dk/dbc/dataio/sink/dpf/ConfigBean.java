@@ -9,18 +9,21 @@ import dk.dbc.dataio.commons.types.DpfSinkConfig;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JMSHeader;
+import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.time.Duration;
 
 /**
  * This Enterprise Java Bean (EJB) singleton is used as a config container for the DPF sink
  */
-public class ConfigBean {
+public class ConfigBean implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigBean.class);
+    private final Client client;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final Cache<Long, FlowBinder> cachedFlowBinders = CacheBuilder.newBuilder().maximumSize(10).expireAfterAccess(Duration.ofHours(1)).build();
     private long highestVersionSeen = 0;
@@ -28,11 +31,13 @@ public class ConfigBean {
     private String queueProvider;
 
     public ConfigBean() {
-        flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FLOWSTORE_URL.asString());
+        client = ClientBuilder.newClient().register(new JacksonFeature());
+        flowStoreServiceConnector = new FlowStoreServiceConnector(client, SinkConfig.FLOWSTORE_URL.asString());
     }
 
     public ConfigBean(FlowStoreServiceConnector flowStoreServiceConnector) {
         this.flowStoreServiceConnector = flowStoreServiceConnector;
+        client = null;
     }
 
     public synchronized DpfSinkConfig getConfig() {
@@ -86,5 +91,10 @@ public class ConfigBean {
         } catch (FlowStoreServiceConnectorException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void close() {
+        if(client != null) client.close();
     }
 }

@@ -13,12 +13,15 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+
 // TODO: 10-07-19 replace EJB with @ApplicationScoped CDI producer
 
 @Singleton
 @LocalBean
-public class RRHarvesterServiceConnectorBean {
+public class RRHarvesterServiceConnectorBean implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(RRHarvesterServiceConnectorBean.class);
+    private Client client;
 
     HarvesterTaskServiceConnector harvesterTaskServiceConnector;
 
@@ -35,7 +38,7 @@ public class RRHarvesterServiceConnectorBean {
     }
 
     private void init(String endpoint) {
-        Client client = ClientBuilder.newClient().register(new JacksonFeature());
+        client = ClientBuilder.newClient().register(new JacksonFeature());
         if (endpoint == null || endpoint.trim().isEmpty()) {
             throw new EJBException("RAWREPO_HARVESTER_URL must be set");
         }
@@ -50,5 +53,10 @@ public class RRHarvesterServiceConnectorBean {
     @PreDestroy
     public void tearDownConnector() {
         HttpClient.closeClient(harvesterTaskServiceConnector.getHttpClient());
+    }
+
+    @Override
+    public void close() {
+        if(client != null) client.close();
     }
 }

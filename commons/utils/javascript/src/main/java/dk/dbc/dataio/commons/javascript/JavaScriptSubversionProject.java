@@ -204,7 +204,6 @@ public class JavaScriptSubversionProject {
         Path tmpDir = null;
         try {
             tmpDir = createTmpDirectory(getClass().getName());
-
             // Since the javascript directories are sorted (and therefore also added to search path) alphabetically
             // we add a sort prefix a_, b_, c_ etc.
             int sort_prefix = 96;
@@ -269,7 +268,7 @@ public class JavaScriptSubversionProject {
             folder = Files.createTempDirectory(Paths.get(System.getProperty("java.io.tmpdir")), prefix);
             LOGGER.trace("Created temporary folder {}", folder);
         } catch (IOException e) {
-            LOGGER.error("Error creating temporary folder", e);
+            throw new IllegalStateException("Error creating temporary folder for prefix: " + prefix, e);
         }
         return folder;
     }

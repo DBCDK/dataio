@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gatekeeper;
 
+import dk.dbc.dataio.commons.types.Tools;
 import dk.dbc.dataio.gatekeeper.wal.ModificationLockedException;
 import dk.dbc.dataio.gatekeeper.wal.WriteAheadLog;
 import dk.dbc.dataio.gatekeeper.wal.WriteAheadLogH2;
@@ -61,11 +62,7 @@ public class Gatekeeper {
                 for (int i = 0; i < 30; i++) {
                     if (shutdownManager.isReadyToExit())
                         break;
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        LOGGER.warn("Interrupted in shutdown hook", e);
-                    }
+                    Tools.sleep(1000);
                     if (!shutdownManager.isReadyToExit()) {
                         LOGGER.error("Shutdown while job dispatcher in busy state - system corruption possible!");
                     }

@@ -92,18 +92,20 @@ public class LHRRetriever implements Closeable {
     }
 
     public static void main(String[] args) {
+        LHRRetriever lhrRetriever = null;
         try {
             Arguments arguments = Arguments.parseArgs(args);
-            LHRRetriever lhrRetriever = new LHRRetriever(arguments);
+            lhrRetriever = new LHRRetriever(arguments);
             List<Script> scripts = lhrRetriever.getJavascriptsFromFlow(
                     arguments.flowName);
             byte[] records = lhrRetriever.processRecordsWithLHR(scripts);
             lhrRetriever.writeLHRToFile(arguments.outputPath, records);
         } catch (ArgParseException | SQLException | ConfigParseException |
                  LHRRetrieverException | QueueException | ConfigurationException e) {
-            System.err.println(String.format("unexpected error: %s",
-                    e.toString()));
+            System.err.println("unexpected error: " + e);
             System.exit(1);
+        } finally {
+            if(lhrRetriever != null) lhrRetriever.close();
         }
     }
 

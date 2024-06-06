@@ -27,7 +27,7 @@ public class ExternalToolDiffGenerator implements DiffGenerator {
      * @return the diff string
      * @throws DiffGeneratorException on failure to create diff
      */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @SuppressWarnings({"java:S899", "ResultOfMethodCallIgnored"})
     public String getDiff(Kind kind, byte[] current, byte[] next) throws DiffGeneratorException, InvalidMessageException {
         File tempFile1 = null;
         File tempFile2 = null;
@@ -66,7 +66,10 @@ public class ExternalToolDiffGenerator implements DiffGenerator {
                 return out.toString();
             }
             return EMPTY;
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException ie) {
+          Thread.currentThread().interrupt();
+          return "<interrupted>";
+        } catch (IOException e) {
             throw new DiffGeneratorException(kind.getTool() +
                     " failed to compare input", e);
         } catch (RuntimeException e) {

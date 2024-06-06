@@ -35,7 +35,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,10 +46,9 @@ import static dk.dbc.dataio.sink.dpf.SinkConfig.UPDATE_SERVICE_WS_URL;
 import static dk.dbc.dataio.sink.dpf.SinkConfig.WEEKRESOLVER_SERVICE_URL;
 
 @SuppressWarnings("PMD")
-public class ServiceBroker implements Closeable {
+public class ServiceBroker {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
     private static final String UPDATE_SERVICE_WS = UPDATE_SERVICE_WS_URL.asString();
-    private final Client client;
     private final BibliographicRecordFactory bibliographicRecordFactory = new BibliographicRecordFactory();
     private final LobbyConnector lobbyConnector;
     private final UpdateServiceDoubleRecordCheckConnector doubleRecordCheckConnector;
@@ -61,9 +59,10 @@ public class ServiceBroker implements Closeable {
     public final ConfigBean configBean;
     private DpfSinkConfig config;
 
+    @SuppressWarnings("java:S2095")
     public ServiceBroker() {
         configBean = new ConfigBean();
-        client = ClientBuilder.newClient().register(new JacksonFeature());
+        Client client = ClientBuilder.newClient().register(new JacksonFeature());
         lobbyConnector = new LobbyConnector(client, LOBBY_SERVICE_URL.asString());
         doubleRecordCheckConnector = new UpdateServiceDoubleRecordCheckConnector(client, UPDATE_SERVICE_URL.asString());
         recordServiceConnector = new RecordServiceConnector(client, RAWREPO_RECORD_SERVICE_URL.asString());
@@ -138,10 +137,5 @@ public class ServiceBroker implements Closeable {
             openUpdateConnector = new OpenUpdateServiceConnector(UPDATE_SERVICE_WS, config.getUpdateServiceUserId(), config.getUpdateServicePassword());
         }
         return openUpdateConnector;
-    }
-
-    @Override
-    public void close() {
-        client.close();
     }
 }

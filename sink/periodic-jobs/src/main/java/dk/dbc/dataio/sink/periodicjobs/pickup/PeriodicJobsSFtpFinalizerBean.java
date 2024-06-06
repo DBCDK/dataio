@@ -69,9 +69,7 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
         } catch (IOException e) {
             throw new InvalidMessageException(String.format("Unable to deliver datablocks for:%d", delivery.getJobId()),e);
         } finally {
-            if (localFile != null) {
-                localFile.delete();
-            }
+            if (localFile != null && !localFile.delete()) LOGGER.warn("Unable to delete file " + localFile);
         }
         return newResultChunk(chunk,
                 String.format("File %s uploaded to sftp host '%s'", remoteFile, sftpPickup.getsFtpHost()));

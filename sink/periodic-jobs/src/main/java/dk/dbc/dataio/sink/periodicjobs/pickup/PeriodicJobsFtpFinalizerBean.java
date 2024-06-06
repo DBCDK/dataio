@@ -78,7 +78,7 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
                     chunk.getJobId(), chunk.getChunkId()),e);
         } finally {
             if (localFile != null) {
-                localFile.delete();
+                if(!localFile.delete()) LOGGER.warn("Unable to delete file " + localFile);
             }
         }
         return newResultChunk(chunk,

@@ -41,11 +41,8 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
     WorldCatSinkConfig config;
     WciruServiceConnector connector;
     WciruServiceBroker wciruServiceBroker;
-    Metric WCIRU_CHUNK_UPDATE = Metric.WCIRU_CHUNK_UPDATE;
-    Metric WCIRU_UPDATE = Metric.WCIRU_UPDATE;
-    Metric UNHANDLED_EXCEPTIONS = Metric.UNHANDLED_EXCEPTIONS;
-    Metric WCIRU_SERVICE_REQUESTS = Metric.WCIRU_SERVICE_REQUESTS;
 
+    @SuppressWarnings("java:S2095")
     public WorldcatMessageConsumer(ServiceHub serviceHub, EntityManagerFactory entityManagerFactory) {
         super(serviceHub);
         this.entityManagerFactory = entityManagerFactory;
@@ -89,7 +86,7 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
                     }
                 }
                 Duration duration = Duration.between(chunkStart, Instant.now());
-                WCIRU_CHUNK_UPDATE.timer().update(duration);
+                Metric.WCIRU_CHUNK_UPDATE.timer().update(duration);
                 LOGGER.info("{} upload to worldcat took {}", chunk, duration);
             } finally {
                 DBCTrackedLogContext.remove();
@@ -99,7 +96,7 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
             LOGGER.info("Upload {} to jobstore took {}", result, Duration.between(start, Instant.now()));
         } catch (Exception e) {
             LOGGER.error("Caught unhandled exception while processing jobId: {}, chunkId: {}", JMSHeader.jobId.getHeader(consumedMessage, Integer.class), JMSHeader.chunkId.getHeader(consumedMessage, Long.class), e);
-            UNHANDLED_EXCEPTIONS.counter().inc();
+            Metric.UNHANDLED_EXCEPTIONS.counter().inc();
             throw new InvalidMessageException(String.format("Uncaught exception: %s", e.getMessage()), e);
         }
     }
@@ -176,8 +173,8 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
             } finally {
                 transaction.commit();
                 Tag tag = new Tag("status", brokerResult == null ? "timeout" : brokerResult.isFailed() ? "failed" : "success");
-                WCIRU_UPDATE.counter(tag).inc();
-                WCIRU_SERVICE_REQUESTS.timer().update(Duration.between(handleChunkItemStartTime, Instant.now()));
+                Metric.WCIRU_UPDATE.counter(tag).inc();
+                Metric.WCIRU_SERVICE_REQUESTS.timer().update(Duration.between(handleChunkItemStartTime, Instant.now()));
             }
         } catch (IllegalArgumentException e) {
             return FormattedOutput.of(e)

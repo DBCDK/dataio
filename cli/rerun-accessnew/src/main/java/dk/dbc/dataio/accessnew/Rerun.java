@@ -41,7 +41,7 @@ public class Rerun {
 
     private void runEnv(Env env) throws SolrServerException, IOException, HarvesterTaskServiceConnectorException {
         try (Http2SolrClient client = new Http2SolrClient.Builder(env.solr).useHttp1_1(true).build()) {
-            SolrQuery query = new SolrQuery("rec.collectionIdentifier:710100\\-inaktive").setFields("rec.manifestationId").setRows(1_000_000);
+            SolrQuery query = new SolrQuery("rec.collectionIdentifier:870970\\-accessnew").setFields("rec.manifestationId").setRows(1_000_000);
             SolrDocumentList results = client.query(query).getResults();
             LOGGER.info("Got {} results from Solr", results.getNumFound());
             HarvesterTaskServiceConnector taskServiceConnector = new HarvesterTaskServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), env.harvester);

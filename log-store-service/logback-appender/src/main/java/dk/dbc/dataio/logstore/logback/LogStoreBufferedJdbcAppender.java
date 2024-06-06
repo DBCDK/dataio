@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@SuppressWarnings("java:S1860")
 public class LogStoreBufferedJdbcAppender extends DBAppenderBase<ILoggingEvent> {
     private static final StackTraceElement EMPTY_CALLER_DATA = CallerData.naInstance();
 
@@ -61,7 +62,7 @@ public class LogStoreBufferedJdbcAppender extends DBAppenderBase<ILoggingEvent> 
                 final String lockObject = getLockObject(trackingId);
                 synchronized (lockObject) {
                     if (!loggingEvents.containsKey(lockObject)) {
-                        loggingEvents.put(lockObject, new ArrayList<ILoggingEvent>());
+                        loggingEvents.put(lockObject, new ArrayList<>());
                     }
                     loggingEvents.get(lockObject).add(event);
                     if (!mdcPropertyMap.containsKey(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY)) {

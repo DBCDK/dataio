@@ -77,6 +77,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         }
     }
 
+    @SuppressWarnings("java:S2095")
     private long getOldestOpenBatch(int dataSetId) {
         String timeZone = SinkConfig.TIMEZONE.asString();
         Query query = entityManagerFactory.createEntityManager().createNativeQuery("select * from batch where dataset = ? and timeofcompletion is null order by timeofcreation", Batch.class);

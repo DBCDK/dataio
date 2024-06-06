@@ -115,6 +115,7 @@ public class SinkResult {
      */
     private void insertChunkItems(List<UpdateMarcXchangeResult> updateMarcXchangeResults) {
         for (UpdateMarcXchangeResult updateMarcXchangeResult : updateMarcXchangeResults) {
+            if(updateMarcXchangeResult == null) throw new IllegalArgumentException("updateMarcXchangeResults contained null element:" + updateMarcXchangeResult);
             String itemData = buildItemData(updateMarcXchangeResult, null);
             if (updateMarcXchangeResult.getUpdateMarcXchangeStatus() == UpdateMarcXchangeStatusEnum.OK) {
                 chunkItems[Integer.parseInt(updateMarcXchangeResult.getMarcXchangeRecordId())] =

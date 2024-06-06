@@ -64,6 +64,7 @@ public class TimeIntervalGenerator implements Iterable<TimeInterval> {
         }
 
         @Override
+        @SuppressWarnings("java:S2272")
         public TimeInterval next() {
             if (endPoint.equals(to)) {
                 return null;

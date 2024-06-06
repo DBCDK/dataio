@@ -118,7 +118,7 @@ public class JobDispatcher {
             ModificationLockedException, OperationExecutionException {
         // Start the infinite polling loop
         //noinspection InfiniteLoopStatement
-        while (true) {
+        while (Gatekeeper.KEEP_RUNNING.get()) {
             final WatchKey key = dirMonitor.poll(1, TimeUnit.MINUTES);
             if(key != null) {
                 for (WatchEvent<?> watchEvent : key.pollEvents()) {

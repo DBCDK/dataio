@@ -64,6 +64,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         registerMetrics(PrometheusMetricRegistry.create());
     }
 
+    @SuppressWarnings({"java:S2095", "unchecked"})
     public void registerMetrics(MetricRegistry metricRegistry) {
         Query query = entityManagerFactory.createEntityManager().createNativeQuery("SELECT * FROM dataset", DataSet.class);
         List<DataSet> dataSets = query.getResultList();
@@ -75,11 +76,13 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
             LOGGER.info("Registered age gauge for dataSet -> {}", dataSet.getId());
         }
     }
+
     private long getOldestOpenBatch(int dataSetId) {
         String timeZone = SinkConfig.TIMEZONE.asString();
-        Query query = entityManagerFactory.createEntityManager().createNativeQuery("select * from batch where dataset = ? and timeofcompletion is null order by timeofcreation asc", Batch.class);
+        Query query = entityManagerFactory.createEntityManager().createNativeQuery("select * from batch where dataset = ? and timeofcompletion is null order by timeofcreation", Batch.class);
         query.setHint(QueryHints.READ_ONLY, true);
         query.setParameter(1, dataSetId);
+        @SuppressWarnings("unchecked")
         List<Batch> batches = query.getResultList();
         if (batches.isEmpty()) return 0;
         ZonedDateTime now = LocalDateTime.now().atZone(ZoneId.of(timeZone));

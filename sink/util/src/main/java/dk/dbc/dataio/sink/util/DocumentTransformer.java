@@ -38,6 +38,7 @@ public class DocumentTransformer {
         documentBuilderFactory.setNamespaceAware(true);
         final TransformerFactory transformerFactory = TransformerFactory.newInstance();
         try {
+            documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             documentBuilder = documentBuilderFactory.newDocumentBuilder();
             transformer = transformerFactory.newTransformer();
         } catch (ParserConfigurationException | TransformerConfigurationException e) {

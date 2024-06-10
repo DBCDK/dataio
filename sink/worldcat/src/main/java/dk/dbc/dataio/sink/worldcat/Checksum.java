@@ -50,12 +50,13 @@ public class Checksum {
 
         private String toString(byte[] digest) {
             final StringBuilder hexString = new StringBuilder(digest.length * 2);
-            final Formatter hexStringFormatter = new Formatter(hexString);
-            for (byte b : digest) {
-                // each java byte is represented as a 2-digit hex string
-                hexStringFormatter.format("%02x", b);
+            try(Formatter hexStringFormatter = new Formatter(hexString)) {
+                for (byte b : digest) {
+                    // each java byte is represented as a 2-digit hex string
+                    hexStringFormatter.format("%02x", b);
+                }
+                return hexString.toString();
             }
-            return hexString.toString();
         }
     }
 }

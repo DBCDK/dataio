@@ -26,6 +26,7 @@ public class WriteAheadLogH2 implements WriteAheadLog {
         this("./gatekeeper.wal");
     }
 
+    @SuppressWarnings("java:S2095")
     public WriteAheadLogH2(String walFile) throws NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(walFile, "walFile");
         final Map<String, String> properties = new HashMap<>();

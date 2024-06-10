@@ -8,6 +8,7 @@ import dk.dbc.marc.binding.SubField;
 
 import java.util.List;
 
+@SuppressWarnings("rawtypes")
 public class AbstractMarcRecord {
 
     MarcRecord body;
@@ -71,17 +72,12 @@ public class AbstractMarcRecord {
 
         for (Field field : body.getFields()) {
             if (fieldName.equals(field.getTag())) {
-                if (subfieldName.equals("")) {
-                    mm.addField(field);
-                } else {
-                    List<SubField> subfields = ((DataField) field).getSubFields();
-                    for (SubField subField : subfields) {
-                        if (subfieldName.equals(subField.getCode())) {
-                            mm.addField(field);
-                            break;
-                        }
+                List<SubField> subfields = ((DataField) field).getSubFields();
+                for (SubField subField : subfields) {
+                    if (subfieldName.equals(subField.getCode())) {
+                        mm.addField(field);
+                        break;
                     }
-
                 }
             }
         }

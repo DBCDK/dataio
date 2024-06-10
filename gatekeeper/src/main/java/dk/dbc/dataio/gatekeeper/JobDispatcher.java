@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 
 
 public class JobDispatcher {
-    public static final long STALLED_TRANSFILE_THRESHOLD_IN_MS = 60 * 60 * 1000; // 1 hour
+    public static final long STALLED_TRANSFILE_THRESHOLD_IN_MS = 60 * 60 * 1000L; // 1 hour
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobDispatcher.class);
     private static final AtomicLong LIVENESS_COUNTER = new AtomicLong(0);
@@ -118,7 +118,7 @@ public class JobDispatcher {
             ModificationLockedException, OperationExecutionException {
         // Start the infinite polling loop
         //noinspection InfiniteLoopStatement
-        while (true) {
+        while (Gatekeeper.KEEP_RUNNING.get()) {
             final WatchKey key = dirMonitor.poll(1, TimeUnit.MINUTES);
             if(key != null) {
                 for (WatchEvent<?> watchEvent : key.pollEvents()) {

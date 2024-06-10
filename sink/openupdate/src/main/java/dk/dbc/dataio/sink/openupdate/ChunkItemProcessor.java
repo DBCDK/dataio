@@ -147,7 +147,8 @@ public class ChunkItemProcessor {
                     Thread.sleep((long) (currentRetry + 1) * retrySleepMillis);
                     return callUpdateService(addiRecord, addiRecordIndex, queueProvider, ++currentRetry);
                 } catch (InterruptedException e2) {
-                    return callUpdateService(addiRecord, addiRecordIndex, queueProvider, ++currentRetry);
+                    Thread.currentThread().interrupt();
+                    return null;
                 }
             } else {
                 return addDiagnosticsForError(e);

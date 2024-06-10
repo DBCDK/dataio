@@ -70,10 +70,8 @@ public class ImsHarvestOperation extends HarvestOperation {
         // Since we might (re)run batches with a size larger than the one currently configured
         final int batchSize = Math.max(configContent.getBatchSize(), recordHarvestTaskQueue.estimatedSize());
 
-        Set<Integer> imsLibraries = null;
-        if (!recordHarvestTaskQueue.isEmpty()) {
-            imsLibraries = vipCoreConnection.getFbsImsLibraries();
-        }
+        if (recordHarvestTaskQueue.isEmpty()) return 0;
+        Set<Integer> imsLibraries = vipCoreConnection.getFbsImsLibraries();
 
         int itemsProcessed = 0;
         RawRepoRecordHarvestTask recordHarvestTask = recordHarvestTaskQueue.poll();

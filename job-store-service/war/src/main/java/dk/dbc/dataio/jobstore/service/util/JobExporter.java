@@ -373,7 +373,7 @@ public class JobExporter {
         private final List<Diagnostic> diagnostics;
 
         static ExportableFailedItem of(ItemEntity itemEntity) {
-            final State.Phase failedPhase = itemEntity.getFailedPhase().get();
+            final State.Phase failedPhase = itemEntity.getFailedPhase().orElseThrow();
             final ChunkItem chunkItem = getExportableChunkItemForFailedPhase(itemEntity, failedPhase);
             final List<Diagnostic> diagnostics = getDiagnosticsForFailedPhase(itemEntity, failedPhase);
             return new ExportableFailedItem(itemEntity.getKey(), failedPhase, chunkItem, diagnostics);
@@ -382,7 +382,6 @@ public class JobExporter {
         private static ChunkItem getExportableChunkItemForFailedPhase(ItemEntity itemEntity, State.Phase failedPhase) {
             switch (failedPhase) {
                 case PARTITIONING:
-                    return itemEntity.getPartitioningOutcome();
                 case PROCESSING:
                     return itemEntity.getPartitioningOutcome();
                 case DELIVERING:

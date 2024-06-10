@@ -113,6 +113,7 @@ public class JsonDataPartitioner implements DataPartitioner {
                 }
             }
 
+            @SuppressWarnings({"ResultOfMethodCallIgnored", "java:S899"})
             @Override
             public DataPartitionerResult next() {
                 if (!positionedAtNextObject) {

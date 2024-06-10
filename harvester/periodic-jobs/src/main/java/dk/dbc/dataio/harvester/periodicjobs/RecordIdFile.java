@@ -44,6 +44,7 @@ public class RecordIdFile implements Iterable<RecordIdDTO>, AutoCloseable {
             }
 
             @Override
+            @SuppressWarnings("java:S2272")
             public RecordIdDTO next() {
                 try {
                     return toRecordId(reader.readLine());

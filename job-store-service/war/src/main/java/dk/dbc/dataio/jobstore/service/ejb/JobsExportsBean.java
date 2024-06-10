@@ -48,7 +48,7 @@ public class JobsExportsBean {
     @GET
     @Path(JobStoreServiceConstants.EXPORT_ITEMS_PARTITIONED)
     @Stopwatch
-    public Response exportItemsPartitioned(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId)
+    public Response exportItemsPartitioned(@PathParam(JobStoreServiceConstants.JOB_ID) int jobId)
             throws URISyntaxException, JobStoreException {
         return exportItemsFromPhase(jobId, State.Phase.PARTITIONING);
     }
@@ -69,7 +69,7 @@ public class JobsExportsBean {
     @Produces({MediaType.APPLICATION_OCTET_STREAM})
     @Stopwatch
     public Response exportItemsFailedDuringPartitioning(
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
             @QueryParam(JobStoreServiceConstants.QUERY_PARAM_FORMAT) ChunkItem.Type format) throws JobStoreException {
         return exportFailedItemsFromPhase(jobId, State.Phase.PARTITIONING, format);
     }
@@ -87,7 +87,7 @@ public class JobsExportsBean {
     @GET
     @Path(JobStoreServiceConstants.EXPORT_ITEMS_PROCESSED)
     @Stopwatch
-    public Response exportItemsProcessed(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId)
+    public Response exportItemsProcessed(@PathParam(JobStoreServiceConstants.JOB_ID) int jobId)
             throws URISyntaxException, JobStoreException {
         return exportItemsFromPhase(jobId, State.Phase.PROCESSING);
     }
@@ -108,7 +108,7 @@ public class JobsExportsBean {
     @Produces({MediaType.APPLICATION_OCTET_STREAM})
     @Stopwatch
     public Response exportItemsFailedDuringProcessing(
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
             @QueryParam(JobStoreServiceConstants.QUERY_PARAM_FORMAT) ChunkItem.Type format) throws JobStoreException {
         return exportFailedItemsFromPhase(jobId, State.Phase.PROCESSING, format);
     }
@@ -126,7 +126,7 @@ public class JobsExportsBean {
     @GET
     @Path(JobStoreServiceConstants.EXPORT_ITEMS_DELIVERED)
     @Stopwatch
-    public Response exportItemsDelivered(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId)
+    public Response exportItemsDelivered(@PathParam(JobStoreServiceConstants.JOB_ID) int jobId)
             throws URISyntaxException, JobStoreException {
         return exportItemsFromPhase(jobId, State.Phase.DELIVERING);
     }
@@ -147,7 +147,7 @@ public class JobsExportsBean {
     @Produces({MediaType.APPLICATION_OCTET_STREAM})
     @Stopwatch
     public Response exportItemsFailedDuringDelivery(
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
             @QueryParam(JobStoreServiceConstants.QUERY_PARAM_FORMAT) ChunkItem.Type format) throws JobStoreException {
         return exportFailedItemsFromPhase(jobId, State.Phase.DELIVERING, format);
     }

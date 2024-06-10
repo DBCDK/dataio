@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.Tools;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -63,6 +64,7 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
         registerMetrics(PrometheusMetricRegistry.create());
     }
 
+    @SuppressWarnings({"java:S2095", "unchecked"})
     public void registerMetrics(MetricRegistry metricRegistry) {
         Query query = entityManagerFactory.createEntityManager().createNativeQuery("SELECT * FROM dataset", DataSet.class);
         List<DataSet> dataSets = query.getResultList();
@@ -74,11 +76,14 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
             LOGGER.info("Registered age gauge for dataSet -> {}", dataSet.getId());
         }
     }
+
+    @SuppressWarnings("java:S2095")
     private long getOldestOpenBatch(int dataSetId) {
         String timeZone = SinkConfig.TIMEZONE.asString();
-        Query query = entityManagerFactory.createEntityManager().createNativeQuery("select * from batch where dataset = ? and timeofcompletion is null order by timeofcreation asc", Batch.class);
+        Query query = entityManagerFactory.createEntityManager().createNativeQuery("select * from batch where dataset = ? and timeofcompletion is null order by timeofcreation", Batch.class);
         query.setHint(QueryHints.READ_ONLY, true);
         query.setParameter(1, dataSetId);
+        @SuppressWarnings("unchecked")
         List<Batch> batches = query.getResultList();
         if (batches.isEmpty()) return 0;
         ZonedDateTime now = LocalDateTime.now().atZone(ZoneId.of(timeZone));
@@ -103,18 +108,14 @@ public class TickleMessageConsumer extends MessageConsumerAdapter {
             Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
             if (chunk.isTerminationChunk()) {
                 LOGGER.info("Got the termination chunk {} for batch {}", chunk.getTrackingId(), batch.getId());
-                try {
-                    // Give the before-last message enough time to commit
-                    // its records to the tickle-repo before initiating
-                    // the finalization process.
-                    // (The result is uploaded to the job-store before the
-                    // implicit commit, so without the sleep pause, there was a
-                    // small risk that the end-chunk would reach this bean
-                    // before all data was available.)
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                // Give the before-last message enough time to commit
+                // its records to the tickle-repo before initiating
+                // the finalization process.
+                // (The result is uploaded to the job-store before the
+                // implicit commit, so without the sleep pause, there was a
+                // small risk that the end-chunk would reach this bean
+                // before all data was available.)
+                Tools.sleep(5000);
                 result.insertItem(handleJobEnd(chunk.getItems().get(0), batch, tickleRepo));
             } else {
                 IdentityHashMap<ChunkItem, List<ExpandedChunkItem>> expandChunkItems = expandChunkItems(chunk);

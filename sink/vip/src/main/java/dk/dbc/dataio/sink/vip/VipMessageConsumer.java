@@ -126,6 +126,7 @@ public class VipMessageConsumer extends MessageConsumerAdapter {
         }
     }
 
+    @SuppressWarnings("java:S2095")
     private VipCoreConnector createVipCoreConnector(VipSinkConfig config) {
         if (vipCoreConnector != null) {
             vipCoreConnector.close();

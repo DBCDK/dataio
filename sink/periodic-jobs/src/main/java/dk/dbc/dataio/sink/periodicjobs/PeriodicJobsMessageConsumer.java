@@ -12,6 +12,7 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.Tools;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
@@ -57,6 +58,7 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
 
     WeekResolverConnector weekResolverConnector;
 
+    @SuppressWarnings("java:S2095")
     public PeriodicJobsMessageConsumer(ServiceHub serviceHub, EntityManagerFactory entityManagerFactory) {
         super(serviceHub);
         this.entityManagerFactory = entityManagerFactory;
@@ -106,18 +108,14 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
             Chunk result;
             transaction.begin();
             if (chunk.isTerminationChunk()) {
-                try {
-                    // Give the before-last message enough time to commit
-                    // its datablocks to the database before initiating
-                    // the finalization process.
-                    // (The result is uploaded to the job-store before the
-                    // implicit commit, so without the sleep pause, there was a
-                    // small risk that the end-chunk would reach this bean
-                    // before all data was available.)
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                // Give the before-last message enough time to commit
+                // its datablocks to the database before initiating
+                // the finalization process.
+                // (The result is uploaded to the job-store before the
+                // implicit commit, so without the sleep pause, there was a
+                // small risk that the end-chunk would reach this bean
+                // before all data was available.)
+                Tools.sleep(5000);
                 result = periodicJobsFinalizerBean.handleTerminationChunk(chunk, entityManager);
             } else {
                 result = handleChunk(chunk, entityManager);

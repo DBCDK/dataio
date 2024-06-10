@@ -13,6 +13,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
@@ -40,6 +41,10 @@ public class Hazelcast implements ServletContextListener {
         config.setInstanceName(System.getenv("HOSTNAME"));
         config.setClassLoader(Hazelcast.class.getClassLoader());
         return config;
+    }
+
+    public static void executeOnAll(Callable callable) {
+        INSTANCE.getExecutorService("default").submitToAllMembers(callable);
     }
 
     private static HazelcastInstance getInstance() {

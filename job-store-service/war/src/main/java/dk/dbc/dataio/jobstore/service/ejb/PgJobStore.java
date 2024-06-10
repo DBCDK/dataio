@@ -15,6 +15,7 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -23,6 +24,7 @@ import dk.dbc.dataio.jobstore.service.param.AddAccTestJobParam;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
+import dk.dbc.dataio.jobstore.service.util.RemotePartitioning;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
@@ -191,7 +193,7 @@ public class PgJobStore {
                     .withTypeOfDataPartitioner(addJobParam.getTypeOfDataPartitioner())
                     .withIncludeFilter(includeFilter));
 
-            self().partitionNextJobForSinkIfAvailable(sink);
+            Hazelcast.executeOnAll(new RemotePartitioning(sink));
         } else {
             final Submitter submitter = addJobParam.getSubmitter();
             if (submitter == null || submitter.getContent().isEnabled()) {

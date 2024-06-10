@@ -247,7 +247,10 @@ public class HarvestOperation {
             }
 
             return jobBuilder.getRecordsAdded();
-        } catch (InterruptedException | ExecutionException | JobStoreServiceConnectorException e) {
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            return 0;
+        } catch (ExecutionException | JobStoreServiceConnectorException e) {
             LOGGER.error("Harvest operation exception:", e);
             throw new HarvesterException("Unable to complete harvest operation", e);
         } finally {

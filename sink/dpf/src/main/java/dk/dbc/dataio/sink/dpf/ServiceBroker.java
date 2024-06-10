@@ -29,6 +29,7 @@ import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
 import dk.dbc.weekresolver.model.WeekResolverResult;
+import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
@@ -58,22 +59,15 @@ public class ServiceBroker {
     public final ConfigBean configBean;
     private DpfSinkConfig config;
 
+    @SuppressWarnings("java:S2095")
     public ServiceBroker() {
         configBean = new ConfigBean();
-        lobbyConnector = new LobbyConnector(ClientBuilder.newClient().register(new JacksonFeature()), LOBBY_SERVICE_URL.asString());
-        doubleRecordCheckConnector = new UpdateServiceDoubleRecordCheckConnector(ClientBuilder.newClient().register(new JacksonFeature()), UPDATE_SERVICE_URL.asString());
-        recordServiceConnector = new RecordServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), RAWREPO_RECORD_SERVICE_URL.asString());
-        weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient().register(new JacksonFeature()), WEEKRESOLVER_SERVICE_URL.asString());
-        opennumberRollConnector = new OpennumberRollConnector(ClientBuilder.newClient().register(new JacksonFeature()), OPENNUMBERROLL_SERVICE_URL.asString());
-    }
-
-    public ServiceBroker(WeekResolverConnector weekResolverConnector) {
-        this.weekResolverConnector = weekResolverConnector;
-        configBean = null;
-        lobbyConnector = null;
-        doubleRecordCheckConnector = null;
-        recordServiceConnector = null;
-        opennumberRollConnector = null;
+        Client client = ClientBuilder.newClient().register(new JacksonFeature());
+        lobbyConnector = new LobbyConnector(client, LOBBY_SERVICE_URL.asString());
+        doubleRecordCheckConnector = new UpdateServiceDoubleRecordCheckConnector(client, UPDATE_SERVICE_URL.asString());
+        recordServiceConnector = new RecordServiceConnector(client, RAWREPO_RECORD_SERVICE_URL.asString());
+        weekResolverConnector = new WeekResolverConnector(client, WEEKRESOLVER_SERVICE_URL.asString());
+        opennumberRollConnector = new OpennumberRollConnector(client, OPENNUMBERROLL_SERVICE_URL.asString());
     }
 
     public void sendToLobby(DpfRecord dpfRecord) throws LobbyConnectorException, JsonProcessingException {
@@ -144,5 +138,4 @@ public class ServiceBroker {
         }
         return openUpdateConnector;
     }
-
 }

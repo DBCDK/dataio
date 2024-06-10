@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@SuppressWarnings("java:S1860")
 public class LogStoreMergingJdbcAppender extends DBAppenderBase<ILoggingEvent> {
     private static final StackTraceElement EMPTY_CALLER_DATA = CallerData.naInstance();
     private static final String LOG_FORMAT_WITHOUT_STACKTRACE = "%s %s %s %s%n";

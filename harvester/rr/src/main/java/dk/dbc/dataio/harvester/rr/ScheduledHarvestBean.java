@@ -86,6 +86,8 @@ public class ScheduledHarvestBean {
                         final Integer recordsHarvested = harvest.getValue().get();
                         LOGGER.info("Scheduled harvest for '{}' harvested {} records",
                                 harvest.getKey(), recordsHarvested);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
                     } catch (Exception e) {
                         LOGGER.error("Exception caught from scheduled harvest for '{}'", harvest.getKey(), e);
                     }

@@ -159,7 +159,9 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
     public Iterator<DataPartitionerResult> iterator() throws UnrecoverableDataException, PrematureEndOfDataException {
         if (iterator == null) {
             try {
-                xmlReader = XMLInputFactory.newFactory().createXMLEventReader(inputStream);
+                XMLInputFactory factory = XMLInputFactory.newFactory();
+                factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+                xmlReader = factory.createXMLEventReader(inputStream);
                 findPreRecordEvents();
                 findRootTagFromPreRecordEvents();
                 validateEncoding();

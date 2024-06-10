@@ -67,6 +67,7 @@ public class JPATestUtils {
         }
         entityManagerProperties.put("eclipselink.logging.level", "FINE");
 
+        @SuppressWarnings("resource")
         final EntityManagerFactory entityManagerFactory = Persistence
                 .createEntityManagerFactory(persistenceUnitName, entityManagerProperties);
         return entityManagerFactory.createEntityManager(entityManagerProperties);

@@ -27,6 +27,7 @@ public class ConfigBean {
     private DpfSinkConfig config;
     private String queueProvider;
 
+    @SuppressWarnings("java:S2095")
     public ConfigBean() {
         flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FLOWSTORE_URL.asString());
     }

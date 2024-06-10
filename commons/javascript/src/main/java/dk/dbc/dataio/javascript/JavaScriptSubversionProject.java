@@ -262,14 +262,13 @@ public class JavaScriptSubversionProject {
     }
 
     private static Path createTmpDirectory(String prefix) {
-        Path folder = null;
         try {
-            folder = Files.createTempDirectory(Paths.get(System.getProperty("java.io.tmpdir")), prefix);
+            Path folder = Files.createTempDirectory(Paths.get(System.getProperty("java.io.tmpdir")), prefix);
             LOGGER.trace("Created temporary folder {}", folder);
+            return folder;
         } catch (IOException e) {
-            LOGGER.error("Error creating temporary folder", e);
+            throw new IllegalStateException("Error creating temporary folder for prefix: " + prefix, e);
         }
-        return folder;
     }
 
     private static void deleteFolder(Path folder) {

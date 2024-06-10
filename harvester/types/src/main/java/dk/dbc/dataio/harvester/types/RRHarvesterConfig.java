@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content> implements Serializable {
     private static final long serialVersionUID = 3701420845816493033L;
@@ -308,21 +309,17 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             if (includeRelations != content.includeRelations) return false;
             if (includeLibraryRules != content.includeLibraryRules) return false;
             if (batchSize != content.batchSize) return false;
-            if (id != null ? !id.equals(content.id) : content.id != null) return false;
-            if (description != null ? !description.equals(content.description) : content.description != null)
-                return false;
-            if (resource != null ? !resource.equals(content.resource) : content.resource != null) return false;
-            if (consumerId != null ? !consumerId.equals(content.consumerId) : content.consumerId != null) return false;
-            if (destination != null ? !destination.equals(content.destination) : content.destination != null)
-                return false;
+            if (!Objects.equals(id, content.id)) return false;
+            if (!Objects.equals(description, content.description)) return false;
+            if (!Objects.equals(resource, content.resource)) return false;
+            if (!Objects.equals(consumerId, content.consumerId)) return false;
+            if (!Objects.equals(destination, content.destination)) return false;
             if (type != content.type) return false;
-            if (format != null ? !format.equals(content.format) : content.format != null) return false;
-            if (formatOverrides != null ? !formatOverrides.equals(content.formatOverrides) : content.formatOverrides != null)
-                return false;
+            if (!Objects.equals(format, content.format)) return false;
+            if (!formatOverrides.equals(content.formatOverrides)) return false;
             if (harvesterType != content.harvesterType) return false;
-            if (imsHoldingsTarget != null ? !imsHoldingsTarget.equals(content.imsHoldingsTarget) : content.imsHoldingsTarget != null)
-                return false;
-            return note != null ? note.equals(content.note) : content.note == null;
+            if (!Objects.equals(imsHoldingsTarget, content.imsHoldingsTarget)) return false;
+            return Objects.equals(note, content.note);
         }
 
         @Override

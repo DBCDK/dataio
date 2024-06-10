@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 @LocalBean
 public class RRHarvesterServiceConnectorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(RRHarvesterServiceConnectorBean.class);
+    private Client client;
 
     HarvesterTaskServiceConnector harvesterTaskServiceConnector;
 
@@ -34,6 +35,7 @@ public class RRHarvesterServiceConnectorBean {
         init(System.getenv("RAWREPO_HARVESTER_URL"));
     }
 
+    @SuppressWarnings("java:S2095")
     private void init(String endpoint) {
         Client client = ClientBuilder.newClient().register(new JacksonFeature());
         if (endpoint == null || endpoint.trim().isEmpty()) {
@@ -51,4 +53,5 @@ public class RRHarvesterServiceConnectorBean {
     public void tearDownConnector() {
         HttpClient.closeClient(harvesterTaskServiceConnector.getHttpClient());
     }
+
 }

@@ -199,12 +199,6 @@ public class AdminBean {
         return Response.ok("ok").build();
     }
 
-    @POST
-    @Path(JobStoreServiceConstants.FORCE_DEPENDENCY_TRACKING_RETRANSMIT)
-    public Response retransmit() {
-        return retransmitJobs(null);
-    }
-
     @SuppressWarnings("UnresolvedRestParam")
     @POST
     @Path(JobStoreServiceConstants.FORCE_DEPENDENCY_TRACKING_RETRANSMIT_ID)

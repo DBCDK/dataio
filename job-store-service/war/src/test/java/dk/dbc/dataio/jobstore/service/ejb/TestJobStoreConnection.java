@@ -45,7 +45,7 @@ public class TestJobStoreConnection {
         chunkToSend.addAllItems(chunk.getItems());
 
         final PathBuilder path = new PathBuilder(chunkTypeToPath(chunkType))
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, chunkToSend.getJobId())
+                .bind(JobStoreServiceConstants.JOB_ID, chunkToSend.getJobId())
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkToSend.getChunkId());
         final Response response = HttpClient.doPostWithJson(httpClient, chunkToSend, jobStoreUrl, path.build());
 

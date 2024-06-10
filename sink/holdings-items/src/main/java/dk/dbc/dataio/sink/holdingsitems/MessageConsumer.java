@@ -111,7 +111,7 @@ public class MessageConsumer extends MessageConsumerAdapter {
                     try {
                         Status status = callSetHoldings(holdingsItems);
                         resultStatus.append(String.format("%s:%d consumer service response - %s\n",
-                                holdingsItems.getBibliographicRecordId(), holdingsItems.getAgencyId(), status.getText()));
+                                holdingsItems.getBibliographicRecordId(), holdingsItems.getAgencyId(), status == null ? "<null>" : status.getText()));
                     } catch (SolrDocStoreConnectorUnexpectedStatusCodeException e) {
                         String error = "status code " + e.getStatusCode();
                         if (e.getStatus() != null) {

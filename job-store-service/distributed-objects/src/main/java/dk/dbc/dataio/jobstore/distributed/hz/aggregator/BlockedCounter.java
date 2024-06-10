@@ -30,7 +30,6 @@ public class BlockedCounter implements Aggregator<Map.Entry<TrackingKey, Depende
     }
 
     @Override
-
     public Map<Integer, Integer> aggregate() {
         return map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
     }

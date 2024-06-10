@@ -1,5 +1,6 @@
 package dk.dbc.oclc.wciru;
 
+import dk.dbc.dataio.commons.types.Tools;
 import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import dk.dbc.invariant.InvariantUtil;
 import jakarta.xml.ws.BindingProvider;
@@ -312,11 +313,7 @@ public class WciruServiceConnector {
                         diagnostic, retryScheme.maxNumberOfRetries);
             }
             retryCounter++;
-            try {
-                Thread.sleep(retryScheme.millisecondsToSleepBetweenRetries);
-            } catch (InterruptedException ex) {
-                LOGGER.warn("Interrupted exception was caught during sleep", ex);
-            }
+            Tools.sleep(retryScheme.millisecondsToSleepBetweenRetries);
         } while (retryCounter <= retryScheme.maxNumberOfRetries);
 
         return response;

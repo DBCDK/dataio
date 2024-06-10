@@ -71,6 +71,8 @@ public abstract class AbstractScheduledHarvestBean<T extends AbstractHarvesterBe
                         final Integer recordsHarvested = harvest.getValue().get();
                         getLogger().info("Scheduled harvest for '{}' harvested {} records",
                                 harvest.getKey(), recordsHarvested);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
                     } catch (Exception e) {
                         getLogger().error("Exception caught from scheduled harvest for '{}'", harvest.getKey(), e);
                     }

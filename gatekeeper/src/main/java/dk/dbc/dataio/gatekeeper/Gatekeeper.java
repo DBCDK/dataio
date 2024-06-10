@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gatekeeper;
 
+import dk.dbc.dataio.commons.types.Tools;
 import dk.dbc.dataio.gatekeeper.wal.ModificationLockedException;
 import dk.dbc.dataio.gatekeeper.wal.WriteAheadLog;
 import dk.dbc.dataio.gatekeeper.wal.WriteAheadLogH2;
@@ -10,11 +11,13 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Gatekeeper {
     private static final Logger LOGGER = LoggerFactory.getLogger(Gatekeeper.class);
 
     private final JobDispatcher jobDispatcher;
+    public static final AtomicBoolean KEEP_RUNNING = new AtomicBoolean(true);
 
     public static void main(String[] args) throws InterruptedException, ParseException, ModificationLockedException {
         Util.parseCommandLine(args);
@@ -26,7 +29,7 @@ public class Gatekeeper {
         registerShutdownHook(shutdownManager);
 
         Gatekeeper gatekeeper = new Gatekeeper(dir, fileStoreServiceUrl, jobStoreServiceUrl, shutdownManager);
-        while (true) {
+        while (KEEP_RUNNING.get()) {
             gatekeeper.standGuard();
         }
     }
@@ -37,18 +40,17 @@ public class Gatekeeper {
         jobDispatcher = new JobDispatcher(dir, wal, connectorFactory, shutdownManager);
     }
 
-    public void standGuard() throws InterruptedException, ModificationLockedException {
+    public void standGuard() throws ModificationLockedException {
         try {
             jobDispatcher.execute();
         } catch (InterruptedException e) {
-            LOGGER.warn("Job dispatcher was interrupted", e);
-            throw e;
+            Thread.currentThread().interrupt();
         } catch (ModificationLockedException e) {
             LOGGER.error("Job dispatcher caught WAL exception", e);
             throw e;
         } catch (Exception e) {
             LOGGER.error("Caught exception from job dispatcher - restarting guard operation", e);
-            Thread.sleep(1000);
+            Tools.sleep(1000);
         }
     }
 
@@ -57,15 +59,12 @@ public class Gatekeeper {
             @Override
             public void run() {
                 shutdownManager.signalShutdownInProgress();
+                KEEP_RUNNING.set(false);
                 // Wait up to 30 seconds giving the job dispatcher a chance to finish.
                 for (int i = 0; i < 30; i++) {
                     if (shutdownManager.isReadyToExit())
                         break;
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        LOGGER.warn("Interrupted in shutdown hook", e);
-                    }
+                    Tools.sleep(1000);
                     if (!shutdownManager.isReadyToExit()) {
                         LOGGER.error("Shutdown while job dispatcher in busy state - system corruption possible!");
                     }

@@ -17,6 +17,7 @@ import java.util.Optional;
 
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
+@SuppressWarnings("java:S2259")
 public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceException> {
     private static final Logger LOGGER = LoggerFactory.getLogger(PersistenceExceptionMapper.class);
 
@@ -50,7 +51,7 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
             if (throwable instanceof PSQLException) {
                 final PSQLException psqlException = (PSQLException) throwable;
                 final ServerErrorMessage serverErrorMessage = psqlException.getServerErrorMessage();
-                return Optional.ofNullable(serverErrorMessage.getSQLState());
+                return Optional.ofNullable(serverErrorMessage).map(ServerErrorMessage::getSQLState);
             }
         }
         return Optional.empty();

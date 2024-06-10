@@ -34,6 +34,7 @@ import java.io.StringWriter;
  * so make sure to use appropriate memory analysis tools to verify correct behaviour.
  * </p>
  */
+@SuppressWarnings("java:S5164")
 public class JaxpUtil {
 
     /**

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jse.artemis.common.app;
 
+import dk.dbc.dataio.commons.types.Tools;
 import dk.dbc.dataio.jse.artemis.common.Config;
 import dk.dbc.dataio.jse.artemis.common.Metric;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumer;
@@ -80,10 +81,10 @@ public abstract class MessageConsumerApp {
                 }
             } catch (JMSRuntimeException e) {
                 LOGGER.error("Failed to connect to artemis on {} retrying in {}s", Config.getBrokerUrl(), RECONNECT_DELAY.toSeconds(), e);
-                sleep(RECONNECT_DELAY);
+                Tools.sleep(RECONNECT_DELAY);
             } catch (RuntimeException e) {
                 LOGGER.error("Caught generic exception in listener loop", e);
-                sleep(RECONNECT_DELAY);
+                Tools.sleep(RECONNECT_DELAY);
             }
         }
     }
@@ -111,7 +112,7 @@ public abstract class MessageConsumerApp {
             }
         } catch (IllegalStateRuntimeException ie) {
             LOGGER.info("Artemis connection broke, reconnecting", ie);
-            sleep(Duration.ofSeconds(1));
+            Tools.sleep(1000);
         } catch (Throwable t) {
             if(t instanceof Error) {
                 LOGGER.error("Message loop caught a critical error, shutting down!", t);
@@ -120,14 +121,6 @@ public abstract class MessageConsumerApp {
             }
             LOGGER.warn("Rolling back message {}", messageId, t);
             context.rollback();
-        }
-    }
-
-    private void sleep(Duration duration) {
-        try {
-            Thread.sleep(duration.toMillis());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 }

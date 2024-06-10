@@ -49,6 +49,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -64,7 +65,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class LHRRetriever {
+public class LHRRetriever implements Closeable {
+    private final Client client;
     private final DataSource dataSource;
     private final RawRepoConnector rawRepoConnector;
     private final RecordServiceConnector rawRepoRecordServiceConnector;
@@ -77,8 +79,7 @@ public class LHRRetriever {
             ConfigurationException, QueueException, ConfigParseException {
         ConfigJson config = ConfigJson.parseConfig(arguments.configPath);
         dataSource = setupDataSource(config);
-        final Client client = HttpClient.newClient(new ClientConfig()
-                .register(new JacksonFeature()));
+        client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
         rawRepoConnector = setupRRConnector(dataSource);
         rawRepoRecordServiceConnector = RecordServiceConnectorFactory.create(rawRepoConnector.getRecordServiceUrl());
         ocn2PidServiceConnector = new Ocn2PidServiceConnector(
@@ -91,18 +92,20 @@ public class LHRRetriever {
     }
 
     public static void main(String[] args) {
+        LHRRetriever lhrRetriever = null;
         try {
             Arguments arguments = Arguments.parseArgs(args);
-            LHRRetriever lhrRetriever = new LHRRetriever(arguments);
+            lhrRetriever = new LHRRetriever(arguments);
             List<Script> scripts = lhrRetriever.getJavascriptsFromFlow(
                     arguments.flowName);
             byte[] records = lhrRetriever.processRecordsWithLHR(scripts);
             lhrRetriever.writeLHRToFile(arguments.outputPath, records);
         } catch (ArgParseException | SQLException | ConfigParseException |
                  LHRRetrieverException | QueueException | ConfigurationException e) {
-            System.err.println(String.format("unexpected error: %s",
-                    e.toString()));
+            System.err.println("unexpected error: " + e);
             System.exit(1);
+        } finally {
+            if(lhrRetriever != null) lhrRetriever.close();
         }
     }
 
@@ -346,5 +349,10 @@ public class LHRRetriever {
      */
     private RawRepoConnector setupRRConnector(DataSource dataSource) {
         return new RawRepoConnector(dataSource);
+    }
+
+    @Override
+    public void close() {
+        client.close();
     }
 }

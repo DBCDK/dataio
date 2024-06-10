@@ -1,10 +1,12 @@
 package dk.dbc.dataio.jobstore.types;
 
-public class PrematureEndOfDataException extends RuntimeException {
+import java.util.NoSuchElementException;
+
+public class PrematureEndOfDataException extends NoSuchElementException {
     public PrematureEndOfDataException() {
     }
 
     public PrematureEndOfDataException(Throwable cause) {
-        super(cause);
+        initCause(cause);
     }
 }

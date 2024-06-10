@@ -1,7 +1,8 @@
 package dk.dbc.dataio.commons.types.rest;
 
 public class JobStoreServiceConstants {
-    public static final String JOB_ID_VARIABLE = "jobId";
+    public static final String JOB_ID = "jobId";
+    public static final String STATUS = "status";
     public static final String CHUNK_ID_VARIABLE = "chunkId";
     public static final String ITEM_ID_VARIABLE = "itemId";
     public static final String SINK_ID_VARIABLE = "sinkId";

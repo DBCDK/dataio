@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStore;
 import jakarta.enterprise.concurrent.ManagedExecutorService;
 
@@ -18,7 +17,6 @@ public class RemotePartitioning implements Serializable, Callable<Void> {
 
     @Override
     public Void call() throws Exception {
-        if (Hazelcast.isSlave()) return null;
         InitialContext ctx = new InitialContext();
         ManagedExecutorService executorSvc = (ManagedExecutorService) ctx.lookup("java:comp/DefaultManagedScheduledExecutorService");
         PgJobStore jobStore = (PgJobStore) ctx.lookup("java:global/jobstore/PgJobStore");

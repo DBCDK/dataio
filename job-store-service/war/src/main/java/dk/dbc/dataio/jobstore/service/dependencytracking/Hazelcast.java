@@ -46,12 +46,6 @@ public class Hazelcast implements ServletContextListener {
 
     public static void executeOnMaster(Callable callable) {
         IExecutorService svc = INSTANCE.getExecutorService("default");
-        if(svc == null) {
-            try {
-                callable.call();
-            } catch (Exception e) {
-            }
-        }
         svc.submitToMember(callable, master());
     }
 

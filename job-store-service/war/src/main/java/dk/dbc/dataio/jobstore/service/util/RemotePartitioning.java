@@ -18,10 +18,10 @@ public class RemotePartitioning implements Serializable, Callable<Void> {
 
     @Override
     public Void call() throws Exception {
-        if(Hazelcast.isSlave()) return null;
+        if (Hazelcast.isSlave()) return null;
         InitialContext ctx = new InitialContext();
-        ManagedExecutorService executorSvc = (ManagedExecutorService)ctx.lookup("java:comp/DefaultManagedScheduledExecutorService");
-        PgJobStore jobStore = (PgJobStore)ctx.lookup("java:comp/PgJobStore");
+        ManagedExecutorService executorSvc = (ManagedExecutorService) ctx.lookup("java:comp/DefaultManagedScheduledExecutorService");
+        PgJobStore jobStore = (PgJobStore) ctx.lookup("java:global/jobstore/PgJobStore");
         executorSvc.runAsync(() -> jobStore.partitionNextJobForSinkIfAvailable(sink));
         return null;
     }

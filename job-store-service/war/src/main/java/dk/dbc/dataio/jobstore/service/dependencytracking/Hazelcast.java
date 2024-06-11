@@ -4,6 +4,7 @@ import com.hazelcast.cluster.Member;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IExecutorService;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 import org.slf4j.Logger;
@@ -43,8 +44,15 @@ public class Hazelcast implements ServletContextListener {
         return config;
     }
 
-    public static void executeOnAll(Callable callable) {
-        INSTANCE.getExecutorService("default").submitToAllMembers(callable);
+    public static void executeOnMaster(Callable callable) {
+        IExecutorService svc = INSTANCE.getExecutorService("default");
+        if(svc == null) {
+            try {
+                callable.call();
+            } catch (Exception e) {
+            }
+        }
+        svc.submitToMember(callable, master());
     }
 
     private static HazelcastInstance getInstance() {
@@ -59,8 +67,12 @@ public class Hazelcast implements ServletContextListener {
         INSTANCE = instance;
     }
 
+    public static Member master() {
+        return INSTANCE.getCluster().getMembers().stream().findFirst().orElseThrow(() -> new IllegalStateException("Hazelcast cluster has no master"));
+    }
+
     public static boolean isMaster() {
-        return INSTANCE.getCluster().getMembers().stream().findFirst().map(Member::localMember).orElse(false);
+        return master().localMember();
     }
 
     public static boolean isSlave() {

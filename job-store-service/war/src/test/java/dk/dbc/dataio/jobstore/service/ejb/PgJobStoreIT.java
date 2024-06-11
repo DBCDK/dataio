@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitter;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
@@ -37,6 +38,7 @@ import types.TestableAddJobParamBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOError;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -1031,7 +1033,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * Then : the next processing outcome returned contains the the correct data.
      */
     @Test
-    public void getNextProcessingOutcome() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void getNextProcessingOutcome() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException, IOException {
         // Given...
         final int chunkId = 1;                  // second chunk is used, hence the chunk id is 1.
         final PgJobStore pgJobStore = newPgJobStore();
@@ -1131,7 +1133,12 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     private PgJobStore newPgJobStore() throws FileStoreServiceConnectorException {
 
         // Subjects Under Test -> hence no mocks!
-        final PgJobStore pgJobStore = new PgJobStore();
+        final PgJobStore pgJobStore = new PgJobStore() {
+            @Override
+            protected void startPartitioner(Sink sink) {
+                partitionNextJobForSinkIfAvailable(sink);
+            }
+        };
         pgJobStore.entityManager = entityManager;
 
         pgJobStore.jobStoreRepository = new PgJobStoreRepository();

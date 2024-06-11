@@ -192,8 +192,7 @@ public class PgJobStore {
                     .withSinkId(sink.getId())
                     .withTypeOfDataPartitioner(addJobParam.getTypeOfDataPartitioner())
                     .withIncludeFilter(includeFilter));
-
-            Hazelcast.executeOnAll(new RemotePartitioning(sink));
+            startPartitioner(sink);
         } else {
             final Submitter submitter = addJobParam.getSubmitter();
             if (submitter == null || submitter.getContent().isEnabled()) {
@@ -202,6 +201,10 @@ public class PgJobStore {
         }
 
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
+    }
+
+    protected void startPartitioner(Sink sink) {
+        Hazelcast.executeOnMaster(new RemotePartitioning(sink));
     }
 
 

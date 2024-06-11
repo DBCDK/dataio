@@ -19,7 +19,7 @@ public class RemotePartitioning implements Serializable, Callable<Void> {
     public Void call() throws Exception {
         InitialContext ctx = new InitialContext();
         ManagedExecutorService executorSvc = (ManagedExecutorService) ctx.lookup("java:comp/DefaultManagedScheduledExecutorService");
-        PgJobStore jobStore = (PgJobStore) ctx.lookup("java:global/jobstore/PgJobStore");
+        PgJobStore jobStore = (PgJobStore) ctx.lookup(PgJobStore.PG_JOB_STORE_JNDI);
         executorSvc.runAsync(() -> jobStore.partitionNextJobForSinkIfAvailable(sink));
         return null;
     }

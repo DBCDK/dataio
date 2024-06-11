@@ -71,6 +71,7 @@ import java.util.stream.Stream;
 @Stateless
 public class PgJobStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStore.class);
+    public static final String PG_JOB_STORE_JNDI = "java:global/jobstore/PgJobStore";
     private static final int MAX_NUMBER_OF_JOB_RETRIES = 1;
     private static final long FOUR_GIBIBYTE = 4 * 1024 * 1024 * 1024L;
 

@@ -15,6 +15,7 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -23,6 +24,7 @@ import dk.dbc.dataio.jobstore.service.param.AddAccTestJobParam;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
+import dk.dbc.dataio.jobstore.service.util.RemotePartitioning;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
@@ -69,6 +71,7 @@ import java.util.stream.Stream;
 @Stateless
 public class PgJobStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStore.class);
+    public static final String PG_JOB_STORE_JNDI = "java:global/jobstore/PgJobStore";
     private static final int MAX_NUMBER_OF_JOB_RETRIES = 1;
     private static final long FOUR_GIBIBYTE = 4 * 1024 * 1024 * 1024L;
 
@@ -190,8 +193,7 @@ public class PgJobStore {
                     .withSinkId(sink.getId())
                     .withTypeOfDataPartitioner(addJobParam.getTypeOfDataPartitioner())
                     .withIncludeFilter(includeFilter));
-
-            self().partitionNextJobForSinkIfAvailable(sink);
+            startPartitioner(sink);
         } else {
             final Submitter submitter = addJobParam.getSubmitter();
             if (submitter == null || submitter.getContent().isEnabled()) {
@@ -200,6 +202,10 @@ public class PgJobStore {
         }
 
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
+    }
+
+    protected void startPartitioner(Sink sink) {
+        Hazelcast.executeOnMaster(new RemotePartitioning(sink));
     }
 
 

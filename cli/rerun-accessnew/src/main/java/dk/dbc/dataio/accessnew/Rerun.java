@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
+import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -40,11 +41,11 @@ public class Rerun {
     }
 
     private void runEnv(Env env) throws SolrServerException, IOException, HarvesterTaskServiceConnectorException {
-        try (Http2SolrClient client = new Http2SolrClient.Builder(env.solr).useHttp1_1(true).build()) {
+        try (Http2SolrClient client = new Http2SolrClient.Builder(env.solr).useHttp1_1(true).build(); Client httpClient = ClientBuilder.newClient().register(new JacksonFeature())) {
             SolrQuery query = new SolrQuery("rec.collectionIdentifier:870970\\-accessnew").setFields("rec.manifestationId").setRows(1_000_000);
             SolrDocumentList results = client.query(query).getResults();
             LOGGER.info("Got {} results from Solr", results.getNumFound());
-            HarvesterTaskServiceConnector taskServiceConnector = new HarvesterTaskServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), env.harvester);
+            HarvesterTaskServiceConnector taskServiceConnector = new HarvesterTaskServiceConnector(httpClient, env.harvester);
             List<AddiMetaData> records = results.stream()
                     .map(d -> d.getFieldValue("rec.manifestationId"))
                     .map(Rerun::toAddiMetaData)

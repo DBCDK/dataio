@@ -179,7 +179,7 @@ public class AccTestRunner implements Callable<Integer> {
         flowManager.createFlowCommitTmpFile(commitPath, localFlow, resolvedRemotely == null ? FlowManager.CommitTempFile.Action.CREATE
                 : FlowManager.CommitTempFile.Action.UPDATE);
 
-        return isDiverging ? 1 : 0;
+        return 0;
     }
 
     private Chunk processSuite(AccTestSuite accTestSuite, Flow flow) {

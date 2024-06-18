@@ -205,7 +205,8 @@ public class PgJobStore {
     }
 
     protected void startPartitioner(Sink sink) {
-        Hazelcast.executeOnMaster(new RemotePartitioning(sink));
+        if(Hazelcast.isMaster()) self().partitionNextJobForSinkIfAvailable(sink);
+        else Hazelcast.executeOnMaster(new RemotePartitioning(sink));
     }
 
 

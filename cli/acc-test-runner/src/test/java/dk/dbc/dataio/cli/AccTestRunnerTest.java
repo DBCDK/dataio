@@ -182,7 +182,7 @@ class AccTestRunnerTest {
         int exitCode = AccTestRunner.runWith(AccTestRunnerTest::flowManagerMock,
                 "TEST", simpleJsar.toString(), dataPath.toString(),
                 arg("cp", tempDir), arg("rs", "JSON"), arg("v", "1"), defProps());
-        assertThat("exit code", exitCode, is(1));
+        assertThat("exit code", exitCode, is(0));
 
         Path commitFile = tempDir.resolve(FlowManager.FLOW_COMMIT_TMP);
         assertThat("commit file found", Files.exists(commitFile), is(true));

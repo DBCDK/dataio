@@ -407,10 +407,11 @@ public class JobsBean {
             return buildBadRequestResponse(e);
         }
 
+        Response response = addChunk(uriInfo, jobId, chunkId, Chunk.Type.DELIVERED, deliveredChunk);
         jobSchedulerBean.chunkDeliveringDone(deliveredChunk);
 
         // Todo check hvordan job afsluttes.
-        return addChunk(uriInfo, jobId, chunkId, Chunk.Type.DELIVERED, deliveredChunk);
+        return response;
     }
 
     @POST

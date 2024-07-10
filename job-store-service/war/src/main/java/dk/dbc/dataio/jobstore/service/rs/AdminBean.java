@@ -76,6 +76,7 @@ public class AdminBean {
     JobSchedulerBean jobSchedulerBean;
     @EJB
     PgJobStoreRepository jobStoreRepository;
+    private Instant nextJobCheckFrom = null;
 
     @EJB
     FlowStoreServiceConnectorBean flowstore;
@@ -126,6 +127,15 @@ public class AdminBean {
         if(Hazelcast.isSlave()) return;
         Set<TrackingKey> keys = dependencyTrackingService.recheckBlocks();
         if(!keys.isEmpty()) LOGGER.info("Hourly blocked check has released {}", keys);
+    }
+
+    @Schedule(minute = "15", hour = "*", persistent = false)
+    public void completeFinishedJobs() {
+        if(Hazelcast.isSlave()) return;
+        Instant from = nextJobCheckFrom == null ? Instant.now().minus(Duration.ofHours(2)) : nextJobCheckFrom;
+        Instant to = Instant.now().minus(Duration.ofMinutes(1));
+        nextJobCheckFrom = to;
+        completeFinishedJobs(from, to);
     }
 
     public void resendIfNeeded(List<DependencyTrackingRO> list) {
@@ -211,9 +221,14 @@ public class AdminBean {
     @Path(JobStoreServiceConstants.CHECK_INCOMPLETE)
     public Response completeFinishedJobs(@PathParam("days") int days) {
         Instant from = LocalDate.now().minusDays(days).atStartOfDay(Constants.ZONE_CPH).toInstant();
-        Instant to = Instant.now().minusSeconds(60) ;
+        Instant to = Instant.now().minus(Duration.ofMinutes(1)) ;
+        completeFinishedJobs(from, to);
+        return Response.ok().build();
+    }
+
+    private void completeFinishedJobs(Instant from, Instant to) {
         List<JobInfoSnapshot> jobs = jobStoreRepository.listJobs(new JobListCriteria()
-                .where(new ListFilter<>(JobListCriteria.Field.TIME_OF_CREATION, ListFilter.Op.GREATER_THAN_OR_EQUAL_TO, new Timestamp(from.toEpochMilli())))
+                .where(new ListFilter<>(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, ListFilter.Op.GREATER_THAN_OR_EQUAL_TO, new Timestamp(from.toEpochMilli())))
                 .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, ListFilter.Op.LESS_THAN, new Timestamp(to.toEpochMilli())))
                 .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL)));
         for (JobInfoSnapshot job : jobs) {
@@ -224,9 +239,9 @@ public class AdminBean {
                         .filter(p -> entity.getState().getPhase(p).getEndDate() == null)
                         .forEach(p -> entity.getState().getPhase(p).withEndDate(new Date()));
                 entity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+                LOGGER.info("completeFinishedJobs marked {} as completed, all chunks are accounted for", job.getJobId());
             }
         }
-        return Response.ok().build();
     }
 
     private Response retransmitJobs(Set<Integer> jobIds) {

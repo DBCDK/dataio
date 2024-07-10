@@ -558,6 +558,7 @@ public class PgJobStore {
             }
             jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
             addNotificationIfSpecificationHasDestination(Notification.Type.JOB_COMPLETED, jobEntity);
+            entityManager.flush();
             logTimerMessage(jobEntity);
         }
         return jobEntity;

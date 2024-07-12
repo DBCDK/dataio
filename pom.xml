@@ -33,7 +33,7 @@
 
     <properties>
         <tag>devel</tag>
-        <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:31</java.image>
+        <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest</java.image>
         <docker.payaradir>/opt/payara6</docker.payaradir>
         <docker.deploydir>/opt/payara6/deployments</docker.deploydir>
 

@@ -4,7 +4,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
@@ -95,26 +94,12 @@ public class FlowCache {
     public static class FlowCacheEntry {
         public final Flow flow;
         public final List<Script> scripts;
-        public final List<Script> next;
 
         public FlowCacheEntry(Flow flow) throws Exception {
             List<Script> scripts = new ArrayList<>();
-            List<Script> next = new ArrayList<>();
             this.flow = Objects.requireNonNull(flow);
-            if (flow.getContent().getJsar() != null) {
-                scripts.add(createScript(flow));
-            } else {
-                // The use of flow components will be deprecated in the near future together with the 'next' concept
-                for (FlowComponent flowComponent : flow.getContent().getComponents()) {
-                    scripts.add(createScript(flowComponent.getContent()));
-                    FlowComponentContent flowComponentNextContent = flowComponent.getNext();
-                    if (flowComponentNextContent != FlowComponent.UNDEFINED_NEXT) {
-                        next.add(createScript(flowComponentNextContent));
-                    }
-                }
-            }
+            scripts.add(createScript(flow));
             this.scripts = Collections.unmodifiableList(scripts);
-            this.next = Collections.unmodifiableList(next);
             if (scripts.isEmpty()) {
                 throw new IllegalStateException(String.format("No javascript found in flow '%s'", flow.getContent().getName()));
             }

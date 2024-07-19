@@ -6,8 +6,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedS
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -20,8 +18,6 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
@@ -53,7 +49,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -106,8 +101,7 @@ public class TracerBullet {
 
     private void initialiseFlowStore() throws FlowStoreServiceConnectorException, UnsupportedEncodingException {
         Submitter submitter = createSubmitter();
-        FlowComponent flowComponent = createFlowComponent();
-        Flow flow = createFlow(flowComponent);
+        Flow flow = createFlow();
         Sink sink = createSink();
         createFlowBinder(flow, submitter, sink);
     }
@@ -147,35 +141,11 @@ public class TracerBullet {
         return null;
     }
 
-    private FlowComponent createFlowComponent() throws UnsupportedEncodingException, FlowStoreServiceConnectorException {
-        final String componentName = "tracer-bullet-component";
-        FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
-                .setName(componentName)
-                .setDescription("Minimalt script til basal system test")
-                .setJavascripts(getTinyJavaScript())
-                .setInvocationJavascriptName("tracer-bullet-javascript")
-                .setInvocationMethod("invocationFunction")
-                .build();
-        try {
-            return flowStoreServiceConnector.createFlowComponent(flowComponentContent);
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
-            // Only necessary as long as flowstore service/connector has no support for deletion
-            if (406 != e.getStatusCode()) {
-                throw e;
-            }
-        }
-        return null;
-    }
-
-    private Flow createFlow(FlowComponent flowComponent) throws FlowStoreServiceConnectorException {
-        if (flowComponent == null) {
-            // Only necessary as long as flowstore service/connector has no support for deletion
-            flowComponent = new FlowComponentBuilder().build();
-        }
+    private Flow createFlow() throws FlowStoreServiceConnectorException {
         final String flowName = "tracer-bullet-flow";
+        //Todo JEGA: Skal have tracerbullet js script ind som jsar
         FlowContent flowContent = new FlowContentBuilder()
                 .setName(flowName)
-                .setComponents(Collections.singletonList(flowComponent))
                 .build();
         try {
             return flowStoreServiceConnector.createFlow(flowContent);

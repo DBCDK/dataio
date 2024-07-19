@@ -1,25 +1,15 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import org.junit.Test;
-import types.TestableAddJobParam;
-import types.TestableAddJobParamBuilder;
 
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -68,51 +58,6 @@ public class PgJobStoreRepositoryIT_CachingIT extends PgJobStoreRepositoryAbstra
         assertThat("table size", getSizeOfTable(FLOW_CACHE_TABLE_NAME), is(1L));
     }
 
-
-    /**
-     * Given    : a job store with empty flowcache
-     * When     : creating new job entities with non-ACCTEST type and caching referencing flows which only differs on
-     * their "next" components
-     * Then     : the flows are trimmed resulting in cache hits
-     * And When :  creating new job entities with type ACCTEST
-     * Then     : the flow is not trimmed resulting in cache insert.
-     */
-    @Test
-    public void createJobEntity_trimsNonAcctestFlows() throws SQLException {
-        // Given...
-        final Date timeOfFlowComponentUpdate = new Date();
-        int nextRevision = 1;
-        for (JobSpecification.Type type : JobSpecification.Type.values()) {
-            if (type == JobSpecification.Type.ACCTEST)
-                continue;
-
-            final JobSpecification jobSpecification = getJobSpecification(type);
-            final Flow flow = getFlowWithNextFlowComponent(nextRevision++, timeOfFlowComponentUpdate);
-
-            final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
-                    .setJobSpecification(jobSpecification)
-                    .setFlow(flow).build();
-
-            // When...
-            persistenceContext.run(() -> pgJobStoreRepository.createJobEntity(testableAddJobParam));
-
-            // Then... the flows are trimmed resulting in cache hits
-            assertThat("flow cache table size when flow is trimmed", getSizeOfTable(FLOW_CACHE_TABLE_NAME), is(1L));
-        }
-        final JobSpecification jobSpecification = getJobSpecification(JobSpecification.Type.ACCTEST);
-        final Flow flow = getFlowWithNextFlowComponent(nextRevision++, timeOfFlowComponentUpdate);
-
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
-                .setJobSpecification(jobSpecification)
-                .setFlow(flow).build();
-
-        // And When...
-        persistenceContext.run(() -> pgJobStoreRepository.createJobEntity(testableAddJobParam));
-
-        // Then... the flow is not trimmed resulting in cache insert.
-        assertThat("flow cache table size when flow is not trimmed", getSizeOfTable(FLOW_CACHE_TABLE_NAME), is(2L));
-    }
-
     /**
      * Given: a job store with empty sinkcache
      * When : a sink is added
@@ -150,26 +95,5 @@ public class PgJobStoreRepositoryIT_CachingIT extends PgJobStoreRepositoryAbstra
         assertThat("entity.checksum", sinkCacheEntity.getChecksum(), is(existingSinkCacheEntity.getChecksum()));
         assertThat("entity.sink", sinkCacheEntity.getSink(), is(existingSinkCacheEntity.getSink()));
         assertThat("table size", getSizeOfTable(SINK_CACHE_TABLE_NAME), is(1L));
-    }
-
-    /*
-     * Private methods
-     */
-
-    private JobSpecification getJobSpecification(JobSpecification.Type type) {
-        return new JobSpecification().withType(type).withDataFile(FileStoreUrn.create("42").toString());
-    }
-
-    private Flow getFlowWithNextFlowComponent(int nextRevision, Date timeOfFlowComponentUpdate) {
-        return new FlowBuilder()
-                .setContent(new FlowContentBuilder()
-                        .setTimeOfFlowComponentUpdate(timeOfFlowComponentUpdate)
-                        .setComponents(Collections.singletonList(getFlowComponentWithNext(nextRevision)))
-                        .build())
-                .build();
-    }
-
-    private FlowComponent getFlowComponentWithNext(int nextRevision) {
-        return new FlowComponentBuilder().setNext(new FlowComponentContentBuilder().setName("next_" + nextRevision).build()).build();
     }
 }

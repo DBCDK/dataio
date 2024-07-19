@@ -4,10 +4,8 @@ package dk.dbc.dataio.flowstore.ejb;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.flowstore.entity.Flow;
-import dk.dbc.dataio.flowstore.entity.FlowComponent;
 import dk.dbc.invariant.InvariantUtil;
 import jakarta.annotation.Resource;
 import jakarta.ejb.SessionContext;
@@ -33,7 +31,6 @@ import jakarta.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -143,50 +140,6 @@ public class FlowsBean extends AbstractResourceBean {
         return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flow)).entity(flowJson).build();
     }
 
-    /**
-     * Updates an existing flow
-     *
-     * @param flowContent the flow content containing the changes
-     * @param uriInfo     URI information
-     * @param id          The flow ID
-     * @param version     The version of the flow
-     * @param isRefresh   boolean value defining whether or not:
-     *                    a) The update is to be performed on the flow
-     *                    b) The versioned flow components, contained within the flow, are to be replaced with latest version
-     * @return a HTTP 200 response with flow content as JSON,
-     * a HTTP 409 response in case of Concurrent Update error,
-     * a HTTP 500 response in case of general error.
-     * @throws JSONBException                    on failure to create json flow
-     * @throws ReferencedEntityNotFoundException on failure to locate the flow component in the underlying database
-     */
-    @POST
-    @Path(FlowStoreServiceConstants.FLOW_CONTENT)
-    @Produces({MediaType.APPLICATION_JSON})
-    @Consumes({MediaType.APPLICATION_JSON})
-    public Response updateFlow(
-            String flowContent,
-            @Context UriInfo uriInfo,
-            @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
-            @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version,
-            @QueryParam(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH) Boolean isRefresh) throws JSONBException, ReferencedEntityNotFoundException {
-
-        Flow flow = null;
-        if (isRefresh != null && isRefresh) {
-            flow = self().refreshFlowComponents(uriInfo, id, version);
-            if (flow != null) return Response.ok(jsonbContext.marshall(flow)).build();
-        } else {
-            InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
-            jsonbContext.unmarshall(flowContent, FlowContent.class);
-            flow = self().updateFlowContent(flowContent, id, version);
-        }
-        if (flow == null) return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(NULL_ENTITY).build();
-        NAME_CACHE.remove(id);
-        return Response.ok()
-                .entity(jsonbContext.marshall(flow))
-                .tag(Long.toString(flow.getVersion()))
-                .build();
-    }
-
     @POST
     @Path(FlowStoreServiceConstants.FLOW_JSAR_CREATE)
     @Produces(MediaType.APPLICATION_JSON)
@@ -271,81 +224,6 @@ public class FlowsBean extends AbstractResourceBean {
     }
 
     /**
-     * Updates the versioned flow components contained within the flow. Each is replaced with latest version
-     *
-     * @param uriInfo URI information
-     * @param id      The flow ID
-     * @param version The version of the flow
-     * @return a HTTP 200 response with flow content as JSON,
-     * a HTTP 409 response in case of Concurrent Update error,
-     * a HTTP 500 response in case of general error.
-     * @throws JSONBException                    on failure to create json flow
-     * @throws ReferencedEntityNotFoundException on failure to locate the flow component in the underlying database
-     */
-    @SuppressWarnings("PMD.UnusedPrivateMethod")
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public Flow refreshFlowComponents(UriInfo uriInfo, Long id, Long version) throws JSONBException, ReferencedEntityNotFoundException {
-        List<dk.dbc.dataio.commons.types.FlowComponent> flowComponentsWithLatestVersion = new ArrayList<>();
-        boolean hasFlowComponentsChanged = false;
-
-        final Flow flowEntity = entityManager.find(Flow.class, id);
-        if (flowEntity == null) {
-            return null;
-        }
-        flowEntity.assertLatestVersion(version);
-        FlowContent flowContent = jsonbContext.unmarshall(flowEntity.getContent(), FlowContent.class);
-
-        for (dk.dbc.dataio.commons.types.FlowComponent flowComponent : flowContent.getComponents()) {
-            FlowComponent flowComponentWithLatestVersion = entityManager.find(FlowComponent.class, flowComponent.getId());
-            if (flowComponentWithLatestVersion == null) {
-                throw new ReferencedEntityNotFoundException("Flow component with id: " + flowComponent.getId() + "could not be found in the underlying database");
-            }
-            if (!hasFlowComponentsChanged && flowComponentWithLatestVersion.getVersion() != flowComponent.getVersion()) {
-                hasFlowComponentsChanged = true;
-            }
-            String flowComponentWithLatestVersionJson = jsonbContext.marshall(flowComponentWithLatestVersion);
-            dk.dbc.dataio.commons.types.FlowComponent updatedFlowComponent = jsonbContext.unmarshall(flowComponentWithLatestVersionJson, dk.dbc.dataio.commons.types.FlowComponent.class);
-            flowComponentsWithLatestVersion.add(updatedFlowComponent);
-        }
-
-        FlowContent updatedFlowContent = new FlowContent(flowContent.getName(), flowContent.getDescription(), null, null, null, null, flowComponentsWithLatestVersion, flowContent.getTimeOfFlowComponentUpdate());
-        if (hasFlowComponentsChanged) {
-            updatedFlowContent.withTimeOfFlowComponentUpdate(new Date());
-        }
-
-        flowEntity.setContent(jsonbContext.marshall(updatedFlowContent));
-        entityManager.flush();
-        return flowEntity;
-    }
-
-    /**
-     * Updates an existing flow
-     *
-     * @param flowContent the flow content containing the changes
-     * @param id          The flow ID
-     * @param version     The version of the flow
-     * @return a HTTP 200 response with flow content as JSON,
-     * a HTTP 409 response in case of Concurrent Update error,
-     * a HTTP 500 response in case of general error.
-     * @throws JSONBException JsonException on failure to create json flow
-     */
-    @SuppressWarnings("PMD.UnusedPrivateMethod")
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public Flow updateFlowContent(String flowContent, Long id, Long version) throws JSONBException {
-        InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
-        final Flow flowEntity = entityManager.find(Flow.class, id);
-        if (flowEntity == null) {
-            return null;
-        }
-        flowEntity.assertLatestVersion(version);
-        flowContent = setTimeOfFlowComponentUpdate(flowContent, flowEntity.getContent());
-        flowEntity.setContent(flowContent);
-        entityManager.flush();
-        NAME_CACHE.remove(id);
-        return flowEntity;
-    }
-
-    /**
      * Deletes an existing flow
      *
      * @param flowId The flow ID
@@ -370,15 +248,4 @@ public class FlowsBean extends AbstractResourceBean {
         NAME_CACHE.remove(flowId);
         return Response.noContent().build();
     }
-
-    private String setTimeOfFlowComponentUpdate(String newFlowContentJson, String existingFlowContentJson) throws JSONBException {
-        final FlowContent existingFlowContent = jsonbContext.unmarshall(existingFlowContentJson, FlowContent.class);
-        final FlowContent newFlowContent = jsonbContext.unmarshall(newFlowContentJson, FlowContent.class);
-        if (!existingFlowContent.getComponents().equals(newFlowContent.getComponents())) {
-            newFlowContent.withTimeOfFlowComponentUpdate(new Date());
-            return jsonbContext.marshall(newFlowContent);
-        }
-        return newFlowContentJson;
-    }
-
 }

@@ -26,11 +26,11 @@
             <artifactId>dataio-cli-job-replicator</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dataio-cli-lhr-retriever</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>dk.dbc</groupId>-->
+<!--            <artifactId>dataio-cli-lhr-retriever</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
     </dependencies>
 
     <build>
@@ -68,12 +68,12 @@
                                                     </includes>
                                                     <outputFileNameMapping>dataio-cli-job-replicator.jar</outputFileNameMapping>
                                                 </dependencySet>
-                                                <dependencySet>
-                                                    <includes>
-                                                        <include>dk.dbc:dataio-cli-lhr-retriever</include>
-                                                    </includes>
-                                                    <outputFileNameMapping>dataio-cli-lhr-retriever.jar</outputFileNameMapping>
-                                                </dependencySet>
+<!--                                                <dependencySet>-->
+<!--                                                    <includes>-->
+<!--                                                        <include>dk.dbc:dataio-cli-lhr-retriever</include>-->
+<!--                                                    </includes>-->
+<!--                                                    <outputFileNameMapping>dataio-cli-lhr-retriever.jar</outputFileNameMapping>-->
+<!--                                                </dependencySet>-->
                                             </dependencySets>
                                         </inline>
                                     </assembly>

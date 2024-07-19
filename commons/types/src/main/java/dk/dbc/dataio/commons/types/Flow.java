@@ -1,7 +1,6 @@
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.invariant.InvariantUtil;
@@ -48,16 +47,6 @@ public class Flow implements Serializable {
 
     public FlowContent getContent() {
         return content;
-    }
-
-    @JsonIgnore
-    public boolean hasNextComponents() {
-        for (FlowComponent flowComponent : content.getComponents()) {
-            if (flowComponent.getNext() != FlowComponent.UNDEFINED_NEXT) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override

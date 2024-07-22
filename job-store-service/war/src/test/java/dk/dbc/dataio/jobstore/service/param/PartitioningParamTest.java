@@ -199,14 +199,6 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void isPreviewOnly_whenTypeAcctest_isFalse() throws FlowStoreServiceConnectorException {
-        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(new SubmitterBuilder().setContent(new SubmitterContentBuilder().setEnabled(false).build()).build());
-        JobEntity jobEntity = newJobEntity(jobSpecification.withType(JobSpecification.Type.ACCTEST));
-        PartitioningParam partitioningParam = newPartitioningParam(jobEntity);
-        assertThat(partitioningParam.isPreviewOnly(), is(false));
-    }
-
-    @Test
     public void isPreviewOnly_whenSubmitterIsEnabled_isFalse() {
         JobEntity jobEntity = newJobEntity(jobSpecification.withType(JobSpecification.Type.PERSISTENT));
         PartitioningParam partitioningParam = newPartitioningParam(jobEntity);

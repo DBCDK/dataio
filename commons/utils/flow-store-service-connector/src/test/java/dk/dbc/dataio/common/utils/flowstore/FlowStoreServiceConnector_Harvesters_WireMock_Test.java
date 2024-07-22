@@ -70,7 +70,7 @@ public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
                         .withDestination("Destination")
                         .withIncludeRelations(false)
                         .withResource("Resource")
-                        .withType(JobSpecification.Type.ACCTEST)
+                        .withType(JobSpecification.Type.TEST)
                         .withFormatOverridesEntry(12, "overwride 12")
                         .withFormatOverridesEntry(191919, "must be 870970")
                         .withId("harvest log id")

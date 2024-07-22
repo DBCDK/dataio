@@ -32,7 +32,7 @@ public class RRHarvesterConfigTest {
                         .withResource("Resource")
                         .withConsumerId("ConsumerId")
                         .withDestination("Destination")
-                        .withType(JobSpecification.Type.ACCTEST)
+                        .withType(JobSpecification.Type.TEST)
                         .withFormat("format")
                         .withFormatOverridesEntry(12, "formatX")
                         .withFormatOverridesEntry(191919, "formatY")

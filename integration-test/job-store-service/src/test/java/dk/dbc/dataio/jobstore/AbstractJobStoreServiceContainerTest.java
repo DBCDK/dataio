@@ -161,7 +161,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("MAIL_TO_FALLBACK", "fallback")
                 .withEnv("TZ", "Europe/Copenhagen")
                 .withEnv("DEVELOPER", "on")
-                .withEnv("REMOTE_DEBUGGING_HOST", getDebuggingHost())
+//                .withEnv("REMOTE_DEBUGGING_HOST", getDebuggingHost())
                 .withExposedPorts(4848, 8080)
                 .waitingFor(Wait.forHttp("/dataio/job-store-service/status")
                         .forPort(8080)

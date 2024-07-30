@@ -11,7 +11,6 @@ import dk.dbc.dataio.cli.lhrretriever.config.ConfigParseException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.Pid;
@@ -96,9 +95,7 @@ public class LHRRetriever implements Closeable {
         try {
             Arguments arguments = Arguments.parseArgs(args);
             lhrRetriever = new LHRRetriever(arguments);
-            List<Script> scripts = lhrRetriever.getJavascriptsFromFlow(
-                    arguments.flowName);
-            byte[] records = lhrRetriever.processRecordsWithLHR(scripts);
+            byte[] records = lhrRetriever.processRecordsWithLHR();
             lhrRetriever.writeLHRToFile(arguments.outputPath, records);
         } catch (ArgParseException | SQLException | ConfigParseException |
                  LHRRetrieverException | QueueException | ConfigurationException e) {
@@ -216,23 +213,6 @@ public class LHRRetriever implements Closeable {
         } catch (IOException | SAXException e) {
             throw new LHRRetrieverException(String.format(
                     "error reading addi: %s", e.toString()), e);
-        }
-    }
-
-    private List<Script> getJavascriptsFromFlow(String flowName)
-            throws LHRRetrieverException {
-        try {
-            final Flow flow = flowStoreServiceConnector.findFlowByName(flowName);
-            final List<Script> scripts = new ArrayList<>();
-            for (FlowComponent flowComponent : flow.getContent().getComponents())
-                scripts.add(createScript(flowComponent.getContent()));
-            if (scripts.isEmpty())
-                throw new LHRRetrieverException("no scripts found");
-            return scripts;
-        } catch (Throwable t) {
-            // catches Throwable because of constructor in Script class
-            throw new LHRRetrieverException(String.format(
-                    "error getting javascripts from flow: %s", flowName), t);
         }
     }
 

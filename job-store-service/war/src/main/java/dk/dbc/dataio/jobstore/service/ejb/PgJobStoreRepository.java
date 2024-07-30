@@ -8,7 +8,6 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
@@ -28,7 +27,6 @@ import dk.dbc.dataio.jobstore.service.entity.JobListQuery;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkConverter;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
-import dk.dbc.dataio.jobstore.service.util.FlowTrimmer;
 import dk.dbc.dataio.jobstore.service.util.JobExporter;
 import dk.dbc.dataio.jobstore.service.util.TrackingIdGenerator;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
@@ -263,9 +261,6 @@ public class PgJobStoreRepository extends RepositoryBase {
             jobState.getPhase(State.Phase.PARTITIONING).withBeginDate(new Date());
             try {
                 String flowJson = jsonbContext.marshall(addJobParam.getFlow());
-                if (addJobParam.getJobInputStream().getJobSpecification().getType() != JobSpecification.Type.ACCTEST) {
-                    flowJson = new FlowTrimmer(jsonbContext).trim(flowJson);
-                }
                 jobEntity.setCachedFlow(cacheFlow(flowJson));
                 jobEntity.setCachedSink(cacheSink(jsonbContext.marshall(addJobParam.getSink())));
             } catch (JSONBException e) {

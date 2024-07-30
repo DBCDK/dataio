@@ -8,8 +8,6 @@ import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentView;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -30,7 +28,6 @@ import jakarta.ws.rs.client.Client;
 
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -184,29 +181,7 @@ public class JobReplicator {
         }
     }
 
-    private List<FlowComponent> createFlowComponents(
-            List<FlowComponent> sourceComponents,
-            FlowStoreServiceConnector targetFlowStoreConnector)
-            throws FlowStoreServiceConnectorException {
-        final List<FlowComponent> targetComponents = new ArrayList<>();
-        final List<FlowComponentView> existingTargetComponents =
-                targetFlowStoreConnector.findAllFlowComponents();
-        final Set<String> componentNames = existingTargetComponents.stream()
-                .map(FlowComponentView::getName)
-                .collect(Collectors.toSet());
-        for (FlowComponent component : sourceComponents) {
-            if (componentNames.contains(component.getContent().getName())) {
-                continue;
-            }
-            targetComponents.add(targetFlowStoreConnector
-                    .createFlowComponent(component.getContent()));
-        }
-        return targetComponents;
-    }
-
-    private Flow createFlow(Flow sourceFlow,
-                            List<FlowComponent> targetComponents,
-                            FlowStoreServiceConnector targetFlowStoreConnector)
+    private Flow createFlow(Flow sourceFlow, FlowStoreServiceConnector targetFlowStoreConnector)
             throws FlowStoreServiceConnectorException, JobReplicatorException {
         final List<FlowView> existingFlows = targetFlowStoreConnector.findAllFlows();
         final Set<String> flowNames = existingFlows.stream()
@@ -219,8 +194,7 @@ public class JobReplicator {
                     sourceFlow.getContent().getEntrypointScript(),
                     sourceFlow.getContent().getEntrypointFunction(),
                     sourceFlow.getContent().getJsar(),
-                    sourceFlow.getContent().getTimeOfLastModification(),
-                    targetComponents, null);
+                    sourceFlow.getContent().getTimeOfLastModification());
             return targetFlowStoreConnector.createFlow(targetFlowContent);
         } else {
             List<FlowView> targetFlow = existingFlows.stream()
@@ -284,15 +258,8 @@ public class JobReplicator {
             Flow sourceFlow = jobReplicatorInfo.getSourceFlowStoreConnector()
                     .getFlow(flowId);
 
-            List<FlowComponent> sourceComponents = sourceFlow.getContent()
-                    .getComponents();
-            List<FlowComponent> targetComponents = createFlowComponents(
-                    sourceComponents, jobReplicatorInfo.getTargetFlowStoreConnector());
-
-            Flow targetFlow = createFlow(sourceFlow, targetComponents,
-                    jobReplicatorInfo.getTargetFlowStoreConnector());
-            Sink targetSink = getTargetSink(jobReplicatorInfo.getTargetSinkName(),
-                    jobReplicatorInfo.getTargetFlowStoreConnector());
+            Flow targetFlow = createFlow(sourceFlow, jobReplicatorInfo.getTargetFlowStoreConnector());
+            Sink targetSink = getTargetSink(jobReplicatorInfo.getTargetSinkName(), jobReplicatorInfo.getTargetFlowStoreConnector());
 
             FlowBinderContent targetFlowBinder = new FlowBinderContent(
                     flowBinder.getContent().getName(),

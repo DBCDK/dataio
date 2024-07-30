@@ -73,7 +73,7 @@ public class PgJobStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStore.class);
     public static final String PG_JOB_STORE_JNDI = "java:global/jobstore/PgJobStore";
     private static final int MAX_NUMBER_OF_JOB_RETRIES = 1;
-    private static final long FOUR_GIBIBYTE = 4 * 1024 * 1024 * 1024L;
+    private static final long FOUR_GIBABYTE = 4 * 1024 * 1024 * 1024L;
 
     /* These instances are not private otherwise they were not accessible from automatic test */
     @EJB
@@ -647,7 +647,7 @@ public class PgJobStore {
         // Byte size reported by the file-store might be wrong
         // if the file uses gzip compression and originally
         // is larger than four GiB.
-        if (jobByteSize > fileByteSize && (jobByteSize - fileByteSize) % FOUR_GIBIBYTE == 0) {
+        if (jobByteSize > fileByteSize && (jobByteSize - fileByteSize) % FOUR_GIBABYTE == 0) {
             // Since the reported size plus a multiple of four GiB
             // matched the number of bytes read we'll assume everything
             // is ok.

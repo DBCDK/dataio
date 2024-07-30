@@ -62,15 +62,13 @@ public class ChunkProcessor {
         StopWatch stopWatchForChunk = new StopWatch();
         Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.PROCESSED);
         try {
-            if (chunk.size() > 0) {
+            if (!chunk.isEmpty()) {
                 FlowCache.FlowCacheEntry flowCacheEntry = getFlow(chunk, flowId, flowVersion);
                 flowMdcPut(flowCacheEntry.flow);
                 LOGGER.info("process(): processing chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
                 try {
-                    result.addAllItems(
-                            processItemsWithCurrentRevision(chunk, flowCacheEntry, additionalArgs),
-                            processItemsWithNextRevision(chunk, flowCacheEntry, additionalArgs));
+                    result.addAllItems(processItemsWithCurrentRevision(chunk, flowCacheEntry, additionalArgs), null);
                 } catch (OutOfMemoryError t) {
                         healthService.signal(HealthFlag.OUT_OF_MEMORY);
                         throw t;
@@ -123,14 +121,6 @@ public class ChunkProcessor {
     private List<ChunkItem> processItemsWithCurrentRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, String additionalArgs) {
         return processItems(chunk, new ChunkItemProcessor(chunk.getJobId(), chunk.getChunkId(),
                 flowCacheEntry.scripts, additionalArgs));
-    }
-
-    protected List<ChunkItem> processItemsWithNextRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, String additionalArgs) {
-        if (!flowCacheEntry.next.isEmpty()) {
-            return processItems(chunk, new ChunkItemProcessor(chunk.getJobId(), chunk.getChunkId(),
-                    flowCacheEntry.next, additionalArgs));
-        }
-        return null;
     }
 
     /* Processes each item in given chunk in sequence */

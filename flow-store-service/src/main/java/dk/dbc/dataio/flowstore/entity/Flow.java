@@ -3,8 +3,6 @@ package dk.dbc.dataio.flowstore.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentView;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.FlowView;
 import jakarta.persistence.Column;
@@ -22,8 +20,6 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 
 import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Persistence domain class for flow objects where id is auto
@@ -114,15 +110,10 @@ public class Flow extends Versioned {
                     .withName(flowContent.getName())
                     .withDescription(flowContent.getDescription())
                     .withTimeOfLastModification(lastModified)
-                    .withTimeOfComponentUpdate(lastModified) // Components are no more
-                    .withComponents(generateComponentViews(flowContent.getComponents() == null ? List.of() : flowContent.getComponents()));
+                    .withTimeOfComponentUpdate(lastModified);
             return JSONB_CONTEXT.marshall(view);
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    private List<FlowComponentView> generateComponentViews(List<FlowComponent> components) {
-        return components.stream().map(FlowComponent::toView).collect(Collectors.toList());
     }
 }

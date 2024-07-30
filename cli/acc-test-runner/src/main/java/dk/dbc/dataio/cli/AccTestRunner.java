@@ -134,7 +134,6 @@ public class AccTestRunner implements Callable<Integer> {
             resolvedRemotely = localFlow;
         }
 
-        boolean isDiverging = false;
         for (AccTestSuite suite : testSuites) {
             Flow remoteFlow = flowManager.getFlow(suite.getJobSpecification());
             if (resolvedRemotely == null && remoteFlow == null) {
@@ -162,7 +161,6 @@ public class AccTestRunner implements Callable<Integer> {
             final Chunk processed = new Chunk(localOutputChunk.getJobId(), localOutputChunk.getChunkId(), localOutputChunk.getType());
             processed.addAllItems(remoteOutputChunk.getItems(), localOutputChunk.getItems());
             Chunk diff = new MessageConsumerBean(serviceHub).handleChunk(processed);
-            isDiverging |= diff.getItems().stream().anyMatch(ci -> ci.getStatus() == ChunkItem.Status.FAILURE);
             reportFormat.printDiff(suite, remoteFlow, diff, revision);
         }
 

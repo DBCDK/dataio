@@ -181,9 +181,7 @@ public class AddJobParam {
     }
 
     protected Sink lookupSink() {
-        if (jobInputStream.getJobSpecification().getType() == JobSpecification.Type.ACCTEST) {
-            return Sink.DIFF;
-        } else if (flowBinder != null) {
+        if (flowBinder != null) {
             final long sinkId = flowBinder.getContent().getSinkId();
             try {
                 return flowStoreServiceConnector.getSink(sinkId);

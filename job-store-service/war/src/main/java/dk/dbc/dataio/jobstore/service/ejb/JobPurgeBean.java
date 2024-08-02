@@ -170,7 +170,6 @@ public class JobPurgeBean {
      */
     private List<JobInfoSnapshot> getJobsForDeletion() {
         final List<JobInfoSnapshot> toDelete = new ArrayList<>();
-        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.ACCTEST, 5));
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TEST, 90));
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TRANSIENT, 90));
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.SUPER_TRANSIENT, 2));

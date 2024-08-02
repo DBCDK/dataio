@@ -6,9 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Brief view for Flow DTO
@@ -20,7 +18,6 @@ public class FlowView implements Serializable {
     private String name;
     private String description;
     private Date timeOfLastModification;
-    private List<FlowComponentView> components;
     @JsonIgnore
     private Date timeOfComponentUpdate;
 
@@ -29,14 +26,12 @@ public class FlowView implements Serializable {
 
     @JsonCreator
     public FlowView(@JsonProperty("id") long id , @JsonProperty("version") long version, @JsonProperty("name") String name,
-                    @JsonProperty("description") String description, @JsonProperty("timeOfLastModification") Date timeOfLastModification,
-                    @JsonProperty("components") List<FlowComponentView> components) {
+                    @JsonProperty("description") String description, @JsonProperty("timeOfLastModification") Date timeOfLastModification) {
         this.id = id;
         this.version = version;
         this.name = name;
         this.description = description;
         this.timeOfLastModification = timeOfLastModification;
-        this.components = components;
     }
 
     public long getId() {
@@ -86,17 +81,6 @@ public class FlowView implements Serializable {
         return this;
     }
 
-    public List<FlowComponentView> getComponents() {
-        return components;
-    }
-
-    public FlowView withComponents(List<FlowComponentView> components) {
-        if (components != null) {
-            this.components = new ArrayList<>(components);
-        }
-        return this;
-    }
-
     public Date getTimeOfComponentUpdate() {
         return timeOfComponentUpdate;
     }
@@ -134,9 +118,6 @@ public class FlowView implements Serializable {
         if (timeOfLastModification != null ? !timeOfLastModification.equals(flowView.timeOfLastModification) : flowView.timeOfLastModification != null) {
             return false;
         }
-        if (components != null ? !components.equals(flowView.components) : flowView.components != null) {
-            return false;
-        }
         return timeOfComponentUpdate != null ? timeOfComponentUpdate.equals(flowView.timeOfComponentUpdate) : flowView.timeOfComponentUpdate == null;
     }
 
@@ -147,7 +128,6 @@ public class FlowView implements Serializable {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + (timeOfLastModification!= null ? timeOfLastModification.hashCode() : 0);
-        result = 31 * result + (components != null ? components.hashCode() : 0);
         result = 31 * result + (timeOfComponentUpdate != null ? timeOfComponentUpdate.hashCode() : 0);
         return result;
     }

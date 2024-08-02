@@ -2,8 +2,6 @@ package dk.dbc.dataio.commons.types;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Date;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -19,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class FlowTest {
     private static final long ID = 42L;
     private static final long VERSION = 1L;
-    private static final FlowContent CONTENT = FlowContentTest.newFlowContentInstance().withTimeOfFlowComponentUpdate(new Date());
+    private static final FlowContent CONTENT = FlowContentTest.newFlowContentInstance();
 
     @Test
     public void constructor_contentArgIsNull_throws() {
@@ -40,11 +38,6 @@ public class FlowTest {
     public void constructor_allArgsAreValid_returnsNewInstance() {
         Flow instance = new Flow(ID, VERSION, CONTENT);
         assertThat(instance, is(notNullValue()));
-    }
-
-    @Test
-    public void hasNextComponents_flowHasNoComponentsContainingNextEntries_returnsFalse() {
-        assertThat(newFlowInstance().hasNextComponents(), is(false));
     }
 
     public static Flow newFlowInstance() {

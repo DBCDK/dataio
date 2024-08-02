@@ -135,38 +135,6 @@ public class FlowStoreServiceConnector_Flows_Test {
         return flowStoreServiceConnector.refreshFlowComponents(id, version);
     }
 
-    @Test
-    public void updateFlow_flowIsUpdated_returnsFlow() throws FlowStoreServiceConnectorException, JSONBException {
-        final Flow flowToUpdate = new FlowBuilder().build();
-        final Flow updatedFlow = updateFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), flowToUpdate, 1, 1);
-        assertThat(updatedFlow, is(flowToUpdate));
-    }
-
-    @Test
-    public void updateFlow_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> updateFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null, 1, 1),
-                isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
-    }
-
-    private Flow updateFlow_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id, long version) throws FlowStoreServiceConnectorException {
-        final FlowContent flowContent = new FlowContentBuilder().build();
-
-        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_CONTENT)
-                .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
-
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
-                .withBaseUrl(FLOW_STORE_URL)
-                .withPathElements(path.build())
-                .withQueryParameter(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH, false)
-                .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
-                .withJsonData(flowContent);
-
-        when(failSafeHttpClient.execute(httpPost))
-                .thenReturn(new MockedResponse<>(statusCode, returnValue));
-
-        return flowStoreServiceConnector.updateFlow(flowContent, id, version);
-    }
-
     // ************************************* find all flows tests *************************************
     @Test
     public void findAllFlows_flowsRetrieved_returnsFlows() throws FlowStoreServiceConnectorException {

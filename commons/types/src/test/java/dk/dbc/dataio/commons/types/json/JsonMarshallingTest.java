@@ -10,10 +10,6 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowBinderContentTest;
 import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.FlowBinderTest;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
-import dk.dbc.dataio.commons.types.FlowComponentContentTest;
-import dk.dbc.dataio.commons.types.FlowComponentTest;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.FlowContentTest;
 import dk.dbc.dataio.commons.types.FlowTest;
@@ -34,7 +30,6 @@ import dk.dbc.dataio.commons.types.SubmitterTest;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
 
 public class JsonMarshallingTest {
 
@@ -66,7 +61,7 @@ public class JsonMarshallingTest {
 
     @Test
     public void verify_jsonMarshallingForFlowContent() throws Exception {
-        String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstance().withTimeOfFlowComponentUpdate(new Date()));
+        String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstance());
         jsonbContext.unmarshall(json, FlowContent.class);
     }
 
@@ -74,18 +69,6 @@ public class JsonMarshallingTest {
     public void verify_jsonMarshallingForFlowContentWithoutTimeOfFlowComponentUpdate() throws Exception {
         String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstance());
         jsonbContext.unmarshall(json, FlowContent.class);
-    }
-
-    @Test
-    public void verify_jsonMarshallingForFlowComponent() throws Exception {
-        String json = jsonbContext.marshall(FlowComponentTest.newFlowComponentInstance());
-        jsonbContext.unmarshall(json, FlowComponent.class);
-    }
-
-    @Test
-    public void verify_jsonMarshallingForFlowComponentContent() throws Exception {
-        String json = jsonbContext.marshall(FlowComponentContentTest.newFlowComponentContentInstance());
-        jsonbContext.unmarshall(json, FlowComponentContent.class);
     }
 
     @Test

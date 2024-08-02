@@ -2,6 +2,7 @@ package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -9,11 +10,8 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.jar.Attributes;
@@ -24,6 +22,7 @@ import java.util.zip.ZipInputStream;
 /**
  * FlowContent DTO class.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class FlowContent implements Serializable {
     private static final long serialVersionUID = 5520247158829273054L;
@@ -68,7 +67,6 @@ public class FlowContent implements Serializable {
                         "Invalid jsar - %s missing value for %s", MANIFEST_FILE, ATTRIBUTE_ENTRYPOINT_FUNCTION)));
         this.jsar = jsar;
         this.timeOfLastModification = timeOfLastModification;
-        this.components = Collections.emptyList();
     }
 
     @JsonCreator
@@ -78,18 +76,17 @@ public class FlowContent implements Serializable {
             @JsonProperty("entrypointScript") String entrypointScript,
             @JsonProperty("entrypointFunction") String entrypointFunction,
             @JsonProperty("jsar") byte[] jsar,
-            @JsonProperty("timeOfLastModification") Date timeOfLastModification,
-            @JsonProperty("components") List<FlowComponent> components,
-            @JsonProperty("timeOfFlowComponentUpdate") Date timeOfFlowComponentUpdate) {
+            @JsonProperty("timeOfLastModification") Date timeOfLastModification) {
         this.name = name;
         this.description = description;
         this.entrypointScript = entrypointScript;
         this.entrypointFunction = entrypointFunction;
         this.jsar = jsar;
         this.timeOfLastModification = timeOfLastModification;
+    }
 
-        this.components = components == null ? List.of() : new ArrayList<>(components);
-        this.timeOfFlowComponentUpdate = timeOfFlowComponentUpdate;
+    public FlowContent(String name, String description) {
+        this(name, description, null, null, null, null);
     }
 
     public String getName() {
@@ -128,12 +125,12 @@ public class FlowContent implements Serializable {
             return false;
         }
         FlowContent that = (FlowContent) o;
-        return Objects.equals(name, that.name) && Objects.equals(description, that.description) && Objects.equals(entrypointScript, that.entrypointScript) && Objects.equals(entrypointFunction, that.entrypointFunction) && Arrays.equals(jsar, that.jsar) && Objects.equals(timeOfLastModification, that.timeOfLastModification) && Objects.equals(components, that.components);
+        return Objects.equals(name, that.name) && Objects.equals(description, that.description) && Objects.equals(entrypointScript, that.entrypointScript) && Objects.equals(entrypointFunction, that.entrypointFunction) && Arrays.equals(jsar, that.jsar) && Objects.equals(timeOfLastModification, that.timeOfLastModification);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(name, description, entrypointScript, entrypointFunction, timeOfLastModification, components);
+        int result = Objects.hash(name, description, entrypointScript, entrypointFunction, timeOfLastModification);
         result = 31 * result + Arrays.hashCode(jsar);
         return result;
     }
@@ -158,42 +155,4 @@ public class FlowContent implements Serializable {
     private static Optional<String> getAttributeValue(Attributes attributes, String key) {
         return Optional.ofNullable(attributes.getValue(key));
     }
-
-    /* ##### soon-to-be-deprecated begin ##### */
-
-    private List<FlowComponent> components;
-    private Date timeOfFlowComponentUpdate;
-
-    public FlowContent(String name, String description, List<FlowComponent> components) {
-        this(name, description, null, null, null, null, components, null);
-    }
-
-    public List<FlowComponent> getComponents() {
-        if(components == null) return List.of();
-        return new ArrayList<>(components);
-    }
-
-    public FlowContent withComponents(FlowComponent... components) {
-        final List<FlowComponent> flowComponents = new ArrayList<>();
-        if (components != null && components.length > 0) {
-            for (FlowComponent component : components) {
-                if (component != null) {
-                    flowComponents.add(component);
-                }
-            }
-        }
-        this.components = flowComponents;
-        return this;
-    }
-
-    public Date getTimeOfFlowComponentUpdate() {
-        return timeOfFlowComponentUpdate;
-    }
-
-    public FlowContent withTimeOfFlowComponentUpdate(Date timeOfFlowComponentUpdate) {
-        this.timeOfFlowComponentUpdate = new Date(timeOfFlowComponentUpdate.getTime());
-        return this;
-    }
-
-    /* ##### soon-to-be-deprecated end ##### */
 }

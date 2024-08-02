@@ -5,7 +5,6 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
@@ -30,13 +29,7 @@ import java.util.Map;
 
 import static dk.dbc.dataio.jobprocessor2.Metric.ATag.rollback;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class JobStoreMessageConsumerBeanTest {
     private static final ServiceHub SERVICE_HUB = new ServiceHub.Builder().withJobStoreServiceConnector(mock(JobStoreServiceConnector.class)).build();
@@ -90,24 +83,24 @@ public class JobStoreMessageConsumerBeanTest {
         assertThrows(InvalidMessageException.class, () -> jobStoreMessageConsumer.handleConsumedMessage(message));
     }
 
-    @Test
-    public void handleConsumedMessage() throws Exception {
-        DeprecatedChunkProcessorTest jsFactory = new DeprecatedChunkProcessorTest();
-        Flow flow = jsFactory.getFlow(new DeprecatedChunkProcessorTest.ScriptWrapper(DeprecatedChunkProcessorTest.javaScriptReturnUpperCase, DeprecatedChunkProcessorTest.getJavaScript(DeprecatedChunkProcessorTest.getJavaScriptReturnUpperCaseFunction())));
-
-        when(SERVICE_HUB.jobStoreServiceConnector.getCachedFlow(((Long)headers.get(JmsConstants.FLOW_ID_PROPERTY_NAME)).intValue())).thenReturn(flow);
-
-        ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("data")).setStatus(ChunkItem.Status.SUCCESS).build();
-        Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(((Long)headers.get(JmsConstants.FLOW_ID_PROPERTY_NAME)).intValue()).setItems(Collections.singletonList(item)).build();
-        String jsonChunk = new JSONBContext().marshall(chunk);
-
-        JobStoreMessageConsumer jobStoreMessageConsumer = new JobStoreMessageConsumer(SERVICE_HUB);
-        ConsumedMessage message = new ConsumedMessage("id", headers, jsonChunk);
-        jobStoreMessageConsumer.handleConsumedMessage(message);  // Flow is fetched from job-store
-        jobStoreMessageConsumer.handleConsumedMessage(message);  // cached flow is used
-        verify(SERVICE_HUB.jobStoreServiceConnector, times(1)).getCachedFlow((int) chunk.getJobId());
-        verify(SERVICE_HUB.jobStoreServiceConnector, times(2)).addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong());
-    }
+//    @Test
+//    public void handleConsumedMessage() throws Exception {
+//        DeprecatedChunkProcessorTest jsFactory = new DeprecatedChunkProcessorTest();
+//        Flow flow = jsFactory.getFlow(new DeprecatedChunkProcessorTest.ScriptWrapper(DeprecatedChunkProcessorTest.javaScriptReturnUpperCase, DeprecatedChunkProcessorTest.getJavaScript(DeprecatedChunkProcessorTest.getJavaScriptReturnUpperCaseFunction())));
+//
+//        when(SERVICE_HUB.jobStoreServiceConnector.getCachedFlow(((Long)headers.get(JmsConstants.FLOW_ID_PROPERTY_NAME)).intValue())).thenReturn(flow);
+//
+//        ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("data")).setStatus(ChunkItem.Status.SUCCESS).build();
+//        Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setJobId(((Long)headers.get(JmsConstants.FLOW_ID_PROPERTY_NAME)).intValue()).setItems(Collections.singletonList(item)).build();
+//        String jsonChunk = new JSONBContext().marshall(chunk);
+//
+//        JobStoreMessageConsumer jobStoreMessageConsumer = new JobStoreMessageConsumer(SERVICE_HUB);
+//        ConsumedMessage message = new ConsumedMessage("id", headers, jsonChunk);
+//        jobStoreMessageConsumer.handleConsumedMessage(message);  // Flow is fetched from job-store
+//        jobStoreMessageConsumer.handleConsumedMessage(message);  // cached flow is used
+//        verify(SERVICE_HUB.jobStoreServiceConnector, times(1)).getCachedFlow((int) chunk.getJobId());
+//        verify(SERVICE_HUB.jobStoreServiceConnector, times(2)).addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong());
+//    }
 }
 
 

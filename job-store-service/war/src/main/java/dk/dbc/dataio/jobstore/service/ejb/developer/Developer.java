@@ -5,8 +5,6 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.RecordSplitter;
@@ -42,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 
@@ -73,12 +70,7 @@ public class Developer {
 
         try {
             jobInputStream = jsonbContext.unmarshall(jobInputStreamData, JobInputStream.class);
-            FlowComponentContent flowComponentContent = new FlowComponentContent("FC 1",
-                    "javascript", 1L, "invocationscript",
-                    List.of(), "invocationmethod", "describe 1");
-            FlowComponent flowComponent = new FlowComponent(1, 1, flowComponentContent, flowComponentContent);
-            Flow flow = new Flow(1, 1, new FlowContent("Flow 1", "describe 1",
-                    List.of(flowComponent)));
+            Flow flow = new Flow(1, 1, new FlowContent("Flow 1", "describe 1"));
             Sink sink = new Sink(1, 1, new SinkContent("sink 1", "sinkqueue1",
                     "descibe 1", SinkContent.SinkType.HIVE, null,
                     SinkContent.SequenceAnalysisOption.ID_ONLY));

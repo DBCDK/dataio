@@ -115,7 +115,7 @@ public class JobProcessorMessageProducerBeanTest {
 
     private JobEntity buildJobEntity() {
         JobEntity jobEntity = new JobEntity();
-        jobEntity.setSpecification(new JobSpecification().withType(JobSpecification.Type.ACCTEST));
+        jobEntity.setSpecification(new JobSpecification().withType(JobSpecification.Type.TEST));
         jobEntity.setFlowStoreReferences(buildFlowStoreReferences());
         return jobEntity;
     }

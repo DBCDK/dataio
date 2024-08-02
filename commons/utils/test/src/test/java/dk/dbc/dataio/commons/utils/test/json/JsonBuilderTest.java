@@ -5,8 +5,6 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.JavaScript;
@@ -30,16 +28,6 @@ public class JsonBuilderTest {
     @Test
     public void FlowBinderJsonBuilderProducesValidJson() throws JSONBException {
         jsonbContext.unmarshall(new FlowBinderJsonBuilder().build(), FlowBinder.class);
-    }
-
-    @Test
-    public void FlowComponentContentJsonBuilderProducesValidJson() throws JSONBException {
-        jsonbContext.unmarshall(new FlowComponentContentJsonBuilder().build(), FlowComponentContent.class);
-    }
-
-    @Test
-    public void FlowComponentJsonBuilderProducesValidJson() throws JSONBException {
-        jsonbContext.unmarshall(new FlowComponentJsonBuilder().build(), FlowComponent.class);
     }
 
     @Test

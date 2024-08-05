@@ -4,16 +4,11 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.types.JavaScript;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessor2.Metric;
 import dk.dbc.dataio.jobprocessor2.ProcessorConfig;
 import dk.dbc.dataio.jobprocessor2.javascript.JsarScript;
 import dk.dbc.dataio.jobprocessor2.javascript.Script;
-import dk.dbc.dataio.jobprocessor2.javascript.StringSourceSchemeHandler;
-import dk.dbc.dataio.jobprocessor2.javascript.StringSourceScript;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,26 +60,6 @@ public class FlowCache {
         } finally {
             LOGGER.info("Creating javascript for flow id={} version={} name='{}' took {} ms",
                     flow.getId(), flow.getVersion(), flowContent.getName(), stopWatch.getElapsedTime());
-        }
-    }
-
-    private static Script createScript(FlowComponentContent componentContent) throws Exception {
-        StopWatch stopWatch = new StopWatch();
-        try {
-            List<JavaScript> javaScriptsBase64 = componentContent.getJavascripts();
-            List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>(javaScriptsBase64.size());
-            for (JavaScript javascriptBase64 : javaScriptsBase64) {
-                javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(),
-                        StringUtil.base64decode(javascriptBase64.getJavascript())));
-            }
-            String requireCacheJson = null;
-            if (componentContent.getRequireCache() != null) {
-                requireCacheJson = StringUtil.base64decode(componentContent.getRequireCache());
-            }
-            return new StringSourceScript(componentContent.getName(), componentContent.getInvocationMethod(), javaScripts, requireCacheJson);
-        } finally {
-            LOGGER.info("Creating javascript for flow component '{}' took {} ms",
-                    componentContent.getName(), stopWatch.getElapsedTime());
         }
     }
 

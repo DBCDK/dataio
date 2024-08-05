@@ -1,7 +1,6 @@
 package dk.dbc.dataio.flowstore.rest;
 
 import dk.dbc.dataio.flowstore.ejb.FlowBindersBean;
-import dk.dbc.dataio.flowstore.ejb.FlowComponentsBean;
 import dk.dbc.dataio.flowstore.ejb.FlowsBean;
 import dk.dbc.dataio.flowstore.ejb.GatekeeperDestinationsBean;
 import dk.dbc.dataio.flowstore.ejb.HarvestersBean;
@@ -30,7 +29,6 @@ public class FlowStoreApplication extends Application {
         final Set<Class<?>> classes = new HashSet<>();
         classes.add(FlowsBean.class);
         classes.add(FlowBindersBean.class);
-        classes.add(FlowComponentsBean.class);
         classes.add(SinksBean.class);
         classes.add(StatusBean.class);
         classes.add(SubmittersBean.class);

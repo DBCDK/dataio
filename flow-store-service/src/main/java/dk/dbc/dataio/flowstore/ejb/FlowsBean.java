@@ -12,6 +12,7 @@ import jakarta.ejb.SessionContext;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -28,12 +29,15 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -55,6 +59,9 @@ public class FlowsBean extends AbstractResourceBean {
 
     @Resource
     SessionContext sessionContext;
+    @ConfigProperty(name = "FLOWSTORE_FALLBACK")
+    @Inject
+    Optional<String> flowstoreFallback;
 
     /**
      * Retrieves flow from underlying data store
@@ -174,6 +181,24 @@ public class FlowsBean extends AbstractResourceBean {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getJsar(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) {
         Flow flow = entityManager.find(Flow.class, id);
+        if(flow.getJsar() == null) {
+            return flowstoreFallback.map(url -> url + "/" + FlowStoreServiceConstants.FLOW_NAME_JSAR)
+                    .map(f -> f.replaceFirst("\\{name}", getFlowName(flow.getId())))
+                    .map(URI::create)
+                    .map(Response::temporaryRedirect)
+                    .map(Response.ResponseBuilder::build)
+                    .orElseThrow(() -> new IllegalStateException("No JSar file found for flow " + id));
+        }
+        return Response.ok(flow.getJsar()).build();
+    }
+
+    @GET
+    @Path(FlowStoreServiceConstants.FLOW_NAME_JSAR)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getJsarByName(@PathParam(FlowStoreServiceConstants.NAME_VARIABLE) String flowName) {
+        TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_BY_NAME, Flow.class)
+                .setParameter(1, flowName);
+        Flow flow = query.getSingleResult();
         return Response.ok(flow.getJsar()).build();
     }
 

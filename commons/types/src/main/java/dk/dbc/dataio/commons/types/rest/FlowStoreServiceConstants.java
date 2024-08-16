@@ -24,6 +24,7 @@ public class FlowStoreServiceConstants {
     public static final String SINKS = "sinks";
 
     public static final String ID_VARIABLE = "id";
+    public static final String NAME_VARIABLE = "name";
     public static final String PARM_VARIABLE = "parm";
     public static final String LM_VARIABLE = "last-modified";
     public static final String SVN_PROJECT_PATH = "path";
@@ -47,6 +48,7 @@ public class FlowStoreServiceConstants {
     public static final String FLOW_COMPONENT_NEXT = "components/{id}/next";
     public static final String FLOW_CONTENT = "flows/{id}/content";
     public static final String FLOW_JSAR = "flows/{id}/jsar";
+    public static final String FLOW_NAME_JSAR = "flows/{name}/jsar";
     public static final String FLOW_JSAR_CREATE = "flows/jsar/{last-modified}";
     public static final String FLOW_JSAR_UPDATE = "flows/{id}/jsar/{last-modified}";
     public static final String FLOW_BINDER_CONTENT = "binders/{id}/content";

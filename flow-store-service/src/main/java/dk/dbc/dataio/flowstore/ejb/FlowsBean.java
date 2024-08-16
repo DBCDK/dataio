@@ -182,7 +182,9 @@ public class FlowsBean extends AbstractResourceBean {
     public Response getJsar(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) {
         Flow flow = entityManager.find(Flow.class, id);
         if(flow.getJsar() == null) {
-            return flowstoreFallback.map(url -> url + "/" + FlowStoreServiceConstants.FLOW_NAME_JSAR)
+            return flowstoreFallback
+                    .filter(s -> !s.isBlank())
+                    .map(url -> url + "/" + FlowStoreServiceConstants.FLOW_NAME_JSAR)
                     .map(f -> f.replaceFirst("\\{name}", getFlowName(flow.getId())))
                     .map(URI::create)
                     .map(Response::temporaryRedirect)

@@ -44,11 +44,9 @@ public class FlowStoreServiceConstants {
     public static final String SINK_CONTENT = "sinks/{id}/content";
     public static final String SUBMITTER_CONTENT = "submitters/{id}/content";
     public static final String SUBMITTER_FLOW_BINDERS = "submitters/{id}/binders";
-    public static final String FLOW_COMPONENT_CONTENT = "components/{id}/content";
-    public static final String FLOW_COMPONENT_NEXT = "components/{id}/next";
     public static final String FLOW_CONTENT = "flows/{id}/content";
     public static final String FLOW_JSAR = "flows/{id}/jsar";
-    public static final String FLOW_NAME_JSAR = "flows/{name}/jsar";
+    public static final String FLOW_NAME_JSAR = "flows/name/{name}/jsar";
     public static final String FLOW_JSAR_CREATE = "flows/jsar/{last-modified}";
     public static final String FLOW_JSAR_UPDATE = "flows/{id}/jsar/{last-modified}";
     public static final String FLOW_BINDER_CONTENT = "binders/{id}/content";

@@ -27,8 +27,6 @@ import java.util.zip.GZIPInputStream;
  * </p>
  */
 public class BinaryFileFsImpl implements BinaryFile {
-    public static final int BUFFER_SIZE = 8192;
-
     private enum Compression {BZIP2, GZIP, RAW}
 
     private final Path path;

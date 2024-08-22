@@ -1,13 +1,18 @@
-package dk.dbc.dataio.gatekeeper.operation;
+package dk.dbc.dataio.commons.utils.jobstore.transfile;
 
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.gatekeeper.Util;
-import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static dk.dbc.dataio.commons.types.JobSpecification.Type.PERSISTENT;
+import static dk.dbc.dataio.commons.types.JobSpecification.Type.SUPER_TRANSIENT;
+import static dk.dbc.dataio.commons.types.JobSpecification.Type.TRANSIENT;
 
 /**
  * Factory class for the creation of job specifications from trans file entries
@@ -18,56 +23,45 @@ public class JobSpecificationFactory {
     public static final String DESTINATION_DANBIB = "danbib";
     public static final String PACKAGING_DANBIB_DEFAULT = "iso";
     public static final String ENCODING_DANBIB_DEFAULT = "latin-1";
-
-    private JobSpecificationFactory() {
-    }
+    private static final String CC_MAIL = System.getenv("CC_MAIL");
 
     /**
-     * Creates job specification from given transfile line using
+     * Creates job specification from given transfile map using
      * "missing value" placeholders for missing field values. In case destination
      * is {@value #DESTINATION_DANBIB} missing values for packaging and/or
      * encoding fields will be set to {@value PACKAGING_DANBIB_DEFAULT} and
      * {@value ENCODING_DANBIB_DEFAULT} respectively.
      *
-     * @param line          transfile line to convert into job specification
+     * @param map          transfile map to convert into job specification
      * @param transfileName name of parent transfile
-     * @param fileStoreId   file-store service ID of data file referenced in transfile line
+     * @param fileStoreId   file-store service ID of data file referenced in transfile map
      * @param rawTransfile  transfile content (can be null)
      * @return JobSpecification instance
      * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued fileStoreId argument
      */
-    public static JobSpecification createJobSpecification(TransFile.Line line, String transfileName, String fileStoreId, byte[] rawTransfile)
+    public static JobSpecification createJobSpecification(Map<Character, String> map, String transfileName, String fileStoreId, byte[] rawTransfile)
             throws NullPointerException, IllegalArgumentException {
-        InvariantUtil.checkNotNullOrThrow(line, "line");
+        InvariantUtil.checkNotNullOrThrow(map, "map");
         InvariantUtil.checkNotNullNotEmptyOrThrow(transfileName, "transfileName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileStoreId, "fileStoreId");
-        String ccMail = Util.CommandLineOption.CC_MAIL_ADDRESS.get();
-        String destination = getFieldValue(line, "b", Constants.MISSING_FIELD_VALUE);
+        String destination = map.getOrDefault('b', Constants.MISSING_FIELD_VALUE);
 
         String defaultPackaging = Constants.MISSING_FIELD_VALUE;
         String defaultEncoding = Constants.MISSING_FIELD_VALUE;
-        JobSpecification.Type defaultJobType = JobSpecification.Type.PERSISTENT;
         if (DESTINATION_DANBIB.equals(destination)) {
             defaultPackaging = PACKAGING_DANBIB_DEFAULT;
             defaultEncoding = ENCODING_DANBIB_DEFAULT;
         }
 
-        JobSpecification.Type jobType = defaultJobType;
-        if (DESTINATION_MARCKONV.equals(destination)) {
-            jobType = JobSpecification.Type.TRANSIENT;
-        }
-        if (Constants.JOBTYPE_TRANSIENT.equals(getFieldValue(line, "j", Constants.JOBTYPE_PERSISTENT))) {
-            jobType = JobSpecification.Type.TRANSIENT;
-        }
-        if (Constants.JOBTYPE_SUPER_TRANSIENT.equals(getFieldValue(line, "j", Constants.JOBTYPE_PERSISTENT))) {
-            jobType = JobSpecification.Type.SUPER_TRANSIENT;
-        }
+        JobSpecification.Type jobType = DESTINATION_MARCKONV.equals(destination) ? TRANSIENT : PERSISTENT;
+        if (Constants.JOBTYPE_TRANSIENT.equals(map.get('j'))) jobType = TRANSIENT;
+        if (Constants.JOBTYPE_SUPER_TRANSIENT.equals(map.get('j'))) jobType = SUPER_TRANSIENT;
 
 
-        String packaging = getFieldValue(line, "t", defaultPackaging);
-        String format = getFieldValue(line, "o", Constants.MISSING_FIELD_VALUE);
-        String encoding = getFieldValue(line, "c", defaultEncoding);
+        String packaging = map.getOrDefault('t', defaultPackaging);
+        String format = map.getOrDefault('o', Constants.MISSING_FIELD_VALUE);
+        String encoding = map.getOrDefault('c', defaultEncoding);
 
         return new JobSpecification()
                 .withPackaging(packaging)
@@ -75,12 +69,24 @@ public class JobSpecificationFactory {
                 .withCharset(encoding)
                 .withDestination(destination)
                 .withSubmitterId(getSubmitterIdOrMissing(transfileName))
-                .withMailForNotificationAboutVerification(addCC(getFieldValue(line, "m", Constants.MISSING_FIELD_VALUE), ccMail))
-                .withMailForNotificationAboutProcessing(addCC(getFieldValue(line, "M", Constants.MISSING_FIELD_VALUE), ccMail))
-                .withResultmailInitials(getFieldValue(line, "i", Constants.MISSING_FIELD_VALUE))
-                .withDataFile(getFileStoreUrnOrMissing(line, fileStoreId))
+                .withMailForNotificationAboutVerification(addCC(map.getOrDefault('m', Constants.MISSING_FIELD_VALUE), CC_MAIL))
+                .withMailForNotificationAboutProcessing(addCC(map.getOrDefault('M', Constants.MISSING_FIELD_VALUE), CC_MAIL))
+                .withResultmailInitials(map.getOrDefault('i', Constants.MISSING_FIELD_VALUE))
+                .withDataFile(getFileStoreUrnOrMissing(map, fileStoreId))
                 .withType(jobType)
-                .withAncestry(getAncestry(transfileName, line, rawTransfile));
+                .withAncestry(getAncestry(transfileName, map, rawTransfile));
+    }
+
+    public static Map<Character, String> transfileLineToMap(String transfileLine) {
+        String[] pairs = transfileLine.split(",");
+        Map<Character, String> map = new HashMap<>();
+        for (String pair : pairs) {
+            String[] kv = pair.split("=", 2);
+            String key = kv[0].trim();
+            if(key.length() > 1) throw new IllegalArgumentException("Field key can only be one character: " + key);
+            map.put(key.charAt(0), kv[1].trim());
+        }
+        return map;
     }
 
     private static long getSubmitterIdOrMissing(String transfileName) {
@@ -96,6 +102,7 @@ public class JobSpecificationFactory {
             return Constants.MISSING_SUBMITTER_VALUE;
         }
     }
+
     private static String addCC(String address, String cc) {
         if (Constants.MISSING_FIELD_VALUE.equals(address)) {
             return Constants.MISSING_FIELD_VALUE;
@@ -111,16 +118,8 @@ public class JobSpecificationFactory {
         }
     }
 
-    private static String getFieldValue(TransFile.Line line, String fieldName, String defaultValue) {
-        String fieldValue = line.getField(fieldName);
-        if (fieldValue == null || fieldValue.trim().isEmpty()) {
-            return defaultValue;
-        }
-        return fieldValue;
-    }
-
-    private static String getFileStoreUrnOrMissing(TransFile.Line line, String fileStoreId) throws IllegalArgumentException {
-        String fieldValue = getFieldValue(line, "f", Constants.MISSING_FIELD_VALUE);
+    private static String getFileStoreUrnOrMissing(Map<Character, String> line, String fileStoreId) throws IllegalArgumentException {
+        String fieldValue = line.getOrDefault('f', Constants.MISSING_FIELD_VALUE);
         if (Constants.MISSING_FIELD_VALUE.equals(fieldValue)) {
             return Constants.MISSING_FIELD_VALUE;
         }
@@ -130,8 +129,8 @@ public class JobSpecificationFactory {
         return FileStoreUrn.create(fileStoreId).toString();
     }
 
-    private static JobSpecification.Ancestry getAncestry(String transfileName, TransFile.Line line, byte[] rawTransfile) {
-        String datafileName = getFieldValue(line, "f", Constants.MISSING_FIELD_VALUE);
+    private static JobSpecification.Ancestry getAncestry(String transfileName, Map<Character, String> line, byte[] rawTransfile) {
+        String datafileName = line.getOrDefault('f', Constants.MISSING_FIELD_VALUE);
         String batchId = getBatchId(datafileName);
         return new JobSpecification.Ancestry()
                 .withTransfile(transfileName)

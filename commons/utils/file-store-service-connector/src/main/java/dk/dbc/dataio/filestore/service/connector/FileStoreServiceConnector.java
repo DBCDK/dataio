@@ -18,6 +18,7 @@ import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -91,7 +92,7 @@ public class FileStoreServiceConnector {
             InvariantUtil.checkNotNullOrThrow(is, "is");
             final Response response = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
-                    .withPathElements(new String[]{FileStoreServiceConstants.FILES_COLLECTION})
+                    .withPathElements(FileStoreServiceConstants.FILES_COLLECTION)
                     .withData(is, MediaType.APPLICATION_OCTET_STREAM)
                     .execute();
             try {
@@ -120,25 +121,22 @@ public class FileStoreServiceConnector {
      */
     public void appendToFile(final String fileId, final byte[] bytes)
             throws NullPointerException, ProcessingException, FileStoreServiceConnectorUnexpectedStatusCodeException {
+        appendStream(fileId, new ByteArrayInputStream(bytes));
+    }
+
+    public void appendStream(String fileId, InputStream is) throws ProcessingException, FileStoreServiceConnectorUnexpectedStatusCodeException {
         final StopWatch stopWatch = new StopWatch();
-        Response response = null;
-        try {
-            InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
-            if (bytes != null) {
-                final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
-                        .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
-                response = new HttpPost(failSafeHttpClient)
-                        .withBaseUrl(baseUrl)
-                        .withPathElements(path.build())
-                        .withData(bytes, MediaType.APPLICATION_OCTET_STREAM)
-                        .execute();
+        InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
+        final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
+                .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
+        try(Response response = new HttpPost(failSafeHttpClient)
+                .withBaseUrl(baseUrl)
+                .withPathElements(path.build())
+                .withData(is, MediaType.APPLICATION_OCTET_STREAM)
+                .execute()) {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            }
         } finally {
-            if (response != null) {
-                response.close();
-            }
-            log.info("appendToFile({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
+            log.info("appendStream({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
         }
     }
 

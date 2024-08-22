@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedSt
 import dk.dbc.dataio.commons.utils.jobstore.transfile.JobSpecificationFactory;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.gatekeeper.Metric;
+import dk.dbc.dataio.gatekeeper.Util;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -36,6 +37,10 @@ public class CreateJobOperation implements Operation {
     private final Path workingDir;
     private final String transfileName;
     private final String transfileData;
+
+    static {
+        JobSpecificationFactory.CC_MAIL = Util.CommandLineOption.CC_MAIL_ADDRESS::get;
+    }
 
     public CreateJobOperation(JobStoreServiceConnector jobStoreServiceConnector,
                               FileStoreServiceConnector fileStoreServiceConnector,

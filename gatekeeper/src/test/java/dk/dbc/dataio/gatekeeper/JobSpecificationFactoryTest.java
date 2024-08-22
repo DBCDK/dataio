@@ -2,13 +2,15 @@ package dk.dbc.dataio.gatekeeper;
 
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.gatekeeper.operation.JobSpecificationFactory;
-import dk.dbc.dataio.gatekeeper.transfile.TransFile;
+import dk.dbc.dataio.commons.utils.jobstore.transfile.JobSpecificationFactory;
 import org.apache.commons.cli.ParseException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 
+import static dk.dbc.dataio.commons.utils.jobstore.transfile.JobSpecificationFactory.createJobSpecification;
+import static dk.dbc.dataio.commons.utils.jobstore.transfile.JobSpecificationFactory.transfileLineToMap;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -18,35 +20,40 @@ public class JobSpecificationFactoryTest {
     private final String transfileName = String.format("%d.trans", submitter);
     private final byte[] rawTransfile = "content".getBytes(StandardCharsets.UTF_8);
 
+    @BeforeEach
+    public void setUp() {
+        JobSpecificationFactory.CC_MAIL = Util.CommandLineOption.CC_MAIL_ADDRESS::get;
+    }
+
 
     @Test
     public void createJobSpecification_lineArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> JobSpecificationFactory.createJobSpecification(null, transfileName, "42", rawTransfile));
+        assertThrows(NullPointerException.class, () -> createJobSpecification(null, transfileName, "42", rawTransfile));
     }
 
     @Test
     public void createJobSpecification_fileStoreIdArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> JobSpecificationFactory.createJobSpecification(new TransFile.Line("foo"), transfileName, null, rawTransfile));
+        assertThrows(NullPointerException.class, () -> createJobSpecification(transfileLineToMap("x=foo"), transfileName, null, rawTransfile));
     }
 
     @Test
     public void createJobSpecification_fileStoreIdArgIsEmpty_throws() {
-        assertThrows(IllegalArgumentException.class, () -> JobSpecificationFactory.createJobSpecification(new TransFile.Line("foo"), transfileName, " ", rawTransfile));
+        assertThrows(IllegalArgumentException.class, () -> createJobSpecification(transfileLineToMap("x=foo"), transfileName, " ", rawTransfile));
     }
 
     @Test
     public void createJobSpecification_transfileNameArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> JobSpecificationFactory.createJobSpecification(new TransFile.Line("foo"), null, "42", rawTransfile));
+        assertThrows(NullPointerException.class, () -> createJobSpecification(transfileLineToMap("x=foo"), null, "42", rawTransfile));
     }
 
     @Test
     public void createJobSpecification_transfileNameArgArgIsEmpty_throws() {
-        assertThrows(IllegalArgumentException.class, () -> JobSpecificationFactory.createJobSpecification(new TransFile.Line("foo"), " ", "42", rawTransfile));
+        assertThrows(IllegalArgumentException.class, () -> createJobSpecification(transfileLineToMap("x=foo"), " ", "42", rawTransfile));
     }
 
     @Test
     public void createJobSpecification_rawTransfileArgIsNull_createsJobSpecification() {
-        JobSpecificationFactory.createJobSpecification(new TransFile.Line("foo"), "123456.trans", "42", rawTransfile);
+        createJobSpecification(transfileLineToMap("x=foo"), "123456.trans", "42", rawTransfile);
     }
 
     @Test
@@ -56,8 +63,7 @@ public class JobSpecificationFactoryTest {
 
         String rawTransfileLine = getRawTransfileLine(jobSpecificationTemplate, batchId);
 
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line(rawTransfileLine), transfileName, "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap(rawTransfileLine), transfileName, "42", rawTransfile);
 
         assertThat("JobSpecification", jobSpecification, is(jobSpecificationTemplate));
     }
@@ -71,8 +77,7 @@ public class JobSpecificationFactoryTest {
 
         String rawTransfileLine = getRawTransfileLine(jobSpecificationTemplate, batchId);
 
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line(rawTransfileLine), transfileName, "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap(rawTransfileLine), transfileName, "42", rawTransfile);
 
         jobSpecificationTemplate
                 .withMailForNotificationAboutVerification("verification@company.com; dataio@dbc.dk")
@@ -93,8 +98,7 @@ public class JobSpecificationFactoryTest {
 
         String rawTransfileLine = getRawTransfileLine(jobSpecificationTemplate, batchId);
 
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line(rawTransfileLine), transfileName, "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap(rawTransfileLine), transfileName, "42", rawTransfile);
 
         assertThat("JobSpecification", jobSpecification, is(jobSpecificationTemplate));
     }
@@ -108,8 +112,7 @@ public class JobSpecificationFactoryTest {
 
         String rawTransfileLine = getRawTransfileLine(jobSpecificationTemplate, batchId);
 
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line(rawTransfileLine), transfileName, "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap(rawTransfileLine), transfileName, "42", rawTransfile);
 
 
         assertThat("JobSpecification", jobSpecification, is(jobSpecificationTemplate));
@@ -133,8 +136,7 @@ public class JobSpecificationFactoryTest {
                         .withDatafile(Constants.MISSING_FIELD_VALUE)
                         .withDetails(rawTransfile)
                 );
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("foo,j=TRANSIENT"), transfileName, "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap("foo,j=TRANSIENT"), transfileName, "42", rawTransfile);
 
         assertThat(jobSpecification, is(jobSpecificationTemplate));
     }
@@ -157,8 +159,7 @@ public class JobSpecificationFactoryTest {
                         .withDatafile(Constants.MISSING_FIELD_VALUE)
                         .withDetails(rawTransfile)
                 );
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("b= ,f=,t= ,c=,o= ,m=,M= ,i="), transfileName, "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap("b= ,f=,t= ,c=,o= ,m=,M= ,i="), transfileName, "42", rawTransfile);
 
         assertThat(jobSpecification, is(jobSpecificationTemplate));
     }
@@ -181,8 +182,7 @@ public class JobSpecificationFactoryTest {
                         .withDatafile(Constants.MISSING_FIELD_VALUE)
                         .withDetails(rawTransfile)
                 );
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("b=danbib,f=,t=,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap("b=danbib,f=,t=,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
 
         assertThat(jobSpecification, is(jobSpecificationTemplate));
     }
@@ -205,8 +205,7 @@ public class JobSpecificationFactoryTest {
                         .withDatafile(Constants.MISSING_FIELD_VALUE)
                         .withDetails(rawTransfile)
                 );
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("b=danbib,f=,t=,c=utf8,o=,m=,M=,i="), transfileName, "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap("b=danbib,f=,t=,c=utf8,o=,m=,M=,i="), transfileName, "42", rawTransfile);
 
         assertThat(jobSpecification, is(jobSpecificationTemplate));
     }
@@ -229,8 +228,7 @@ public class JobSpecificationFactoryTest {
                         .withDatafile(Constants.MISSING_FIELD_VALUE)
                         .withDetails(rawTransfile)
                 );
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("b=danbib,f=,t=lin,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap("b=danbib,f=,t=lin,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
 
         assertThat(jobSpecification, is(jobSpecificationTemplate));
     }
@@ -253,8 +251,7 @@ public class JobSpecificationFactoryTest {
                         .withDatafile(Constants.MISSING_FIELD_VALUE)
                         .withDetails(rawTransfile)
                 );
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("b=marckonv,f=,t=lin,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap("b=marckonv,f=,t=lin,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
 
         assertThat(jobSpecification, is(jobSpecificationTemplate));
     }
@@ -277,8 +274,7 @@ public class JobSpecificationFactoryTest {
                         .withDatafile(Constants.MISSING_FIELD_VALUE)
                         .withDetails(rawTransfile)
                 );
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("b=danbib,f=,t=lin,c=,o=,m=,M=,i=,j=TRANSIENT"), transfileName, "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap("b=danbib,f=,t=lin,c=,o=,m=,M=,i=,j=TRANSIENT"), transfileName, "42", rawTransfile);
 
         assertThat(jobSpecification, is(jobSpecificationTemplate));
     }
@@ -301,8 +297,7 @@ public class JobSpecificationFactoryTest {
                         .withDatafile(Constants.MISSING_FIELD_VALUE)
                         .withDetails(rawTransfile)
                 );
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("b=danbib,f=,t=lin,c=,o=,m=,M=,i=,j=SUPER_TRANSIENT"), transfileName, "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap("b=danbib,f=,t=lin,c=,o=,m=,M=,i=,j=SUPER_TRANSIENT"), transfileName, "42", rawTransfile);
 
         assertThat(jobSpecification, is(jobSpecificationTemplate));
     }
@@ -326,30 +321,26 @@ public class JobSpecificationFactoryTest {
                         .withDatafile(Constants.MISSING_FIELD_VALUE)
                         .withDetails(rawTransfile)
                 );
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("b=not_danbib,f=,t=,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap("b=not_danbib,f=,t=,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
 
         assertThat(jobSpecification, is(jobSpecificationTemplate));
     }
 
     @Test
     public void createJobSpecification_transfileNameSubstringOutOfBounds_mapsToMissingField() {
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("foo"), "123", "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap("foo"), "123", "42", rawTransfile);
         assertThat(jobSpecification.getSubmitterId(), is(Constants.MISSING_SUBMITTER_VALUE));
     }
 
     @Test
     public void createJobSpecification_submitterPartOfTransfileNameIsNaN_mapsToMissingField() {
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("foo"), "abcdef.trans", "42", rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap("foo"), "abcdef.trans", "42", rawTransfile);
         assertThat(jobSpecification.getSubmitterId(), is(Constants.MISSING_SUBMITTER_VALUE));
     }
 
     @Test
     public void createJobSpecification_fileStoreIdArgIsMissing_mapsToOriginalFieldValue() {
-        JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("f=123456.file"), transfileName, Constants.MISSING_FIELD_VALUE, rawTransfile);
+        JobSpecification jobSpecification = createJobSpecification(transfileLineToMap("f=123456.file"), transfileName, Constants.MISSING_FIELD_VALUE, rawTransfile);
         assertThat(jobSpecification.getAncestry().getDatafile(), is("123456.file"));
         assertThat(jobSpecification.getDataFile(), is(Constants.MISSING_FIELD_VALUE));
     }

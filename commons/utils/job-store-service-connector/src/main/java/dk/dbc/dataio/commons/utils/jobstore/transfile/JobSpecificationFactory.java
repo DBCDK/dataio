@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static dk.dbc.dataio.commons.types.JobSpecification.Type.PERSISTENT;
 import static dk.dbc.dataio.commons.types.JobSpecification.Type.SUPER_TRANSIENT;
@@ -23,7 +24,7 @@ public class JobSpecificationFactory {
     public static final String DESTINATION_DANBIB = "danbib";
     public static final String PACKAGING_DANBIB_DEFAULT = "iso";
     public static final String ENCODING_DANBIB_DEFAULT = "latin-1";
-    private static final String CC_MAIL = System.getenv("CC_MAIL");
+    public static Supplier<String> CC_MAIL = () -> System.getenv("CC_MAIL");
 
     /**
      * Creates job specification from given transfile map using
@@ -69,8 +70,8 @@ public class JobSpecificationFactory {
                 .withCharset(encoding)
                 .withDestination(destination)
                 .withSubmitterId(getSubmitterIdOrMissing(transfileName))
-                .withMailForNotificationAboutVerification(addCC(map.getOrDefault('m', Constants.MISSING_FIELD_VALUE), CC_MAIL))
-                .withMailForNotificationAboutProcessing(addCC(map.getOrDefault('M', Constants.MISSING_FIELD_VALUE), CC_MAIL))
+                .withMailForNotificationAboutVerification(addCC(map.getOrDefault('m', Constants.MISSING_FIELD_VALUE), CC_MAIL.get()))
+                .withMailForNotificationAboutProcessing(addCC(map.getOrDefault('M', Constants.MISSING_FIELD_VALUE), CC_MAIL.get()))
                 .withResultmailInitials(map.getOrDefault('i', Constants.MISSING_FIELD_VALUE))
                 .withDataFile(getFileStoreUrnOrMissing(map, fileStoreId))
                 .withType(jobType)
@@ -82,9 +83,11 @@ public class JobSpecificationFactory {
         Map<Character, String> map = new HashMap<>();
         for (String pair : pairs) {
             String[] kv = pair.split("=", 2);
-            String key = kv[0].trim();
-            if(key.length() > 1) throw new IllegalArgumentException("Field key can only be one character: " + key);
-            map.put(key.charAt(0), kv[1].trim());
+            if(kv.length == 2 && !kv[1].isBlank()) {
+                String key = kv[0].trim();
+                if(key.length() > 1) throw new IllegalArgumentException("Field key can only be one character: " + key);
+                map.put(key.charAt(0), kv[1].trim());
+            } else LOGGER.warn("Invalid field " + pair);
         }
         return map;
     }

@@ -16,6 +16,7 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -26,8 +27,6 @@ import java.util.zip.GZIPInputStream;
  * </p>
  */
 public class BinaryFileFsImpl implements BinaryFile {
-    public static final int BUFFER_SIZE = 8192;
-
     private enum Compression {BZIP2, GZIP, RAW}
 
     private final Path path;
@@ -58,12 +57,7 @@ public class BinaryFileFsImpl implements BinaryFile {
         }
         createPathIfNotExists(path.getParent());
         try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(path.toFile()))) {
-            final byte[] buf = new byte[BUFFER_SIZE];
-            int bytesRead;
-            while ((bytesRead = is.read(buf)) > 0) {
-                bos.write(buf, 0, bytesRead);
-            }
-            bos.flush();
+            is.transferTo(bos);
         } catch (IOException e) {
             String error = "Unable to write file " + path;
             try {
@@ -78,23 +72,21 @@ public class BinaryFileFsImpl implements BinaryFile {
     /**
      * Appends to this file
      *
-     * @param bytes bytes to be appended
+     * @param is InputStream to be appended from
+     * @return The new file size
      * @throws IllegalStateException if trying to append to a non-existing file,
      *                               or on general failure to append
      */
     @Override
-    public void append(final byte[] bytes) {
+    public long append(InputStream is) {
         if (!Files.exists(path)) {
             throw new IllegalStateException("Attempt to append to non-existing file " + path);
         }
-        if (bytes != null) {
-            try (BufferedOutputStream bos = new BufferedOutputStream(
-                    new FileOutputStream(path.toFile(), true))) {
-                bos.write(bytes, 0, bytes.length);
-                bos.flush();
-            } catch (IOException e) {
-                throw new IllegalStateException("Unable to append to file " + path, e);
-            }
+        try(OutputStream os = Files.newOutputStream(path, StandardOpenOption.APPEND)) {
+            is.transferTo(os);
+            return Files.size(path);
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to append to file " + path, e);
         }
     }
 
@@ -174,11 +166,7 @@ public class BinaryFileFsImpl implements BinaryFile {
             throw new IllegalStateException("File does not exist " + path);
         }
         try (InputStream is = createInputStreamForReading(decompress)) {
-            final byte[] buf = new byte[BUFFER_SIZE];
-            int bytesRead;
-            while ((bytesRead = is.read(buf)) > 0) {
-                os.write(buf, 0, bytesRead);
-            }
+            is.transferTo(os);
             os.flush();
         } catch (IOException e) {
             throw new IllegalStateException("Unable to read file " + path, e);

@@ -7,6 +7,7 @@ import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -46,7 +47,7 @@ public class FilesBeanTest {
         when(fileStoreBean.fileExists(fileId)).thenReturn(false);
 
         FilesBean filesBean = newFilesBeanInstance();
-        Response response = filesBean.appendToFile(fileId, new byte[0]);
+        Response response = filesBean.appendToFile(fileId, new ByteArrayInputStream(new byte[0]));
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 

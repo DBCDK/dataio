@@ -5,9 +5,6 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import dk.dbc.dataio.filestore.service.entity.FileAttributes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jakarta.ejb.EJB;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
@@ -25,6 +22,9 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -76,19 +76,19 @@ public class FilesBean {
      * entirely up to the client to guarantee a well-defined result.
      *
      * @param id    id of existing file
-     * @param bytes binary data to be appended
-     * @return a HTTP 200 OK
+     * @param is InputStream to be appended from
+     * @return HTTP 200 OK
      * a HTTP 404 NOT_FOUND response in case the id could not be found
      */
     @POST
     @Path(FileStoreServiceConstants.FILE)
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Stopwatch
-    public Response appendToFile(@PathParam("id") final String id, byte[] bytes) {
+    public Response appendToFile(@PathParam("id") String id, InputStream is) {
         if (!fileStore.fileExists(id)) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        fileStore.appendToFile(id, bytes);
+        fileStore.appendToFile(id, is);
         return Response.ok().build();
     }
 

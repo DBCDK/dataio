@@ -25,6 +25,10 @@ public class JobStoreServiceConnectorBean {
     public JobStoreServiceConnectorBean() {
     }
 
+    public JobStoreServiceConnectorBean(JobStoreServiceConnector jobStoreServiceConnector) {
+        this.jobStoreServiceConnector = jobStoreServiceConnector;
+    }
+
     @PostConstruct
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");

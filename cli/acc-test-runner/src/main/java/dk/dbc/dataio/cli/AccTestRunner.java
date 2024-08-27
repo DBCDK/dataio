@@ -74,6 +74,8 @@ public class AccTestRunner implements Callable<Integer> {
     private Path reportPath;
     @Option(names = "-v", description = "Version")
     private Long revision;
+    @Option(names = "--skipTests", description = "To skip running the tests, set the skipTests property to true", defaultValue = "false")
+    private boolean skipTests;
 
     private boolean foundFlowByName = false;
 
@@ -152,6 +154,10 @@ public class AccTestRunner implements Callable<Integer> {
             flows.add(remoteFlow.getId());
             if(flows.size() > 1) throw new IllegalArgumentException("Stopped at testsuite " + suite.getName() + ". All test data, within an acceptance test, must address the same flowId. Flows: " + flows);
 
+            if (skipTests) {
+                LOGGER.info("skipping tests for {}", suite.getName());
+                continue;
+            }
             LOGGER.info("running test suite with local flow");
             Chunk localOutputChunk = processSuite(suite, localFlow);
 

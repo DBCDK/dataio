@@ -77,15 +77,13 @@ public class FileStoreBean {
      * Appends content to existing file in store
      *
      * @param id    id of existing file
-     * @param bytes bytes to be appended
+     * @param is InputStream to be appended from
      * @throws IllegalStateException on general failure to append data
      */
-    public void appendToFile(String id, byte[] bytes) {
-        if (bytes != null) {
-            final FileAttributes fileAttributes = getFileAttributesOrThrow(id);
-            binaryFileStore.getBinaryFile(fileAttributes.getLocation().resolve(id)).append(bytes);
-            fileAttributes.setByteSize(fileAttributes.getByteSize() + bytes.length);
-        }
+    public void appendToFile(String id, InputStream is) {
+        FileAttributes fileAttributes = getFileAttributesOrThrow(id);
+        long size = binaryFileStore.getBinaryFile(fileAttributes.getLocation().resolve(id)).append(is);
+        fileAttributes.setByteSize(size);
     }
 
     /**

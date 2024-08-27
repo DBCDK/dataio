@@ -18,9 +18,9 @@ public interface BinaryFile {
     /**
      * Appends content to this binary file representation
      *
-     * @param bytes bytes to be appended
+     * @param is input stream to be appended
      */
-    void append(final byte[] bytes);
+    long append(InputStream is);
 
     /**
      * @return an OutputStream for writing to this file

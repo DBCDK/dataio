@@ -81,7 +81,7 @@ public class BinaryFileFsImplTest {
     public void append_pathDoesNotExist_throws() {
         Path file = Paths.get("file");
         BinaryFileFsImpl binaryFile = new BinaryFileFsImpl(file);
-        assertThrows(IllegalStateException.class, () -> binaryFile.append(new byte[]{}));
+        assertThrows(IllegalStateException.class, () -> binaryFile.append(new ByteArrayInputStream(new byte[0])));
     }
 
     @Test
@@ -90,7 +90,7 @@ public class BinaryFileFsImplTest {
         Files.delete(destinationFile);
         BinaryFileFsImpl binaryFile = new BinaryFileFsImpl(destinationFile);
         binaryFile.write(new ByteArrayInputStream("foo".getBytes()));
-        binaryFile.append("bar".getBytes());
+        binaryFile.append(new ByteArrayInputStream("bar".getBytes()));
         ByteArrayOutputStream sink = new ByteArrayOutputStream();
         binaryFile.read(sink);
         assertThat(sink.toString(), is("foobar"));

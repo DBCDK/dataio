@@ -5,8 +5,10 @@ import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.utils.jobstore.transfile.JobSpecificationFactory;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.gatekeeper.Metric;
+import dk.dbc.dataio.gatekeeper.Util;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -21,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 import static dk.dbc.dataio.gatekeeper.Metric.TAG_FAILED;
 
@@ -34,6 +37,10 @@ public class CreateJobOperation implements Operation {
     private final Path workingDir;
     private final String transfileName;
     private final String transfileData;
+
+    static {
+        JobSpecificationFactory.CC_MAIL = Util.CommandLineOption.CC_MAIL_ADDRESS::get;
+    }
 
     public CreateJobOperation(JobStoreServiceConnector jobStoreServiceConnector,
                               FileStoreServiceConnector fileStoreServiceConnector,
@@ -56,11 +63,12 @@ public class CreateJobOperation implements Operation {
     @Override
     public void execute() throws OperationExecutionException {
         LOGGER.info("Creating job for transfile entry: '{}'", transfileData);
+        Map<Character, String> map = JobSpecificationFactory.transfileLineToMap(transfileData);
         final TransFile.Line transfileLine = new TransFile.Line(transfileData);
-        final String fileStoreId = uploadToFileStore(transfileLine.getField("f"));
+        final String fileStoreId = uploadToFileStore(map.get('f'));
 
         final JobSpecification jobSpecification = JobSpecificationFactory.createJobSpecification(
-                transfileLine, transfileName, fileStoreId, readAllTransfileBytes(fileStoreId));
+                map, transfileName, fileStoreId, readAllTransfileBytes(fileStoreId));
 
         createJobInJobStore(jobSpecification, fileStoreId);
     }

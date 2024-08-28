@@ -33,7 +33,7 @@ public class FlowContent implements Serializable {
     private static final String ATTRIBUTE_ENTRYPOINT_SCRIPT = "Flow-Entrypoint-Script";
     private static final String ATTRIBUTE_ENTRYPOINT_FUNCTION = "Flow-Entrypoint-Function";
 
-    private final String name;
+    private String name;
     private final String description;
     private String entrypointScript;
     private String entrypointFunction;
@@ -91,6 +91,11 @@ public class FlowContent implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+    public FlowContent name(String name) {
+        this.name = name;
+        return this;
     }
 
     public String getDescription() {

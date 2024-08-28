@@ -37,6 +37,7 @@ import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -202,6 +203,21 @@ public class FlowsBean extends AbstractResourceBean {
                 .setParameter(1, flowName);
         Flow flow = query.getSingleResult();
         return Response.ok(flow.getJsar()).build();
+    }
+
+    @POST
+    @Path("flows/rename/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response renameFlow(@PathParam("id") Long id, @QueryParam("name") String name) throws JSONBException {
+        Objects.requireNonNull(id);
+        Objects.requireNonNull(name);
+        Flow flow = entityManager.find(Flow.class, id);
+        FlowContent content = jsonbContext.unmarshall(flow.getContent(), FlowContent.class);
+        flow.updateContent(content.name(name));
+        return Response.ok()
+                .entity(flow.getView())
+                .status(Response.Status.OK)
+                .build();
     }
 
     protected FlowsBean self() {

@@ -178,7 +178,7 @@ public class JobSchedulerBean {
     public void updateSinks() {
         if(Hazelcast.isSlave()) return;
         try {
-            LOGGER.info("Updating chunks.blocked metrics");
+            LOGGER.debug("Updating chunks.blocked metrics");
             List<Sink> sinks = flowStore.getConnector().findAllSinks();
             Map<Integer, Integer> counts = dependencyTrackingService.sinkBlockedCount();
             Map<String, Integer> bc = sinks.stream().collect(Collectors.toMap(s -> s.getContent().getName(), s -> counts.getOrDefault(s.getId(), 0)));

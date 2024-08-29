@@ -74,6 +74,8 @@ public class AccTestRunner implements Callable<Integer> {
     private Path reportPath;
     @Option(names = "-v", description = "Version")
     private Long revision;
+    @Option(names = "--packageName", description = "Used for grouping test results in report")
+    private String packageName;
     @Option(names = "--skipTests", description = "To skip running the tests, set the skipTests property to true", defaultValue = "false")
     private boolean skipTests;
 
@@ -167,7 +169,7 @@ public class AccTestRunner implements Callable<Integer> {
             final Chunk processed = new Chunk(localOutputChunk.getJobId(), localOutputChunk.getChunkId(), localOutputChunk.getType());
             processed.addAllItems(remoteOutputChunk.getItems(), localOutputChunk.getItems());
             Chunk diff = new MessageConsumerBean(serviceHub).handleChunk(processed);
-            reportFormat.printDiff(suite, remoteFlow, diff, revision);
+            reportFormat.printDiff(suite, remoteFlow, diff, revision, packageName);
         }
 
         if (!foundFlowByName && resolvedRemotely != null) {

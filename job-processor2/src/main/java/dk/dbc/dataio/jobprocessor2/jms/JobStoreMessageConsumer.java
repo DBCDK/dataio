@@ -52,7 +52,7 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
         healthService = serviceHub.healthService;
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
         flowStoreServiceConnector = ProcessorConfig.FLOWSTORE_URL.asOptionalString().map(fs -> new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), fs)).orElse(null);
-        chunkProcessor = new ChunkProcessor(healthService, jobStoreServiceConnector::getCachedFlow);
+        chunkProcessor = new ChunkProcessor(healthService, this::getFlow);
         Metric.dataio_jobprocessor_chunk_duration_ms.gauge(this::getLongestRunningChunkDuration);
         zombieWatch.addCheck("script-check" , this::scriptRuntimeCheck);
     }
@@ -60,8 +60,12 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
     private Flow getFlow(int jobId) throws JobStoreServiceConnectorException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
         Flow flow = jobStoreServiceConnector.getCachedFlow(jobId);
         if(flow.getContent().getJsar() == null) {
-            byte[] jsar = flowStoreServiceConnector.getJsar(flow.getId());
-            return new Flow(flow.getId(), flow.getVersion(), new FlowContent(jsar, flow.getContent().getTimeOfLastModification()));
+            try {
+                byte[] jsar = flowStoreServiceConnector.getJsar(flow.getId());
+                return new Flow(flow.getId(), flow.getVersion(), new FlowContent(jsar, flow.getContent().getTimeOfLastModification()));
+            } catch (Exception e) {
+                LOGGER.warn("Unable to retrieve jsar flow {}", flow.getId(), e);
+            }
         }
         return flow;
     }

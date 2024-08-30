@@ -14,12 +14,14 @@ import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -200,8 +202,12 @@ public class FlowsBean extends AbstractResourceBean {
     public Response getJsarByName(@PathParam(FlowStoreServiceConstants.NAME_VARIABLE) String flowName) {
         TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_BY_NAME, Flow.class)
                 .setParameter(1, flowName);
-        Flow flow = query.getSingleResult();
-        return Response.ok(flow.getJsar()).build();
+        try {
+            Flow flow = query.getSingleResult();
+            return Response.ok(flow.getJsar()).build();
+        } catch (NoResultException nre) {
+            throw new NotFoundException("Found no flow with name " + flowName);
+        }
     }
 
     protected FlowsBean self() {

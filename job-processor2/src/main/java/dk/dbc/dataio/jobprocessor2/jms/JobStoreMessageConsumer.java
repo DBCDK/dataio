@@ -1,12 +1,17 @@
 package dk.dbc.dataio.jobprocessor2.jms;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.jobprocessor2.Metric;
 import dk.dbc.dataio.jobprocessor2.ProcessorConfig;
 import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
@@ -15,7 +20,9 @@ import dk.dbc.dataio.jse.artemis.common.JobProcessorException;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.HealthService;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
+import jakarta.ws.rs.client.ClientBuilder;
 import org.eclipse.microprofile.metrics.Tag;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +40,7 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
     private static final Duration SLOW_THRESHOLD_MS = Duration.ofMinutes(2);
 
     private final JobStoreServiceConnector jobStoreServiceConnector;
+    private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final ChunkProcessor chunkProcessor;
     private final HealthService healthService;
     private static final Map<WatchKey, Instant> scriptStartTimes = new ConcurrentHashMap<>();
@@ -43,9 +51,23 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
         super(serviceHub);
         healthService = serviceHub.healthService;
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
-        chunkProcessor = new ChunkProcessor(healthService, jobStoreServiceConnector::getCachedFlow);
+        flowStoreServiceConnector = ProcessorConfig.FLOWSTORE_URL.asOptionalString().map(fs -> new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), fs)).orElse(null);
+        chunkProcessor = new ChunkProcessor(healthService, this::getFlow);
         Metric.dataio_jobprocessor_chunk_duration_ms.gauge(this::getLongestRunningChunkDuration);
         zombieWatch.addCheck("script-check" , this::scriptRuntimeCheck);
+    }
+
+    private Flow getFlow(int jobId) throws JobStoreServiceConnectorException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
+        Flow flow = jobStoreServiceConnector.getCachedFlow(jobId);
+        if(flow.getContent().getJsar() == null) {
+            try {
+                byte[] jsar = flowStoreServiceConnector.getJsar(flow.getId());
+                return new Flow(flow.getId(), flow.getVersion(), new FlowContent(jsar, flow.getContent().getTimeOfLastModification()));
+            } catch (Exception e) {
+                LOGGER.warn("Unable to retrieve jsar flow {}", flow.getId(), e);
+            }
+        }
+        return flow;
     }
 
     /**

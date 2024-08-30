@@ -6,7 +6,8 @@ public enum ProcessorConfig implements EnvConfig {
     QUEUE,
     FLOW_CACHE_SIZE("100"),
     FLOW_CACHE_EXPIRY("PT10m"),
-    SHARE_FLOWS("false");
+    SHARE_FLOWS("false"),
+    FLOWSTORE_URL;
 
     private final String defaultValue;
 

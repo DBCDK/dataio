@@ -25,7 +25,8 @@ pipeline {
             harvester/utils/harvester-job-builder, \
             commons/utils, \
             commons/utils/binary-file-store, \
-            cli/acc-test-runner"
+            cli/acc-test-runner, \
+            cli/flow-test-runner"
         SONAR_SCANNER_HOME = tool 'SonarQube Scanner from Maven Central'
         SONAR_SCANNER = "$SONAR_SCANNER_HOME/bin/sonar-scanner"
         SONAR_PROJECT_KEY = "dataio"

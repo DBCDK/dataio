@@ -25,6 +25,7 @@
 <!--        <module>lhr-retriever</module>-->
         <module>cli-image</module>
         <module>acc-test-runner</module>
+        <module>flow-test-runner</module>
         <module>rerun-accessnew</module>
     </modules>
 

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public enum ReportFormat {
     TEXT {
-        public void printDiff(AccTestSuite suite, Flow flow, Chunk chunk, Long revision) {
+        public void printDiff(AccTestSuite suite, Flow flow, Chunk chunk, Long revision, String packageName) {
             chunk.getItems().stream().filter(ci -> ci.getStatus() != ChunkItem.Status.SUCCESS).forEach(ci -> {
                 System.out.println(ci.getStatus() + " - ChunkItem: " + ci.getId());
                 System.out.println(new String(ci.getData(), ci.getEncoding()));
@@ -25,9 +25,18 @@ public enum ReportFormat {
         }
     },
     XML {
-        public void printDiff(AccTestSuite suite, Flow flow, Chunk chunk, Long revision) {
+        public void printDiff(AccTestSuite suite, Flow flow, Chunk chunk, Long revision, String packageName) {
             String flowName = flow.getContent().getName().replace('.', '_');
-            List<Object> cases = chunk.getItems().stream().map(Testcase::from).collect(Collectors.toList());
+            String classnameSuffix = suite.getName().replace('.', '_');
+            List<Object> cases = chunk.getItems().stream().map(chunkItem -> {
+                Testcase testcase = Testcase.from(chunkItem);
+                if (packageName != null) {
+                    // Jenkins uses the classname to group test results,
+                    // so we need to be able to set this, especially in a monorepo.
+                    testcase.setClassname(packageName + ".acctest." + classnameSuffix);
+                }
+                return testcase;
+            }).collect(Collectors.toList());
             Testsuite testsuite = new Testsuite().withName(suite.getName()).withGroup(flowName).withVersion(revision == null ? null : revision.toString()).withHostname(HOSTNAME)
                     .withTests(Integer.toString(chunk.getItems().size())).withTestsuiteOrPropertiesOrTestcase(cases);
             Testsuites testsuites = new Testsuites().withTestsuite(List.of(testsuite));
@@ -49,5 +58,5 @@ public enum ReportFormat {
         return System.getenv("HOSTNAME");
     }
 
-    public abstract void printDiff(AccTestSuite suite, Flow flow, Chunk chunk, Long revision);
+    public abstract void printDiff(AccTestSuite suite, Flow flow, Chunk chunk, Long revision, String packageName);
 }

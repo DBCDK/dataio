@@ -78,7 +78,6 @@ public class JobDispatcherIT {
         when(connectorFactory.getFileStoreServiceConnector()).thenReturn(fileStoreServiceConnector);
         when(connectorFactory.getJobStoreServiceConnector()).thenReturn(jobStoreServiceConnector);
         when(fileStoreServiceConnector.addFile(any(InputStream.class))).thenReturn("fileId");
-        when(flowStoreServiceConnector.findAllGatekeeperDestinations()).thenReturn(gatekeeperDestinations);
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshot());
     }
 

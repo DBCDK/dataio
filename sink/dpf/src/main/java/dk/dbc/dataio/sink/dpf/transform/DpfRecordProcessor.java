@@ -19,7 +19,7 @@ import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
+import dk.dbc.weekresolver.WeekResolverConnectorException;
 
 import java.util.ArrayList;
 import java.util.Arrays;

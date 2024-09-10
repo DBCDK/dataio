@@ -7,7 +7,7 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
-import dk.dbc.weekresolver.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import jakarta.annotation.Resource;
 import jakarta.ejb.Asynchronous;
 import jakarta.ejb.EJB;

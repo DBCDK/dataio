@@ -142,7 +142,7 @@ public class FlowTestRunner implements Callable<Integer> {
                 .withId(0)
                 .withData(Files.readAllBytes(data))
                 .withStatus(ChunkItem.Status.SUCCESS);
-        if (data.endsWith(".addi")) {
+        if (data.toString().endsWith(".addi")) {
             chunkItem.withType(ChunkItem.Type.ADDI);
         }
         return chunkItem;

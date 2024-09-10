@@ -11,9 +11,9 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
 import dk.dbc.dataio.sink.periodicjobs.PeriodicJobsDelivery;
-import dk.dbc.weekresolver.connector.WeekResolverConnector;
-import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
-import dk.dbc.weekresolver.model.WeekResolverResult;
+import dk.dbc.weekresolver.WeekResolverConnector;
+import dk.dbc.weekresolver.WeekResolverConnectorException;
+import dk.dbc.weekresolver.WeekResolverResult;
 import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.ProcessingException;
 

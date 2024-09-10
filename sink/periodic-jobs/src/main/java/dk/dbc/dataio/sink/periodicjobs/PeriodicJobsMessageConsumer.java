@@ -25,7 +25,7 @@ import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsMailFinalizerBean;
 import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsSFtpFinalizerBean;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.proxy.ProxyBean;
-import dk.dbc.weekresolver.WeekResolverConnector;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;

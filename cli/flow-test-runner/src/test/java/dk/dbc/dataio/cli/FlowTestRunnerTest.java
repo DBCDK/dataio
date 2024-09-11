@@ -45,14 +45,14 @@ class FlowTestRunnerTest {
         int exitCode = FlowTestRunner.runWith(FlowTestRunner::new, jsar.toString(), suite1.toString(),
                 "-rp="+tempDir.toAbsolutePath());
         assertThat("exit code", exitCode, is(-1));
-        assertThat("actual_state/150041.credo.delete.tickle.addi exists",
-                Files.exists(suite1.resolve(Path.of("actual_state", "150041.credo.delete.tickle.addi"))),
+        assertThat("actual_state/150041.credo.delete.tickle.txt exists",
+                Files.exists(suite1.resolve(Path.of("actual_state", "150041.credo.delete.tickle.txt"))),
                 is(true));
-        assertThat("actual_state/150041.credo.enpost.tickle.addi exists",
-                Files.exists(suite1.resolve(Path.of("actual_state", "150041.credo.enpost.tickle.addi"))),
+        assertThat("actual_state/150041.credo.enpost.tickle.txt exists",
+                Files.exists(suite1.resolve(Path.of("actual_state", "150041.credo.enpost.tickle.txt"))),
                 is(true));
-        assertThat("actual_state/150041.credo.topost.tickle.addi exists",
-                Files.exists(suite1.resolve(Path.of("actual_state", "150041.credo.topost.tickle.addi"))),
+        assertThat("actual_state/150041.credo.topost.tickle.txt exists",
+                Files.exists(suite1.resolve(Path.of("actual_state", "150041.credo.topost.tickle.txt"))),
                 is(true));
         assertThat("logs/suite1.log exists",
                 Files.exists(suite1.resolve(Path.of("logs", "suite1.log"))),

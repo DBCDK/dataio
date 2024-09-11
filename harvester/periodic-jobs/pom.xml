@@ -106,6 +106,10 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>weekresolver-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-macro-expansion</artifactId>
         </dependency>
         <dependency>

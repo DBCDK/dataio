@@ -700,6 +700,11 @@
                 <version>2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>weekresolver-model</artifactId>
+                <version>2.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
                 <groupId>org.eclipse.microprofile.health</groupId>
                 <artifactId>microprofile-health-api</artifactId>
                 <version>${microprofile-health-api.version}</version>

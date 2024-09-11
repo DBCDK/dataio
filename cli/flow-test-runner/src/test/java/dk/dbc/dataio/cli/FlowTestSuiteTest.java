@@ -25,19 +25,19 @@ class FlowTestSuiteTest {
                 new FlowTestSuite.Scenario()
                         .withName("preparation_of_xml_record_from_credo")
                         .withInputFile("150041.credo.enpost.xml")
-                        .withOutputFile("150041.credo.enpost.tickle.addi")
+                        .withOutputFile("150041.credo.enpost.tickle.txt")
                         .withAgency("150041")
                         .withFormat("credo"),
                 new FlowTestSuite.Scenario()
                         .withName("preparation_of_another_xml_record_from_credo")
                         .withInputFile("150041.credo.topost.xml")
-                        .withOutputFile("150041.credo.topost.tickle.addi")
+                        .withOutputFile("150041.credo.topost.tickle.txt")
                         .withAgency("150041")
                         .withFormat("credo"),
                 new FlowTestSuite.Scenario()
                         .withName("preparation_of_xml_delete_record_from_credo")
                         .withInputFile("150041.credo.delete.xml")
-                        .withOutputFile("150041.credo.delete.tickle.addi")
+                        .withOutputFile("150041.credo.delete.tickle.txt")
                         .withAgency("150041")
                         .withFormat("credo")
         ));

@@ -245,7 +245,7 @@ public class Testcase {
     }
 
     public static Testcase from(FlowTestSuite.Scenario scenario, ChunkItem ci) {
-        Testcase testcase = new Testcase().withName(scenario.getName());
+        Testcase testcase = new Testcase().withName(scenario.getName() + " (" + ci.getId() + ")");
         Optional<Diagnostic> diag = Optional.ofNullable(ci.getDiagnostics()).stream().flatMap(Collection::stream).findFirst();
         Supplier<TestInfo> supplier = STATUS_MAPPING.get(ci.getStatus());
         if(supplier != null) {

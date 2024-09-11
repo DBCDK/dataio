@@ -51,6 +51,10 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>weekresolver-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>opennumberroll-connector</artifactId>
         </dependency>
         <dependency>

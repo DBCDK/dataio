@@ -5,6 +5,8 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.FileAppender;
+import dk.dbc.commons.addi.AddiReader;
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
@@ -22,7 +24,10 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -113,13 +118,18 @@ public class FlowTestRunner implements Callable<Integer> {
             writeActualState(actualChunk, outputFilePath);
             final Chunk expectedChunk = getChunk(suite.getExpectedStateDir().resolve(scenario.getOutputFile()), Chunk.Type.PROCESSED);
             final Chunk diff = compare(expectedChunk, actualChunk);
-            testcaseConsumer.accept(Testcase.from(scenario, diff.getItems().get(0)));
-            if (!diff.getItems().get(0).getStatus().equals(ChunkItem.Status.SUCCESS)) {
-                System.out.println("FAILED in comparison of actual and expected state\n");
-                return false;
+            boolean noDiff = true;
+            for (ChunkItem chunkItem : diff.getItems()) {
+                final Testcase testcase = Testcase.from(scenario, chunkItem);
+                testcaseConsumer.accept(testcase);
+                if (chunkItem.getStatus().equals(ChunkItem.Status.SUCCESS)) {
+                    System.out.println("Item " + chunkItem.getId() + " OK\n");
+                } else {
+                    System.out.println("Item " + chunkItem.getId() + " FAILED in comparison of actual and expected state\n");
+                    noDiff = false;
+                }
             }
-            System.out.println("OK\n");
-            return true;
+            return noDiff;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -133,19 +143,32 @@ public class FlowTestRunner implements Callable<Integer> {
 
     private Chunk getChunk(Path data, Chunk.Type type) throws IOException {
         final Chunk chunk = new Chunk(0, 0, type);
-        chunk.insertItem(getChunkItem(data));
+        chunk.addAllItems(getChunkItems(data));
         return chunk;
     }
 
-    private ChunkItem getChunkItem(Path data) throws IOException {
-        final ChunkItem chunkItem = new ChunkItem()
-                .withId(0)
-                .withData(Files.readAllBytes(data))
-                .withStatus(ChunkItem.Status.SUCCESS);
+    private List<ChunkItem> getChunkItems(Path data) throws IOException {
+        final List<ChunkItem> chunkItems = new ArrayList<>();
         if (data.toString().endsWith(".addi")) {
-            chunkItem.withType(ChunkItem.Type.ADDI);
+            try (InputStream inputStream = new BufferedInputStream(new FileInputStream(data.toFile()))) {
+                final AddiReader addiReader = new AddiReader(inputStream);
+                int chunkItemId = 0;
+                while (addiReader.hasNext()) {
+                    final AddiRecord addiRecord = addiReader.next();
+                    chunkItems.add(new ChunkItem()
+                            .withId(chunkItemId++)
+                            .withData(addiRecord.getBytes())
+                            .withStatus(ChunkItem.Status.SUCCESS)
+                            .withType(ChunkItem.Type.ADDI));
+                }
+            }
+        } else {
+            chunkItems.add(new ChunkItem()
+                    .withId(0)
+                    .withData(Files.readAllBytes(data))
+                    .withStatus(ChunkItem.Status.SUCCESS));
         }
-        return chunkItem;
+        return chunkItems;
     }
 
     private void writeActualState(Chunk outputChunk, Path outputFilePath) throws IOException {

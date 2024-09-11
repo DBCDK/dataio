@@ -77,6 +77,10 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>weekresolver-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dataio-sink-testutil</artifactId>
         </dependency>
         <dependency>

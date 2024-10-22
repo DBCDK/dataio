@@ -1,0 +1,12 @@
+FROM docker-dbc.artifacts.dbccloud.dk/dbc-java17:latest
+LABEL MAINTAINER=de-team
+
+ENV TZ="Europe/Copenhagen"
+
+LABEL TZ="Timezone (optional, defaults to Europe/Copenhagen)"
+
+USER root
+RUN apt-install kcat
+ADD --chmod=a+x run-java.sh /work
+USER java
+RUN mkfifo /tmp/gc.pipe

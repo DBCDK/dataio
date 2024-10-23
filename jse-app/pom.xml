@@ -21,7 +21,7 @@
         <jackson.version>2.15.2</jackson.version>
         <jdk.target.version>17</jdk.target.version>
         <!--suppress UnresolvedMavenProperty -->
-        <start.cmd>/work/run-java.sh /work/${project.build.finalName}.jar</start.cmd>
+        <start.cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-256m} -XX:+ExitOnOutOfMemoryError -jar /work/${project.build.finalName}.jar</start.cmd>
     </properties>
 
     <dependencies>

@@ -120,6 +120,10 @@
             <artifactId>dbc-commons-sftp-client</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.github.mwiede</groupId>
+            <artifactId>jsch</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.github.stefanbirkner</groupId>
             <artifactId>fake-sftp-server-rule</artifactId>
         </dependency>

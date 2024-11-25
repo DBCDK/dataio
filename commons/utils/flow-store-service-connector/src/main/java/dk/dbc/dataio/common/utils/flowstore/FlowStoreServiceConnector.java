@@ -1016,7 +1016,7 @@ public class FlowStoreServiceConnector {
             HttpGet httpGet = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build());
-            LOGGER.info("Retrieving harvester config from, {}", httpGet);
+            LOGGER.debug("Retrieving harvester config from, {}", httpGet);
             try (Response response = httpGet.execute()) {
                 verifyResponseStatus(response, Status.OK);
                 return readResponseGenericTypeEntity(response, new GenericType<>(createListGenericType(type)));

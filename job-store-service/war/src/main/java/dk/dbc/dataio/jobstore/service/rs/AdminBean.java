@@ -129,14 +129,14 @@ public class AdminBean {
         if(!keys.isEmpty()) LOGGER.info("Hourly blocked check has released {}", keys);
     }
 
-    @Schedule(minute = "15", hour = "*", persistent = false)
-    public void completeFinishedJobs() {
-        if(Hazelcast.isSlave()) return;
-        Instant from = nextJobCheckFrom == null ? Instant.now().minus(Duration.ofHours(2)) : nextJobCheckFrom;
-        Instant to = Instant.now().minus(Duration.ofMinutes(1));
-        nextJobCheckFrom = to;
-        completeFinishedJobs(from, to);
-    }
+//    @Schedule(minute = "15", hour = "*", persistent = false)
+//    public void completeFinishedJobs() {
+//        if(Hazelcast.isSlave()) return;
+//        Instant from = nextJobCheckFrom == null ? Instant.now().minus(Duration.ofHours(2)) : nextJobCheckFrom;
+//        Instant to = Instant.now().minus(Duration.ofMinutes(1));
+//        nextJobCheckFrom = to;
+//        completeFinishedJobs(from, to);
+//    }
 
     public void resendIfNeeded(List<DependencyTrackingRO> list) {
         Set<DependencyTrackingRO> retries = list.stream()

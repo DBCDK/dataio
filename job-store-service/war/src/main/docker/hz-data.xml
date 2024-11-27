@@ -21,8 +21,8 @@
     </network>
     <properties>
         <property name="hazelcast.jmx">true</property>
-        <property name="hazelcast.operation.thread.count">8</property>
-        <property name="hazelcast.operation.generic.thread.count">8</property>
+        <property name="hazelcast.operation.thread.count">16</property>
+        <property name="hazelcast.operation.generic.thread.count">16</property>
     </properties>
     <map name="dependencies">
         <in-memory-format>OBJECT</in-memory-format>
@@ -35,8 +35,8 @@
         <statistics-enabled>true</statistics-enabled>
         <map-store initial-mode="EAGER">
             <class-name>dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore</class-name>
-            <write-delay-seconds>1</write-delay-seconds>
-            <write-batch-size>1000</write-batch-size>
+            <write-delay-seconds>10</write-delay-seconds>
+            <write-batch-size>5000</write-batch-size>
             <write-coalescing>true</write-coalescing>
         </map-store>
         <indexes>

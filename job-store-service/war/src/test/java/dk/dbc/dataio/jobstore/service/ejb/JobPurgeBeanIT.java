@@ -16,7 +16,6 @@ import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpect
 import dk.dbc.dataio.logstore.service.connector.ejb.LogStoreServiceConnectorBean;
 import jakarta.ejb.SessionContext;
 import org.junit.Before;
-import org.junit.Test;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -63,7 +62,7 @@ public class JobPurgeBeanIT extends AbstractJobStoreIT {
     }
 
 
-    @Test
+    @org.junit.Test
     public void purgeJob_deletesOnlyExpectedJobs_ok() throws FileStoreServiceConnectorException, LogStoreServiceConnectorUnexpectedStatusCodeException, InterruptedException {
         final JobEntity toBeDeletedJob = newJobEntity();
 
@@ -93,7 +92,7 @@ public class JobPurgeBeanIT extends AbstractJobStoreIT {
         assertThat("job id", jobCandidates.get(0).getJobId(), is(toBeDeletedJob.getId()));
     }
 
-    @Test
+    @org.junit.Test
     public void purgeJob_deleteOldPersistentJobs() throws InterruptedException {
         final JobEntity oldJob = newJobEntity();
         final JobEntity newerJob = newJobEntity();
@@ -156,7 +155,7 @@ public class JobPurgeBeanIT extends AbstractJobStoreIT {
         assertThat("NOT compacted", newerJobEntity.getSpecification().getType(), is(JobSpecification.Type.PERSISTENT));
     }
 
-    @Test
+    @org.junit.Test
     public void purgeJob_dataFileOnlyDeletedWhenNotUsedByMoreJobs_ok() throws FileStoreServiceConnectorException, LogStoreServiceConnectorUnexpectedStatusCodeException {
         final FileStoreUrn fileStoreUrn = FileStoreUrn.create("67");
         final JobEntity jobEntityWithSharedDataFileA = newJobEntity();

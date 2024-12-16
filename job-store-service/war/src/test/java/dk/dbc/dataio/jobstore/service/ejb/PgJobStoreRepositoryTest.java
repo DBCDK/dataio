@@ -9,7 +9,6 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import jakarta.persistence.LockModeType;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -23,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
 
-    @Test
+    @org.junit.Test
     public void setWorkflowNote_jobEntityNotFound_throws() {
         when(entityManager.find(JobEntity.class, DEFAULT_JOB_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(null);
 
@@ -37,7 +36,7 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
         }
     }
 
-    @Test
+    @org.junit.Test
     public void setWorkflowNote_jobEntityFound_returnsUpdatedJobEntityWithGivenWorkflowNote() throws JobStoreException {
         when(entityManager.find(JobEntity.class, DEFAULT_JOB_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(new JobEntity());
 
@@ -49,7 +48,7 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
         assertThat(updatedJobEntity.getWorkflowNote(), is(workflowNote));
     }
 
-    @Test
+    @org.junit.Test
     public void setWorkflowNote_jobEntityFound_returnsUpdatedJobEntityWithNullAsWorkflowNote() throws JobStoreException {
         JobEntity jobEntity = new JobEntity();
 
@@ -63,7 +62,7 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
         assertThat(updatedJobEntity.getWorkflowNote(), is(nullValue()));
     }
 
-    @Test
+    @org.junit.Test
     public void setWorkflowNote_itemEntityNotFound_throws() {
         ItemEntity.Key key = new ItemEntity.Key(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
         when(entityManager.find(ItemEntity.class, key, LockModeType.PESSIMISTIC_WRITE)).thenReturn(null);
@@ -78,7 +77,7 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
         }
     }
 
-    @Test
+    @org.junit.Test
     public void setWorkflowNote_itemEntityFound_returnsUpdatedItemEntityWithGivenWorkflowNote() throws JobStoreException {
         ItemEntity.Key key = new ItemEntity.Key(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
         when(entityManager.find(ItemEntity.class, key, LockModeType.PESSIMISTIC_WRITE)).thenReturn(new ItemEntity());
@@ -91,7 +90,7 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
         assertThat(updatedItemEntity.getWorkflowNote(), is(workflowNote));
     }
 
-    @Test
+    @org.junit.Test
     public void setWorkflowNote_itemEntityFound_returnsUpdatedItemEntityWithNullAsWorkflowNote() throws JobStoreException {
         ItemEntity itemEntity = new ItemEntity();
         ItemEntity.Key key = new ItemEntity.Key(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
@@ -105,14 +104,14 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
         assertThat(updatedItemEntity.getWorkflowNote(), is(nullValue()));
     }
 
-    @Test
+    @org.junit.Test
     public void getCachedFlow_jobEntityNotFound_throws() {
         PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         when(entityManager.find(eq(JobEntity.class), anyInt())).thenReturn(null);
         assertThat(() -> pgJobStoreRepository.getCachedFlow(DEFAULT_JOB_ID), isThrowing(JobStoreException.class));
     }
 
-    @Test
+    @org.junit.Test
     public void getCachedFlow_jobEntityFound_returns() throws JobStoreException {
         Flow expectedFlow = new FlowBuilder().build();
         JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);

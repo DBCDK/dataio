@@ -1,7 +1,5 @@
 package dk.dbc.dataio.jobstore.service;
 
-import com.hazelcast.collection.ISet;
-import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.jet.core.JetTestSupport;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.commons.jsonb.JSONBContext;
@@ -30,6 +28,7 @@ import dk.dbc.dataio.jobstore.service.ejb.JobQueueRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
 import dk.dbc.dataio.jobstore.service.ejb.RerunsRepository;
+import dk.dbc.dataio.jobstore.service.ejb.JobsBean;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -52,7 +51,6 @@ import org.junit.BeforeClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.NamingException;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,10 +66,10 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIV
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
+// Note The Hazelcast test helpers JetTestSupport and HazelcastTestSupport Depends on JUnit4 api's.
+// see more in job-store-service/README.md
 public class AbstractJobStoreIT extends JetTestSupport implements PostgresContainerJPAUtils {
     protected static final String JOB_TABLE_NAME = "job";
     protected static final String CHUNK_TABLE_NAME = "chunk";
@@ -96,12 +94,8 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     protected JSONBContext jsonbContext = new JSONBContext();
 
     @BeforeClass
-    public static void createDb() throws NamingException {
+    public static void createDb() {
         DatabaseMigrator databaseMigrator = new DatabaseMigrator().withDataSource(datasource).onStartup();
-        HazelcastInstance hz = mock(HazelcastInstance.class);
-        ISet set = mock(ISet.class);
-        when(hz.getSet(eq("aborted.jobs"))).thenReturn(set);
-        Hazelcast.testInstance(hz);
     }
 
     @Before
@@ -117,6 +111,21 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
         entityManager = entityManagerFactory.createEntityManager(properties);
         Assert.assertNotNull("Should have an entity manager", entityManager);
         persistenceContext = new TransactionScopedPersistenceContext(entityManager);
+    }
+
+    @Before
+    public void startHZ() {
+        try(InputStream is = getClass().getClassLoader().getResourceAsStream("hz-data.xml")) {
+            Hazelcast.testInstance(createHazelcastInstance(Hazelcast.makeConfig(is)));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        JobsBean.testingUpdateStaticTestHazelcast();
+    }
+
+    @After
+    public void stopHz() {
+        Hazelcast.shutdownNode();
     }
 
     @Before
@@ -152,9 +161,6 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
 
     protected void startHazelcastWith(String sql) throws IOException {
         if(sql != null) JPATestUtils.runSqlFromResource(entityManager, this, sql);
-        try(InputStream is = getClass().getClassLoader().getResourceAsStream("hz-data.xml")) {
-            Hazelcast.testInstance(createHazelcastInstance(Hazelcast.makeConfig(is)));
-        }
     }
 
     protected Connection newConnection() throws SQLException {

@@ -11,8 +11,6 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
-import org.junit.Rule;
-import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
@@ -26,7 +24,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class JobExporterIT extends AbstractJobStoreIT {
-    @Rule
+    @org.junit.Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
     /**
@@ -36,7 +34,7 @@ public class JobExporterIT extends AbstractJobStoreIT {
      * delivery
      * Then : the exported content has the hasFatalItems flag set to false
      */
-    @Test
+    @org.junit.Test
     public void exportFailedItemsContent() throws JobStoreException {
         // Given...
         final JobEntity jobEntity = newJobEntity();
@@ -89,7 +87,7 @@ public class JobExporterIT extends AbstractJobStoreIT {
      * delivery
      * Then : the exported content has the hasFatalItems flag set to true
      */
-    @Test
+    @org.junit.Test
     public void exportFailedItemsContent_setsHasFatalItemsFlag() throws JobStoreException {
         // Given...
         final JobEntity jobEntity = newJobEntity();
@@ -154,7 +152,7 @@ public class JobExporterIT extends AbstractJobStoreIT {
      * And : the export file contains content for the successful items
      * And : the export file has metadata identifying is as a job-store export
      */
-    @Test
+    @org.junit.Test
     public void exportItemsDataToFileStore() throws JobStoreException, IOException {
         // Intercept export file with mocked FileStoreServiceConnectorBean
         final Path exportFile = tmpFolder.newFile().toPath();

@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
@@ -17,8 +18,7 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import jakarta.persistence.LockModeType;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+
 import types.TestablePartitioningParamBuilder;
 
 import java.io.ByteArrayInputStream;
@@ -43,13 +43,21 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     private JobEntity jobEntity;
     private TestablePartitioningParamBuilder partitioningParamBuilder;
 
-    @BeforeEach
+    @org.junit.Before
+    public void hazelcastSetup() throws IOException {
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("hz-data.xml")) {
+            Hazelcast.testInstance(createHazelcastInstance(Hazelcast.makeConfig(is)));
+            JobsBean.testingUpdateStaticTestHazelcast();
+        }
+    }
+
+    @org.junit.Before
     public void createPgJobStore() {
         pgJobStore = newPgJobStore(newPgJobStoreReposity());
         pgJobStore.jobQueueRepository = newJobQueueRepository();
     }
 
-    @BeforeEach
+    @org.junit.Before
     public void createPartitioningParamBuilder() {
         Sink sink = new SinkBuilder().build();
         SinkCacheEntity sinkCacheEntity = SinkCacheEntity.create(sink);
@@ -68,7 +76,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
                 .thenReturn(jobEntity);
     }
 
-    @Test
+    @org.junit.Test
     public void partition_byteSizeNotFound_returnsSnapshotWithJobMarkedAsCompletedAndDiagnosticsAdded() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenThrow(fileStoreUnexpectedException);
@@ -91,7 +99,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         assertThat("Diagnostics stacktrace", diagnosticsStacktrace, containsString("dk.dbc.dataio.jobstore.types.JobStoreException: Could not retrieve byte size"));
     }
 
-    @Test
+    @org.junit.Test
     public void partition_differentByteSize_returnsSnapshotWithJobMarkedAsCompletedAndDiagnosticsAdded() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(99999L);
@@ -116,7 +124,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         assertThat("Diagnostics message", diagnosticsMessage, containsString("FileStore.byteSize was: 99999"));
     }
 
-    @Test
+    @org.junit.Test
     public void handlePartitioning_submitterEnabled_returnsJobInfoSnapshot() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(307L);
@@ -138,7 +146,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         assertThat("JobInfoSnapshot.State.Diagnostics", jobInfoSnapshot.getState().getDiagnostics(), is(param.getDiagnostics()));
     }
 
-    @Test
+    @org.junit.Test
     public void handlePartitioning_submitterDisabled_returnsJobInfoSnapshot() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(307L);
@@ -160,7 +168,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         assertThat("JobInfoSnapshot.State.Diagnostics", jobInfoSnapshot.getState().getDiagnostics(), is(param.getDiagnostics()));
     }
 
-    @Test
+    @org.junit.Test
     public void partition_noRecords_returnsJobInfoSnapshot() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         byte[] records = "<records></records>".getBytes(StandardCharsets.UTF_8);
@@ -187,7 +195,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     }
 
 
-    @Test
+    @org.junit.Test
     public void compareByteSize_4GiBMultiple()
             throws FileStoreServiceConnectorException, IOException, JobStoreException {
         // The size reported by the file-store plus a multiple of four GiB
@@ -201,14 +209,14 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         pgJobStore.compareByteSize(fileId, dataPartitioner);
     }
 
-    @Test
+    @org.junit.Test
     public void compareByteSize_noByteCountAvailable() throws IOException, JobStoreException {
         DataPartitioner dataPartitioner = mock(DataPartitioner.class);
         when(dataPartitioner.getBytesRead()).thenReturn(DataPartitioner.NO_BYTE_COUNT_AVAILABLE);
         pgJobStore.compareByteSize("fileId", dataPartitioner);
     }
 
-    @Test
+    @org.junit.Test
     public void compareByteSize_bzip2() throws FileStoreServiceConnectorException, IOException, JobStoreException {
         DataPartitioner dataPartitioner = mock(DataPartitioner.class);
         when(dataPartitioner.getBytesRead())

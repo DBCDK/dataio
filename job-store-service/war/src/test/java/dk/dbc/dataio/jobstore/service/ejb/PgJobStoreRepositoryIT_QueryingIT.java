@@ -15,7 +15,6 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
-import org.junit.Test;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -34,7 +33,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When : requesting a job count with a criteria selecting a subset of the jobs
      * Then : only the filtered snapshots are counted and orderby/offset is ignored
      */
-    @Test
+    @org.junit.Test
     public void countJobs() {
         // Given...
         final List<JobEntity> jobEntities = Arrays.asList(newPersistedJobEntity(), newPersistedJobEntity(), newPersistedJobEntity());
@@ -59,7 +58,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When : requesting a job listing with a criteria selecting a subset of the jobs
      * Then : only the filtered snapshots are returned
      */
-    @Test
+    @org.junit.Test
     public void listJobs() {
         // Given...
         final List<JobEntity> jobEntities = Arrays.asList(
@@ -88,7 +87,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When     : requesting a job listing with a criteria selecting only jobs failed in delivering
      * Then     : only jobs failed during delivery are returned, sorted by job ids in descending order.
      */
-    @Test
+    @org.junit.Test
     public void listJobs_withDeliveringFailedCriteria_returnsJobInfoSnapshotsForJobsFailedDuringDelivery() {
         // Given...
         final List<JobEntity> jobEntities = Arrays.asList(
@@ -115,7 +114,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When     : requesting a job listing with a criteria selecting only jobs that has not yet completed
      * Then     : only jobs that has not yet completed are returned.
      */
-    @Test
+    @org.junit.Test
     public void listJobs_withOutTimeOfCompletionCriteria_returnsJobInfoSnapshotsForJobsWithoutTimeOfCompletion() {
         // Given...
         final List<JobEntity> jobEntities = Arrays.asList(
@@ -139,7 +138,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When     : requesting a job listing with a criteria selecting only jobs failed in processing
      * Then     : only jobs failed during processing are returned, sorted by job ids in descending order.
      */
-    @Test
+    @org.junit.Test
     public void listJobs_withProcessingFailedCriteria_returnsJobInfoSnapshotsForJobsFailedDuringProcessing() {
         // Given...
         final List<JobEntity> jobEntities = Arrays.asList(
@@ -166,7 +165,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When     : requesting a job listing with a criteria selecting only jobs with fatal errors
      * Then     : only the job with fatal error is returned.
      */
-    @Test
+    @org.junit.Test
     public void listJobs_withFatalErrorCriteria_returnsJobInfoSnapshotsForJobsWithFatalError() {
         // Given...
         final List<JobEntity> jobEntities = Arrays.asList(
@@ -191,7 +190,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When : requesting a job listing with a criteria selecting jobs with reference to that specific sink
      * Then : only two filtered snapshot is returned
      */
-    @Test
+    @org.junit.Test
     public void listJobs_withSinkIdCriteria_returnsJobInfoSnapshotsForSelectedSink() {
         // Given...
         JobEntity jobEntity1 = newPersistedJobEntityWithSinkReference(1L);
@@ -224,7 +223,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When : requesting an item count with a criteria selecting items from the selected job
      * Then : only the filtered snapshots from the specific job are counted and orderby/offset is ignored
      */
-    @Test
+    @org.junit.Test
     public void countItems() {
         // Given...
         generateChunkAndItemEntitiesForJob(newPersistedJobEntity().getId());
@@ -249,7 +248,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When : requesting items with specified record id from the selected job
      * Then : only the expected snapshot is returned
      */
-    @Test
+    @org.junit.Test
     public void listItems_withRecordIdCriteria_returnsItemInfoSnapshotsForSelectedJob() throws JSONBException {
         // Given...
         final int selectedJobId = newPersistedJobEntity().getId();
@@ -286,7 +285,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When    : requesting an item listing with a criteria selecting failed items from the selected job
      * Then    : the expected filtered snapshots are returned, sorted by chunk id ASC > item id ASC.
      */
-    @Test
+    @org.junit.Test
     public void listItems_withFailedItemsCriteria_returnsItemInfoSnapshotsForSelectedJob() {
         // Given...
         generateChunkAndItemEntitiesForJob(newPersistedJobEntity().getId());
@@ -317,7 +316,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When    : requesting an item listing with a criteria selecting ignored items from the selected job
      * Then    : the expected filtered snapshot is returned.
      */
-    @Test
+    @org.junit.Test
     public void listItems_withIgnoredItemsCriteria_returnsItemInfoSnapshotsForSelectedJob() {
         // Given...
         generateChunkAndItemEntitiesForJob(newPersistedJobEntity().getId());
@@ -343,7 +342,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When    : requesting an item listing with a criteria selecting all items from the selected job
      * Then    : the expected filtered snapshots are returned
      */
-    @Test
+    @org.junit.Test
     public void listItems_withoutItemCriteria_returnsItemInfoSnapshotsForSelectedJob() {
         // Given...
         generateChunkAndItemEntitiesForJob(newPersistedJobEntity().getId());
@@ -371,7 +370,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When     : requesting a job listing with a criteria selecting preview only jobs
      * Then     : preview only jobs arer returned sorted by job ids in descending order.
      */
-    @Test
+    @org.junit.Test
     public void listJobs_withPreviewOnlyCriteria_returnsJobInfoSnapshotsForJobPreviewsOnly() {
         // Given...
         final JobEntity successfulPreview = newPersistedJobEntityWithTimeOfCompletion();
@@ -406,7 +405,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When     : requesting a job listing with a criteria selecting only jobs with a creation time earlier than given date
      * Then     : only the job with a creation time earlier than requested is returned.
      */
-    @Test
+    @org.junit.Test
     public void listJobs_fromBeforeDateCriterea_returnsJobInfoSnapshotsForJobsWithCreationDateBeforeDate() {
         final JobEntity old = newPersistedJobEntity();
         old.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
@@ -433,7 +432,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * When     : requesting a job listing with a criteria selecting only jobs with a specific data file
      * Then     : only jobs with the specific data file are returned.
      */
-    @Test
+    @org.junit.Test
     public void listJobs_withDataFile_returnsJobInfoSnapshotsForJobsWithDataFile() {
         final JobEntity jobEntity = newPersistedJobEntity();
         jobEntity.setSpecification(new JobSpecification().withDataFile("requestedDataFile"));

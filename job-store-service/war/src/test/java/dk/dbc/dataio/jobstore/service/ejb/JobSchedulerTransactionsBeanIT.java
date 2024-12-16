@@ -7,7 +7,6 @@ import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
-import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -18,7 +17,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 
 public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
-    @Test
+    @org.junit.Test
     public void findChunksToWaitFor() throws Exception {
         startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
 
@@ -66,7 +65,7 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
                         new TrackingKey(2, 4)));
     }
 
-    @Test
+    @org.junit.Test
     public void boostPriorities() throws IOException {
         startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
         DependencyTrackingService service = new DependencyTrackingService().init();

@@ -5,8 +5,6 @@ import com.hazelcast.map.IMap;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import org.junit.Before;
-import org.junit.Test;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -24,12 +22,12 @@ public class AggregatorsTest extends JetTestSupport {
     private static final int JOBS = 5;
 
     private IMap<TrackingKey, DependencyTracking> map;
-    @Before
+    @org.junit.Before
     public void init() {
         map = createHazelcastInstance().getMap("dependencies");
     }
 
-    @Test
+    @org.junit.Test
     public void blockedCounter() {
         addTrackers(20);
         Map<Integer, Integer> aggregate = map.aggregate(new BlockedCounter());
@@ -37,7 +35,7 @@ public class AggregatorsTest extends JetTestSupport {
         assertEquals("We should have 3 sinks with 3, 3 and 4 blocked", expected, aggregate);
     }
 
-    @Test
+    @org.junit.Test
     public void jobCounter() {
         List<DependencyTracking> list = addTrackers(50);
         Integer[] aggregate = map.aggregate(new JobCounter(0));
@@ -47,7 +45,7 @@ public class AggregatorsTest extends JetTestSupport {
         assertEquals("There should be " + chunks + "chunks for sink 0", chunks, aggregate[1].longValue());
     }
 
-    @Test
+    @org.junit.Test
     public void sinkStatusCounter() {
         List<DependencyTracking> list = addTrackers(50);
         int aggregate = map.aggregate(new SinkStatusCounter(0, QUEUED_FOR_PROCESSING));
@@ -55,7 +53,7 @@ public class AggregatorsTest extends JetTestSupport {
         assertEquals("There should be " + expected + " with status queued for processing in sink 0", expected, aggregate);
     }
 
-    @Test
+    @org.junit.Test
     public void statusCounter() {
         List<DependencyTracking> list = addTrackers(50);
         Map<Integer, Map<ChunkSchedulingStatus, Integer>> aggregateAll = map.aggregate(new StatusCounter(Set.of()));

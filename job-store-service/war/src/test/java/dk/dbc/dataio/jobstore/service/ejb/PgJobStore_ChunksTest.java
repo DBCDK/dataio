@@ -32,7 +32,6 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.StateElement;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import types.TestableJobEntityBuilder;
 
 import java.io.ByteArrayInputStream;
@@ -68,7 +67,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
 
-    @Test
+    @org.junit.Test
     public void createChunkItemEntities() {
         PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         Params params = new Params();
@@ -98,7 +97,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("Third chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(0));
     }
 
-    @Test
+    @org.junit.Test
     public void createChunkItemEntities_dataPartitionerThrowsDataException_failedItemIsCreated() {
         PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         Params params = new Params();
@@ -125,7 +124,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("Second item: has fatal diagnostic", chunkItemEntities.entities.get(1).getState().fatalDiagnosticExists(), is(true));
     }
 
-    @Test
+    @org.junit.Test
     public void createChunkItemEntities_dataPartitionerSkipsRecord_failedItemIsCreated() throws JobStoreException {
         final String partiallyInvalidRecord = "245 00 *aA good beginning\n260 00 *atest*b@@dbc\ninvalid\ninvalid\n$\n";
 
@@ -138,7 +137,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("First item: has fatal diagnostic", chunkItemEntities.entities.get(0).getState().fatalDiagnosticExists(), is(false));
     }
 
-    @Test
+    @org.junit.Test
     public void createChunkEntity() throws JobStoreException {
         Params params = new Params();
         PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
@@ -181,7 +180,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("Job: partitioning phase endDate not set after third chunk", jobEntity.getState().getPhase(PARTITIONING).getEndDate(), is(nullValue()));
     }
 
-    @Test
+    @org.junit.Test
     public void addChunk_chunkArgIsNull_throws() throws JobStoreException {
         PgJobStore pgJobStore = newPgJobStore();
         try {
@@ -191,7 +190,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         }
     }
 
-    @Test
+    @org.junit.Test
     public void addChunk_chunkEntityCanNotBeFound_throws() {
 
         Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
@@ -208,7 +207,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         }
     }
 
-    @Test
+    @org.junit.Test
     public void addChunk_jobEntityCanNotBeFound_throws() {
         Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
@@ -224,7 +223,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         }
     }
 
-    @Test
+    @org.junit.Test
     public void addChunk_numberOfChunkItemsDiffersFromInternal_throws() {
         Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
@@ -239,7 +238,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         }
     }
 
-    @Test
+    @org.junit.Test
     public void addChunk_attemptToOverwriteExistingChunk_throws() throws JobStoreException {
         PgJobStore pgJobStore = null;
         Chunk chunk = null;
@@ -267,7 +266,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         }
     }
 
-    @Test
+    @org.junit.Test
     public void addChunk_chunkAdded_chunkEntityPhaseComplete() throws JobStoreException {
         Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
@@ -295,7 +294,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("JobInfoSnapshot: time of completion not set", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
     }
 
-    @Test
+    @org.junit.Test
     public void addChunk_finalChunkAdded_jobEntityPhaseComplete() throws JobStoreException {
         Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
@@ -329,7 +328,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("ChunkEntity: time of completion not set", chunkEntity.getTimeOfCompletion(), is(nullValue()));
     }
 
-    @Test
+    @org.junit.Test
     public void addChunk_nonFinalChunkAdded_jobEntityPhaseIncomplete() throws JobStoreException {
         Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
@@ -359,7 +358,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("ChunkEntity: time of completion not set", chunkEntity.getTimeOfCompletion(), is(nullValue()));
     }
 
-    @Test
+    @org.junit.Test
     public void addChunk_allPhasesComplete_timeOfCompletionIsSet() throws JobStoreException {
         Chunk chunk = getChunk(DELIVERED, chunkData, Arrays.asList(SUCCESS, SUCCESS, SUCCESS));
         setItemEntityExpectations(chunk, Arrays.asList(PARTITIONING, PROCESSING));
@@ -386,7 +385,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("JobEntity: time of completion", jobEntity.getTimeOfCompletion(), is(notNullValue()));
     }
 
-    @Test
+    @org.junit.Test
     public void updateChunkItemEntities_itemsCanNotBeFound_throws() throws JobStoreException {
         Chunk chunk = new ChunkBuilder(PROCESSED).build();
 
@@ -402,7 +401,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         }
     }
 
-    @Test
+    @org.junit.Test
     public void updateChunkItemEntities_itemsForPartitioningPhase_throws() throws JobStoreException {
         Chunk chunk = new ChunkBuilder(PARTITIONED).build();
         ItemEntity itemEntity = new ItemEntity();
@@ -420,7 +419,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         }
     }
 
-    @Test
+    @org.junit.Test
     public void updateChunkItemEntities_itemsForProcessingPhase() throws JobStoreException {
         List<String> expectedItemData = Arrays.asList(
                 (chunkData.get(0)),
@@ -455,7 +454,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat(String.format("%s succeeded counter", entities.get(2).getKey()), entityStateElement.getSucceeded(), is(0));
     }
 
-    @Test
+    @org.junit.Test
     public void updateChunkItemEntities_itemsForDeliveringPhase() throws JobStoreException {
         List<String> expectedItemData = Arrays.asList(
                 (chunkData.get(0)),
@@ -489,7 +488,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat(String.format("%s succeeded counter", entities.get(2).getKey()), entityStateElement.getSucceeded(), is(0));
     }
 
-    @Test
+    @org.junit.Test
     public void updateChunkItemEntities_attemptToOverwriteAlreadyAddedChunk_throws() throws JobStoreException {
         List<String> chunkData = Collections.singletonList("itemData0");
         Chunk chunk = getChunk(PROCESSED, chunkData, Collections.singletonList(SUCCESS));

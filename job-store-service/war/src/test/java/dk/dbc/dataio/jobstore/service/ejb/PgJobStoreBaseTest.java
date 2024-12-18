@@ -25,8 +25,9 @@ import dk.dbc.dataio.jobstore.types.StateChange;
 import jakarta.ejb.SessionContext;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
-import org.junit.jupiter.api.BeforeEach;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -37,6 +38,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+// Note The Hazelcast test helpers JetTestSupport and HazelcastTestSupport Depends on JUnit4 api's.
+// see more in job-store-service/README.md
 public abstract class PgJobStoreBaseTest extends JetTestSupport {
     protected final EntityManager entityManager = mock(EntityManager.class);
     protected final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
@@ -78,9 +81,18 @@ public abstract class PgJobStoreBaseTest extends JetTestSupport {
     private final FlowStoreServiceConnectorBean mockedFlowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     private final SessionContext mockedSessionContext = mock(SessionContext.class);
 
-    @BeforeEach
+    @org.junit.Before
+    public void hazelcastSetup() throws IOException {
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("hz-data.xml")) {
+            Hazelcast.testInstance(createHazelcastInstance(Hazelcast.makeConfig(is)));
+            JobsBean.testingUpdateStaticTestHazelcast();
+        }
+        // Note JetTestSupport handles Hazelcast Shutdown in a
+        // @After method
+    }
+
+    @org.junit.Before
     public void setupExpectations() {
-        Hazelcast.testInstance(createHazelcastInstance());
         final Query cacheFlowQuery = mock(Query.class);
         when(entityManager.createNamedQuery(FlowCacheEntity.NAMED_QUERY_SET_CACHE)).thenReturn(cacheFlowQuery);
         when(cacheFlowQuery.getSingleResult()).thenReturn(EXPECTED_FLOW_CACHE_ENTITY);

@@ -5,7 +5,9 @@ dataIO
 
 **Requirements**
 
-To build this project JDK 11 and Apache Maven is required.
+To build this project JDK 17 and Apache Maven is required.
+
+**_NOTE:_**  Special job-store-service testing setup. se more in [job-store-service/README.md](job-store-service/README.md)
 
 **Scripts**
 * clean - clears build artifacts

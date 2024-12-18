@@ -3,7 +3,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
-import org.junit.Test;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +18,7 @@ public class RerunsRepositoryIT extends AbstractJobStoreIT {
      * When : in-progress entries are requested
      * Then : only entries with state IN_PROGRESS are returned
      */
-    @Test
+    @org.junit.Test
     public void getInProgress() {
         // Given...
         final JobEntity job1 = newPersistedJobEntity();
@@ -49,7 +48,7 @@ public class RerunsRepositoryIT extends AbstractJobStoreIT {
      * When : a rerun entry is added via addWaiting
      * Then : the entry is added with state WAITING
      */
-    @Test
+    @org.junit.Test
     public void addWaiting() {
         // Given...
         final JobEntity job = newPersistedJobEntity();
@@ -71,7 +70,7 @@ public class RerunsRepositoryIT extends AbstractJobStoreIT {
      * When : remove is called
      * Then : the entry is deleted
      */
-    @Test
+    @org.junit.Test
     public void remove() {
         // Given...
         final JobEntity job = newPersistedJobEntity();
@@ -90,7 +89,7 @@ public class RerunsRepositoryIT extends AbstractJobStoreIT {
      * When : seizeHeadOfQueueIfWaiting is called
      * Then : an empty response is returned
      */
-    @Test
+    @org.junit.Test
     public void seizeHeadOfQueueIfWaiting_noEntriesExist() {
         // When...
         final RerunsRepository rerunsRepository = newRerunsRepository();
@@ -105,7 +104,7 @@ public class RerunsRepositoryIT extends AbstractJobStoreIT {
      * When : seizeHeadOfQueueIfWaiting is called when head of queue is NOT waiting
      * Then : an empty response is returned
      */
-    @Test
+    @org.junit.Test
     public void seizeHeadOfQueueIfWaiting_headOfQueueIsNotWaiting() {
         // Given...
         final JobEntity job = newPersistedJobEntity();
@@ -133,7 +132,7 @@ public class RerunsRepositoryIT extends AbstractJobStoreIT {
      * When : seizeHeadOfQueueIfWaiting is called when head of queue IS waiting
      * Then : the queue entry is returned with state IN_PROGRESS
      */
-    @Test
+    @org.junit.Test
     public void seizeHeadOfQueueIfWaiting_headOfQueueIsWaiting() {
         // Given...
         final JobEntity job = newPersistedJobEntity();
@@ -159,7 +158,7 @@ public class RerunsRepositoryIT extends AbstractJobStoreIT {
         assertThat("head of queue for is now in-progress", seized.getState(), is(RerunEntity.State.IN_PROGRESS));
     }
 
-    @Test
+    @org.junit.Test
     public void reset() {
         // Given...
         final JobEntity job = newPersistedJobEntity();

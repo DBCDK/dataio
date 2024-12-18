@@ -1,9 +1,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import com.hazelcast.config.Config;
-import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
-import com.hazelcast.nio.serialization.compact.CompactSerializer;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Priority;
@@ -12,15 +9,9 @@ import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.distributed.hz.serializer.RemoveWaitingOnSer;
-import dk.dbc.dataio.jobstore.distributed.hz.serializer.StatusChangeSer;
-import dk.dbc.dataio.jobstore.distributed.hz.serializer.TrackingKeySer;
-import dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateCounterSer;
-import dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateStatusSer;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
@@ -29,9 +20,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,12 +62,7 @@ import static org.mockito.Mockito.verify;
 public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBeanIT.class);
 
-    @After
-    public void stopHz() {
-        Hazelcast.shutdownNode();
-    }
-
-    @Test
+    @org.junit.Test
     public void findChunksWaitingForMe() throws Exception {
         startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
         DependencyTrackingService service = new DependencyTrackingService();
@@ -86,7 +70,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         assertThat(res, containsInAnyOrder(new TrackingKey(2, 0), new TrackingKey(2, 1), new TrackingKey(2, 2), new TrackingKey(2, 3), new TrackingKey(2, 4)));
     }
 
-    @Test
+    @org.junit.Test
     public void testValidTransitions() throws Exception {
         startHazelcastWith(null);
         JPATestUtils.runSqlFromResource(entityManager, this, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
@@ -108,7 +92,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                 .forEach(dt -> Assert.assertEquals(expected.get(dt.getKey().getChunkId() -  1), dt.getStatus()));
     }
 
-    @Test
+    @org.junit.Test
     public void tickleChunkDependency() throws Exception {
         startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
         DependencyTrackingService trackingService = new DependencyTrackingService().init();
@@ -174,7 +158,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                 mk(3, 4)));
     }
 
-    @Test
+    @org.junit.Test
     public void scheduleOnBlockedTest() throws Exception {
         startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
         int maxCap = 10;
@@ -222,9 +206,8 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     }
 
 
-    @Test
+    @org.junit.Test
     public void isScheduled() {
-        Hazelcast.testInstance(createHazelcastInstance());
         DependencyTrackingService service = new DependencyTrackingService().init();
         final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
         jobSchedulerBean.dependencyTrackingService = service;
@@ -237,10 +220,9 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         assertThat("scheduled", service.isScheduled(scheduled), is(false));
     }
 
-    @Test
+    @org.junit.Test
     public void ensureLastChunkIsScheduled_alreadyScheduled() {
         final JobEntity jobEntity = newPersistedJobEntity();
-        Hazelcast.testInstance(createHazelcastInstance());
         DependencyTrackingService trackingService = new DependencyTrackingService().init();
         jobEntity.setNumberOfChunks(43);
         newPersistedChunkEntity(new ChunkEntity.Key(42, jobEntity.getId()));
@@ -252,9 +234,8 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         jobSchedulerBean.ensureLastChunkIsScheduled(jobEntity.getId());
     }
 
-    @Test
+    @org.junit.Test
     public void ensureLastChunkIsScheduled_notAlreadyScheduled() {
-        Hazelcast.testInstance(createHazelcastInstance());
         final SinkCacheEntity sinkCacheEntity = newPersistedSinkCacheEntity();
 
         final JobEntity jobEntity = newJobEntity();
@@ -300,15 +281,4 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         return map.get(new TrackingKey(jobId, chunkId));
     }
 
-    @Override
-    protected HazelcastInstance createHazelcastInstance() {
-        return createHazelcastInstance(makeConfig());
-    }
-
-    private Config makeConfig() {
-        Config config = smallInstanceConfig();
-        List<CompactSerializer<?>> compactSerializers = List.of(new RemoveWaitingOnSer(), new StatusChangeSer(), new TrackingKeySer(), new UpdateCounterSer(), new UpdateStatusSer());
-        compactSerializers.forEach(ser -> config.getSerializationConfig().getCompactSerializationConfig().addSerializer(ser));
-        return config;
-    }
 }

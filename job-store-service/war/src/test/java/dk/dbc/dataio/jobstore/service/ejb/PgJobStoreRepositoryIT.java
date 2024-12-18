@@ -23,7 +23,6 @@ import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import jakarta.persistence.Query;
-import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -49,7 +48,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
      * When : the item entity is created
      * Then : record info of type MarcRecordInfo is set on the item entity containing the expected record id
      */
-    @Test
+    @org.junit.Test
     public void createChunkItemEntities_setsRecordInfo() {
         // Given...
         final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
@@ -75,7 +74,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
      * When : the item entity is created
      * Then : the dataio specific tracking id is generated and set on the item entity
      */
-    @Test
+    @org.junit.Test
     public void createChunkItemEntities_setsDataioTrackingId() {
         // Given...
         final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
@@ -100,7 +99,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
      * When : the item entity is created
      * Then : the tracking id harvested is set on the item entity
      */
-    @Test
+    @org.junit.Test
     public void createChunkItemEntities_setsHarvestedTrackingId() {
         // Given...
         final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
@@ -119,7 +118,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         assertThat("itemEntity.trackingId", itemEntities.get(0).getPartitioningOutcome().getTrackingId(), is("trackedAs"));
     }
 
-    @Test
+    @org.junit.Test
     public void createChunkItemEntities_nonMarcRecordTrackingId() throws UnknownHostException {
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 "<toplevel>" +
@@ -151,7 +150,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
                 .getTrackingId(), is(expectedTrackingId));
     }
 
-    @Test
+    @org.junit.Test
     public void createChunkItemEntities_setsPositionInDatafile() {
         final String xml =
                 "<toplevel>" +
@@ -192,7 +191,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         assertThat("5th item position in datafile", chunkItemEntities.entities.get(4).getPositionInDatafile(), is(8));
     }
 
-    @Test
+    @org.junit.Test
     public void createChunkEntity_maintainsSkippedCount() {
         final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
         final long submitter = jobEntity.getSpecification().getSubmitterId();
@@ -220,7 +219,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
      * When : requesting a flow bundle for the existing job
      * Then : the cashed flow is returned
      */
-    @Test
+    @org.junit.Test
     public void getCachedFlow() throws JobStoreException {
         // Given...
         final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
@@ -237,7 +236,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
      * When : calling setWorkflowNote()
      * Then : the job entity is updated
      */
-    @Test
+    @org.junit.Test
     public void setJobEntityWorkFlowNote_jobEntityUpdated() {
         // Given...
         final JobEntity jobEntity = newPersistedJobEntity();
@@ -257,7 +256,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
      * When : calling setWorkflowNote() on a the item
      * Then : the item entity is updated
      */
-    @Test
+    @org.junit.Test
     public void setItemEntityWorkFlowNote_itemEntityUpdated() {
         // Given...
         final JobEntity jobEntity = newPersistedJobEntity();
@@ -284,7 +283,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
      * When : attempting to retrieve chunks for existing job and chunk id with type PARTITIONING
      * Then : one chunk containing the expected chunk item is returned
      */
-    @Test
+    @org.junit.Test
     public void getChunk() {
         // Given...
         final JobEntity jobEntity = newPersistedJobEntity();
@@ -312,7 +311,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
      * And when : requesting chunk item for phase: DELIVERING
      * Then     : the expected chunk item is returned
      */
-    @Test
+    @org.junit.Test
     public void getChunkItemForPhase() throws InvalidInputException {
         final int jobId = newPersistedJobEntity().getId();
         final int chunkId = 0;
@@ -339,7 +338,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         assertThat("deliveredChunkItem", deliveredChunkItem, is(itemEntity.getDeliveringOutcome()));
     }
 
-    @Test
+    @org.junit.Test
     public void createJobTerminationChunkEntity() throws Exception {
 
         final String TEST_FILE_NAME = "TestFileName";

@@ -30,8 +30,6 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
 import jakarta.persistence.EntityTransaction;
-import org.junit.Before;
-import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
@@ -61,7 +59,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
 
     private JobRerunnerBean jobRerunnerBean;
 
-    @Before
+    @org.junit.Before
     public void initializeJobRerunnerBean() {
         jobRerunnerBean = new JobRerunnerBean() {
             @Override
@@ -82,7 +80,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         when(mockedFlowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
     }
 
-    @Test
+    @org.junit.Test
     public void jobDoesNotExist() throws JobStoreException {
         final EntityTransaction transaction = entityManager.getTransaction();
         try {
@@ -98,7 +96,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         }
     }
 
-    @Test
+    @org.junit.Test
     public void createsWaitingRerunTask() {
         final JobEntity job = newJobEntity();
         job.setSpecification(new JobSpecification()
@@ -118,7 +116,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("entity in database", entityManager.find(RerunEntity.class, rerun.getId()), is(notNullValue()));
     }
 
-    @Test
+    @org.junit.Test
     public void rerunNextIfAvailable_removesRerunEntityAfterTaskCompletion() {
         final RerunEntity rerun = getRerunEntity();
 
@@ -126,7 +124,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("entity in database", entityManager.find(RerunEntity.class, rerun.getId()), is(nullValue()));
     }
 
-    @Test
+    @org.junit.Test
     public void rerunRawRepoHarvesterJob_exportingBibliographicRecordIds() throws HarvesterTaskServiceConnectorException {
         final RerunEntity rerun = getRerunEntityForRawRepoJob();
         final JobEntity job = rerun.getJob();
@@ -145,7 +143,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
                 is(Arrays.asList("id0", "id1", "id2")));
     }
 
-    @Test
+    @org.junit.Test
     public void rerunRawRepoHarvesterJob_exportingBibliographicRecordIdsFromFailedItems()
             throws HarvesterTaskServiceConnectorException {
         final RerunEntity rerun = getRerunEntityForRawRepoJob();
@@ -167,7 +165,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
                 is(Arrays.asList("id1", "id2")));
     }
 
-    @Test
+    @org.junit.Test
     public void rerunTickleRepoHarvesterIncrementalJob() throws HarvesterTaskServiceConnectorException {
         final RerunEntity rerun = getRerunEntityForTickleRepoIncrementalJob();
         final JobEntity job = rerun.getJob();
@@ -185,7 +183,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
                 is(Arrays.asList("id0", "id1", "id2")));
     }
 
-    @Test
+    @org.junit.Test
     public void rerunTickleRepoHarvesterIncrementalJob_failedItemsOnly() throws HarvesterTaskServiceConnectorException {
         final RerunEntity rerun = getRerunEntityForTickleRepoIncrementalJob();
         persistenceContext.run(() -> rerun.withIncludeFailedOnly(true));
@@ -205,7 +203,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
                 is(Arrays.asList("id1", "id2")));
     }
 
-    @Test
+    @org.junit.Test
     public void rerunTickleRepoHarvesterTotalJob()
             throws FlowStoreServiceConnectorException, HarvesterTaskServiceConnectorException {
         final String dataSetName = "tickle-dataset";
@@ -230,7 +228,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
                 is(new HarvestTaskSelector("dataSetName", dataSetName)));
     }
 
-    @Test
+    @org.junit.Test
     public void rerunTickleRepoHarvesterTotalJob_failedItemsOnly()
             throws FlowStoreServiceConnectorException, HarvesterTaskServiceConnectorException {
         final String dataSetName = "tickle-dataset";
@@ -256,7 +254,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
                 is(new HarvestTaskSelector("dataSetName", dataSetName)));
     }
 
-    @Test
+    @org.junit.Test
     public void rerunJob() throws JobStoreException {
         final JobSpecification jobSpecification = createJobSpecification()
                 .withMailForNotificationAboutVerification("mail@company.com")
@@ -292,7 +290,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("include filter 3rd index", includeFilter.get(2), is(true));
     }
 
-    @Test
+    @org.junit.Test
     public void rerunJob_failedOnly() throws JobStoreException {
         final JobSpecification jobSpecification = createJobSpecification()
                 .withMailForNotificationAboutVerification("mail@company.com")

@@ -5,7 +5,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
-import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -14,7 +13,6 @@ import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.junit.Test;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +29,7 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
      * Then : jobs linked to in-progress queue entries are reset
      * And  : in-progress queue entries are updated to waiting state
      */
-    @Test
+    @org.junit.Test
     public void initialize_resetsJobsInterruptedDuringPartitioning() throws FlowStoreServiceConnectorException {
         // Given...
         final JobEntity job1 = newPersistedJobEntity();
@@ -80,7 +78,7 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
      * When : job-store bootstrap process is executed
      * Then : in-progress queue entry is reset to waiting state
      */
-    @Test
+    @org.junit.Test
     public void initialize_resetsInterruptedRerunTasks() throws FlowStoreServiceConnectorException {
         // Given
         final JobEntity job = newPersistedJobEntity();
@@ -98,7 +96,7 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
     }
 
     private BootstrapBean newBootstrapBean() throws FlowStoreServiceConnectorException {
-        Hazelcast.testInstance(createHazelcastInstance());
+        //Hazelcast.testInstance(createHazelcastInstance());
         final BootstrapBean bootstrapBean = new BootstrapBean();
         bootstrapBean.jobQueueRepository = newJobQueueRepository();
         bootstrapBean.jobSchedulerBean = newJobSchedulerBean();
@@ -113,3 +111,4 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
         return bootstrapBean;
     }
 }
+

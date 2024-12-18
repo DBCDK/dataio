@@ -7,7 +7,6 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
-import org.junit.Test;
 
 import java.sql.SQLException;
 
@@ -22,7 +21,7 @@ public class PgJobStoreRepositoryIT_CachingIT extends PgJobStoreRepositoryAbstra
      * When : a flow is added
      * Then : the flow is inserted into the flowcache
      */
-    @Test
+    @org.junit.Test
     public void cacheFlow_addingNeverBeforeSeenFlow_isCached() throws JSONBException, SQLException {
         // Given...
         final Flow flow = new FlowBuilder().build();
@@ -42,7 +41,7 @@ public class PgJobStoreRepositoryIT_CachingIT extends PgJobStoreRepositoryAbstra
      * When : a flow is added matching an already cached flow
      * Then : no new flow is inserted into the flowcache
      */
-    @Test
+    @org.junit.Test
     public void cacheFlow_addingAlreadyCachedFlow_leavesCacheUnchanged() throws JSONBException, SQLException {
         // Given...
         final FlowCacheEntity existingFlowCacheEntity = newPersistedFlowCacheEntity();
@@ -63,7 +62,7 @@ public class PgJobStoreRepositoryIT_CachingIT extends PgJobStoreRepositoryAbstra
      * When : a sink is added
      * Then : the sink is inserted into the sinkcache
      */
-    @Test
+    @org.junit.Test
     public void cacheSink_addingNeverBeforeSeenSink_isCached() throws JSONBException, SQLException {
         // Given...
         final Sink sink = new SinkBuilder().build();
@@ -82,7 +81,7 @@ public class PgJobStoreRepositoryIT_CachingIT extends PgJobStoreRepositoryAbstra
      * When : a sink is added matching an already cached sink
      * Then : no new sink is inserted into the sinkcache
      */
-    @Test
+    @org.junit.Test
     public void cacheSink_addingAlreadyCachedSink_leavesCacheUnchanged() throws JSONBException, SQLException {
         // Given...
         final SinkCacheEntity existingSinkCacheEntity = newPersistedSinkCacheEntity();

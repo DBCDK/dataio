@@ -17,7 +17,6 @@ import dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateCounterSer;
 import dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateStatusSer;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.Collection;
@@ -35,7 +34,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class QueriesTest extends JetTestSupport implements PostgresContainerJPAUtils {
-    @Test
+    @org.junit.Test
     public void waitingOn() {
         IMap<TrackingKey, DependencyTracking> dependencies = createHazelcastInstance().getMap("dependencies");
         addToTrackersToMap(dependencies, 1, 0, 10000, (i, dt)-> dt);
@@ -53,7 +52,7 @@ public class QueriesTest extends JetTestSupport implements PostgresContainerJPAU
                 result.stream().map(DependencyTracking::getKey).map(TrackingKey::getJobId).noneMatch(jobId -> jobId == 4));
     }
 
-    @Test
+    @org.junit.Test
     public void byStatusAndSinkId() {
         IMap<TrackingKey, DependencyTracking> dependencies = createHazelcastInstance().getMap("dependencies");
         addToTrackersToMap(dependencies, 1, 0, 20, this::setStatusByChunkMod);
@@ -64,7 +63,7 @@ public class QueriesTest extends JetTestSupport implements PostgresContainerJPAU
         assertTrue("Jobs for sink 0 should not have any hits", result.stream().mapToInt(DependencyTracking::getSinkId).noneMatch(i -> i == 0));
     }
 
-    @Test
+    @org.junit.Test
     public void chunksToWaitFor() {
         IMap<TrackingKey, DependencyTracking> dependencies = createHazelcastInstance().getMap("dependencies");
         Set<String> matchKeys = Set.of("hest", "lasagne", "pizza");
@@ -93,7 +92,7 @@ public class QueriesTest extends JetTestSupport implements PostgresContainerJPAU
         return config;
     }
 
-    @Test
+    @org.junit.Test
     public void jobChunksWaitForKey() {
         IMap<TrackingKey, DependencyTracking> dependencies = createHazelcastInstance().getMap("dependencies");
         Set<String> matchKeys = Set.of("hest", "lasagne", "pizza");
@@ -106,7 +105,7 @@ public class QueriesTest extends JetTestSupport implements PostgresContainerJPAU
         assertTrue(result.stream().map(DependencyTracking::getKey).mapToInt(TrackingKey::getJobId).allMatch(jobId -> jobId == 1 || jobId == 2));
     }
 
-    @Test
+    @org.junit.Test
     public void find() {
         Hazelcast.testInstance(createHazelcastInstance());
         DependencyTrackingService service = new DependencyTrackingService();

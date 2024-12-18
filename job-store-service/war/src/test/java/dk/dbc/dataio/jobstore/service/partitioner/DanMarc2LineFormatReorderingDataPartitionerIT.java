@@ -10,7 +10,6 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
-import org.junit.Test;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -21,7 +20,7 @@ import java.util.List;
 
 public class DanMarc2LineFormatReorderingDataPartitionerIT extends AbstractJobStoreIT {
 
-    @Test
+    @org.junit.Test
     public void volumeAfterParentsReordering() {
         LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
                 2, 4, 8, 7, 5, 1, 9, 6, 3, 0));
@@ -79,7 +78,7 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT extends AbstractJobSt
         MatcherAssert.assertThat("results", results, CoreMatchers.is(expectedResults));
     }
 
-    @Test
+    @org.junit.Test
     public void volumeIncludeParentsReordering() {
         LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
                 2, 4, 8, 1, 6, 9, 3, 5, 0, 7));

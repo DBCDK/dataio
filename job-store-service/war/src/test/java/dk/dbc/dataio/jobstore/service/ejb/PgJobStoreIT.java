@@ -30,7 +30,6 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import jakarta.persistence.EntityTransaction;
 import jakarta.ws.rs.ProcessingException;
-import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import types.TestableAddJobParam;
@@ -89,7 +88,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * When : adding a job
      * Then : a new job entity and the required number of chunk and item entities are created
      */
-    @Test
+    @org.junit.Test
     public void addAndScheduleJob() throws JobStoreException, SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
@@ -133,7 +132,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * Then : a new job entity is created
      * And  : the job is scheduled
      */
-    @Test
+    @org.junit.Test
     public void addAndScheduleEmptyJob() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException,
             JobStoreException, SQLException {
         // Given...
@@ -183,7 +182,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * And  : time of completion is set on the job entity.
      * And  : a diagnostic with level FATAL is set on the state of the job entity
      */
-    @Test
+    @org.junit.Test
     public void addJob_fileSizeInFileStoreDiffersFromActualNumberOfBytesRead_jobWithFatalErrorIsCreated()
             throws SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException, JobStoreException {
         // Given...
@@ -245,7 +244,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * And  : time of completion is set on the job entity.
      * And  : a diagnostic with level FATAL is set on the state of the job entity
      */
-    @Test
+    @org.junit.Test
     public void addJob_failsFastDueToAddJobParamFailures_jobWithFatalErrorIsCreated() throws SQLException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
@@ -290,7 +289,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * When : adding a (preview) job that has AddJobParam failures
      * Then : no jobNotification is send
      */
-    @Test
+    @org.junit.Test
     public void addJob_previewFails_noNotification() throws FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
@@ -314,7 +313,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * When : adding a (preview) job
      * Then  : no jobNotification is send
      */
-    @Test
+    @org.junit.Test
     public void addJob_previewOk_noNotification() throws FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
@@ -337,7 +336,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * When : adding a job which fails immediately during partitioning
      * Then : a new job entity with a fatal diagnostic is created
      */
-    @Test
+    @org.junit.Test
     public void addJob_failsFastDuringCreation_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
@@ -370,7 +369,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * When : adding a job which fails eventually during partitioning
      * Then : a new job entity with a fatal diagnostic is created
      */
-    @Test
+    @org.junit.Test
     public void addJob_failsEventuallyDuringPartitioning_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
@@ -402,7 +401,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * When : adding a job pointing to this datafile
      * Then : an unexpected exception is thrown during partitioning resulting in a new job entity with a fatal diagnostic
      */
-    @Test
+    @org.junit.Test
     public void addJob_partitioningThrowsUnexpectedException_jobWithFatalErrorIsAdded() throws FileStoreServiceConnectorException {
         // Given...
         final JobSpecification jobSpecification = createJobSpecification().withCharset("latin1").withDataFile("urn:dataio-fs:42");
@@ -438,7 +437,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * Then : a new job entity and the required number of chunk and item entities are created
      * And  : a diagnostic with level WARNING is set on the state of the job entity
      */
-    @Test
+    @org.junit.Test
     public void addJob_withWarningDiagnostic_jobIsAdded() throws FileStoreServiceConnectorException, SQLException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
@@ -481,7 +480,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * And  : a sink cache entity is created
      * And  : no diagnostics were created while adding job
      */
-    @Test
+    @org.junit.Test
     public void addJob() throws JobStoreException, SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
@@ -514,7 +513,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * Then : the job info snapshot is updated
      * And  : the referenced entities are updated
      */
-    @Test
+    @org.junit.Test
     public void addChunk_whenChunkHasNextEntry_chunkIsAdded() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
@@ -587,7 +586,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * And  : the DuplicateChunkException contains a JobError with Code.ILLEGAL_CHUNK
      * And  : job, chunk and item entities have not been updated after the second add.
      */
-    @Test
+    @org.junit.Test
     public void addChunk_duplicateChunksAdded_throws() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;                   // first chunk is used, hence the chunk id is 0.
@@ -665,7 +664,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * then : the item entities are updated correctly: Each having delivering outcome set with the expected data
      * And  : The chunk and job entity are updated correctly
      */
-    @Test
+    @org.junit.Test
     public void addChunk_entitiesAreUpdated() throws FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
@@ -756,7 +755,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * When: adding result chunk for delivery phase
      * Then: the job is completed
      */
-    @Test
+    @org.junit.Test
     public void addChunk_completesJob() throws FileStoreServiceConnectorException {
         // Given...
 
@@ -827,7 +826,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * When: adding result chunk for delivery phase for the termination chunk
      * Then: the job is completed
      */
-    @Test
+    @org.junit.Test
     public void addChunk_completesJobOnTerminationChunkDelivery() throws FileStoreServiceConnectorException {
         // Given...
 
@@ -941,7 +940,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * Then: the job is completed
      * And: the job is in error
      */
-    @Test
+    @org.junit.Test
     public void addChunk_failsJobOnFailedTerminationChunk() throws FileStoreServiceConnectorException {
         final JobEntity jobEntity = newJobEntity();
         jobEntity.setNumberOfChunks(2);     // last chunk is termination chunk
@@ -1032,7 +1031,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * When : requesting next processing outcome
      * Then : the next processing outcome returned contains the the correct data.
      */
-    @Test
+    @org.junit.Test
     public void getNextProcessingOutcome() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException, IOException {
         // Given...
         final int chunkId = 1;                  // second chunk is used, hence the chunk id is 1.

@@ -179,6 +179,7 @@
                                 <workdir>/work</workdir>
                                 <assemblies>
                                     <assembly>
+                                        <user>java</user>
                                         <mode>dir</mode>
                                         <targetDir>/work</targetDir>
                                         <inline>
@@ -230,7 +231,6 @@
                                     <mainClass>dk.dbc.dataio.gatekeeper.Gatekeeper</mainClass>
                                 </manifest>
                                 <manifestEntries>
-                                    <Svn-Revision>${SVN_REVISION}</Svn-Revision>
                                     <Build-Tag>${BUILD_TAG}</Build-Tag>
                                     <Build-Number>${BUILD_NUMBER}</Build-Number>
                                     <Build-Id>${BUILD_ID}</Build-Id>

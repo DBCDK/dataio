@@ -162,7 +162,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        java -jar buildstuff/target/buildstuff.jar version dataio.xml -t ${env.GITLAB_PRIVATE_TOKEN} -v DIT-${env.BUILD_NUMBER}
+                        java -jar buildstuff/target/buildstuff.jar version dataio.xml -t ${env.GITLAB_PRIVATE_TOKEN} -v ${env.BUILD_NUMBER}
                     """
                 }
             }
@@ -174,7 +174,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        java -jar buildstuff/target/buildstuff.jar version dataio.xml -n d -t ${env.GITLAB_PRIVATE_TOKEN} -v DIT-${env.BUILD_NUMBER}
+                        java -jar buildstuff/target/buildstuff.jar version dataio.xml -n d -t ${env.GITLAB_PRIVATE_TOKEN} -v ${env.BUILD_NUMBER}
                     """
                 }
             }

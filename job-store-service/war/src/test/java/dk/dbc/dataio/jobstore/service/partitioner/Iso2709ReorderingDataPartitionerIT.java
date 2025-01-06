@@ -8,7 +8,6 @@ import dk.dbc.dataio.commons.partioner.VolumeAfterParents;
 import dk.dbc.dataio.commons.partioner.VolumeIncludeParents;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
-import org.junit.Test;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -22,7 +21,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class Iso2709ReorderingDataPartitionerIT  extends AbstractJobStoreIT {
 
-    @Test
+    @org.junit.Test
     public void volumeAfterParentsReordering() {
         final LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
                 2, 7, 6, 4, 1, 8, 5, 3, 0));
@@ -77,7 +76,7 @@ public class Iso2709ReorderingDataPartitionerIT  extends AbstractJobStoreIT {
         assertThat("results", results, is(expectedResults));
     }
 
-    @Test
+    @org.junit.Test
     public void volumeIncludeParentsReordering() {
         final LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
                 2, 7, 1, 5, 8, 3, 4, 0, 6));

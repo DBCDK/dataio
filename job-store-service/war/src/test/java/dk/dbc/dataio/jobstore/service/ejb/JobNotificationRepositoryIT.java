@@ -17,7 +17,6 @@ import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.vipcore.service.VipCoreServiceConnector;
 import jakarta.ejb.SessionContext;
 import jakarta.persistence.Query;
-import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -41,7 +40,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
      * Then : the notification is linked to a job
      * And  : the notification has status WAITING
      */
-    @Test
+    @org.junit.Test
     public void addNotification() {
         final JobEntity jobEntity = newPersistedJobEntity();
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
@@ -65,7 +64,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
      * When : notifications linked to a specific job are requested
      * Then : only relevant notifications are returned
      */
-    @Test
+    @org.junit.Test
     public void getNotificationsForJob() {
         // Given...
         final JobEntity job1 = newPersistedJobEntity();
@@ -92,7 +91,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
      * When : notifications is processed
      * Then : notification is updated with new status
      */
-    @Test
+    @org.junit.Test
     public void processNotification() {
         final JobEntity jobEntity = newPersistedJobEntity();
         jobEntity.getSpecification().withMailForNotificationAboutVerification("verification@company.com");
@@ -122,7 +121,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
      * And  : a mail notification is sent to the fallback mail containing
      * item exports in the order first chunk item before second chunk item
      */
-    @Test
+    @org.junit.Test
     public void processNotificationWithAppendedFailures() throws IOException {
         // Given...
         final JobEntity jobEntity = newJobEntity();
@@ -199,7 +198,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
      * And  : a mail notification is sent containing item export of the item failed in delivering and with
      * the data from the item failed in partitioning as attachment
      */
-    @Test
+    @org.junit.Test
     public void processNotificationWithAppendedAndAttachedFailures() throws IOException {
         // Given...
         final JobEntity jobEntity = newJobEntity();
@@ -288,7 +287,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
      * When : a notification for a type without an associated job is processed
      * Then : notification is updated with completed status
      */
-    @Test
+    @org.junit.Test
     public void processNotification_withoutJob() {
         // Given...
         final InvalidTransfileNotificationContext notificationContext =
@@ -315,7 +314,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
      * When : notifications are flushed
      * Then : all waiting notifications are processed
      */
-    @Test
+    @org.junit.Test
     public void flushNotifications() {
         final JobEntity jobEntity = newPersistedJobEntity();
         jobEntity.getSpecification()
@@ -345,7 +344,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 //        assertThat("Number of notifications published", inbox.size(), is(3));
     }
 
-    @Test
+    @org.junit.Test
     public void getNotificationsByType() {
         final JobEntity jobEntity = newPersistedJobEntity();
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();

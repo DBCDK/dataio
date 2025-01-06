@@ -7,7 +7,6 @@ import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
-import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -24,7 +23,7 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
      * When : in-progress entries are requested
      * Then : only entries with state IN_PROGRESS are returned
      */
-    @Test
+    @org.junit.Test
     public void getInProgress() {
         // Given...
         final JobEntity job1 = newPersistedJobEntity();
@@ -55,7 +54,7 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
      * When : waiting entries are requested
      * Then : only entries with state WAITING are returned
      */
-    @Test
+    @org.junit.Test
     public void getWaiting() {
         // Given...
         final JobEntity job1 = newPersistedJobEntity();
@@ -86,7 +85,7 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
      * When : a job queue entry is added via addWaiting
      * Then : the entry is added with state WAITING
      */
-    @Test
+    @org.junit.Test
     public void addWaiting() {
         // Given...
         final JobEntity job = newPersistedJobEntity();
@@ -109,7 +108,7 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
      * When : remove is called
      * Then : the entry is deleted
      */
-    @Test
+    @org.junit.Test
     public void remove() {
         // Given...
         final JobEntity job = newPersistedJobEntity();
@@ -129,7 +128,7 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
      * When : seizeHeadOfQueueIfWaiting is called for sink with no entries in the queue
      * Then : an empty response is returned
      */
-    @Test
+    @org.junit.Test
     public void seizeHeadOfQueueIfWaiting_noEntriesExistForSink() {
         // Given...
         final JobEntity job = newPersistedJobEntity();
@@ -153,7 +152,7 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
      * When : seizeHeadOfQueueIfWaiting is called for sink where head of the queue is NOT waiting
      * Then : an empty response is returned
      */
-    @Test
+    @org.junit.Test
     public void seizeHeadOfQueueIfWaiting_headOfQueueForSinkIsNotWaiting() {
         // Given...
         final SinkCacheEntity sinkCacheEntity = newPersistedSinkCacheEntity();
@@ -193,7 +192,7 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
      * When : seizeHeadOfQueueIfWaiting is called for sink where head of the queue IS waiting
      * Then : the queue entry is returned with state IN_PROGRESS
      */
-    @Test
+    @org.junit.Test
     public void seizeHeadOfQueueIfWaiting_headOfQueueForSinkIsWaiting() {
         // Given...
         final SinkCacheEntity sinkCacheEntity = newPersistedSinkCacheEntity();
@@ -232,7 +231,7 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
     }
 
     // test that the combination of submitter id and sink id is blocking, not sink id alone
-    @Test
+    @org.junit.Test
     public void seizeHeadOfQueueIfWaiting_differentSubmitters() {
         final SinkCacheEntity sinkCacheEntity = newPersistedSinkCacheEntity();
         final JobEntity job1 = newPersistedJobEntity(123);
@@ -291,7 +290,7 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
      * Then : the queue entry has its retries field incremented by one
      * And  : the queue entry has its state changed to WAITING
      */
-    @Test
+    @org.junit.Test
     public void retry() {
         // Given...
         final SinkCacheEntity sinkCacheEntity = newPersistedSinkCacheEntity();

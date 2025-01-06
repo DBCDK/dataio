@@ -12,7 +12,6 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import jakarta.persistence.Query;
-import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -34,13 +33,13 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
     private static final int DEFAULT_CHUNK_ID = 1;
     private static final short DEFAULT_ITEM_ID = 1;
 
-    @Test
+    @org.junit.Test
     public void listJobs_criteriaArgIsNull_throws() {
         PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         assertThrows(NullPointerException.class, () -> pgJobStoreRepository.listJobs((JobListCriteria) null));
     }
 
-    @Test
+    @org.junit.Test
     public void listJobs_queryReturnsEmptyList_returnsEmptySnapshotList() {
         Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Collections.emptyList());
@@ -51,7 +50,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
         assertThat("List of JobInfoSnapshot is empty", jobInfoSnapshots.isEmpty(), is(true));
     }
 
-    @Test
+    @org.junit.Test
     public void listJobs_queryReturnsNonEmptyList_returnsSnapshotList() {
         JobEntity jobEntity1 = new JobEntity();
         jobEntity1.setNumberOfItems(42);
@@ -68,7 +67,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
         assertThat("List of JobInfoSnapshot second element", jobInfoSnapshots.get(1), is(toJobInfoSnapshot(jobEntity2)));
     }
 
-    @Test
+    @org.junit.Test
     public void listItems_queryReturnsEmptyList_returnsEmptySnapshotList() {
         Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Collections.emptyList());
@@ -79,7 +78,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
         assertThat("List of ItemInfoSnapshot is empty", itemInfoSnapshots.isEmpty(), is(true));
     }
 
-    @Test
+    @org.junit.Test
     public void listItems_queryReturnsNonEmptyList_returnsSnapshotList() {
         ItemEntity itemEntity1 = new ItemEntity();
         itemEntity1.setKey(new ItemEntity.Key(1, 0, (short) 0));
@@ -111,13 +110,13 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
                 itemInfoSnapshots.get(1).getItemNumber(), is(2));
     }
 
-    @Test
+    @org.junit.Test
     public void countItems_criteriaArgIsNull_throws() {
         PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         assertThrows(NullPointerException.class, () -> pgJobStoreRepository.countItems((ItemListCriteria) null));
     }
 
-    @Test
+    @org.junit.Test
     public void countItems_queryReturnsItemCount() {
         Query query = whenCreateNativeQueryThenReturn();
         when(query.getSingleResult()).thenReturn(2L);
@@ -126,13 +125,13 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
         assertThat(pgJobStoreRepository.countItems(new ItemListCriteria()), is(2L));
     }
 
-    @Test
+    @org.junit.Test
     public void getChunk_typeArgIsNull_throws() {
         PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         assertThrows(NullPointerException.class, () -> pgJobStoreRepository.getChunk(null, 2, 1));
     }
 
-    @Test
+    @org.junit.Test
     public void getChunk_queryReturnsEmptyList_returnsNull() {
         Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Collections.emptyList());
@@ -141,7 +140,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
         assertThat(pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, 2, 1), is(nullValue()));
     }
 
-    @Test
+    @org.junit.Test
     public void getChunk_queryReturnsItemEntityWithoutChunkItem_throws() {
         Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Collections.singletonList(new ItemEntity()));
@@ -150,7 +149,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
         assertThrows(IllegalArgumentException.class, () -> pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, 2, 1));
     }
 
-    @Test
+    @org.junit.Test
     public void getChunk_queryReturnsItemEntityWithChunkItems_returnsChunk() {
         ChunkItem chunkItem1 = new ChunkItemBuilder().setId(0).setData("data1").build();
         State state1 = new State();
@@ -186,14 +185,14 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
         assertThat("chunk[1].getId()", secondChunkItem.getId(), is((long) entity2.getKey().getId()));
     }
 
-    @Test
+    @org.junit.Test
     public void getChunkItemForPhase_itemEntityNotFound_throws() {
         PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(null);
         assertThrows(JobStoreException.class, () -> pgJobStoreRepository.getChunkItemForPhase(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING));
     }
 
-    @Test
+    @org.junit.Test
     public void getChunkItemForPhase_phasePartitioning_returnsChunkItem() throws JobStoreException {
         ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
@@ -206,7 +205,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
                 chunkItem.getData(), is(itemEntity.getPartitioningOutcome().getData()));
     }
 
-    @Test
+    @org.junit.Test
     public void getChunkItemForPhase_phaseProcessing_returnsChunkItem() throws JobStoreException {
         ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
@@ -219,7 +218,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
                 chunkItem.getData(), is(itemEntity.getProcessingOutcome().getData()));
     }
 
-    @Test
+    @org.junit.Test
     public void getChunkItemForPhase_phaseDelivering_returnsChunkItem() throws JobStoreException {
         ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);

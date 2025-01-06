@@ -68,7 +68,7 @@ import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 @Path("/")
 public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
-    private static final Set<Integer> abortedJobs = Hazelcast.Objects.ABORTED_JOBS.get();
+    private static Set<Integer> abortedJobs = Hazelcast.Objects.ABORTED_JOBS.get();
 
     @Inject
     DependencyTrackingService dependencyTrackingService;
@@ -124,7 +124,7 @@ public class JobsBean {
     }
 
     public static boolean isAborted(int jobId) {
-        return abortedJobs != null && abortedJobs.contains(jobId);
+        return abortedJobs.contains(jobId);
     }
 
     private void removeFromQueue(String fqn, int jobId) {
@@ -879,4 +879,13 @@ public class JobsBean {
         final UriBuilder absolutePathBuilder = uriInfo.getAbsolutePathBuilder();
         return absolutePathBuilder.path(jobId).build();
     }
+
+    /**
+     * Used for testing where Hazelcast is reconnect abortedJobs to the current Hazelcat
+     */
+    public static void testingUpdateStaticTestHazelcast() {
+        abortedJobs = Hazelcast.Objects.ABORTED_JOBS.get();
+    }
+
+
 }

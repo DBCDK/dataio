@@ -332,7 +332,7 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
             @Override
             public ChunkEntity createChunkEntity(long submitterId, int jobId, int chunkId, short maxChunkSize,
                                                  DataPartitioner dataPartitioner, KeyGenerator keyGenerator, String dataFileId) throws JobStoreException {
-                return handleRequiresNew(() -> createChunkEntity(submitterId, jobId, chunkId, maxChunkSize, dataPartitioner, keyGenerator, dataFileId));
+                return handleRequiresNew(() -> super.createChunkEntity(submitterId, jobId, chunkId, maxChunkSize, dataPartitioner, keyGenerator, dataFileId));
             }
         }
         .withEntityManager(entityManager);

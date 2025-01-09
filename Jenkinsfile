@@ -5,7 +5,7 @@ String workerNode = "devel11"
 Boolean DEPLOY_TO_STAGING_CANDIDATE=false
 Boolean FAST_BUILD=false
 
-//Byg!
+//Byg!!
 pipeline {
     agent { label workerNode }
     tools {

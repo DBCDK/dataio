@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 
+import static java.util.Set.of;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -23,35 +24,28 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
 
         DependencyTrackingService service = new DependencyTrackingService().init();
 
-        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0, 123456)
-                        .setMatchKeys(Collections.emptySet()), null),
-                is(Collections.emptySet()));
+        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0, 123456), null), is(Collections.emptySet()));
 
-        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0, 123456)
-                        .setMatchKeys(asSet("K1")), null),
+        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0, 123456, of("K1")), null),
                 containsInAnyOrder(new TrackingKey(1, 1)));
 
-        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0, 123456)
-                        .setMatchKeys(asSet("C1")), null),
+        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0, 123456, of("C1")), null),
                 containsInAnyOrder(new TrackingKey(1, 1)));
 
-        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0, 123456)
-                        .setMatchKeys(asSet("KK2")), null),
+        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0, 123456, of("KK2")), null),
                 containsInAnyOrder(
                         new TrackingKey(1, 0),
                         new TrackingKey(1, 1),
                         new TrackingKey(1, 2),
                         new TrackingKey(1, 3)));
 
-        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 1, 123456)
-                        .setMatchKeys(asSet("K4", "K6", "C4")), null),
+        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 1, 123456, of("K4", "K6", "C4")), null),
                 containsInAnyOrder(
                         new TrackingKey(2, 0),
                         new TrackingKey(2, 2),
                         new TrackingKey(2, 4)));
 
-        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 1, 123456)
-                        .setMatchKeys(asSet("K4", "K6", "C4", "K5")), null),
+        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 1, 123456, of("K4", "K6", "C4", "K5")), null),
                 containsInAnyOrder(
                         new TrackingKey(2, 1),
                         new TrackingKey(2, 0),
@@ -64,9 +58,8 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
         startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
         DependencyTrackingService service = new DependencyTrackingService().init();
 
-        final DependencyTracking entity = new DependencyTracking(new TrackingKey(4, 2), 1, 123456);
+        final DependencyTracking entity = new DependencyTracking(new TrackingKey(4, 2), 1, 123456, of("KK2"));
         entity.setPriority(Priority.HIGH.getValue());
-        entity.setMatchKeys(Set.of("KK2"));
         entity.setStatus(ChunkSchedulingStatus.READY_FOR_PROCESSING);
 
         JobSchedulerTransactionsBean bean = new JobSchedulerTransactionsBean();
@@ -85,7 +78,7 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
     }
 
     private Set<String> asSet(String... values) {
-        return Set.of(values);
+        return of(values);
     }
 }
 

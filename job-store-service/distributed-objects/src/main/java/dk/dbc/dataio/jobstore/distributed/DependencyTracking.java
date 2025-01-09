@@ -2,7 +2,6 @@ package dk.dbc.dataio.jobstore.distributed;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.dataio.commons.utils.lang.Hashcode;
 import dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter;
 import dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter;
 import org.postgresql.util.PGobject;
@@ -55,22 +54,17 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
         this(key, sinkId, submitter, Set.of());
     }
 
-//    public DependencyTracking(int jobId, int chunkId, int sinkId, PGobject waitingOn) {
-//        key = new TrackingKey(jobId, chunkId);
-//        this.sinkId = sinkId;
-//        this.waitingOn = new HashSet<>(new KeySetJSONBConverter().convertToEntityAttribute(waitingOn));
-//    }
-
     public DependencyTracking(ResultSet rs) throws SQLException {
         key = new TrackingKey(rs.getInt("jobid"), rs.getInt("chunkid"));
         sinkId = rs.getInt("sinkid");
         waitingOn = new HashSet<>(new KeySetJSONBConverter().convertToEntityAttribute((PGobject) rs.getObject("waitingon")));
         status = ChunkSchedulingStatus.from(rs.getInt("status"));
-        setMatchKeys(new StringSetConverter().convertToEntityAttribute((PGobject) rs.getObject("matchkeys")));
+        matchKeys = new StringSetConverter().convertToEntityAttribute((PGobject) rs.getObject("matchkeys"));
         priority = rs.getInt("priority");
         submitter = rs.getInt("submitter");
         lastModified = rs.getTimestamp("lastmodified").toInstant();
         retries = rs.getInt("retries");
+        waitFor = toWaitForIndexSet(sinkId, submitter, matchKeys);
     }
 
     public static Set<String> makeKeys(String barrierKey, Set<String> sequenceData) {
@@ -133,12 +127,6 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
         return matchKeys;
     }
 
-    public DependencyTracking setMatchKeys(Set<String> matchKeys) {
-        this.matchKeys = matchKeys;
-        waitFor = toWaitForIndexSet(sinkId, submitter, matchKeys);
-        return this;
-    }
-
     @Override
     public int getSubmitter() {
         return submitter;
@@ -190,32 +178,14 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DependencyTracking that = (DependencyTracking) o;
-        return sinkId == that.sinkId && priority == that.priority && submitter == that.submitter &&
-                Objects.equals(key, that.key) && status == that.status && Objects.equals(waitingOn, that.waitingOn) && Objects.equals(matchKeys, that.matchKeys);
+        return priority == that.priority && submitter == that.submitter && Objects.equals(key, that.key);
     }
 
     @Override
     public int hashCode() {
-        int result = key != null ? key.hashCode() : 0;
-        result = 31 * result + sinkId;
-        result = 31 * result + (status != null ? status.hashCode() : 0);
-        result = 31 * result + submitter;
-        result = 31 * result + priority;
-        result = 31 * result + (waitingOn != null ? waitingOn.hashCode() : 0);
-        result = 31 * result + (matchKeys != null ? matchKeys.hashCode() : 0);
-        return result;
-    }
-
-    private Integer[] computeHashes(Set<String> strings) {
-        final Integer[] hashes = new Integer[strings.size()];
-        int i = 0;
-        for (String str : strings) {
-            hashes[i++] = Hashcode.of(sinkId + ":" + submitter + ":" + str);
-        }
-        return hashes;
+        return Objects.hash(key, priority, submitter);
     }
 
     @Override

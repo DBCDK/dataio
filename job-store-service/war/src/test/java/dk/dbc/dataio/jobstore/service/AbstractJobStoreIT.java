@@ -6,6 +6,7 @@ import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.partioner.DataPartitioner;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
@@ -24,6 +25,7 @@ import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
+import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
 import dk.dbc.dataio.jobstore.service.ejb.JobQueueRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
@@ -292,31 +294,28 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
                 .withEntityManager(entityManager);
     }
 
-
     public interface RequiresNewFunction<T> {
-        T accept() throws JobStoreException;
+        T downStreamEJBMethod() throws JobStoreException;
     }
 
     protected PgJobStoreRepository newPgJobStoreRepository() {
+        // Subclass and simulate @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW) semantics
+        // when required.
         return new PgJobStoreRepository() {
             <T> T handleRequiresNew(RequiresNewFunction<T> r) throws JobStoreException {
                 var oldEntityManager = entityManager;
-                var tmpEm = entityManager.getEntityManagerFactory().createEntityManager();
-                var currentTransaction = tmpEm.getTransaction();
-                currentTransaction.begin();
-                entityManager = tmpEm;
-                var res = r.accept();
-                currentTransaction.commit();
-                entityManager = oldEntityManager;
-                return res;
+                try( var requiresNewEntityManager = entityManager.getEntityManagerFactory().createEntityManager() ) {
+                    entityManager = requiresNewEntityManager;
+                    requiresNewEntityManager.getTransaction().begin();
+                    T res = r.downStreamEJBMethod();
+                    requiresNewEntityManager.getTransaction().commit();
+                    entityManager = oldEntityManager;
+                    return res;
+                }
             }
 
             @Override
-            public ChunkEntity createJobTerminationChunkEntity(
-                    int jobId,
-                    int chunkId,
-                    String dataFileId, ChunkItem.Status itemStatus)
-                    throws JobStoreException {
+            public ChunkEntity createJobTerminationChunkEntity(int jobId, int chunkId, String dataFileId, ChunkItem.Status itemStatus) throws JobStoreException {
                 return handleRequiresNew(() -> super.createJobTerminationChunkEntity(jobId, chunkId, dataFileId, itemStatus));
             }
 
@@ -330,12 +329,13 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
                 return handleRequiresNew(() -> super.createJobEntityForEmptyJob(addJobParam));
             }
 
-//            @Override
-//            public ChunkEntity createChunkEntity(long submitterId, int jobId, int chunkId, short maxChunkSize,
-//                                                 DataPartitioner dataPartitioner, KeyGenerator keyGenerator, String dataFileId) throws JobStoreException {
-//                return handleRequiresNew(() -> super.createChunkEntity(submitterId, jobId, chunkId, maxChunkSize, dataPartitioner, keyGenerator, dataFileId));
-//            }
-        }.withEntityManager(entityManager);
+            @Override
+            public ChunkEntity createChunkEntity(long submitterId, int jobId, int chunkId, short maxChunkSize,
+                                                 DataPartitioner dataPartitioner, KeyGenerator keyGenerator, String dataFileId) throws JobStoreException {
+                return handleRequiresNew(() -> super.createChunkEntity(submitterId, jobId, chunkId, maxChunkSize, dataPartitioner, keyGenerator, dataFileId));
+            }
+        }
+        .withEntityManager(entityManager);
     }
 
     protected RerunsRepository newRerunsRepository() {

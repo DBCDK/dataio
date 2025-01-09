@@ -108,13 +108,12 @@ public class DependencyTrackingStoreTest implements PostgresContainerJPAUtils {
     }
 
     private enum Trackers {
-        TRACKER_1_0(() -> new DependencyTracking(new TrackingKey(1, 0), 0)
+        TRACKER_1_0(() -> new DependencyTracking(new TrackingKey(1, 0), 0, 123456)
                 .setStatus(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING)
                 .setPriority(4)
                 .setWaitingOn(Set.of(new TrackingKey(3, 0)))
-                .setMatchKeys(Set.of("KK2", "K0", "C0"))
-                .setSubmitter(123456)),
-        TRACKERS_2_1(() -> new DependencyTracking(new TrackingKey(2, 1), 0));
+                .setMatchKeys(Set.of("KK2", "K0", "C0"))),
+        TRACKERS_2_1(() -> new DependencyTracking(new TrackingKey(2, 1), 0, 0));
 
         public static Map<TrackingKey, DependencyTracking> getMap() {
             return Arrays.stream(values()).collect(Collectors.toMap(Trackers::key, Trackers::get));

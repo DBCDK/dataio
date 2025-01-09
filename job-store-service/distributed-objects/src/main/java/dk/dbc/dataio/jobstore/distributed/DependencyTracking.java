@@ -7,6 +7,7 @@ import dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter;
 import dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter;
 import org.postgresql.util.PGobject;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,11 +18,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Class for tracking chunk dependencies.
  */
 public class DependencyTracking implements DependencyTrackingRO, Serializable, Comparable<DependencyTracking> {
+    @Serial
     private static final long serialVersionUID = 1L;
     private static final ZoneId ZONE_ID_DK = ZoneId.of("Europe/Copenhagen");
 
@@ -29,37 +32,34 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
     private final int sinkId;
     private ChunkSchedulingStatus status = ChunkSchedulingStatus.READY_FOR_PROCESSING;
     private int priority;
-    private Set<TrackingKey> waitingOn;
+    private Set<TrackingKey> waitingOn = new HashSet<>();
     private Set<String> matchKeys;
-    private Integer[] hashes;
+    private Set<WaitForKey> waitFor;
     private int submitter;
     private Instant lastModified = Instant.now();
     private int retries = 0;
 
-    public DependencyTracking(int jobId, int chunkId, int sinkId, String extraKey, Set<String> sequenceData) {
-        this(new TrackingKey(jobId, chunkId), sinkId);
-        if (sequenceData != null) {
-            matchKeys = new HashSet<>(sequenceData);
-        } else {
-            matchKeys = new HashSet<>();
-        }
-        if (extraKey != null) {
-            matchKeys.add(extraKey);
-        }
-        hashes = computeHashes(matchKeys);
-    }
-
-    public DependencyTracking(int jobId, int chunkId, int sinkId, PGobject waitingOn) {
-        key = new TrackingKey(jobId, chunkId);
-        this.sinkId = sinkId;
-        this.waitingOn = new HashSet<>(new KeySetJSONBConverter().convertToEntityAttribute(waitingOn));
-    }
-
-    public DependencyTracking(TrackingKey key, int sinkId) {
+    public DependencyTracking(TrackingKey key, int sinkId, int submitter, Set<String> sequenceData) {
         this.key = key;
         this.sinkId = sinkId;
-        waitingOn = new HashSet<>();
+        this.submitter = submitter;
+        matchKeys = makeKeys(null, sequenceData);
+        waitFor = toWaitForIndexSet(sinkId, submitter, matchKeys);
     }
+
+    public DependencyTracking(TrackingKey key, int sinkId, int submitter, String barrierKey, Set<String> sequenceData) {
+        this(key, sinkId, submitter, makeKeys(barrierKey, sequenceData));
+    }
+
+    public DependencyTracking(TrackingKey key, int sinkId, int submitter) {
+        this(key, sinkId, submitter, Set.of());
+    }
+
+//    public DependencyTracking(int jobId, int chunkId, int sinkId, PGobject waitingOn) {
+//        key = new TrackingKey(jobId, chunkId);
+//        this.sinkId = sinkId;
+//        this.waitingOn = new HashSet<>(new KeySetJSONBConverter().convertToEntityAttribute(waitingOn));
+//    }
 
     public DependencyTracking(ResultSet rs) throws SQLException {
         key = new TrackingKey(rs.getInt("jobid"), rs.getInt("chunkid"));
@@ -73,6 +73,15 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
         retries = rs.getInt("retries");
     }
 
+    public static Set<String> makeKeys(String barrierKey, Set<String> sequenceData) {
+        Set<String> keys = sequenceData == null ? new HashSet<>() : new HashSet<>(sequenceData);
+        if (barrierKey != null) keys.add(barrierKey);
+        return keys;
+    }
+
+    public static Set<WaitForKey> toWaitForIndexSet(int sinkId, int submitter, Set<String> matchKeys) {
+        return matchKeys.stream().map(k -> new WaitForKey(sinkId, submitter, k)).collect(Collectors.toSet());
+    }
 
     @Override
     public TrackingKey getKey() {
@@ -99,6 +108,11 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
         return waitingOn;
     }
 
+    @Override
+    public Set<WaitForKey> getWaitFor() {
+        return waitFor;
+    }
+
     public DependencyTracking setWaitingOn(Set<TrackingKey> waitingOn) {
         this.waitingOn = new HashSet<>(waitingOn);
         return this;
@@ -121,25 +135,13 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
 
     public DependencyTracking setMatchKeys(Set<String> matchKeys) {
         this.matchKeys = matchKeys;
-        if (this.matchKeys != null) {
-            hashes = computeHashes(this.matchKeys);
-        }
+        waitFor = toWaitForIndexSet(sinkId, submitter, matchKeys);
         return this;
-    }
-
-    @Override
-    public Integer[] getHashes() {
-        return hashes;
     }
 
     @Override
     public int getSubmitter() {
         return submitter;
-    }
-
-    public DependencyTracking setSubmitter(int submitter) {
-        this.submitter = submitter;
-        return this;
     }
 
     @Override
@@ -207,11 +209,11 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
         return result;
     }
 
-    private static Integer[] computeHashes(Set<String> strings) {
+    private Integer[] computeHashes(Set<String> strings) {
         final Integer[] hashes = new Integer[strings.size()];
         int i = 0;
         for (String str : strings) {
-            hashes[i++] = Hashcode.of(str);
+            hashes[i++] = Hashcode.of(sinkId + ":" + submitter + ":" + str);
         }
         return hashes;
     }

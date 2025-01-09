@@ -23,23 +23,19 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
 
         DependencyTrackingService service = new DependencyTrackingService().init();
 
-        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0)
-                        .setSubmitter(123456)
+        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0, 123456)
                         .setMatchKeys(Collections.emptySet()), null),
                 is(Collections.emptySet()));
 
-        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0)
-                        .setSubmitter(123456)
+        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0, 123456)
                         .setMatchKeys(asSet("K1")), null),
                 containsInAnyOrder(new TrackingKey(1, 1)));
 
-        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0)
-                        .setSubmitter(123456)
+        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0, 123456)
                         .setMatchKeys(asSet("C1")), null),
                 containsInAnyOrder(new TrackingKey(1, 1)));
 
-        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0)
-                        .setSubmitter(123456)
+        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 0, 123456)
                         .setMatchKeys(asSet("KK2")), null),
                 containsInAnyOrder(
                         new TrackingKey(1, 0),
@@ -47,16 +43,14 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
                         new TrackingKey(1, 2),
                         new TrackingKey(1, 3)));
 
-        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 1)
-                        .setSubmitter(123456)
+        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 1, 123456)
                         .setMatchKeys(asSet("K4", "K6", "C4")), null),
                 containsInAnyOrder(
                         new TrackingKey(2, 0),
                         new TrackingKey(2, 2),
                         new TrackingKey(2, 4)));
 
-        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 1)
-                        .setSubmitter(123456)
+        assertThat(service.findChunksToWaitFor(new DependencyTracking(new TrackingKey(0, 0), 1, 123456)
                         .setMatchKeys(asSet("K4", "K6", "C4", "K5")), null),
                 containsInAnyOrder(
                         new TrackingKey(2, 1),
@@ -70,9 +64,9 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
         startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
         DependencyTrackingService service = new DependencyTrackingService().init();
 
-        final DependencyTracking entity = new DependencyTracking(new TrackingKey(4, 2), 1);
+        final DependencyTracking entity = new DependencyTracking(new TrackingKey(4, 2), 1, 123456);
         entity.setPriority(Priority.HIGH.getValue());
-        entity.setMatchKeys(Set.of("4_1", "4_2"));
+        entity.setMatchKeys(Set.of("KK2"));
         entity.setStatus(ChunkSchedulingStatus.READY_FOR_PROCESSING);
 
         JobSchedulerTransactionsBean bean = new JobSchedulerTransactionsBean();
@@ -80,13 +74,13 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
 
         bean.persistDependencyEntity(entity, null);
 
-        // 4_2 is waiting for 4_1 => 4_1's default NORMAL priority is boosted to HIGH
+        // 4_2 is waiting for 2_0 => 2_0's default NORMAL priority is boosted to HIGH
 
-        final DependencyTrackingRO firstLevelDependency = service.get(new TrackingKey(4, 1));
+        final DependencyTrackingRO firstLevelDependency = service.get(new TrackingKey(2, 0));
         assertThat(firstLevelDependency.getPriority(), is(Priority.HIGH.getValue()));
 
-        // 4_1 is waiting for 4_0 => 4_0's default NORMAL priority is boosted to HIGH
-        final DependencyTrackingRO secondLevelDependency = service.get(new TrackingKey(4, 0));
+        // 2_1 is waiting for 3_0 => 0_0's default NORMAL priority is boosted to HIGH
+        final DependencyTrackingRO secondLevelDependency = service.get(new TrackingKey(1, 0));
         assertThat(secondLevelDependency.getPriority(), is(Priority.HIGH.getValue()));
     }
 

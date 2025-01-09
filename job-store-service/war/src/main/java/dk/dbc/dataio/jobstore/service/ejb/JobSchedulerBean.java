@@ -166,8 +166,8 @@ public class JobSchedulerBean {
         int sinkId = job.getCachedSink().getSink().getId();
         String barrierMatchKey = getBarrierMatchKey(job);
 
-        DependencyTracking e = new DependencyTracking(chunk.getKey().getJobId(), chunk.getKey().getId(), sinkId, chunk.getKey().getId() == 0 ? barrierMatchKey : null, chunk.getSequenceAnalysisData().getData());
-        e.setSubmitter(Math.toIntExact(job.getSpecification().getSubmitterId()));
+        TrackingKey key = new TrackingKey(chunk.getKey().getJobId(), chunk.getKey().getId());
+        DependencyTracking e = new DependencyTracking(key, sinkId, (int)job.getSpecification().getSubmitterId(), chunk.getKey().getId() == 0 ? barrierMatchKey : null, chunk.getSequenceAnalysisData().getData());
         e.setPriority(job.getPriority().getValue());
         jobSchedulerTransactionsBean.persistDependencyEntity(e, barrierMatchKey);
         jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sinkId, e.getPriority());
@@ -279,8 +279,8 @@ public class JobSchedulerBean {
                                            ChunkItem.Status ItemStatus) throws JobStoreException {
         int sinkId = sink.getId();
         ChunkEntity chunkEntity = pgJobStoreRepository.createJobTerminationChunkEntity(jobEntity.getId(), chunkId, "dummyDatafileId", ItemStatus);
-        DependencyTracking endTracker = new DependencyTracking(chunkEntity.getKey().getJobId(), chunkId, sinkId, barrierMatchKey, chunkEntity.getSequenceAnalysisData().getData())
-                .setSubmitter(Math.toIntExact(jobEntity.getSpecification().getSubmitterId()))
+        TrackingKey key = new TrackingKey(chunkEntity.getKey().getJobId(), chunkId);
+        DependencyTracking endTracker = new DependencyTracking(key, sinkId, (int)jobEntity.getSpecification().getSubmitterId(), barrierMatchKey, chunkEntity.getSequenceAnalysisData().getData())
                 .setPriority(Priority.HIGH.getValue());
         TrackingKey jobEndKey = dependencyTrackingService.add(endTracker);
         jobSchedulerTransactionsBean.addDependencies(endTracker);

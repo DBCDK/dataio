@@ -11,6 +11,7 @@ import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
+import dk.dbc.dataio.jobstore.distributed.WaitForKey;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.BlockedCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.JobCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.SinkStatusCounter;
@@ -20,7 +21,6 @@ import dk.dbc.dataio.jobstore.distributed.hz.processor.RemoveWaitingOn;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdatePriority;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateStatus;
-import dk.dbc.dataio.jobstore.distributed.hz.query.ChunksToWaitFor;
 import dk.dbc.dataio.jobstore.distributed.hz.query.JobChunksWaitForKey;
 import dk.dbc.dataio.jobstore.distributed.hz.query.WaitingOn;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
@@ -206,12 +206,13 @@ public class DependencyTrackingService {
         LOGGER.info("Removed tracking keys matched by predicate: {}", predicate);
     }
 
-    public void boostPriorities(Set<TrackingKey> keys, int priority) {
+    public void boostPriorities(int jobOrigin, Set<TrackingKey> keys, int priority, Set<TrackingKey> boostedKeys) {
         if (priority > Priority.LOW.getValue()) {
             try {
-                Map<TrackingKey, Set<TrackingKey>> map = dependencyTracker.executeOnKeys(keys, new UpdatePriority(priority));
-                Set<TrackingKey> waitingOn = map.values().stream().filter(Objects::nonNull).flatMap(Collection::stream).collect(Collectors.toSet());
-                if(!waitingOn.isEmpty()) boostPriorities(waitingOn, priority);
+                Set<TrackingKey> boostKeys = keys.stream().filter(tk -> tk.getJobId() != jobOrigin).collect(Collectors.toSet());
+                Map<TrackingKey, Set<TrackingKey>> map = dependencyTracker.executeOnKeys(boostKeys, new UpdatePriority(priority));
+                Set<TrackingKey> waitingOn = map.values().stream().filter(Objects::nonNull).flatMap(Collection::stream).filter(boostedKeys::add).collect(Collectors.toSet());
+                if(!waitingOn.isEmpty()) boostPriorities(jobOrigin, waitingOn, priority, boostedKeys);
             } catch (Exception e) {
                 LOGGER.error("Got exception while boosting key", e);
             }
@@ -320,10 +321,10 @@ public class DependencyTrackingService {
      * @return Returns set of chunks to wait for.
      */
     public Set<TrackingKey> findChunksToWaitFor(DependencyTracking entity, String barrierMatchKey) {
-        if (entity.getMatchKeys().isEmpty() && barrierMatchKey == null) {
-            return Collections.emptySet();
-        }
-        ChunksToWaitFor query = new ChunksToWaitFor(entity.getSinkId(), entity.getSubmitter(), entity.getHashes(), barrierMatchKey);
+        if (entity.getMatchKeys().isEmpty() && barrierMatchKey == null) return Set.of();
+        WaitForKey[] waitFor = barrierMatchKey == null ? entity.getWaitFor().toArray(WaitForKey[]::new) :
+                Stream.concat(entity.getWaitFor().stream(), Stream.of(new WaitForKey(entity.getSinkId(), entity.getSubmitter(), barrierMatchKey))).toArray(WaitForKey[]::new);
+        Predicate<TrackingKey, DependencyTracking> query = Predicates.in("waitFor[any]", waitFor);
         Collection<DependencyTracking> values = dependencyTracker.values(query);
         return optimizeDependencies(values);
     }

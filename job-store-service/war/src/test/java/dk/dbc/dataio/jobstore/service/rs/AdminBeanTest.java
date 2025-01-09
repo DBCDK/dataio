@@ -21,7 +21,7 @@ public class AdminBeanTest {
 
     @Test
     public void getSinkName() {
-        DependencyTracking dte = new DependencyTracking(new TrackingKey(0, 0), 2);
+        DependencyTracking dte = new DependencyTracking(new TrackingKey(0, 0), 2, 0);
         String sinkName = new TestAdminBean().getSink(dte.getSinkId()).getContent().getName();
         Assertions.assertEquals("sink2", sinkName);
     }
@@ -41,7 +41,7 @@ public class AdminBeanTest {
         private final Instant lm;
 
         private TestDependencyTracking(Instant lm, int sinkId) {
-            super(new TrackingKey(0, 0), sinkId);
+            super(new TrackingKey(0, 0), sinkId, 0);
             this.lm = lm;
         }
 

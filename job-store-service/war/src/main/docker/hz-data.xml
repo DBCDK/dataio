@@ -45,6 +45,11 @@
                     <attribute>waitingOn[any]</attribute>
                 </attributes>
             </index>
+            <index>
+                <attributes>
+                    <attribute>waitFor[any]</attribute>
+                </attributes>
+            </index>
         </indexes>
     </map>
     <map name="sink.status">

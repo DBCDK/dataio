@@ -9,7 +9,8 @@ import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
@@ -67,14 +68,14 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
         DependencyTrackingService service = new DependencyTrackingService();
         List<TrackingKey> res = service.findChunksWaitingForMe(new TrackingKey(3, 0), 1);
-        assertThat(res, containsInAnyOrder(new TrackingKey(2, 0), new TrackingKey(2, 1), new TrackingKey(2, 2), new TrackingKey(2, 3), new TrackingKey(2, 4)));
+        assertThat(res, containsInAnyOrder(new TrackingKey(2, 1), new TrackingKey(2, 2), new TrackingKey(2, 3), new TrackingKey(2, 4)));
     }
 
     @org.junit.Test
     public void testValidTransitions() throws Exception {
         startHazelcastWith(null);
         JPATestUtils.runSqlFromResource(entityManager, this, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
-        Function<Integer, DependencyTracking> f = i -> new DependencyTracking(new TrackingKey(3, i), 1).setStatus(ChunkSchedulingStatus.from(i)).setMatchKeys(Set.of("K8", "KK2", "C4"));
+        Function<Integer, DependencyTracking> f = i -> new DependencyTracking(new TrackingKey(3, i), 1, 0).setStatus(ChunkSchedulingStatus.from(i)).setMatchKeys(Set.of("K8", "KK2", "C4"));
         Map<TrackingKey, DependencyTracking> dtTracker = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
         IntStream.range(1, 8).mapToObj(f::apply).forEach(dt -> dtTracker.put(dt.getKey(), dt));
         dtTracker.compute(new TrackingKey(3, 3), (k, dt) -> dt.setWaitingOn(Set.of(new TrackingKey(3, 5))));
@@ -175,8 +176,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
 
         final JobEntity jobEntity = new JobEntity(3);
         jobEntity.setPriority(Priority.NORMAL);
-        jobEntity.setSpecification(new JobSpecification()
-                .withSubmitterId(1));
+        jobEntity.setSpecification(new JobSpecification().withSubmitterId(1));
         jobEntity.setState(new State());
         jobEntity.setCachedSink(SinkCacheEntity.create(new SinkBuilder()
                 .setId(1)

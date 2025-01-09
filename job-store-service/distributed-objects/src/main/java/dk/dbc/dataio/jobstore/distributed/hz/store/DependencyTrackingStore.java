@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobstore.distributed.hz.store;
 
 import com.hazelcast.map.MapStore;
-import dk.dbc.commons.jpa.converter.IntegerArrayToPgIntArrayConverter;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter;
@@ -28,12 +27,11 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTrackingStore.class);
     private static final KeySetJSONBConverter KEY_SET_CONVERTER = new KeySetJSONBConverter();
     private static final StringSetConverter STRING_SET_CONVERTER = new StringSetConverter();
-    private static final IntegerArrayToPgIntArrayConverter INT_ARRAY_CONVERTER = new IntegerArrayToPgIntArrayConverter();
     public static final String DS_JNDI = "jdbc/dataio/jobstore";
     private final DataSource dataSource;
 
-    private static final String UPSERT = "insert into dependencytracking(jobid, chunkid, sinkid, status, waitingon, matchkeys, priority, hashes, submitter, lastmodified, retries) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) on conflict on constraint dependencytracking_pkey do " +
-            "update set status=excluded.status, waitingon=excluded.waitingon, matchkeys=excluded.matchkeys, priority=excluded.priority, hashes=excluded.hashes, submitter=excluded.submitter, lastmodified=excluded.lastmodified, retries=excluded.retries";
+    private static final String UPSERT = "insert into dependencytracking(jobid, chunkid, sinkid, status, waitingon, matchkeys, priority, submitter, lastmodified, retries) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) on conflict on constraint dependencytracking_pkey do " +
+            "update set status=excluded.status, waitingon=excluded.waitingon, matchkeys=excluded.matchkeys, priority=excluded.priority, submitter=excluded.submitter, lastmodified=excluded.lastmodified, retries=excluded.retries";
     private static final String SELECT = "select * from dependencytracking where jobid=? and chunkid=?";
 
     public DependencyTrackingStore() {
@@ -140,10 +138,9 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
         ps.setObject(5, KEY_SET_CONVERTER.convertToDatabaseColumn(dte.getWaitingOn()));
         ps.setObject(6, STRING_SET_CONVERTER.convertToDatabaseColumn(dte.getMatchKeys()));
         ps.setInt(7, dte.getPriority());
-        ps.setObject(8, INT_ARRAY_CONVERTER.convertToDatabaseColumn(dte.getHashes()));
-        ps.setInt(9, dte.getSubmitter());
-        ps.setTimestamp(10, new Timestamp(dte.getLastModified().toEpochMilli()));
-        ps.setInt(11, dte.getRetries());
+        ps.setInt(8, dte.getSubmitter());
+        ps.setTimestamp(9, new Timestamp(dte.getLastModified().toEpochMilli()));
+        ps.setInt(10, dte.getRetries());
     }
 
     private static void setKey(PreparedStatement ps, TrackingKey key) throws SQLException {

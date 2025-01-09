@@ -21,6 +21,7 @@ import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
@@ -79,7 +80,7 @@ public class JobSchedulerTransactionsBean {
         Set<TrackingKey> chunksToWaitFor = dependencyTrackingService.findChunksToWaitFor(entity, barrierMatchKey);
         entity.setWaitingOn(chunksToWaitFor);
         dependencyTrackingService.add(entity);
-        dependencyTrackingService.boostPriorities(chunksToWaitFor, entity.getPriority());
+        dependencyTrackingService.boostPriorities(entity.getKey().getJobId(), chunksToWaitFor, entity.getPriority(), new HashSet<>());
     }
 
     /**

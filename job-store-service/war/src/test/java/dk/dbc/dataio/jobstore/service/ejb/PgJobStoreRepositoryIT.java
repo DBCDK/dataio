@@ -210,6 +210,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
                 submitter, jobEntity.getId(), 0, (short) 10, dataPartitioner,
                 keyGenerator, dataFileId)
         );
+        entityManager.refresh(jobEntity); // pgJobStoreRepository runs stuff with TransactionAttributeType.REQUIRES_NEW
 
         assertThat("skipped", jobEntity.getSkipped(), is(73));
     }
@@ -398,6 +399,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
         // And job1 is
         final JobEntity job1 = persistenceContext.run(() -> pgJobStoreRepository.getJobEntityById(jobId));
+        entityManager.refresh(job1);   // pgJobStoreRepository runs stuff with TransactionAttributeType.REQUIRES_NEW
 
         assertThat("Number of chunks", job1.getNumberOfChunks(), is(1));
         assertThat("Number of Items ", job1.getNumberOfItems(), is(1));

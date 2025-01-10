@@ -17,6 +17,18 @@
             <write-batch-size>1000</write-batch-size>
             <write-coalescing>true</write-coalescing>
         </map-store>
+        <indexes>
+            <index type="HASH">
+                <attributes>
+                    <attribute>waitingOn[any]</attribute>
+                </attributes>
+            </index>
+            <index type="HASH">
+                <attributes>
+                    <attribute>waitFor[any]</attribute>
+                </attributes>
+            </index>
+        </indexes>
     </map>
     <map name="sink.status">
         <in-memory-format>OBJECT</in-memory-format>

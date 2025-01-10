@@ -121,7 +121,7 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     @Before
     public void startHZ() {
         try(InputStream is = getClass().getClassLoader().getResourceAsStream("hz-data.xml")) {
-            Hazelcast.testInstance(createHazelcastInstance(Hazelcast.makeConfig(is)));
+            Hazelcast.testInstance(createHazelcastInstance(withoutNetworkJoin(Hazelcast.makeConfig(is))));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

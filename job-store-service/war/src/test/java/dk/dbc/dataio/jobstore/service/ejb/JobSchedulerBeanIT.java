@@ -45,8 +45,6 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -252,9 +250,6 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         jobSchedulerTransactionsBean.dependencyTrackingService = trackingService;
         JobsBeanTest.notAborted(jobEntity.getId(), jb -> {
             jobSchedulerBean.ensureLastChunkIsScheduled(jobEntity.getId());
-
-            verify(jobSchedulerTransactionsBean).persistDependencyEntity(
-                    any(DependencyTracking.class), nullable(String.class));
 
             verify(jobSchedulerTransactionsBean).submitToProcessingIfPossibleAsync(
                     chunkEntity, sinkCacheEntity.getSink().getId(), jobEntity.getPriority().getValue());

@@ -45,7 +45,7 @@
                     <attribute>waitingOn[any]</attribute>
                 </attributes>
             </index>
-            <index>
+            <index type="HASH">
                 <attributes>
                     <attribute>waitFor[any]</attribute>
                 </attributes>

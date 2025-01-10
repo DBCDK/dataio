@@ -67,39 +67,6 @@ public class QueriesTest extends JetTestSupport implements PostgresContainerJPAU
     @org.junit.Test
     public void chunksToWaitFor() {
         IMap<TrackingKey, DependencyTracking> dependencies = createHazelcastInstance().getMap("dependencies");
-        Set<String> matchKeys = Set.of("hest", "lasagne", "pizza");
-        Set<String> falseKeys = Set.of("bulgur", "linser");
-        addToTrackersWithMatchKey(dependencies, 1, 0, 123456,20, i -> matchKeys);
-        addToTrackersWithMatchKey(dependencies, 2, 0, 20,i -> falseKeys);
-        addToTrackersWithMatchKey(dependencies, 3, 0, 20, i -> Set.of());
-        addToTrackersWithMatchKey(dependencies, 4, 0, 20, i -> matchKeys);
-        addToTrackersWithMatchKey(dependencies, 5, 0, 123456, 20, i -> matchKeys);
-        addToTrackersWithMatchKey(dependencies, 6, 1, 123456, 20, i -> matchKeys);
-        Set<TrackingKey> waitFor = new DependencyTrackingService().findChunksToWaitFor(new DependencyTracking(new TrackingKey(7, 0), 0, 123456, Set.of("lasagne")), null);
-        System.out.println("Waiting for chunks to wait for " + waitFor.size() + " hits");
-//        Integer[] hashes = matchKeys.stream().limit(1).map(Hashcode::of).toArray(Integer[]::new);
-//        Collection<DependencyTracking> result = dependencies.values(new ChunksToWaitFor(0, 123456, hashes, ""));
-//        assertEquals(40, result.size());
-//        assertTrue(result.stream().map(DependencyTracking::getKey).mapToInt(TrackingKey::getJobId).allMatch(jobId -> jobId == 1 || jobId == 5));
-    }
-
-    @Override
-    protected HazelcastInstance createHazelcastInstance() {
-        HazelcastInstance instance = createHazelcastInstance(makeConfig());
-        Hazelcast.testInstance(instance);
-        return instance;
-    }
-
-    private Config makeConfig() {
-        Config config = smallInstanceConfig();
-        List<CompactSerializer<?>> compactSerializers = List.of(new RemoveWaitingOnSer(), new StatusChangeSer(), new TrackingKeySer(), new UpdateCounterSer(), new UpdateStatusSer());
-        compactSerializers.forEach(ser -> config.getSerializationConfig().getCompactSerializationConfig().addSerializer(ser));
-        return config;
-    }
-
-    @org.junit.Test
-    public void jobChunksWaitForKey() {
-        IMap<TrackingKey, DependencyTracking> dependencies = createHazelcastInstance().getMap("dependencies");
         DependencyTrackingService service = new DependencyTrackingService();
         Set<String> matchKeys = Set.of("hest", "lasagne", "pizza");
         addToTrackersWithMatchKey(dependencies, 1, 0, 4, (Integer i) -> i < 2 ? Set.of("hest") : Set.of("bulgur"));
@@ -123,6 +90,33 @@ public class QueriesTest extends JetTestSupport implements PostgresContainerJPAU
                 .map(DependencyTracking::getKey)
                 .collect(Collectors.toSet());
         assertEquals(expectAll, waitForAll);
+    }
+
+    @Override
+    protected HazelcastInstance createHazelcastInstance() {
+        HazelcastInstance instance = createHazelcastInstance(makeConfig());
+        Hazelcast.testInstance(instance);
+        return instance;
+    }
+
+    private Config makeConfig() {
+        Config config = smallInstanceConfig();
+        List<CompactSerializer<?>> compactSerializers = List.of(new RemoveWaitingOnSer(), new StatusChangeSer(), new TrackingKeySer(), new UpdateCounterSer(), new UpdateStatusSer());
+        compactSerializers.forEach(ser -> config.getSerializationConfig().getCompactSerializationConfig().addSerializer(ser));
+        return config;
+    }
+
+    @org.junit.Test
+    public void jobChunksWaitForKey() {
+        IMap<TrackingKey, DependencyTracking> dependencies = createHazelcastInstance().getMap("dependencies");
+        Set<String> matchKeys = Set.of("hest", "lasagne", "pizza");
+        addToTrackersWithMatchKey(dependencies, 1, 0, 20, i -> i < 10 ? Set.of("hest") : Set.of("bulgur"));
+        addToTrackersWithMatchKey(dependencies, 2, 0, 20, i -> i < 10 ? Set.of("hest") : Set.of("bulgur"));
+        addToTrackersWithMatchKey(dependencies, 3, 0, 20, i -> Set.of("bulgur"));
+        addToTrackersWithMatchKey(dependencies, 4, 1, 20, i -> Set.of("hest"));
+        Collection<DependencyTracking> result = dependencies.values(new JobChunksWaitForKey(0, 1, matchKeys));
+        assertEquals("There should be 20 hits from job 1 and 10 from job 2", 30, result.size());
+        assertTrue(result.stream().map(DependencyTracking::getKey).mapToInt(TrackingKey::getJobId).allMatch(jobId -> jobId == 1 || jobId == 2));
     }
 
     @org.junit.Test

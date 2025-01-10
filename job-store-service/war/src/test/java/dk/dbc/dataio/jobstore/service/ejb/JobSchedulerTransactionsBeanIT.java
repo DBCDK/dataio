@@ -65,7 +65,7 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
         JobSchedulerTransactionsBean bean = new JobSchedulerTransactionsBean();
         bean.dependencyTrackingService = service;
 
-        bean.persistDependencyEntity(entity, null);
+        service.addAndBuildDependencies(entity, null);
 
         // 4_2 is waiting for 2_0 => 2_0's default NORMAL priority is boosted to HIGH
 

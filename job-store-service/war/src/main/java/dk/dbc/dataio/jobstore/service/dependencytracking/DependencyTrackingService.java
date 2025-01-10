@@ -38,10 +38,12 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -80,6 +82,7 @@ public class DependencyTrackingService {
         return this;
     }
 
+    @Timed
     public TrackingKey add(DependencyTracking entity) {
         int sinkId = entity.getSinkId();
         Set<TrackingKey> waitingOn = entity.getWaitingOn();
@@ -91,6 +94,15 @@ public class DependencyTrackingService {
         return key;
     }
 
+    @Timed
+    public void addAndBuildDependencies(DependencyTracking dt, String barrierMatchKey) {
+        Set<TrackingKey> chunksToWaitFor = findChunksToWaitFor(dt, barrierMatchKey);
+        dt.setWaitingOn(chunksToWaitFor);
+        add(dt);
+        boostPriorities(dt.getKey().getJobId(), chunksToWaitFor, dt.getPriority(), new HashSet<>());
+    }
+
+    @Timed
     public int capacity(int sinkId, ChunkSchedulingStatus status) {
         if(status.getMax() == null) throw new IllegalArgumentException("This status does not have a capacity");
         return status.getMax() - getCount(sinkId, status);
@@ -136,6 +148,7 @@ public class DependencyTrackingService {
         return dependencyTracker.values(p).stream().map(DependencyTrackingRO.class::cast);
     }
 
+    @Timed
     public DependencyTrackingRO get(TrackingKey key) {
         return dependencyTracker.get(key);
     }
@@ -153,6 +166,7 @@ public class DependencyTrackingService {
         return entries.size();
     }
 
+    @Timed
     public void removeJobId(int jobId) {
         PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
         @SuppressWarnings("unchecked")
@@ -161,6 +175,7 @@ public class DependencyTrackingService {
         recountSinkStatus(Set.of());
     }
 
+    @Timed
     public void addToChunksToWaitFor(TrackingKey key, Set<TrackingKey> chunksToWaitFor) {
         Set<DependencyTrackingRO> allWOs = chunksToWaitFor.stream().filter(k -> !key.equals(k)).map(this::get).filter(Objects::nonNull).collect(Collectors.toSet());
         Set<TrackingKey> reducedWOs = optimizeDependencies(allWOs);
@@ -180,10 +195,12 @@ public class DependencyTrackingService {
                 .collect(Collectors.toSet());
     }
 
+    @Timed
     public StatusChangeEvent setStatus(TrackingKey key, ChunkSchedulingStatus status) {
         return setStatus(key, status, false);
     }
 
+    @Timed
     public StatusChangeEvent setValidatedStatus(TrackingKey key, ChunkSchedulingStatus status) {
         return setStatus(key, status, true);
     }
@@ -260,10 +277,12 @@ public class DependencyTrackingService {
         return dependencyTracker.aggregate(new BlockedCounter());
     }
 
+    @Timed
     public Collection<DependencyTracking> findDependencies(ChunkSchedulingStatus status, Integer sinkId, Integer limit) {
         return dependencyTracker.values(makeDependencyPredicate(status, sinkId, limit));
     }
 
+    @Timed
     public Set<TrackingKey> find(ChunkSchedulingStatus status, Integer sinkId, Integer limit) {
         return dependencyTracker.keySet(makeDependencyPredicate(status, sinkId, limit));
     }
@@ -277,6 +296,7 @@ public class DependencyTrackingService {
         return Predicates.pagingPredicate(p, limit == null ? Integer.MAX_VALUE : limit);
     }
 
+    @Timed
     public List<TrackingKey> findChunksWaitingForMe(TrackingKey key, int sinkId) {
         return dependencyTracker.keySet(new WaitingOn(sinkId, key)).stream()
                 .sorted(Comparator.comparing(TrackingKey::getJobId).thenComparing(TrackingKey::getChunkId))
@@ -292,6 +312,7 @@ public class DependencyTrackingService {
      * @param waitForKey dataSetID
      * @return Returns List of Chunks To wait for.
      */
+    @Timed
     public Set<TrackingKey> findJobBarrier(int sinkId, int jobId, Set<String> waitForKey) {
         return dependencyTracker.keySet(new JobChunksWaitForKey(sinkId, jobId, waitForKey));
     }
@@ -325,7 +346,7 @@ public class DependencyTrackingService {
         WaitForKey[] waitFor = barrierMatchKey == null ? entity.getWaitFor().toArray(WaitForKey[]::new) :
                 Stream.concat(entity.getWaitFor().stream(), Stream.of(new WaitForKey(entity.getSinkId(), entity.getSubmitter(), barrierMatchKey))).toArray(WaitForKey[]::new);
         Predicate<TrackingKey, DependencyTracking> query = Predicates.in("waitFor[any]", waitFor);
-        Collection<DependencyTracking> values = dependencyTracker.values(query);
+        Collection<DependencyTracking> values = new ArrayList<>(dependencyTracker.values(query));
         return optimizeDependencies(values);
     }
 

@@ -9,7 +9,7 @@ import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.distributed.WaitForKey;
+import dk.dbc.dataio.jobstore.distributed.WaitFor;
 import dk.dbc.dataio.jobstore.distributed.hz.serializer.RemoveWaitingOnSer;
 import dk.dbc.dataio.jobstore.distributed.hz.serializer.StatusChangeSer;
 import dk.dbc.dataio.jobstore.distributed.hz.serializer.TrackingKeySer;
@@ -78,7 +78,7 @@ public class QueriesTest extends JetTestSupport implements PostgresContainerJPAU
         Set<TrackingKey> expectHorses = dependencies.values().stream()
                 .filter(dt -> dt.getSinkId() == 0)
                 .filter(dt -> dt.getSubmitter() == 0)
-                .filter(dt -> dt.getWaitFor().contains(new WaitForKey(0, 0, "hest")))
+                .filter(dt -> dt.getWaitFor().contains(new WaitFor(0, 0, "hest")))
                 .map(DependencyTracking::getKey)
                 .collect(Collectors.toSet());
         assertEquals(expectHorses, waitForHorses);
@@ -86,7 +86,7 @@ public class QueriesTest extends JetTestSupport implements PostgresContainerJPAU
         Set<TrackingKey> expectAll = dependencies.values().stream()
                 .filter(dt -> dt.getSinkId() == 0)
                 .filter(dt -> dt.getSubmitter() == 0)
-                .filter(dt -> Set.of("hest", "bulgur").stream().anyMatch(s -> dt.getWaitFor().contains(new WaitForKey(0, 0, s))))
+                .filter(dt -> Set.of("hest", "bulgur").stream().anyMatch(s -> dt.getWaitFor().contains(new WaitFor(0, 0, s))))
                 .map(DependencyTracking::getKey)
                 .collect(Collectors.toSet());
         assertEquals(expectAll, waitForAll);

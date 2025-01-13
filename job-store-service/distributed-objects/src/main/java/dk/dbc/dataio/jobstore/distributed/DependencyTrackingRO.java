@@ -12,7 +12,7 @@ public interface DependencyTrackingRO {
 
     Set<TrackingKey> getWaitingOn();
 
-    Set<WaitForKey> getWaitFor();
+    Set<WaitFor> getWaitFor();
 
     Set<String> getMatchKeys();
 

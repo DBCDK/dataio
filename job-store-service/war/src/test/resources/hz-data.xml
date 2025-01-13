@@ -18,12 +18,12 @@
             <write-coalescing>true</write-coalescing>
         </map-store>
         <indexes>
-            <index type="HASH">
+            <index name="waitingOn" type="HASH">
                 <attributes>
                     <attribute>waitingOn[any]</attribute>
                 </attributes>
             </index>
-            <index type="HASH">
+            <index name="waitFor" type="HASH">
                 <attributes>
                     <attribute>waitFor[any]</attribute>
                 </attributes>

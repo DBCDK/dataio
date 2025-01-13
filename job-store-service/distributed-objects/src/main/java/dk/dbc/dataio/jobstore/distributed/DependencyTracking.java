@@ -14,7 +14,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,7 +32,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
     private int priority;
     private Set<TrackingKey> waitingOn = new HashSet<>();
     private Set<String> matchKeys;
-    private Set<WaitForKey> waitFor;
+    private Set<WaitFor> waitFor;
     private int submitter;
     private Instant lastModified = Instant.now();
     private int retries = 0;
@@ -73,8 +72,8 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
         return keys;
     }
 
-    public static Set<WaitForKey> toWaitForIndexSet(int sinkId, int submitter, Set<String> matchKeys) {
-        return matchKeys.stream().map(k -> new WaitForKey(sinkId, submitter, k)).collect(Collectors.toSet());
+    public static Set<WaitFor> toWaitForIndexSet(int sinkId, int submitter, Set<String> matchKeys) {
+        return matchKeys.stream().map(k -> new WaitFor(sinkId, submitter, k)).collect(Collectors.toSet());
     }
 
     @Override
@@ -103,22 +102,12 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
     }
 
     @Override
-    public Set<WaitForKey> getWaitFor() {
+    public Set<WaitFor> getWaitFor() {
         return waitFor;
     }
 
     public DependencyTracking setWaitingOn(Set<TrackingKey> waitingOn) {
-        this.waitingOn = new HashSet<>(waitingOn);
-        return this;
-    }
-
-    public DependencyTracking setWaitingOn(List<TrackingKey> chunksToWaitFor) {
-        this.waitingOn = new HashSet<>(chunksToWaitFor);
-        return this;
-    }
-
-    public DependencyTracking setWaitingOn(PGobject waitingOn) {
-        this.waitingOn = new KeySetJSONBConverter().convertToEntityAttribute(waitingOn);
+        this.waitingOn = waitingOn instanceof HashSet ? waitingOn : new HashSet<>(waitingOn);
         return this;
     }
 

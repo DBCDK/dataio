@@ -11,7 +11,7 @@ import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.distributed.WaitForKey;
+import dk.dbc.dataio.jobstore.distributed.WaitFor;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.BlockedCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.JobCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.SinkStatusCounter;
@@ -343,8 +343,8 @@ public class DependencyTrackingService {
      */
     public Set<TrackingKey> findChunksToWaitFor(DependencyTracking entity, String barrierMatchKey) {
         if (entity.getMatchKeys().isEmpty() && barrierMatchKey == null) return Set.of();
-        WaitForKey[] waitFor = barrierMatchKey == null ? entity.getWaitFor().toArray(WaitForKey[]::new) :
-                Stream.concat(entity.getWaitFor().stream(), Stream.of(new WaitForKey(entity.getSinkId(), entity.getSubmitter(), barrierMatchKey))).toArray(WaitForKey[]::new);
+        WaitFor[] waitFor = barrierMatchKey == null ? entity.getWaitFor().toArray(WaitFor[]::new) :
+                Stream.concat(entity.getWaitFor().stream(), Stream.of(new WaitFor(entity.getSinkId(), entity.getSubmitter(), barrierMatchKey))).toArray(WaitFor[]::new);
         Predicate<TrackingKey, DependencyTracking> query = Predicates.in("waitFor[any]", waitFor);
         Collection<DependencyTracking> values = new ArrayList<>(dependencyTracker.values(query));
         return optimizeDependencies(values);
@@ -372,7 +372,7 @@ public class DependencyTrackingService {
     private Stream<TrackingKey> checkBlocks(DependencyTracking dt) {
         boolean unblock = dt.getWaitingOn().stream().anyMatch(d -> !dependencyTracker.containsKey(d));
         if(unblock) {
-            dt.setWaitingOn(dt.getWaitingOn().stream().filter(dependencyTracker::containsKey).collect(Collectors.toList()));
+            dt.setWaitingOn(dt.getWaitingOn().stream().filter(dependencyTracker::containsKey).collect(Collectors.toSet()));
             if(dt.getWaitingOn().isEmpty()) dt.setStatus(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
             dependencyTracker.set(dt.getKey(), dt);
             return Stream.of(dt.getKey());

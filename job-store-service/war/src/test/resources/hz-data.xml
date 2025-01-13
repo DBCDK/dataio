@@ -30,6 +30,16 @@
             </index>
         </indexes>
     </map>
+    <map name="last.tracker">
+        <in-memory-format>BINARY</in-memory-format>
+        <metadata-policy>CREATE_ON_UPDATE</metadata-policy>
+        <backup-count>0</backup-count>
+        <async-backup-count>0</async-backup-count>
+        <time-to-live-seconds>0</time-to-live-seconds>
+        <max-idle-seconds>0</max-idle-seconds>
+        <eviction eviction-policy="NONE"/>
+        <statistics-enabled>true</statistics-enabled>
+    </map>
     <map name="sink.status">
         <in-memory-format>OBJECT</in-memory-format>
         <metadata-policy>CREATE_ON_UPDATE</metadata-policy>

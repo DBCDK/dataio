@@ -14,6 +14,7 @@ import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.distributed.WaitFor;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.BlockedCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.JobCounter;
+import dk.dbc.dataio.jobstore.distributed.hz.aggregator.LastTrackerMap;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.SinkStatusCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.aggregator.StatusCounter;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.AddTerminationWaitingOn;
@@ -29,6 +30,8 @@ import jakarta.annotation.PreDestroy;
 import jakarta.ejb.DependsOn;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
@@ -64,10 +67,14 @@ public class DependencyTrackingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTrackingService.class);
     private final IMap<TrackingKey, DependencyTracking> dependencyTracker = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
     private final IMap<Integer, Map<ChunkSchedulingStatus, Integer>> countersMap = Hazelcast.Objects.SINK_STATUS.get();
+    private final IMap<WaitFor, TrackingKey> lastTracker = Hazelcast.Objects.LAST_TRACKER.get();
+    @Inject
+    @ConfigProperty(name = "WAIT_FOR_TRACKING_ENABLED", defaultValue = "false")
+    private boolean enableWaitForTracking;
 
     @PostConstruct
     public void config() {
-        init();
+        init(enableWaitForTracking);
     }
 
     @PreDestroy
@@ -78,6 +85,12 @@ public class DependencyTrackingService {
     }
 
     public DependencyTrackingService init() {
+        return init(false);
+    }
+
+    public DependencyTrackingService init(boolean enableWaitForTracking) {
+        this.enableWaitForTracking = enableWaitForTracking;
+        if(enableWaitForTracking) lastTracker.putAll(dependencyTracker.aggregate(new LastTrackerMap()));
         recountSinkStatus(Set.of());
         return this;
     }
@@ -96,8 +109,9 @@ public class DependencyTrackingService {
 
     @Timed
     public void addAndBuildDependencies(DependencyTracking dt, String barrierMatchKey) {
-        Set<TrackingKey> chunksToWaitFor = findChunksToWaitFor(dt, barrierMatchKey);
+        Set<TrackingKey> chunksToWaitFor = enableWaitForTracking ? trackChunksToWaitFor(dt, barrierMatchKey) : findChunksToWaitFor(dt, barrierMatchKey);
         dt.setWaitingOn(chunksToWaitFor);
+        dt.getWaitFor().forEach(wf -> lastTracker.put(wf, dt.getKey()));
         add(dt);
         boostPriorities(dt.getKey().getJobId(), chunksToWaitFor, dt.getPriority(), new HashSet<>());
     }
@@ -167,12 +181,10 @@ public class DependencyTrackingService {
     }
 
     @Timed
+    @SuppressWarnings("unchecked")
     public void removeJobId(int jobId) {
-        PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
-        @SuppressWarnings("unchecked")
-        Predicate<TrackingKey, DependencyTracking> p = e.key().get(JOB_ID).equal(jobId);
-        remove(p);
-        recountSinkStatus(Set.of());
+        remove(Predicates.newPredicateBuilder().getEntryObject().key().get(JOB_ID).equal(jobId));
+        if(enableWaitForTracking) lastTracker.removeAll(Predicates.newPredicateBuilder().getEntryObject().get(JOB_ID).equal(jobId));
     }
 
     @Timed
@@ -214,6 +226,8 @@ public class DependencyTrackingService {
     public void remove(TrackingKey key) {
         DependencyTracking removed = dependencyTracker.remove(key);
         countersMap.executeOnKey(removed.getSinkId(), new UpdateCounter(removed.getStatus(), -1));
+        PredicateBuilder.EntryObject o = Predicates.newPredicateBuilder().getEntryObject();
+        lastTracker.removeAll(o.get("jobId").equal(key.getJobId()).and(o.get("chunkId").equal(key.getChunkId())));
         LOGGER.info("Removed tracking key {} from dependency tracker", key.toChunkIdentifier());
     }
 
@@ -234,6 +248,10 @@ public class DependencyTrackingService {
                 LOGGER.error("Got exception while boosting key", e);
             }
         }
+    }
+
+    public Set<WaitFor> getTrackerKeySet() {
+        return lastTracker.keySet();
     }
 
     public void reload() {
@@ -331,6 +349,11 @@ public class DependencyTrackingService {
     public Set<TrackingKey> recheckBlocks() {
         Collection<DependencyTracking> deps = findDependencies(ChunkSchedulingStatus.BLOCKED, null, null);
         return deps.stream().flatMap(this::checkBlocks).collect(Collectors.toSet());
+    }
+
+    public Set<TrackingKey> trackChunksToWaitFor(DependencyTracking dt, String barrierMatchKey) {
+        Stream<WaitFor> waitFors = barrierMatchKey == null ? dt.getWaitFor().stream() : Stream.concat(dt.getWaitFor().stream(), Stream.of(new WaitFor(dt.getSinkId(), dt.getSubmitter(), barrierMatchKey)));
+        return waitFors.map(lastTracker::get).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
     /**

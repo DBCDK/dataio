@@ -82,11 +82,11 @@ public class DependencyTrackingServiceTest extends JetTestSupport {
         List<TestSet> trackers = List.of(TestSet.values());
         trackers.forEach(tracker -> service.addAndBuildDependencies(tracker.dt, null));
         Map<WaitFor, TrackingKey> trackerMap = service.rebuildTrackerMap();
-        Assert.assertTrue("A rebuild tracker map, must be identical to one that has developed over time", trackerMap.equals(service.getTrackerMapSnapshot()));
+        Assert.assertEquals("A rebuild tracker map, must be identical to one that has developed over time", service.getTrackerMapSnapshot(), trackerMap);
     }
 
     @Test @Ignore
-    public void testPerformance() throws IOException {
+    public void testPerformance() {
         DependencyTrackingService service = new DependencyTrackingService().init(true);
         Set<String> matchKeys = new HashSet<>();
         Random random = new Random();
@@ -101,7 +101,7 @@ public class DependencyTrackingServiceTest extends JetTestSupport {
     }
 
     @Before
-    public void startHazelcast() throws IOException {
+    public void startHazelcast() {
         try(InputStream is = getClass().getClassLoader().getResourceAsStream("hz-data.xml")) {
             Config config = Hazelcast.makeConfig(is);
             config.getMapConfig("dependencies").getMapStoreConfig().setEnabled(false);

@@ -90,7 +90,7 @@ public class DependencyTrackingService {
 
     public DependencyTrackingService init(boolean enableWaitForTracking) {
         this.enableWaitForTracking = enableWaitForTracking;
-        if(enableWaitForTracking) lastTracker.putAll(dependencyTracker.aggregate(new LastTrackerMap()));
+        if(enableWaitForTracking) lastTracker.putAll(rebuildTrackerMap());
         recountSinkStatus(Set.of());
         return this;
     }
@@ -217,6 +217,10 @@ public class DependencyTrackingService {
         return setStatus(key, status, true);
     }
 
+    public Map<WaitFor, TrackingKey> rebuildTrackerMap() {
+        return dependencyTracker.aggregate(new LastTrackerMap());
+    }
+
     private StatusChangeEvent setStatus(TrackingKey key, ChunkSchedulingStatus newStatus, boolean validate) {
         StatusChangeEvent statusChangeEvent = dependencyTracker.executeOnKey(key, new UpdateStatus(newStatus, validate));
         updateCounters(Stream.of(statusChangeEvent));
@@ -250,8 +254,8 @@ public class DependencyTrackingService {
         }
     }
 
-    public Set<WaitFor> getTrackerKeySet() {
-        return lastTracker.keySet();
+    public Map<WaitFor, TrackingKey> getTrackerMapSnapshot() {
+        return lastTracker.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     public void reload() {

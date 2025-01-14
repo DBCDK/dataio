@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -70,9 +71,18 @@ public class DependencyTrackingServiceTest extends JetTestSupport {
         service.removeFromWaitingOn(T1_2.dt.getKey());
         Assert.assertTrue("When T1_1 and T1_2 are completed, T2_1 should have an empty waitingOn", service.get(T2_1.dt.getKey()).getWaitingOn().isEmpty());
         service.remove(T2_5.dt.getKey());
-        Set<WaitFor> trackerKeySet = service.getTrackerKeySet();
+        Set<WaitFor> trackerKeySet = service.getTrackerMapSnapshot().keySet();
         Assert.assertTrue("When T2_5 is removed the tracker map should not contain entries for sink/submitter 0",
                 trackerKeySet.stream().noneMatch(wf -> wf.sinkId() == 0 && wf.submitter() == 0));
+    }
+
+    @Test
+    public void testTrackerRebuild() {
+        DependencyTrackingService service = new DependencyTrackingService().init(true);
+        List<TestSet> trackers = List.of(TestSet.values());
+        trackers.forEach(tracker -> service.addAndBuildDependencies(tracker.dt, null));
+        Map<WaitFor, TrackingKey> trackerMap = service.rebuildTrackerMap();
+        Assert.assertTrue("A rebuild tracker map, must be identical to one that has developed over time", trackerMap.equals(service.getTrackerMapSnapshot()));
     }
 
     @Test @Ignore

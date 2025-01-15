@@ -72,7 +72,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     @org.junit.Test
     public void testValidTransitions() throws Exception {
         startHazelcastWith(null);
-        JPATestUtils.runSqlFromResource(entityManager, this, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
+        JPATestUtils.runSqlFromResource(entityManager, this, "JobSchedulerBeanIT_findWaitForChunks2.sql");
         Function<Integer, DependencyTracking> f = i -> new DependencyTracking(new TrackingKey(3, i), 1, 0, Set.of("K8", "KK2", "C4")).setStatus(ChunkSchedulingStatus.from(i));
         Map<TrackingKey, DependencyTracking> dtTracker = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
         IntStream.range(1, 8).mapToObj(f::apply).forEach(dt -> dtTracker.put(dt.getKey(), dt));

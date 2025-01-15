@@ -90,7 +90,7 @@ public class DependencyTrackingService {
 
     public DependencyTrackingService init(boolean enableWaitForTracking) {
         this.enableWaitForTracking = enableWaitForTracking;
-        if(enableWaitForTracking) lastTracker.putAll(rebuildTrackerMap());
+        if(enableWaitForTracking && Hazelcast.isMaster()) lastTracker.putAll(rebuildTrackerMap());
         recountSinkStatus(Set.of());
         return this;
     }
@@ -111,7 +111,6 @@ public class DependencyTrackingService {
     public void addAndBuildDependencies(DependencyTracking dt, String barrierMatchKey) {
         Set<TrackingKey> chunksToWaitFor = enableWaitForTracking ? trackChunksToWaitFor(dt, barrierMatchKey) : findChunksToWaitFor(dt, barrierMatchKey);
         dt.setWaitingOn(chunksToWaitFor);
-        dt.getWaitFor().forEach(wf -> lastTracker.put(wf, dt.getKey()));
         add(dt);
         boostPriorities(dt.getKey().getJobId(), chunksToWaitFor, dt.getPriority(), new HashSet<>());
     }
@@ -356,8 +355,12 @@ public class DependencyTrackingService {
     }
 
     public Set<TrackingKey> trackChunksToWaitFor(DependencyTracking dt, String barrierMatchKey) {
-        Stream<WaitFor> waitFors = barrierMatchKey == null ? dt.getWaitFor().stream() : Stream.concat(dt.getWaitFor().stream(), Stream.of(new WaitFor(dt.getSinkId(), dt.getSubmitter(), barrierMatchKey)));
-        return waitFors.map(lastTracker::get).filter(Objects::nonNull).collect(Collectors.toSet());
+        Set<WaitFor> waitFors = barrierMatchKey == null ?
+                dt.getWaitFor() :
+                Stream.concat(dt.getWaitFor().stream(), Stream.of(new WaitFor(dt.getSinkId(), dt.getSubmitter(), barrierMatchKey))).collect(Collectors.toSet());
+        Set<TrackingKey> result = waitFors.stream().map(lastTracker::get).filter(Objects::nonNull).collect(Collectors.toSet());
+        waitFors.forEach(wf -> lastTracker.put(wf, dt.getKey()));
+        return result;
     }
 
     /**

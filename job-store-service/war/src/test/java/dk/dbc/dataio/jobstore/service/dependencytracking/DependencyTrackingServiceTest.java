@@ -1,19 +1,30 @@
 package dk.dbc.dataio.jobstore.service.dependencytracking;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.jet.core.JetTestSupport;
+import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
+import dk.dbc.dataio.commons.utils.lang.ResourceReader;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.distributed.WaitFor;
+import dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore;
+import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
-import org.junit.Test;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -33,8 +44,10 @@ import static dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTracki
 import static dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingServiceTest.TestSet.makeTestSet;
 import static java.util.Set.of;
 
-public class DependencyTrackingServiceTest extends JetTestSupport {
-    HazelcastInstance hz;
+public class DependencyTrackingServiceTest extends JetTestSupport implements PostgresContainerJPAUtils {
+    private HazelcastInstance hz;
+    private static final DataSource datasource = dbContainer.bindDatasource(DependencyTrackingStore.DS_JNDI).datasource();
+
 
     public enum TestSet {
         N0_1(0, 1, 1, 0, of("K1")),
@@ -67,7 +80,7 @@ public class DependencyTrackingServiceTest extends JetTestSupport {
         }
     }
 
-    @Test
+    @org.junit.Test
     public void testWaitingOn() {
         DependencyTrackingService service = new DependencyTrackingService().init(true);
         List<TestSet> trackers = makeTestSet();
@@ -86,7 +99,7 @@ public class DependencyTrackingServiceTest extends JetTestSupport {
                 trackerKeySet.stream().noneMatch(wf -> wf.sinkId() == 0 && wf.submitter() == 0));
     }
 
-    @Test
+    @org.junit.Test
     public void testBarrierKey() {
         DependencyTrackingService service = new DependencyTrackingService().init(true);
         List<TestSet> trackers = makeTestSet(T1_1, T1_2, T1_3);
@@ -98,7 +111,7 @@ public class DependencyTrackingServiceTest extends JetTestSupport {
                 service.get(tracker.dt.getKey()).getWaitingOn()));
     }
 
-    @Test
+    @org.junit.Test
     public void testBarrierKeyFail() {
         DependencyTrackingService service = new DependencyTrackingService().init(true);
         List<TestSet> trackers = makeTestSet();
@@ -106,7 +119,7 @@ public class DependencyTrackingServiceTest extends JetTestSupport {
         Assert.assertNotEquals(T1_3.expectedWo, service.get(T1_3.dt.getKey()).getWaitingOn());
     }
 
-    @Test
+    @org.junit.Test
     public void testTrackerRebuild() {
         DependencyTrackingService service = new DependencyTrackingService().init(true);
         List<TestSet> trackers = makeTestSet();
@@ -115,7 +128,41 @@ public class DependencyTrackingServiceTest extends JetTestSupport {
         Assert.assertEquals("A rebuild tracker map, must be identical to one that has developed over time", service.getTrackerMapSnapshot(), trackerMap);
     }
 
-    @Test @Ignore
+    @org.junit.Test
+    public void testNovemberCrash() {
+        DependencyTrackingService service = new DependencyTrackingService().init(true);
+        ObjectMapper mapper = new ObjectMapper();
+        try(InputStream is = ResourceReader.getResourceAsStream(getClass(), "dependencytracking_20241125.json")) {
+            List<Map> list = mapper.readValue(is, List.class);
+            List<DependencyTracking> trackings = list.stream().map(this::createTracker).toList();
+            trackings.forEach(dt -> service.addAndBuildDependencies(dt, "test"));
+            trackings.forEach(dt -> service.setStatus(dt.getKey(), ChunkSchedulingStatus.READY_FOR_DELIVERY));
+            Set<Integer> sinks = service.getActiveSinks(ChunkSchedulingStatus.READY_FOR_DELIVERY);
+            while(!sinks.isEmpty()) {
+                for (Integer sink : sinks) {
+                    Set<TrackingKey> keys = service.find(ChunkSchedulingStatus.READY_FOR_DELIVERY, sink, Integer.MAX_VALUE);
+                    keys.forEach(k -> {
+                        service.remove(k);
+                        service.removeFromWaitingOn(k);
+                    });
+                    Assert.assertFalse("Keys removed must not be empty", keys.isEmpty());
+                }
+                sinks = service.getActiveSinks(ChunkSchedulingStatus.READY_FOR_DELIVERY);
+            }
+            Assert.assertTrue("All tracker should be resolved and removed", service.getTrackerMapSnapshot().isEmpty());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private DependencyTracking createTracker(Map e) {
+        TrackingKey key = new TrackingKey((int) e.get("jobid"), (int) e.get("chunkid"));
+        Set<String> matchKeys = new HashSet<>((List)e.get("matchkeys"));
+        DependencyTracking dt = new DependencyTracking(key, (int) e.get("sinkid"), (int) e.get("submitter"), matchKeys);
+        return dt;
+    }
+
+    @org.junit.Test @Ignore("Performant test to be run explicitly, and not as part of the build test set")
     public void testPerformance() {
         DependencyTrackingService service = new DependencyTrackingService().init(true);
         Set<String> matchKeys = new HashSet<>();
@@ -127,14 +174,40 @@ public class DependencyTrackingServiceTest extends JetTestSupport {
             service.addAndBuildDependencies(dependencyTracking, null);
             if(i % 1000 == 0) System.out.println("Added " + i + " dependencies, current match keys " + matchKeys);
         });
+    }
 
+    @BeforeClass
+    public static void createDb() {
+        DatabaseMigrator databaseMigrator = new DatabaseMigrator().withDataSource(datasource).onStartup();
+        try(Connection c = datasource.getConnection(); Statement s = c.createStatement()) {
+            // Drop foreign key to chunks so we can create dependencies undisturbed
+            s.execute("alter table dependencytracking drop constraint dependencytracking_jobid_fkey");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @AfterClass
+    public static void enableFK() {
+        try(Connection c = datasource.getConnection(); Statement s = c.createStatement()) {
+            s.execute("truncate table dependencytracking");
+            // Re-add foreign key to chunks
+            s.execute("ALTER TABLE ONLY dependencytracking ADD CONSTRAINT dependencytracking_jobid_fkey FOREIGN KEY (jobid, chunkid) REFERENCES chunk(jobid, id) ON DELETE CASCADE;");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Before
     public void startHazelcast() {
+        try(Connection c = datasource.getConnection(); Statement s = c.createStatement()) {
+            s.execute("truncate table dependencytracking");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         try(InputStream is = getClass().getClassLoader().getResourceAsStream("hz-data.xml")) {
             Config config = Hazelcast.makeConfig(is);
-            config.getMapConfig("dependencies").getMapStoreConfig().setEnabled(false);
+            config.getMapConfig("dependencies");
             hz = createHazelcastInstance(config);
             Hazelcast.testInstance(hz);
         } catch (IOException e) {

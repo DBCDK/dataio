@@ -94,9 +94,9 @@ public class DependencyTrackingServiceTest extends JetTestSupport implements Pos
         service.removeFromWaitingOn(T1_2.dt.getKey());
         Assert.assertTrue("When T1_1 and T1_2 are completed, T2_1 should have an empty waitingOn", service.get(T2_1.dt.getKey()).getWaitingOn().isEmpty());
         service.remove(T2_5.dt.getKey());
-        Set<WaitFor> trackerKeySet = service.getTrackerMapSnapshot().keySet();
+        Set<WaitFor> LastTrackerKeySet = service.getLastTrackerMapSnapshot().keySet();
         Assert.assertTrue("When T2_5 is removed the tracker map should not contain entries for sink/submitter 0",
-                trackerKeySet.stream().noneMatch(wf -> wf.sinkId() == 0 && wf.submitter() == 0));
+                LastTrackerKeySet.stream().noneMatch(wf -> wf.sinkId() == 0 && wf.submitter() == 0));
     }
 
     @org.junit.Test
@@ -125,7 +125,7 @@ public class DependencyTrackingServiceTest extends JetTestSupport implements Pos
         List<TestSet> trackers = makeTestSet();
         trackers.forEach(tracker -> service.addAndBuildDependencies(tracker.dt, null));
         Map<WaitFor, TrackingKey> trackerMap = service.rebuildTrackerMap();
-        Assert.assertEquals("A rebuild tracker map, must be identical to one that has developed over time", service.getTrackerMapSnapshot(), trackerMap);
+        Assert.assertEquals("A rebuild tracker map, must be identical to one that has developed over time", service.getLastTrackerMapSnapshot(), trackerMap);
     }
 
     @org.junit.Test
@@ -149,7 +149,7 @@ public class DependencyTrackingServiceTest extends JetTestSupport implements Pos
                 }
                 sinks = service.getActiveSinks(ChunkSchedulingStatus.READY_FOR_DELIVERY);
             }
-            Assert.assertTrue("All tracker should be resolved and removed", service.getTrackerMapSnapshot().isEmpty());
+            Assert.assertTrue("All tracker should be resolved and removed", service.getLastTrackerMapSnapshot().isEmpty());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

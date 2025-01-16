@@ -253,7 +253,7 @@ public class DependencyTrackingService {
         }
     }
 
-    public Map<WaitFor, TrackingKey> getTrackerMapSnapshot() {
+    public Map<WaitFor, TrackingKey> getLastTrackerMapSnapshot() {
         return lastTracker.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 

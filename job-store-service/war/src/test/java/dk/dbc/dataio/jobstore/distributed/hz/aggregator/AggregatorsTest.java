@@ -79,6 +79,6 @@ public class AggregatorsTest extends JetTestSupport {
     }
 
     private DependencyTracking makeTracker(int i) {
-        return new DependencyTracking(new TrackingKey(i % JOBS, i / JOBS), i % SINKS).setStatus(ChunkSchedulingStatus.values()[i % ChunkSchedulingStatus.values().length]);
+        return new DependencyTracking(new TrackingKey(i % JOBS, i / JOBS), i % SINKS, 0).setStatus(ChunkSchedulingStatus.values()[i % ChunkSchedulingStatus.values().length]);
     }
 }

@@ -6,7 +6,9 @@ import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.partioner.DataPartitioner;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -23,12 +25,13 @@ import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
+import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
 import dk.dbc.dataio.jobstore.service.ejb.JobQueueRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
+import dk.dbc.dataio.jobstore.service.ejb.JobsBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
 import dk.dbc.dataio.jobstore.service.ejb.RerunsRepository;
-import dk.dbc.dataio.jobstore.service.ejb.JobsBean;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -36,7 +39,9 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import jakarta.ejb.SessionContext;
@@ -116,7 +121,7 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     @Before
     public void startHZ() {
         try(InputStream is = getClass().getClassLoader().getResourceAsStream("hz-data.xml")) {
-            Hazelcast.testInstance(createHazelcastInstance(Hazelcast.makeConfig(is)));
+            Hazelcast.testInstance(createHazelcastInstance(withoutNetworkJoin(Hazelcast.makeConfig(is))));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -268,7 +273,7 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     }
 
     protected DependencyTracking newDependencyTrackingEntity(TrackingKey key) {
-        DependencyTracking dependencyTracking = new DependencyTracking(key, 1);
+        DependencyTracking dependencyTracking = new DependencyTracking(key, 1, 0);
         dependencyTracking.setStatus(ChunkSchedulingStatus.READY_FOR_PROCESSING);
         return dependencyTracking;
     }
@@ -289,10 +294,48 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
                 .withEntityManager(entityManager);
     }
 
+    public interface RequiresNewFunction<T> {
+        T downStreamEJBMethod() throws JobStoreException;
+    }
 
     protected PgJobStoreRepository newPgJobStoreRepository() {
-        return new PgJobStoreRepository()
-                .withEntityManager(entityManager);
+        // Subclass and simulate @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW) semantics
+        // when required.
+        return new PgJobStoreRepository() {
+            <T> T handleRequiresNew(RequiresNewFunction<T> r) throws JobStoreException {
+                var oldEntityManager = entityManager;
+                try( var requiresNewEntityManager = entityManager.getEntityManagerFactory().createEntityManager() ) {
+                    entityManager = requiresNewEntityManager;
+                    requiresNewEntityManager.getTransaction().begin();
+                    T res = r.downStreamEJBMethod();
+                    requiresNewEntityManager.getTransaction().commit();
+                    entityManager = oldEntityManager;
+                    return res;
+                }
+            }
+
+            @Override
+            public ChunkEntity createJobTerminationChunkEntity(int jobId, int chunkId, String dataFileId, ChunkItem.Status itemStatus) throws JobStoreException {
+                return handleRequiresNew(() -> super.createJobTerminationChunkEntity(jobId, chunkId, dataFileId, itemStatus));
+            }
+
+            @Override
+            public JobEntity createJobEntity(AddJobParam addJobParam) throws JobStoreException {
+                return handleRequiresNew(() -> super.createJobEntity(addJobParam));
+            }
+
+            @Override
+            public JobEntity createJobEntityForEmptyJob(AddJobParam addJobParam) throws JobStoreException {
+                return handleRequiresNew(() -> super.createJobEntityForEmptyJob(addJobParam));
+            }
+
+            @Override
+            public ChunkEntity createChunkEntity(long submitterId, int jobId, int chunkId, short maxChunkSize,
+                                                 DataPartitioner dataPartitioner, KeyGenerator keyGenerator, String dataFileId) throws JobStoreException {
+                return handleRequiresNew(() -> super.createChunkEntity(submitterId, jobId, chunkId, maxChunkSize, dataPartitioner, keyGenerator, dataFileId));
+            }
+        }
+        .withEntityManager(entityManager);
     }
 
     protected RerunsRepository newRerunsRepository() {

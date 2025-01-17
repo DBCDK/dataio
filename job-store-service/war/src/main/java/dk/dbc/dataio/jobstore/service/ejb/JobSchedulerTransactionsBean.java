@@ -2,7 +2,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
@@ -61,25 +60,6 @@ public class JobSchedulerTransactionsBean {
         this.sinkMessageProducerBean = sinkMessageProducerBean;
         this.jobProcessorMessageProducerBean = jobProcessorMessageProducerBean;
         this.dependencyTrackingService = dependencyTrackingService;
-    }
-
-    /**
-     * Persists new dependency tracking entity in its own transaction
-     * to ensure flush to disk before async submit.
-     * <p>
-     * Finds matching keys in existing entities and updates waitingOn property.
-     * Boosts lower priority entities blocking this one.
-     *
-     * @param entity          dependency tracking entity to persist
-     * @param barrierMatchKey Additional barrier key to wait for.
-     */
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    @Stopwatch
-    public void persistDependencyEntity(DependencyTracking entity, String barrierMatchKey) {
-        Set<TrackingKey> chunksToWaitFor = dependencyTrackingService.findChunksToWaitFor(entity, barrierMatchKey);
-        entity.setWaitingOn(chunksToWaitFor);
-        dependencyTrackingService.add(entity);
-        dependencyTrackingService.boostPriorities(chunksToWaitFor, entity.getPriority());
     }
 
     /**

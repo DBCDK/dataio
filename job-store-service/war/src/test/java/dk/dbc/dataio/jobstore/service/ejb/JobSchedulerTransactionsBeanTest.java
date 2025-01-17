@@ -67,7 +67,7 @@ public class JobSchedulerTransactionsBeanTest {
         public boolean mustRemain;
 
         public Dep(int jobId, int chunkId) {
-            super(new TrackingKey(jobId, chunkId), 0);
+            super(new TrackingKey(jobId, chunkId), 0, 0);
             setWaitingOn(new HashSet<>());
         }
 

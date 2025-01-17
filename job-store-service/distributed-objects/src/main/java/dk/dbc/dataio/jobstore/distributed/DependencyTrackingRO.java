@@ -12,9 +12,9 @@ public interface DependencyTrackingRO {
 
     Set<TrackingKey> getWaitingOn();
 
-    Set<String> getMatchKeys();
+    Set<WaitFor> getWaitFor();
 
-    Integer[] getHashes();
+    Set<String> getMatchKeys();
 
     int getSubmitter();
 

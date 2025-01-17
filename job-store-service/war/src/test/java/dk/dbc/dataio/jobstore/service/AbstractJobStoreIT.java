@@ -29,9 +29,9 @@ import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
 import dk.dbc.dataio.jobstore.service.ejb.JobQueueRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
+import dk.dbc.dataio.jobstore.service.ejb.JobsBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
 import dk.dbc.dataio.jobstore.service.ejb.RerunsRepository;
-import dk.dbc.dataio.jobstore.service.ejb.JobsBean;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -121,7 +121,7 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     @Before
     public void startHZ() {
         try(InputStream is = getClass().getClassLoader().getResourceAsStream("hz-data.xml")) {
-            Hazelcast.testInstance(createHazelcastInstance(Hazelcast.makeConfig(is)));
+            Hazelcast.testInstance(createHazelcastInstance(withoutNetworkJoin(Hazelcast.makeConfig(is))));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -273,7 +273,7 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     }
 
     protected DependencyTracking newDependencyTrackingEntity(TrackingKey key) {
-        DependencyTracking dependencyTracking = new DependencyTracking(key, 1);
+        DependencyTracking dependencyTracking = new DependencyTracking(key, 1, 0);
         dependencyTracking.setStatus(ChunkSchedulingStatus.READY_FOR_PROCESSING);
         return dependencyTracking;
     }

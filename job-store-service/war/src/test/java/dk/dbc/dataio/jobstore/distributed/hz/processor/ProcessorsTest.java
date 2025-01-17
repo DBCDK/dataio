@@ -23,7 +23,7 @@ public class ProcessorsTest {
     public void addTerminationWaitingOn() {
         Set<TrackingKey> adds = Set.of(new TrackingKey(5, 0), new TrackingKey(5, 1));
         AddTerminationWaitingOn processor = new AddTerminationWaitingOn(adds);
-        DependencyTracking dt = new DependencyTracking(new TrackingKey(1, 1), 0).setWaitingOn(Set.of());
+        DependencyTracking dt = new DependencyTracking(new TrackingKey(1, 1), 0, 0).setWaitingOn(Set.of());
         MapEntrySimple<TrackingKey, DependencyTracking> entry = new MapEntrySimple<>(dt.getKey(), dt);
         StatusChangeEvent event = processor.process(entry);
         Assertions.assertTrue(entry.isModified(), "Entry should have been modified and must call setValue()");

@@ -32,7 +32,7 @@ insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (1,
 insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (6,20,'','{}'::JSON,'{}'::JSON);
 insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (6,21,'','{}'::JSON,'{}'::JSON);
 
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, priority, status, waitingon, matchkeys, hashes) VALUES (1, 21,  4242, 4, 1, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, priority, status, waitingon, matchkeys, hashes) VALUES (1, 20,  4242, 4, 1, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, priority, status, waitingon, matchkeys, hashes) VALUES (6, 20,  4242, 4, 1, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, priority, status, waitingon, matchkeys, hashes) VALUES (6, 21,  4242, 7, 1, '[]', '[]', '{}');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, priority, status, waitingon, matchkeys) VALUES (1, 21,  4242, 4, 1, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, priority, status, waitingon, matchkeys) VALUES (1, 20,  4242, 4, 1, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, priority, status, waitingon, matchkeys) VALUES (6, 20,  4242, 4, 1, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, priority, status, waitingon, matchkeys) VALUES (6, 21,  4242, 7, 1, '[]', '[]');

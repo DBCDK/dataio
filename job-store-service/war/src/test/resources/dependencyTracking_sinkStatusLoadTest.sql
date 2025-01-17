@@ -21,21 +21,21 @@ $do$;
 
 
 
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 0,  1551, 1, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 1,  1551, 2, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 2,  1551, 2, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 3,  1551, 3, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 4,  1551, 3, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 5,  1551, 3, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 6,  1551, 4, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 8,  1551, 4, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 9,  1551, 4, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 10, 1551, 4, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 11, 1551, 5, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 12, 1551, 5, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 13, 1551, 5, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 14, 1551, 5, '[]', '[]', '{}');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 15, 1551, 5, '[]', '[]', '{}');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 0,  1551, 1, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 1,  1551, 2, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 2,  1551, 2, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 3,  1551, 3, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 4,  1551, 3, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 5,  1551, 3, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 6,  1551, 4, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 8,  1551, 4, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 9,  1551, 4, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 10, 1551, 4, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 11, 1551, 5, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 12, 1551, 5, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 13, 1551, 5, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 14, 1551, 5, '[]', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 15, 1551, 5, '[]', '[]');
 
 
 INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (2, 0,  1, 1, '[]', '[]', '{}');

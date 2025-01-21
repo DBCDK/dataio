@@ -9,8 +9,8 @@ import java.util.Set;
 
 public class UpdatePriority implements EntryProcessor<TrackingKey, DependencyTracking, Set<TrackingKey>> {
     private static final long serialVersionUID = 1L;
-    final int priority;
-    final boolean onlyIncrease;
+    public final int priority;
+    public final boolean onlyIncrease;
 
     public UpdatePriority(int priority, boolean onlyIncrease) {
         this.priority = priority;

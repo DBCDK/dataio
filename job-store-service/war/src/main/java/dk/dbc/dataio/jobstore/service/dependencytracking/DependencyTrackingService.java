@@ -250,7 +250,7 @@ public class DependencyTrackingService {
         if (priority > Priority.LOW.getValue()) {
             try {
                 Set<TrackingKey> boostKeys = keys.stream().filter(tk -> tk.getJobId() != jobOrigin).collect(Collectors.toSet());
-                Map<TrackingKey, Set<TrackingKey>> map = dependencyTracker.executeOnKeys(boostKeys, new UpdatePriority(priority));
+                Map<TrackingKey, Set<TrackingKey>> map = dependencyTracker.executeOnKeys(boostKeys, new UpdatePriority(priority, true));
                 Set<TrackingKey> waitingOn = map.values().stream().filter(Objects::nonNull).flatMap(Collection::stream).filter(boostedKeys::add).collect(Collectors.toSet());
                 if(!waitingOn.isEmpty()) boostPriorities(jobOrigin, waitingOn, priority, boostedKeys);
             } catch (Exception e) {

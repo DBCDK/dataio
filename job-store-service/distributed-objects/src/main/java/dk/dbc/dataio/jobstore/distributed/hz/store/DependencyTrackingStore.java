@@ -31,7 +31,7 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
     private final DataSource dataSource;
 
     private static final String UPSERT = "insert into dependencytracking(jobid, chunkid, sinkid, status, waitingon, matchkeys, priority, submitter, lastmodified, retries) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) on conflict on constraint dependencytracking_pkey do " +
-            "update set status=excluded.status, waitingon=excluded.waitingon, matchkeys=excluded.matchkeys, priority=excluded.priority, submitter=excluded.submitter, lastmodified=excluded.lastmodified, retries=excluded.retries";
+            "update set status=excluded.status, waitingon=excluded.waitingon, priority=excluded.priority, lastmodified=excluded.lastmodified, retries=excluded.retries";
     private static final String SELECT = "select * from dependencytracking where jobid=? and chunkid=?";
 
     public DependencyTrackingStore() {

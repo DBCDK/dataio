@@ -31,9 +31,9 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
     private ChunkSchedulingStatus status = ChunkSchedulingStatus.READY_FOR_PROCESSING;
     private int priority;
     private Set<TrackingKey> waitingOn = new HashSet<>();
-    private Set<String> matchKeys;
-    private Set<WaitFor> waitFor;
-    private int submitter;
+    private final Set<String> matchKeys;
+    private final Set<WaitFor> waitFor;
+    private final int submitter;
     private Instant lastModified = Instant.now();
     private int retries = 0;
 

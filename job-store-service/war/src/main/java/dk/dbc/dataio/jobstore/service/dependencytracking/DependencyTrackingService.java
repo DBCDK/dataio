@@ -126,6 +126,10 @@ public class DependencyTrackingService {
         return status.getMax() - getCount(sinkId, status);
     }
 
+    public boolean isEmpty() {
+        return dependencyTracker.isEmpty();
+    }
+
     public void modify(TrackingKey key, Consumer<DependencyTracking> consumer) {
         try {
             dependencyTracker.tryLock(key, 2, TimeUnit.MINUTES);

@@ -49,11 +49,14 @@ import jakarta.ejb.TransactionAttributeType;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -74,6 +77,11 @@ public class PgJobStore {
     public static final String PG_JOB_STORE_JNDI = "java:global/jobstore/PgJobStore";
     private static final int MAX_NUMBER_OF_JOB_RETRIES = 1;
     private static final long FOUR_GIBABYTE = 4 * 1024 * 1024 * 1024L;
+    private static final RetryPolicy<Partitioning> PARTITION_RETRY_POLICY = new RetryPolicy<Partitioning>()
+            .handle(RuntimeException.class)
+            .withMaxRetries(2)
+            .withDelay(Duration.ofSeconds(10))
+            .onFailedAttempt(e -> LOGGER.warn("Partitioning failed retrying", e.getLastFailure()));
 
     /* These instances are not private otherwise they were not accessible from automatic test */
     @EJB
@@ -240,7 +248,7 @@ public class PgJobStore {
                     abortJob(entityManager.merge(jobQueueEntity.getJob()), param.getDiagnostics());
                     jobQueueRepository.remove(jobQueueEntity);
                 } else {
-                    final Partitioning partitioning = handlePartitioning(param);
+                    final Partitioning partitioning = Failsafe.with(PARTITION_RETRY_POLICY).get(() -> handlePartitioning(param));
                     if (partitioning.hasFailedUnexpectedly()) {
                         if (partitioning.hasKnownFailure(Partitioning.KnownFailure.PREMATURE_END_OF_DATA)
                                 // Data partitioners may throw PrematureEndOfDataException without cause,
@@ -262,8 +270,9 @@ public class PgJobStore {
                     }
                 }
             } catch (Throwable e) {
-                if (e instanceof PrematureEndOfDataException
-                        && jobQueueEntity.getRetries() < MAX_NUMBER_OF_JOB_RETRIES) {
+                LOGGER.warn("Error while partitioning job {}", jobQueueEntity.getJob().getId(), e);
+                if (e instanceof PrematureEndOfDataException && jobQueueEntity.getRetries() < MAX_NUMBER_OF_JOB_RETRIES) {
+                    LOGGER.warn("Retrying job partitioning {}", jobQueueEntity.getJob().getId(), e);
                     jobQueueRepository.retry(jobQueueEntity);
                 } else {
                     abortJobDueToUnforeseenFailuresDuringPartitioning(jobQueueEntity, e);

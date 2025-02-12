@@ -270,9 +270,8 @@ public class PgJobStore {
                     }
                 }
             } catch (Throwable e) {
-                LOGGER.warn("Error while partitioning job {}", jobQueueEntity.getJob().getId(), e);
-                if (e instanceof PrematureEndOfDataException && jobQueueEntity.getRetries() < MAX_NUMBER_OF_JOB_RETRIES) {
-                    LOGGER.warn("Retrying job partitioning {}", jobQueueEntity.getJob().getId(), e);
+                if (e instanceof PrematureEndOfDataException
+                        && jobQueueEntity.getRetries() < MAX_NUMBER_OF_JOB_RETRIES) {
                     jobQueueRepository.retry(jobQueueEntity);
                 } else {
                     abortJobDueToUnforeseenFailuresDuringPartitioning(jobQueueEntity, e);

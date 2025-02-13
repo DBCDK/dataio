@@ -234,41 +234,42 @@ public class PgJobStore {
         if (nextToPartition.isPresent()) {
             final JobQueueEntity jobQueueEntity = nextToPartition.get();
             try {
-                BitSet includeFilter = null;
+                BitSet includeFilter;
                 if (jobQueueEntity.getIncludeFilter() != null) {
                     includeFilter = BitSet.valueOf(jobQueueEntity.getIncludeFilter());
                     JobRerunnerBean.logBitSet(jobQueueEntity.getJob().getId(), includeFilter);
-                }
+                } else includeFilter = null;
+                Failsafe.with(PARTITION_RETRY_POLICY).run(() -> {
+                    final PartitioningParam param = new PartitioningParam(jobQueueEntity.getJob(),
+                            fileStoreServiceConnectorBean.getConnector(), flowStoreServiceConnectorBean.getConnector(),
+                            entityManager, jobQueueEntity.getTypeOfDataPartitioner(), includeFilter);
 
-                final PartitioningParam param = new PartitioningParam(jobQueueEntity.getJob(),
-                        fileStoreServiceConnectorBean.getConnector(), flowStoreServiceConnectorBean.getConnector(),
-                        entityManager, jobQueueEntity.getTypeOfDataPartitioner(), includeFilter);
-
-                if (!param.getDiagnostics().isEmpty()) {
-                    abortJob(entityManager.merge(jobQueueEntity.getJob()), param.getDiagnostics());
-                    jobQueueRepository.remove(jobQueueEntity);
-                } else {
-                    final Partitioning partitioning = Failsafe.with(PARTITION_RETRY_POLICY).get(() -> handlePartitioning(param));
-                    if (partitioning.hasFailedUnexpectedly()) {
-                        if (partitioning.hasKnownFailure(Partitioning.KnownFailure.PREMATURE_END_OF_DATA)
-                                // Data partitioners may throw PrematureEndOfDataException without cause,
-                                // but a lost connection will always include an IOException.
-                                && partitioning.getFailure().getCause() != null
-                                && jobQueueEntity.getRetries() < MAX_NUMBER_OF_JOB_RETRIES) {
-                            // Partitioning may have failed because of a lost filestore connection.
-                            jobQueueRepository.retry(jobQueueEntity);
-                        } else if (partitioning.hasKnownFailure(Partitioning.KnownFailure.TRANSACTION_ROLLED_BACK_LOCAL)) {
-                            LOGGER.error("Lost current transaction while partitioning job {}, rescheduling and restarting",
-                                    jobQueueEntity.getJob().getId(), partitioning.getFailure());
-                            jobSchedulerBean.ensureLastChunkIsScheduled(jobQueueEntity.getJob().getId());
-                            jobQueueRepository.retry(jobQueueEntity);
-                        } else {
-                            abortJobDueToUnforeseenFailuresDuringPartitioning(jobQueueEntity, partitioning.getFailure());
-                        }
-                    } else {
+                    if (!param.getDiagnostics().isEmpty()) {
+                        abortJob(entityManager.merge(jobQueueEntity.getJob()), param.getDiagnostics());
                         jobQueueRepository.remove(jobQueueEntity);
+                    } else {
+                        final Partitioning partitioning = handlePartitioning(param);
+                        if (partitioning.hasFailedUnexpectedly()) {
+                            if (partitioning.hasKnownFailure(Partitioning.KnownFailure.PREMATURE_END_OF_DATA)
+                                    // Data partitioners may throw PrematureEndOfDataException without cause,
+                                    // but a lost connection will always include an IOException.
+                                    && partitioning.getFailure().getCause() != null
+                                    && jobQueueEntity.getRetries() < MAX_NUMBER_OF_JOB_RETRIES) {
+                                // Partitioning may have failed because of a lost filestore connection.
+                                jobQueueRepository.retry(jobQueueEntity);
+                            } else if (partitioning.hasKnownFailure(Partitioning.KnownFailure.TRANSACTION_ROLLED_BACK_LOCAL)) {
+                                LOGGER.error("Lost current transaction while partitioning job {}, rescheduling and restarting",
+                                        jobQueueEntity.getJob().getId(), partitioning.getFailure());
+                                jobSchedulerBean.ensureLastChunkIsScheduled(jobQueueEntity.getJob().getId());
+                                jobQueueRepository.retry(jobQueueEntity);
+                            } else {
+                                abortJobDueToUnforeseenFailuresDuringPartitioning(jobQueueEntity, partitioning.getFailure());
+                            }
+                        } else {
+                            jobQueueRepository.remove(jobQueueEntity);
+                        }
                     }
-                }
+                });
             } catch (Throwable e) {
                 if (e instanceof PrematureEndOfDataException
                         && jobQueueEntity.getRetries() < MAX_NUMBER_OF_JOB_RETRIES) {

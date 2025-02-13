@@ -121,6 +121,10 @@ public class DependencyTrackingService {
         return status.getMax() - getCount(sinkId, status);
     }
 
+    public boolean isEmpty() {
+        return dependencyTracker.isEmpty();
+    }
+
     public void modify(TrackingKey key, Consumer<DependencyTracking> consumer) {
         try {
             dependencyTracker.tryLock(key, 2, TimeUnit.MINUTES);
@@ -229,8 +233,10 @@ public class DependencyTrackingService {
     public void remove(TrackingKey key) {
         DependencyTracking removed = dependencyTracker.remove(key);
         countersMap.executeOnKey(removed.getSinkId(), new UpdateCounter(removed.getStatus(), -1));
-        PredicateBuilder.EntryObject o = Predicates.newPredicateBuilder().getEntryObject();
-        lastTracker.removeAll(o.get("jobId").equal(key.getJobId()).and(o.get("chunkId").equal(key.getChunkId())));
+        if(enableWaitForTracking) {
+            PredicateBuilder.EntryObject o = Predicates.newPredicateBuilder().getEntryObject();
+            lastTracker.removeAll(o.get("jobId").equal(key.getJobId()).and(o.get("chunkId").equal(key.getChunkId())));
+        }
         LOGGER.info("Removed tracking key {} from dependency tracker", key.toChunkIdentifier());
     }
 
@@ -244,7 +250,7 @@ public class DependencyTrackingService {
         if (priority > Priority.LOW.getValue()) {
             try {
                 Set<TrackingKey> boostKeys = keys.stream().filter(tk -> tk.getJobId() != jobOrigin).collect(Collectors.toSet());
-                Map<TrackingKey, Set<TrackingKey>> map = dependencyTracker.executeOnKeys(boostKeys, new UpdatePriority(priority));
+                Map<TrackingKey, Set<TrackingKey>> map = dependencyTracker.executeOnKeys(boostKeys, new UpdatePriority(priority, true));
                 Set<TrackingKey> waitingOn = map.values().stream().filter(Objects::nonNull).flatMap(Collection::stream).filter(boostedKeys::add).collect(Collectors.toSet());
                 if(!waitingOn.isEmpty()) boostPriorities(jobOrigin, waitingOn, priority, boostedKeys);
             } catch (Exception e) {

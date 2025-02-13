@@ -61,6 +61,14 @@
         <max-idle-seconds>0</max-idle-seconds>
         <eviction eviction-policy="NONE"/>
         <statistics-enabled>true</statistics-enabled>
+        <indexes>
+            <index type="HASH">
+                <attributes>
+                    <attribute>jobId</attribute>
+                    <attribute>chunkId</attribute>
+                </attributes>
+            </index>
+        </indexes>
     </map>
     <map name="sink.status">
         <in-memory-format>OBJECT</in-memory-format>
@@ -92,6 +100,8 @@
                 <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.TrackingKeySer</class>
                 <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateCounterSer</class>
                 <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateStatusSer</class>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdatePrioritySer</class>
+                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.WaitForSer</class>
             </classes>
         </compact-serialization>
     </serialization>

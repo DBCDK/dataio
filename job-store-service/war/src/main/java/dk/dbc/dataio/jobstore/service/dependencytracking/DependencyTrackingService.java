@@ -24,6 +24,7 @@ import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdatePriority;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateStatus;
 import dk.dbc.dataio.jobstore.distributed.hz.query.JobChunksWaitForKey;
 import dk.dbc.dataio.jobstore.distributed.hz.query.WaitingOn;
+import dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -35,6 +36,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,9 +73,12 @@ public class DependencyTrackingService {
     @Inject
     @ConfigProperty(name = "WAIT_FOR_TRACKING_ENABLED", defaultValue = "false")
     private boolean enableWaitForTracking;
+    @Inject
+    private MetricRegistry metricRegistry;
 
     @PostConstruct
     public void config() {
+        DependencyTrackingStore.setMetricRegistry(metricRegistry);
         init(enableWaitForTracking);
     }
 

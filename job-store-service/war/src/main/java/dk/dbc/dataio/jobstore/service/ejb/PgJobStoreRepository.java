@@ -207,9 +207,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @throws JobStoreException on failure to export
      */
     @Stopwatch
-    public String exportItemsToFileStore(int jobId, State.Phase fromPhase,
-                                         FileStoreServiceConnector fileStoreServiceConnector)
-            throws JobStoreException {
+    public String exportItemsToFileStore(int jobId, State.Phase fromPhase, FileStoreServiceConnector fileStoreServiceConnector) throws JobStoreException {
         return new JobExporter(entityManager)
                 .exportItemsDataToFileStore(jobId, fromPhase, fileStoreServiceConnector);
     }
@@ -372,8 +370,7 @@ public class PgJobStoreRepository extends RepositoryBase {
     public ChunkEntity createJobTerminationChunkEntity(
             int jobId,
             int chunkId,
-            String dataFileId, ChunkItem.Status itemStatus)
-            throws JobStoreException {
+            String dataFileId, ChunkItem.Status itemStatus) throws JobStoreException {
 
         final Date chunkBegin = new Date();
 
@@ -533,7 +530,6 @@ public class PgJobStoreRepository extends RepositoryBase {
             if (!itemEntities.isEmpty()) {
                 profiler.start("Loop itemEntities");
                 final Chunk chunk = new Chunk(jobId, chunkId, type);
-                int i = 0;
                 for (ItemEntity itemEntity : itemEntities) {
                     if (PROCESSED == type) {
                         // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
@@ -546,7 +542,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             }
             return null;
         } finally {
-            LOGGER.info("pgJobStoreRepository.getChunk timings:\n" + profiler.toString());
+            LOGGER.info("pgJobStoreRepository.getChunk timings:\n{}", profiler);
         }
     }
 

@@ -165,6 +165,7 @@ class HarvestOperationTest {
                         "<id>1001</id>" +
                         "<created>2021-01-20</created>" +
                         "<status>PENDING_EXPORT</status>" +
+                        "<keepEditor>false</keepEditor>" +
                         "<tasks>" +
                         "<task>" +
                         "<id>0</id>" +
@@ -187,6 +188,7 @@ class HarvestOperationTest {
                         "<id>1002</id>" +
                         "<created>2021-01-20</created>" +
                         "<status>PENDING_EXPORT</status>" +
+                        "<keepEditor>false</keepEditor>" +
                         "<tasks>" +
                         "<task>" +
                         "<id>0</id>" +
@@ -200,6 +202,7 @@ class HarvestOperationTest {
                         "<id>1003</id>" +
                         "<created>2021-01-20</created>" +
                         "<status>PENDING_REVERT</status>" +
+                        "<keepEditor>false</keepEditor>" +
                         "<tasks>" +
                         "<task>" +
                         "<id>0</id>" +
@@ -555,6 +558,7 @@ class HarvestOperationTest {
                         "<id>1001</id>" +
                         "<created>2021-01-20</created>" +
                         "<status>PENDING_EXPORT</status>" +
+                        "<keepEditor>false</keepEditor>" +
                         "<tasks>" +
                         "<task>" +
                         "<id>0</id>" +
@@ -577,6 +581,7 @@ class HarvestOperationTest {
                         "<id>1003</id>" +
                         "<created>2021-01-20</created>" +
                         "<status>PENDING_REVERT</status>" +
+                        "<keepEditor>false</keepEditor>" +
                         "<tasks>" +
                         "<task>" +
                         "<id>0</id>" +
@@ -699,6 +704,7 @@ class HarvestOperationTest {
                         "<id>1001</id>" +
                         "<created>2021-01-20</created>" +
                         "<status>PENDING_EXPORT</status>" +
+                        "<keepEditor>false</keepEditor>" +
                         "<tasks>" +
                         "<task>" +
                         "<id>0</id>" +
@@ -721,6 +727,7 @@ class HarvestOperationTest {
                         "<id>1003</id>" +
                         "<created>2021-01-20</created>" +
                         "<status>PENDING_REVERT</status>" +
+                        "<keepEditor>false</keepEditor>" +
                         "<tasks>" +
                         "<task>" +
                         "<id>0</id>" +
@@ -850,6 +857,7 @@ class HarvestOperationTest {
                         "<id>1001</id>" +
                         "<created>2021-01-20</created>" +
                         "<status>PENDING_EXPORT</status>" +
+                        "<keepEditor>false</keepEditor>" +
                         "<tasks>" +
                         "<task>" +
                         "<id>0</id>" +
@@ -872,6 +880,7 @@ class HarvestOperationTest {
                         "<id>1002</id>" +
                         "<created>2021-01-20</created>" +
                         "<status>PENDING_EXPORT</status>" +
+                        "<keepEditor>false</keepEditor>" +
                         "<tasks>" +
                         "<task>" +
                         "<id>0</id>" +
@@ -885,6 +894,7 @@ class HarvestOperationTest {
                         "<id>1003</id>" +
                         "<created>2021-01-20</created>" +
                         "<status>PENDING_REVERT</status>" +
+                        "<keepEditor>false</keepEditor>" +
                         "<tasks>" +
                         "<task>" +
                         "<id>0</id>" +

@@ -3,12 +3,13 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
+import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.Notification;
+import dk.dbc.dataio.jobstore.types.NotificationContext;
+import jakarta.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -37,12 +38,12 @@ public class NotificationsBeanTest {
     @Test
     public void addNotification_validNotificationsRequest_returnsResponseWithStatusOk() throws Exception {
         when(jobNotificationRepository.addNotification(eq(Notification.Type.INVALID_TRANSFILE), anyString(),
-                any(JobNotificationRepositoryTest.NotificationContextImpl.class)))
+                any(NotificationContext.class)))
                 .thenReturn(new NotificationEntity());
 
-        final AddNotificationRequest request = new AddNotificationRequest("mail@company.com",
-                new JobNotificationRepositoryTest.NotificationContextImpl(), Notification.Type.INVALID_TRANSFILE);
-        final Response notificationResponse = notificationsBean.addNotification(jsonbContext.marshall(request));
+        AddNotificationRequest request = new AddNotificationRequest("mail@company.com",
+                new InvalidTransfileNotificationContext("a", "b", "c"), Notification.Type.INVALID_TRANSFILE);
+        Response notificationResponse = notificationsBean.addNotification(jsonbContext.marshall(request));
         assertThat("Response", notificationResponse, is(notNullValue()));
         assertThat("Response status", notificationResponse.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat("ResponseEntity", notificationResponse.hasEntity(), is(true));

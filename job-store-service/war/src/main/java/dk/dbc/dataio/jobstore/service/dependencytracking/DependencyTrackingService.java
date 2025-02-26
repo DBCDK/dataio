@@ -237,7 +237,7 @@ public class DependencyTrackingService {
 
     public void remove(TrackingKey key) {
         DependencyTracking removed = dependencyTracker.remove(key);
-        if(removed != null) return;
+        if(removed == null) return;
         countersMap.executeOnKey(removed.getSinkId(), new UpdateCounter(removed.getStatus(), -1));
         if(enableWaitForTracking) {
             PredicateBuilder.EntryObject o = Predicates.newPredicateBuilder().getEntryObject();

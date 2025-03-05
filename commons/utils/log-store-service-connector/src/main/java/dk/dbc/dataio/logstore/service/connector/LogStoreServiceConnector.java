@@ -6,6 +6,7 @@ import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.HttpDelete;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.PathBuilder;
+import dk.dbc.httpclient.UnexpectedStatusCodeException;
 import dk.dbc.invariant.InvariantUtil;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
@@ -64,6 +65,10 @@ public class LogStoreServiceConnector {
                 .bind(LogStoreServiceConstants.ITEM_ID_VARIABLE, itemId);
         try {
             return new HttpGet(httpClient).withBaseUrl(baseUrl).withPathElements(path.build()).executeAndExpect(Response.Status.OK, String.class);
+        } catch (UnexpectedStatusCodeException e) {
+            throw new LogStoreServiceConnectorUnexpectedStatusCodeException(
+                    String.format("log-store service returned with unexpected status code: %s", e.getStatusCode()),
+                    e.getStatusCode().getStatusCode());
         } finally {
             log.info("getItemLog({}/{}/{}) took {} milliseconds", jobId, chunkId, itemId, stopWatch.getElapsedTime());
         }

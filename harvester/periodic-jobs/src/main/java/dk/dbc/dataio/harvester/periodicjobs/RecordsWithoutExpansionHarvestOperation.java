@@ -31,9 +31,10 @@ public class RecordsWithoutExpansionHarvestOperation extends HarvestOperation {
                                                    FlowStoreServiceConnector flowStoreServiceConnector,
                                                    JobStoreServiceConnector jobStoreServiceConnector,
                                                    WeekResolverConnector weekResolverConnector,
+                                                   FbiInfoConnector fbiInfoConnector,
                                                    ManagedExecutorService executor) {
         this(config, binaryFileStore, fileStoreServiceConnector, flowStoreServiceConnector, jobStoreServiceConnector,
-                weekResolverConnector, executor, null);
+                weekResolverConnector, fbiInfoConnector, executor, null);
     }
 
     RecordsWithoutExpansionHarvestOperation(PeriodicJobsHarvesterConfig config,
@@ -42,10 +43,11 @@ public class RecordsWithoutExpansionHarvestOperation extends HarvestOperation {
                                             FlowStoreServiceConnector flowStoreServiceConnector,
                                             JobStoreServiceConnector jobStoreServiceConnector,
                                             WeekResolverConnector weekResolverConnector,
+                                            FbiInfoConnector fbiInfoConnector,
                                             ManagedExecutorService executor,
                                             RawRepoConnector rawRepoConnector) {
         super(config, binaryFileStore, fileStoreServiceConnector, flowStoreServiceConnector, jobStoreServiceConnector,
-                weekResolverConnector, executor, rawRepoConnector);
+                weekResolverConnector, fbiInfoConnector, executor, rawRepoConnector);
     }
 
     @Override

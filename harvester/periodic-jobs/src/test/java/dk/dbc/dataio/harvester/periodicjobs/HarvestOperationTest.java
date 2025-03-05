@@ -63,6 +63,7 @@ public class HarvestOperationTest {
     private final ManagedExecutorService managedExecutorService = new NonContainerManagedExecutorService(new SameThreadExecutorService());
     private FileStoreServiceConnector fileStoreServiceConnector;
     private BinaryFileStore binaryFileStore;
+    private FbiInfoConnector fbiInfoConnector = mock(FbiInfoConnector.class);
 
     @TempDir
     public Path tmpFolder;
@@ -209,6 +210,7 @@ public class HarvestOperationTest {
                 flowStoreServiceConnector,
                 jobStoreServiceConnector,
                 weekResolverConnector,
+                fbiInfoConnector,
                 managedExecutorService,
                 rawRepoConnector));
         doReturn(recordSearcher).when(harvestOperation).createRecordSearcher();

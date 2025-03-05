@@ -3,6 +3,8 @@ package dk.dbc.dataio.logstore.service.connector;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.rest.LogStoreServiceConstants;
 import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpDelete;
+import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.invariant.InvariantUtil;
 import jakarta.ws.rs.ProcessingException;
@@ -23,7 +25,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LogStoreServiceConnector {
     private static final Logger log = LoggerFactory.getLogger(LogStoreServiceConnector.class);
-    private final Client httpClient;
+    private final HttpClient httpClient;
     private final String baseUrl;
 
     /**
@@ -35,7 +37,7 @@ public class LogStoreServiceConnector {
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
     public LogStoreServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "client");
+        this.httpClient = HttpClient.create(InvariantUtil.checkNotNullOrThrow(httpClient, "client"));
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 
@@ -60,14 +62,10 @@ public class LogStoreServiceConnector {
                 .bind(LogStoreServiceConstants.JOB_ID_VARIABLE, jobId)
                 .bind(LogStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
                 .bind(LogStoreServiceConstants.ITEM_ID_VARIABLE, itemId);
-        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return readResponseEntity(response, String.class);
+            return new HttpGet(httpClient).withBaseUrl(baseUrl).withPathElements(path.build()).executeAndExpect(Response.Status.OK, String.class);
         } finally {
-            response.close();
-            log.info("getItemLog({}/{}/{}) took {} milliseconds",
-                    jobId, chunkId, itemId, stopWatch.getElapsedTime());
+            log.info("getItemLog({}/{}/{}) took {} milliseconds", jobId, chunkId, itemId, stopWatch.getElapsedTime());
         }
     }
 
@@ -78,47 +76,25 @@ public class LogStoreServiceConnector {
      * @throws NullPointerException                                  if given null-valued {@code jobId} argument
      * @throws IllegalArgumentException                              if given empty-valued {@code jobId} argument
      * @throws ProcessingException                                   on general communication error
-     * @throws LogStoreServiceConnectorUnexpectedStatusCodeException on failure to delete
      */
-    public void deleteJobLogs(final String jobId) throws LogStoreServiceConnectorUnexpectedStatusCodeException {
+    public void deleteJobLogs(final String jobId) {
         log.trace("deleteJobLogs({})", jobId);
         InvariantUtil.checkNotNullNotEmptyOrThrow(jobId, "jobId");
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(LogStoreServiceConstants.JOB_LOG_ENTRY_COLLECTION)
                 .bind(LogStoreServiceConstants.JOB_ID_VARIABLE, jobId);
-        final Response response = HttpClient.doDelete(httpClient, baseUrl, path.build());
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.NO_CONTENT);
+            new HttpDelete(httpClient).withBaseUrl(baseUrl).withPathElements(path.build()).executeAndExpect(Response.Status.NO_CONTENT, String.class);
         } finally {
-            response.close();
             log.info("deleteJobLogs({}) took {} milliseconds", jobId, stopWatch.getElapsedTime());
         }
     }
 
     public Client getHttpClient() {
-        return httpClient;
+        return httpClient.getClient();
     }
 
     public String getBaseUrl() {
         return baseUrl;
-    }
-
-    private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus)
-            throws LogStoreServiceConnectorUnexpectedStatusCodeException {
-        if (actualStatus != expectedStatus) {
-            throw new LogStoreServiceConnectorUnexpectedStatusCodeException(
-                    String.format("log-store service returned with unexpected status code: %s", actualStatus),
-                    actualStatus.getStatusCode());
-        }
-    }
-
-    private <T> T readResponseEntity(Response response, Class<T> tClass) throws LogStoreServiceConnectorException {
-        response.bufferEntity(); // must be done in order to possible avoid a timeout-exception from readEntity.
-        final T entity = response.readEntity(tClass);
-        if (entity == null) {
-            throw new LogStoreServiceConnectorException(
-                    String.format("log-store service returned with null-valued %s entity", tClass.getName()));
-        }
-        return entity;
     }
 }

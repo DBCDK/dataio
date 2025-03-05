@@ -14,6 +14,7 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.logstore.service.connector.ejb.LogStoreServiceConnectorBean;
+import dk.dbc.httpclient.UnexpectedStatusCodeException;
 import jakarta.annotation.Resource;
 import jakarta.ejb.EJB;
 import jakarta.ejb.SessionContext;
@@ -100,7 +101,7 @@ public class JobPurgeBean {
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void delete(JobInfoSnapshot jobInfoSnapshot) throws LogStoreServiceConnectorUnexpectedStatusCodeException, FileStoreServiceConnectorException {
+    public void delete(JobInfoSnapshot jobInfoSnapshot) throws FileStoreServiceConnectorException {
         LOGGER.info("purging job {} of type {} from {}", jobInfoSnapshot.getJobId(),
                 jobInfoSnapshot.getSpecification().getType(), jobInfoSnapshot.getTimeOfCreation());
 
@@ -140,8 +141,8 @@ public class JobPurgeBean {
         LOGGER.info("Purging log-store entries for job {}", jobInfoSnapshot.getJobId());
         try {
             logStoreServiceConnectorBean.getConnector().deleteJobLogs(String.valueOf(jobInfoSnapshot.getJobId()));
-        } catch (LogStoreServiceConnectorUnexpectedStatusCodeException ignored) {
-            LOGGER.info("Unable to delete log for job: {}", jobInfoSnapshot.getJobId());
+        } catch (UnexpectedStatusCodeException e) {
+            LOGGER.info("Unable to delete log for job: {} - {}", jobInfoSnapshot.getJobId(), e.getMessage());
         }
 
         Query query = entityManager.createQuery("delete from ItemEntity i where i.key.jobId = :jobid");

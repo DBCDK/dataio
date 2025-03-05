@@ -2,6 +2,7 @@ package dk.dbc.dataio.urlresolver.service.connector;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpGet;
 import dk.dbc.invariant.InvariantUtil;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.core.GenericType;
@@ -15,11 +16,11 @@ public class UrlResolverServiceConnector {
 
     private static final Logger log = LoggerFactory.getLogger(UrlResolverServiceConnector.class);
 
-    private final Client httpClient;
+    private final HttpClient httpClient;
     private final String baseUrl;
 
     public UrlResolverServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "client");
+        this.httpClient = HttpClient.create(InvariantUtil.checkNotNullOrThrow(httpClient, "client"));
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 
@@ -33,7 +34,7 @@ public class UrlResolverServiceConnector {
     public Map<String, String> getUrls() throws UrlResolverServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            final Response response = HttpClient.doGet(httpClient, baseUrl, "urls");
+            final Response response = new HttpGet(httpClient).withBaseUrl(baseUrl).withPathElements("urls").execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, new GenericType<Map<String, String>>() {
@@ -44,11 +45,6 @@ public class UrlResolverServiceConnector {
         } finally {
             log.debug("getUrls took {} milliseconds", stopWatch.getElapsedTime());
         }
-    }
-
-
-    public Client getHttpClient() {
-        return httpClient;
     }
 
     public String getBaseUrl() {

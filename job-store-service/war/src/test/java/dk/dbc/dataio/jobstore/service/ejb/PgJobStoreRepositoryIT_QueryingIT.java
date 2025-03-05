@@ -17,6 +17,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -408,7 +409,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
     @org.junit.Test
     public void listJobs_fromBeforeDateCriterea_returnsJobInfoSnapshotsForJobsWithCreationDateBeforeDate() {
         final JobEntity old = newPersistedJobEntity();
-        old.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+        old.setTimeOfCompletion(new Timestamp(Instant.now().minusSeconds(1).toEpochMilli()));
         persist(old);
 
         final Date marker = new Date();

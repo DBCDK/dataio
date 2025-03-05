@@ -14,6 +14,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpPost;
 import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
@@ -21,9 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static jakarta.ws.rs.core.Response.Status.CONFLICT;
 import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
@@ -86,13 +85,12 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      */
     @Test
     public void createFlowBinder_invalidJson_BadRequest() {
-        // When...
-        final Response response = HttpClient.doPostWithJson(flowStoreServiceConnector.getClient(),
-                "<invalid json />", flowStoreServiceBaseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
-
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(),
-                is(Response.Status.BAD_REQUEST.getStatusCode()));
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+                .withBaseUrl(flowStoreServiceBaseUrl)
+                .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS)
+                .withJsonData("<invalid json />")
+                .executeAndExpect(Response.Status.BAD_REQUEST)
+                .close();
     }
 
     /**
@@ -551,15 +549,12 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
         // Given ...
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects(ns);
 
-        final Map<String, String> headers = new HashMap<>(1);
-        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(flowBinder.getVersion()));
-        final Response response = HttpClient.doPostWithJson(flowStoreServiceConnector.getClient(),
-                headers, "<invalid json />", flowStoreServiceBaseUrl,
-                FlowStoreServiceConstants.FLOW_BINDERS, Long.toString(flowBinder.getId()), "content");
-
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(),
-                is(Response.Status.BAD_REQUEST.getStatusCode()));
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+                .withBaseUrl(flowStoreServiceBaseUrl)
+                .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS, Long.toString(flowBinder.getId()), "content")
+                .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(flowBinder.getVersion()))
+                .withJsonData("<invalid json />")
+                .executeAndExpect(Response.Status.BAD_REQUEST);
     }
 
     /**

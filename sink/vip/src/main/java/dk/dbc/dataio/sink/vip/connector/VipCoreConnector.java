@@ -117,7 +117,7 @@ public class VipCoreConnector {
                 } catch (VipCoreConnectorException | ProcessingException e) {
                     try {
                         LOGGER.error("Request sent to {} returned: {}",
-                                HttpClient.getRemoteHostAddress(baseUrl),
+                                baseUrl,
                                 readResponseEntity(response, String.class));
                     } catch (VipCoreConnectorException fatal) {
                         LOGGER.warn("Unable to extract entity from response", fatal);

@@ -58,6 +58,7 @@ public class HarvestOperation {
     private final WeekResolverConnector weekResolverConnector;
     private final ExecutorService executor;
     private final RawRepoConnector rawRepoConnector;
+    protected final FbiInfoConnector fbiInfoConnector;
     Date timeOfSearch;
 
     public HarvestOperation(PeriodicJobsHarvesterConfig config,
@@ -66,6 +67,7 @@ public class HarvestOperation {
                             FlowStoreServiceConnector flowStoreServiceConnector,
                             JobStoreServiceConnector jobStoreServiceConnector,
                             WeekResolverConnector weekResolverConnector,
+                            FbiInfoConnector fbiInfoConnector,
                             ExecutorService executor) {
         this(config,
                 binaryFileStore,
@@ -73,6 +75,7 @@ public class HarvestOperation {
                 flowStoreServiceConnector,
                 jobStoreServiceConnector,
                 weekResolverConnector,
+                fbiInfoConnector,
                 executor,
                 null);
     }
@@ -83,6 +86,7 @@ public class HarvestOperation {
                      FlowStoreServiceConnector flowStoreServiceConnector,
                      JobStoreServiceConnector jobStoreServiceConnector,
                      WeekResolverConnector weekResolverConnector,
+                     FbiInfoConnector fbiInfoConnector,
                      ExecutorService executor,
                      RawRepoConnector rawRepoConnector) {
         this.config = config;
@@ -91,6 +95,7 @@ public class HarvestOperation {
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
         this.weekResolverConnector = weekResolverConnector;
+        this.fbiInfoConnector = fbiInfoConnector;
         this.executor = executor;
         this.rawRepoConnector = rawRepoConnector != null
                 ? rawRepoConnector
@@ -312,11 +317,15 @@ public class HarvestOperation {
         List<RecordFetcher> tasks = new ArrayList<>(maxNumberOfTasks);
         while (recordIdsIterator.hasNext() && tasks.size() < maxNumberOfTasks) {
             RecordIdDTO recordId = recordIdsIterator.next();
-            if (recordId != null) {
+            if (recordId != null && include(recordId)) {
                 tasks.add(getRecordFetcher(recordId, recordServiceConnector, config));
             }
         }
         return tasks;
+    }
+
+    public boolean include(RecordIdDTO recordId) {
+        return true;
     }
 
     RecordFetcher getRecordFetcher(RecordIdDTO recordId, RecordServiceConnector recordServiceConnector,

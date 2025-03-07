@@ -1,19 +1,25 @@
 package dk.dbc.dataio.harvester.periodicjobs;
 
+import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import jakarta.ejb.Asynchronous;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
 import jakarta.enterprise.concurrent.ManagedExecutorService;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,13 +40,22 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     @Inject
     WeekResolverConnector weekresolverConnector;
-
+    @Inject
+    @ConfigProperty(name = "FBI_INFO_URL")
+    private String fbiInfoUrl;
+    private FbiInfoConnector fbiInfoConnector;
     @Resource(lookup = "java:comp/DefaultManagedExecutorService")
     private ManagedExecutorService executor;
     final static AtomicInteger THREAD_ID = new AtomicInteger();
     static final ExecutorService WITH_HOLDINGS_EXECUTOR = Executors.
                 newFixedThreadPool(5, runnable -> new Thread(runnable,
                         "standard-with-holdings"+THREAD_ID.getAndIncrement()));
+
+    @PostConstruct
+    public void init() {
+        fbiInfoConnector = new FbiInfoConnector(fbiInfoUrl);
+    }
+
     @Override
     public int executeFor(PeriodicJobsHarvesterConfig config) throws HarvesterException {
         HarvestOperation harvestOperation = getHarvesterOperation(config);
@@ -54,57 +69,22 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
         return harvestOperation.validateQuery();
     }
 
-    private HarvestOperation getHarvesterOperation(PeriodicJobsHarvesterConfig config) {
-        final HarvestOperation harvestOperation;
-        LOGGER.info("Starting {} harvest", config.getContent().getHarvesterType());
-        switch (config.getContent().getHarvesterType()) {
-            case DAILY_PROOFING:
-                harvestOperation = new DailyProofingHarvestOperation(config,
-                        binaryFileStoreBean,
-                        fileStoreServiceConnectorBean.getConnector(),
-                        flowStoreServiceConnectorBean.getConnector(),
-                        jobStoreServiceConnectorBean.getConnector(),
-                        weekresolverConnector,
-                        executor);
-                break;
-            case SUBJECT_PROOFING:
-                harvestOperation = new SubjectProofingHarvestOperation(config,
-                        binaryFileStoreBean,
-                        fileStoreServiceConnectorBean.getConnector(),
-                        flowStoreServiceConnectorBean.getConnector(),
-                        jobStoreServiceConnectorBean.getConnector(),
-                        weekresolverConnector,
-                        executor);
-                break;
-            case STANDARD_WITH_HOLDINGS:
-                harvestOperation = new RecordsWithoutHoldingsHarvestOperation(config,
-                        binaryFileStoreBean,
-                        fileStoreServiceConnectorBean.getConnector(),
-                        flowStoreServiceConnectorBean.getConnector(),
-                        jobStoreServiceConnectorBean.getConnector(),
-                        weekresolverConnector,
-                        WITH_HOLDINGS_EXECUTOR);
-                break;
-            case STANDARD_WITHOUT_EXPANSION:
-                harvestOperation = new RecordsWithoutExpansionHarvestOperation(config,
-                        binaryFileStoreBean,
-                        fileStoreServiceConnectorBean.getConnector(),
-                        flowStoreServiceConnectorBean.getConnector(),
-                        jobStoreServiceConnectorBean.getConnector(),
-                        weekresolverConnector,
-                        executor);
-                break;
-            default:
-                harvestOperation = new HarvestOperation(config,
-                        binaryFileStoreBean,
-                        fileStoreServiceConnectorBean.getConnector(),
-                        flowStoreServiceConnectorBean.getConnector(),
-                        jobStoreServiceConnectorBean.getConnector(),
-                        weekresolverConnector,
-                        executor);
-        }
+    private interface HarvesterChoice {
+        HarvestOperation make(PeriodicJobsHarvesterConfig config, BinaryFileStore binaryFileStore, FileStoreServiceConnector fileCon, FlowStoreServiceConnector flowCon, JobStoreServiceConnector jobCon, WeekResolverConnector weekCon, FbiInfoConnector fbiInfoConnector, ManagedExecutorService executor);
+    }
 
-        return harvestOperation;
+    private HarvestOperation getHarvesterOperation(PeriodicJobsHarvesterConfig config) {
+        LOGGER.info("Starting {} harvest", config.getContent().getHarvesterType());
+
+        HarvesterChoice choice = switch (config.getContent().getHarvesterType()) {
+            case DAILY_PROOFING -> DailyProofingHarvestOperation::new;
+            case SUBJECT_PROOFING -> SubjectProofingHarvestOperation::new;
+            case STANDARD_WITH_HOLDINGS -> RecordsWithoutHoldingsHarvestOperation::new;
+            case STANDARD_WITHOUT_EXPANSION -> RecordsWithoutExpansionHarvestOperation::new;
+            case HAS_COVER_PAGE -> HasCoverHarvestOperation::new;
+            default -> HarvestOperation::new;
+        };
+        return choice.make(config, binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), flowStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector(), weekresolverConnector, fbiInfoConnector, executor);
     }
 
     @Asynchronous

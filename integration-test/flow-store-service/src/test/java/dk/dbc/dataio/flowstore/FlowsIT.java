@@ -17,6 +17,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpPost;
 import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
@@ -108,13 +109,12 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
      */
     @Test
     public void createFlow_invalidJson_BadRequest() {
-        // When...
-        final Response response = HttpClient.doPostWithJson(flowStoreServiceConnector.getClient(),
-                "<invalid json />", flowStoreServiceBaseUrl, FlowStoreServiceConstants.FLOWS);
-
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(),
-                is(Response.Status.BAD_REQUEST.getStatusCode()));
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+                .withBaseUrl(flowStoreServiceBaseUrl)
+                .withPathElements(FlowStoreServiceConstants.FLOWS)
+                .withJsonData("<invalid json />")
+                .executeAndExpect(Response.Status.BAD_REQUEST)
+                .close();
     }
 
     /**

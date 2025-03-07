@@ -14,7 +14,7 @@ public class PeriodicJobsHarvesterConfig
         extends HarvesterConfig<PeriodicJobsHarvesterConfig.Content>
         implements Serializable {
 
-    public enum HarvesterType {STANDARD, DAILY_PROOFING, SUBJECT_PROOFING, STANDARD_WITH_HOLDINGS, STANDARD_WITHOUT_EXPANSION}
+    public enum HarvesterType {STANDARD, DAILY_PROOFING, SUBJECT_PROOFING, STANDARD_WITH_HOLDINGS, STANDARD_WITHOUT_EXPANSION, HAS_COVER_PAGE}
     public enum HoldingsFilter {WITH_HOLDINGS, WITHOUT_HOLDINGS}
 
     public enum PickupType {HTTP, MAIL, FTP, SFTP, ANY_SINK}

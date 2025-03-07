@@ -15,14 +15,13 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpPost;
 import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static jakarta.ws.rs.core.Response.Status.CONFLICT;
 import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
@@ -162,13 +161,12 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
      */
     @Test
     public void createSubmitter_invalidJson_BadRequest() {
-        // When...
-        final Response response = HttpClient.doPostWithJson(flowStoreServiceConnector.getClient(),
-                "<invalid json />", flowStoreServiceBaseUrl, FlowStoreServiceConstants.SUBMITTERS);
-
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(),
-                is(Response.Status.BAD_REQUEST.getStatusCode()));
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+                .withBaseUrl(flowStoreServiceBaseUrl)
+                .withPathElements(FlowStoreServiceConstants.SUBMITTERS)
+                .withJsonData("<invalid json />")
+                .executeAndExpect(Response.Status.BAD_REQUEST)
+                .close();
     }
 
     /*
@@ -366,13 +364,13 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
                 .build();
         Submitter submitter = flowStoreServiceConnector.createSubmitter(content);
 
-        final Map<String, String> headers = new HashMap<>(1);
-        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");  // Set version=1
-        final Response response = HttpClient.doPostWithJson(flowStoreServiceConnector.getClient(),
-                headers, "<invalid json />", flowStoreServiceBaseUrl,
-                FlowStoreServiceConstants.SUBMITTERS, Long.toString(submitter.getId()), "content");
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+                .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, "1")
+                .withBaseUrl(flowStoreServiceBaseUrl)
+                .withPathElements(FlowStoreServiceConstants.SUBMITTERS, Long.toString(submitter.getId()), "content")
+                .withJsonData("<invalid json />")
+                .executeAndExpect(Response.Status.BAD_REQUEST)
+                .close();
     }
 
     /*

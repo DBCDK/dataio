@@ -16,7 +16,6 @@ import dk.dbc.dataio.commons.types.rest.FlowBinderResolveQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.httpclient.FailSafeHttpClient;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.HttpDelete;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.HttpPost;
@@ -1068,8 +1067,7 @@ public class FlowStoreServiceConnector {
                     exception.setFlowStoreError(readResponseEntity(response, FlowStoreError.class));
                 } catch (FlowStoreServiceConnectorException | ProcessingException e) {
                     try {
-                        LOGGER.error("request sent to {} returned: {}",
-                                HttpClient.getRemoteHostAddress(baseUrl), readResponseEntity(response, String.class));
+                        LOGGER.error("request sent to {} returned: {}", baseUrl, readResponseEntity(response, String.class));
                     } catch (FlowStoreServiceConnectorException fssce) {
                         LOGGER.warn("Unable to extract entity from response", e);
                     }

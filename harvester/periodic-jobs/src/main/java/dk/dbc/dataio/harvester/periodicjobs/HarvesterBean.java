@@ -12,6 +12,7 @@ import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import jakarta.ejb.Asynchronous;
 import jakarta.ejb.EJB;
@@ -50,6 +51,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
                 newFixedThreadPool(5, runnable -> new Thread(runnable,
                         "standard-with-holdings"+THREAD_ID.getAndIncrement()));
 
+    @PostConstruct
     public void init() {
         fbiInfoConnector = new FbiInfoConnector(fbiInfoUrl);
     }

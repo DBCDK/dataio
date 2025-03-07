@@ -13,15 +13,14 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpPost;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static jakarta.ws.rs.core.Response.Status.CONFLICT;
 import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
@@ -69,13 +68,12 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
      */
     @Test
     public void createSink_invalidJson_BadRequest() {
-        // When...
-        final Response response = HttpClient.doPostWithJson(flowStoreServiceConnector.getClient(),
-                "<invalid json />", flowStoreServiceBaseUrl, FlowStoreServiceConstants.SINKS);
-
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(),
-                is(Response.Status.BAD_REQUEST.getStatusCode()));
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+                .withBaseUrl(flowStoreServiceBaseUrl)
+                .withPathElements(FlowStoreServiceConstants.SINKS)
+                .withJsonData("<invalid json />")
+                .executeAndExpect(Response.Status.BAD_REQUEST)
+                .close();
     }
 
     /**
@@ -192,20 +190,17 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
      */
     @Test
     public void updateSink_invalidJson_BadRequest() throws FlowStoreServiceConnectorException {
-        // Given ...
         final Sink sink = flowStoreServiceConnector.createSink(new SinkContentBuilder()
                 .setName("SinksIT.updateSink_invalidJson_BadRequest")
                 .build());
 
-        // Assume, that the very first created sink has version number 1:
-        final Map<String, String> headers = new HashMap<>(1);
-        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");  // Set version=1
-        final Response response = HttpClient.doPostWithJson(flowStoreServiceConnector.getClient(),
-                headers, "<invalid json />", flowStoreServiceBaseUrl,
-                FlowStoreServiceConstants.SINKS, Long.toString(sink.getId()), "content");
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(),
-                is(Response.Status.BAD_REQUEST.getStatusCode()));
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+                .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, "1")
+                .withBaseUrl(flowStoreServiceBaseUrl)
+                .withPathElements(FlowStoreServiceConstants.SINKS, Long.toString(sink.getId()), "content")
+                .withJsonData("<invalid json />")
+                .executeAndExpect(Response.Status.BAD_REQUEST)
+                .close();
     }
 
     /**

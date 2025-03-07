@@ -42,6 +42,7 @@ public class MacroSubstitutorTest {
     private final FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     private final BinaryFileStore binaryFileStore = mock(BinaryFileStore.class);
     private final WeekResolverConnector weekResolverConnector = mock(WeekResolverConnector.class);
+    private final FbiInfoConnector fbiInfoConnector = mock(FbiInfoConnector.class);
 
     private HarvestOperation harvestOperation;
 
@@ -127,6 +128,7 @@ public class MacroSubstitutorTest {
                 flowStoreServiceConnector,
                 jobStoreServiceConnector,
                 weekResolverConnector,
+                fbiInfoConnector,
                 managedExecutorService,
                 rawRepoConnector));
     }

@@ -41,9 +41,10 @@ public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
                                                   FlowStoreServiceConnector flowStoreServiceConnector,
                                                   JobStoreServiceConnector jobStoreServiceConnector,
                                                   WeekResolverConnector weekResolverConnector,
+                                                  FbiInfoConnector fbiInfoConnector,
                                                   ExecutorService executor) {
         this(config, binaryFileStore, fileStoreServiceConnector, flowStoreServiceConnector, jobStoreServiceConnector,
-                weekResolverConnector, executor, null, null);
+                weekResolverConnector, executor, null, null, fbiInfoConnector);
     }
 
     RecordsWithoutHoldingsHarvestOperation(PeriodicJobsHarvesterConfig config,
@@ -54,9 +55,9 @@ public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
                                            WeekResolverConnector weekResolverConnector,
                                            ExecutorService executor,
                                            RawRepoConnector rawRepoConnector,
-                                           HoldingsItemsConnector holdingsItemsConnector) {
+                                           HoldingsItemsConnector holdingsItemsConnector, FbiInfoConnector fbiInfoConnector) {
         super(config, binaryFileStore, fileStoreServiceConnector, flowStoreServiceConnector, jobStoreServiceConnector,
-                weekResolverConnector, executor, rawRepoConnector);
+                weekResolverConnector, fbiInfoConnector, executor, rawRepoConnector);
 
         this.holdingsItemsConnector = holdingsItemsConnector != null
                 ? holdingsItemsConnector

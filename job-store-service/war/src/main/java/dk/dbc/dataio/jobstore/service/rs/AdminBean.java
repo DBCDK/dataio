@@ -129,14 +129,14 @@ public class AdminBean {
         if(!keys.isEmpty()) LOGGER.info("Hourly blocked check has released {}", keys);
     }
 
-//    @Schedule(minute = "15", hour = "*", persistent = false)
-//    public void completeFinishedJobs() {
-//        if(Hazelcast.isSlave()) return;
-//        Instant from = nextJobCheckFrom == null ? Instant.now().minus(Duration.ofHours(2)) : nextJobCheckFrom;
-//        Instant to = Instant.now().minus(Duration.ofMinutes(1));
-//        nextJobCheckFrom = to;
-//        completeFinishedJobs(from, to);
-//    }
+    @Schedule(minute = "15", hour = "*", persistent = false)
+    public void completeFinishedJobs() {
+        if(Hazelcast.isSlave()) return;
+        Instant from = nextJobCheckFrom == null ? Instant.now().minus(Duration.ofHours(2)) : nextJobCheckFrom;
+        Instant to = Instant.now().minus(Duration.ofMinutes(1));
+        nextJobCheckFrom = to;
+        completeFinishedJobs(from, to);
+    }
 
     public void resendIfNeeded(List<DependencyTrackingRO> list) {
         Set<DependencyTrackingRO> retries = list.stream()
@@ -232,14 +232,16 @@ public class AdminBean {
                 .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, ListFilter.Op.LESS_THAN, new Timestamp(to.toEpochMilli())))
                 .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL)));
         for (JobInfoSnapshot job : jobs) {
-            List<Timestamp> chunks = jobStoreRepository.listIncompleteChunks(job.getJobId());
-            if(job.getNumberOfChunks() <= chunks.size() && chunks.stream().noneMatch(Objects::isNull)) {
-                JobEntity entity = jobStoreRepository.getJobEntityById(job.getJobId());
-                Arrays.stream(State.Phase.values())
-                        .filter(p -> entity.getState().getPhase(p).getEndDate() == null)
-                        .forEach(p -> entity.getState().getPhase(p).withEndDate(new Date()));
-                entity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
-                LOGGER.info("completeFinishedJobs marked {} as completed, all chunks are accounted for", job.getJobId());
+            JobEntity entity = jobStoreRepository.getJobEntityById(job.getJobId());
+            if(entity.getState().phaseIsDone(State.Phase.PARTITIONING)) {
+                List<Timestamp> chunks = jobStoreRepository.listTimeOfChunkCompletion(job.getJobId());
+                if(job.getNumberOfChunks() <= chunks.size() && chunks.stream().noneMatch(Objects::isNull)) {
+                    Arrays.stream(State.Phase.values())
+                            .filter(p -> entity.getState().getPhase(p).getEndDate() == null)
+                            .forEach(p -> entity.getState().getPhase(p).withEndDate(new Date()));
+                    entity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+                    LOGGER.info("completeFinishedJobs marked {} as completed, all chunks are accounted for", job.getJobId());
+                }
             }
         }
     }

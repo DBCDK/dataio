@@ -21,6 +21,7 @@ import dk.dbc.testee.SameThreadExecutorService;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import jakarta.enterprise.concurrent.ManagedExecutorService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -30,13 +31,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -73,6 +74,13 @@ class HasCoverHarvestOperationTest {
         }
     }
 
+    @Test @Disabled("Explorative test to verify that the connector is working against the actual service")
+    public void test() {
+        FbiInfoConnector connector = new FbiInfoConnector("http://fbiinfo-service.cisterne.svc.cloud.dbc.dk/api/v1");
+        Set<RecordIdDTO> filter = connector.hasCoverFilter(List.of(new RecordIdDTO("137198827", 870970), new RecordIdDTO("123123123", 870970)));
+        assertThat(filter.size(), is(1));
+    }
+
     @Test
     public void executeWithRecordIdsFile() throws HarvesterException, IOException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
         Path originalFile = Paths.get("src/test/resources/record-ids-noinvalid.txt");
@@ -93,9 +101,7 @@ class HasCoverHarvestOperationTest {
         harvestOperation.timeOfSearch = timeOfSearch;
         doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
         RecordIdDTO recordWithCover = new RecordIdDTO("id2", 123456);
-        when(fbiInfoConnector.hasCover(eq(recordWithCover))).thenReturn(Boolean.TRUE);
-        when(fbiInfoConnector.hasCover(not(eq(recordWithCover)))).thenReturn(Boolean.FALSE);
-        boolean hasCover = fbiInfoConnector.hasCover(new RecordIdDTO("id1", 123456));
+        when(fbiInfoConnector.hasCoverFilter(any())).thenReturn(Set.of(recordWithCover));
         assertThat("records harvested", harvestOperation.execute(recordsIdFile), is(9));
     }
 

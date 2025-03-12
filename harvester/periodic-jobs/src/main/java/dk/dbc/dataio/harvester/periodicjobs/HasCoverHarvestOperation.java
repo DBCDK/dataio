@@ -10,6 +10,9 @@ import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import jakarta.enterprise.concurrent.ManagedExecutorService;
 
+import java.util.List;
+import java.util.Set;
+
 public class HasCoverHarvestOperation extends RecordsWithoutExpansionHarvestOperation {
 
     public HasCoverHarvestOperation(PeriodicJobsHarvesterConfig config, BinaryFileStore binaryFileStore, FileStoreServiceConnector fileStoreServiceConnector, FlowStoreServiceConnector flowStoreServiceConnector, JobStoreServiceConnector jobStoreServiceConnector, WeekResolverConnector weekResolverConnector, FbiInfoConnector fbiInfoConnector, ManagedExecutorService executor) {
@@ -21,8 +24,8 @@ public class HasCoverHarvestOperation extends RecordsWithoutExpansionHarvestOper
     }
 
     @Override
-    public boolean include(RecordIdDTO recordId) {
-        return !fbiInfoConnector.hasCover(recordId);
+    public List<RecordIdDTO> filter(List<RecordIdDTO> recordIds) {
+        Set<RecordIdDTO> filter = fbiInfoConnector.hasCoverFilter(recordIds);
+        return recordIds.stream().filter(recordId -> !filter.contains(recordId)).toList();
     }
-
 }

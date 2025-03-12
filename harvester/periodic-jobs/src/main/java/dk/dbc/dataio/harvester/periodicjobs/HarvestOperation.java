@@ -24,6 +24,7 @@ import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
 import jakarta.ws.rs.ProcessingException;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.slf4j.Logger;
@@ -227,7 +228,8 @@ public class HarvestOperation {
         try (RecordIdFile recordIdFile = new RecordIdFile(recordIds);
              JobBuilder jobBuilder = createJobBuilder()) {
             recordServiceConnector = createRecordServiceConnector();
-            Iterator<RecordIdDTO> recordIdsIterator = recordIdFile.iterator();
+            List<RecordIdDTO> recordIdDTOS = filter(Lists.newArrayList(recordIdFile.iterator()));
+            Iterator<RecordIdDTO> recordIdsIterator = recordIdDTOS.iterator();
             if (recordIdsIterator.hasNext()) {
                 List<RecordFetcher> fetchRecordTasks;
                 do {
@@ -317,15 +319,15 @@ public class HarvestOperation {
         List<RecordFetcher> tasks = new ArrayList<>(maxNumberOfTasks);
         while (recordIdsIterator.hasNext() && tasks.size() < maxNumberOfTasks) {
             RecordIdDTO recordId = recordIdsIterator.next();
-            if (recordId != null && include(recordId)) {
+            if (recordId != null) {
                 tasks.add(getRecordFetcher(recordId, recordServiceConnector, config));
             }
         }
         return tasks;
     }
 
-    public boolean include(RecordIdDTO recordId) {
-        return true;
+    public List<RecordIdDTO> filter(List<RecordIdDTO> recordIds) {
+        return recordIds;
     }
 
     RecordFetcher getRecordFetcher(RecordIdDTO recordId, RecordServiceConnector recordServiceConnector,

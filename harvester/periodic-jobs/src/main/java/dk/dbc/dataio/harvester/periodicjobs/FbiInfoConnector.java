@@ -45,7 +45,7 @@ public class FbiInfoConnector {
     }
 
     private String toManifestationId(RecordIdDTO recordIdDTO) {
-        // Slapping the bases catalogue code on the record only work, because the periodic job query is limited to 870970
+        // Slapping the basis catalogue code on the record only work, because the periodic job query is limited to 870970
         return recordIdDTO.getAgencyId() + "-basis:" + recordIdDTO.getBibliographicRecordId();
     }
 

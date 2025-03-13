@@ -15,7 +15,7 @@
     <properties>
         <main-class>dk.dbc.dataio.jobprocessor2.Jobprocessor</main-class>
         <!--suppress UnresolvedMavenProperty -->
-        <start.cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-2g} -XX:+ExitOnOutOfMemoryError -Dlogback.configurationFile=logback-jobstore.xml -jar /work/${project.build.finalName}.jar</start.cmd>
+        <start.cmd>java -javaagent:/work/opentelemetry-javaagent.jar -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-2g} -XX:+ExitOnOutOfMemoryError -Dlogback.configurationFile=logback-jobstore.xml -jar /work/${project.build.finalName}.jar</start.cmd>
     </properties>
 
     <dependencies>
@@ -66,6 +66,57 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
+                <version>0.45-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <id>build</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration combine.self="override">
+                    <tagName>devel</tagName>
+                    <images>
+                        <image>
+                            <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
+                            <build>
+                                <from>${java.image}</from>
+                                <user>java</user>
+                                <env>
+                                    <LOG_FORMAT default-value="json"/>
+                                    <LOG_LEVEL default-value="INFO"/>
+                                    <TZ default-value="Europe/Copenhagen"/>
+                                </env>
+                                <assemblies>
+                                    <assembly>
+                                        <descriptorRef>artifact</descriptorRef>
+                                        <targetDir>/work</targetDir>
+                                    </assembly>
+                                    <assembly>
+                                        <name>open-telemetry</name>
+                                        <user>java</user>
+                                        <mode>dir</mode>
+                                        <targetDir>/work</targetDir>
+                                        <inline>
+                                            <fileSets>
+                                                <fileSet>
+                                                    <directory>.</directory>
+                                                    <outputDirectory>.</outputDirectory>
+                                                    <includes>
+                                                        <include>opentelemetry-javaagent.jar</include>
+                                                    </includes>
+                                                </fileSet>
+                                            </fileSets>
+                                        </inline>
+                                    </assembly>
+                                </assemblies>
+                                <cmd>${start.cmd}</cmd>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
             </plugin>
         </plugins>
     </build>

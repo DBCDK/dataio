@@ -15,7 +15,7 @@
     <properties>
         <main-class>dk.dbc.dataio.jobprocessor2.Jobprocessor</main-class>
         <!--suppress UnresolvedMavenProperty -->
-        <start.cmd>java -javaagent:/work/opentelemetry-javaagent.jar -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-2g} -XX:+ExitOnOutOfMemoryError -Dlogback.configurationFile=logback-jobstore.xml -jar /work/${project.build.finalName}.jar</start.cmd>
+        <start.cmd>java -javaagent:"/work/opentelemetry-javaagent.jar" -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-2g} -XX:+ExitOnOutOfMemoryError -Dlogback.configurationFile=logback-jobstore.xml -jar /work/${project.build.finalName}.jar</start.cmd>
     </properties>
 
     <dependencies>

@@ -9,6 +9,8 @@ import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.jse.artemis.common.Metric;
 import dk.dbc.dataio.jse.artemis.common.service.ZombieWatch;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.trace.Span;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.MessageListener;
@@ -98,15 +100,23 @@ public interface MessageConsumer extends MessageListener {
                 return;
             }
             int jobId = JMSHeader.jobId.getHeader(message);
+            Span span = GlobalOpenTelemetry.get().tracerBuilder("jms-consumer").build()
+                    .spanBuilder(getClass().getSimpleName())
+                    .startSpan()
+                    .setAttribute("jobId", jobId)
+                    .setAttribute("chunkId", JMSHeader.chunkId.getHeader(message))
+                    .setAttribute("sink", JMSHeader.sink.getHeader(message));
             tags.add(destination.is(getFQN()));
             tags.add(redelivery.is(Boolean.toString(message.getJMSRedelivered())));
             if(ABORTED_JOBS.contains(jobId)) {
+                span.addEvent("Discard");
                 LOGGER.info("Discarding chunk {}/{} for aborted job", jobId, JMSHeader.chunkId.getHeader(message));
                 return;
             }
             LOGGER.info("Received chunk {}/{} with uid: {}", jobId, JMSHeader.chunkId.getHeader(message), JMSHeader.trackingId.getHeader(message));
             ConsumedMessage consumedMessage = validateMessage(message);
             handleConsumedMessage(consumedMessage);
+            span.end();
         } catch (InvalidMessageException e) {
             tags.add(rejected.is("true"));
             LOGGER.warn("Message {} discarded", messageId, e);

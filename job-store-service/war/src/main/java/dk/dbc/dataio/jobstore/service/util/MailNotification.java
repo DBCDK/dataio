@@ -40,9 +40,9 @@ public class MailNotification {
     private static final String JOB_COMPLETED_TEMPLATE = "/notifications/job_completed.template";
     private static final String JOB_COMPLETED_WITH_FAILURES_TEMPLATE = "/notifications/job_completed_with_failures.template";
     private static final String INVALID_TRANSFILE_TEMPLATE = "/notifications/invalid_transfile.template";
-    private static final String SUBJECT_FOR_JOB_CREATED = "DANBIB:postmester";
-    private static final String SUBJECT_FOR_JOB_COMPLETED = "DANBIB:baseindlaeg";
-    private static final String FROM_ADDRESS_PERSONAL_NAME = "DANBIB Fællesbruger";
+    public static final String SUBJECT_FOR_JOB_CREATED = "DANBIB:postmester";
+    public static final String SUBJECT_FOR_JOB_COMPLETED = "DANBIB:baseindlaeg";
+    public static final String FROM_ADDRESS_PERSONAL_NAME = "DANBIB Fællesbruger";
 
     private final MailDestination mailDestination;
     private final NotificationEntity notification;

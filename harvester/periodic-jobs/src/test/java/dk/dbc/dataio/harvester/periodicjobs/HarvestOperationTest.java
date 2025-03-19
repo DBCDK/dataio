@@ -44,7 +44,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 
 public class HarvestOperationTest {
     private static final String SOLR_COLLECTION = "testCollection";
@@ -52,7 +51,7 @@ public class HarvestOperationTest {
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
-    private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class, withSettings().verboseLogging());
+    private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
     private final WeekResolverConnector weekResolverConnector = mock(WeekResolverConnector.class);
     private final RecordSearcher recordSearcher = mock(RecordSearcher.class);
     private final ManagedExecutorService managedExecutorService = new NonContainerManagedExecutorService(new SameThreadExecutorService());

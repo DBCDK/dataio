@@ -3,21 +3,21 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
+import dk.dbc.dataio.jobstore.service.util.MailDestination;
+import dk.dbc.dataio.jobstore.service.util.MailNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.NotificationContext;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.vipcore.service.VipCoreServiceConnector;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.jvnet.mock_javamail.Mailbox;
+import jakarta.ejb.SessionContext;
+import jakarta.mail.Session;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import javax.ejb.SessionContext;
-import javax.mail.Session;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -40,21 +40,20 @@ import static org.mockito.Mockito.when;
 public class JobNotificationRepositoryTest {
     private final SessionContext sessionContext = mock(SessionContext.class);
     private final EntityManager entityManager = mock(EntityManager.class);
+    private final Session session = mock(Session.class);
     private final VipCoreServiceConnector vipCoreServiceConnector = mock(VipCoreServiceConnector.class);
     private final String destination = "mail@example.com";
     private final String mailFrom = "dataio@dbc.dk";
 
-    @Before
-    public void clearMailBoxes() {
-        Mailbox.clearAll();
-    }
-
-    @Before
+    @BeforeEach
     public void setupExpectations() {
         when(entityManager.merge(any(NotificationEntity.class))).then(returnsFirstArg());
+        Properties mailProps = new Properties();
+        mailProps.setProperty("mail.from", MailNotification.FROM_ADDRESS_PERSONAL_NAME);
+        when(session.getProperties()).thenReturn(mailProps);
     }
 
-    @Ignore @Test
+    @Test
     public void processNotification_notificationHasNonWaitingStatus_returnsFalse() {
         final NotificationEntity notification = new NotificationEntity();
         notification.setStatus(Notification.Status.COMPLETED);
@@ -65,7 +64,7 @@ public class JobNotificationRepositoryTest {
         assertThat("notification destination", notification.getDestination(), is(nullValue()));
     }
 
-    @Ignore @Test
+    @Test
     public void processNotification_sendingOfNotificationFails_failsNotificationAndReturnsFalse() {
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification("verification@company.com");
@@ -78,7 +77,7 @@ public class JobNotificationRepositoryTest {
         assertThat("notification statusMessage", notification.getStatusMessage(), is(notNullValue()));
     }
 
-    @Ignore @Test
+    @Test
     public void processNotification_sendingOfNotificationSucceeds_completesNotificationAndReturnsTrue() {
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification("verification@company.com");
@@ -89,7 +88,7 @@ public class JobNotificationRepositoryTest {
         assertThat("notification status", notification.getStatus(), is(Notification.Status.COMPLETED));
     }
 
-    @Ignore @Test
+    @Test
     public void flushNotifications_transportLayerFails_allNotificationsAreProcessed() {
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification("verification@company.com");
@@ -114,7 +113,7 @@ public class JobNotificationRepositoryTest {
         }
     }
 
-    @Ignore @Test
+    @Test
     public void flushNotifications_processingThrowsRuntimeException_allNotificationsAreProcessed() {
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification("verification@company.com");
@@ -138,7 +137,7 @@ public class JobNotificationRepositoryTest {
         assertThat("3rd notification status", notifications.get(2).getStatus(), is(Notification.Status.COMPLETED));
     }
 
-    @Ignore @Test
+    @Test
     public void getNotifications_repositoryQueryReturnsEmptyResultList_returnsEmptyList() {
         final TypedQuery query = mock(TypedQuery.class);
         when(entityManager.createQuery(anyString(), eq(NotificationEntity.class))).thenReturn(query);
@@ -151,7 +150,7 @@ public class JobNotificationRepositoryTest {
         assertThat("Number of notifications", notifications.size(), is(0));
     }
 
-    @Ignore @Test
+    @Test
     public void getNotifications_repositoryQueryReturnsNonEmptyResultList_returns() {
         final JobSpecification jobSpecification = new JobSpecification();
         final List<NotificationEntity> entities = Arrays.asList(
@@ -176,7 +175,7 @@ public class JobNotificationRepositoryTest {
         }
     }
 
-    @Ignore @Test
+    @Test
     public void addNotification_withJob_persistsAndReturnsEntityInWaitingState() {
         final JobEntity jobEntity = new JobEntity();
         final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
@@ -189,7 +188,7 @@ public class JobNotificationRepositoryTest {
         verify(entityManager).persist(notificationEntity);
     }
 
-    @Ignore @Test
+    @Test
     public void addNotification_withContext_persistsAndReturnsEntityInWaitingState() throws JobStoreException {
         final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
         final NotificationEntity notificationEntity = jobNotificationRepository.addNotification(
@@ -209,10 +208,20 @@ public class JobNotificationRepositoryTest {
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.from", mailFrom);
 
-        final JobNotificationRepository jobNotificationRepository = new JobNotificationRepository();
+        final JobNotificationRepository jobNotificationRepository = new JobNotificationRepository() {
+            @Override
+            protected MailNotification newMailNotification(MailDestination destination, NotificationEntity notification) throws JobStoreException {
+                return new MailNotification(destination, notification) {
+                    @Override
+                    public void send() throws JobStoreException {
+                        if(mailSession == null) throw new JobStoreException("mailSession is null");
+                    }
+                };
+            }
+        };
         jobNotificationRepository.entityManager = entityManager;
+        jobNotificationRepository.mailSession = session;
         jobNotificationRepository.sessionContext = sessionContext;
-        jobNotificationRepository.mailSession = Session.getDefaultInstance(mailSessionProperties);
         jobNotificationRepository.vipCoreServiceConnector = vipCoreServiceConnector;
         when(sessionContext.getBusinessObject(JobNotificationRepository.class)).thenReturn(jobNotificationRepository);
 

@@ -190,6 +190,10 @@ public class JobNotificationRepository extends RepositoryBase {
                 .getResultList();
     }
 
+    protected MailNotification newMailNotification(MailDestination destination, NotificationEntity notification) throws JobStoreException {
+        return new MailNotification(destination, notification);
+    }
+
     private Query getWaitingNotificationsQuery() {
         return entityManager.createQuery(SELECT_NOTIFICATIONS_BY_STATUS_STATEMENT)
                 .setParameter("status", Notification.Status.WAITING)
@@ -202,7 +206,7 @@ public class JobNotificationRepository extends RepositoryBase {
 
     private MailNotification newMailNotification(NotificationEntity notification) throws JobStoreException {
         final MailDestination mailDestination = new MailDestination(mailSession, notification, vipCoreServiceConnector);
-        final MailNotification mailNotification = new MailNotification(mailDestination, notification);
+        final MailNotification mailNotification = newMailNotification(mailDestination, notification);
         final JobEntity job = notification.getJob();
         if (notification.getType() == Notification.Type.JOB_COMPLETED && job.hasFailedItems() && !job.hasFatalDiagnostics()) {
             final JobExporter jobExporter = new JobExporter(entityManager);

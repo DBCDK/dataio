@@ -47,6 +47,7 @@ public class PeriodicJobsHarvesterConfig
         return token.toString();
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Content implements Serializable {
         public Content() {

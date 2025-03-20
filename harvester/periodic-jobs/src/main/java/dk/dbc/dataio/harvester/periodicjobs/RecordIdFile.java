@@ -66,7 +66,7 @@ public class RecordIdFile implements Iterable<RecordIdDTO>, AutoCloseable {
         }
     }
 
-    private static RecordIdDTO toRecordId(String line) {
+    public static RecordIdDTO toRecordId(String line) {
         if (line != null && !line.trim().isEmpty()) {
             final String[] parts = line.split(":");
             if (parts.length == 2) {

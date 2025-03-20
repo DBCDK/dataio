@@ -2,6 +2,7 @@ package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.types.HarvesterToken;
@@ -10,6 +11,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PeriodicJobsHarvesterConfig
         extends HarvesterConfig<PeriodicJobsHarvesterConfig.Content>
         implements Serializable {
@@ -70,7 +72,7 @@ public class PeriodicJobsHarvesterConfig
          */
         private String query;
 
-        private String queryFileId;
+        private String recordsFromFile;
 
         /**
          * The Solr collection to query
@@ -162,12 +164,12 @@ public class PeriodicJobsHarvesterConfig
             return this;
         }
 
-        public String getQueryFileId() {
-            return queryFileId;
+        public String getRecordsFromFile() {
+            return recordsFromFile;
         }
 
-        public Content withQueryFileId(String queryFileId) {
-            this.queryFileId = queryFileId;
+        public Content withRecordsFromFile(String recordsFromFile) {
+            this.recordsFromFile = recordsFromFile;
             return this;
         }
 

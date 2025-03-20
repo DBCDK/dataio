@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.sql.SQLException;
@@ -41,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -112,8 +112,21 @@ public class HarvestOperation {
      * @throws HarvesterException on failure to complete harvest operation
      */
     public int execute() throws HarvesterException {
-        BinaryFile searchResultFile = getTmpFileForSearchResult();
-        return execute(searchAndPersist(searchResultFile));
+        String fileId = config.getContent().getRecordsFromFile();
+        if (fileId == null) {
+            BinaryFile searchResultFile = getTmpFileForSearchResult();
+            return execute(searchAndPersist(searchResultFile));
+        }
+        return execute(getRecordListFromFilestore(fileId));
+    }
+
+    protected List<RecordIdDTO> getRecordListFromFilestore(String fileId) throws HarvesterException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(fileStoreServiceConnector.getFile(fileId)))) {
+            List<RecordIdDTO> list = reader.lines().map(String::strip).filter(s -> !s.isEmpty()).map(RecordIdFile::toRecordId).filter(Objects::nonNull).distinct().toList();
+            return list;
+        } catch (FileStoreServiceConnectorException | IOException e) {
+            throw new HarvesterException("Failed to get file from FileStore", e);
+        }
     }
 
     protected BinaryFile searchAndPersist(BinaryFile searchResultFile) throws HarvesterException {
@@ -190,24 +203,8 @@ public class HarvestOperation {
 
     protected List<String> getQueries() throws HarvesterException {
         List<String> queries = new ArrayList<>();
-
-        if (config.getContent().getQueryFileId() != null) {
-            LOGGER.info("Found FileStore id {} so using file", config.getContent().getQueryFileId());
-            String fileId = config.getContent().getQueryFileId();
-            try (InputStream queryFileInputStream = fileStoreServiceConnector.getFile(fileId);
-                 BufferedReader reader = new BufferedReader(new InputStreamReader(queryFileInputStream))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    queries.add(line);
-                }
-            } catch (FileStoreServiceConnectorException | IOException e) {
-                throw new HarvesterException("Failed to get file from FileStore", e);
-            }
-        } else {
-            LOGGER.info("Using query fron config");
-            queries.add(config.getContent().getQuery());
-        }
-
+        LOGGER.info("Using query from config");
+        queries.add(config.getContent().getQuery());
         return queries;
     }
 
@@ -225,11 +222,22 @@ public class HarvestOperation {
      */
     int execute(BinaryFile recordIds) throws HarvesterException {
         RecordServiceConnector recordServiceConnector = null;
-        try (RecordIdFile recordIdFile = new RecordIdFile(recordIds);
-             JobBuilder jobBuilder = createJobBuilder()) {
+        try (RecordIdFile recordIdFile = new RecordIdFile(recordIds)) {
             recordServiceConnector = createRecordServiceConnector();
             List<RecordIdDTO> recordIdDTOS = filter(Lists.newArrayList(recordIdFile.iterator()));
-            Iterator<RecordIdDTO> recordIdsIterator = recordIdDTOS.iterator();
+            return execute(recordIdDTOS);
+        } finally {
+            recordIds.delete();
+            if (recordServiceConnector != null) {
+                recordServiceConnector.close();
+            }
+        }
+    }
+
+    int execute(List<RecordIdDTO> recordIds) throws HarvesterException {
+        try (JobBuilder jobBuilder = createJobBuilder()) {
+            RecordServiceConnector recordServiceConnector = createRecordServiceConnector();
+            Iterator<RecordIdDTO> recordIdsIterator = filter(recordIds).iterator();
             if (recordIdsIterator.hasNext()) {
                 List<RecordFetcher> fetchRecordTasks;
                 do {
@@ -260,11 +268,6 @@ public class HarvestOperation {
         } catch (ExecutionException | JobStoreServiceConnectorException e) {
             LOGGER.error("Harvest operation exception:", e);
             throw new HarvesterException("Unable to complete harvest operation", e);
-        } finally {
-            recordIds.delete();
-            if (recordServiceConnector != null) {
-                recordServiceConnector.close();
-            }
         }
     }
 

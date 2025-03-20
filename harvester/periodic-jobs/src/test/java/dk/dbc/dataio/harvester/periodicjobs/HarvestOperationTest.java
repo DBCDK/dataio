@@ -107,7 +107,7 @@ public class HarvestOperationTest {
                         .withDestination("-destination-")
                         .withFormat("-format-")
                         .withSubmitterNumber("123456")
-                        .withQueryFileId(fileId)
+                        .withRecordsFromFile(fileId)
                         .withTimeOfLastHarvest(Date.from(timeOfLastHarvest.toInstant())));
         fileStoreServiceConnector.destinations.add(Files.createFile(tmpFolder.resolve(UUID.randomUUID() + ".tmp")));
         HarvestOperation harvestOperation = newHarvestOperation(config);

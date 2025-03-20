@@ -112,7 +112,7 @@ public class HarvestOperation {
      * @throws HarvesterException on failure to complete harvest operation
      */
     public int execute() throws HarvesterException {
-        String fileId = config.getContent().getQueryFileId();
+        String fileId = config.getContent().getRecordsFromFile();
         if (fileId == null) {
             BinaryFile searchResultFile = getTmpFileForSearchResult();
             return execute(searchAndPersist(searchResultFile));

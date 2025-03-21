@@ -7,7 +7,7 @@
     <parent>
         <groupId>dk.dbc</groupId>
         <artifactId>microservice-pom</artifactId>
-        <version>java17-SNAPSHOT</version>
+        <version>master-jega-0</version>
         <relativePath/>
     </parent>
 
@@ -33,7 +33,7 @@
 
     <properties>
         <tag>devel</tag>
-        <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest</java.image>
+        <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:20252-0</java.image>
         <docker.payaradir>/opt/payara6</docker.payaradir>
         <docker.deploydir>/opt/payara6/deployments</docker.deploydir>
 

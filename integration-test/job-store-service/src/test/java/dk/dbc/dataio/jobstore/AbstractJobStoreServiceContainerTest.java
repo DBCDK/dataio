@@ -10,6 +10,8 @@ import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
 import dk.dbc.httpclient.HttpClient;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
+import org.flywaydb.core.api.configuration.FluentConfiguration;
+import org.flywaydb.database.postgresql.PostgreSQLConfigurationExtension;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.Before;
@@ -229,7 +231,11 @@ public abstract class AbstractJobStoreServiceContainerTest {
     static void migrateJobstore(DataSource dataSource) {
         Path path = Path.of("../../job-store-service/war/target/classes/db/migration");
         LOGGER.info("Running flyway migration scripts in {}, which are {}", path.toAbsolutePath().normalize(), Files.isDirectory(path) ? "present" : "missing");
-        Flyway flyway = Flyway.configure()
+        FluentConfiguration configure = Flyway.configure();
+        PostgreSQLConfigurationExtension configurationExtension = configure.getPluginRegister()
+                .getPlugin(PostgreSQLConfigurationExtension.class);
+        configurationExtension.setTransactionalLock(false);
+        Flyway flyway = configure
                 .locations("filesystem:" + path)
                 .table("schema_version_2")
                 .baselineOnMigrate(true)

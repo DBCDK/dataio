@@ -67,38 +67,23 @@ public class FileFinderTest {
     @Test
     public void findFilesWithExtension_returnsListOrderedByFileCreationTimeThenByFileName() throws IOException {
         List<Path> files = createFiles("2.trans", "3.trans", "1.trans");
-        Path first = files.get(0);
-        Path second = files.get(1);
-        Path third = files.get(2);
         long now = System.currentTimeMillis();
-        setFileCreationTime(first, now + 1000);
-        setFileCreationTime(second, now + 2000);
-        setFileCreationTime(third, now);
-
+        files.forEach(f -> setFileCreationTime(f, now));
         List<Path> matchingFiles = FileFinder.findFilesWithExtension(testFolder, Set.of(".trans"));
-
-        assertThat("first", matchingFiles.get(0), is(third));
-        assertThat("second", matchingFiles.get(1), is(first));
-        assertThat("third", matchingFiles.get(2), is(second));
+        List<String> names = matchingFiles.stream().map(p -> p.toFile().getName()).toList();
+        assertThat("File order", names, is(List.of("1.trans", "2.trans", "3.trans")));
     }
 
     @Test
     public void findFilesWithExtension_returnsListOrderedByFileCreationTime() throws IOException {
-        if (SystemUtil.isOsX()) { // setting file create time does not work on OS X - https://bugs.openjdk.java.net/browse/JDK-8151430
-            return;
-        }
         List<Path> files = createFiles("2.trans", "3.trans", "1.trans");
         Path first = files.get(0);
-        Path second = files.get(1);
-        Path third = files.get(2);
-        setFileCreationTime(second, Files.getLastModifiedTime(first).toMillis() + 1000);
-        setFileCreationTime(third, Files.getLastModifiedTime(first).toMillis() + 2000);
+        setFileCreationTime(files.get(1), Files.getLastModifiedTime(first).toMillis() + 1000);
+        setFileCreationTime(files.get(2), Files.getLastModifiedTime(first).toMillis() + 2000);
 
         List<Path> matchingFiles = FileFinder.findFilesWithExtension(testFolder, Set.of(".trans"));
-
-        assertThat("first", matchingFiles.get(0), is(first));
-        assertThat("second", matchingFiles.get(1), is(second));
-        assertThat("third", matchingFiles.get(2), is(third));
+        List<String> names = matchingFiles.stream().map(p -> p.toFile().getName()).toList();
+        assertThat("File order", names, is(List.of("2.trans", "3.trans", "1.trans")));
     }
 
     private static void setFileCreationTime(Path file, long creationTime) {
@@ -113,6 +98,16 @@ public class FileFinderTest {
 
     private List<Path> createFiles(String... filenames) {
         return Arrays.stream(filenames).map(f -> testFolder.resolve(f)).map(f -> {
+            try {
+                return Files.createFile(f);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(Collectors.toList());
+    }
+
+    private List<Path> createFiles(List<String> filenames) {
+        return filenames.stream().map(f -> testFolder.resolve(f)).map(f -> {
             try {
                 return Files.createFile(f);
             } catch (IOException e) {

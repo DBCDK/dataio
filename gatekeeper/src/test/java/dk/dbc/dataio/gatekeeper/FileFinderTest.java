@@ -71,8 +71,8 @@ public class FileFinderTest {
         Path second = files.get(1);
         Path third = files.get(2);
         long now = System.currentTimeMillis();
-        setFileCreationTime(first, now);
-        setFileCreationTime(second, now);
+        setFileCreationTime(first, now + 1000);
+        setFileCreationTime(second, now + 2000);
         setFileCreationTime(third, now);
 
         List<Path> matchingFiles = FileFinder.findFilesWithExtension(testFolder, Set.of(".trans"));

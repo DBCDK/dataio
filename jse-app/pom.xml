@@ -17,7 +17,7 @@
     <properties>
         <tag>devel</tag>
         <main-class>Dummy</main-class>
-        <java.image>docker-dbc.artifacts.dbccloud.dk/dbc-java17:latest</java.image>
+        <java.image>docker-dbc.artifacts.dbccloud.dk/dbc-java21:main</java.image>
         <jackson.version>2.15.2</jackson.version>
         <jdk.target.version>17</jdk.target.version>
         <!--suppress UnresolvedMavenProperty -->

@@ -8,7 +8,7 @@ Boolean FAST_BUILD=false
 pipeline {
     agent { label workerNode }
     tools {
-        jdk 'jdk17'
+        jdk 'jdk21'
         maven 'Maven 3'
     }
     environment {

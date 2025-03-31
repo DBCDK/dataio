@@ -82,6 +82,7 @@ public class FileFinderTest {
         setFileCreationTime(files.get(2), Files.getLastModifiedTime(first).toMillis() + 2000);
 
         List<Path> matchingFiles = FileFinder.findFilesWithExtension(testFolder, Set.of(".trans"));
+
         List<String> names = matchingFiles.stream().map(p -> p.toFile().getName()).toList();
         assertThat("File order", names, is(List.of("2.trans", "3.trans", "1.trans")));
     }

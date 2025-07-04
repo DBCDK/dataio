@@ -125,6 +125,14 @@ public class AdminBean {
     @Schedule(minute = "10", hour = "*", persistent = false)
     public void recheckBlocks() {
         if(Hazelcast.isSlave()) return;
+        Set<Integer> trackedJobIds = dependencyTrackingService.getAllJobIs();
+        for (Integer jobId : trackedJobIds) {
+            JobEntity entity = jobStoreRepository.getJobEntityById(jobId);
+            if(entity == null || entity.getTimeOfCompletion() != null) {
+                dependencyTrackingService.removeJobId(jobId);
+                LOGGER.info("Trackers for finished Job id: {} was removed", jobId);
+            }
+        }
         Set<TrackingKey> keys = dependencyTrackingService.recheckBlocks();
         if(!keys.isEmpty()) LOGGER.info("Hourly blocked check has released {}", keys);
     }

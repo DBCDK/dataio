@@ -402,6 +402,10 @@ public class DependencyTrackingService {
         return dependencies.stream().map(DependencyTrackingRO::getKey).filter(k -> !keys.contains(k)).collect(Collectors.toSet());
     }
 
+    public Set<Integer> getAllJobIs() {
+        return dependencyTracker.keySet().stream().map(TrackingKey::getJobId).collect(Collectors.toSet());
+    }
+
     public Integer[] jobCount(int sinkId) {
         return dependencyTracker.aggregate(new JobCounter(sinkId));
     }

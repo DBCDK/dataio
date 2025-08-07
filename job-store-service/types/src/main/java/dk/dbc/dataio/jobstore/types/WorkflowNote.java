@@ -2,9 +2,9 @@ package dk.dbc.dataio.jobstore.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.invariant.InvariantUtil;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class WorkflowNote implements Serializable {
 
@@ -26,7 +26,7 @@ public class WorkflowNote implements Serializable {
                         @JsonProperty("description") String description) throws NullPointerException, IllegalArgumentException {
 
         this.processed = processed;
-        this.assignee = InvariantUtil.checkNotNullNotEmptyOrThrow(assignee, "assignee");
+        this.assignee = assignee;
         this.description = description;
     }
 
@@ -43,23 +43,13 @@ public class WorkflowNote implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof WorkflowNote)) return false;
-
-        WorkflowNote that = (WorkflowNote) o;
-
-        return processed == that.processed
-                && assignee.equals(that.assignee)
-                && !(description != null ? !description.equals(that.description) : that.description != null);
-
+    public boolean equals(Object object) {
+        if (!(object instanceof WorkflowNote that)) return false;
+        return processed == that.processed && Objects.equals(assignee, that.assignee) && Objects.equals(description, that.description);
     }
 
     @Override
     public int hashCode() {
-        int result = processed ? 1 : 0;
-        result = 31 * result + assignee.hashCode();
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        return result;
+        return Objects.hash(processed, assignee, description);
     }
 }

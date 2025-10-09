@@ -6,9 +6,6 @@ import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -48,18 +45,13 @@ public class AddiFileVerifier {
                 final AddiMetaData addiMetaData = jsonbContext.unmarshall(new String(addiRecord.getMetaData(), StandardCharsets.UTF_8), AddiMetaData.class);
                 assertAddiMetadata(recordNo, addiMetaData, addiMetaDataList.get(recordNo));
                 if (addiMetaData.diagnostic() == null) {
-                    final Object expectation = expectations.get(recordNo);
-                    if (expectation instanceof XmlExpectation) {
-                        final Document document = JaxpUtil.toDocument(addiRecord.getContentData());
-                        ((XmlExpectation) expectation).verify(document.getDocumentElement());
-                    } else {
-                        ((Expectation) expectation).verify(addiRecord.getContentData());
-                    }
+                    Expectation expectation = expectations.get(recordNo);
+                    expectation.verify(addiRecord.getContentData());
                 }
                 recordNo++;
             }
             assertThat("Number of records in addi file", recordNo, is(addiMetaDataList.size()));
-        } catch (IOException | SAXException | JSONBException e) {
+        } catch (IOException | JSONBException e) {
             throw new IllegalStateException(e);
         }
     }

@@ -5,8 +5,8 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.HarvesterRecord;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
@@ -130,7 +130,7 @@ public class ImsHarvestOperation extends HarvestOperation {
      * @throws HarvesterException Something went wrong getting records
      */
     @Override
-    HarvesterXmlRecord getXmlContentForEnrichedRecord(RecordDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
+    HarvesterRecord getXmlContentForEnrichedRecord(RecordDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
         MarcExchangeCollection result = (MarcExchangeCollection) super.getXmlContentForEnrichedRecord(recordData, addiMetaData);
         final ArrayList<MarcRecord> records = new ArrayList<>(result.getRecords());
         for (MarcRecord record : records) {

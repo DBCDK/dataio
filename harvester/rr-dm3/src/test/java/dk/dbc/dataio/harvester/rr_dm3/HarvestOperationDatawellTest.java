@@ -209,12 +209,8 @@ public class HarvestOperationDatawellTest implements TempFiles {
     }
 
     @Test
-    public void harvest_recordCollectionContainsInvalidEntry_recordIsFailed()
-            throws HarvesterException, RecordServiceConnectorException {
-        RecordEntryDTO invalidRecord = new RecordEntryDTO();
-        invalidRecord.setRecordId(FIRST_RECORD_HEAD.getRecordId());
-        invalidRecord.setCreated(Instant.now().toString());
-        invalidRecord.setContent(JsonNodeFactory.instance.textNode("garbage"));
+    public void harvest_recordCollectionContainsInvalidEntry_recordIsFailed() throws HarvesterException, RecordServiceConnectorException {
+        RecordEntryDTO invalidRecord = new RecordEntryBuilder().id(FIRST_RECORD_HEAD.getRecordId()).createdNow().content(JsonNodeFactory.instance.textNode("garbage")).build();
 
         // Mock rawrepo return values
         when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
@@ -224,7 +220,7 @@ public class HarvestOperationDatawellTest implements TempFiles {
         when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordData(any(RecordIdDTO.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
-        dbcRecordsExpectations.add(null);
+        dbcRecordsExpectations.add(Expectations.of(invalidRecord));
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(FIRST_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
@@ -232,7 +228,7 @@ public class HarvestOperationDatawellTest implements TempFiles {
                 .withCreationDate(Date.from(Instant.parse(FIRST_RECORD.getCreated())))
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
-                .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, "No marcXchange record found"))
+                .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format("Harvesting RawRepo %s failed: No marcXchange record found", FIRST_RECORD.getRecordId())))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 

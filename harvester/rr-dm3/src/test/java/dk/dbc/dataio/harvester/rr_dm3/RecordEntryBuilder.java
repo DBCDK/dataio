@@ -62,7 +62,11 @@ public class RecordEntryBuilder extends BeanBuilder<RecordEntryDTO> {
     }
 
     public RecordEntryBuilder content() {
-        return set(r -> r.setContent(getRecordContent(r.getRecordId())));
+        return content(getRecordContent(bean.getRecordId()));
+    }
+
+    public RecordEntryBuilder content(JsonNode content) {
+        return set(r -> r.setContent(content));
     }
 
     public RecordEntryBuilder deleteContent(char recordType) {

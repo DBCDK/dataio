@@ -12,7 +12,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterRecord;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
+import dk.dbc.dataio.harvester.types.MarcJSonCollection;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.invariant.InvariantUtil;
@@ -336,19 +336,19 @@ public class HarvestOperation implements AutoCloseable {
         return getMarcExchangeCollection(recordData.getRecordId(), records);
     }
 
-    private MarcExchangeCollection getMarcExchangeCollection(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterException {
-        final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection();
-        marcExchangeCollection.addMember(getRecordContent(recordId, records));
+    private HarvesterRecord getMarcExchangeCollection(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterException {
+        MarcJSonCollection marcJSonCollection = new MarcJSonCollection();
+        marcJSonCollection.addMember(getRecordContent(recordId, records));
         if (configContent.hasIncludeRelations()) {
             for (RecordEntryDTO recordData : records.values()) {
                 if (recordId.equals(recordData.getRecordId())) {
                     continue;
                 }
                 LOGGER.debug("Adding {} member to {} marc exchange collection", recordData.getRecordId(), recordId);
-                marcExchangeCollection.addMember(getRecordContent(recordData.getRecordId(), recordData));
+                marcJSonCollection.addMember(getRecordContent(recordData.getRecordId(), recordData));
             }
         }
-        return marcExchangeCollection;
+        return marcJSonCollection;
     }
 
     private byte[] getRecordContent(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterInvalidRecordException {

@@ -7,7 +7,6 @@ import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterRecord;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
@@ -23,7 +22,7 @@ import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -131,9 +130,8 @@ public class ImsHarvestOperation extends HarvestOperation {
      */
     @Override
     HarvesterRecord getContentForEnrichedRecord(RecordEntryDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
-        MarcExchangeCollection result = (MarcExchangeCollection) super.getContentForEnrichedRecord(recordData, addiMetaData);
-        final ArrayList<MarcRecord> records = new ArrayList<>(result.getRecords());
-        for (MarcRecord record : records) {
+        HarvesterRecord result = super.getContentForEnrichedRecord(recordData, addiMetaData);
+        for (MarcRecord record : new ArrayList<>(result.getRecords())) {
             final Optional<String> f001b = record.getSubFieldValue("001", 'b');
             if (f001b.isPresent() && !f001b.get().equals("870970") && isDeletedHeadOrSectionRecord(record)) {
                 String f001a = record.getSubFieldValue("001", 'a').orElseThrow(() -> new IllegalArgumentException("Record is missing mandatory 001a field"));
@@ -141,8 +139,8 @@ public class ImsHarvestOperation extends HarvestOperation {
                 RecordIdDTO recordId = new RecordIdDTO(f001a, HarvestOperation.DBC_LIBRARY);
                 try {
                     RecordEntryDTO replaceRecord = rawRepoRecordServiceConnector.getRecordData(recordId, params);
-                    result.addMember(replaceRecord.getContent().binaryValue());
-                } catch (RecordServiceConnectorException | IOException e) {
+                    result.addMember(replaceRecord.getContent().toString().getBytes(StandardCharsets.UTF_8));
+                } catch (RecordServiceConnectorException e) {
                     throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
                 }
                 result.getRecords().remove(record);

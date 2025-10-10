@@ -18,7 +18,7 @@ import java.util.List;
  * <p>
  * This class is not thread safe.
  */
-public class MarcExchangeCollection implements HarvesterRecord {
+public class MarcExchangeCollection implements HarvesterRecord<MarcRecord> {
     private final Charset charset = StandardCharsets.UTF_8;
     private final List<MarcRecord> records;
 

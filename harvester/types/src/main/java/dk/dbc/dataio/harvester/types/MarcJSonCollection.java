@@ -1,6 +1,6 @@
 package dk.dbc.dataio.harvester.types;
 
-import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.MarcBinding;
 import dk.dbc.marc.reader.JsonReader;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.writer.JsonWriter;
@@ -12,8 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MarcJSonCollection implements HarvesterRecord {
-    private final List<MarcRecord> records = new ArrayList<>();
+public class MarcJSonCollection implements HarvesterRecord<MarcBinding> {
+    private final List<MarcBinding> records = new ArrayList<>();
 
     /**
      * @return this MARC Exchange Collections XML representation as byte array
@@ -25,7 +25,7 @@ public class MarcJSonCollection implements HarvesterRecord {
             throw new HarvesterInvalidRecordException("Empty marcXchange collection");
         }
         try {
-            return new JsonWriter().writeCollection(records, getCharset());
+            return new JsonWriter().writeBindingCollection(records, getCharset());
         } catch (MarcWriterException e) {
             throw new HarvesterException(e);
         }
@@ -36,7 +36,7 @@ public class MarcJSonCollection implements HarvesterRecord {
      */
     public byte[] emptyCollection() throws HarvesterException {
         try {
-            return new JsonWriter().writeCollection(List.of(), getCharset());
+            return new JsonWriter().writeBindingCollection(List.of(), getCharset());
         } catch (MarcWriterException e) {
             throw new HarvesterException(e);
         }
@@ -66,16 +66,16 @@ public class MarcJSonCollection implements HarvesterRecord {
         try {
             JsonReader reader = new JsonReader(new ByteArrayInputStream(memberData));
 
-            MarcRecord record = reader.read();
+            MarcBinding record = reader.readBinding();
             if (record == null) throw new HarvesterInvalidRecordException("No marcXchange record found");
             records.add(record);
-            if (reader.read() != null) throw new HarvesterInvalidRecordException("Given collection contains more than one record");
+            if (reader.readBinding() != null) throw new HarvesterInvalidRecordException("Given collection contains more than one record");
         } catch (MarcReaderException e) {
             throw new HarvesterInvalidRecordException("member data can not be parsed as marcXchange", e);
         }
     }
 
-    public List<MarcRecord> getRecords() {
+    public List<MarcBinding> getRecords() {
         return records;
     }
 }

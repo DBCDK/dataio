@@ -17,6 +17,7 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
+import dk.dbc.marc.binding.MarcBinding;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
@@ -166,7 +167,7 @@ public class HarvestOperation implements AutoCloseable {
 
             if (includeRecord(recordData.getRecordId().getAgencyId(), recordData.isDeleted() || recordHarvestTask.isForceAdd())) {
                 enrichAddiMetaData(addiMetaData);
-                final HarvesterRecord contentForRecord = getContentForEnrichedRecord(recordData, addiMetaData);
+                final HarvesterRecord<MarcBinding> contentForRecord = getContentForEnrichedRecord(recordData, addiMetaData);
                 getHarvesterJobBuilder(addiMetaData.submitterNumber())
                         .addRecord(createAddiRecord(addiMetaData, contentForRecord.asBytes()));
 
@@ -309,7 +310,7 @@ public class HarvestOperation implements AutoCloseable {
     /* Fetches rawrepo record collection associated with given record ID and adds its content to a new MARC exchange collection.
        Returns MARC exchange collection
      */
-    HarvesterRecord getContentForEnrichedRecord(RecordEntryDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
+    MarcJSonCollection getContentForEnrichedRecord(RecordEntryDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
         final Map<String, RecordEntryDTO> records;
         try {
             records = fetchRecordCollection(recordData.getRecordId());
@@ -336,7 +337,7 @@ public class HarvestOperation implements AutoCloseable {
         return getMarcExchangeCollection(recordData.getRecordId(), records);
     }
 
-    private HarvesterRecord getMarcExchangeCollection(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterException {
+    private MarcJSonCollection getMarcExchangeCollection(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterException {
         MarcJSonCollection marcJSonCollection = new MarcJSonCollection();
         marcJSonCollection.addMember(getRecordContent(recordId, records));
         if (configContent.hasIncludeRelations()) {

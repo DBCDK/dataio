@@ -3,14 +3,15 @@ package dk.dbc.dataio.harvester.rr_dm3;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.utils.lang.Require;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.HarvesterRecord;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
+import dk.dbc.dataio.harvester.types.MarcJSonCollection;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
-import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.MarcBinding;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
@@ -28,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 public class ImsHarvestOperation extends HarvestOperation {
@@ -110,11 +110,11 @@ public class ImsHarvestOperation extends HarvestOperation {
         }
     }
 
-    private boolean isDeletedHeadOrSectionRecord(MarcRecord record) {
-        final Optional<String> f004d = record.getSubFieldValue("004", 'r');
-        final Optional<String> f004a = record.getSubFieldValue("004", 'a');
-        if (f004d.isPresent() && f004a.isPresent() && "d".equals(f004d.get())) {
-            return "s".equals(f004a.get()) || "h".equals(f004a.get());
+    private boolean isDeletedHeadOrSectionRecord(MarcBinding record) {
+        String f004d = record.getSubFieldValue("004", 'r');
+        String f004a = record.getSubFieldValue("004", 'a');
+        if (f004a != null && "d".equals(f004d)) {
+            return "s".equals(f004a) || "h".equals(f004a);
         }
         return false;
     }
@@ -129,14 +129,14 @@ public class ImsHarvestOperation extends HarvestOperation {
      * @throws HarvesterException Something went wrong getting records
      */
     @Override
-    HarvesterRecord getContentForEnrichedRecord(RecordEntryDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
-        HarvesterRecord result = super.getContentForEnrichedRecord(recordData, addiMetaData);
-        for (MarcRecord record : new ArrayList<>(result.getRecords())) {
-            final Optional<String> f001b = record.getSubFieldValue("001", 'b');
-            if (f001b.isPresent() && !f001b.get().equals("870970") && isDeletedHeadOrSectionRecord(record)) {
-                String f001a = record.getSubFieldValue("001", 'a').orElseThrow(() -> new IllegalArgumentException("Record is missing mandatory 001a field"));
+    MarcJSonCollection getContentForEnrichedRecord(RecordEntryDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
+        MarcJSonCollection result = super.getContentForEnrichedRecord(recordData, addiMetaData);
+        for (MarcBinding record : new ArrayList<>(result.getRecords())) {
+            String f001b = record.getSubFieldValue("001", 'b');
+            if (f001b != null && !f001b.equals("870970") && isDeletedHeadOrSectionRecord(record)) {
+                String f001a = Require.nonNull(record.getSubFieldValue("001", 'a'), () -> new IllegalArgumentException("Record is missing mandatory 001a field"));
                 RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(true).withMode(RecordServiceConnector.Params.Mode.EXPANDED);
-                RecordIdDTO recordId = new RecordIdDTO(f001a, HarvestOperation.DBC_LIBRARY);
+                RecordIdDTO recordId = new RecordIdDTO(f001a, DBC_LIBRARY);
                 try {
                     RecordEntryDTO replaceRecord = rawRepoRecordServiceConnector.getRecordData(recordId, params);
                     result.addMember(replaceRecord.getContent().toString().getBytes(StandardCharsets.UTF_8));

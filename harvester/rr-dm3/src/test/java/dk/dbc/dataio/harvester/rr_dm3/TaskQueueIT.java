@@ -3,7 +3,7 @@ package dk.dbc.dataio.harvester.rr_dm3;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import org.junit.Test;
 
@@ -23,7 +23,7 @@ public class TaskQueueIT extends IntegrationTest {
      */
     @Test
     public void readyTasksExists() {
-        RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content());
+        RRV3HarvesterConfig config = new RRV3HarvesterConfig(1, 1, new RRV3HarvesterConfig.Content());
         final int submitterNumber = 123456;
         RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask().withRecordId(new RecordIdDTO("id1", submitterNumber)).withAddiMetaData(new AddiMetaData().withBibliographicRecordId("id1").withSubmitterNumber(submitterNumber).withLibraryRules(new AddiMetaData.LibraryRules()));
         RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask().withRecordId(new RecordIdDTO("id2", submitterNumber)).withAddiMetaData(new AddiMetaData().withBibliographicRecordId("id2").withSubmitterNumber(submitterNumber).withLibraryRules(new AddiMetaData.LibraryRules()));
@@ -51,7 +51,7 @@ public class TaskQueueIT extends IntegrationTest {
      */
     @Test
     public void noReadyTasksExists() {
-        RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content());
+        RRV3HarvesterConfig config = new RRV3HarvesterConfig(1, 1, new RRV3HarvesterConfig.Content());
 
         HarvestTask task = new HarvestTask();
         task.setConfigId(config.getId());

@@ -11,7 +11,7 @@ import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.rawrepo.MockedQueueItem;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
@@ -91,7 +91,7 @@ public class HarvestOperationTest {
 
     @Test
     public void constructor_noOpenAgencyTargetIsConfigured_throws() {
-        RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
+        RRV3HarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         assertThat(() -> new HarvestOperation(config,
                         harvesterJobBuilderFactory, taskRepo, null, metricRegistry),
                 isThrowing(IllegalArgumentException.class));
@@ -316,7 +316,7 @@ public class HarvestOperationTest {
 
     @Test
     public void getJobSpecificationTemplate_interpolatesConfigValues() {
-        RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
+        RRV3HarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         JobSpecification expectedJobSpecificationTemplate = defaultJobSpecificationTemplate
                 .withAncestry(new JobSpecification.Ancestry().withHarvesterToken(config.getHarvesterToken()));
 
@@ -334,7 +334,7 @@ public class HarvestOperationTest {
         final String consumerId = "rrConsumer";
         final String formatOverride = "alternativeFormat";
 
-        RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
+        RRV3HarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
 
         JobSpecification expectedJobSpecificationTemplate = defaultJobSpecificationTemplate
                 .withFormat(formatOverride)
@@ -352,14 +352,14 @@ public class HarvestOperationTest {
 
     @Test
     public void getJobSpecificationTemplate_harvestOperationConfigJobTypeIsSetToTransientAsDefault() {
-        RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
+        RRV3HarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         HarvestOperation harvestOperation = newHarvestOperation(config);
         assertThat(harvestOperation.getJobSpecificationTemplate(AGENCY_ID).getType(), is(JobSpecification.Type.TRANSIENT));
     }
 
     @Test
     public void getJobSpecificationTemplate_harvestOperationConfigJobTypeCanBeChangedFromDefault() {
-        RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
+        RRV3HarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent().withType(JobSpecification.Type.TEST);
         HarvestOperation harvestOperation = newHarvestOperation(config);
         assertThat(harvestOperation.getJobSpecificationTemplate(AGENCY_ID).getType(), is(JobSpecification.Type.TEST));
@@ -462,7 +462,7 @@ public class HarvestOperationTest {
         assertThat(fetched.get(expectedRecord.getRecordId().getBibliographicRecordId()).getContent(), is(expectedRecord.getContent()));
     }
 
-    public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
+    public HarvestOperation newHarvestOperation(RRV3HarvesterConfig config) {
         try {
             return new HarvestOperation(config, harvesterJobBuilderFactory,
                     taskRepo, VIP_CORE_CONNECTION,

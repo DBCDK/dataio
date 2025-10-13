@@ -1,7 +1,7 @@
 package dk.dbc.dataio.harvester.rr_dm3;
 
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import jakarta.annotation.Resource;
 import jakarta.ejb.AsyncResult;
 import jakarta.ejb.Asynchronous;
@@ -53,7 +53,7 @@ public class HarvesterBean {
     @Asynchronous
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public Future<Integer> harvest(RRHarvesterConfig config) throws HarvesterException {
+    public Future<Integer> harvest(RRV3HarvesterConfig config) throws HarvesterException {
         boolean allowRun = !excludedHarvesterIds.contains(config.getId());
         LOGGER.debug("Called with config id: {}, and excludedHarvesterIds:{}", config.getId(), excludedHarvesterIds);
         if (allowRun) {
@@ -81,7 +81,7 @@ public class HarvesterBean {
      */
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public int executeFor(RRHarvesterConfig config) throws HarvesterException {
+    public int executeFor(RRV3HarvesterConfig config) throws HarvesterException {
         try (HarvestOperation harvestOperation = harvestOperationFactory.createFor(config)) {
             return harvestOperation.execute();
         }

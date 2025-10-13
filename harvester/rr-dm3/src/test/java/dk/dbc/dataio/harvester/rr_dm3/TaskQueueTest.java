@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -25,7 +25,7 @@ public class TaskQueueTest {
     private final TaskRepo taskRepo = new TaskRepo(entityManager);
     @SuppressWarnings("unchecked")
     private final TypedQuery<HarvestTask> query = mock(TypedQuery.class);
-    private final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()
+    private final RRV3HarvesterConfig config = new RRV3HarvesterConfig(1, 1, new RRV3HarvesterConfig.Content()
             .withConsumerId("consumerId"));
 
     @BeforeEach

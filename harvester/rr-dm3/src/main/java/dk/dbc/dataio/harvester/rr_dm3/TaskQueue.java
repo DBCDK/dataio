@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 
 import java.util.Collections;
@@ -21,7 +21,7 @@ public class TaskQueue implements RecordHarvestTaskQueue {
     private RawRepoRecordHarvestTask head;
     private RawRepoRecordHarvestTask interpolated;
 
-    public TaskQueue(RRHarvesterConfig config, TaskRepo taskRepo) {
+    public TaskQueue(RRV3HarvesterConfig config, TaskRepo taskRepo) {
         this.taskRepo = taskRepo;
         harvestTask = taskRepo.findNextHarvestTask(config.getId()).orElseGet(() -> {
             final HarvestTask ht = new HarvestTask();

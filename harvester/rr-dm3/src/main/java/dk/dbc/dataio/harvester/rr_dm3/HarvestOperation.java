@@ -13,7 +13,7 @@ import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterRecord;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.MarcJSonCollection;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -55,8 +55,8 @@ public class HarvestOperation implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
 
-    final RRHarvesterConfig config;
-    final RRHarvesterConfig.Content configContent;
+    final RRV3HarvesterConfig config;
+    final RRV3HarvesterConfig.Content configContent;
     final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
     final VipCoreConnection vipCoreConnection;
     final RawRepoConnector rawRepoConnector;
@@ -85,7 +85,7 @@ public class HarvestOperation implements AutoCloseable {
             .withDescription("Number of unhandled exceptions caught")
             .withUnit("exceptions").build();
 
-    public HarvestOperation(RRHarvesterConfig config,
+    public HarvestOperation(RRV3HarvesterConfig config,
                             HarvesterJobBuilderFactory harvesterJobBuilderFactory,
                             TaskRepo taskRepo, VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector, MetricRegistry metricRegistry)
             throws QueueException, SQLException, ConfigurationException {
@@ -93,7 +93,7 @@ public class HarvestOperation implements AutoCloseable {
                 new VipCoreConnection(vipCoreLibraryRulesConnector), null, null, metricRegistry);
     }
 
-    HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
+    HarvestOperation(RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
                      VipCoreConnection vipCoreConnection, RawRepoConnector rawRepoConnector, RecordServiceConnector recordServiceConnector,
                      MetricRegistry metricRegistry)
             throws QueueException, SQLException, ConfigurationException {
@@ -191,7 +191,7 @@ public class HarvestOperation implements AutoCloseable {
         }
     }
 
-    RawRepoConnector getRawRepoConnector(RRHarvesterConfig config)
+    RawRepoConnector getRawRepoConnector(RRV3HarvesterConfig config)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
         return new RawRepoConnector(config.getContent().getResource());
     }

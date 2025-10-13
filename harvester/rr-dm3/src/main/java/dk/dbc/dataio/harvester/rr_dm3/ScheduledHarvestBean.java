@@ -1,6 +1,6 @@
 package dk.dbc.dataio.harvester.rr_dm3;
 
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import jakarta.ejb.DependsOn;
@@ -94,7 +94,7 @@ public class ScheduledHarvestBean {
                 }
             }
 
-            for (RRHarvesterConfig rrHarvesterConfig : config.get()) {
+            for (RRV3HarvesterConfig rrHarvesterConfig : config.get()) {
                 final String harvesterId = rrHarvesterConfig.getContent().getId();
                 if (!runningHarvests.containsKey(harvesterId)) {
                     runningHarvests.put(harvesterId, harvester.harvest(rrHarvesterConfig));

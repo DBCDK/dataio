@@ -8,7 +8,7 @@ import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.MarcJSonCollection;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.marc.binding.MarcBinding;
@@ -36,7 +36,7 @@ public class ImsHarvestOperation extends HarvestOperation {
 
     private final HoldingsItemsConnector holdingsItemsConnector;
 
-    public ImsHarvestOperation(RRHarvesterConfig config,
+    public ImsHarvestOperation(RRV3HarvesterConfig config,
                                HarvesterJobBuilderFactory harvesterJobBuilderFactory,
                                TaskRepo taskRepo, VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector, MetricRegistry metricRegistry)
             throws NullPointerException, IllegalArgumentException, QueueException, SQLException, ConfigurationException {
@@ -44,7 +44,7 @@ public class ImsHarvestOperation extends HarvestOperation {
                 new VipCoreConnection(vipCoreLibraryRulesConnector), null, null, null, metricRegistry);
     }
 
-    ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
+    ImsHarvestOperation(RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
                         VipCoreConnection vipCoreConnection, RawRepoConnector rawRepoConnector,
                         HoldingsItemsConnector holdingsItemsConnector, RecordServiceConnector recordServiceConnector,
                         MetricRegistry metricRegistry)
@@ -149,7 +149,7 @@ public class ImsHarvestOperation extends HarvestOperation {
         return result;
     }
 
-    private HoldingsItemsConnector getHoldingsItemsConnector(RRHarvesterConfig config) throws NullPointerException, IllegalArgumentException {
+    private HoldingsItemsConnector getHoldingsItemsConnector(RRV3HarvesterConfig config) throws NullPointerException, IllegalArgumentException {
         return new HoldingsItemsConnector(config.getContent().getImsHoldingsTarget());
     }
 

@@ -3,7 +3,7 @@ package dk.dbc.dataio.harvester.rr_dm3;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
 import dk.dbc.rawrepo.queue.ConfigurationException;
@@ -102,7 +102,7 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Override
-    public WorldCatHarvestOperation newHarvestOperation(RRHarvesterConfig config) {
+    public WorldCatHarvestOperation newHarvestOperation(RRV3HarvesterConfig config) {
         try {
             return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
                     vipCoreConnection, rawRepoConnector, ocnRepo,

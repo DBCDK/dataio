@@ -1,6 +1,6 @@
 package dk.dbc.dataio.harvester.rr_dm3;
 
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,25 +9,25 @@ public class HarvesterTestUtil {
     private HarvesterTestUtil() {
     }
 
-    public static List<RRHarvesterConfig> getRRHarvesterConfigs(RRHarvesterConfig.Content... entries) {
-        List<RRHarvesterConfig> configs = new ArrayList<>(entries.length);
+    public static List<RRV3HarvesterConfig> getRRHarvesterConfigs(RRV3HarvesterConfig.Content... entries) {
+        List<RRV3HarvesterConfig> configs = new ArrayList<>(entries.length);
         long id = 1;
-        for (RRHarvesterConfig.Content content : entries) {
-            configs.add(new RRHarvesterConfig(id++, 1, content));
+        for (RRV3HarvesterConfig.Content content : entries) {
+            configs.add(new RRV3HarvesterConfig(id++, 1, content));
         }
         return configs;
     }
 
-    public static RRHarvesterConfig getRRHarvesterConfig(RRHarvesterConfig.Content content) {
-        return new RRHarvesterConfig(1, 1, content);
+    public static RRV3HarvesterConfig getRRHarvesterConfig(RRV3HarvesterConfig.Content content) {
+        return new RRV3HarvesterConfig(1, 1, content);
     }
 
-    public static RRHarvesterConfig getRRHarvesterConfig() {
+    public static RRV3HarvesterConfig getRRHarvesterConfig() {
         return getRRHarvesterConfig(getRRHarvestConfigContent());
     }
 
-    public static RRHarvesterConfig.Content getRRHarvestConfigContent() {
-        return new RRHarvesterConfig.Content()
+    public static RRV3HarvesterConfig.Content getRRHarvestConfigContent() {
+        return new RRV3HarvesterConfig.Content()
                 .withId("id")
                 .withResource("resource")
                 .withConsumerId("consumerId")

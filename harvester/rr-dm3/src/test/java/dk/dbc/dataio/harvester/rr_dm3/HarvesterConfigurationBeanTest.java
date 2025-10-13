@@ -4,7 +4,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 public class HarvesterConfigurationBeanTest {
     private final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private final Class<RRHarvesterConfig> rrHarvesterConfigurationType = RRHarvesterConfig.class;
+    private final Class<RRV3HarvesterConfig> rrHarvesterConfigurationType = RRV3HarvesterConfig.class;
 
     @BeforeEach
     public void setupMocks() {
@@ -39,11 +39,11 @@ public class HarvesterConfigurationBeanTest {
 
     @Test
     public void reload_flowStoreLookupReturns_setsConfigs() throws FlowStoreServiceConnectorException, HarvesterException {
-        List<RRHarvesterConfig> configs = new ArrayList<>(0);
+        List<RRV3HarvesterConfig> configs = new ArrayList<>(0);
         when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType)).thenReturn(configs);
 
         HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
-        bean.configs = new ArrayList<>(Collections.singletonList(new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content())));
+        bean.configs = new ArrayList<>(Collections.singletonList(new RRV3HarvesterConfig(1, 1, new RRV3HarvesterConfig.Content())));
         bean.reload();
         assertThat("config after initialize", bean.configs, is(configs));
     }
@@ -56,7 +56,7 @@ public class HarvesterConfigurationBeanTest {
 
     @Test
     public void get_returnsConfigs() {
-        List<RRHarvesterConfig> configs = Collections.singletonList(new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()));
+        List<RRV3HarvesterConfig> configs = Collections.singletonList(new RRV3HarvesterConfig(1, 1, new RRV3HarvesterConfig.Content()));
         HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
         bean.configs = configs;
         assertThat(bean.get(), is(configs));

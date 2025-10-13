@@ -9,7 +9,7 @@ import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
@@ -268,7 +268,7 @@ public class HarvestOperationDatawellTest implements TempFiles {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
+        RRV3HarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent()
                 .withConsumerId(CONSUMER_ID)
                 .withFormat("katalog")

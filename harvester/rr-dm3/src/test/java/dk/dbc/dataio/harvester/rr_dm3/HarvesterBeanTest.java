@@ -1,7 +1,7 @@
 package dk.dbc.dataio.harvester.rr_dm3;
 
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import jakarta.ejb.SessionContext;
@@ -27,7 +27,7 @@ public class HarvesterBeanTest {
     @Test
     public void harvest_harvestOperationCompletes_returnsNumberOfItemsHarvested() throws HarvesterException, ExecutionException, InterruptedException, QueueException, ConfigurationException, SQLException {
         HarvesterBean harvesterBean = getHarvesterBean();
-        RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content());
+        RRV3HarvesterConfig config = new RRV3HarvesterConfig(1, 1, new RRV3HarvesterConfig.Content());
         final int expectedNumberOfItemsHarvested = 42;
         when(harvestOperation.execute()).thenReturn(expectedNumberOfItemsHarvested);
 
@@ -41,7 +41,7 @@ public class HarvesterBeanTest {
         harvesterBean.harvestOperationFactory = harvestOperationFactory;
         harvesterBean.excludedHarvesterIds = Set.of();
         when(sessionContext.getBusinessObject(HarvesterBean.class)).thenReturn(harvesterBean);
-        when(harvestOperationFactory.createFor(any(RRHarvesterConfig.class))).thenReturn(harvestOperation);
+        when(harvestOperationFactory.createFor(any(RRV3HarvesterConfig.class))).thenReturn(harvestOperation);
         return harvesterBean;
     }
 }

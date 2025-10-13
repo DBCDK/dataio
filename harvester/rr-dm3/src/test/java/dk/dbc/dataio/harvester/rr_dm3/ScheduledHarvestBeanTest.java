@@ -4,7 +4,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 public class ScheduledHarvestBeanTest {
     private final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private final Class<RRHarvesterConfig> rrHarvesterConfigurationType = RRHarvesterConfig.class;
+    private final Class<RRV3HarvesterConfig> RRV3HarvesterConfigurationType = RRV3HarvesterConfig.class;
     private final HarvesterBean harvesterBean = mock(HarvesterBean.class);
 
     @BeforeEach
@@ -48,7 +48,7 @@ public class ScheduledHarvestBeanTest {
 
     @Test
     public void scheduleHarvests_harvestCompletes_reschedulesHarvest() throws HarvesterException {
-        when(harvesterBean.harvest(any(RRHarvesterConfig.class))).thenReturn(new MockedFuture());
+        when(harvesterBean.harvest(any(RRV3HarvesterConfig.class))).thenReturn(new MockedFuture());
         ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
@@ -57,9 +57,9 @@ public class ScheduledHarvestBeanTest {
 
     @Test
     public void scheduleHarvests_harvestCompletesAndIsNoLongerConfigured_removesHarvest() throws HarvesterException, FlowStoreServiceConnectorException {
-        when(harvesterBean.harvest(any(RRHarvesterConfig.class))).thenReturn(new MockedFuture());
+        when(harvesterBean.harvest(any(RRV3HarvesterConfig.class))).thenReturn(new MockedFuture());
         ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType)).thenReturn(HarvesterTestUtil.getRRHarvesterConfigs(HarvesterTestUtil.getRRHarvestConfigContent())).thenReturn(new ArrayList<>(0));
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(RRV3HarvesterConfigurationType)).thenReturn(HarvesterTestUtil.getRRHarvesterConfigs(HarvesterTestUtil.getRRHarvestConfigContent())).thenReturn(new ArrayList<>(0));
 
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
@@ -70,7 +70,7 @@ public class ScheduledHarvestBeanTest {
     public void scheduleHarvests_harvestCompletesWithException_reschedulesHarvest() throws HarvesterException {
         MockedFuture mockedFuture = new MockedFuture();
         mockedFuture.exception = new ExecutionException("DIED", new IllegalStateException());
-        when(harvesterBean.harvest(any(RRHarvesterConfig.class))).thenReturn(mockedFuture);
+        when(harvesterBean.harvest(any(RRV3HarvesterConfig.class))).thenReturn(mockedFuture);
         ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
@@ -81,9 +81,9 @@ public class ScheduledHarvestBeanTest {
     public void scheduleHarvests_harvestCompletesWithExceptionAndIsNoLongerConfigured_removesHarvest() throws HarvesterException, FlowStoreServiceConnectorException {
         MockedFuture mockedFuture = new MockedFuture();
         mockedFuture.exception = new ExecutionException("DIED", new IllegalStateException());
-        when(harvesterBean.harvest(any(RRHarvesterConfig.class))).thenReturn(mockedFuture);
+        when(harvesterBean.harvest(any(RRV3HarvesterConfig.class))).thenReturn(mockedFuture);
         ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType)).thenReturn(HarvesterTestUtil.getRRHarvesterConfigs(HarvesterTestUtil.getRRHarvestConfigContent())).thenReturn(new ArrayList<>(0));
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(RRV3HarvesterConfigurationType)).thenReturn(HarvesterTestUtil.getRRHarvesterConfigs(HarvesterTestUtil.getRRHarvestConfigContent())).thenReturn(new ArrayList<>(0));
 
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
@@ -94,9 +94,9 @@ public class ScheduledHarvestBeanTest {
         return newScheduledHarvestBean(HarvesterTestUtil.getRRHarvesterConfigs(HarvesterTestUtil.getRRHarvestConfigContent()));
     }
 
-    private ScheduledHarvestBean newScheduledHarvestBean(List<RRHarvesterConfig> configs) {
+    private ScheduledHarvestBean newScheduledHarvestBean(List<RRV3HarvesterConfig> configs) {
         try {
-            when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType)).thenReturn(configs);
+            when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(RRV3HarvesterConfigurationType)).thenReturn(configs);
         } catch (FlowStoreServiceConnectorException e) {
             throw new IllegalStateException(e);
         }

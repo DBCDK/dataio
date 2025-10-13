@@ -1,7 +1,7 @@
 package dk.dbc.dataio.harvester.rr_dm3;
 
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
@@ -168,7 +168,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Override
-    public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
+    public HarvestOperation newHarvestOperation(RRV3HarvesterConfig config) {
         try {
             return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
                     vipCoreConnection, rawRepoConnector, holdingsItemsConnector,

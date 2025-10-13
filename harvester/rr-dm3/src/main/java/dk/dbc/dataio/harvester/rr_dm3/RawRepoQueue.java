@@ -2,7 +2,7 @@ package dk.dbc.dataio.harvester.rr_dm3;
 
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.QueueException;
@@ -22,7 +22,7 @@ public class RawRepoQueue implements RecordHarvestTaskQueue {
     private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoQueue.class);
     private static final int HIGH_PRIORITY_THRESHOLD = 500;
 
-    private final RRHarvesterConfig.Content config;
+    private final RRV3HarvesterConfig.Content config;
     private final RawRepoConnector rawRepoConnector;
     private final int pileUpDuration;
     private final ChronoUnit pileUpDurationUnit;
@@ -31,11 +31,11 @@ public class RawRepoQueue implements RecordHarvestTaskQueue {
     private boolean breakDequeueLoop = false;
     private Instant firstHighPrioritySeenAt = null;
 
-    public RawRepoQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector) {
+    public RawRepoQueue(RRV3HarvesterConfig config, RawRepoConnector rawRepoConnector) {
         this(config, rawRepoConnector, 45, ChronoUnit.SECONDS);
     }
 
-    RawRepoQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector,
+    RawRepoQueue(RRV3HarvesterConfig config, RawRepoConnector rawRepoConnector,
                  int pileUpDuration, ChronoUnit pileUpDurationUnit) {
         this.config = config.getContent();
         this.rawRepoConnector = rawRepoConnector;

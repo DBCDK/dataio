@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
@@ -25,14 +25,14 @@ public class WorldCatHarvestOperation extends HarvestOperation {
 
     private final OcnRepo ocnRepo;
 
-    public WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory,
+    public WorldCatHarvestOperation(RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory,
                                     TaskRepo taskRepo, VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector, OcnRepo ocnRepo, MetricRegistry metricRegistry)
             throws SQLException, QueueException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
                 new VipCoreConnection(vipCoreLibraryRulesConnector), null, ocnRepo, null, metricRegistry);
     }
 
-    WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
+    WorldCatHarvestOperation(RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
                              VipCoreConnection vipCoreConnection, RawRepoConnector rawRepoConnector,
                              OcnRepo ocnRepo, RecordServiceConnector recordServiceConnector, MetricRegistry metricRegistry)
             throws SQLException, QueueException, ConfigurationException {

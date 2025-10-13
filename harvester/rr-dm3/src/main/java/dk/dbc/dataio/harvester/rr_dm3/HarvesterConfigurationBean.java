@@ -3,7 +3,7 @@ package dk.dbc.dataio.harvester.rr_dm3;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.TransactionAttribute;
@@ -24,7 +24,7 @@ public class HarvesterConfigurationBean {
     @EJB
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
-    List<RRHarvesterConfig> configs;
+    List<RRV3HarvesterConfig> configs;
 
     /**
      * Reloads configuration
@@ -35,14 +35,14 @@ public class HarvesterConfigurationBean {
     public void reload() throws HarvesterException {
         LOGGER.debug("Retrieving configuration");
         try {
-            configs = flowStoreServiceConnectorBean.getConnector().findEnabledHarvesterConfigsByType(RRHarvesterConfig.class);
+            configs = flowStoreServiceConnectorBean.getConnector().findEnabledHarvesterConfigsByType(RRV3HarvesterConfig.class);
             LOGGER.info("Applying configuration: {}", configs);
         } catch (FlowStoreServiceConnectorException e) {
             throw new HarvesterException("Exception caught while refreshing configuration", e);
         }
     }
 
-    public List<RRHarvesterConfig> get() {
+    public List<RRV3HarvesterConfig> get() {
         return configs == null ? Collections.emptyList() : configs;
     }
 }

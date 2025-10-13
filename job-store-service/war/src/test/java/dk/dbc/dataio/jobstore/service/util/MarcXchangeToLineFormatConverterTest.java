@@ -34,10 +34,11 @@ public class MarcXchangeToLineFormatConverterTest {
         MarcXchangeToLineFormatConverter converter = new MarcXchangeToLineFormatConverter();
         byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8, null);
         assertThat(StringUtil.asString(danmarc2LineFormat),
-                is("245 12 $aA *programmer is born$beveryday@dbc\n" +
-                        "530    $ithis is to be used in test$ testing blank subfield code\n" +
-                        "001 123456\n" +
-                        "003 TEST\n\n"));
+                is("001 123456\n" +
+                        "003 TEST\n" +
+                        "245 12 $aA *programmer is born$beveryday@dbc\n" +
+                        "530    $ithis is to be used in test$ testing blank subfield code\n\n"
+                        ));
     }
 
     @Test

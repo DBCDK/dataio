@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>dataio-harvester-utils</artifactId>
+        <groupId>dk.dbc</groupId>
+        <version>2.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>dataio-harvester-utils-rawrepo-connector-dm3</artifactId>
+    <version>3.0-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>invariant-utils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-stopwatch</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>rawrepo-queue-dao</artifactId>
+            <version>3.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>rawrepo-record-service-connector</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>rawrepo-record-service-dto</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>common-records</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-marc</artifactId>
+            <version>4.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+</project>

@@ -11,15 +11,16 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * This class represents a MARC Exchange Collection as a harvester XML record.
  * <p>
  * This class is not thread safe.
  */
-public class MarcExchangeCollection implements HarvesterXmlRecord {
+public class MarcExchangeCollection implements HarvesterRecord<MarcRecord> {
     private final Charset charset = StandardCharsets.UTF_8;
-    private final ArrayList<MarcRecord> records;
+    private final List<MarcRecord> records;
 
     public MarcExchangeCollection() {
         this.records = new ArrayList<>();
@@ -61,6 +62,7 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
      *                                         if given byte array can not be parsed as marcXchange,
      *                                         if given memberData is itself a collection with more than one record.
      */
+    @Override
     public void addMember(byte[] memberData) throws HarvesterException {
         if (memberData == null) {
             throw new HarvesterInvalidRecordException("member data can not be null");
@@ -82,7 +84,8 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
         }
     }
 
-    public ArrayList<MarcRecord> getRecords() {
+    @Override
+    public List<MarcRecord> getRecords() {
         return records;
     }
 }

@@ -18,6 +18,7 @@
     <module>datafile-verifier</module>
     <module>holdings-items-connector</module>
     <module>rawrepo-connector</module>
+    <module>rawrepo-connector-dm3</module>
     <module>harvester-job-builder</module>
     <module>time-interval</module>
   </modules>

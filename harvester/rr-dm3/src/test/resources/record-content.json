@@ -1,0 +1,306 @@
+{
+  "fields": [
+    {
+      "name": "001",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "a",
+          "value": "%s"
+        },
+        {
+          "name": "b",
+          "value": "%d"
+        },
+        {
+          "name": "c",
+          "value": "20241003072409"
+        },
+        {
+          "name": "d",
+          "value": "20191025"
+        },
+        {
+          "name": "f",
+          "value": "e"
+        },
+        {
+          "name": "o",
+          "value": "a"
+        }
+      ]
+    },
+    {
+      "name": "004",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "r",
+          "value": "a"
+        },
+        {
+          "name": "a",
+          "value": "e"
+        }
+      ]
+    },
+    {
+      "name": "008",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "t",
+          "value": "m"
+        },
+        {
+          "name": "a",
+          "value": "1941"
+        },
+        {
+          "name": "b",
+          "value": "dk"
+        },
+        {
+          "name": "l",
+          "value": "dan"
+        },
+        {
+          "name": "v",
+          "value": "b"
+        }
+      ]
+    },
+    {
+      "name": "009",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "a",
+          "value": "a"
+        },
+        {
+          "name": "g",
+          "value": "xx"
+        }
+      ]
+    },
+    {
+      "name": "035",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "a",
+          "value": "(DK-800010)99122885700505763"
+        }
+      ]
+    },
+    {
+      "name": "040",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "b",
+          "value": "dan"
+        },
+        {
+          "name": "e",
+          "value": "kbsdb"
+        }
+      ]
+    },
+    {
+      "name": "088",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "o",
+          "value": "15,-alf"
+        }
+      ]
+    },
+    {
+      "name": "096",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "r",
+          "value": "a"
+        },
+        {
+          "name": "z",
+          "value": "800015"
+        }
+      ]
+    },
+    {
+      "name": "096",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "r",
+          "value": "a"
+        },
+        {
+          "name": "z",
+          "value": "809015"
+        }
+      ]
+    },
+    {
+      "name": "245",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "a",
+          "value": "Dreng af Danmark"
+        },
+        {
+          "name": "e",
+          "value": "Gunnar Jørgensen"
+        }
+      ]
+    },
+    {
+      "name": "260",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "a",
+          "value": "[Kbh.]"
+        },
+        {
+          "name": "c",
+          "value": "1941"
+        }
+      ]
+    },
+    {
+      "name": "300",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "a",
+          "value": "159 s."
+        }
+      ]
+    },
+    {
+      "name": "504",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "a",
+          "value": "Fortælling om nogle drenge, der under besættelsen lærer at sætte pris på deres fædreland"
+        }
+      ]
+    },
+    {
+      "name": "652",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "m",
+          "value": "sk"
+        }
+      ]
+    },
+    {
+      "name": "700",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "a",
+          "value": "Jørgensen"
+        },
+        {
+          "name": "h",
+          "value": "Gunnar"
+        }
+      ]
+    },
+    {
+      "name": "999",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "9",
+          "value": "260"
+        },
+        {
+          "name": "a",
+          "value": "[Kbh.]"
+        },
+        {
+          "name": "c",
+          "value": "1941"
+        }
+      ]
+    },
+    {
+      "name": "999",
+      "indicator": [
+        "0",
+        "0"
+      ],
+      "subfields": [
+        {
+          "name": "9",
+          "value": "652"
+        },
+        {
+          "name": "m",
+          "value": "sk"
+        }
+      ]
+    }
+  ],
+  "leader": ["0", "0", "0", "0", "0", "n", " ", " ", " ", " ", "2", "2", "0", "0", "0", "0", "0", "0", " ", " ", "4", "5", "0", "0"]
+}

@@ -20,6 +20,7 @@
     <module>periodic-jobs</module>
     <module>promat</module>
     <module>rr</module>
+    <module>rr-dm3</module>
     <module>task-repo</module>
     <module>tickle-repo</module>
     <module>types</module>

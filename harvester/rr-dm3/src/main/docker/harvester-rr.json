@@ -1,0 +1,25 @@
+{
+  "appName": "RawRepoHarvester",
+  "jdbc": {
+    "jdbc/ocn-repo": {
+      "url": "${OCN_REPO_DB_URL}",
+      "xa": true
+    },
+    "jdbc/dataio/harvester/tasks": {
+      "url": "${RAWREPO_HARVESTER_TASKS_DB_URL}",
+      "xa": true
+    },
+    "jdbc/dataio/rawrepo-boblebad": {
+      "url": "${RAWREPO_BOBLEBAD_DB_URL}"
+    },
+    "jdbc/dataio/rawrepo-cisterne": {
+      "url": "${RAWREPO_CISTERNE_DB_URL}"
+    },
+    "jdbc/dataio/rawrepo-exttest": {
+      "url": "${RAWREPO_FBSTEST_DB_URL}"
+    },
+    "jdbc/dataio/basis-rawrepo": {
+      "url": "${RAWREPO_BASISMIG_DB_URL}"
+    }
+  }
+}

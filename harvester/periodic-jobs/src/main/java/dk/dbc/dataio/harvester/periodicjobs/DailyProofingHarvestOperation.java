@@ -7,8 +7,8 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
+import dk.dbc.dataio.harvester.types.HarvesterRecord;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -67,7 +67,7 @@ public class DailyProofingHarvestOperation extends HarvestOperation {
         }
 
         @Override
-        HarvesterXmlRecord getAddiContent(AddiMetaData addiMetaData)
+        HarvesterRecord getAddiContent(AddiMetaData addiMetaData)
                 throws HarvesterException {
             final Map<String, RecordDTO> records;
             try {

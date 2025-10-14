@@ -7,8 +7,8 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
+import dk.dbc.dataio.harvester.types.HarvesterRecord;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.libcore.DBC;
@@ -64,7 +64,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
         }
     }
 
-    HarvesterXmlRecord getAddiContent(AddiMetaData addiMetaData)
+    HarvesterRecord getAddiContent(AddiMetaData addiMetaData)
             throws HarvesterException {
         final Map<String, RecordDTO> records;
         try {

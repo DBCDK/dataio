@@ -10,8 +10,8 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
+import dk.dbc.dataio.harvester.types.HarvesterRecord;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
@@ -166,7 +166,7 @@ public class HarvestOperation implements AutoCloseable {
 
             if (includeRecord(recordData.getRecordId().getAgencyId(), recordData.isDeleted() || recordHarvestTask.isForceAdd())) {
                 enrichAddiMetaData(addiMetaData);
-                final HarvesterXmlRecord xmlContentForRecord = getXmlContentForEnrichedRecord(recordData, addiMetaData);
+                final HarvesterRecord xmlContentForRecord = getXmlContentForEnrichedRecord(recordData, addiMetaData);
                 getHarvesterJobBuilder(addiMetaData.submitterNumber())
                         .addRecord(
                                 createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
@@ -310,7 +310,7 @@ public class HarvestOperation implements AutoCloseable {
     /* Fetches rawrepo record collection associated with given record ID and adds its content to a new MARC exchange collection.
        Returns MARC exchange collection
      */
-    HarvesterXmlRecord getXmlContentForEnrichedRecord(RecordDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
+    HarvesterRecord getXmlContentForEnrichedRecord(RecordDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
         final Map<String, RecordDTO> records;
         try {
             records = fetchRecordCollection(recordData.getRecordId());

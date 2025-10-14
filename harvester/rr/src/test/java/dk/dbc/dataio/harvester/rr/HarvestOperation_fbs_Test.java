@@ -135,7 +135,8 @@ public class HarvestOperation_fbs_Test {
     @Test
     public void execute_multipleRecordsHarvested_dataFileContainsMarcExchangeCollections() throws HarvesterException, RecordServiceConnectorException {
         // Mock rawrepo return values
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class))).thenReturn(new HashMap<>() {{
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
+                .thenReturn(new HashMap<>() {{
             put(FIRST_RECORD_HEAD_ID.getBibliographicRecordId(), FIRST_RECORD_HEAD);
             put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
         }}).thenReturn(new HashMap<>() {{
@@ -181,7 +182,7 @@ public class HarvestOperation_fbs_Test {
         when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class))).thenReturn(new HashMap<>() {{
             put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
         }}).thenReturn(new HashMap<>() {{
-            put(invalidRecord.getRecordId().toString(), invalidRecord);
+            put(invalidRecord.getRecordId().getBibliographicRecordId(), invalidRecord);
         }}).thenReturn(new HashMap<>() {{
             put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
         }});
@@ -195,7 +196,7 @@ public class HarvestOperation_fbs_Test {
         recordsAddiMetaDataExpectations.add(new AddiMetaData().withBibliographicRecordId(FIRST_RECORD.getRecordId().getBibliographicRecordId()).withSubmitterNumber(FIRST_RECORD.getRecordId().getAgencyId()).withFormat("format").withCreationDate(Date.from(Instant.parse(FIRST_RECORD.getCreated()))).withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail()).withTrackingId(FIRST_RECORD.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         recordsExpectations.add(null);
-        recordsAddiMetaDataExpectations.add(new AddiMetaData().withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId()).withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId()).withCreationDate(Date.from(Instant.parse(SECOND_RECORD.getCreated()))).withEnrichmentTrail(SECOND_RECORD.getEnrichmentTrail()).withTrackingId(SECOND_RECORD.getTrackingId()).withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format("Harvesting RawRepo %s failed: Record %s was not found in returned collection", SECOND_RECORD.getRecordId(), SECOND_RECORD.getRecordId()))).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
+        recordsAddiMetaDataExpectations.add(new AddiMetaData().withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId()).withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId()).withFormat("format").withCreationDate(Date.from(Instant.parse(SECOND_RECORD.getCreated()))).withEnrichmentTrail(SECOND_RECORD.getEnrichmentTrail()).withTrackingId(SECOND_RECORD.getTrackingId()).withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, "member data can not be parsed as marcXchange")).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));

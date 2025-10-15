@@ -4,10 +4,13 @@ import dk.dbc.dataio.jse.artemis.common.EnvConfig;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.configuration.FluentConfiguration;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
@@ -34,22 +37,28 @@ public class JPAHelper {
         return Persistence.createEntityManagerFactory(persistenceUnit, config);
     }
 
-    public static void migrate(EnvConfig config) {
-        migrate(config.asPGJDBCUrl());
+    public static void migrate(EnvConfig config, Consumer<FluentConfiguration>... configurator) {
+        migrate(config.asPGJDBCUrl(), configurator);
     }
 
-    public static void migrate(String jdbcUrl) {
+    public static void migrate(String jdbcUrl, Consumer<FluentConfiguration>... configurator) {
         PGSimpleDataSource dataSource = new PGSimpleDataSource();
         dataSource.setURL(jdbcUrl);
-        migrate(dataSource);
+        migrateCustom(dataSource, configurator);
     }
 
     public static void migrate(DataSource dataSource) {
-        Flyway flyway = Flyway.configure()
+        migrateCustom(dataSource);
+    }
+
+    @SafeVarargs
+    public static void migrateCustom(DataSource dataSource, Consumer<FluentConfiguration>... configurator) {
+        FluentConfiguration configuration = Flyway.configure()
                 .table("schema_version")
                 .baselineOnMigrate(true)
-                .dataSource(dataSource)
-                .load();
+                .dataSource(dataSource);
+        Stream.of(configurator).forEach(c -> c.accept(configuration));
+        Flyway flyway = configuration.load();
         flyway.migrate();
     }
 }

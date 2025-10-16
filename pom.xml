@@ -33,6 +33,7 @@
 
     <properties>
         <tag>devel</tag>
+        <sonar.cpd.exclusions>harvester/rr-dm3/**/*</sonar.cpd.exclusions>
         <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest</java.image>
         <docker.payaradir>/opt/payara6</docker.payaradir>
         <docker.deploydir>/opt/payara6/deployments</docker.deploydir>

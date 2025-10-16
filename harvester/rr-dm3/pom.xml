@@ -14,6 +14,10 @@
     <artifactId>dataio-harvester-rr-dm3</artifactId>
     <packaging>war</packaging>
 
+    <properties>
+        <sonar.cpd.exclusions>srm/main/java/**</sonar.cpd.exclusions>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>jakarta.platform</groupId>

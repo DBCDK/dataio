@@ -8,91 +8,13 @@
         <version>2.0-SNAPSHOT</version>
         <relativePath>../jse-app</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
+    <packaging>pom</packaging>
+    <modelVersion>4.0.0</modelVersion>
     <artifactId>dataio-job-processor2</artifactId>
 
-    <properties>
-        <main-class>dk.dbc.dataio.jobprocessor2.Jobprocessor</main-class>
-        <!--suppress UnresolvedMavenProperty -->
-        <start.cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-2g} -XX:+ExitOnOutOfMemoryError -Dlogback.configurationFile=logback-jobstore.xml -jar /work/${project.build.finalName}.jar</start.cmd>
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>artemis-jse-app</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
-            <type>ejb</type>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dataio-javascript</artifactId>
-            <version>2.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dataio-commons-utils-test</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback.db</groupId>
-            <artifactId>logback-classic-db</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>jscommon</artifactId>
-            <version>2012.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-    <build>
-        <finalName>job-processor2</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-    <profiles>
-        <profile>
-            <id>docker-push</id>
-            <properties>
-                <!--suppress UnresolvedMavenProperty -->
-                <tag>${BUILD_NUMBER}</tag>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>push</id>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+    <modules>
+        <module>lib</module>
+        <module>app</module>
+    </modules>
 </project>

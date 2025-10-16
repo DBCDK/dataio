@@ -15,7 +15,7 @@
     <packaging>war</packaging>
 
     <properties>
-        <sonar.cpd.exclusions>srm/main/java/**</sonar.cpd.exclusions>
+        <sonar.cpd.exclusions>**/*</sonar.cpd.exclusions>
     </properties>
 
     <dependencies>

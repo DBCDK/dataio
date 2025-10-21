@@ -27,7 +27,7 @@ public class JobSpecificationTemplateTest {
                 .withType(JobSpecification.Type.TEST);
         TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2, content);
 
-        JobSpecification template = JobSpecificationTemplate.create(config, dataset, batch);
+        JobSpecification template = JobSpecificationTemplate.create(config, dataset, batch, 0);
         assertThat("template", template, is(notNullValue()));
         assertThat("template packaging", template.getPackaging(), is("addi-xml"));
         assertThat("template format", template.getFormat(), is(config.getContent().getFormat()));
@@ -54,7 +54,7 @@ public class JobSpecificationTemplateTest {
         Batch batch = new Batch().withId(42).withMetadata(mapper.writeValueAsString(jobSpecification));
         TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2, new TickleRepoHarvesterConfig.Content().withDestination("-destination-").withFormat("-format-").withType(JobSpecification.Type.TEST).withNotificationsEnabled(true));
 
-        JobSpecification template = JobSpecificationTemplate.create(config, dataset, batch);
+        JobSpecification template = JobSpecificationTemplate.create(config, dataset, batch, 0);
         assertThat("template", template, is(notNullValue()));
         assertThat("template mailForNotificationAboutVerification", template.getMailForNotificationAboutVerification(), is(jobSpecification.getMailForNotificationAboutVerification()));
         assertThat("template mailForNotificationAboutProcessing", template.getMailForNotificationAboutProcessing(), is(jobSpecification.getMailForNotificationAboutProcessing()));
@@ -74,7 +74,7 @@ public class JobSpecificationTemplateTest {
                 .withFormat("-format-")
                 .withType(JobSpecification.Type.TEST);
         TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2, content);
-        JobSpecification template = JobSpecificationTemplate.create(config, dataset, batch);
+        JobSpecification template = JobSpecificationTemplate.create(config, dataset, batch, 0);
         assertThat("template", template, is(notNullValue()));
         assertThat("template MailForNotificationAboutVerification", template.getMailForNotificationAboutVerification(), is(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION));
         assertThat("template MailForNotificationAboutProcessing", template.getMailForNotificationAboutProcessing(), is(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING));

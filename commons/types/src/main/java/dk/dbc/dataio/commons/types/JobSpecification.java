@@ -254,7 +254,7 @@ public class JobSpecification implements Serializable {
         private String datafile;
         private String batchId;
         private byte[] details;
-        private int previousJobId;
+        private Integer previousJobId;
 
         public Ancestry() {
         }
@@ -304,11 +304,11 @@ public class JobSpecification implements Serializable {
             return this;
         }
 
-        public int getPreviousJobId() {
+        public Integer getPreviousJobId() {
             return previousJobId;
         }
 
-        public Ancestry withPreviousJobId(int previousJobId) {
+        public Ancestry withPreviousJobId(Integer previousJobId) {
             this.previousJobId = previousJobId;
             return this;
         }

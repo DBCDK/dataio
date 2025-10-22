@@ -8,4 +8,8 @@ public interface RecordsIterator extends Iterable<Record> {
 
     default void commit() {
     }
+
+    default Integer getBasedOn() {
+        return null;
+    }
 }

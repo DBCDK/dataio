@@ -51,6 +51,12 @@ public class TaskRecordsIterator implements RecordsIterator {
     }
 
     @Override
+    public Integer getBasedOn() {
+        if(task == null) return null;
+        return task.getBasedOnJob();
+    }
+
+    @Override
     public void commit() {
         if (task != null) {
             taskRepo.getEntityManager().remove(task);

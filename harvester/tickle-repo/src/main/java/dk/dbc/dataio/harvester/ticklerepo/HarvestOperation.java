@@ -92,7 +92,7 @@ public class HarvestOperation {
         int recordsHarvested;
         final RecordsIterator recordsIterator = createRecordsIterator(batchToHarvest);
         try (HarvesterJobBuilder jobBuilder = new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
-                JobSpecificationTemplate.create(config, dataset, batchToHarvest))) {
+                JobSpecificationTemplate.create(config, dataset, batchToHarvest, recordsIterator.getBasedOn()))) {
             for (Record record : recordsIterator) {
                 LOGGER.info("{} ready for harvesting from {}/{}", record.getLocalId(), record.getDataset(), record.getBatch());
 

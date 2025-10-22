@@ -13,11 +13,24 @@ import java.util.Optional;
 class JobSpecificationTemplate {
     private final static ObjectMapper mapper = new ObjectMapper();
 
-    static JobSpecification create(TickleRepoHarvesterConfig config, DataSet dataSet, Batch batch) throws HarvesterException {
+    static JobSpecification create(TickleRepoHarvesterConfig config, DataSet dataSet, Batch batch, Integer basedOnJob) throws HarvesterException {
         try {
             TickleRepoHarvesterConfig.Content configFields = config.getContent();
-            return getSpecificationBasedOnBatch(config, batch).orElse(new JobSpecification().withMailForNotificationAboutVerification(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION).withMailForNotificationAboutProcessing(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING).withResultmailInitials(JobSpecification.EMPTY_RESULT_MAIL_INITIALS).withAncestry(new JobSpecification.Ancestry().withHarvesterToken(config.getHarvesterToken(getBatchId(batch))))).withPackaging("addi-xml") // TODO: 12/21/16 figure out where to get this from
-                    .withFormat(configFields.getFormat()).withCharset("utf8").withDestination(configFields.getDestination()).withSubmitterId(dataSet.getAgencyId()).withDataFile("placeholder").withType(configFields.getType());
+            JobSpecification specification = getSpecificationBasedOnBatch(config, batch)
+                    .orElse(new JobSpecification()
+                            .withMailForNotificationAboutVerification(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION)
+                            .withMailForNotificationAboutProcessing(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING)
+                            .withResultmailInitials(JobSpecification.EMPTY_RESULT_MAIL_INITIALS)
+                            .withAncestry(new JobSpecification.Ancestry().withHarvesterToken(config.getHarvesterToken(getBatchId(batch)))))
+                    .withPackaging("addi-xml") // TODO: 12/21/16 figure out where to get this from
+                    .withFormat(configFields.getFormat())
+                    .withCharset("utf8")
+                    .withDestination(configFields.getDestination())
+                    .withSubmitterId(dataSet.getAgencyId())
+                    .withDataFile("placeholder")
+                    .withType(configFields.getType());
+            specification.getAncestry().withPreviousJobId(basedOnJob);
+            return specification;
         } catch (RuntimeException | JsonProcessingException e) {
             throw new HarvesterException("Unable to create job specification template", e);
         }

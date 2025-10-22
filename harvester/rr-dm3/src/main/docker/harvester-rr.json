@@ -9,17 +9,8 @@
       "url": "${RAWREPO_HARVESTER_TASKS_DB_URL}",
       "xa": true
     },
-    "jdbc/dataio/rawrepo-boblebad": {
-      "url": "${RAWREPO_BOBLEBAD_DB_URL}"
-    },
-    "jdbc/dataio/rawrepo-cisterne": {
-      "url": "${RAWREPO_CISTERNE_DB_URL}"
-    },
-    "jdbc/dataio/rawrepo-exttest": {
-      "url": "${RAWREPO_FBSTEST_DB_URL}"
-    },
-    "jdbc/dataio/basis-rawrepo": {
-      "url": "${RAWREPO_BASISMIG_DB_URL}"
+    "jdbc/dataio/rawrepo-fbstest-dm3": {
+      "url": "${RAWREPO_FBSTEST_DM3_DB_URL}"
     }
   }
 }

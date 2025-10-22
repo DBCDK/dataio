@@ -11,6 +11,7 @@ import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.flowstore.model.FlowBinderContentMatch;
 import dk.dbc.dataio.flowstore.model.FlowBindersResolved;
+import dk.dbc.dataio.flowstore.model.FlowBindersResolved2;
 import dk.dbc.dataio.querylanguage.DataIOQLParser;
 import dk.dbc.dataio.querylanguage.ParseException;
 import dk.dbc.invariant.InvariantUtil;
@@ -314,7 +315,19 @@ public class FlowBindersBean extends AbstractResourceBean {
     @Path(FlowStoreServiceConstants.FLOW_BINDERS_RESOLVED)
     @Produces({MediaType.APPLICATION_JSON})
     public Response findAllResolvedFlowBinders() throws JSONBException {
-        List<FlowBindersResolved> resolvedList = findFlowBinders().stream().map(fb -> FlowBindersResolved.from(fb, sinksBean::getSinkName, submittersBean::getSubmitterName, flowsBean::getFlowName)).collect(Collectors.toList());
+        List<FlowBindersResolved> resolvedList = findFlowBinders().stream()
+                .map(fb -> FlowBindersResolved.from(fb, sinksBean::getSinkName, submittersBean::getSubmitterContent, flowsBean::getFlowName))
+                .toList();
+        return Response.ok().entity(jsonbContext.marshall(resolvedList)).build();
+    }
+
+    @GET
+    @Path(FlowStoreServiceConstants.FLOW_BINDERS_RESOLVED2)
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response findAllResolvedFlowBinders2() throws JSONBException {
+        List<FlowBindersResolved2> resolvedList = findFlowBinders().stream()
+                .map(fb -> FlowBindersResolved2.from(fb, sinksBean::getSinkName, submittersBean::getSubmitterContent, flowsBean::getFlowName))
+                .collect(Collectors.toList());
         return Response.ok().entity(jsonbContext.marshall(resolvedList)).build();
     }
 

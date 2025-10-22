@@ -9,9 +9,8 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-public class FlowBindersResolved extends FlowBinder {
+public class FlowBindersResolved2 extends FlowBinder {
     @JsonIgnore
     private final Function<Long, String> sinkNameResolver;
     @JsonIgnore
@@ -30,17 +29,17 @@ public class FlowBindersResolved extends FlowBinder {
      * @throws IllegalArgumentException if value of id or version is not larger than or equal to lower bound
      */
 
-    public FlowBindersResolved(Long id, Long version, FlowBinderContent content, Function<Long, String> sinkNameResolver, Function<Long, SubmitterContentLight> submitterResolver, Function<Long, String> flowNameResolver) {
+    public FlowBindersResolved2(Long id, Long version, FlowBinderContent content, Function<Long, String> sinkNameResolver, Function<Long, SubmitterContentLight> submitterResolver, Function<Long, String> flowNameResolver) {
         super(id, version, content);
         this.sinkNameResolver = sinkNameResolver;
         this.submitterResolver = submitterResolver;
         this.flowNameResolver = flowNameResolver;
     }
 
-    public static FlowBindersResolved from(dk.dbc.dataio.flowstore.entity.FlowBinder flowBinder, Function<Long, String> sinkNameResolver, Function<Long, SubmitterContentLight> submitterResolver, Function<Long, String> flowNameResolver) {
+    public static FlowBindersResolved2 from(dk.dbc.dataio.flowstore.entity.FlowBinder flowBinder, Function<Long, String> sinkNameResolver, Function<Long, SubmitterContentLight> submitterResolver, Function<Long, String> flowNameResolver) {
         try {
             FlowBinderContent content = jsContext.unmarshall(flowBinder.getContent(), FlowBinderContent.class);
-            return new FlowBindersResolved(flowBinder.getId(), flowBinder.getVersion(), content, sinkNameResolver, submitterResolver, flowNameResolver);
+            return new FlowBindersResolved2(flowBinder.getId(), flowBinder.getVersion(), content, sinkNameResolver, submitterResolver, flowNameResolver);
         } catch (JSONBException e) {
             throw new IllegalArgumentException(e);
         }
@@ -50,15 +49,11 @@ public class FlowBindersResolved extends FlowBinder {
         return flowNameResolver.apply(getContent().getFlowId());
     }
 
-    public List<String> getSubmitters() {
-        return getContent().getSubmitterIds().stream().map(id -> formatSubmitter(id, submitterResolver.apply(id).name())).collect(Collectors.toList());
+    public List<SubmitterContentLight> getSubmitters() {
+        return getContent().getSubmitterIds().stream().map(submitterResolver).toList();
     }
 
     public String getSinkName() {
         return sinkNameResolver.apply(getContent().getSinkId());
-    }
-
-    private String formatSubmitter(Long id ,String name) {
-        return id + (name == null ? "" : " (" + name + ")");
     }
 }

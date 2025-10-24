@@ -19,6 +19,7 @@ public class FlowStoreServiceConstants {
     public static final String FLOWS = "flows";
     public static final String FLOW_BINDERS = "binders";
     public static final String FLOW_BINDERS_RESOLVED = "binders-resolved";
+    public static final String FLOW_BINDERS_RESOLVED2 = "binders-resolved2";
     public static final String FLOW_COMPONENTS = "components";
     public static final String SUBMITTERS = "submitters";
     public static final String SINKS = "sinks";

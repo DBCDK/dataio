@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.flowstore.model.FlowBinderContentMatch;
+import dk.dbc.dataio.flowstore.model.SubmitterContentLight;
 import dk.dbc.dataio.querylanguage.DataIOQLParser;
 import dk.dbc.dataio.querylanguage.ParseException;
 import dk.dbc.invariant.InvariantUtil;
@@ -51,7 +52,7 @@ public class SubmittersBean extends AbstractResourceBean {
     private static final Logger log = LoggerFactory.getLogger(SubmittersBean.class);
     private static final String SUBMITTER_CONTENT_DISPLAY_TEXT = "submitterContent";
     private static final String NULL_ENTITY = "";
-    private static final Map<Long, String> NAME_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Long, SubmitterContentLight> SUBCONTENT_CACHE = new ConcurrentHashMap<>();
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -114,12 +115,11 @@ public class SubmittersBean extends AbstractResourceBean {
                 .build();
     }
 
-    public String getSubmitterName(Long id) {
-            return NAME_CACHE.computeIfAbsent(id, k -> {
+    public SubmitterContentLight getSubmitterContent(Long id) {
+            return SUBCONTENT_CACHE.computeIfAbsent(id, k -> {
                 try {
                     String content = entityManager.find(Submitter.class, id).getContent();
-                    SubmitterContent submitterContent = jsonbContext.unmarshall(content, SubmitterContent.class);
-                    return submitterContent.getName();
+                    return SubmitterContentLight.from(id, jsonbContext.unmarshall(content, SubmitterContent.class));
                 } catch (Exception e) {
                     return null;
                 }
@@ -186,7 +186,7 @@ public class SubmittersBean extends AbstractResourceBean {
         entityManager.flush();
         final Submitter updatedSubmitter = entityManager.find(Submitter.class, id);
         final String submitterJson = jsonbContext.marshall(updatedSubmitter);
-        NAME_CACHE.remove(id);
+        SUBCONTENT_CACHE.remove(id);
         return Response
                 .ok()
                 .entity(submitterJson)
@@ -226,7 +226,7 @@ public class SubmittersBean extends AbstractResourceBean {
         // If no Optimistic Locking - delete it!
         entityManager.remove(versionUpdatedAndNoOptimisticLocking);
         entityManager.flush();
-        NAME_CACHE.remove(submitterId);
+        SUBCONTENT_CACHE.remove(submitterId);
         return Response.noContent().build();
     }
 

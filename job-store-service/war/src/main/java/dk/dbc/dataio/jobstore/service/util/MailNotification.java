@@ -118,7 +118,7 @@ public class MailNotification {
 
     private void overwriteJobIdIfPreviousJobIdExists() {
         final JobSpecification.Ancestry ancestry = notification.getJob().getSpecification().getAncestry();
-        if (ancestry != null && ancestry.getPreviousJobId() > 0) {
+        if (ancestry != null && ancestry.getPreviousJobId() != null && ancestry.getPreviousJobId() > 0) {
             final String overwrite = String.format("%d (genkørsel af job %d)", notification.getJobId(),
                     ancestry.getPreviousJobId());
             overwrites.put("jobId", overwrite);

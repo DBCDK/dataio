@@ -11,3 +11,4 @@ target
 .java-version
 **/.iml
 env-files
+/environments/

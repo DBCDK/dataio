@@ -10,7 +10,7 @@ import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.MarcJSonCollection;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.marc.binding.MarcBinding;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
@@ -45,7 +45,7 @@ public class ImsHarvestOperation extends HarvestOperation {
     }
 
     ImsHarvestOperation(RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                        VipCoreConnection vipCoreConnection, RawRepoConnector rawRepoConnector,
+                        VipCoreConnection vipCoreConnection, RawRepo3Connector rawRepoConnector,
                         HoldingsItemsConnector holdingsItemsConnector, RecordServiceConnector recordServiceConnector,
                         MetricRegistry metricRegistry)
             throws QueueException, SQLException, ConfigurationException {

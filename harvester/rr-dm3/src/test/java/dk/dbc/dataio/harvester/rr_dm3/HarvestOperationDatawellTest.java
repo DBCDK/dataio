@@ -12,7 +12,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
@@ -57,7 +57,7 @@ public class HarvestOperationDatawellTest implements TempFiles {
     private static final String CONSUMER_ID = "consumerId";
     private static final int LOCAL_LIBRARY = 700000;
 
-    private final static RawRepoConnector RAW_REPO_CONNECTOR = mock(RawRepoConnector.class);
+    private final static RawRepo3Connector RAW_REPO_CONNECTOR = mock(RawRepo3Connector.class);
     private final static VipCoreConnection VIP_CORE_CONNECTION = mock(VipCoreConnection.class);
     private final static RecordServiceConnector RAW_REPO_RECORD_SERVICE_CONNECTOR = mock(RecordServiceConnector.class);
 

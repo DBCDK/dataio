@@ -3,7 +3,7 @@ package dk.dbc.dataio.harvester.rr_dm3;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.rawrepo.MockedQueueItem;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.QueueException;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class RawRepoQueueTest {
-    private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
+    private final RawRepo3Connector rawRepoConnector = mock(RawRepo3Connector.class);
     private final RRV3HarvesterConfig config = new RRV3HarvesterConfig(1, 1, new RRV3HarvesterConfig.Content()
             .withConsumerId("consumerId"));
 

@@ -12,7 +12,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
@@ -56,7 +56,7 @@ public class HarvestOperationFbsTest {
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
     private static final Date QUEUED_TIME = new Date(1467277697583L); // 2016-06-30 11:08:17.583
     private static final String CONSUMER_ID = "consumerId";
-    private static final RawRepoConnector RAW_REPO_CONNECTOR = mock(RawRepoConnector.class);
+    private static final RawRepo3Connector RAW_REPO_CONNECTOR = mock(RawRepo3Connector.class);
     private static final RecordServiceConnector RAW_REPO_RECORD_SERVICE_CONNECTOR = mock(RecordServiceConnector.class);
     private static final RecordEntryDTO FIRST_RECORD = new RecordEntryBuilder().defaults("first")
             .trail("trail")

@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
 import dk.dbc.rawrepo.queue.ConfigurationException;
@@ -33,7 +33,7 @@ public class WorldCatHarvestOperation extends HarvestOperation {
     }
 
     WorldCatHarvestOperation(RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                             VipCoreConnection vipCoreConnection, RawRepoConnector rawRepoConnector,
+                             VipCoreConnection vipCoreConnection, RawRepo3Connector rawRepoConnector,
                              OcnRepo ocnRepo, RecordServiceConnector recordServiceConnector, MetricRegistry metricRegistry)
             throws SQLException, QueueException, ConfigurationException {
         super(config, harvesterJobBuilderFactory, taskRepo, vipCoreConnection, rawRepoConnector, recordServiceConnector, metricRegistry);

@@ -11,7 +11,7 @@ import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
@@ -62,7 +62,7 @@ public class HarvestOperationImsTest implements TempFiles {
     final RecordServiceConnector rawRepoRecordServiceConnector = mock(RecordServiceConnector.class);
     private final EntityManager entityManager = mock(EntityManager.class);
     private final TaskRepo taskRepo = new TaskRepo(entityManager);
-    private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
+    private final RawRepo3Connector rawRepoConnector = mock(RawRepo3Connector.class);
     private final VipCoreConnection vipCoreConnection = mock(VipCoreConnection.class);
     private final HoldingsItemsConnector holdingsItemsConnector = mock(HoldingsItemsConnector.class);
     private final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();

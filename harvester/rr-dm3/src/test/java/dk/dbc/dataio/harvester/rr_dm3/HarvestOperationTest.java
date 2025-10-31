@@ -12,7 +12,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.rawrepo.MockedQueueItem;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
@@ -69,7 +69,7 @@ public class HarvestOperationTest {
     final TaskRepo taskRepo = new TaskRepo(entityManager);
     final HarvesterJobBuilderFactory harvesterJobBuilderFactory = mock(HarvesterJobBuilderFactory.class);
     final HarvesterJobBuilder harvesterJobBuilder = mock(HarvesterJobBuilder.class);
-    final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
+    final RawRepo3Connector rawRepoConnector = mock(RawRepo3Connector.class);
     final RecordServiceConnector rawRepoRecordServiceConnector = mock(RecordServiceConnector.class);
     final JSONBContext jsonbContext = new JSONBContext();
     private final JobSpecification defaultJobSpecificationTemplate = getJobSpecification();

@@ -14,10 +14,11 @@ import dk.dbc.dataio.harvester.types.HarvesterRecord;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.MarcJSonCollection;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.marc.binding.MarcBinding;
+import dk.dbc.pgqueue.consumer.JobWithMetaData;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,7 +61,7 @@ public class HarvestOperation implements AutoCloseable {
     final RRV3HarvesterConfig.Content configContent;
     final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
     final VipCoreConnection vipCoreConnection;
-    final RawRepoConnector rawRepoConnector;
+    final RawRepo3Connector rawRepoConnector;
     final RecordServiceConnector rawRepoRecordServiceConnector;
 
     private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new LinkedHashMap<>();
@@ -94,7 +96,7 @@ public class HarvestOperation implements AutoCloseable {
     }
 
     HarvestOperation(RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                     VipCoreConnection vipCoreConnection, RawRepoConnector rawRepoConnector, RecordServiceConnector recordServiceConnector,
+                     VipCoreConnection vipCoreConnection, RawRepo3Connector rawRepoConnector, RecordServiceConnector recordServiceConnector,
                      MetricRegistry metricRegistry)
             throws QueueException, SQLException, ConfigurationException {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
@@ -118,37 +120,26 @@ public class HarvestOperation implements AutoCloseable {
      */
     public int execute() throws HarvesterException {
         try {
-
             final StopWatch stopWatch = new StopWatch();
             final RecordHarvestTaskQueue recordHarvestTaskQueue = createTaskQueue();
-            // Since we might (re)run batches with a size larger than the one currently configured
-            final int batchSize = Math.max(configContent.getBatchSize(), recordHarvestTaskQueue.estimatedSize());
-
-            int itemsProcessed = 0;
-            RawRepoRecordHarvestTask recordHarvestTask = recordHarvestTaskQueue.poll();
-            while (recordHarvestTask != null) {
-                LOGGER.info("{} ready for harvesting", recordHarvestTask.getRecordId());
-
-                processRecordHarvestTask(recordHarvestTask);
-
-                if (++itemsProcessed == batchSize) {
-                    break;
+            AtomicReference<JobWithMetaData<RecordIdDTO>> ref = new AtomicReference<>();
+            return rawRepoConnector.dequeue(configContent.getBatchSize(), ref::get, jobs -> {
+                for (JobWithMetaData<RecordIdDTO> job : jobs) {
+                    ref.set(job);
+                    RecordIdDTO recordId = job.getActualJob();
+                    AddiMetaData metaData = new AddiMetaData().withBibliographicRecordId(recordId.getBibliographicRecordId()).withSubmitterNumber(recordId.getAgencyId());
+                    RawRepoRecordHarvestTask task = new RawRepoRecordHarvestTask().withRecordId(recordId).withAddiMetaData(metaData);
+                    processRecordHarvestTask(task);
                 }
-                recordHarvestTask = recordHarvestTaskQueue.poll();
-            }
-            flushHarvesterJobBuilders();
-
-            recordHarvestTaskQueue.commit();
-
-            if(itemsProcessed > 0) LOGGER.info("Processed {} items from {} queue in {} ms",
-                    itemsProcessed, configContent.getConsumerId(), stopWatch.getElapsedTime());
-
-            return itemsProcessed;
-        } catch (Exception any) {
-            LOGGER.error("Caught unhandled exception: " + any.getMessage());
-            metricRegistry.counter(exceptionCounterMetadata,
-                    new Tag("config", config.getContent().getId())).inc();
-            throw any;
+                flushHarvesterJobBuilders();
+                recordHarvestTaskQueue.commit();
+                if(!jobs.isEmpty()) LOGGER.info("Processed {} items from {} queue in {} ms", jobs.size(), configContent.getConsumerId(), stopWatch.getElapsedTime());
+            });
+        } catch (SQLException | HarvesterException e) {
+            LOGGER.error("Caught unhandled exception: " + e.getMessage());
+            metricRegistry.counter(exceptionCounterMetadata, new Tag("config", config.getContent().getId())).inc();
+            if(e instanceof HarvesterException he) throw he;
+            throw new HarvesterException(e);
         }
     }
 
@@ -191,9 +182,9 @@ public class HarvestOperation implements AutoCloseable {
         }
     }
 
-    RawRepoConnector getRawRepoConnector(RRV3HarvesterConfig config)
+    RawRepo3Connector getRawRepoConnector(RRV3HarvesterConfig config)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
-        return new RawRepoConnector(config.getContent().getResource());
+        return new RawRepo3Connector(config.getContent().getResource(), configContent.getConsumerId());
     }
 
     JobSpecification getJobSpecificationTemplate(int agencyId) {

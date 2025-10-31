@@ -13,7 +13,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
-public class RawRepoConnectorTest {
+public class RawRepo3ConnectorTest {
     private static final String DATA_SOURCE_RESOURCE_NAME = "resourceName";
 
     private final DataSource dataSource = mock(DataSource.class);
@@ -31,40 +31,40 @@ public class RawRepoConnectorTest {
 
     @Test
     public void constructor_dataSourceResourceNameIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new RawRepoConnector((String) null));
+        assertThrows(NullPointerException.class, () -> new RawRepo3Connector((String) null));
     }
 
     @Test
     public void constructor_dataSourceResourceNameIsEmpty_throws() {
-        assertThrows(IllegalArgumentException.class, () -> new RawRepoConnector(""));
+        assertThrows(IllegalArgumentException.class, () -> new RawRepo3Connector(""));
     }
 
     @Test
     public void constructor_dataSourceResourceNameLookupThrowsNamingException_throws() {
-        assertThrows(IllegalStateException.class, () -> new RawRepoConnector("noSuchResource"));
+        assertThrows(IllegalStateException.class, () -> new RawRepo3Connector("noSuchResource"));
     }
 
     @Test
     public void constructor_dataSourceResourceNameLookupReturnsNonDataSourceObject_throws() {
         InMemoryInitialContextFactory.bind(DATA_SOURCE_RESOURCE_NAME, "notDataSource");
-        assertThrows(IllegalStateException.class, () -> new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME));
+        assertThrows(IllegalStateException.class, () -> new RawRepo3Connector(DATA_SOURCE_RESOURCE_NAME));
     }
 
     @Test
     public void constructor_resolvesDataSourceName() {
-        RawRepoConnector rawRepoConnector = new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME);
+        RawRepo3Connector rawRepoConnector = new RawRepo3Connector(DATA_SOURCE_RESOURCE_NAME);
         assertThat("connector.dataSource", rawRepoConnector.getDataSource(), is(dataSource));
     }
 
     @Test
     public void dequeue_consumerIdArgIsNull_throws() {
-        RawRepoConnector rawRepoConnector = new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME);
+        RawRepo3Connector rawRepoConnector = new RawRepo3Connector(DATA_SOURCE_RESOURCE_NAME);
         assertThrows(NullPointerException.class, () -> rawRepoConnector.dequeue(null));
     }
 
     @Test
     public void dequeue_consumerIdArgIsEmpty_throws() {
-        RawRepoConnector rawRepoConnector = new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME);
+        RawRepo3Connector rawRepoConnector = new RawRepo3Connector(DATA_SOURCE_RESOURCE_NAME);
         assertThrows(IllegalArgumentException.class, () -> rawRepoConnector.dequeue(""));
     }
 }

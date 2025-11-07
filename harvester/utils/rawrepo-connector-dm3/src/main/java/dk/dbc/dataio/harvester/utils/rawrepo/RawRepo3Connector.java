@@ -85,7 +85,7 @@ public class RawRepo3Connector {
         private static final Map<RawRepoService, String> MAP = new EnumMap<>(RawRepoService.class);
         private static final String ERROR_MSG = "Unable to lookup RawRepoService: ";
 
-                RawRepoService(String key) {
+        RawRepoService(String key) {
             this.key = key;
         }
 
@@ -94,10 +94,10 @@ public class RawRepo3Connector {
         }
 
         private String lookup(String key, DataSource dataSource) {
-            try(PreparedStatement ps = dataSource.getConnection().prepareStatement("select value from configurations where key = ?")) {
+            try (PreparedStatement ps = dataSource.getConnection().prepareStatement("select value from configurations where key = ?")) {
                 ps.setString(1, key);
                 ResultSet rs = ps.executeQuery();
-                if(rs.next()) return rs.getString(1);
+                if (rs.next()) return rs.getString(1);
             } catch (SQLException e) {
                 throw new IllegalStateException(ERROR_MSG + key, e);
             }

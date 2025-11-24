@@ -84,8 +84,7 @@ public class ScheduledHarvestBean {
                     iterator.remove();
                     try {
                         final Integer recordsHarvested = harvest.getValue().get();
-                        LOGGER.info("Scheduled harvest for '{}' harvested {} records",
-                                harvest.getKey(), recordsHarvested);
+                        if(recordsHarvested > 0) LOGGER.info("Scheduled harvest for '{}' harvested {} records", harvest.getKey(), recordsHarvested);
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
                     } catch (Exception e) {
@@ -95,11 +94,12 @@ public class ScheduledHarvestBean {
             }
 
             for (RRV3HarvesterConfig rrHarvesterConfig : config.get()) {
-                final String harvesterId = rrHarvesterConfig.getContent().getId();
-                if (!runningHarvests.containsKey(harvesterId)) {
-                    runningHarvests.put(harvesterId, harvester.harvest(rrHarvesterConfig));
-                    LOGGER.debug("Scheduling harvest for '{}'", harvesterId);
-                }
+                for (String workerKey : rrHarvesterConfig.getContent().workerKeys()) {
+                    if (!runningHarvests.containsKey(workerKey)) {
+                        runningHarvests.put(workerKey, harvester.harvest(rrHarvesterConfig, workerKey));
+                        LOGGER.debug("Scheduling harvest for '{}'", workerKey);
+                    }
+                };
             }
         } catch (Exception e) {
             LOGGER.error("Exception caught while scheduling harvests", e);

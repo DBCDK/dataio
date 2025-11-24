@@ -18,7 +18,6 @@ import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.marc.binding.MarcBinding;
-import dk.dbc.pgqueue.consumer.JobWithMetaData;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
@@ -45,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -62,12 +61,14 @@ public class HarvestOperation implements AutoCloseable {
     final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
     final VipCoreConnection vipCoreConnection;
     final RawRepo3Connector rawRepoConnector;
-    final RecordServiceConnector rawRepoRecordServiceConnector;
+    final RecordServiceConnector recordServiceConnector;
 
     private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new LinkedHashMap<>();
     private final JSONBContext jsonbContext = new JSONBContext();
     private final TaskRepo taskRepo;
     private int basedOnJob = 0;
+    private final String workerKey;
+    private static final Map<String, Object> CONNECTOR_CACHE =  new ConcurrentHashMap<>();
 
     MetricRegistry metricRegistry;
 
@@ -75,7 +76,7 @@ public class HarvestOperation implements AutoCloseable {
     //                  Note that the simple-timer type is only available from microprofile-metrics v2.3, which is currently not in our payara.
     //                  Alternatively use two counters task_count and task_duration_sum.
     static final Metadata taskDurationTimerMetadata = Metadata.builder()
-            .withName("dataio_harvester_rr_task_duration_timer")
+            .withName("dataio_harvester_rr_dm3_task_duration_timer")
             .withDescription("Duration of harvester tasks")
             .withUnit(MetricUnits.MILLISECONDS).build();
     static final Metadata taskErrorCounterMetadata = Metadata.builder()
@@ -83,32 +84,30 @@ public class HarvestOperation implements AutoCloseable {
             .withDescription("Number of failing tasks")
             .withUnit("tasks").build();
     static final Metadata exceptionCounterMetadata = Metadata.builder()
-            .withName("dataio_harvester_rr_exception_counter")
+            .withName("dataio_harvester_rr_dm3_exception_counter")
             .withDescription("Number of unhandled exceptions caught")
             .withUnit("exceptions").build();
 
-    public HarvestOperation(RRV3HarvesterConfig config,
+    public HarvestOperation(String workerKey, RRV3HarvesterConfig config,
                             HarvesterJobBuilderFactory harvesterJobBuilderFactory,
                             TaskRepo taskRepo, VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector, MetricRegistry metricRegistry)
             throws QueueException, SQLException, ConfigurationException {
-        this(config, harvesterJobBuilderFactory, taskRepo,
+        this(workerKey, config, harvesterJobBuilderFactory, taskRepo,
                 new VipCoreConnection(vipCoreLibraryRulesConnector), null, null, metricRegistry);
     }
 
-    HarvestOperation(RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
+    HarvestOperation(String workerKey, RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
                      VipCoreConnection vipCoreConnection, RawRepo3Connector rawRepoConnector, RecordServiceConnector recordServiceConnector,
-                     MetricRegistry metricRegistry)
-            throws QueueException, SQLException, ConfigurationException {
+                     MetricRegistry metricRegistry) throws QueueException, SQLException, ConfigurationException {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
-        this.configContent = config.getContent();
+        configContent = config.getContent();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
         this.taskRepo = InvariantUtil.checkNotNullOrThrow(taskRepo, "taskRepo");
-        this.vipCoreConnection = InvariantUtil.checkNotNullOrThrow(
-                vipCoreConnection, "vipCoreConnection");
-        this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config);
-        this.rawRepoRecordServiceConnector = recordServiceConnector != null ? recordServiceConnector
-                : RecordServiceConnectorFactory.create(this.rawRepoConnector.getRecordServiceUrl());
+        this.vipCoreConnection = InvariantUtil.checkNotNullOrThrow(vipCoreConnection, "vipCoreConnection");
+        this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config, workerKey);
+        this.recordServiceConnector = recordServiceConnector == null ? (RecordServiceConnector) CONNECTOR_CACHE.computeIfAbsent(this.rawRepoConnector.getRecordServiceUrl(), RecordServiceConnectorFactory::create) : recordServiceConnector;
         this.metricRegistry = metricRegistry;
+        this.workerKey = InvariantUtil.checkNotNullOrThrow(workerKey, "workerKey");
     }
 
     /**
@@ -119,39 +118,58 @@ public class HarvestOperation implements AutoCloseable {
      * @throws HarvesterException on failure to complete harvest operation
      */
     public int execute() throws HarvesterException {
+        return execute(null);
+    }
+
+    protected int execute(Set<Integer> agencyFilter) throws HarvesterException {
         try {
             final StopWatch stopWatch = new StopWatch();
-            final RecordHarvestTaskQueue recordHarvestTaskQueue = createTaskQueue();
-            AtomicReference<JobWithMetaData<RecordIdDTO>> ref = new AtomicReference<>();
-            return rawRepoConnector.dequeue(configContent.getBatchSize(), ref::get, jobs -> {
-                for (JobWithMetaData<RecordIdDTO> job : jobs) {
-                    ref.set(job);
-                    RecordIdDTO recordId = job.getActualJob();
+            int jobCount = rawRepoConnector.dequeue(configContent.getBatchSize(), jobs -> {
+                if(jobs.isEmpty()) return;
+                for (RecordIdDTO recordId : jobs) {
                     AddiMetaData metaData = new AddiMetaData().withBibliographicRecordId(recordId.getBibliographicRecordId()).withSubmitterNumber(recordId.getAgencyId());
                     RawRepoRecordHarvestTask task = new RawRepoRecordHarvestTask().withRecordId(recordId).withAddiMetaData(metaData);
-                    processRecordHarvestTask(task);
+                    processRecordHarvestTask(task, agencyFilter);
                 }
+
                 flushHarvesterJobBuilders();
-                recordHarvestTaskQueue.commit();
-                if(!jobs.isEmpty()) LOGGER.info("Processed {} items from {} queue in {} ms", jobs.size(), configContent.getConsumerId(), stopWatch.getElapsedTime());
+                LOGGER.info("Processed {} items from {} queue in {} ms", jobs.size(), workerKey, stopWatch.getElapsedTime());
             });
+            if(jobCount > 0) return jobCount;
+            return reruns();
         } catch (SQLException | HarvesterException e) {
-            LOGGER.error("Caught unhandled exception: " + e.getMessage());
-            metricRegistry.counter(exceptionCounterMetadata, new Tag("config", config.getContent().getId())).inc();
+            LOGGER.error(e.getMessage());
+            metricRegistry.counter(exceptionCounterMetadata, new Tag("config", workerKey)).inc();
             if(e instanceof HarvesterException he) throw he;
             throw new HarvesterException(e);
         }
     }
 
-    void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
+    public int reruns() throws HarvesterException {
+        StopWatch stopWatch = new StopWatch();
+        RecordHarvestTaskQueue recordHarvestTaskQueue = createRerunQueue();
+        // Since we might (re)run batches with a size larger than the one currently configured
+        int batchSize = Math.max(configContent.getBatchSize(), recordHarvestTaskQueue.estimatedSize());
+        int itemsProcessed = 0;
+        RawRepoRecordHarvestTask recordHarvestTask = recordHarvestTaskQueue.poll();
+        while (recordHarvestTask != null) {
+            LOGGER.info("{} ready for harvesting", recordHarvestTask.getRecordId());
+            processRecordHarvestTask(recordHarvestTask, null);
+            if (++itemsProcessed == batchSize) break;
+            recordHarvestTask = recordHarvestTaskQueue.poll();
+        }
+        flushHarvesterJobBuilders();
+        recordHarvestTaskQueue.commit();
+        if(itemsProcessed > 0) LOGGER.info("Processed {} items from {} queue in {} ms", itemsProcessed, configContent.getConsumerId(), stopWatch.getElapsedTime());
+        return itemsProcessed;
+    }
+
+    void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> agencyFilter) throws HarvesterException {
         RecordEntryDTO recordData = null;
         try {
             long taskStartTime = System.currentTimeMillis();
-
             recordData = fetchRecord(recordHarvestTask.getRecordId());
-
             DBCTrackedLogContext.setTrackingId(recordData.getTrackingId());
-
             final AddiMetaData addiMetaData = recordHarvestTask.getAddiMetaData()
                     .withTrackingId(recordData.getTrackingId())
                     .withCreationDate(getRecordCreationDate(recordData));
@@ -166,8 +184,7 @@ public class HarvestOperation implements AutoCloseable {
                         .update(Duration.ofMillis(System.currentTimeMillis() - taskStartTime));
             }
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
-            final String errorMsg = String.format("Harvesting RawRepo %s failed: %s",
-                    recordHarvestTask.getRecordId(), e.getMessage());
+            final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", recordHarvestTask.getRecordId(), e.getMessage());
             LOGGER.error(errorMsg);
             getHarvesterJobBuilder(recordHarvestTask.getAddiMetaData().submitterNumber())
                     .addRecord(
@@ -182,9 +199,9 @@ public class HarvestOperation implements AutoCloseable {
         }
     }
 
-    RawRepo3Connector getRawRepoConnector(RRV3HarvesterConfig config)
+    RawRepo3Connector getRawRepoConnector(RRV3HarvesterConfig config, String workerKey)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
-        return new RawRepo3Connector(config.getContent().getResource(), configContent.getConsumerId());
+        return new RawRepo3Connector(config.getContent().getResource(), workerKey);
     }
 
     JobSpecification getJobSpecificationTemplate(int agencyId) {
@@ -204,14 +221,14 @@ public class HarvestOperation implements AutoCloseable {
                 .withAncestry(ancestry);
     }
 
-    RecordHarvestTaskQueue createTaskQueue() throws HarvesterException {
-        final RawRepoQueue rawRepoQueue = new RawRepoQueue(config, rawRepoConnector);
-        if (rawRepoQueue.peek() != null) {
-            return rawRepoQueue;
-        }
-        final TaskQueue queue = new TaskQueue(config, taskRepo);
+    RecordHarvestTaskQueue createRerunQueue() throws HarvesterException {
+        TaskQueue queue = makeTaskQueue(config, taskRepo);
         basedOnJob = queue.basedOnJob();
         return queue;
+    }
+
+    protected TaskQueue makeTaskQueue(RRV3HarvesterConfig config, TaskRepo taskRepo) {
+        return new TaskQueue(config, taskRepo);
     }
 
     int getAgencyIdFromEnrichmentTrail(RecordEntryDTO recordData) throws HarvesterInvalidRecordException {
@@ -272,12 +289,7 @@ public class HarvestOperation implements AutoCloseable {
     }
 
     private HarvesterJobBuilder getHarvesterJobBuilder(int agencyId) throws HarvesterException {
-        HarvesterJobBuilder job = harvesterJobBuilders.get(agencyId);
-        if(job == null) {
-            job = harvesterJobBuilderFactory.newHarvesterJobBuilder(getJobSpecificationTemplate(agencyId));
-            harvesterJobBuilders.put(agencyId, job);
-        }
-        return job;
+        return harvesterJobBuilders.computeIfAbsent(agencyId, id -> harvesterJobBuilderFactory.newHarvesterJobBuilder(getJobSpecificationTemplate(id)));
     }
 
     private void closeHarvesterJobBuilders() {
@@ -293,8 +305,7 @@ public class HarvestOperation implements AutoCloseable {
 
     private void enrichAddiMetaData(AddiMetaData addiMetaData) {
         if (configContent.hasIncludeLibraryRules()) {
-            addiMetaData.withLibraryRules(vipCoreConnection.getLibraryRules(
-                    addiMetaData.submitterNumber(), addiMetaData.trackingId()));
+            addiMetaData.withLibraryRules(vipCoreConnection.getLibraryRules(addiMetaData.submitterNumber(), addiMetaData.trackingId()));
         }
     }
 
@@ -379,7 +390,7 @@ public class HarvestOperation implements AutoCloseable {
     RecordEntryDTO fetchRecord(RecordIdDTO recordId)
             throws HarvesterSourceException, HarvesterInvalidRecordException {
         try {
-            RecordEntryDTO recordData = rawRepoRecordServiceConnector.getRecordData(recordId);
+            RecordEntryDTO recordData = recordServiceConnector.getRecordData(recordId);
             if (recordData == null) {
                 throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
             }
@@ -395,7 +406,7 @@ public class HarvestOperation implements AutoCloseable {
         try {
 
             RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(configContent.expand());
-            List<RecordEntryDTO> recordDataCollection = rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(recordId, params);
+            List<RecordEntryDTO> recordDataCollection = recordServiceConnector.getRecordDataCollectionDataIO(recordId, params);
             if (recordDataCollection == null || recordDataCollection.isEmpty()) {
                 throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
             }
@@ -407,5 +418,9 @@ public class HarvestOperation implements AutoCloseable {
 
     @Override
     public void close() {
+    }
+
+    public List<RawRepoRecordHarvestTask> preprocessRecordHarvestTask(RawRepoRecordHarvestTask task) {
+        return List.of();
     }
 }

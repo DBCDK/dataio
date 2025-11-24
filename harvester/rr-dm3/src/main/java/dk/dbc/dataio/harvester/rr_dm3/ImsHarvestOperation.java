@@ -1,6 +1,5 @@
 package dk.dbc.dataio.harvester.rr_dm3;
 
-import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.Require;
@@ -26,8 +25,6 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -36,20 +33,19 @@ public class ImsHarvestOperation extends HarvestOperation {
 
     private final HoldingsItemsConnector holdingsItemsConnector;
 
-    public ImsHarvestOperation(RRV3HarvesterConfig config,
-                               HarvesterJobBuilderFactory harvesterJobBuilderFactory,
+    public ImsHarvestOperation(String workerKey, RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory,
                                TaskRepo taskRepo, VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector, MetricRegistry metricRegistry)
-            throws NullPointerException, IllegalArgumentException, QueueException, SQLException, ConfigurationException {
-        this(config, harvesterJobBuilderFactory, taskRepo,
+            throws QueueException, SQLException, ConfigurationException {
+
+        this(workerKey, config, harvesterJobBuilderFactory, taskRepo,
                 new VipCoreConnection(vipCoreLibraryRulesConnector), null, null, null, metricRegistry);
     }
 
-    ImsHarvestOperation(RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
+    ImsHarvestOperation(String workerKey, RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
                         VipCoreConnection vipCoreConnection, RawRepo3Connector rawRepoConnector,
                         HoldingsItemsConnector holdingsItemsConnector, RecordServiceConnector recordServiceConnector,
-                        MetricRegistry metricRegistry)
-            throws QueueException, SQLException, ConfigurationException {
-        super(config, harvesterJobBuilderFactory, taskRepo, vipCoreConnection, rawRepoConnector, recordServiceConnector, metricRegistry);
+                        MetricRegistry metricRegistry) throws QueueException, SQLException, ConfigurationException {
+        super(workerKey, config, harvesterJobBuilderFactory, taskRepo, vipCoreConnection, rawRepoConnector, recordServiceConnector, metricRegistry);
         this.holdingsItemsConnector = holdingsItemsConnector != null ? holdingsItemsConnector : getHoldingsItemsConnector(config);
     }
 
@@ -62,45 +58,15 @@ public class ImsHarvestOperation extends HarvestOperation {
      * @return number of records processed
      * @throws HarvesterException on failure to complete harvest operation
      */
-    @Override
     public int execute() throws HarvesterException {
-        final StopWatch stopWatch = new StopWatch();
-        final RecordHarvestTaskQueue recordHarvestTaskQueue = createTaskQueue();
-        // Since we might (re)run batches with a size larger than the one currently configured
-        final int batchSize = Math.max(configContent.getBatchSize(), recordHarvestTaskQueue.estimatedSize());
+        return execute(vipCoreConnection.getFbsImsLibraries());
+    }
 
-        if (recordHarvestTaskQueue.isEmpty()) return 0;
-        Set<Integer> imsLibraries = vipCoreConnection.getFbsImsLibraries();
-
-        int itemsProcessed = 0;
-        RawRepoRecordHarvestTask recordHarvestTask = recordHarvestTaskQueue.poll();
-        while (recordHarvestTask != null) {
-            LOGGER.info("{} ready for harvesting", recordHarvestTask.getRecordId());
-
-            // There is quite a bit of waisted effort being done here when
-            // the workload contains more than one record, since we will actually be
-            // fetching/merging the same record more than once. Fixing this entails
-            // either an ImsHarvestOperation implementation having very little code
-            // in common with HarvestOperation or a complete rewrite of the
-            // HarvestOperation class, neither of which we have the time for
-            // currently.
-            for (RawRepoRecordHarvestTask task : unfoldRecordHarvestTask(recordHarvestTask, imsLibraries)) {
-                processRecordHarvestTask(task);
-            }
-
-            if (++itemsProcessed == batchSize) {
-                break;
-            }
-            recordHarvestTask = recordHarvestTaskQueue.poll();
+    @Override
+    void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) throws HarvesterException {
+        for (RawRepoRecordHarvestTask task : unfoldRecordHarvestTask(recordHarvestTask, imsLibraries)) {
+            super.processRecordHarvestTask(task, null);
         }
-        flushHarvesterJobBuilders();
-
-        recordHarvestTaskQueue.commit();
-
-        LOGGER.info("Processed {} items from {} queue in {} ms",
-                itemsProcessed, configContent.getConsumerId(), stopWatch.getElapsedTime());
-
-        return itemsProcessed;
     }
 
     @Override
@@ -138,7 +104,7 @@ public class ImsHarvestOperation extends HarvestOperation {
                 RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(true).withMode(RecordServiceConnector.Params.Mode.EXPANDED);
                 RecordIdDTO recordId = new RecordIdDTO(f001a, DBC_LIBRARY);
                 try {
-                    RecordEntryDTO replaceRecord = rawRepoRecordServiceConnector.getRecordData(recordId, params);
+                    RecordEntryDTO replaceRecord = recordServiceConnector.getRecordData(recordId, params);
                     result.addMember(replaceRecord.getContent().toString().getBytes(StandardCharsets.UTF_8));
                 } catch (RecordServiceConnectorException e) {
                     throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
@@ -194,9 +160,9 @@ public class ImsHarvestOperation extends HarvestOperation {
                 final int agencyId = repoRecordHarvestTask.getRecordId().getAgencyId();
                 RecordEntryDTO record = fetchRecord(repoRecordHarvestTask.getRecordId());
                 if (record.isDeleted()) {
-                    final boolean hasHolding = !holdingsItemsConnector.hasHoldings(bibliographicRecordId, new HashSet<>(Collections.singletonList(agencyId))).isEmpty();
+                    final boolean hasHolding = !holdingsItemsConnector.hasHoldings(bibliographicRecordId, Set.of(agencyId)).isEmpty();
                     if (hasHolding) {
-                        if (rawRepoRecordServiceConnector.recordExists(870970, bibliographicRecordId)) {
+                        if (recordServiceConnector.recordExists(870970, bibliographicRecordId)) {
                             LOGGER.info("using 870970 record content for deleted record {}", repoRecordHarvestTask.getRecordId());
                             repoRecordHarvestTask.withRecordId(new RecordIdDTO(bibliographicRecordId, 870970));
                             repoRecordHarvestTask.withForceAdd(true);

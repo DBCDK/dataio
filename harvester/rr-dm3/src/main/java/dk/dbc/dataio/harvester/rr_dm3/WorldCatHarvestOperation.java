@@ -1,6 +1,5 @@
 package dk.dbc.dataio.harvester.rr_dm3;
 
-import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
@@ -18,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class WorldCatHarvestOperation extends HarvestOperation {
@@ -25,56 +25,31 @@ public class WorldCatHarvestOperation extends HarvestOperation {
 
     private final OcnRepo ocnRepo;
 
-    public WorldCatHarvestOperation(RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory,
+    public WorldCatHarvestOperation(String workerKey, RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory,
                                     TaskRepo taskRepo, VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector, OcnRepo ocnRepo, MetricRegistry metricRegistry)
             throws SQLException, QueueException, ConfigurationException {
-        this(config, harvesterJobBuilderFactory, taskRepo,
+        this(workerKey, config, harvesterJobBuilderFactory, taskRepo,
                 new VipCoreConnection(vipCoreLibraryRulesConnector), null, ocnRepo, null, metricRegistry);
     }
 
-    WorldCatHarvestOperation(RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
+    WorldCatHarvestOperation(String workerKey, RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
                              VipCoreConnection vipCoreConnection, RawRepo3Connector rawRepoConnector,
                              OcnRepo ocnRepo, RecordServiceConnector recordServiceConnector, MetricRegistry metricRegistry)
             throws SQLException, QueueException, ConfigurationException {
-        super(config, harvesterJobBuilderFactory, taskRepo, vipCoreConnection, rawRepoConnector, recordServiceConnector, metricRegistry);
+        super(workerKey, config, harvesterJobBuilderFactory, taskRepo, vipCoreConnection, rawRepoConnector, recordServiceConnector, metricRegistry);
         this.ocnRepo = ocnRepo;
     }
 
-    /**
-     * Runs this harvest operation, creating dataIO jobs from harvested records.
-     * If any non-internal error occurs a record is marked as failed.
-     *
-     * @return number of records processed
-     * @throws HarvesterException on failure to complete harvest operation
-     */
     @Override
-    public int execute() throws HarvesterException {
-        final StopWatch stopWatch = new StopWatch();
-        final RecordHarvestTaskQueue recordHarvestTaskQueue = createTaskQueue();
-
-        int itemsProcessed = 0;
-        RawRepoRecordHarvestTask recordHarvestTask = recordHarvestTaskQueue.poll();
-        while (recordHarvestTask != null) {
-            LOGGER.info("{} ready for harvesting", recordHarvestTask.getRecordId());
-            for (RawRepoRecordHarvestTask task : preprocessRecordHarvestTask(recordHarvestTask)) {
-                LOGGER.info("handling pid {} ocn {}", task.getAddiMetaData().pid(), task.getAddiMetaData().ocn());
-                processRecordHarvestTask(task);
-                itemsProcessed++;
-            }
-            recordHarvestTask = recordHarvestTaskQueue.poll();
+    void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> agencyFilter) throws HarvesterException {
+        for (RawRepoRecordHarvestTask task : preprocessRecordHarvestTask(recordHarvestTask)) {
+            LOGGER.info("handling pid {} ocn {}", task.getAddiMetaData().pid(), task.getAddiMetaData().ocn());
+            super.processRecordHarvestTask(task, agencyFilter);
         }
-        flushHarvesterJobBuilders();
-
-        recordHarvestTaskQueue.commit();
-
-        LOGGER.info("Processed {} items from {} queue in {} ms",
-                itemsProcessed, configContent.getConsumerId(), stopWatch.getElapsedTime());
-
-        return itemsProcessed;
     }
 
     /* One record harvest task may be expanded into multiple tasks based on ocn-repo lookup */
-    List<RawRepoRecordHarvestTask> preprocessRecordHarvestTask(RawRepoRecordHarvestTask task) {
+    public List<RawRepoRecordHarvestTask> preprocessRecordHarvestTask(RawRepoRecordHarvestTask task) {
         final List<RawRepoRecordHarvestTask> tasks = getWorldCatEntities(task).stream()
                 .map(worldCatEntity -> mergeTaskWithWorldCatEntity(task, worldCatEntity))
                 .filter(t -> hasPid(t.getAddiMetaData()))

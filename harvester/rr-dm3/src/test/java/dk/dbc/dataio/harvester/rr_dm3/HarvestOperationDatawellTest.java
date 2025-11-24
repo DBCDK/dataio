@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
@@ -44,6 +45,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -57,7 +59,7 @@ public class HarvestOperationDatawellTest implements TempFiles {
     private static final String CONSUMER_ID = "consumerId";
     private static final int LOCAL_LIBRARY = 700000;
 
-    private final static RawRepo3Connector RAW_REPO_CONNECTOR = mock(RawRepo3Connector.class);
+    private static RawRepo3Connector rawRepo3Connector = mock(RawRepo3Connector.class);
     private final static VipCoreConnection VIP_CORE_CONNECTION = mock(VipCoreConnection.class);
     private final static RecordServiceConnector RAW_REPO_RECORD_SERVICE_CONNECTOR = mock(RecordServiceConnector.class);
 
@@ -118,14 +120,10 @@ public class HarvestOperationDatawellTest implements TempFiles {
     public Path tmpFolder;
 
     @BeforeEach
-    public void setupMocks() throws SQLException, IOException, ConfigurationException, QueueException {
-        // Mock rawrepo return values
-        when(RAW_REPO_CONNECTOR.dequeue(CONSUMER_ID))
-                .thenReturn(FIRST_QUEUE_ITEM)
-                .thenReturn(SECOND_QUEUE_ITEM)
-                .thenReturn(THIRD_QUEUE_ITEM)
-                .thenReturn(null);
+    public void setupMocks() throws IOException, ConfigurationException {
+        rawRepo3Connector = HarvestOperationTest.rawRepo3Connector(FIRST_RECORD.getRecordId(), SECOND_RECORD.getRecordId(), THIRD_RECORD.getRecordId());
 
+        // Mock rawrepo return values
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean
         harvesterDataFileWithDbcRecords = createFile(tmpFolder);
         harvesterDataFileWithLocalRecords = createFile(tmpFolder);
@@ -276,10 +274,19 @@ public class HarvestOperationDatawellTest implements TempFiles {
                 .withIncludeRelations(true)
                 .withIncludeLibraryRules(true);
         try {
-            return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, VIP_CORE_CONNECTION, RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR, metricRegistry);
+            return new HarvestOperation("test:0", config, harvesterJobBuilderFactory, newTaskRepo(), VIP_CORE_CONNECTION, rawRepo3Connector, RAW_REPO_RECORD_SERVICE_CONNECTOR, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    public TaskRepo newTaskRepo() {
+        return new TaskRepo(entityManager) {
+            @Override
+            public Optional<HarvestTask> findNextHarvestTask(long configId) {
+                return Optional.of(mock(HarvestTask.class));
+            }
+        };
     }
 
     private void verifyHarvesterDataFiles() {

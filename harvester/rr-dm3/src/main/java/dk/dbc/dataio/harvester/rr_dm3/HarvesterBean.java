@@ -53,14 +53,14 @@ public class HarvesterBean {
     @Asynchronous
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public Future<Integer> harvest(RRV3HarvesterConfig config) throws HarvesterException {
+    public Future<Integer> harvest(RRV3HarvesterConfig config, String key) throws HarvesterException {
         boolean allowRun = !excludedHarvesterIds.contains(config.getId());
         LOGGER.debug("Called with config id: {}, and excludedHarvesterIds:{}", config.getId(), excludedHarvesterIds);
         if (allowRun) {
             try {
                 MDC.put(HARVESTER_MDC_KEY, config.getContent().getId());
                 final HarvesterBean businessObject = sessionContext.getBusinessObject(HarvesterBean.class);
-                int itemsHarvested = businessObject.executeFor(config);
+                int itemsHarvested = businessObject.executeFor(config, key);
                 return new AsyncResult<>(itemsHarvested);
             } finally {
                 MDC.remove(HARVESTER_MDC_KEY);
@@ -75,14 +75,15 @@ public class HarvesterBean {
      * Executes harvest operation
      *
      * @param config harvest configuration
+     * @param key
      * @return number of items harvested in batch
      * @throws IllegalStateException on low-level binary file operation failure
      * @throws HarvesterException    on failure to complete harvest operation
      */
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public int executeFor(RRV3HarvesterConfig config) throws HarvesterException {
-        try (HarvestOperation harvestOperation = harvestOperationFactory.createFor(config)) {
+    public int executeFor(RRV3HarvesterConfig config, String key) throws HarvesterException {
+        try (HarvestOperation harvestOperation = harvestOperationFactory.createFor(config, key)) {
             return harvestOperation.execute();
         }
     }

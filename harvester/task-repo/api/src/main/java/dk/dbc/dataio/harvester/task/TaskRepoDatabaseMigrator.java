@@ -7,6 +7,8 @@ import jakarta.ejb.Startup;
 import jakarta.ejb.TransactionManagement;
 import jakarta.ejb.TransactionManagementType;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.configuration.FluentConfiguration;
+import org.flywaydb.database.postgresql.PostgreSQLConfigurationExtension;
 
 import javax.sql.DataSource;
 
@@ -26,12 +28,14 @@ public class TaskRepoDatabaseMigrator {
 
     @PostConstruct
     public void migrate() {
-        final Flyway flyway = Flyway.configure()
+        FluentConfiguration config = Flyway.configure()
                 .table("schema_version")
                 .baselineOnMigrate(true)
                 .dataSource(dataSource)
-                .locations("classpath:dk/dbc/dataio/harvester/task/db/migration")
-                .load();
+                .locations("classpath:dk/dbc/dataio/harvester/task/db/migration");
+        PostgreSQLConfigurationExtension configurationExtension = config.getPluginRegister().getPlugin(PostgreSQLConfigurationExtension.class);
+        configurationExtension.setTransactionalLock(false);
+        Flyway flyway = config.load();
         flyway.migrate();
     }
 }

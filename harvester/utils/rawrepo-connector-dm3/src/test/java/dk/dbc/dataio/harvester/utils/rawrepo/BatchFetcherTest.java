@@ -50,21 +50,29 @@ public class BatchFetcherTest {
     }
 
     @Test
-    public void testBatchFetcher() throws SQLException {
+    public void testBatchFetchAll() throws SQLException {
         String[] values = {"one", "two", "three"};
         queue("test", values);
         BasicHarvester<String> harvester = new BasicHarvester<>(Settings.defaults(List.of("consumer1"), STORAGE_ABSTRACTION), PG.datasource());
-        BatchFetcher<String> fetcher = new BatchFetcherImpl<>("test", harvester) {
-            @Override
-            public void commit(Connection connection) throws SQLException {
-                connection.commit();
-            }
-        };
+        BatchFetcher<String> fetcher = new BatchFetcherImpl<>("test", harvester);
         int count = fetcher.batch(5, list -> {
             Assertions.assertEquals(List.of(values), list);
         });
-        Assertions.assertEquals(values.length, count);
-        Assertions.assertEquals(0, fetcher.batch(1, list -> {}));
+        Assertions.assertEquals(values.length, count, "We should have gotten all queued elements");
+        Assertions.assertEquals(0, fetcher.batch(1, list -> {}), "There should be no remaining elements");
+    }
+
+    @Test
+    public void testBatchFetchRollback() throws SQLException {
+        String[] values = {"one", "two", "three"};
+        queue("test", values);
+        BasicHarvester<String> harvester = new BasicHarvester<>(Settings.defaults(List.of("consumer1"), STORAGE_ABSTRACTION), PG.datasource());
+        BatchFetcher<String> fetcher = new BatchFetcherImpl<>("test", harvester);
+        int count = fetcher.batch(5, list -> {
+            throw new IllegalStateException("Something is dying dramatically");
+        });
+        Assertions.assertEquals(0, count, "We should have gotten no elements");
+        Assertions.assertEquals(values.length, fetcher.batch(5, list -> {}), "All elements should be remaining");
     }
 
     private void queue(String queueName, String... jobs) throws SQLException {

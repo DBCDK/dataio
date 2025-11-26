@@ -30,7 +30,11 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>rawrepo-queue-dao</artifactId>
-            <version>3.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>pg-queue-consumer</artifactId>
+            <version>2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -52,5 +56,24 @@
             <artifactId>dbc-commons-marc</artifactId>
             <version>4.1-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-testcontainers-postgres-17</artifactId>
+            <version>2.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
+                <configuration>
+                    <forceLegacyJavacApi>true</forceLegacyJavacApi>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,21 +44,21 @@ public class ScheduledHarvestBeanTest {
     public void scheduleHarvests_nonEmptyConfig_resultsInRunningHarvests() {
         ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
-        assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
+        assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(3));
     }
 
     @Test
     public void scheduleHarvests_harvestCompletes_reschedulesHarvest() throws HarvesterException {
-        when(harvesterBean.harvest(any(RRV3HarvesterConfig.class))).thenReturn(new MockedFuture());
+        when(harvesterBean.harvest(any(RRV3HarvesterConfig.class), anyString())).thenReturn(new MockedFuture());
         ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
-        assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
+        assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(3));
     }
 
     @Test
     public void scheduleHarvests_harvestCompletesAndIsNoLongerConfigured_removesHarvest() throws HarvesterException, FlowStoreServiceConnectorException {
-        when(harvesterBean.harvest(any(RRV3HarvesterConfig.class))).thenReturn(new MockedFuture());
+        when(harvesterBean.harvest(any(RRV3HarvesterConfig.class), anyString())).thenReturn(new MockedFuture());
         ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
         when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(RRV3HarvesterConfigurationType)).thenReturn(HarvesterTestUtil.getRRHarvesterConfigs(HarvesterTestUtil.getRRHarvestConfigContent())).thenReturn(new ArrayList<>(0));
 
@@ -70,18 +71,18 @@ public class ScheduledHarvestBeanTest {
     public void scheduleHarvests_harvestCompletesWithException_reschedulesHarvest() throws HarvesterException {
         MockedFuture mockedFuture = new MockedFuture();
         mockedFuture.exception = new ExecutionException("DIED", new IllegalStateException());
-        when(harvesterBean.harvest(any(RRV3HarvesterConfig.class))).thenReturn(mockedFuture);
+        when(harvesterBean.harvest(any(RRV3HarvesterConfig.class), anyString())).thenReturn(mockedFuture);
         ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
         scheduledHarvestBean.scheduleHarvests();
-        assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
+        assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(3));
     }
 
     @Test
     public void scheduleHarvests_harvestCompletesWithExceptionAndIsNoLongerConfigured_removesHarvest() throws HarvesterException, FlowStoreServiceConnectorException {
         MockedFuture mockedFuture = new MockedFuture();
         mockedFuture.exception = new ExecutionException("DIED", new IllegalStateException());
-        when(harvesterBean.harvest(any(RRV3HarvesterConfig.class))).thenReturn(mockedFuture);
+        when(harvesterBean.harvest(any(RRV3HarvesterConfig.class), anyString())).thenReturn(mockedFuture);
         ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
         when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(RRV3HarvesterConfigurationType)).thenReturn(HarvesterTestUtil.getRRHarvesterConfigs(HarvesterTestUtil.getRRHarvestConfigContent())).thenReturn(new ArrayList<>(0));
 

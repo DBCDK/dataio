@@ -36,7 +36,7 @@ public class HarvesterConfigurationBean {
         LOGGER.debug("Retrieving configuration");
         try {
             configs = flowStoreServiceConnectorBean.getConnector().findEnabledHarvesterConfigsByType(RRV3HarvesterConfig.class);
-            LOGGER.info("Applying configuration: {}", configs);
+            LOGGER.debug("Applying configuration: {}", configs);
         } catch (FlowStoreServiceConnectorException e) {
             throw new HarvesterException("Exception caught while refreshing configuration", e);
         }

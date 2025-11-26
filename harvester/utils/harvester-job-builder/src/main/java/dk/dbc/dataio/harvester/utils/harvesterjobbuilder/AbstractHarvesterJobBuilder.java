@@ -66,12 +66,7 @@ public abstract class AbstractHarvesterJobBuilder implements AutoCloseable {
      */
     public Optional<JobInfoSnapshot> build() throws HarvesterException {
         closeTmpFile();
-        if (recordsAdded > 0) {
-            final Optional<String> uploadedFileId = uploadToFileStore();
-            if (uploadedFileId.isPresent()) {
-                return Optional.of(createInJobStore(uploadedFileId.get()));
-            }
-        }
+        if (recordsAdded > 0) return uploadToFileStore().map(this::createInJobStore);
         return Optional.empty();
     }
 

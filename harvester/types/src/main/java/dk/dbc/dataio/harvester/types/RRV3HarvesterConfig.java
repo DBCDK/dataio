@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -44,7 +45,7 @@ public class RRV3HarvesterConfig extends HarvesterConfig<RRV3HarvesterConfig.Con
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class Content implements Serializable {
+    public static class Content implements WorkerKey, Serializable {
         private static final long serialVersionUID = 1L;
 
         public Content() {
@@ -295,6 +296,11 @@ public class RRV3HarvesterConfig extends HarvesterConfig<RRV3HarvesterConfig.Con
         public Content withExpand(boolean expand) {
             this.expand = expand;
             return this;
+        }
+
+        @Override
+        public List<Priority> priorities() {
+            return List.of(WorkerKey.Priority.values());
         }
 
         @Override

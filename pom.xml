@@ -88,7 +88,7 @@
         <es-sink.context>/dataio/sink/es</es-sink.context>
         <batch-exchange-sink.context>/dataio/sink/batch-exchange</batch-exchange-sink.context>
         <dmat-sink.context>/dataio/sink/dmat</dmat-sink.context>
-        <flyway.version>9.0.4</flyway.version> <!-- flyway versions 9.1.0 till 9.22.2 (latest) hangs in the migrate call -->
+<!--        <flyway.version>9.0.4</flyway.version> &lt;!&ndash; flyway versions 9.1.0 till 9.22.2 (latest) hangs in the migrate call &ndash;&gt;-->
 
         <sink.context>/dataio/sink</sink.context>
 
@@ -187,6 +187,11 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
+                <version>2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>pg-queue-consumer</artifactId>
                 <version>2.0-SNAPSHOT</version>
             </dependency>
             <dependency>
@@ -626,6 +631,11 @@
                 <version>${flyway.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-database-postgresql</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>eclipselink</artifactId>
                 <version>${eclipselink.version}</version>
@@ -689,7 +699,7 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>rawrepo-queue-dao</artifactId>
-                <version>2.2-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>

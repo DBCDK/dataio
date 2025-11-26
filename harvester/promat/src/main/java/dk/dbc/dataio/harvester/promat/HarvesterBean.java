@@ -60,7 +60,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHa
             final int numberOfCasesHarvested = harvestOperation.execute();
             metricRegistry.counter(caseCounterMetadata).inc(numberOfCasesHarvested);
             return numberOfCasesHarvested;
-        } catch (HarvesterException | RuntimeException e) {
+        } catch (RuntimeException e) {
             metricRegistry.counter(exceptionCounterMetadata).inc();
             throw e;
         }

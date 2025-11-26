@@ -7,6 +7,8 @@ import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
+import org.flywaydb.core.api.configuration.FluentConfiguration;
+import org.flywaydb.database.postgresql.PostgreSQLConfigurationExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,12 +32,14 @@ public class StartupDBMigrator {
             throw new EJBException("no datasource found to execute the db migrations!");
         }
 
-        final Flyway flyway = Flyway.configure()
+        FluentConfiguration config = Flyway.configure()
                 .table("schema_version_2")
                 .baselineOnMigrate(true)
                 .baselineVersion("1")
-                .dataSource(dataSource)
-                .load();
+                .dataSource(dataSource);
+        PostgreSQLConfigurationExtension configurationExtension = config.getPluginRegister().getPlugin(PostgreSQLConfigurationExtension.class);
+        configurationExtension.setTransactionalLock(false);
+        Flyway flyway = config.load();
         for (MigrationInfo i : flyway.info().all()) {
             log.info("migrate task: " + i.getVersion() + " : " + i.getDescription() + " from file: " + i.getScript());
         }

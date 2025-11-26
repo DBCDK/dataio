@@ -4,6 +4,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
 import dk.dbc.rawrepo.queue.ConfigurationException;
@@ -53,6 +54,7 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
 
     @BeforeEach
     public void setupMocks() {
+        rawRepoConnector = rawRepo3Connector(RECORD.getRecordId());
         when(ocnRepo.lookupWorldCatEntity(any(WorldCatEntity.class)))
                 .thenReturn(Collections.singletonList(worldCatEntity));
         when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
@@ -64,14 +66,14 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     @Test
     public void noHitsInOcnRepo_preprocessingReturnsEmptyList() {
         when(ocnRepo.lookupWorldCatEntity(any(WorldCatEntity.class))).thenReturn(Collections.emptyList());
-        final WorldCatHarvestOperation harvestOperation = newHarvestOperation();
+        final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat("number of tasks", harvestOperation.preprocessRecordHarvestTask(task).size(), is(0));
     }
 
     @Test
     public void singleHitInOcnRepo_preprocessingReturnsList() {
         when(ocnRepo.lookupWorldCatEntity(any(WorldCatEntity.class))).thenReturn(Collections.singletonList(worldCatEntity));
-        final WorldCatHarvestOperation harvestOperation = newHarvestOperation();
+        final HarvestOperation harvestOperation = newHarvestOperation();
         final List<RawRepoRecordHarvestTask> tasks = harvestOperation.preprocessRecordHarvestTask(task);
         assertThat("number of tasks", tasks.size(), is(1));
         final RawRepoRecordHarvestTask recordHarvestTask = tasks.get(0);
@@ -82,7 +84,7 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     @Test
     public void multipleHitsInOcnRepo_preprocessingReturnsList() {
         when(ocnRepo.lookupWorldCatEntity(any(WorldCatEntity.class))).thenReturn(Arrays.asList(worldCatEntity, worldCatEntity));
-        final WorldCatHarvestOperation harvestOperation = newHarvestOperation();
+        final HarvestOperation harvestOperation = newHarvestOperation();
         final List<RawRepoRecordHarvestTask> tasks = harvestOperation.preprocessRecordHarvestTask(task);
         assertThat("number of tasks", tasks.size(), is(2));
     }
@@ -90,22 +92,17 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     @Test
     public void multipleHitsInOcnRepo_causesMultipleItemsToBeAddedToJob() throws HarvesterException {
         when(ocnRepo.lookupWorldCatEntity(any(WorldCatEntity.class))).thenReturn(Arrays.asList(worldCatEntity, worldCatEntity));
-        final WorldCatHarvestOperation harvestOperation = newHarvestOperation();
+        final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
         verify(harvesterJobBuilder, times(2)).addRecord(any(AddiRecord.class));
     }
 
     @Override
-    public WorldCatHarvestOperation newHarvestOperation() {
-        return newHarvestOperation(HarvesterTestUtil.getRRHarvesterConfig());
-    }
-
-    @Override
-    public WorldCatHarvestOperation newHarvestOperation(RRV3HarvesterConfig config) {
+    public HarvestOperation newHarvestOperation(RawRepo3Connector connector, RRV3HarvesterConfig config) {
         try {
-            return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
-                    vipCoreConnection, rawRepoConnector, ocnRepo,
+            return new WorldCatHarvestOperation("test:0", config, harvesterJobBuilderFactory, newTaskRepo(),
+                    vipCoreConnection, connector, ocnRepo,
                     rawRepoRecordServiceConnector, metricRegistry);
         } catch (SQLException | QueueException | ConfigurationException e) {
             throw new IllegalStateException(e);

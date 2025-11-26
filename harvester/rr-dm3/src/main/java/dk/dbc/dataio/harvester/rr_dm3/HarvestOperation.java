@@ -80,7 +80,7 @@ public class HarvestOperation implements AutoCloseable {
             .withDescription("Duration of harvester tasks")
             .withUnit(MetricUnits.MILLISECONDS).build();
     static final Metadata taskErrorCounterMetadata = Metadata.builder()
-            .withName("dataio_harvester_rr_task_error_counter")
+            .withName("dataio_harvester_rr_dm3_task_error_counter")
             .withDescription("Number of failing tasks")
             .withUnit("tasks").build();
     static final Metadata exceptionCounterMetadata = Metadata.builder()

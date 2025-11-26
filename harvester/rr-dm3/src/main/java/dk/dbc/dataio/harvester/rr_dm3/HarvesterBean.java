@@ -75,7 +75,7 @@ public class HarvesterBean {
      * Executes harvest operation
      *
      * @param config harvest configuration
-     * @param key
+     * @param key a concatenation of the consumerId and the job priority
      * @return number of items harvested in batch
      * @throws IllegalStateException on low-level binary file operation failure
      * @throws HarvesterException    on failure to complete harvest operation

@@ -6,6 +6,8 @@ import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
+import org.flywaydb.core.api.configuration.FluentConfiguration;
+import org.flywaydb.database.postgresql.PostgreSQLConfigurationExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,12 +28,14 @@ public class DatabaseMigrator {
 
 
     public DatabaseMigrator onStartup() {
-        Flyway flyway = Flyway.configure()
+        FluentConfiguration configuration = Flyway.configure()
                 .table("schema_version_2")
                 .baselineOnMigrate(true)
                 .baselineVersion("1")
-                .dataSource(dataSource)
-                .load();
+                .dataSource(dataSource);
+        PostgreSQLConfigurationExtension configurationExtension = configuration.getPluginRegister().getPlugin(PostgreSQLConfigurationExtension.class);
+        configurationExtension.setTransactionalLock(false);
+        Flyway flyway = configuration.load();
         for (MigrationInfo i : flyway.info().all()) {
             LOGGER.info("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
         }

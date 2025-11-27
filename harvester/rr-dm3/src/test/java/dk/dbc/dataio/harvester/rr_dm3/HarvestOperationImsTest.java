@@ -6,12 +6,13 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
@@ -42,6 +43,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,7 +64,7 @@ public class HarvestOperationImsTest implements TempFiles {
     final RecordServiceConnector rawRepoRecordServiceConnector = mock(RecordServiceConnector.class);
     private final EntityManager entityManager = mock(EntityManager.class);
     private final TaskRepo taskRepo = new TaskRepo(entityManager);
-    private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
+    private final RawRepo3Connector rawRepoConnector = mock(RawRepo3Connector.class);
     private final VipCoreConnection vipCoreConnection = mock(VipCoreConnection.class);
     private final HoldingsItemsConnector holdingsItemsConnector = mock(HoldingsItemsConnector.class);
     private final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
@@ -131,8 +133,7 @@ public class HarvestOperationImsTest implements TempFiles {
         RecordEntryDTO dbcSectionRecord = new RecordEntryBuilder().defaults("dbc-section", HarvestOperation.DBC_LIBRARY).build();
         RecordEntryDTO imsRecord = new RecordEntryBuilder().defaults("ims", IMS_LIBRARY).build();
 
-        // Mock rawrepo return values
-        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(dbcRecord.getRecordId(), QUEUED_TIME)).thenReturn(HarvestOperationTest.getQueueItem(imsRecord.getRecordId(), QUEUED_TIME)).thenReturn(null);
+        RawRepo3Connector connector = HarvestOperationTest.rawRepo3Connector(dbcRecord.getRecordId(), imsRecord.getRecordId());
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(List.of(dbcHeadRecord, dbcSectionRecord, dbcRecord))
@@ -151,15 +152,15 @@ public class HarvestOperationImsTest implements TempFiles {
         recordsExpectationsFor775100.add(Expectations.of(imsRecord));
         addiMetaDataExpectationsFor775100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(775100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(imsRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation(connector);
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
         addiFileVerifier.verify(harvesterDataFileWith737000, addiMetaDataExpectationsFor737000, recordsExpectationsFor737000);
         addiFileVerifier.verify(harvesterDataFileWith775100, addiMetaDataExpectationsFor775100, recordsExpectationsFor775100);
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(710100));
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(737000));
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(775100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), harvestOperation.getJobSpecificationTemplate(710100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), harvestOperation.getJobSpecificationTemplate(737000));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), harvestOperation.getJobSpecificationTemplate(775100));
     }
 
     @Test
@@ -172,7 +173,8 @@ public class HarvestOperationImsTest implements TempFiles {
         when(holdingsItemsConnector.hasHoldings("faust", hasHoldings)).thenReturn(hasHoldings);
 
         // Mock rawrepo return values
-        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecord.getRecordId(), QUEUED_TIME)).thenReturn(null);
+//        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecord.getRecordId(), QUEUED_TIME)).thenReturn(null);
+        RawRepo3Connector rawRepo3Connector = HarvestOperationTest.rawRepo3Connector(imsRecord.getRecordId());
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(eq(imsRecord.getRecordId()), any(RecordServiceConnector.Params.class))).thenReturn(List.of(imsRecord));
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(eq(dbcRecord.getRecordId()), any(RecordServiceConnector.Params.class))).thenReturn(List.of(dbcRecord));
@@ -188,7 +190,7 @@ public class HarvestOperationImsTest implements TempFiles {
         recordsExpectationsFor775100.add(Expectations.of(recordId191919));
         addiMetaDataExpectationsFor775100.add(new AddiMetaData().withBibliographicRecordId(dbcRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(775100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(dbcRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(dbcRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation(rawRepo3Connector);
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith775100, addiMetaDataExpectationsFor775100, recordsExpectationsFor775100);
@@ -198,12 +200,7 @@ public class HarvestOperationImsTest implements TempFiles {
     @Test
     public void imsRecordIsDeletedAndNoHoldingExists_recordIsSkipped() throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
         RecordEntryDTO imsRecord = new RecordEntryBuilder().defaults("faust", IMS_LIBRARY).deleted().build();
-
         when(holdingsItemsConnector.hasHoldings("faust", new HashSet<>(Collections.singletonList(IMS_LIBRARY)))).thenReturn(Collections.emptySet());
-
-        // Mock rawrepo return values
-        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecord.getRecordId(), QUEUED_TIME)).thenReturn(null);
-
         when(rawRepoRecordServiceConnector.getRecordData(imsRecord.getRecordId())).thenReturn(imsRecord);
 
         mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();
@@ -231,8 +228,7 @@ public class HarvestOperationImsTest implements TempFiles {
         RecordEntryDTO imsSectionRecord = new RecordEntryBuilder().defaults("22222", 710100).build();
         RecordEntryDTO imsRecord = new RecordEntryBuilder().defaults("11111", 710100).build();
 
-        // Mock section
-        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecord.getRecordId(), QUEUED_TIME)).thenReturn(null);
+        RawRepo3Connector connector = HarvestOperationTest.rawRepo3Connector(imsRecord.getRecordId());
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class))).thenReturn(List.of(dbcHeadRecord, imsSectionRecord, dbcRecord));
 
@@ -243,11 +239,11 @@ public class HarvestOperationImsTest implements TempFiles {
         addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(imsRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
-        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation(connector);
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(710100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), harvestOperation.getJobSpecificationTemplate(710100));
     }
 
     /**
@@ -265,8 +261,7 @@ public class HarvestOperationImsTest implements TempFiles {
         RecordEntryDTO dbcSectionRecord = new RecordEntryBuilder().defaults("22222", HarvestOperation.DBC_LIBRARY).build();
         RecordEntryDTO imsRecord = new RecordEntryBuilder().defaults("11111", 710100).build();
 
-        // Mock section
-        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecord.getRecordId(), QUEUED_TIME)).thenReturn(null);
+        RawRepo3Connector connector = HarvestOperationTest.rawRepo3Connector(imsRecord.getRecordId());
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class))).thenReturn(List.of(imsHeadRecord, dbcSectionRecord, dbcRecord));
 
@@ -277,7 +272,7 @@ public class HarvestOperationImsTest implements TempFiles {
         addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
-        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation(connector);
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
@@ -299,8 +294,7 @@ public class HarvestOperationImsTest implements TempFiles {
         RecordEntryDTO imsSectionRecord = new RecordEntryBuilder().defaults("22222", 710100).build();
         RecordEntryDTO imsRecord = new RecordEntryBuilder().defaults("11111", 710100).build();
 
-        // Mock section
-        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecord.getRecordId(), QUEUED_TIME)).thenReturn(null);
+        RawRepo3Connector connector = HarvestOperationTest.rawRepo3Connector(imsRecord.getRecordId());
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(List.of(imsHeadRecord, imsSectionRecord, dbcRecord));
@@ -312,7 +306,7 @@ public class HarvestOperationImsTest implements TempFiles {
         addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
-        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation(connector);
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
@@ -336,7 +330,8 @@ public class HarvestOperationImsTest implements TempFiles {
         RecordEntryDTO imsRecord = new RecordEntryBuilder().defaults("11111", 710100).build();
 
         // Mock section
-        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecord.getRecordId(), QUEUED_TIME)).thenReturn(null);
+//        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecord.getRecordId(), QUEUED_TIME)).thenReturn(null);
+        RawRepo3Connector connector = HarvestOperationTest.rawRepo3Connector(imsRecord.getRecordId());
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(List.of(dbcHeadRecord, imsSectionRecord, dbcRecord));
@@ -349,11 +344,11 @@ public class HarvestOperationImsTest implements TempFiles {
         addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
-        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation(connector);
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(710100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), harvestOperation.getJobSpecificationTemplate(710100));
     }
 
     /**
@@ -372,7 +367,8 @@ public class HarvestOperationImsTest implements TempFiles {
         RecordEntryDTO imsRecord = new RecordEntryBuilder().defaults("11111", 710100).build();
 
         // Mock section
-        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecord.getRecordId(), QUEUED_TIME)).thenReturn(null);
+//        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecord.getRecordId(), QUEUED_TIME)).thenReturn(null);
+        RawRepo3Connector connector = HarvestOperationTest.rawRepo3Connector(imsRecord.getRecordId());
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class))).thenReturn(List.of(imsHeadRecord, dbcRecord));
 
@@ -384,11 +380,11 @@ public class HarvestOperationImsTest implements TempFiles {
         addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
-        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation(connector);
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(710100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), harvestOperation.getJobSpecificationTemplate(710100));
     }
 
     /**
@@ -408,9 +404,6 @@ public class HarvestOperationImsTest implements TempFiles {
         RecordEntryDTO imsSectionRecord = new RecordEntryBuilder().defaults("22222", 710100).deleteContent('s').build();
         RecordEntryDTO imsRecord = new RecordEntryBuilder().defaults("11111", 710100).build();
 
-        // Mock section
-        when(rawRepoConnector.dequeue(CONSUMER_ID)).thenReturn(HarvestOperationTest.getQueueItem(imsRecord.getRecordId(), QUEUED_TIME)).thenReturn(null);
-
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(List.of(imsHeadRecord, imsSectionRecord, dbcRecord));
 
@@ -422,15 +415,16 @@ public class HarvestOperationImsTest implements TempFiles {
         recordsExpectationsFor710100.add(Expectations.of(dbcHeadRecord, dbcSectionRecord, dbcRecord));
         addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
+        RawRepo3Connector connector = HarvestOperationTest.rawRepo3Connector(imsRecord.getRecordId());
         // Execute test section
-        ImsHarvestOperation harvestOperation = newImsHarvestOperation();
+        ImsHarvestOperation harvestOperation = newImsHarvestOperation(connector);
         harvestOperation.execute();
 
         addiFileVerifier.verify(harvesterDataFileWith710100, addiMetaDataExpectationsFor710100, recordsExpectationsFor710100);
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), newImsHarvestOperation().getJobSpecificationTemplate(710100));
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(), harvestOperation.getJobSpecificationTemplate(710100));
     }
 
-    private ImsHarvestOperation newImsHarvestOperation() {
+    private ImsHarvestOperation newImsHarvestOperation(RawRepo3Connector rawRepo3Connector) {
         HarvesterJobBuilderFactory harvesterJobBuilderFactory;
         try {
             harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(new BinaryFileStoreFsImpl(createDir(tmpFolder)), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
@@ -440,10 +434,23 @@ public class HarvestOperationImsTest implements TempFiles {
         RRV3HarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent().withConsumerId(CONSUMER_ID).withFormat("katalog").withIncludeRelations(true).withHarvesterType(RRV3HarvesterConfig.HarvesterType.IMS);
         try {
-            return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, vipCoreConnection, rawRepoConnector, holdingsItemsConnector, rawRepoRecordServiceConnector, metricRegistry);
+            return new ImsHarvestOperation("test:0", config, harvesterJobBuilderFactory, newTaskRepo(), vipCoreConnection, rawRepo3Connector, holdingsItemsConnector, rawRepoRecordServiceConnector, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    public TaskRepo newTaskRepo() {
+        return new TaskRepo(entityManager) {
+            @Override
+            public Optional<HarvestTask> findNextHarvestTask(long configId) {
+                return Optional.of(mock(HarvestTask.class));
+            }
+        };
+    }
+
+    private ImsHarvestOperation newImsHarvestOperation() {
+        return newImsHarvestOperation(rawRepoConnector);
     }
 
     private void verifyJobSpecification(JobSpecification jobSpecification, JobSpecification jobSpecificationTemplate) {

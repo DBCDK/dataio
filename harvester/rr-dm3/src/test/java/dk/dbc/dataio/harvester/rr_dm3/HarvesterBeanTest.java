@@ -16,6 +16,7 @@ import java.util.concurrent.Future;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,7 +32,7 @@ public class HarvesterBeanTest {
         final int expectedNumberOfItemsHarvested = 42;
         when(harvestOperation.execute()).thenReturn(expectedNumberOfItemsHarvested);
 
-        Future<Integer> harvestResult = harvesterBean.harvest(config);
+        Future<Integer> harvestResult = harvesterBean.harvest(config, "test:0");
         assertThat("Items harvested", harvestResult.get(), is(expectedNumberOfItemsHarvested));
     }
 
@@ -41,7 +42,7 @@ public class HarvesterBeanTest {
         harvesterBean.harvestOperationFactory = harvestOperationFactory;
         harvesterBean.excludedHarvesterIds = Set.of();
         when(sessionContext.getBusinessObject(HarvesterBean.class)).thenReturn(harvesterBean);
-        when(harvestOperationFactory.createFor(any(RRV3HarvesterConfig.class))).thenReturn(harvestOperation);
+        when(harvestOperationFactory.createFor(any(RRV3HarvesterConfig.class), anyString())).thenReturn(harvestOperation);
         return harvesterBean;
     }
 }

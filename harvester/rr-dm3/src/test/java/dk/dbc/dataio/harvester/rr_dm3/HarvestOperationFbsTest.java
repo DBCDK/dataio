@@ -8,17 +8,17 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
-import dk.dbc.rawrepo.queue.QueueItem;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import jakarta.persistence.EntityManager;
@@ -42,6 +42,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static dk.dbc.dataio.harvester.rr_dm3.RecordEntryBuilder.AGENCY_ID;
@@ -56,13 +57,12 @@ public class HarvestOperationFbsTest {
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
     private static final Date QUEUED_TIME = new Date(1467277697583L); // 2016-06-30 11:08:17.583
     private static final String CONSUMER_ID = "consumerId";
-    private static final RawRepoConnector RAW_REPO_CONNECTOR = mock(RawRepoConnector.class);
+    private static RawRepo3Connector rawRepo3Connector = mock(RawRepo3Connector.class);
     private static final RecordServiceConnector RAW_REPO_RECORD_SERVICE_CONNECTOR = mock(RecordServiceConnector.class);
     private static final RecordEntryDTO FIRST_RECORD = new RecordEntryBuilder().defaults("first")
             .trail("trail")
             .trackingId()
             .build();
-    private static final QueueItem FIRST_QUEUE_ITEM = HarvestOperationTest.getQueueItem(FIRST_RECORD.getRecordId(), QUEUED_TIME);
     private static final RecordEntryDTO FIRST_RECORD_HEAD = new RecordEntryBuilder()
             .id(new RecordIdDTO("first-head", AGENCY_ID))
             .createdNow()
@@ -70,12 +70,8 @@ public class HarvestOperationFbsTest {
     private static final RecordEntryDTO SECOND_RECORD = new RecordEntryBuilder().defaults("second")
             .set(r -> r.setTrackingId(null))
             .build();
-    private static final QueueItem SECOND_QUEUE_ITEM = HarvestOperationTest.getQueueItem(SECOND_RECORD.getRecordId(), QUEUED_TIME);
     private static final RecordEntryDTO THIRD_RECORD = new RecordEntryBuilder().defaults("third").build();
-    private static final QueueItem THIRD_QUEUE_ITEM = HarvestOperationTest.getQueueItem(THIRD_RECORD.getRecordId(), QUEUED_TIME);
-
     private static final VipCoreConnection VIP_CORE_CONNECTION = mock(VipCoreConnection.class);
-
     private final EntityManager entityManager = mock(EntityManager.class);
     private final TaskRepo taskRepo = new TaskRepo(entityManager);
     private final Timer timer = mock(Timer.class);
@@ -89,9 +85,8 @@ public class HarvestOperationFbsTest {
     private List<Expectation> recordsExpectations;
 
     @BeforeEach
-    public void setupMocks() throws SQLException, IOException, QueueException {
-        // Mock rawrepo return values
-        when(RAW_REPO_CONNECTOR.dequeue(CONSUMER_ID)).thenReturn(FIRST_QUEUE_ITEM).thenReturn(SECOND_QUEUE_ITEM).thenReturn(THIRD_QUEUE_ITEM).thenReturn(null);
+    public void setupMocks() throws IOException {
+        rawRepo3Connector = HarvestOperationTest.rawRepo3Connector(FIRST_RECORD.getRecordId(), SECOND_RECORD.getRecordId(), THIRD_RECORD.getRecordId());
 
         // Intercept harvester data files with mocked FileStoreServiceConnector
         harvesterDataFile = Files.createFile(tmpFolder.resolve(UUID.randomUUID() + ".tmp")).toFile();
@@ -199,9 +194,18 @@ public class HarvestOperationFbsTest {
         RRV3HarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent().withFormat("format").withConsumerId(CONSUMER_ID);
         try {
-            return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, VIP_CORE_CONNECTION, RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR, metricRegistry);
+            return new HarvestOperation("test:0", config, harvesterJobBuilderFactory, newTaskRepo(), VIP_CORE_CONNECTION, rawRepo3Connector, RAW_REPO_RECORD_SERVICE_CONNECTOR, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    public TaskRepo newTaskRepo() {
+        return new TaskRepo(entityManager) {
+            @Override
+            public Optional<HarvestTask> findNextHarvestTask(long configId) {
+                return Optional.of(mock(HarvestTask.class));
+            }
+        };
     }
 }

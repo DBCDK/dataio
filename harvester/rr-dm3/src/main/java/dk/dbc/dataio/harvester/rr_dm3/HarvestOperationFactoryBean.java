@@ -41,24 +41,15 @@ public class HarvestOperationFactoryBean {
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
     MetricRegistry metricRegistry;
 
-    public HarvestOperation createFor(RRV3HarvesterConfig config) {
+    public HarvestOperation createFor(RRV3HarvesterConfig config, String workerKey) {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStoreBean,
                 fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector());
         try {
-            switch (config.getContent().getHarvesterType()) {
-                case IMS:
-                    return new ImsHarvestOperation(config,
-                            harvesterJobBuilderFactory, taskRepo,
-                            vipCoreLibraryRulesConnector, metricRegistry);
-                case WORLDCAT:
-                    return new WorldCatHarvestOperation(config,
-                            harvesterJobBuilderFactory, taskRepo, vipCoreLibraryRulesConnector,
-                            ocnRepo, metricRegistry);
-                default:
-                    return new HarvestOperation(config,
-                            harvesterJobBuilderFactory, taskRepo,
-                            vipCoreLibraryRulesConnector, metricRegistry);
-            }
+            return switch (config.getContent().getHarvesterType()) {
+                case IMS -> new ImsHarvestOperation(workerKey, config, harvesterJobBuilderFactory, taskRepo, vipCoreLibraryRulesConnector, metricRegistry);
+                case WORLDCAT -> new WorldCatHarvestOperation(workerKey, config, harvesterJobBuilderFactory, taskRepo, vipCoreLibraryRulesConnector, ocnRepo, metricRegistry);
+                default -> new HarvestOperation(workerKey, config, harvesterJobBuilderFactory, taskRepo, vipCoreLibraryRulesConnector, metricRegistry);
+            };
         } catch (ConfigurationException | QueueException | SQLException e) {
             throw new IllegalStateException("ConfigurationException thrown", e);
         }

@@ -60,7 +60,7 @@ public class JPAHelper {
                 .dataSource(dataSource);
         Stream.of(configurator).forEach(c -> c.accept(configuration));
         PostgreSQLConfigurationExtension configurationExtension = configuration.getPluginRegister().getPlugin(PostgreSQLConfigurationExtension.class);
-        configurationExtension.setTransactionalLock(false);
+        if(configurationExtension != null) configurationExtension.setTransactionalLock(false);
         Flyway flyway = configuration.load();
         flyway.migrate();
     }

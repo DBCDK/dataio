@@ -5,7 +5,6 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.configuration.FluentConfiguration;
-import org.flywaydb.database.postgresql.PostgreSQLConfigurationExtension;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
@@ -59,8 +58,6 @@ public class JPAHelper {
                 .baselineOnMigrate(true)
                 .dataSource(dataSource);
         Stream.of(configurator).forEach(c -> c.accept(configuration));
-        PostgreSQLConfigurationExtension configurationExtension = configuration.getPluginRegister().getPlugin(PostgreSQLConfigurationExtension.class);
-        if(configurationExtension != null) configurationExtension.setTransactionalLock(false);
         Flyway flyway = configuration.load();
         flyway.migrate();
     }

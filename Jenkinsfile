@@ -50,6 +50,8 @@ pipeline {
             steps {
                 cleanWs()
                 sh """
+                    echo "disabled"
+                    exit 1
                     test -d /home/isworker/.m2/dataio-repo/dk/dbc && rm -r /home/isworker/.m2/dataio-repo/dk/dbc || echo ok
                 """
                 checkout scm

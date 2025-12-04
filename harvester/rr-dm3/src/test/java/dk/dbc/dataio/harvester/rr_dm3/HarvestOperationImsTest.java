@@ -143,13 +143,13 @@ public class HarvestOperationImsTest implements TempFiles {
         when(rawRepoRecordServiceConnector.getRecordData(any(RecordIdDTO.class))).thenReturn(dbcRecord).thenReturn(dbcRecord).thenReturn(dbcRecord).thenReturn(dbcRecord).thenReturn(imsRecord).thenReturn(imsRecord);
 
         // Setup harvester datafile content expectations
-        recordsExpectationsFor710100.add(Expectations.of(dbcHeadRecord, dbcSectionRecord, dbcRecord));
+        recordsExpectationsFor710100.add(MarcXchangeExpectations.of(dbcHeadRecord, dbcSectionRecord, dbcRecord));
         addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(dbcRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(dbcRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(dbcRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        recordsExpectationsFor737000.add(Expectations.of(dbcHeadRecord, dbcSectionRecord, dbcRecord));
+        recordsExpectationsFor737000.add(MarcXchangeExpectations.of(dbcHeadRecord, dbcSectionRecord, dbcRecord));
         addiMetaDataExpectationsFor737000.add(new AddiMetaData().withBibliographicRecordId(dbcRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(737000).withFormat("katalog").withCreationDate(Date.from(Instant.parse(dbcRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(dbcRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        recordsExpectationsFor775100.add(Expectations.of(imsRecord));
+        recordsExpectationsFor775100.add(MarcXchangeExpectations.of(imsRecord));
         addiMetaDataExpectationsFor775100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(775100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(imsRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         ImsHarvestOperation harvestOperation = newImsHarvestOperation(connector);
@@ -187,7 +187,7 @@ public class HarvestOperationImsTest implements TempFiles {
         mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();
         mockedFileStoreServiceConnector.destinations.add(harvesterDataFileWith775100.toPath());
 
-        recordsExpectationsFor775100.add(Expectations.of(recordId191919));
+        recordsExpectationsFor775100.add(MarcXchangeExpectations.of(recordId191919));
         addiMetaDataExpectationsFor775100.add(new AddiMetaData().withBibliographicRecordId(dbcRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(775100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(dbcRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(dbcRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         ImsHarvestOperation harvestOperation = newImsHarvestOperation(rawRepo3Connector);
@@ -235,7 +235,7 @@ public class HarvestOperationImsTest implements TempFiles {
         when(rawRepoRecordServiceConnector.getRecordData(eq(imsRecord.getRecordId()))).thenReturn(imsRecord);
 
         // Expected result section
-        recordsExpectationsFor710100.add(Expectations.of(dbcHeadRecord, imsSectionRecord, dbcRecord));
+        recordsExpectationsFor710100.add(MarcXchangeExpectations.of(dbcHeadRecord, imsSectionRecord, dbcRecord));
         addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(imsRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
@@ -268,7 +268,7 @@ public class HarvestOperationImsTest implements TempFiles {
         when(rawRepoRecordServiceConnector.getRecordData(eq(imsRecord.getRecordId()))).thenReturn(imsRecord);
 
         // Expected result section
-        recordsExpectationsFor710100.add(Expectations.of(imsHeadRecord, dbcSectionRecord, dbcRecord));
+        recordsExpectationsFor710100.add(MarcXchangeExpectations.of(imsHeadRecord, dbcSectionRecord, dbcRecord));
         addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
@@ -302,7 +302,7 @@ public class HarvestOperationImsTest implements TempFiles {
         when(rawRepoRecordServiceConnector.getRecordData(eq(imsRecord.getRecordId()))).thenReturn(imsRecord);
 
         // Expected result section
-        recordsExpectationsFor710100.add(Expectations.of(imsHeadRecord, imsSectionRecord, dbcRecord));
+        recordsExpectationsFor710100.add(MarcXchangeExpectations.of(imsHeadRecord, imsSectionRecord, dbcRecord));
         addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
@@ -340,7 +340,7 @@ public class HarvestOperationImsTest implements TempFiles {
         when(rawRepoRecordServiceConnector.getRecordData(eq(imsRecord.getRecordId()))).thenReturn(imsRecord);
 
         // Expected result section
-        recordsExpectationsFor710100.add(Expectations.of(dbcHeadRecord, dbcSectionRecord, dbcRecord));
+        recordsExpectationsFor710100.add(MarcXchangeExpectations.of(dbcHeadRecord, dbcSectionRecord, dbcRecord));
         addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
@@ -376,7 +376,7 @@ public class HarvestOperationImsTest implements TempFiles {
         when(rawRepoRecordServiceConnector.getRecordData(eq(imsRecord.getRecordId()))).thenReturn(imsRecord);
 
         // Expected result section
-        recordsExpectationsFor710100.add(Expectations.of(dbcHeadRecord, dbcRecord));
+        recordsExpectationsFor710100.add(MarcXchangeExpectations.of(dbcHeadRecord, dbcRecord));
         addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         // Execute test section
@@ -412,7 +412,7 @@ public class HarvestOperationImsTest implements TempFiles {
         when(rawRepoRecordServiceConnector.getRecordData(eq(imsRecord.getRecordId()))).thenReturn(imsRecord);
 
         // Expected result section
-        recordsExpectationsFor710100.add(Expectations.of(dbcHeadRecord, dbcSectionRecord, dbcRecord));
+        recordsExpectationsFor710100.add(MarcXchangeExpectations.of(dbcHeadRecord, dbcSectionRecord, dbcRecord));
         addiMetaDataExpectationsFor710100.add(new AddiMetaData().withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId()).withSubmitterNumber(710100).withFormat("katalog").withCreationDate(Date.from(Instant.parse(imsRecord.getCreated()))).withEnrichmentTrail(dbcRecord.getEnrichmentTrail()).withTrackingId(imsRecord.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         RawRepo3Connector connector = HarvestOperationTest.rawRepo3Connector(imsRecord.getRecordId());

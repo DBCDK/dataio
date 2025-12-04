@@ -98,7 +98,7 @@ public class DailyProofingHarvestOperation extends HarvestOperation {
                     .withEnrichmentTrail(recordData.getEnrichmentTrail())
                     .withFormat(config.getContent().getFormat());
 
-            return createMarcExchangeCollection(records);
+            return createMarcXchangeCollection(records);
         }
     }
 

@@ -12,12 +12,15 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterRecord;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
+import dk.dbc.dataio.harvester.types.MarcXchangeCollection;
 import dk.dbc.dataio.harvester.types.MarcJSonCollection;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.marc.binding.MarcBinding;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
@@ -65,6 +68,7 @@ public class HarvestOperation implements AutoCloseable {
 
     private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new LinkedHashMap<>();
     private final JSONBContext jsonbContext = new JSONBContext();
+    private final MarcXchangeV1Writer marcXchangeWriter = getMarcXchangeWriter();
     private final TaskRepo taskRepo;
     private int basedOnJob = 0;
     private final String workerKey;
@@ -176,7 +180,8 @@ public class HarvestOperation implements AutoCloseable {
 
             if (includeRecord(recordData.getRecordId().getAgencyId(), recordData.isDeleted() || recordHarvestTask.isForceAdd())) {
                 enrichAddiMetaData(addiMetaData);
-                final HarvesterRecord<MarcBinding> contentForRecord = getContentForEnrichedRecord(recordData, addiMetaData);
+                final MarcJSonCollection marcJSonCollection = getContentForEnrichedRecord(recordData, addiMetaData);
+                final HarvesterRecord<MarcRecord> contentForRecord = toMarcXchangeCollection(marcJSonCollection);
                 getHarvesterJobBuilder(addiMetaData.submitterNumber())
                         .addRecord(createAddiRecord(addiMetaData, contentForRecord.asBytes()));
 
@@ -309,8 +314,8 @@ public class HarvestOperation implements AutoCloseable {
         }
     }
 
-    /* Fetches rawrepo record collection associated with given record ID and adds its content to a new MARC exchange collection.
-       Returns MARC exchange collection
+    /* Fetches rawrepo record collection associated with given record ID and adds its content to a new marcxchange collection.
+       Returns marcxchange collection
      */
     MarcJSonCollection getContentForEnrichedRecord(RecordEntryDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
         final Map<String, RecordEntryDTO> records;
@@ -336,10 +341,10 @@ public class HarvestOperation implements AutoCloseable {
         addiMetaData.withEnrichmentTrail(recordData.getEnrichmentTrail());
         addiMetaData.withFormat(getFormat(addiMetaData.submitterNumber()));
 
-        return getMarcExchangeCollection(recordData.getRecordId(), records);
+        return getMarcJsonCollection(recordData.getRecordId(), records);
     }
 
-    private MarcJSonCollection getMarcExchangeCollection(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterException {
+    private MarcJSonCollection getMarcJsonCollection(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterException {
         MarcJSonCollection marcJSonCollection = new MarcJSonCollection();
         marcJSonCollection.addMember(getRecordContent(recordId, records));
         if (configContent.hasIncludeRelations()) {
@@ -347,11 +352,28 @@ public class HarvestOperation implements AutoCloseable {
                 if (recordId.equals(recordData.getRecordId())) {
                     continue;
                 }
-                LOGGER.debug("Adding {} member to {} marc exchange collection", recordData.getRecordId(), recordId);
+                LOGGER.debug("Adding {} member to {} marcjson collection", recordData.getRecordId(), recordId);
                 marcJSonCollection.addMember(getRecordContent(recordData.getRecordId(), recordData));
             }
         }
         return marcJSonCollection;
+    }
+
+    // The existing dataIO flows that work on rawrepo data all currently expect to be given marcXchange.
+    // In the future, we should consider having DAM change the dataIO flows to accept marcjson directly instead.
+    private MarcXchangeCollection toMarcXchangeCollection(MarcJSonCollection marcJSonCollection) {
+        final MarcXchangeCollection marcXchangeCollection = new MarcXchangeCollection();
+        for (MarcBinding marcBinding : marcJSonCollection.getRecords()) {
+            marcXchangeCollection.addMember(marcXchangeWriter.writeBinding(marcBinding, StandardCharsets.UTF_8));
+        }
+        return marcXchangeCollection;
+    }
+
+    private MarcXchangeV1Writer getMarcXchangeWriter() {
+        final MarcXchangeV1Writer marcXchangeWriter = new MarcXchangeV1Writer();
+        marcXchangeWriter.setProperty(MarcXchangeV1Writer.Property.ADD_COLLECTION_WRAPPER, false);
+        marcXchangeWriter.setProperty(MarcXchangeV1Writer.Property.ADD_XML_DECLARATION, false);
+        return marcXchangeWriter;
     }
 
     private byte[] getRecordContent(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterInvalidRecordException {

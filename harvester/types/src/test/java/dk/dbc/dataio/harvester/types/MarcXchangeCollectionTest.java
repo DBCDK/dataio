@@ -17,7 +17,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class MarcExchangeCollectionTest {
+public class MarcXchangeCollectionTest {
     private final String marcxCollectionSingleRecord =
             "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
                     "<marcx:record format=\"danMARC2\">" +
@@ -77,70 +77,70 @@ public class MarcExchangeCollectionTest {
 
     @Test
     public void addMember_memberDataArgIsNull_throws() throws HarvesterException {
-        MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        MarcXchangeCollection harvesterRecord = getMarcXchangeCollection();
         assertThrows(HarvesterInvalidRecordException.class, () -> harvesterRecord.addMember(null));
     }
 
     @Test
     public void addMember_memberDataArgIsNotValidXml_throws() throws HarvesterException {
-        MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        MarcXchangeCollection harvesterRecord = getMarcXchangeCollection();
         assertThrows(HarvesterInvalidRecordException.class, () -> harvesterRecord.addMember("invalid-xml".getBytes()));
     }
 
     @Test
     public void addMember_memberDataArgIncorrectChildNamespace_throws() throws HarvesterException {
-        MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        MarcXchangeCollection harvesterRecord = getMarcXchangeCollection();
         assertThrows(HarvesterInvalidRecordException.class, () -> harvesterRecord.addMember(marcxCollectionInvalidMemberNamespace.getBytes()));
     }
 
     @Test
     public void addMember_memberDataArgIsCollectionWithMultipleRecords_throws() throws HarvesterException {
-        MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        MarcXchangeCollection harvesterRecord = getMarcXchangeCollection();
         assertThrows(HarvesterInvalidRecordException.class, () -> harvesterRecord.addMember(marcxCollectionMultipleRecords.getBytes()));
     }
 
     @Test
     public void addMember_memberDataArgIsMarcxCollectionWithSingleRecord_recordIsAddedToCollection() throws HarvesterException {
-        MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        MarcXchangeCollection harvesterRecord = getMarcXchangeCollection();
         harvesterRecord.addMember(marcxCollectionSingleRecord.getBytes());
-        assertMarcExchangeCollection(harvesterRecord.asBytes(), 1);
+        assertMarcXchangeCollection(harvesterRecord.asBytes(), 1);
     }
 
     @Test
     public void addMember_memberDataArgIsMarcxCollectionWithSingleRecordAndDefaultNamespace_recordIsAddedToCollection() throws HarvesterException {
-        MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        MarcXchangeCollection harvesterRecord = getMarcXchangeCollection();
         harvesterRecord.addMember(marcxCollectionSingleRecordDefaultNamespace.getBytes());
-        assertMarcExchangeCollection(harvesterRecord.asBytes(), 1);
+        assertMarcXchangeCollection(harvesterRecord.asBytes(), 1);
     }
 
     @Test
     public void addMember_memberDataArgIsMarcxRecord_recordIsAddedToCollection() throws HarvesterException {
-        MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        MarcXchangeCollection harvesterRecord = getMarcXchangeCollection();
         harvesterRecord.addMember(marcxRecord.getBytes());
-        assertMarcExchangeCollection(harvesterRecord.asBytes(), 1);
+        assertMarcXchangeCollection(harvesterRecord.asBytes(), 1);
     }
 
     @Test
     public void addMember_calledMultipleTimes_multipleRecordsInCollection() throws HarvesterException {
-        MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        MarcXchangeCollection harvesterRecord = getMarcXchangeCollection();
         harvesterRecord.addMember(marcxCollectionSingleRecord.getBytes());
         harvesterRecord.addMember(marcxRecord.getBytes());
-        assertMarcExchangeCollection(harvesterRecord.asBytes(), 2);
+        assertMarcXchangeCollection(harvesterRecord.asBytes(), 2);
     }
 
     @Test
     public void getCharset_returnsUtf8() throws HarvesterException {
-        MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        MarcXchangeCollection harvesterRecord = getMarcXchangeCollection();
         assertThat(StandardCharsets.UTF_8.compareTo(harvesterRecord.getCharset()), is(0));
     }
 
     @Test
     public void asBytes_collectionContainsNoRecordMembers_throws() throws HarvesterException {
-        MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        MarcXchangeCollection harvesterRecord = getMarcXchangeCollection();
         assertThrows(HarvesterInvalidRecordException.class, () -> harvesterRecord.asBytes());
     }
 
-    void assertMarcExchangeCollection(byte[] data, int expectedMemberCount) {
+    void assertMarcXchangeCollection(byte[] data, int expectedMemberCount) {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setNamespaceAware(true);
         try {
@@ -155,7 +155,7 @@ public class MarcExchangeCollectionTest {
         }
     }
 
-    private MarcExchangeCollection getMarcExchangeCollection() throws HarvesterException {
-        return new MarcExchangeCollection();
+    private MarcXchangeCollection getMarcXchangeCollection() throws HarvesterException {
+        return new MarcXchangeCollection();
     }
 }

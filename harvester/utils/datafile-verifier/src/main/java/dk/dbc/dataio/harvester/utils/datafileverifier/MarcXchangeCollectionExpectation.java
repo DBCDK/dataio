@@ -14,31 +14,37 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Verifier helper class for MARC exchange collection expectations
+ * Verifier helper class for marcxchange collection expectations
  */
-public class MarcExchangeCollectionExpectation extends XmlExpectation {
+public class MarcXchangeCollectionExpectation extends XmlExpectation {
     static final String MARC_EXCHANGE_NAMESPACE = "info:lc/xmlns/marcxchange-v1";
     static final String COLLECTION_ELEMENT_NAME = "collection";
     static final String RECORD_ELEMENT_NAME = "record";
 
-    public Set<MarcExchangeRecordExpectation> records;
+    public Set<MarcXchangeRecordExpectation> records;
 
-    public MarcExchangeCollectionExpectation() {
+    public MarcXchangeCollectionExpectation() {
         records = new HashSet<>();
     }
 
+    public MarcXchangeCollectionExpectation(MarcXchangeRecordExpectation... records) {
+        this.records = Stream.of(records).collect(Collectors.toSet());
+    }
+
     /**
-     * Verifies given node as MARC exchange collection containing record
+     * Verifies given node as marcxchange collection containing record
      * members specified by given list of record expectations throwing
      * assertion error unless all expectations can be met
      *
-     * @param node MARC exchange collection node
+     * @param node marcxchange collection node
      */
     @Override
     public void verify(Node node) {
@@ -46,13 +52,13 @@ public class MarcExchangeCollectionExpectation extends XmlExpectation {
         assertThat("collection node name", node.getLocalName(), is(COLLECTION_ELEMENT_NAME));
         assertThat("collection node namespace", node.getNamespaceURI(), is(MARC_EXCHANGE_NAMESPACE));
 
-        verifyMarcExchangeCollectionRecords(node.getChildNodes());
+        verifyMarcXchangeCollectionRecords(node.getChildNodes());
     }
 
     /* Verifies all record members
      */
-    private void verifyMarcExchangeCollectionRecords(NodeList recordNodes) {
-        final Set<MarcExchangeRecordExpectation> actualRecords = new HashSet<>();
+    private void verifyMarcXchangeCollectionRecords(NodeList recordNodes) {
+        final Set<MarcXchangeRecordExpectation> actualRecords = new HashSet<>();
         assertThat("record nodes", recordNodes, is(notNullValue()));
         assertThat("number of record nodes", recordNodes.getLength(), is(records.size()));
         for (int i = 0; i < recordNodes.getLength(); i++) {
@@ -60,9 +66,9 @@ public class MarcExchangeCollectionExpectation extends XmlExpectation {
             assertThat("record node is element", recordNode.getNodeType(), is(Node.ELEMENT_NODE));
             assertThat("record node name", recordNode.getLocalName(), is(RECORD_ELEMENT_NAME));
             assertThat("record node namespace", recordNode.getNamespaceURI(), is(MARC_EXCHANGE_NAMESPACE));
-            actualRecords.add(new MarcExchangeRecordExpectation(toMarcRecord(recordNode)));
+            actualRecords.add(new MarcXchangeRecordExpectation(toMarcRecord(recordNode)));
         }
-        for (MarcExchangeRecordExpectation expectation : records) {
+        for (MarcXchangeRecordExpectation expectation : records) {
             assertThat(expectation.toString(), actualRecords.remove(expectation), is(true));
         }
         assertThat("All records accounted for", actualRecords.isEmpty(), is(true));

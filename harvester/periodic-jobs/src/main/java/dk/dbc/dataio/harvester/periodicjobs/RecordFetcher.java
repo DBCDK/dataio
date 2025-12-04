@@ -9,7 +9,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterRecord;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
+import dk.dbc.dataio.harvester.types.MarcXchangeCollection;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.libcore.DBC;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -95,7 +95,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
                 .withEnrichmentTrail(recordData.getEnrichmentTrail())
                 .withFormat(config.getContent().getFormat());
 
-        return createMarcExchangeCollection(records);
+        return createMarcXchangeCollection(records);
     }
 
     int resolveAgencyId(RecordDTO recordData) throws HarvesterInvalidRecordException {
@@ -172,14 +172,14 @@ public class RecordFetcher implements Callable<AddiRecord> {
         return Date.from(Instant.parse(recordData.getCreated()));
     }
 
-    MarcExchangeCollection createMarcExchangeCollection(Map<String, RecordDTO> records)
+    MarcXchangeCollection createMarcXchangeCollection(Map<String, RecordDTO> records)
             throws HarvesterException {
-        final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection();
+        final MarcXchangeCollection marcXchangeCollection = new MarcXchangeCollection();
         for (RecordDTO recordData : records.values()) {
-            LOGGER.debug("Adding {} member to {} marc exchange collection", recordData.getRecordId(), recordId);
-            marcExchangeCollection.addMember(getRecordContent(recordData));
+            LOGGER.debug("Adding {} member to {} marcxchange collection", recordData.getRecordId(), recordId);
+            marcXchangeCollection.addMember(getRecordContent(recordData));
         }
-        return marcExchangeCollection;
+        return marcXchangeCollection;
     }
 
     byte[] getRecordContent(RecordDTO record) {

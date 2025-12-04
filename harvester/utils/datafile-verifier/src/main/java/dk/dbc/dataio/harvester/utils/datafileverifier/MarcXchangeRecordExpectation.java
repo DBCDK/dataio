@@ -8,13 +8,13 @@ import dk.dbc.marc.binding.SubField;
 import java.util.Optional;
 
 /**
- * Verifier helper class for MARC exchange collection record members
+ * Verifier helper class for marcxchange collection record members
  */
-public class MarcExchangeRecordExpectation {
+public class MarcXchangeRecordExpectation {
     private final String bibliographicRecordId;
     private final int agencyId;
 
-    public MarcExchangeRecordExpectation(MarcRecord marcRecord) {
+    public MarcXchangeRecordExpectation(MarcRecord marcRecord) {
         final DataField f001 = (DataField) getField(marcRecord, "001")
                 .orElseThrow(() -> new IllegalArgumentException("field 001 not found"));
         this.bibliographicRecordId = getSubfield(f001, 'a')
@@ -25,7 +25,7 @@ public class MarcExchangeRecordExpectation {
                 .getData());
     }
 
-    public MarcExchangeRecordExpectation(String bibliographicRecordId, int agencyId) {
+    public MarcXchangeRecordExpectation(String bibliographicRecordId, int agencyId) {
         this.bibliographicRecordId = bibliographicRecordId;
         this.agencyId = agencyId;
     }
@@ -39,7 +39,7 @@ public class MarcExchangeRecordExpectation {
             return false;
         }
 
-        MarcExchangeRecordExpectation that = (MarcExchangeRecordExpectation) o;
+        MarcXchangeRecordExpectation that = (MarcXchangeRecordExpectation) o;
 
         if (agencyId != that.agencyId) {
             return false;
@@ -60,7 +60,7 @@ public class MarcExchangeRecordExpectation {
 
     @Override
     public String toString() {
-        return "MarcExchangeRecordExpectation{" +
+        return "MarcXchangeRecordExpectation{" +
                 "bibliographicRecordId='" + bibliographicRecordId + '\'' +
                 ", agencyId=" + agencyId +
                 '}';

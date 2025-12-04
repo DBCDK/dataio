@@ -10,8 +10,8 @@ import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
-import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpectation;
-import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecordExpectation;
+import dk.dbc.dataio.harvester.utils.datafileverifier.MarcXchangeCollectionExpectation;
+import dk.dbc.dataio.harvester.utils.datafileverifier.MarcXchangeRecordExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -211,11 +211,11 @@ public class HarvestOperation_datawell_Test implements TempFiles {
                 .thenReturn(THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL);
 
         // Setup harvester datafile content expectations
-        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
-        marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_HEAD_ID));
-        marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_SECTION_ID));
-        marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
-        dbcRecordsExpectations.add(marcExchangeCollectionExpectation1);
+        MarcXchangeCollectionExpectation marcXchangeCollectionExpectation1 = new MarcXchangeCollectionExpectation();
+        marcXchangeCollectionExpectation1.records.add(getMarcXchangeRecord(FIRST_RECORD_HEAD_ID));
+        marcXchangeCollectionExpectation1.records.add(getMarcXchangeRecord(FIRST_RECORD_SECTION_ID));
+        marcXchangeCollectionExpectation1.records.add(getMarcXchangeRecord(FIRST_RECORD_ID));
+        dbcRecordsExpectations.add(marcXchangeCollectionExpectation1);
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(FIRST_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
@@ -226,9 +226,9 @@ public class HarvestOperation_datawell_Test implements TempFiles {
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
-        marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
-        dbcRecordsExpectations.add(marcExchangeCollectionExpectation2);
+        MarcXchangeCollectionExpectation marcXchangeCollectionExpectation2 = new MarcXchangeCollectionExpectation();
+        marcXchangeCollectionExpectation2.records.add(getMarcXchangeRecord(THIRD_RECORD_ID));
+        dbcRecordsExpectations.add(marcXchangeCollectionExpectation2);
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(THIRD_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
@@ -238,9 +238,9 @@ public class HarvestOperation_datawell_Test implements TempFiles {
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
-        marcExchangeCollectionExpectation3.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
-        localRecordsExpectations.add(marcExchangeCollectionExpectation3);
+        MarcXchangeCollectionExpectation marcXchangeCollectionExpectation3 = new MarcXchangeCollectionExpectation();
+        marcXchangeCollectionExpectation3.records.add(getMarcXchangeRecord(SECOND_RECORD_ID));
+        localRecordsExpectations.add(marcXchangeCollectionExpectation3);
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId())
@@ -292,9 +292,9 @@ public class HarvestOperation_datawell_Test implements TempFiles {
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
-        marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
-        localRecordsExpectations.add(marcExchangeCollectionExpectation1);
+        MarcXchangeCollectionExpectation marcXchangeCollectionExpectation1 = new MarcXchangeCollectionExpectation();
+        marcXchangeCollectionExpectation1.records.add(getMarcXchangeRecord(SECOND_RECORD_ID));
+        localRecordsExpectations.add(marcXchangeCollectionExpectation1);
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId())
@@ -303,9 +303,9 @@ public class HarvestOperation_datawell_Test implements TempFiles {
                 .withDeleted(false)
                 .withLibraryRules(localLibraryRules));
 
-        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
-        marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
-        dbcRecordsExpectations.add(marcExchangeCollectionExpectation2);
+        MarcXchangeCollectionExpectation marcXchangeCollectionExpectation2 = new MarcXchangeCollectionExpectation();
+        marcXchangeCollectionExpectation2.records.add(getMarcXchangeRecord(THIRD_RECORD_ID));
+        dbcRecordsExpectations.add(marcXchangeCollectionExpectation2);
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(THIRD_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
@@ -367,7 +367,7 @@ public class HarvestOperation_datawell_Test implements TempFiles {
         assertThat(jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
     }
 
-    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordIdDTO recordId) {
-        return new MarcExchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
+    private MarcXchangeRecordExpectation getMarcXchangeRecord(RecordIdDTO recordId) {
+        return new MarcXchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
     }
 }

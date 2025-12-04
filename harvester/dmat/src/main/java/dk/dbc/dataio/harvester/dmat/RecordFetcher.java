@@ -1,7 +1,7 @@
 package dk.dbc.dataio.harvester.dmat;
 
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
+import dk.dbc.dataio.harvester.types.MarcXchangeCollection;
 import dk.dbc.dmat.service.persistence.DMatRecord;
 import dk.dbc.dmat.service.persistence.enums.Selection;
 import dk.dbc.dmat.service.persistence.enums.UpdateCode;
@@ -30,7 +30,7 @@ public class RecordFetcher {
                             .withExpand(true));
         } else {
             LOGGER.info("No attached record for updateCode {} and selection {}", dMatRecord.getUpdateCode(), dMatRecord.getSelection());
-            return new MarcExchangeCollection().emptyCollection();
+            return new MarcXchangeCollection().emptyCollection();
         }
     }
 

@@ -169,7 +169,7 @@ public class HarvestOperationDatawellTest implements TempFiles {
                 .thenReturn(THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL);
 
         // Setup harvester datafile content expectations
-        dbcRecordsExpectations.add(Expectations.of(FIRST_RECORD_HEAD, FIRST_RECORD_SECTION, FIRST_RECORD));
+        dbcRecordsExpectations.add(MarcXchangeExpectations.of(FIRST_RECORD_HEAD, FIRST_RECORD_SECTION, FIRST_RECORD));
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(FIRST_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
@@ -180,7 +180,7 @@ public class HarvestOperationDatawellTest implements TempFiles {
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        dbcRecordsExpectations.add(Expectations.of(THIRD_RECORD));
+        dbcRecordsExpectations.add(MarcXchangeExpectations.of(THIRD_RECORD));
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(THIRD_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
@@ -190,7 +190,7 @@ public class HarvestOperationDatawellTest implements TempFiles {
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        localRecordsExpectations.add(Expectations.of(SECOND_RECORD));
+        localRecordsExpectations.add(MarcXchangeExpectations.of(SECOND_RECORD));
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId())
@@ -218,7 +218,7 @@ public class HarvestOperationDatawellTest implements TempFiles {
         when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordData(any(RecordIdDTO.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
-        dbcRecordsExpectations.add(Expectations.of(invalidRecord));
+        dbcRecordsExpectations.add(MarcXchangeExpectations.of(invalidRecord));
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(FIRST_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
@@ -226,11 +226,11 @@ public class HarvestOperationDatawellTest implements TempFiles {
                 .withCreationDate(Date.from(Instant.parse(FIRST_RECORD.getCreated())))
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
-                .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format("Harvesting RawRepo %s failed: No marcXchange record found", FIRST_RECORD.getRecordId())))
+                .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format("Harvesting RawRepo %s failed: No marcjson record found", FIRST_RECORD.getRecordId())))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        localRecordsExpectations.add(Expectations.of(SECOND_RECORD));
+        localRecordsExpectations.add(MarcXchangeExpectations.of(SECOND_RECORD));
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId())
@@ -239,7 +239,7 @@ public class HarvestOperationDatawellTest implements TempFiles {
                 .withDeleted(false)
                 .withLibraryRules(localLibraryRules));
 
-        dbcRecordsExpectations.add(Expectations.of(THIRD_RECORD));
+        dbcRecordsExpectations.add(MarcXchangeExpectations.of(THIRD_RECORD));
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(THIRD_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)

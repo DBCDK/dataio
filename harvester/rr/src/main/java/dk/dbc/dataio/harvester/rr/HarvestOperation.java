@@ -12,7 +12,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterRecord;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
+import dk.dbc.dataio.harvester.types.MarcXchangeCollection;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.invariant.InvariantUtil;
@@ -307,8 +307,8 @@ public class HarvestOperation implements AutoCloseable {
         }
     }
 
-    /* Fetches rawrepo record collection associated with given record ID and adds its content to a new MARC exchange collection.
-       Returns MARC exchange collection
+    /* Fetches rawrepo record collection associated with given record ID and adds its content to a new marcxchange collection.
+       Returns marcxchange collection
      */
     HarvesterRecord getXmlContentForEnrichedRecord(RecordDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
         final Map<String, RecordDTO> records;
@@ -334,22 +334,22 @@ public class HarvestOperation implements AutoCloseable {
         addiMetaData.withEnrichmentTrail(recordData.getEnrichmentTrail());
         addiMetaData.withFormat(getFormat(addiMetaData.submitterNumber()));
 
-        return getMarcExchangeCollection(recordData.getRecordId(), records);
+        return getMarcXchangeCollection(recordData.getRecordId(), records);
     }
 
-    private MarcExchangeCollection getMarcExchangeCollection(RecordIdDTO recordId, Map<String, RecordDTO> records) throws HarvesterException {
-        final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection();
-        marcExchangeCollection.addMember(getRecordContent(recordId, records));
+    private MarcXchangeCollection getMarcXchangeCollection(RecordIdDTO recordId, Map<String, RecordDTO> records) throws HarvesterException {
+        final MarcXchangeCollection marcXchangeCollection = new MarcXchangeCollection();
+        marcXchangeCollection.addMember(getRecordContent(recordId, records));
         if (configContent.hasIncludeRelations()) {
             for (RecordDTO recordData : records.values()) {
                 if (recordId.equals(recordData.getRecordId())) {
                     continue;
                 }
-                LOGGER.debug("Adding {} member to {} marc exchange collection", recordData.getRecordId(), recordId);
-                marcExchangeCollection.addMember(getRecordContent(recordData.getRecordId(), recordData));
+                LOGGER.debug("Adding {} member to {} marcxchange collection", recordData.getRecordId(), recordId);
+                marcXchangeCollection.addMember(getRecordContent(recordData.getRecordId(), recordData));
             }
         }
-        return marcExchangeCollection;
+        return marcXchangeCollection;
     }
 
     private byte[] getRecordContent(RecordIdDTO recordId, Map<String, RecordDTO> records) throws HarvesterInvalidRecordException {

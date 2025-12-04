@@ -14,20 +14,20 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * This class represents a MARC Exchange Collection as a harvester XML record.
+ * This class represents a marcxchange Collection as a harvester XML record.
  * <p>
  * This class is not thread safe.
  */
-public class MarcExchangeCollection implements HarvesterRecord<MarcRecord> {
+public class MarcXchangeCollection implements HarvesterRecord<MarcRecord> {
     private final Charset charset = StandardCharsets.UTF_8;
     private final List<MarcRecord> records;
 
-    public MarcExchangeCollection() {
+    public MarcXchangeCollection() {
         this.records = new ArrayList<>();
     }
 
     /**
-     * @return this MARC Exchange Collections XML representation as byte array
+     * @return this marcxchange Collections XML representation as byte array
      * @throws HarvesterInvalidRecordException if collection contains no record members
      */
     @Override
@@ -46,7 +46,7 @@ public class MarcExchangeCollection implements HarvesterRecord<MarcRecord> {
     }
 
     /**
-     * @return MARC Exchange Collection XML encoding, currently always UTF-8
+     * @return marcxchange Collection XML encoding, currently always UTF-8
      */
     @Override
     public Charset getCharset() {
@@ -54,10 +54,10 @@ public class MarcExchangeCollection implements HarvesterRecord<MarcRecord> {
     }
 
     /**
-     * Extracts record from given MARC Exchange document (either as collection or
+     * Extracts record from given marcxchange document (either as collection or
      * standalone record) and adds it to this collection
      *
-     * @param memberData MARC Exchange document as byte array
+     * @param memberData marcxchange document as byte array
      * @throws HarvesterInvalidRecordException If given null-valued memberData argument,
      *                                         if given byte array can not be parsed as marcXchange,
      *                                         if given memberData is itself a collection with more than one record.

@@ -10,7 +10,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
+import dk.dbc.dataio.harvester.types.MarcXchangeCollection;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -76,23 +76,23 @@ public class SubjectProofingHarvestOperation extends HarvestOperation {
                     .withBibliographicRecordId(recordId.getBibliographicRecordId());
             try {
                 // Firstly retrieve the collection containing the subject proofing record
-                final MarcExchangeCollection marcExchangeCollection =
-                        (MarcExchangeCollection) getAddiContent(addiMetaData);
+                final MarcXchangeCollection marcXchangeCollection =
+                        (MarcXchangeCollection) getAddiContent(addiMetaData);
 
                 // Secondly extract the bibliographic record ID from 670*b
                 // then fetch and add the bibliographic record collection
-                final String bibliographicRecordId = getBibliographicRecordId(marcExchangeCollection);
+                final String bibliographicRecordId = getBibliographicRecordId(marcXchangeCollection);
                 if (bibliographicRecordId != null) {
                     final Map<String, RecordDTO> bibliographicRecordCollection =
                             fetchRecordCollection(new RecordIdDTO(bibliographicRecordId, recordId.getAgencyId()));
                     for (RecordDTO recordData : bibliographicRecordCollection.values()) {
-                        LOGGER.debug("Adding {} member to {} marc exchange collection",
+                        LOGGER.debug("Adding {} member to {} marcxchange collection",
                                 recordData.getRecordId(), recordId);
-                        marcExchangeCollection.addMember(getRecordContent(recordData));
+                        marcXchangeCollection.addMember(getRecordContent(recordData));
                     }
                 }
 
-                return createAddiRecord(addiMetaData, marcExchangeCollection.asBytes());
+                return createAddiRecord(addiMetaData, marcXchangeCollection.asBytes());
             } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
                 final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", recordId, e.getMessage());
                 LOGGER.error(errorMsg);
@@ -104,8 +104,8 @@ public class SubjectProofingHarvestOperation extends HarvestOperation {
             }
         }
 
-        private String getBibliographicRecordId(MarcExchangeCollection marcExchangeCollection) {
-            for (MarcRecord marcRecord : marcExchangeCollection.getRecords()) {
+        private String getBibliographicRecordId(MarcXchangeCollection marcXchangeCollection) {
+            for (MarcRecord marcRecord : marcXchangeCollection.getRecords()) {
                 final Optional<String> f670a = marcRecord.getSubFieldValue("670", 'a');
                 if (f670a.isPresent()) {
                     return f670a.get();

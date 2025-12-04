@@ -15,6 +15,12 @@
     <packaging>war</packaging>
 
     <dependencies>
+        <!-- fix commons-lang3 dependency hell discrepancy -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.20.0</version>
+        </dependency>
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-web-api</artifactId>

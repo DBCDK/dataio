@@ -10,8 +10,8 @@ import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
-import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpectation;
-import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecordExpectation;
+import dk.dbc.dataio.harvester.utils.datafileverifier.MarcXchangeCollectionExpectation;
+import dk.dbc.dataio.harvester.utils.datafileverifier.MarcXchangeRecordExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -133,7 +133,7 @@ public class HarvestOperation_fbs_Test {
     }
 
     @Test
-    public void execute_multipleRecordsHarvested_dataFileContainsMarcExchangeCollections() throws HarvesterException, RecordServiceConnectorException {
+    public void execute_multipleRecordsHarvested_dataFileContainsMarcXchangeCollections() throws HarvesterException, RecordServiceConnectorException {
         // Mock rawrepo return values
         when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<>() {{
@@ -149,19 +149,19 @@ public class HarvestOperation_fbs_Test {
 
         // Setup harvester datafile content expectations
 
-        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
-        marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
-        recordsExpectations.add(marcExchangeCollectionExpectation1);
+        MarcXchangeCollectionExpectation marcXchangeCollectionExpectation1 = new MarcXchangeCollectionExpectation();
+        marcXchangeCollectionExpectation1.records.add(getMarcXchangeRecord(FIRST_RECORD_ID));
+        recordsExpectations.add(marcXchangeCollectionExpectation1);
         recordsAddiMetaDataExpectations.add(new AddiMetaData().withBibliographicRecordId(FIRST_RECORD.getRecordId().getBibliographicRecordId()).withSubmitterNumber(FIRST_RECORD.getRecordId().getAgencyId()).withFormat("format").withCreationDate(Date.from(Instant.parse(FIRST_RECORD.getCreated()))).withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail()).withTrackingId(FIRST_RECORD.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
-        marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
-        recordsExpectations.add(marcExchangeCollectionExpectation2);
+        MarcXchangeCollectionExpectation marcXchangeCollectionExpectation2 = new MarcXchangeCollectionExpectation();
+        marcXchangeCollectionExpectation2.records.add(getMarcXchangeRecord(SECOND_RECORD_ID));
+        recordsExpectations.add(marcXchangeCollectionExpectation2);
         recordsAddiMetaDataExpectations.add(new AddiMetaData().withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId()).withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId()).withFormat("format").withCreationDate(Date.from(Instant.parse(SECOND_RECORD.getCreated()))).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
-        marcExchangeCollectionExpectation3.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
-        recordsExpectations.add(marcExchangeCollectionExpectation3);
+        MarcXchangeCollectionExpectation marcXchangeCollectionExpectation3 = new MarcXchangeCollectionExpectation();
+        marcXchangeCollectionExpectation3.records.add(getMarcXchangeRecord(THIRD_RECORD_ID));
+        recordsExpectations.add(marcXchangeCollectionExpectation3);
         recordsAddiMetaDataExpectations.add(new AddiMetaData().withBibliographicRecordId(THIRD_RECORD.getRecordId().getBibliographicRecordId()).withSubmitterNumber(THIRD_RECORD.getRecordId().getAgencyId()).withFormat("format").withCreationDate(Date.from(Instant.parse(THIRD_RECORD.getCreated()))).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         HarvestOperation harvestOperation = newHarvestOperation();
@@ -190,17 +190,17 @@ public class HarvestOperation_fbs_Test {
         when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordIdDTO.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
-        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
-        marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
-        recordsExpectations.add(marcExchangeCollectionExpectation1);
+        MarcXchangeCollectionExpectation marcXchangeCollectionExpectation1 = new MarcXchangeCollectionExpectation();
+        marcXchangeCollectionExpectation1.records.add(getMarcXchangeRecord(FIRST_RECORD_ID));
+        recordsExpectations.add(marcXchangeCollectionExpectation1);
         recordsAddiMetaDataExpectations.add(new AddiMetaData().withBibliographicRecordId(FIRST_RECORD.getRecordId().getBibliographicRecordId()).withSubmitterNumber(FIRST_RECORD.getRecordId().getAgencyId()).withFormat("format").withCreationDate(Date.from(Instant.parse(FIRST_RECORD.getCreated()))).withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail()).withTrackingId(FIRST_RECORD.getTrackingId()).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         recordsExpectations.add(null);
         recordsAddiMetaDataExpectations.add(new AddiMetaData().withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId()).withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId()).withFormat("format").withCreationDate(Date.from(Instant.parse(SECOND_RECORD.getCreated()))).withEnrichmentTrail(SECOND_RECORD.getEnrichmentTrail()).withTrackingId(SECOND_RECORD.getTrackingId()).withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, "member data can not be parsed as marcXchange")).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
-        marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
-        recordsExpectations.add(marcExchangeCollectionExpectation2);
+        MarcXchangeCollectionExpectation marcXchangeCollectionExpectation2 = new MarcXchangeCollectionExpectation();
+        marcXchangeCollectionExpectation2.records.add(getMarcXchangeRecord(THIRD_RECORD_ID));
+        recordsExpectations.add(marcXchangeCollectionExpectation2);
         recordsAddiMetaDataExpectations.add(new AddiMetaData().withBibliographicRecordId(THIRD_RECORD.getRecordId().getBibliographicRecordId()).withSubmitterNumber(THIRD_RECORD.getRecordId().getAgencyId()).withFormat("format").withCreationDate(Date.from(Instant.parse(THIRD_RECORD.getCreated()))).withDeleted(false).withLibraryRules(new AddiMetaData.LibraryRules()));
 
         HarvestOperation harvestOperation = newHarvestOperation();
@@ -227,8 +227,8 @@ public class HarvestOperation_fbs_Test {
         assertThat("JobSpecification.submitterId", jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
     }
 
-    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordIdDTO recordId) {
-        return new MarcExchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
+    private MarcXchangeRecordExpectation getMarcXchangeRecord(RecordIdDTO recordId) {
+        return new MarcXchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
     }
 
     private HarvestOperation newHarvestOperation() {

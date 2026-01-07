@@ -134,6 +134,9 @@ public class MacroSubstitutor {
      * := weekcode for next week as string for the given CATALOGUE
      * in relation to the current local date,
      * e.g. ${__NEXTWEEK_DBF__}
+     * MISLEADING: this macro does not use the week-resolver, it only calculates next week from the current local date.
+     * Should probably be renamed to simply __NEXTWEEK__, but that requires patching the current periodic job
+     * configurations. (JBN, 2026-01-07)
      * </p>
      * <p>
      * ${__DEFERRED_PERIOD_3_MONTHS__}

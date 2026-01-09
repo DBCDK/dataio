@@ -138,8 +138,8 @@ pipeline {
             }
             steps {
                 sh """
-                mvn install -T 3 -B -Dmaven.test.skip=true -Pdocker-push
-                mvn deploy -T 6 -B -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}" -am
+                mvn install -T 1 -B -Dmaven.test.skip=true -Pdocker-push
+                mvn deploy -T 1 -B -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}" -am
             """
             }
         }
@@ -189,8 +189,8 @@ pipeline {
                     if (DEPLOY_TO_STAGING_CANDIDATE) {
                         sh """
                             echo "Gogo staging gadget!!!"
-                            mvn install -B -T 3 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
-                            mvn deploy -T 6 -B -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}"
+                            mvn install -B -T 1 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+                            mvn deploy -T 1 -B -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}"
                         """
                     }
                 }

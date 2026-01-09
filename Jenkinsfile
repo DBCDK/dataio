@@ -84,7 +84,7 @@ pipeline {
                     mvn -B -T 4 \${FAST} -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install || exit 1
                     if [ -n "\${FAST}" ]; then
                         echo Run PMD 
-                        mvn -B -T 6 -P !integration-test pmd:pmd
+                        mvn -B -T 1 -P !integration-test pmd:pmd
                     fi
                 """
                 script {

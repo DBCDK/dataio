@@ -11,7 +11,7 @@ pipeline {
         maven 'maven 3.9'
     }
     environment {
-        MAVEN_OPTS = "-Dmaven.repo.local=/home/isworker/.m2/dataio-repo -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
+        MAVEN_OPTS = "-Dmaven.repo.local=/home/isworker/.m2/dataio-repo -XX:ReservedCodeCacheSize=256m -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
         BUILD_NUMBER = "${env.BUILD_NUMBER}"
@@ -137,8 +137,8 @@ pipeline {
             }
             steps {
                 sh """
-                mvn install -T 1 -B -Dmaven.test.skip=true -Pdocker-push
-                mvn deploy -T 1 -B -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}" -am
+                mvn -Dcyclonedx.skip=true install -T 1 -B -Dmaven.test.skip=true -Pdocker-push
+                mvn -Dcyclonedx.skip=true deploy -T 1 -B -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}" -am
             """
             }
         }

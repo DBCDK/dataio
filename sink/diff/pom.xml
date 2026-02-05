@@ -159,7 +159,7 @@
                                 <user>java</user>
                                 <runCmds>
                                     <user>root</user>
-                                    <run>apt-install libxml2-utils</run>
+                                    <run>apt-get update -o Acquire::AllowInsecureRepositories=true -o Acquire::AllowDowngradeToInsecureRepositories=true &amp;&amp; apt-get install -qy --no-install-recommends libxml2-utils &amp;&amp; apt-get clean &amp;&amp; rm -rf /var/lib/apt/lists/*</run>
                                 </runCmds>
                                 <assemblies>
                                     <assembly>

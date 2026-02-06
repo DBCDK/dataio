@@ -87,9 +87,23 @@ pipeline {
             }
             steps {
                 sh """
-                    mvn -Dcyclonedx.skip=true install -T 1 -B -Dmaven.test.skip=true -Pdocker-push
-                    mvn -Dcyclonedx.skip=true deploy -T 1 -B -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}" -am
+                    mvn -B --no-transfer-progress -Dcyclonedx.skip=true deploy -T 1 -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}" -am
                 """
+            }
+        }
+        stage("publish docker images") {
+            steps {
+                script {
+                    if (env.BRANCH_NAME != 'master') {
+                        sh """
+                            mvn -B --no-transfer-progress -Dcyclonedx.skip=true install -T 1 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+                        """
+                    } else {
+                        sh """
+                            mvn -B --no-transfer-progress -Dcyclonedx.skip=true install -T 1 -Dmaven.test.skip=true -Pdocker-push
+                        """
+                    }
+                }
             }
         }
         stage("clean up docker images") {

@@ -48,14 +48,36 @@ pipeline {
         }
         stage("build") {
             steps {
-                sh """
-                    mvn -B -T 1 -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install || exit 1
-                """
-                script {
-                    junit allowEmptyResults: true, testResults: '**/target/*-reports/*.xml'
+                withSonarQubeEnv(installationName: 'sonarqube.dbc.dk') {
+                    script {
+                        def status = sh returnStatus: true, script: """
+                            mvn -B --no-transfer-progress -T 1 -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install
+                        """
 
-                    archiveArtifacts artifacts: "cli/acceptance-test/target/dataio-cli-acctest.jar,gatekeeper/target/dataio-gatekeeper*.jar,cli/dataio-cli",
+                        def sonarOptions = "-Dsonar.branch.name=$BRANCH_NAME"
+                        if (env.BRANCH_NAME != 'master') {
+                            sonarOptions += " -Dsonar.newCode.referenceBranch=master"
+                        }
+                        status += sh returnStatus: true, script: """
+                            mvn -B --no-transfer-progress $sonarOptions sonar:sonar
+                        """
+
+                        junit allowEmptyResults: true, testResults: '**/target/*-reports/*.xml'
+
+                        if (status != 0) {
+                            error("build failed")
+                        }
+
+                        archiveArtifacts artifacts: "cli/acceptance-test/target/dataio-cli-acctest.jar,gatekeeper/target/dataio-gatekeeper*.jar,cli/dataio-cli",
                             fingerprint: true
+                    }
+                }
+            }
+        }
+        stage("quality gate") {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }

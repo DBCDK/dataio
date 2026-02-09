@@ -10,10 +10,11 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
+import dk.dbc.dataio.harvester.types.HarvesterNoContentException;
 import dk.dbc.dataio.harvester.types.HarvesterRecord;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.MarcXchangeCollection;
 import dk.dbc.dataio.harvester.types.MarcJSonCollection;
+import dk.dbc.dataio.harvester.types.MarcXchangeCollection;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.invariant.InvariantUtil;
@@ -28,6 +29,7 @@ import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
+import dk.dbc.rawrepo.record.RecordServiceConnectorNoContentStatusCodeException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -188,6 +190,8 @@ public class HarvestOperation implements AutoCloseable {
                 metricRegistry.timer(taskDurationTimerMetadata, new Tag("config", config.getContent().getId()))
                         .update(Duration.ofMillis(System.currentTimeMillis() - taskStartTime));
             }
+        } catch (HarvesterNoContentException e) {
+            LOGGER.info("Skipping 'No Content' record {}", recordHarvestTask.getRecordId());
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
             final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", recordHarvestTask.getRecordId(), e.getMessage());
             LOGGER.error(errorMsg);
@@ -417,6 +421,8 @@ public class HarvestOperation implements AutoCloseable {
                 throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
             }
             return recordData;
+        } catch (RecordServiceConnectorNoContentStatusCodeException e) {
+            throw new HarvesterNoContentException(recordId.toString());
         } catch (RecordServiceConnectorException e) {
             throw new HarvesterSourceException("Unable to fetch record for " +
                     recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
@@ -426,13 +432,14 @@ public class HarvestOperation implements AutoCloseable {
     Map<String, RecordEntryDTO> fetchRecordCollection(RecordIdDTO recordId)
             throws HarvesterInvalidRecordException, HarvesterSourceException {
         try {
-
             RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(configContent.expand());
             List<RecordEntryDTO> recordDataCollection = recordServiceConnector.getRecordDataCollectionDataIO(recordId, params);
             if (recordDataCollection == null || recordDataCollection.isEmpty()) {
                 throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
             }
             return recordDataCollection.stream().collect(Collectors.groupingBy(e -> e.getRecordId().getBibliographicRecordId(), Collectors.reducing(null, (e1, e2) -> e1 == null ? e2 : e1)));
+        } catch (RecordServiceConnectorNoContentStatusCodeException e) {
+            throw new HarvesterNoContentException(recordId.toString());
         } catch (RecordServiceConnectorException e) {
             throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
         }

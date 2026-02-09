@@ -21,6 +21,7 @@ import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
+import dk.dbc.rawrepo.record.RecordServiceConnectorNoContentStatusCodeException;
 import jakarta.persistence.EntityManager;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
@@ -132,6 +133,18 @@ public class HarvestOperationFbsTest {
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();
+    }
+
+    @Test
+    public void execute_skipRecordsThrowingRecordServiceConnectorNoContentStatusCodeException() throws RecordServiceConnectorException, IOException {
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordData(any(RecordIdDTO.class)))
+                .thenThrow(new RecordServiceConnectorNoContentStatusCodeException("No Content"));
+
+        HarvestOperation harvestOperation = newHarvestOperation();
+        harvestOperation.execute();
+
+        assertThat("No datafile created", Files.size(harvesterDataFile.toPath()), is(0L));
+        assertThat("No job created", mockedJobStoreServiceConnector.jobInputStreams.size(), is(0));
     }
 
     @Test

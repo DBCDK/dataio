@@ -136,7 +136,6 @@ public class ImsHarvestOperation extends HarvestOperation {
     private List<RawRepoRecordHarvestTask> unfoldTaskDBC(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) {
         final List<RawRepoRecordHarvestTask> toProcess = new ArrayList<>();
         final RecordIdDTO recordId = recordHarvestTask.getRecordId();
-        System.out.println(recordId);
         final Set<Integer> agenciesWithHoldings = holdingsItemsConnector.hasHoldings(recordId.getBibliographicRecordId(), imsLibraries);
         if (!agenciesWithHoldings.isEmpty()) {
             toProcess.addAll(agenciesWithHoldings.stream()
@@ -148,7 +147,6 @@ public class ImsHarvestOperation extends HarvestOperation {
                                     .withSubmitterNumber(agencyId)))
                     .toList());
         }
-        System.out.println(toProcess);
 
         return toProcess;
     }

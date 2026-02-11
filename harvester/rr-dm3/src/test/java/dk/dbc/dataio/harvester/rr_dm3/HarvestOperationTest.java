@@ -157,6 +157,54 @@ public class  HarvestOperationTest {
     }
 
     @Test
+    public void execute_rawRepoConnectorFetchRecordThrowsRawRepoExceptionForDBCLibrary_recordIsFailedAsCatchAllLibrary() throws Exception {
+        rawRepoConnector = rawRepo3Connector(DBC_RECORD_ID);
+        RecordEntryDTO record = new RecordEntryBuilder()
+                .id(DBC_RECORD_ID)
+                .createdNow()
+                .deleteContent('e')
+                .deleted()
+                .build();
+
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(
+                any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
+                .thenReturn(List.of(record));
+
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordIdDTO.class)))
+                .thenThrow(new RecordServiceConnectorException("getRecordData failed"));
+
+        HarvestOperation harvestOperation = newHarvestOperation();
+        harvestOperation.execute();
+
+        ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
+        verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
+
+        AddiRecord addiRecord = addiRecordCaptor.getValue();
+        assertHasDiagnostic(addiRecord);
+        assertThat("AddiRecord submitter number", getAddiMetaData(addiRecord).submitterNumber(),
+                is(HarvestOperation.DBC_LIBRARY_CATCH_ALL));
+    }
+
+    @Test
+    public void execute_rawRepoConnectorGetRecordDataCollectionDataIOThrowsRawRepoExceptionForDBCLibrary_recordIsFailedAsCatchAllLibrary() throws Exception {
+        rawRepoConnector = rawRepo3Connector(DBC_RECORD_ID);
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(
+                any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
+                .thenThrow(new RecordServiceConnectorException("getRecordDataCollectionDataIO failed"));
+
+        HarvestOperation harvestOperation = newHarvestOperation();
+        harvestOperation.execute();
+
+        ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
+        verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
+
+        AddiRecord addiRecord = addiRecordCaptor.getValue();
+        assertHasDiagnostic(addiRecord);
+        assertThat("AddiRecord submitter number", getAddiMetaData(addiRecord).submitterNumber(),
+                is(HarvestOperation.DBC_LIBRARY_CATCH_ALL));
+    }
+
+    @Test
     public void execute_rawRepoConnectorFetchRecordCollectionThrowsRawRepoException_recordIsFailed() throws RecordServiceConnectorException, HarvesterException {
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(
                 any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
@@ -472,14 +520,9 @@ public class  HarvestOperationTest {
 
     private void assertHasDiagnostic(AddiRecord addiRecord) {
         assertThat("Addi record", addiRecord, is(notNullValue()));
-        try {
-            AddiMetaData addiMetaData = jsonbContext.unmarshall(
-                    new String(addiRecord.getMetaData(), StandardCharsets.UTF_8), AddiMetaData.class);
-            assertThat("Addi record metadata", addiMetaData, is(notNullValue()));
-            assertThat("Addi record metadata has diagnostic", addiMetaData.diagnostic(), is(notNullValue()));
-        } catch (JSONBException e) {
-            throw new IllegalStateException(e);
-        }
+        AddiMetaData addiMetaData = getAddiMetaData(addiRecord);
+        assertThat("Addi record metadata", addiMetaData, is(notNullValue()));
+        assertThat("Addi record metadata has diagnostic", addiMetaData.diagnostic(), is(notNullValue()));
     }
 
     private JobSpecification getJobSpecification() {
@@ -490,6 +533,14 @@ public class  HarvestOperationTest {
                 .withDestination("destination")
                 .withSubmitterId(AGENCY_ID)
                 .withType(JobSpecification.Type.TRANSIENT);
+    }
+
+    private AddiMetaData getAddiMetaData(AddiRecord addiRecord) {
+        try {
+            return jsonbContext.unmarshall(new String(addiRecord.getMetaData(), StandardCharsets.UTF_8), AddiMetaData.class);
+        } catch (JSONBException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public static QueueItem getQueueItem(RecordIdDTO recordId, Date queued) {

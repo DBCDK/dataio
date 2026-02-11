@@ -55,6 +55,7 @@ import java.util.stream.Stream;
 
 public class HarvestOperation implements AutoCloseable {
     static final int DBC_LIBRARY = 191919;
+    static final int DBC_LIBRARY_CATCH_ALL = 999999;
 
     static final Set<Integer> DBC_COMMUNITY = Stream.of(
             870970, 870971, 190002, 870973, 190004, 870974, 870975, 870976, 870977, 870978, 870979).collect(Collectors.toSet());
@@ -191,10 +192,21 @@ public class HarvestOperation implements AutoCloseable {
                         .update(Duration.ofMillis(System.currentTimeMillis() - taskStartTime));
             }
         } catch (HarvesterNoContentException e) {
-            LOGGER.info("Skipping 'No Content' record {}", recordHarvestTask.getRecordId());
+            LOGGER.info("Skipping 'No Content' record {}", e.getMessage());
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
             final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", recordHarvestTask.getRecordId(), e.getMessage());
             LOGGER.error(errorMsg);
+
+            // ToDo: 2026-02-10 This is a temporary workaround that should be removed once the RR service is stable.
+            final Integer submitter = recordHarvestTask.getAddiMetaData().submitterNumber();
+            if (submitter == DBC_LIBRARY) {
+                // Temporary special case error handling for DBC records.
+                // Something broke in the RR service, which means the enrichment trail
+                // cannot be deduced. To avoid creating jobs with 191919 submitter,
+                // replace with the CATCH_ALL submitter.
+                recordHarvestTask.getAddiMetaData().withSubmitterNumber(DBC_LIBRARY_CATCH_ALL);
+            }
+
             getHarvesterJobBuilder(recordHarvestTask.getAddiMetaData().submitterNumber())
                     .addRecord(
                             createAddiRecord(recordHarvestTask.getAddiMetaData().withDiagnostic(
@@ -325,7 +337,7 @@ public class HarvestOperation implements AutoCloseable {
         final Map<String, RecordEntryDTO> records;
         try {
             records = fetchRecordCollection(recordData.getRecordId());
-        } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
+        } catch (HarvesterInvalidRecordException e) {
             throw new HarvesterSourceException("Unable to fetch record collection for " + recordData.getRecordId() + ": " + e.getMessage(), e);
         }
         LOGGER.debug("Fetched record collection<{}> for {}", records.values(), recordData.getRecordId());
@@ -422,7 +434,7 @@ public class HarvestOperation implements AutoCloseable {
             }
             return recordData;
         } catch (RecordServiceConnectorNoContentStatusCodeException e) {
-            throw new HarvesterNoContentException(recordId.toString());
+            throw new HarvesterNoContentException(recordId.toString() + " - fetchRecord");
         } catch (RecordServiceConnectorException e) {
             throw new HarvesterSourceException("Unable to fetch record for " +
                     recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
@@ -439,7 +451,7 @@ public class HarvestOperation implements AutoCloseable {
             }
             return recordDataCollection.stream().collect(Collectors.groupingBy(e -> e.getRecordId().getBibliographicRecordId(), Collectors.reducing(null, (e1, e2) -> e1 == null ? e2 : e1)));
         } catch (RecordServiceConnectorNoContentStatusCodeException e) {
-            throw new HarvesterNoContentException(recordId.toString());
+            throw new HarvesterNoContentException(recordId.toString() + " - fetchRecordCollection");
         } catch (RecordServiceConnectorException e) {
             throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
         }

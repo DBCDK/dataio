@@ -144,6 +144,22 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Override
+    public void execute_rawRepoConnectorFetchRecordThrowsRawRepoExceptionForDBCLibrary_recordIsFailedAsCatchAllLibrary() throws Exception {
+        when(holdingsItemsConnector.hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES))
+                .thenReturn(IMS_LIBRARIES);
+
+        super.execute_rawRepoConnectorFetchRecordThrowsRawRepoExceptionForDBCLibrary_recordIsFailedAsCatchAllLibrary();
+    }
+
+    @Override
+    public void execute_rawRepoConnectorGetRecordDataCollectionDataIOThrowsRawRepoExceptionForDBCLibrary_recordIsFailedAsCatchAllLibrary() throws Exception {
+        when(holdingsItemsConnector.hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES))
+                .thenReturn(IMS_LIBRARIES);
+
+        super.execute_rawRepoConnectorGetRecordDataCollectionDataIOThrowsRawRepoExceptionForDBCLibrary_recordIsFailedAsCatchAllLibrary();
+    }
+
+    @Override
     public HarvestOperation newHarvestOperation(RawRepo3Connector connector) {
         return newHarvestOperation(connector, HarvesterTestUtil.getRRHarvesterConfig());
     }

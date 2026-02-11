@@ -99,6 +99,22 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Override
+    public void execute_rawRepoConnectorFetchRecordThrowsRawRepoExceptionForDBCLibrary_recordIsFailedAsCatchAllLibrary() throws Exception {
+        when(ocnRepo.lookupWorldCatEntity(any(WorldCatEntity.class)))
+                .thenReturn(Collections.emptyList());
+
+        super.execute_rawRepoConnectorFetchRecordThrowsRawRepoExceptionForDBCLibrary_recordIsFailedAsCatchAllLibrary();
+    }
+
+    @Override
+    public void execute_rawRepoConnectorGetRecordDataCollectionDataIOThrowsRawRepoExceptionForDBCLibrary_recordIsFailedAsCatchAllLibrary() throws Exception {
+        when(ocnRepo.lookupWorldCatEntity(any(WorldCatEntity.class)))
+                .thenReturn(Collections.emptyList());
+
+        super.execute_rawRepoConnectorGetRecordDataCollectionDataIOThrowsRawRepoExceptionForDBCLibrary_recordIsFailedAsCatchAllLibrary();
+    }
+
+    @Override
     public HarvestOperation newHarvestOperation(RawRepo3Connector connector, RRV3HarvesterConfig config) {
         try {
             return new WorldCatHarvestOperation("test:0", config, harvesterJobBuilderFactory, newTaskRepo(),

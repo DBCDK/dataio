@@ -52,7 +52,7 @@ public class ImsHarvestOperation extends HarvestOperation {
     /**
      * Runs this harvest operation, creating dataIO jobs from harvested records.
      * If any non-internal error occurs a record is marked as failed. Only records from
-     * IMS agency IDs are processed and DBC library are process, all others are skipped.
+     * IMS agency IDs and DBC library are processed, all others are skipped.
      * Records from DBC library are mapped into IMS libraries with holdings (if any).
      *
      * @return number of records processed
@@ -136,6 +136,7 @@ public class ImsHarvestOperation extends HarvestOperation {
     private List<RawRepoRecordHarvestTask> unfoldTaskDBC(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) {
         final List<RawRepoRecordHarvestTask> toProcess = new ArrayList<>();
         final RecordIdDTO recordId = recordHarvestTask.getRecordId();
+        System.out.println(recordId);
         final Set<Integer> agenciesWithHoldings = holdingsItemsConnector.hasHoldings(recordId.getBibliographicRecordId(), imsLibraries);
         if (!agenciesWithHoldings.isEmpty()) {
             toProcess.addAll(agenciesWithHoldings.stream()
@@ -147,6 +148,7 @@ public class ImsHarvestOperation extends HarvestOperation {
                                     .withSubmitterNumber(agencyId)))
                     .toList());
         }
+        System.out.println(toProcess);
 
         return toProcess;
     }
@@ -178,6 +180,17 @@ public class ImsHarvestOperation extends HarvestOperation {
             }
         } catch (RecordServiceConnectorException | HarvesterSourceException e) {
             final RawRepoRecordHarvestTask task = recordHarvestTasks.get(currentRecord);
+
+            // ToDo: 2026-02-10 This is a temporary workaround that should be removed once the RR service is stable.
+            final Integer submitter = task.getAddiMetaData().submitterNumber();
+            if (submitter == DBC_LIBRARY) {
+                // Temporary special case error handling for DBC records.
+                // Something broke in the RR service, which means the enrichment trail
+                // cannot be deduced. To avoid creating jobs with 191919 submitter,
+                // replace with the CATCH_ALL submitter.
+                task.getAddiMetaData().withSubmitterNumber(DBC_LIBRARY_CATCH_ALL);
+            }
+
             final String errorMsg = String.format("RawRepo communication failed for %s: %s", task.getRecordId(), e.getMessage());
             task.getAddiMetaData().withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg));
             toProcess.add(task);

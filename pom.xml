@@ -102,6 +102,8 @@
         <angus-mail.version>2.0.1</angus-mail.version>
         <sonar.projectKey>dataio</sonar.projectKey>
         <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
+
+        <docker.build.skip>true</docker.build.skip>
     </properties>
 
     <dependencies>
@@ -910,6 +912,37 @@
                                 <goal>integration-test</goal>
                                 <goal>verify</goal>
                             </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.6.3</version>
+                    <executions>
+                        <execution>
+                            <!-- Phase out the use of the io.fabric8:docker-maven-plugin -->
+                            <id>build-docker</id>
+                            <phase>package</phase>
+
+                            <!-- In a module that needs to build a docker image activate with
+                            <properties>
+                                <docker.build.skip>false</docker.build.skip>
+                                <docker.repo>your.docker.repo</docker.repo>
+                            </properties>
+                            -->
+                            <goals>
+                                <goal>exec</goal>
+                            </goals>
+                            <configuration>
+                                <skip>${docker.build.skip}</skip>
+                                <executable>bash</executable>
+                                <arguments>
+                                    <argument>${maven.multiModuleProjectDirectory}/docker/build.sh</argument>
+                                    <argument>--docker-repo</argument>
+                                    <argument>${docker.repo}</argument>
+                                </arguments>
+                            </configuration>
                         </execution>
                     </executions>
                 </plugin>

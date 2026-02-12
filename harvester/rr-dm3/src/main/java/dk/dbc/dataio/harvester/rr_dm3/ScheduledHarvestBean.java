@@ -43,9 +43,7 @@ public class ScheduledHarvestBean {
     HarvesterBean harvester;
 
     /**
-     * Starts default (every 30s) harvest schedule.
-     * Note: in the near future this method will probably be removed and
-     * scheduled harvesting will not be started by default.
+     * Starts default (every 5s) harvest schedule.
      */
     @PostConstruct
     public void bootstrap() {

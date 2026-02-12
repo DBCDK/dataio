@@ -54,13 +54,15 @@ pipeline {
                             mvn -B --no-transfer-progress -T 1 -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install
                         """
 
-                        def sonarOptions = "-Dsonar.branch.name=$BRANCH_NAME"
-                        if (env.BRANCH_NAME != 'master') {
-                            sonarOptions += " -Dsonar.newCode.referenceBranch=master"
+                        if (status == 0) {
+                            def sonarOptions = "-Dsonar.branch.name=$BRANCH_NAME"
+                            if (env.BRANCH_NAME != 'master') {
+                                sonarOptions += " -Dsonar.newCode.referenceBranch=master"
+                            }
+                            status += sh returnStatus: true, script: """
+                                mvn -B --no-transfer-progress $sonarOptions sonar:sonar
+                            """
                         }
-                        status += sh returnStatus: true, script: """
-                            mvn -B --no-transfer-progress $sonarOptions sonar:sonar
-                        """
 
                         junit allowEmptyResults: true, testResults: '**/target/*-reports/*.xml'
 
@@ -94,6 +96,8 @@ pipeline {
         stage("publish docker images") {
             steps {
                 script {
+                    // The -Pdocker-push method is to be gradually phased out
+                    // in favour of the docker/publish.sh script.
                     if (env.BRANCH_NAME != 'master') {
                         sh """
                             mvn -B --no-transfer-progress -Dcyclonedx.skip=true install -T 1 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
@@ -103,6 +107,10 @@ pipeline {
                             mvn -B --no-transfer-progress -Dcyclonedx.skip=true install -T 1 -Dmaven.test.skip=true -Pdocker-push
                         """
                     }
+
+                    sh """
+                        ./docker/publish.sh
+                    """
                 }
             }
         }

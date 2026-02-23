@@ -33,6 +33,7 @@ public class HarvesterTestUtil {
                 .withConsumerId("consumerId")
                 .withFormat("format")
                 .withDestination("destination")
-                .withIncludeRelations(false);
+                .withIncludeRelations(false)
+                .withSubmitterFilter(HarvesterConfigurationBean.DEFAULT_SUBMITTER_FILTER);
     }
 }

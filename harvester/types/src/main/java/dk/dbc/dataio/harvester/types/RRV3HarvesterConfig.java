@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +15,8 @@ import java.util.Map;
 import java.util.Objects;
 
 public class RRV3HarvesterConfig extends HarvesterConfig<RRV3HarvesterConfig.Content> implements Serializable {
-    private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 6278782413534093538L;
 
     public enum HarvesterType {STANDARD, IMS, WORLDCAT}
 
@@ -46,7 +48,8 @@ public class RRV3HarvesterConfig extends HarvesterConfig<RRV3HarvesterConfig.Con
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Content implements WorkerKey, Serializable {
-        private static final long serialVersionUID = 1L;
+        @Serial
+        private static final long serialVersionUID = -8707091224407698754L;
 
         public Content() {
         }
@@ -142,6 +145,10 @@ public class RRV3HarvesterConfig extends HarvesterConfig<RRV3HarvesterConfig.Con
          */
         private String note;
 
+        /**
+         * Filter for submitters
+         */
+        private SubmitterFilter submitterFilter;
 
         // Getters and Setters
 
@@ -289,6 +296,15 @@ public class RRV3HarvesterConfig extends HarvesterConfig<RRV3HarvesterConfig.Con
             return this;
         }
 
+        public SubmitterFilter getSubmitterFilter() {
+            return submitterFilter;
+        }
+
+        public Content withSubmitterFilter(SubmitterFilter submitterFilter) {
+            this.submitterFilter = submitterFilter;
+            return this;
+        }
+
         public boolean expand() {
             return expand;
         }
@@ -305,48 +321,49 @@ public class RRV3HarvesterConfig extends HarvesterConfig<RRV3HarvesterConfig.Con
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Content)) return false;
-
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             Content content = (Content) o;
-
-            if (enabled != content.enabled) return false;
-            if (expand != content.expand) return false;
-            if (includeRelations != content.includeRelations) return false;
-            if (includeLibraryRules != content.includeLibraryRules) return false;
-            if (batchSize != content.batchSize) return false;
-            if (!Objects.equals(id, content.id)) return false;
-            if (!Objects.equals(description, content.description)) return false;
-            if (!Objects.equals(resource, content.resource)) return false;
-            if (!Objects.equals(consumerId, content.consumerId)) return false;
-            if (!Objects.equals(destination, content.destination)) return false;
-            if (type != content.type) return false;
-            if (!Objects.equals(format, content.format)) return false;
-            if (!formatOverrides.equals(content.formatOverrides)) return false;
-            if (harvesterType != content.harvesterType) return false;
-            if (!Objects.equals(imsHoldingsTarget, content.imsHoldingsTarget)) return false;
-            return Objects.equals(note, content.note);
+            return Objects.equals(id, content.id)
+                    && Objects.equals(description, content.description)
+                    && enabled == content.enabled
+                    && Objects.equals(resource, content.resource)
+                    && Objects.equals(consumerId, content.consumerId)
+                    && Objects.equals(destination, content.destination)
+                    && type == content.type
+                    && Objects.equals(format, content.format)
+                    && Objects.equals(formatOverrides, content.formatOverrides)
+                    && includeRelations == content.includeRelations
+                    && includeLibraryRules == content.includeLibraryRules
+                    && batchSize == content.batchSize
+                    && harvesterType == content.harvesterType
+                    && expand == content.expand
+                    && Objects.equals(imsHoldingsTarget, content.imsHoldingsTarget)
+                    && Objects.equals(note, content.note)
+                    && Objects.equals(submitterFilter, content.submitterFilter);
         }
 
         @Override
         public int hashCode() {
-            int result = id != null ? id.hashCode() : 0;
-            result = 31 * result + (description != null ? description.hashCode() : 0);
-            result = 31 * result + (enabled ? 1 : 0);
-            result = 31 * result + (expand ? 1 : 0);
-            result = 31 * result + (resource != null ? resource.hashCode() : 0);
-            result = 31 * result + (consumerId != null ? consumerId.hashCode() : 0);
-            result = 31 * result + (destination != null ? destination.hashCode() : 0);
-            result = 31 * result + (type != null ? type.hashCode() : 0);
-            result = 31 * result + (format != null ? format.hashCode() : 0);
-            result = 31 * result + (formatOverrides != null ? formatOverrides.hashCode() : 0);
-            result = 31 * result + (includeRelations ? 1 : 0);
-            result = 31 * result + (includeLibraryRules ? 1 : 0);
-            result = 31 * result + batchSize;
-            result = 31 * result + (harvesterType != null ? harvesterType.hashCode() : 0);
-            result = 31 * result + (imsHoldingsTarget != null ? imsHoldingsTarget.hashCode() : 0);
-            result = 31 * result + (note != null ? note.hashCode() : 0);
-            return result;
+            return Objects.hash(
+                    id,
+                    description,
+                    enabled,
+                    resource,
+                    consumerId,
+                    destination,
+                    type,
+                    format,
+                    formatOverrides,
+                    includeRelations,
+                    includeLibraryRules,
+                    batchSize,
+                    harvesterType,
+                    expand,
+                    imsHoldingsTarget,
+                    note,
+                    submitterFilter);
         }
 
         @Override
@@ -355,7 +372,6 @@ public class RRV3HarvesterConfig extends HarvesterConfig<RRV3HarvesterConfig.Con
                     "id='" + id + '\'' +
                     ", description='" + description + '\'' +
                     ", enabled=" + enabled +
-                    ", expand=" + expand +
                     ", resource='" + resource + '\'' +
                     ", consumerId='" + consumerId + '\'' +
                     ", destination='" + destination + '\'' +
@@ -366,8 +382,10 @@ public class RRV3HarvesterConfig extends HarvesterConfig<RRV3HarvesterConfig.Con
                     ", includeLibraryRules=" + includeLibraryRules +
                     ", batchSize=" + batchSize +
                     ", harvesterType=" + harvesterType +
+                    ", expand=" + expand +
                     ", imsHoldingsTarget='" + imsHoldingsTarget + '\'' +
                     ", note='" + note + '\'' +
+                    ", submitterFilter=" + submitterFilter +
                     '}';
         }
     }

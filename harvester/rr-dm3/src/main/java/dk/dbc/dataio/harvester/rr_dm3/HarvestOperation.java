@@ -16,6 +16,7 @@ import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.MarcJSonCollection;
 import dk.dbc.dataio.harvester.types.MarcXchangeCollection;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
+import dk.dbc.dataio.harvester.types.SubmitterFilter;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -50,6 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -125,24 +127,33 @@ public class HarvestOperation implements AutoCloseable {
      * @throws HarvesterException on failure to complete harvest operation
      */
     public int execute() throws HarvesterException {
-        return execute(null);
-    }
-
-    protected int execute(Set<Integer> agencyFilter) throws HarvesterException {
         try {
             final StopWatch stopWatch = new StopWatch();
-            int jobCount = rawRepoConnector.dequeue(configContent.getBatchSize(), jobs -> {
-                if(jobs.isEmpty()) return;
-                for (RecordIdDTO recordId : jobs) {
-                    AddiMetaData metaData = new AddiMetaData().withBibliographicRecordId(recordId.getBibliographicRecordId()).withSubmitterNumber(recordId.getAgencyId());
-                    RawRepoRecordHarvestTask task = new RawRepoRecordHarvestTask().withRecordId(recordId).withAddiMetaData(metaData);
-                    processRecordHarvestTask(task, agencyFilter);
+            final Predicate<Integer> submitterSkip = getSubmitterSkipPredicate();
+            int recordCount = rawRepoConnector.dequeue(configContent.getBatchSize(), recordIds -> {
+                if (recordIds.isEmpty()) {
+                    return;
+                }
+                for (RecordIdDTO recordId : recordIds) {
+                    if (submitterSkip.test(recordId.getAgencyId())) {
+                        LOGGER.debug("Skipping record {} due to filter", recordId);
+                        continue;
+                    }
+                    AddiMetaData metaData = new AddiMetaData()
+                            .withBibliographicRecordId(recordId.getBibliographicRecordId())
+                            .withSubmitterNumber(recordId.getAgencyId());
+                    RawRepoRecordHarvestTask task = new RawRepoRecordHarvestTask()
+                            .withRecordId(recordId)
+                            .withAddiMetaData(metaData);
+                    processRecordHarvestTask(task);
                 }
 
                 flushHarvesterJobBuilders();
-                LOGGER.info("Processed {} items from {} queue in {} ms", jobs.size(), workerKey, stopWatch.getElapsedTime());
+                LOGGER.info("Processed {} items from {} queue in {} ms", recordIds.size(), workerKey, stopWatch.getElapsedTime());
             });
-            if(jobCount > 0) return jobCount;
+            if (recordCount > 0) {
+                return recordCount;
+            }
             return reruns();
         } catch (SQLException | HarvesterException e) {
             LOGGER.error(e.getMessage());
@@ -161,7 +172,7 @@ public class HarvestOperation implements AutoCloseable {
         RawRepoRecordHarvestTask recordHarvestTask = recordHarvestTaskQueue.poll();
         while (recordHarvestTask != null) {
             LOGGER.info("{} ready for harvesting", recordHarvestTask.getRecordId());
-            processRecordHarvestTask(recordHarvestTask, null);
+            processRecordHarvestTask(recordHarvestTask);
             if (++itemsProcessed == batchSize) break;
             recordHarvestTask = recordHarvestTaskQueue.poll();
         }
@@ -171,7 +182,7 @@ public class HarvestOperation implements AutoCloseable {
         return itemsProcessed;
     }
 
-    void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> agencyFilter) throws HarvesterException {
+    void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
         RecordEntryDTO recordData = null;
         try {
             long taskStartTime = System.currentTimeMillis();
@@ -423,6 +434,14 @@ public class HarvestOperation implements AutoCloseable {
         } catch (JSONBException e) {
             throw new HarvesterException(e);
         }
+    }
+
+    Predicate<Integer> getSubmitterSkipPredicate() {
+        final SubmitterFilter submitterFilter = configContent.getSubmitterFilter();
+        if (submitterFilter == null) {
+            return submitterNumber -> false;
+        }
+        return submitterFilter::shouldSkip;
     }
 
     RecordEntryDTO fetchRecord(RecordIdDTO recordId)

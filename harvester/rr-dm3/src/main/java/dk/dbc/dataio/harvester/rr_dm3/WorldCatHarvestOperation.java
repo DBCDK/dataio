@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class WorldCatHarvestOperation extends HarvestOperation {
@@ -41,10 +40,10 @@ public class WorldCatHarvestOperation extends HarvestOperation {
     }
 
     @Override
-    void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> agencyFilter) throws HarvesterException {
+    void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
         for (RawRepoRecordHarvestTask task : preprocessRecordHarvestTask(recordHarvestTask)) {
             LOGGER.info("handling pid {} ocn {}", task.getAddiMetaData().pid(), task.getAddiMetaData().ocn());
-            super.processRecordHarvestTask(task, agencyFilter);
+            super.processRecordHarvestTask(task);
         }
     }
 

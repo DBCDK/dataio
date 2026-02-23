@@ -4,6 +4,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
+import dk.dbc.dataio.harvester.types.SubmitterFilter;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.TransactionAttribute;
@@ -21,6 +22,10 @@ import java.util.List;
 public class HarvesterConfigurationBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterConfigurationBean.class);
 
+    // Current default behavior is to exclude submitters 190002 and 190008 from harvesting.
+    static final SubmitterFilter DEFAULT_SUBMITTER_FILTER =
+            new SubmitterFilter(SubmitterFilter.Type.ACCEPT_ALL_EXCEPT, List.of(190002, 190008));
+
     @EJB
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
@@ -36,6 +41,15 @@ public class HarvesterConfigurationBean {
         LOGGER.debug("Retrieving configuration");
         try {
             configs = flowStoreServiceConnectorBean.getConnector().findEnabledHarvesterConfigsByType(RRV3HarvesterConfig.class);
+
+            // Until the dataIO UI has been retrofitted with the ability
+            // to configure a submitter filter, all configs without a
+            // submitter filter will have this default value.
+            configs.stream()
+                    .map(RRV3HarvesterConfig::getContent)
+                    .filter(content -> content != null && content.getSubmitterFilter() == null)
+                    .forEach(content -> content.withSubmitterFilter(DEFAULT_SUBMITTER_FILTER));
+
             LOGGER.debug("Applying configuration: {}", configs);
         } catch (FlowStoreServiceConnectorException e) {
             throw new HarvesterException("Exception caught while refreshing configuration", e);

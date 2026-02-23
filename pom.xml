@@ -16,7 +16,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>buildstuff</module>
         <module>cli</module>
         <module>commons</module>
         <module>file-store-service</module>

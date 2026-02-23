@@ -17,9 +17,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SubmitterFilterTest {
 
-    private static final Long SUBMITTER_111111 = 111111L;
-    private static final Long SUBMITTER_222222 = 222222L;
-    private static final Long SUBMITTER_333333 = 333333L;
+    private static final Integer SUBMITTER_111111 = 111111;
+    private static final Integer SUBMITTER_222222 = 222222;
+    private static final Integer SUBMITTER_333333 = 333333;
 
     // -------------------------------------------------------------------------
     // Constructor validation
@@ -70,15 +70,15 @@ public class SubmitterFilterTest {
                 Arrays.asList(SUBMITTER_111111, SUBMITTER_222222)
         );
 
-        Set<Long> numbers = filter.getSubmitterNumbers();
+        Set<Integer> numbers = filter.getSubmitterNumbers();
         assertThat(numbers, containsInAnyOrder(SUBMITTER_111111, SUBMITTER_222222));
 
-        assertThrows(UnsupportedOperationException.class, () -> numbers.add(100L));
+        assertThrows(UnsupportedOperationException.class, () -> numbers.add(100));
     }
 
     @Test
     void constructor_copiesInputList_defensiveCopy() {
-        ArrayList<Long> input = new ArrayList<>(Arrays.asList(SUBMITTER_111111, SUBMITTER_222222));
+        ArrayList<Integer> input = new ArrayList<>(Arrays.asList(SUBMITTER_111111, SUBMITTER_222222));
         SubmitterFilter filter = new SubmitterFilter(SubmitterFilter.Type.ACCEPT_ALL_EXCEPT, input);
 
         input.clear();
@@ -149,7 +149,7 @@ public class SubmitterFilterTest {
                 Arrays.asList(SUBMITTER_111111, SUBMITTER_222222)
         );
 
-        Predicate<Long> p = filter.acceptPredicate();
+        Predicate<Integer> p = filter.acceptPredicate();
 
         assertThat(p.test(SUBMITTER_111111), is(filter.shouldAccept(SUBMITTER_111111)));
         assertThat(p.test(SUBMITTER_222222), is(filter.shouldAccept(SUBMITTER_222222)));
@@ -163,7 +163,7 @@ public class SubmitterFilterTest {
                 Arrays.asList(SUBMITTER_111111, SUBMITTER_222222)
         );
 
-        Predicate<Long> p = filter.skipPredicate();
+        Predicate<Integer> p = filter.skipPredicate();
 
         assertThat(p.test(SUBMITTER_111111), is(filter.shouldSkip(SUBMITTER_111111)));
         assertThat(p.test(SUBMITTER_222222), is(filter.shouldSkip(SUBMITTER_222222)));
@@ -212,8 +212,8 @@ public class SubmitterFilterTest {
         SubmitterFilter filter = mapper.readValue(json, SubmitterFilter.class);
 
         assertThat(filter.getType(), is(SubmitterFilter.Type.ACCEPT_ALL_EXCEPT));
-        assertThat(filter.getSubmitterNumbers(), containsInAnyOrder(424242L, 434343L));
-        assertThat(filter.shouldSkip(424242L), is(true));
-        assertThat(filter.shouldSkip(999999L), is(false));
+        assertThat(filter.getSubmitterNumbers(), containsInAnyOrder(424242, 434343));
+        assertThat(filter.shouldSkip(424242), is(true));
+        assertThat(filter.shouldSkip(999999), is(false));
     }
 }

@@ -8,6 +8,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.MarcJSonCollection;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
+import dk.dbc.dataio.harvester.types.SubmitterFilter;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.marc.binding.MarcBinding;
@@ -27,11 +28,18 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
+/**
+ * Harvest operation for IMS records.
+ * IMS agency IDs and DBC library are processed, all others are skipped.
+ * Records from DBC library are mapped into IMS libraries with holdings (if any).
+ */
 public class ImsHarvestOperation extends HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImsHarvestOperation.class);
 
     private final HoldingsItemsConnector holdingsItemsConnector;
+    private final Set<Integer> imsLibraries;
 
     public ImsHarvestOperation(String workerKey, RRV3HarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory,
                                TaskRepo taskRepo, VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector, MetricRegistry metricRegistry)
@@ -47,25 +55,21 @@ public class ImsHarvestOperation extends HarvestOperation {
                         MetricRegistry metricRegistry) throws QueueException, SQLException, ConfigurationException {
         super(workerKey, config, harvesterJobBuilderFactory, taskRepo, vipCoreConnection, rawRepoConnector, recordServiceConnector, metricRegistry);
         this.holdingsItemsConnector = holdingsItemsConnector != null ? holdingsItemsConnector : getHoldingsItemsConnector(config);
-    }
-
-    /**
-     * Runs this harvest operation, creating dataIO jobs from harvested records.
-     * If any non-internal error occurs a record is marked as failed. Only records from
-     * IMS agency IDs and DBC library are processed, all others are skipped.
-     * Records from DBC library are mapped into IMS libraries with holdings (if any).
-     *
-     * @return number of records processed
-     * @throws HarvesterException on failure to complete harvest operation
-     */
-    public int execute() throws HarvesterException {
-        return execute(vipCoreConnection.getFbsImsLibraries());
+        this.imsLibraries = vipCoreConnection.getFbsImsLibraries();
     }
 
     @Override
-    void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) throws HarvesterException {
-        for (RawRepoRecordHarvestTask task : unfoldRecordHarvestTask(recordHarvestTask, imsLibraries)) {
-            super.processRecordHarvestTask(task, null);
+    Predicate<Integer> getSubmitterSkipPredicate() {
+        final List<Integer> submittersToAccept = new ArrayList<>();
+        submittersToAccept.add(DBC_LIBRARY);
+        submittersToAccept.addAll(vipCoreConnection.getFbsImsLibraries());
+        return new SubmitterFilter(SubmitterFilter.Type.SKIP_ALL_EXCEPT, submittersToAccept).skipPredicate();
+    }
+
+    @Override
+    void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
+        for (RawRepoRecordHarvestTask task : unfoldRecordHarvestTask(recordHarvestTask)) {
+            super.processRecordHarvestTask(task);
         }
     }
 
@@ -119,21 +123,20 @@ public class ImsHarvestOperation extends HarvestOperation {
         return new HoldingsItemsConnector(config.getContent().getImsHoldingsTarget());
     }
 
-    private List<RawRepoRecordHarvestTask> unfoldRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) throws HarvesterException {
+    private List<RawRepoRecordHarvestTask> unfoldRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
         final RecordIdDTO recordId = recordHarvestTask.getRecordId();
         List<RawRepoRecordHarvestTask> tasksToProcess = new ArrayList<>();
 
         if (recordId.getAgencyId() == DBC_LIBRARY) {
-            tasksToProcess = unfoldTaskDBC(recordHarvestTask, imsLibraries);
-        } else if (imsLibraries.contains(recordId.getAgencyId())) {
+            tasksToProcess = unfoldTaskDBC(recordHarvestTask);
+        } else {
             tasksToProcess.add(recordHarvestTask);
         }
         tasksToProcess = unfoldTaskIMS(tasksToProcess);
         return tasksToProcess;
     }
 
-
-    private List<RawRepoRecordHarvestTask> unfoldTaskDBC(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) {
+    private List<RawRepoRecordHarvestTask> unfoldTaskDBC(RawRepoRecordHarvestTask recordHarvestTask) {
         final List<RawRepoRecordHarvestTask> toProcess = new ArrayList<>();
         final RecordIdDTO recordId = recordHarvestTask.getRecordId();
         final Set<Integer> agenciesWithHoldings = holdingsItemsConnector.hasHoldings(recordId.getBibliographicRecordId(), imsLibraries);

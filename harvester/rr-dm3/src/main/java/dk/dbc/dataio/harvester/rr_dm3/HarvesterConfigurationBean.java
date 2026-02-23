@@ -24,7 +24,7 @@ public class HarvesterConfigurationBean {
 
     // Current default behavior is to exclude submitters 190002 and 190008 from harvesting.
     static final SubmitterFilter DEFAULT_SUBMITTER_FILTER =
-            new SubmitterFilter(SubmitterFilter.Type.ACCEPT_ALL_EXCEPT, List.of(190002L, 190008L));
+            new SubmitterFilter(SubmitterFilter.Type.ACCEPT_ALL_EXCEPT, List.of(190002, 190008));
 
     @EJB
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;

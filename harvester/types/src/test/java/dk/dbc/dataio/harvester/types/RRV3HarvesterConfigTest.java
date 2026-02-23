@@ -55,7 +55,7 @@ class RRV3HarvesterConfigTest {
 
         final RRV3HarvesterConfig config = jsonbContext.unmarshall(json, RRV3HarvesterConfig.class);
         assertThat(config.getContent().getSubmitterFilter(),
-                is(new SubmitterFilter(SubmitterFilter.Type.SKIP_ALL_EXCEPT, List.of(870970L))));
+                is(new SubmitterFilter(SubmitterFilter.Type.SKIP_ALL_EXCEPT, List.of(870970))));
     }
 
     @Test

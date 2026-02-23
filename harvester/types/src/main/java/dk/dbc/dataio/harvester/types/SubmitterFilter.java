@@ -29,7 +29,7 @@ public class SubmitterFilter implements Serializable {
     }
 
     private final Type type;
-    private final Set<Long> submitterNumbers;
+    private final Set<Integer> submitterNumbers;
 
     /**
      * @param type The type of filter.
@@ -38,7 +38,7 @@ public class SubmitterFilter implements Serializable {
     @JsonCreator
     public SubmitterFilter(
             @JsonProperty("type") Type type,
-            @JsonProperty("submitterNumber") List<Long> submitterNumbers) {
+            @JsonProperty("submitterNumber") List<Integer> submitterNumbers) {
         
         if (type == null) {
             throw new IllegalArgumentException("type cannot be null");
@@ -57,7 +57,7 @@ public class SubmitterFilter implements Serializable {
         return type;
     }
 
-    public Set<Long> getSubmitterNumbers() {
+    public Set<Integer> getSubmitterNumbers() {
         return Collections.unmodifiableSet(submitterNumbers);
     }
 
@@ -66,7 +66,7 @@ public class SubmitterFilter implements Serializable {
      * @param submitterNumber The submitter number.
      * @return True if the submitter should be skipped.
      */
-    public boolean shouldSkip(Long submitterNumber) {
+    public boolean shouldSkip(Integer submitterNumber) {
         if (type == Type.ACCEPT_ALL_EXCEPT) {
             return submitterNumbers.contains(submitterNumber);
         }
@@ -79,7 +79,7 @@ public class SubmitterFilter implements Serializable {
     /**
      * @return a Predicate that returns true when the submitter should be skipped.
      */
-    public Predicate<Long> skipPredicate() {
+    public Predicate<Integer> skipPredicate() {
         return this::shouldSkip;
     }
 
@@ -88,7 +88,7 @@ public class SubmitterFilter implements Serializable {
      * @param submitterNumber The submitter number.
      * @return True if the submitter should be accepted.
      */
-    public boolean shouldAccept(Long submitterNumber) {
+    public boolean shouldAccept(Integer submitterNumber) {
         if (type == Type.ACCEPT_ALL_EXCEPT) {
             return !submitterNumbers.contains(submitterNumber);
         }
@@ -101,7 +101,7 @@ public class SubmitterFilter implements Serializable {
     /**
      * @return a Predicate that returns true when the submitter should be accepted.
      */
-    public Predicate<Long> acceptPredicate() {
+    public Predicate<Integer> acceptPredicate() {
         return this::shouldAccept;
     }
 

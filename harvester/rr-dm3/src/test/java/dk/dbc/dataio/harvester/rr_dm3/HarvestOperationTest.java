@@ -340,6 +340,19 @@ public class  HarvestOperationTest {
     }
 
     @Test
+    public void execute_recordIsSkippedByDefaultSubmitterFilter() throws RecordServiceConnectorException {
+        RecordIdDTO recordFrom190002 = new RecordIdDTO("123456789", 190002);
+        rawRepoConnector = rawRepo3Connector(recordFrom190002);
+
+        HarvestOperation harvestOperation = newHarvestOperation();
+        harvestOperation.execute();
+        verify(rawRepoRecordServiceConnector, times(0))
+                .getRecordData(any(RecordIdDTO.class));
+        verify(harvesterJobBuilder, times(0))
+                .addRecord(any(AddiRecord.class));
+    }
+
+    @Test
     public void getJobSpecificationTemplate_interpolatesConfigValues() {
         RRV3HarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         JobSpecification expectedJobSpecificationTemplate = defaultJobSpecificationTemplate

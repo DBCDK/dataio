@@ -16,6 +16,7 @@ import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.MarcJSonCollection;
 import dk.dbc.dataio.harvester.types.MarcXchangeCollection;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
+import dk.dbc.dataio.harvester.types.SubmitterFilter;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -64,6 +65,7 @@ public class HarvestOperation implements AutoCloseable {
 
     final RRV3HarvesterConfig config;
     final RRV3HarvesterConfig.Content configContent;
+    final SubmitterFilter submitterFilter;
     final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
     final VipCoreConnection vipCoreConnection;
     final RawRepo3Connector rawRepoConnector;
@@ -108,6 +110,7 @@ public class HarvestOperation implements AutoCloseable {
                      MetricRegistry metricRegistry) throws QueueException, SQLException, ConfigurationException {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         configContent = config.getContent();
+        this.submitterFilter = configContent.getSubmitterFilter();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
         this.taskRepo = InvariantUtil.checkNotNullOrThrow(taskRepo, "taskRepo");
         this.vipCoreConnection = InvariantUtil.checkNotNullOrThrow(vipCoreConnection, "vipCoreConnection");
@@ -131,18 +134,30 @@ public class HarvestOperation implements AutoCloseable {
     protected int execute(Set<Integer> agencyFilter) throws HarvesterException {
         try {
             final StopWatch stopWatch = new StopWatch();
-            int jobCount = rawRepoConnector.dequeue(configContent.getBatchSize(), jobs -> {
-                if(jobs.isEmpty()) return;
-                for (RecordIdDTO recordId : jobs) {
-                    AddiMetaData metaData = new AddiMetaData().withBibliographicRecordId(recordId.getBibliographicRecordId()).withSubmitterNumber(recordId.getAgencyId());
-                    RawRepoRecordHarvestTask task = new RawRepoRecordHarvestTask().withRecordId(recordId).withAddiMetaData(metaData);
+            int recordCount = rawRepoConnector.dequeue(configContent.getBatchSize(), recordIds -> {
+                if (recordIds.isEmpty()) {
+                    return;
+                }
+                for (RecordIdDTO recordId : recordIds) {
+                    if (skipRecord(recordId)) {
+                        LOGGER.debug("Skipping record {} due to filter", recordId);
+                        continue;
+                    }
+                    AddiMetaData metaData = new AddiMetaData()
+                            .withBibliographicRecordId(recordId.getBibliographicRecordId())
+                            .withSubmitterNumber(recordId.getAgencyId());
+                    RawRepoRecordHarvestTask task = new RawRepoRecordHarvestTask()
+                            .withRecordId(recordId)
+                            .withAddiMetaData(metaData);
                     processRecordHarvestTask(task, agencyFilter);
                 }
 
                 flushHarvesterJobBuilders();
-                LOGGER.info("Processed {} items from {} queue in {} ms", jobs.size(), workerKey, stopWatch.getElapsedTime());
+                LOGGER.info("Processed {} items from {} queue in {} ms", recordIds.size(), workerKey, stopWatch.getElapsedTime());
             });
-            if(jobCount > 0) return jobCount;
+            if (recordCount > 0) {
+                return recordCount;
+            }
             return reruns();
         } catch (SQLException | HarvesterException e) {
             LOGGER.error(e.getMessage());
@@ -423,6 +438,13 @@ public class HarvestOperation implements AutoCloseable {
         } catch (JSONBException e) {
             throw new HarvesterException(e);
         }
+    }
+
+    private boolean skipRecord(RecordIdDTO recordId) {
+        if (submitterFilter == null) {
+            return false;
+        }
+        return submitterFilter.shouldSkip((long) recordId.getAgencyId());
     }
 
     RecordEntryDTO fetchRecord(RecordIdDTO recordId)

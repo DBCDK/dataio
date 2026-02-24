@@ -136,7 +136,7 @@ public class HarvestOperation implements AutoCloseable {
                 }
                 for (RecordIdDTO recordId : recordIds) {
                     if (submitterSkip.test(recordId.getAgencyId())) {
-                        LOGGER.debug("Skipping record {} due to filter", recordId);
+                        LOGGER.debug("Skipping record {} due to filter {}", recordId, configContent.getSubmitterFilter());
                         continue;
                     }
                     AddiMetaData metaData = new AddiMetaData()

@@ -117,6 +117,7 @@ public class HarvestOperation implements AutoCloseable {
         this.recordServiceConnector = recordServiceConnector == null ? (RecordServiceConnector) CONNECTOR_CACHE.computeIfAbsent(this.rawRepoConnector.getRecordServiceUrl(), RecordServiceConnectorFactory::create) : recordServiceConnector;
         this.metricRegistry = metricRegistry;
         this.workerKey = InvariantUtil.checkNotNullOrThrow(workerKey, "workerKey");
+        LOGGER.info("Using submitter filter: {}", configContent.getSubmitterFilter());
     }
 
     /**
@@ -136,7 +137,7 @@ public class HarvestOperation implements AutoCloseable {
                 }
                 for (RecordIdDTO recordId : recordIds) {
                     if (submitterSkip.test(recordId.getAgencyId())) {
-                        LOGGER.debug("Skipping record {} due to filter", recordId);
+                        LOGGER.info("Skipping record {} due to filter {}", recordId, configContent.getSubmitterFilter());
                         continue;
                     }
                     AddiMetaData metaData = new AddiMetaData()

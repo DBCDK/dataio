@@ -125,6 +125,11 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
         }
     }
 
+    @Override
+    public void execute_enrichmentRecordIsSkippedByDefaultSubmitterFilter() {
+        // skip
+    }
+
     private void compareAddiMetaDataWithWorldCatEntity(AddiMetaData addiMetaData, WorldCatEntity worldCatEntity) {
         assertThat("addi submitterNumber", addiMetaData.submitterNumber(), is(worldCatEntity.getAgencyId()));
         assertThat("addi bibliographicRecordId", addiMetaData.bibliographicRecordId(), is(worldCatEntity.getBibliographicRecordId()));

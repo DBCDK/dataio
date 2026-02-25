@@ -51,6 +51,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -348,6 +349,28 @@ public class  HarvestOperationTest {
         harvestOperation.execute();
         verify(rawRepoRecordServiceConnector, times(0))
                 .getRecordData(any(RecordIdDTO.class));
+        verify(harvesterJobBuilder, times(0))
+                .addRecord(any(AddiRecord.class));
+    }
+
+    @Test
+    public void execute_enrichmentRecordIsSkippedByDefaultSubmitterFilter() throws RecordServiceConnectorException {
+        RecordIdDTO enrichmentRecordFrom190002 = new RecordIdDTO("123456789", 191919);
+        rawRepoConnector = rawRepo3Connector(enrichmentRecordFrom190002);
+
+        final RecordEntryDTO enrichmentRecord = new RecordEntryBuilder()
+                .defaults(enrichmentRecordFrom190002.getBibliographicRecordId(), enrichmentRecordFrom190002.getAgencyId())
+                .trail("190002,191919")
+                .build();
+
+        when(rawRepoRecordServiceConnector.getRecordData(eq(enrichmentRecordFrom190002)))
+                .thenReturn(enrichmentRecord);
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(
+                eq(enrichmentRecordFrom190002), any(RecordServiceConnector.Params.class)))
+                .thenReturn(List.of(enrichmentRecord));
+
+        HarvestOperation harvestOperation = newHarvestOperation();
+        harvestOperation.execute();
         verify(harvesterJobBuilder, times(0))
                 .addRecord(any(AddiRecord.class));
     }

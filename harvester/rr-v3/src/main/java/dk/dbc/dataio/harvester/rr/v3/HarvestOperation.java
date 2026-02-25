@@ -184,23 +184,32 @@ public class HarvestOperation implements AutoCloseable {
 
     void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
         RecordEntryDTO recordData = null;
+        long taskStartTime = System.currentTimeMillis();
         try {
-            long taskStartTime = System.currentTimeMillis();
             recordData = fetchRecord(recordHarvestTask.getRecordId());
             DBCTrackedLogContext.setTrackingId(recordData.getTrackingId());
             final AddiMetaData addiMetaData = recordHarvestTask.getAddiMetaData()
                     .withTrackingId(recordData.getTrackingId())
                     .withCreationDate(getRecordCreationDate(recordData));
 
-            if (includeRecord(recordData.getRecordId().getAgencyId(), recordData.isDeleted() || recordHarvestTask.isForceAdd())) {
-                enrichAddiMetaData(addiMetaData);
-                final MarcJSonCollection marcJSonCollection = getContentForEnrichedRecord(recordData, addiMetaData);
+            RecordIdDTO recordId = recordData.getRecordId();
+            if (recordIsToBeIncluded(recordData, recordHarvestTask.isForceAdd())) {
+                final Map<String, RecordEntryDTO> recordCollection = getRecordCollection(recordId);
+                // refresh record data and id with merged content from record collection
+                recordData = getRecordEntryFromCollection(recordId, recordCollection);
+                recordId = recordData.getRecordId();
+                updateMetaData(recordData, addiMetaData);
+                if (recordId.getAgencyId() != addiMetaData.submitterNumber()) {
+                    if (getSubmitterSkipPredicate().test(addiMetaData.submitterNumber())) {
+                        LOGGER.debug("Skipping record {} due to filter on enrichment trail agencyId {}: {}",
+                                recordId, addiMetaData.submitterNumber(), configContent.getSubmitterFilter());
+                        return;
+                    }
+                }
+                final MarcJSonCollection marcJSonCollection = getMarcJsonCollection(recordId, recordCollection);
                 final HarvesterRecord<MarcRecord> contentForRecord = toMarcXchangeCollection(marcJSonCollection);
                 getHarvesterJobBuilder(addiMetaData.submitterNumber())
                         .addRecord(createAddiRecord(addiMetaData, contentForRecord.asBytes()));
-
-                metricRegistry.timer(taskDurationTimerMetadata, new Tag("config", config.getContent().getId()))
-                        .update(Duration.ofMillis(System.currentTimeMillis() - taskStartTime));
             }
         } catch (HarvesterNoContentException e) {
             LOGGER.info("Skipping 'No Content' record {}", e.getMessage());
@@ -226,7 +235,11 @@ public class HarvestOperation implements AutoCloseable {
 
             metricRegistry.counter(taskErrorCounterMetadata,
                     new Tag("config", config.getContent().getId())).inc();
+
         } finally {
+            metricRegistry.timer(taskDurationTimerMetadata, new Tag("config", config.getContent().getId()))
+                    .update(Duration.ofMillis(System.currentTimeMillis() - taskStartTime));
+
             DBCTrackedLogContext.remove();
         }
     }
@@ -300,23 +313,24 @@ public class HarvestOperation implements AutoCloseable {
         }
     }
 
-    private boolean includeRecord(int agencyId, boolean isDeleted) throws HarvesterInvalidRecordException {
-        // Special case handling for DBC records:
-        // If the agency ID is either excluded or is equal to 191919...
-        if (DBC_COMMUNITY.contains(agencyId) || DBC_LIBRARY == agencyId) {
-            // if the record IS marked as DELETED in RR...
-            if (isDeleted) {
-                if (agencyId == DBC_LIBRARY) {
-                    // skip the record if it has agency ID 191919 and is not force delete.
-                    return false;
-                }
-                // if the record is NOT marked as DELETED in RR...
-            } else if (DBC_COMMUNITY.contains(agencyId)) {
-                // skip the record if has an excluded agency ID.
-                return false;
-            }
+    private boolean recordIsToBeIncluded(RecordEntryDTO recordData, boolean treatAsDeleted) {
+        final int agencyId = recordData.getRecordId().getAgencyId();
+        final boolean isDbcLibrary = agencyId == DBC_LIBRARY;
+        final boolean isDbcCommunity = DBC_COMMUNITY.contains(agencyId);
+        treatAsDeleted = treatAsDeleted || recordData.isDeleted();
+
+        // Only special-case handling for DBC agencies; everything else is included.
+
+        if (isDbcLibrary && treatAsDeleted) {
+            // If the record is to be treated as deleted and agency is DBC Library, skip it.
+            return false;
         }
-        // else include the record.
+
+        if (isDbcCommunity && !treatAsDeleted) {
+            // If the record is not to be treated as deleted and agency is in DBC Community, skip it.
+            return false;
+        }
+
         return true;
     }
 
@@ -335,43 +349,45 @@ public class HarvestOperation implements AutoCloseable {
         harvesterJobBuilders.clear();
     }
 
-    private void enrichAddiMetaData(AddiMetaData addiMetaData) {
-        if (configContent.hasIncludeLibraryRules()) {
-            addiMetaData.withLibraryRules(vipCoreConnection.getLibraryRules(addiMetaData.submitterNumber(), addiMetaData.trackingId()));
-        }
-    }
-
-    /* Fetches rawrepo record collection associated with given record ID and adds its content to a new marcxchange collection.
-       Returns marcxchange collection
-     */
-    MarcJSonCollection getContentForEnrichedRecord(RecordEntryDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
+    // Fetches rawrepo record collection associated with given record ID
+    private Map<String, RecordEntryDTO> getRecordCollection(RecordIdDTO recordId) throws HarvesterException {
         final Map<String, RecordEntryDTO> records;
         try {
-            records = fetchRecordCollection(recordData.getRecordId());
+            records = fetchRecordCollection(recordId);
         } catch (HarvesterInvalidRecordException e) {
-            throw new HarvesterSourceException("Unable to fetch record collection for " + recordData.getRecordId() + ": " + e.getMessage(), e);
+            throw new HarvesterSourceException("Unable to fetch record collection for " + recordId + ": " + e.getMessage(), e);
         }
-        LOGGER.debug("Fetched record collection<{}> for {}", records.values(), recordData.getRecordId());
         if (records.isEmpty()) {
-            throw new HarvesterInvalidRecordException("Empty record collection returned for " + recordData.getRecordId());
+            throw new HarvesterInvalidRecordException("Empty record collection returned for " + recordId);
         }
-        if (!records.containsKey(recordData.getRecordId().getBibliographicRecordId())) {
+        return records;
+    }
+
+    // Extracts record from record collection
+    private RecordEntryDTO getRecordEntryFromCollection(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterInvalidRecordException {
+        final RecordEntryDTO record = records.get(recordId.getBibliographicRecordId());
+        if (record == null) {
             throw new HarvesterInvalidRecordException(String.format(
-                    "Record %s was not found in returned collection", recordData.getRecordId()));
+                    "Record %s was not found in collection", recordId));
         }
-        // refresh - set to merged record
-        recordData = records.get(recordData.getRecordId().getBibliographicRecordId());
+        return record;
+    }
+
+    // Updates metadata associated with given record
+    private void updateMetaData(RecordEntryDTO recordData, AddiMetaData addiMetaData) {
+        if (configContent.hasIncludeLibraryRules()) {
+            addiMetaData.withLibraryRules(vipCoreConnection.getLibraryRules(
+                    addiMetaData.submitterNumber(), addiMetaData.trackingId()));
+        }
         if (addiMetaData.submitterNumber() == DBC_LIBRARY) {
             // extract agency ID from enrichment trail if the record has agency ID 191919.
             addiMetaData.withSubmitterNumber(getAgencyIdFromEnrichmentTrail(recordData));
         }
         addiMetaData.withEnrichmentTrail(recordData.getEnrichmentTrail());
         addiMetaData.withFormat(getFormat(addiMetaData.submitterNumber()));
-
-        return getMarcJsonCollection(recordData.getRecordId(), records);
     }
 
-    private MarcJSonCollection getMarcJsonCollection(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterException {
+    MarcJSonCollection getMarcJsonCollection(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterException {
         MarcJSonCollection marcJSonCollection = new MarcJSonCollection();
         marcJSonCollection.addMember(getRecordContent(recordId, records));
         if (configContent.hasIncludeRelations()) {
@@ -477,8 +493,7 @@ public class HarvestOperation implements AutoCloseable {
     }
 
     @Override
-    public void close() {
-    }
+    public void close() {}
 
     public List<RawRepoRecordHarvestTask> preprocessRecordHarvestTask(RawRepoRecordHarvestTask task) {
         return List.of();

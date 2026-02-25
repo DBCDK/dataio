@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -89,29 +90,24 @@ public class ImsHarvestOperation extends HarvestOperation {
         return false;
     }
 
-    /**
-     * This function handles the case where the ims library has a deleted local record attached to a section and/or head record
+    /*
+     * This override handles the case where the ims library has a deleted local record attached to a section and/or head record
      * Single records can also have this case, but that is handled in another place (unfoldTaskIMS).
-     *
-     * @param recordData   Record ids to collect
-     * @param addiMetaData Additional record data
-     * @return Harvested records
-     * @throws HarvesterException Something went wrong getting records
      */
     @Override
-    MarcJSonCollection getContentForEnrichedRecord(RecordEntryDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
-        MarcJSonCollection result = super.getContentForEnrichedRecord(recordData, addiMetaData);
+    MarcJSonCollection getMarcJsonCollection(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterException {
+        MarcJSonCollection result = super.getMarcJsonCollection(recordId, records);
         for (MarcBinding record : new ArrayList<>(result.getRecords())) {
             String f001b = record.getSubFieldValue("001", 'b');
             if (f001b != null && !f001b.equals("870970") && isDeletedHeadOrSectionRecord(record)) {
                 String f001a = Require.nonNull(record.getSubFieldValue("001", 'a'), () -> new IllegalArgumentException("Record is missing mandatory 001a field"));
                 RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(true).withMode(RecordServiceConnector.Params.Mode.EXPANDED);
-                RecordIdDTO recordId = new RecordIdDTO(f001a, DBC_LIBRARY);
+                RecordIdDTO dbcRecordId = new RecordIdDTO(f001a, DBC_LIBRARY);
                 try {
-                    RecordEntryDTO replaceRecord = recordServiceConnector.getRecordData(recordId, params);
-                    result.addMember(replaceRecord.getContent().toString().getBytes(StandardCharsets.UTF_8));
+                    RecordEntryDTO dbcRecord = recordServiceConnector.getRecordData(dbcRecordId, params);
+                    result.addMember(dbcRecord.getContent().toString().getBytes(StandardCharsets.UTF_8));
                 } catch (RecordServiceConnectorException e) {
-                    throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
+                    throw new HarvesterSourceException("Unable to fetch record for " + dbcRecordId + ". " + e.getMessage(), e);
                 }
                 result.getRecords().remove(record);
             }

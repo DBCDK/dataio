@@ -349,12 +349,6 @@ public class HarvestOperation implements AutoCloseable {
         harvesterJobBuilders.clear();
     }
 
-    private void addLibraryRulesToAddiMetaData(AddiMetaData addiMetaData) {
-        if (configContent.hasIncludeLibraryRules()) {
-            addiMetaData.withLibraryRules(vipCoreConnection.getLibraryRules(addiMetaData.submitterNumber(), addiMetaData.trackingId()));
-        }
-    }
-
     // Fetches rawrepo record collection associated with given record ID
     private Map<String, RecordEntryDTO> getRecordCollection(RecordIdDTO recordId) throws HarvesterException {
         final Map<String, RecordEntryDTO> records;

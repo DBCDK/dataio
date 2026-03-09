@@ -3,7 +3,6 @@ package dk.dbc.dataio.harvester.infomedia.model;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import dk.dbc.autonomen.AutoNomenSuggestions;
 
 import java.util.List;
 
@@ -13,7 +12,7 @@ public class Record {
 
     @JacksonXmlProperty(localName = "author-name-suggestion")
     @JacksonXmlElementWrapper(localName = "author-name-suggestions")
-    private List<AutoNomenSuggestions> autoNomenSuggestions;
+    private List<AuthorNameSuggestionsXml> authorNameSuggestionsXml;
 
     public Infomedia getInfomedia() {
         return infomedia;
@@ -23,11 +22,11 @@ public class Record {
         this.infomedia = infomedia;
     }
 
-    public List<AutoNomenSuggestions> getAutoNomenSuggestions() {
-        return autoNomenSuggestions;
+    public List<AuthorNameSuggestionsXml> getAuthorNameSuggestionsXml() {
+        return authorNameSuggestionsXml;
     }
 
-    public void setAutoNomenSuggestions(List<AutoNomenSuggestions> autoNomenSuggestions) {
-        this.autoNomenSuggestions = autoNomenSuggestions;
+    public void setAuthorNameSuggestionsXml(List<AuthorNameSuggestionsXml> authorNameSuggestionsXmls) {
+        this.authorNameSuggestionsXml = authorNameSuggestionsXmls;
     }
 }

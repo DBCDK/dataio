@@ -70,10 +70,11 @@
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-testutil-assert</artifactId>
         </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>auto-nomen-connector</artifactId>
-        </dependency>
+      <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>dataio-commons-creatordetector-connector</artifactId>
+        <version>${project.version}</version>
+      </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>infomedia-connector</artifactId>

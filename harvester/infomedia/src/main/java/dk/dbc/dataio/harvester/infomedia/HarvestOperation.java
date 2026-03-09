@@ -2,14 +2,16 @@ package dk.dbc.dataio.harvester.infomedia;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import dk.dbc.autonomen.AutoNomenConnector;
-import dk.dbc.autonomen.AutoNomenConnectorException;
-import dk.dbc.autonomen.AutoNomenSuggestions;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.creatordetector.connector.CreatorDetectorConnector;
+import dk.dbc.dataio.commons.creatordetector.connector.CreatorDetectorConnectorException;
+import dk.dbc.dataio.commons.creatordetector.connector.CreatorNameSuggestion;
+import dk.dbc.dataio.commons.creatordetector.connector.CreatorNameSuggestions;
+import dk.dbc.dataio.commons.creatordetector.connector.DetectCreatorNamesRequest;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
@@ -17,6 +19,8 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.TimeInterval;
 import dk.dbc.dataio.harvester.TimeIntervalGenerator;
+import dk.dbc.dataio.harvester.infomedia.model.AuthorNameSuggestionXml;
+import dk.dbc.dataio.harvester.infomedia.model.AuthorNameSuggestionsXml;
 import dk.dbc.dataio.harvester.infomedia.model.Infomedia;
 import dk.dbc.dataio.harvester.infomedia.model.Record;
 import dk.dbc.dataio.harvester.types.HarvesterException;
@@ -35,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class HarvestOperation {
@@ -87,7 +92,7 @@ public class HarvestOperation {
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final InfomediaConnector infomediaConnector;
-    private final AutoNomenConnector autoNomenConnector;
+    private final CreatorDetectorConnector creatorDetectorConnector;
     private final JSONBContext jsonbContext = new JSONBContext();
     private final XmlMapper xmlMapper = new XmlMapper();
     private final Duration publicationDuration = Duration.ofHours(23).plusMinutes(59).plusSeconds(59);
@@ -98,14 +103,14 @@ public class HarvestOperation {
                             FileStoreServiceConnector fileStoreServiceConnector,
                             JobStoreServiceConnector jobStoreServiceConnector,
                             InfomediaConnector infomediaConnector,
-                            AutoNomenConnector autoNomenConnector) {
+                            CreatorDetectorConnector creatorDetectorConnector) {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
         this.infomediaConnector = infomediaConnector;
-        this.autoNomenConnector = autoNomenConnector;
+        this.creatorDetectorConnector = creatorDetectorConnector;
     }
 
     public int execute() throws HarvesterException {
@@ -131,18 +136,15 @@ public class HarvestOperation {
                         record.setInfomedia(infomedia);
 
                         try {
-                            final AutoNomenSuggestions autoNomenSuggestions = autoNomenConnector
-                                    .getSuggestions(article.getArticleId());
-                            if (!(autoNomenSuggestions.getAutNames().isEmpty() &&
-                                    autoNomenSuggestions.getNerNames().isEmpty())) {
-                                record.setAutoNomenSuggestions(Collections.singletonList(autoNomenSuggestions));
+                            final List<AuthorNameSuggestionsXml> authorNameSuggestionsXml = getAuthorNameSuggestionsAsXml(article);
+                            if (!authorNameSuggestionsXml.isEmpty()) {
+                                record.setAuthorNameSuggestionsXml(authorNameSuggestionsXml);
                             }
-                        } catch (RuntimeException | AutoNomenConnectorException e) {
+                        } catch (RuntimeException | CreatorDetectorConnectorException e) {
                             final String errMsg = String.format(
                                     "Getting author name suggestions failed for article %s: %s",
                                     article.getArticleId(), e.getMessage());
-                            addiMetaData.withDiagnostic(new Diagnostic(
-                                    Diagnostic.Level.FATAL, errMsg));
+                            addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errMsg));
                             LOGGER.error(errMsg, e);
                         }
 
@@ -205,5 +207,38 @@ public class HarvestOperation {
         } catch (JSONBException | JsonProcessingException e) {
             throw new HarvesterException(e);
         }
+    }
+
+    private List<AuthorNameSuggestionsXml> getAuthorNameSuggestionsAsXml(Article article) throws CreatorDetectorConnectorException {
+        if (article == null || article.getAuthors() == null) {
+            return Collections.emptyList();
+        }
+        final String query = String.join(" ", article.getAuthors());
+        if (query.isBlank()) {
+            return Collections.emptyList();
+        }
+        final DetectCreatorNamesRequest detectCreatorNamesRequest = new DetectCreatorNamesRequest(query, article.getArticleId());
+        // Creator-detector author feedback:
+        // The /detect endpoint is currently configured to return only ONE suggestion per person found in the input.
+        // In an "automarc" context (where nobody reviews the output at creation time)
+        // it was considered unnecessary/noisy to deliver more than the top hit.
+        final CreatorNameSuggestions creatorNameSuggestions = creatorDetectorConnector.detectCreatorNames(detectCreatorNamesRequest);
+        final Map<String, CreatorNameSuggestion> topResults = creatorNameSuggestions.getTopResults();
+        List<AuthorNameSuggestionXml> authorNameSuggestionXmlList = new ArrayList<>();
+        for (Map.Entry<String, CreatorNameSuggestion> entry : topResults.entrySet()) {
+            String authority = entry.getValue().getAuthority();
+            if (!authority.isBlank()) {
+                String[] authorityParts = authority.split(":");
+                var authorNameSuggestionXml = new AuthorNameSuggestionXml(entry.getKey(),
+                        authorityParts.length == 2 ? authorityParts[1] : authorityParts[0]);
+                authorNameSuggestionXmlList.add(authorNameSuggestionXml);
+            }
+        }
+        if (authorNameSuggestionXmlList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        final AuthorNameSuggestionsXml authorNameSuggestionsXml = new AuthorNameSuggestionsXml();
+        authorNameSuggestionsXml.setAuthorNameSuggestions(authorNameSuggestionXmlList);
+        return List.of(authorNameSuggestionsXml);
     }
 }

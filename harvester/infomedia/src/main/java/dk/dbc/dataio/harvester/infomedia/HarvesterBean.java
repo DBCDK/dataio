@@ -1,8 +1,8 @@
 package dk.dbc.dataio.harvester.infomedia;
 
-import dk.dbc.autonomen.AutoNomenConnector;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.creatordetector.connector.CreatorDetectorConnector;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
@@ -31,7 +31,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Infomedi
     @Inject
     InfomediaConnector infomediaConnector;
     @Inject
-    AutoNomenConnector autoNomenConnector;
+    CreatorDetectorConnector creatorDetectorConnector;
 
     @Override
     public int executeFor(InfomediaHarvesterConfig config) throws HarvesterException {
@@ -41,7 +41,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Infomedi
                 fileStoreServiceConnectorBean.getConnector(),
                 jobStoreServiceConnectorBean.getConnector(),
                 infomediaConnector,
-                autoNomenConnector)
+                creatorDetectorConnector)
                 .execute();
     }
 

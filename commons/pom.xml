@@ -16,6 +16,7 @@
 
     <modules>
         <module>conversion</module>
+        <module>creatordetector-connector</module>
         <module>faust-factory</module>
         <module>macro-expansion</module>
         <module>query-builder</module>

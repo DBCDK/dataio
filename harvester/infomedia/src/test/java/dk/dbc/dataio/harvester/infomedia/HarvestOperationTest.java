@@ -1,12 +1,13 @@
 package dk.dbc.dataio.harvester.infomedia;
 
-import dk.dbc.autonomen.AutoNomenConnector;
-import dk.dbc.autonomen.AutoNomenConnectorException;
-import dk.dbc.autonomen.AutoNomenSuggestion;
-import dk.dbc.autonomen.AutoNomenSuggestions;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.creatordetector.connector.CreatorDetectorConnector;
+import dk.dbc.dataio.commons.creatordetector.connector.CreatorDetectorConnectorException;
+import dk.dbc.dataio.commons.creatordetector.connector.CreatorNameSuggestion;
+import dk.dbc.dataio.commons.creatordetector.connector.CreatorNameSuggestions;
+import dk.dbc.dataio.commons.creatordetector.connector.DetectCreatorNamesRequest;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -38,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -45,12 +47,13 @@ import java.util.UUID;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class HarvestOperationTest {
-    private AutoNomenConnector autoNomenConnector;
+    private CreatorDetectorConnector creatorDetectorConnector;
     private FlowStoreServiceConnector flowStoreServiceConnector;
     private InfomediaConnector infomediaConnector;
     private JobStoreServiceConnector jobStoreServiceConnector;
@@ -72,17 +75,17 @@ public class HarvestOperationTest {
 
         flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         infomediaConnector = mock(InfomediaConnector.class);
-        autoNomenConnector = mock(AutoNomenConnector.class);
+        creatorDetectorConnector = mock(CreatorDetectorConnector.class);
     }
 
     @Test
-    public void execute() throws HarvesterException, InfomediaConnectorException, FlowStoreServiceConnectorException, AutoNomenConnectorException, JobStoreServiceConnectorException {
+    public void execute() throws HarvesterException, InfomediaConnectorException, FlowStoreServiceConnectorException, CreatorDetectorConnectorException, JobStoreServiceConnectorException {
         Set<String> articleIds = new HashSet<>(Arrays.asList("one", "two", "three"));
         List<Article> articles = new ArrayList<>(articleIds.size());
         Article articleOne = new Article();
         articleOne.setArticleId("one");
         articleOne.setPublishDate(Instant.now().toString());
-        articleOne.setAuthors(Arrays.asList("authorOneA", "authorOneB"));
+        articleOne.setAuthors(Arrays.asList("kim skotte", "kiri kim lassen"));
         articles.add(articleOne);
         Article articleTwo = new Article();
         articleTwo.setArticleId("two");
@@ -118,18 +121,20 @@ public class HarvestOperationTest {
         // multiple searchArticleIds calls are being made.
         config.getContent().withNextPublicationDate(Date.from(yesterday));
 
-        AutoNomenSuggestions articleOneSuggestions = new AutoNomenSuggestions();
-        articleOneSuggestions.setAutNames(Arrays.asList(new AutoNomenSuggestion.Builder().withInputName("authorOneA_AutId").withAuthority("AutIdA").build(), new AutoNomenSuggestion.Builder().withInputName("authorOneB_AutId").withAuthority("AutIdB").build()));
-        articleOneSuggestions.setNerNames(Arrays.asList(new AutoNomenSuggestion.Builder().withInputName("authorOneA_AutId").withAuthority("AutIdA").build(), new AutoNomenSuggestion.Builder().withInputName("authorOneB_AutId").withAuthority("AutIdB").build()));
-        when(autoNomenConnector.getSuggestions(articleOne.getArticleId())).thenReturn(articleOneSuggestions);
+        DetectCreatorNamesRequest articleOneDetectCreatorNamesRequest = new DetectCreatorNamesRequest("kim skotte kiri kim lassen", articleOne.getArticleId());
+        CreatorNameSuggestions articleOneCreatorNameSuggestions = new CreatorNameSuggestions();
+        articleOneCreatorNameSuggestions.setResults(new LinkedHashMap<>() {{
+            put("kim skotte", List.of(
+                    new CreatorNameSuggestion(List.of("870979:68943574", "kim skotte", 0.873639702796936, 7.805474625270857))));
+            put("kiri kim lassen", List.of(
+                    new CreatorNameSuggestion(List.of("870979:19253007", "kiri kim lassen", 0.873639702796936, 5.407171771460119))));
+        }});
+        when(creatorDetectorConnector.detectCreatorNames(eq(articleOneDetectCreatorNamesRequest)))
+                .thenReturn(articleOneCreatorNameSuggestions);
 
-        when(autoNomenConnector.getSuggestions(articleTwo.getArticleId())).thenThrow(new AutoNomenConnectorException("died"));
-
-        AutoNomenSuggestions emptySuggestions = new AutoNomenSuggestions();
-        emptySuggestions.setAutNames(new ArrayList<>());
-        emptySuggestions.setNerNames(new ArrayList<>());
-
-        when(autoNomenConnector.getSuggestions(articleThree.getArticleId())).thenReturn(emptySuggestions);
+        DetectCreatorNamesRequest articleTwoDetectCreatorNamesRequest = new DetectCreatorNamesRequest("authorTwo", articleTwo.getArticleId());
+        when(creatorDetectorConnector.detectCreatorNames(eq(articleTwoDetectCreatorNamesRequest)))
+                .thenThrow(new CreatorDetectorConnectorException("died"));
 
         List<AddiMetaData> addiMetadataExpectations = new ArrayList<>();
         addiMetadataExpectations.add(new AddiMetaData()
@@ -176,24 +181,14 @@ public class HarvestOperationTest {
                         "<author-name-suggestion>" +
                         "<aut-names>" +
                         "<aut-name>" +
-                        "<input-name>" + articleOneSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
-                        "<authority>" + articleOneSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
+                        "<input-name>kim skotte</input-name>" +
+                        "<authority>68943574</authority>" +
                         "</aut-name>" +
                         "<aut-name>" +
-                        "<input-name>" + articleOneSuggestions.getAutNames().get(1).getInputName() + "</input-name>" +
-                        "<authority>" + articleOneSuggestions.getAutNames().get(1).getAuthority() + "</authority>" +
+                        "<input-name>kiri kim lassen</input-name>" +
+                        "<authority>19253007</authority>" +
                         "</aut-name>" +
                         "</aut-names>" +
-                        "<ner-names>" +
-                        "<ner-name>" +
-                        "<input-name>" + articleOneSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
-                        "<authority>" + articleOneSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
-                        "</ner-name>" +
-                        "<ner-name>" +
-                        "<input-name>" + articleOneSuggestions.getAutNames().get(1).getInputName() + "</input-name>" +
-                        "<authority>" + articleOneSuggestions.getAutNames().get(1).getAuthority() + "</authority>" +
-                        "</ner-name>" +
-                        "</ner-names>" +
                         "</author-name-suggestion>" +
                         "</author-name-suggestions>" +
                         "</record>"));
@@ -246,7 +241,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void noAuthorNameSuggestionsForEmptyAuthors() throws HarvesterException, InfomediaConnectorException, FlowStoreServiceConnectorException, JobStoreServiceConnectorException, AutoNomenConnectorException {
+    public void noAuthorNameSuggestionsForEmptyAuthors() throws HarvesterException, InfomediaConnectorException, FlowStoreServiceConnectorException, JobStoreServiceConnectorException {
         Set<String> articleIds = new HashSet<>(Collections.singletonList("no-authors"));
         List<Article> articles = new ArrayList<>(articleIds.size());
         Article articleNoAuthors = new Article();
@@ -274,12 +269,6 @@ public class HarvestOperationTest {
         when(infomediaConnector.searchArticleIdsByPublishDate(yesterday, oneDay, config.getContent().getId())).thenReturn(Collections.emptySet());
         when(infomediaConnector.getArticles(articleIds)).thenReturn(articleList);
         when(infomediaConnector.getArticles(Collections.emptySet())).thenReturn(emptyArticleList);
-
-        AutoNomenSuggestions emptySuggestions = new AutoNomenSuggestions();
-        emptySuggestions.setAutNames(new ArrayList<>());
-        emptySuggestions.setNerNames(new ArrayList<>());
-
-        when(autoNomenConnector.getSuggestions(articleNoAuthors.getArticleId())).thenReturn(emptySuggestions);
 
         // Setting next publication date to yesterday tests that
         // multiple searchArticleIds calls are being made.
@@ -347,7 +336,7 @@ public class HarvestOperationTest {
 
     private HarvestOperation createHarvestOperation(InfomediaHarvesterConfig config) {
         try {
-            return new HarvestOperation(config, new BinaryFileStoreFsImpl(Files.createDirectory(tmpFolder.resolve("im-op-test-" + UUID.randomUUID()))), flowStoreServiceConnector, fileStoreServiceConnector, jobStoreServiceConnector, infomediaConnector, autoNomenConnector);
+            return new HarvestOperation(config, new BinaryFileStoreFsImpl(Files.createDirectory(tmpFolder.resolve("im-op-test-" + UUID.randomUUID()))), flowStoreServiceConnector, fileStoreServiceConnector, jobStoreServiceConnector, infomediaConnector, creatorDetectorConnector);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

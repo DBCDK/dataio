@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class HarvestOperation {
@@ -218,21 +217,24 @@ public class HarvestOperation {
             return Collections.emptyList();
         }
         final DetectCreatorNamesRequest detectCreatorNamesRequest = new DetectCreatorNamesRequest(query, article.getArticleId());
-        // Creator-detector author feedback:
-        // The /detect endpoint is currently configured to return only ONE suggestion per person found in the input.
-        // In an "automarc" context (where nobody reviews the output at creation time)
-        // it was considered unnecessary/noisy to deliver more than the top hit.
         final CreatorNameSuggestions creatorNameSuggestions = creatorDetectorConnector.detectCreatorNames(detectCreatorNamesRequest);
-        final Map<String, CreatorNameSuggestion> topResults = creatorNameSuggestions.getTopResults();
-        List<AuthorNameSuggestionXml> authorNameSuggestionXmlList = new ArrayList<>();
-        for (Map.Entry<String, CreatorNameSuggestion> entry : topResults.entrySet()) {
-            String authority = entry.getValue().getAuthority();
-            if (!authority.isBlank()) {
-                String[] authorityParts = authority.split(":");
-                var authorNameSuggestionXml = new AuthorNameSuggestionXml(entry.getKey(),
-                        authorityParts.length == 2 ? authorityParts[1] : authorityParts[0]);
-                authorNameSuggestionXmlList.add(authorNameSuggestionXml);
+        if (creatorNameSuggestions.isEmpty()) {
+            return Collections.emptyList();
+        }
+        final List<AuthorNameSuggestionXml> authorNameSuggestionXmlList = new ArrayList<>();
+        for (CreatorNameSuggestion creatorNameSuggestion : creatorNameSuggestions.getResults()) {
+            if (creatorNameSuggestion.authorityId() == null) {
+                continue;
             }
+            final String authorityId = creatorNameSuggestion.authorityId();
+            if (authorityId.isBlank()) {
+                continue;
+            }
+            final String[] authorityIdParts = authorityId.split(":");
+            if (authorityIdParts.length != 2) {
+                continue;
+            }
+            authorNameSuggestionXmlList.add(new AuthorNameSuggestionXml(creatorNameSuggestion.authorityNameNormalized(), authorityIdParts[1]));
         }
         if (authorNameSuggestionXmlList.isEmpty()) {
             return Collections.emptyList();

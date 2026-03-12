@@ -39,7 +39,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -123,12 +122,10 @@ public class HarvestOperationTest {
 
         DetectCreatorNamesRequest articleOneDetectCreatorNamesRequest = new DetectCreatorNamesRequest("kim skotte kiri kim lassen", articleOne.getArticleId());
         CreatorNameSuggestions articleOneCreatorNameSuggestions = new CreatorNameSuggestions();
-        articleOneCreatorNameSuggestions.setResults(new LinkedHashMap<>() {{
-            put("kim skotte", List.of(
-                    new CreatorNameSuggestion(List.of("870979:68943574", "kim skotte", 0.873639702796936, 7.805474625270857))));
-            put("kiri kim lassen", List.of(
-                    new CreatorNameSuggestion(List.of("870979:19253007", "kiri kim lassen", 0.873639702796936, 5.407171771460119))));
-        }});
+        articleOneCreatorNameSuggestions.setResults(List.of(
+                new CreatorNameSuggestion("kim skotte", "870979:68943574", "kim skotte", 0.873639702796936, 7.805474625270857),
+                new CreatorNameSuggestion("kiri kim lassen", "870979:19253007", "kiri kim lassen", 0.873639702796936, 5.407171771460119)
+        ));
         when(creatorDetectorConnector.detectCreatorNames(eq(articleOneDetectCreatorNamesRequest)))
                 .thenReturn(articleOneCreatorNameSuggestions);
 

@@ -4,7 +4,6 @@ import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import org.junit.jupiter.api.Test;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -18,36 +17,47 @@ class CreatorNameSuggestionsTest {
     void unmarshalling() throws JSONBException {
         final String json = """
             {
-              "results": {
-                "kim skotte": [
-                  [
-                    "870979:68943574",
-                    "kim skotte",
-                    0.873639702796936,
-                    7.805474625270857
-                  ]
-                ],
-                "kiri kim lassen": [
-                  [
-                    "870979:19253007",
-                    "kiri kim lassen",
-                    0.873639702796936,
-                    5.407171771460119
-                  ]
-                ]
-              }
+              "results": [
+                {
+                  "authority_id": "870979:134881968",
+                  "detected_ner_name": "emil jensen",
+                  "authority_name_normalized": "emil jensen",
+                  "match_score": 0.873639702796936,
+                  "rerank_score": 0.6931471805599453
+                },
+                {
+                  "authority_id": "870979:141352326",
+                  "detected_ner_name": "rene juul",
+                  "authority_name_normalized": "rené juul",
+                  "match_score": 0.06517253071069717,
+                  "rerank_score": 0
+                },
+                {
+                  "authority_id": null,
+                  "detected_ner_name": "heltogtotaltukendt rasmussen",
+                  "authority_name_normalized": null,
+                  "match_score": 0.873639702796936,
+                  "rerank_score": 0
+                }
+              ]
             }
         """;
 
         final CreatorNameSuggestions expectedCreatorNameSuggestions = new CreatorNameSuggestions();
-        expectedCreatorNameSuggestions.setResults(new LinkedHashMap<>() {{
-            put("kim skotte", List.of(
-                    new CreatorNameSuggestion(List.of("870979:68943574", "kim skotte", 0.873639702796936, 7.805474625270857))));
-            put("kiri kim lassen", List.of(
-                    new CreatorNameSuggestion(List.of("870979:19253007", "kiri kim lassen", 0.873639702796936, 5.407171771460119))));
-        }});
+        final CreatorNameSuggestion expectedCreatorNameSuggestion1 = new CreatorNameSuggestion(
+                "emil jensen", "870979:134881968", "emil jensen", 0.873639702796936, 0.6931471805599453);
+        final CreatorNameSuggestion expectedCreatorNameSuggestion2 = new CreatorNameSuggestion(
+                "rene juul", "870979:141352326", "rené juul", 0.06517253071069717, 0);
+        final CreatorNameSuggestion expectedCreatorNameSuggestion3 = new CreatorNameSuggestion(
+                "heltogtotaltukendt rasmussen", null, null, 0.873639702796936, 0);
+        expectedCreatorNameSuggestions.setResults(List.of(
+                expectedCreatorNameSuggestion1,
+                expectedCreatorNameSuggestion2,
+                expectedCreatorNameSuggestion3));
 
         final CreatorNameSuggestions creatorNameSuggestions = jsonBContext.unmarshall(json, CreatorNameSuggestions.class);
         assertThat(creatorNameSuggestions, is(expectedCreatorNameSuggestions));
+
+        System.out.println(jsonBContext.marshall(creatorNameSuggestions));
     }
 }

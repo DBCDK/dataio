@@ -8,7 +8,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -72,19 +71,18 @@ class CreatorDetectorConnectorTest {
     @Test
     void detectCreatorNames_serviceReturnsOk_returnsCreatorNameSuggestions() throws CreatorDetectorConnectorException {
         String responseBody = """
+            {
+              "results": [
                 {
-                    "results": {
-                        "kim skotte": [
-                            [
-                                "870979:68943574",
-                                "kim skotte",
-                                0.873639702796936,
-                                7.805474625270857
-                            ]
-                        ]
-                    }
+                  "authority_id": "870979:68943574",
+                  "detected_ner_name": "kim skotte",
+                  "authority_name_normalized": "kim skotte",
+                  "match_score": 0.873639702796936,
+                  "rerank_score": 7.805474625270857
                 }
-                """;
+              ]
+            }
+            """;
 
         wireMockServer.stubFor(post(urlEqualTo("/detect"))
                 .willReturn(aResponse()
@@ -104,10 +102,9 @@ class CreatorDetectorConnectorTest {
                         """)));
 
         final CreatorNameSuggestions expectedCreatorNameSuggestions = new CreatorNameSuggestions();
-        expectedCreatorNameSuggestions.setResults(new LinkedHashMap<>() {{
-            put("kim skotte", List.of(
-                    new CreatorNameSuggestion(List.of("870979:68943574", "kim skotte", 0.873639702796936, 7.805474625270857))));
-        }});
+        final CreatorNameSuggestion expectedCreatorNameSuggestion = new CreatorNameSuggestion(
+                "kim skotte", "870979:68943574", "kim skotte", 0.873639702796936, 7.805474625270857);
+        expectedCreatorNameSuggestions.setResults(List.of(expectedCreatorNameSuggestion));
 
         assertThat(result, is(expectedCreatorNameSuggestions));
     }
@@ -116,7 +113,7 @@ class CreatorDetectorConnectorTest {
     void detectCreatorNames_serviceReturnsEmptyResults_returnsEmptyCreatorNameSuggestions() throws CreatorDetectorConnectorException {
         String responseBody = """
                 {
-                    "results": {}
+                    "results": []
                 }
                 """;
 

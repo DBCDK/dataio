@@ -136,4 +136,25 @@ class RetrieverConnectorTest {
                 result.articles().stream().map(article -> article.get("DOC_ID", String.class)).toList(),
                 is(List.of("foo", "bar", "baz")));
     }
+
+    @Test
+    void searchArticles_serviceReturnsError() throws RetrieverConnectorException {
+        String responseBody = """
+            {
+              "status": 417,
+              "message": "Something went wrong",
+              "timestamp": "2026-03-17T00:00:00.000Z"
+            }
+            """;
+
+        wireMockServer.stubFor(post(urlEqualTo("/articles/search"))
+                .willReturn(aResponse()
+                        .withStatus(417)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(responseBody)));
+
+        var e = assertThrows(RetrieverConnectorUnexpectedStatusCodeException.class, () -> connector.searchArticles(articlesRequest));
+        assertThat("message", e.getMessage(),
+                is("Retriever service returned with unexpected status code: <Expectation Failed> and message: Something went wrong"));
+    }
 }

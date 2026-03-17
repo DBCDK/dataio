@@ -2,6 +2,7 @@ package dk.dbc.dataio.commons.retriever.connector;
 
 import dk.dbc.dataio.commons.retriever.connector.model.ArticlesRequest;
 import dk.dbc.dataio.commons.retriever.connector.model.ArticlesResponse;
+import dk.dbc.dataio.commons.retriever.connector.model.ErrorResponse;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpPost;
 import jakarta.ws.rs.ProcessingException;
@@ -10,6 +11,7 @@ import jakarta.ws.rs.core.Response;
 import net.jodah.failsafe.RetryPolicy;
 
 import java.time.Duration;
+import java.util.Optional;
 
 /**
  * Connector for interacting with the Retriever service API.
@@ -111,11 +113,23 @@ public class RetrieverConnector implements AutoCloseable {
         return entity;
     }
 
+    private Optional<ErrorResponse> readErrorResponse(Response response) {
+        try {
+            return Optional.ofNullable(response.readEntity(ErrorResponse.class));
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
+    }
+
     private void assertResponseStatus(Response response, Response.Status expectedStatus) throws RetrieverConnectorException {
         final Response.Status actualStatus = Response.Status.fromStatusCode(response.getStatus());
         if (actualStatus != expectedStatus) {
+            String errorMessage = readErrorResponse(response)
+                .map(error -> " and message: " + error.message())
+                .orElse("");
             throw new RetrieverConnectorUnexpectedStatusCodeException(
-                    String.format("Retriever service returned with unexpected status code: %s", actualStatus),
+                    String.format("Retriever service returned with unexpected status code: <%s>%s", actualStatus, errorMessage),
                     actualStatus.getStatusCode());
         }
     }

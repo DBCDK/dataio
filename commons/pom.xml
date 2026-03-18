@@ -21,6 +21,7 @@
         <module>macro-expansion</module>
         <module>query-builder</module>
         <module>query-language</module>
+        <module>retriever-connector</module>
         <module>testcontainers</module>
         <module>types</module>
         <module>utils</module>

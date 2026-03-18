@@ -7,7 +7,7 @@ import dk.dbc.dataio.commons.retriever.connector.model.Article;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Record {
+public class ArticlePayload {
 
     private Article article;
     private List<CreatorNameSuggestion> creatorNameSuggestions;

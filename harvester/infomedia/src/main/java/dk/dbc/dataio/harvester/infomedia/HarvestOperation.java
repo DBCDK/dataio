@@ -194,14 +194,14 @@ public class HarvestOperation {
                         final AddiMetaData addiMetaData = createAddiMetaData(article);
                         LOGGER.info("harvested {}", addiMetaData.bibliographicRecordId());
 
-                        final Record record = new Record();
-                        record.setArticle(article);
+                        final ArticlePayload articlePayload = new ArticlePayload();
+                        articlePayload.setArticle(article);
 
                         try {
                             final List<CreatorNameSuggestion> creatorNameSuggestions =
                                     getCreatorNameSuggestions(article, addiMetaData.bibliographicRecordId());
                             if (!creatorNameSuggestions.isEmpty()) {
-                                record.setCreatorNameSuggestions(creatorNameSuggestions);
+                                articlePayload.setCreatorNameSuggestions(creatorNameSuggestions);
                             }
                         } catch (RuntimeException | CreatorDetectorConnectorException e) {
                             final String errMsg = String.format("Getting creator name suggestions failed for article %s: %s",
@@ -210,7 +210,7 @@ public class HarvestOperation {
                             LOGGER.error(errMsg, e);
                         }
 
-                        jobBuilder.addRecord(createAddiRecord(addiMetaData, record));
+                        jobBuilder.addRecord(createAddiRecord(addiMetaData, articlePayload));
                     }
 
                     jobBuilder.build();
@@ -240,11 +240,11 @@ public class HarvestOperation {
                 .withLibraryRules(new AddiMetaData.LibraryRules());
     }
 
-    private AddiRecord createAddiRecord(AddiMetaData metaData, Record record) throws HarvesterException {
+    private AddiRecord createAddiRecord(AddiMetaData metaData, ArticlePayload articlePayload) throws HarvesterException {
         try {
             return new AddiRecord(
                     jsonbContext.marshall(metaData).getBytes(StandardCharsets.UTF_8),
-                    jsonbContext.marshall(record).getBytes(StandardCharsets.UTF_8));
+                    jsonbContext.marshall(articlePayload).getBytes(StandardCharsets.UTF_8));
         } catch (JSONBException e) {
             throw new HarvesterException(e);
         }

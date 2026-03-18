@@ -8,6 +8,11 @@ import dk.dbc.dataio.commons.creatordetector.connector.CreatorDetectorConnectorE
 import dk.dbc.dataio.commons.creatordetector.connector.CreatorNameSuggestion;
 import dk.dbc.dataio.commons.creatordetector.connector.CreatorNameSuggestions;
 import dk.dbc.dataio.commons.creatordetector.connector.DetectCreatorNamesRequest;
+import dk.dbc.dataio.commons.retriever.connector.RetrieverConnector;
+import dk.dbc.dataio.commons.retriever.connector.RetrieverConnectorException;
+import dk.dbc.dataio.commons.retriever.connector.model.Article;
+import dk.dbc.dataio.commons.retriever.connector.model.ArticlesRequest;
+import dk.dbc.dataio.commons.retriever.connector.model.ArticlesResponse;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -19,10 +24,7 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.infomedia.Article;
-import dk.dbc.infomedia.ArticleList;
-import dk.dbc.infomedia.InfomediaConnector;
-import dk.dbc.infomedia.InfomediaConnectorException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -31,16 +33,14 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -54,7 +54,7 @@ import static org.mockito.Mockito.when;
 public class HarvestOperationTest {
     private CreatorDetectorConnector creatorDetectorConnector;
     private FlowStoreServiceConnector flowStoreServiceConnector;
-    private InfomediaConnector infomediaConnector;
+    private RetrieverConnector retrieverConnector;
     private JobStoreServiceConnector jobStoreServiceConnector;
     private MockedFileStoreServiceConnector fileStoreServiceConnector;
     private Path harvesterTmpFile;
@@ -73,54 +73,89 @@ public class HarvestOperationTest {
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshot());
 
         flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        infomediaConnector = mock(InfomediaConnector.class);
+        retrieverConnector = mock(RetrieverConnector.class);
         creatorDetectorConnector = mock(CreatorDetectorConnector.class);
     }
 
+    @BeforeEach
+    void setUpTimeZone() {
+        HarvestOperation.setTimezoneSupplierForTests(() -> ZoneId.of("Europe/Copenhagen"));
+    }
+
+    @AfterEach
+    void resetTimeZone() {
+        HarvestOperation.setTimezoneSupplierForTests(null);
+    }
+
+    @BeforeEach
+    void setUpRetrieverPageSize() {
+        HarvestOperation.setRetrieverPageSizeSupplierForTests(() -> 2);
+    }
+
+    @AfterEach
+    void resetRetrieverPageSize() {
+        HarvestOperation.setRetrieverPageSizeSupplierForTests(null);   
+    }
+
     @Test
-    public void execute() throws HarvesterException, InfomediaConnectorException, FlowStoreServiceConnectorException, CreatorDetectorConnectorException, JobStoreServiceConnectorException {
-        Set<String> articleIds = new HashSet<>(Arrays.asList("one", "two", "three"));
-        List<Article> articles = new ArrayList<>(articleIds.size());
+    public void execute() throws HarvesterException, RetrieverConnectorException, FlowStoreServiceConnectorException, CreatorDetectorConnectorException, JobStoreServiceConnectorException {
         Article articleOne = new Article();
-        articleOne.setArticleId("one");
-        articleOne.setPublishDate(Instant.now().toString());
-        articleOne.setAuthors(Arrays.asList("kim skotte", "kiri kim lassen"));
-        articles.add(articleOne);
+        articleOne.set("DOC_ID", "one");
+        articleOne.set("PUBLISHING_DATE", "2026-03-21T02:00:00");
+        articleOne.set("BYLINE", "kim skotte kiri kim lassen");
+
         Article articleTwo = new Article();
-        articleTwo.setArticleId("two");
-        articleTwo.setPublishDate(Instant.now().toString());
-        articleTwo.setAuthors(Collections.singletonList("authorTwo"));
-        articles.add(articleTwo);
+        articleTwo.set("DOC_ID", "two");
+        articleTwo.set("PUBLISHING_DATE", "2026-03-22T02:00:00");
+        articleTwo.set("BYLINE", "authorTwo");
+
         Article articleThree = new Article();
-        articleThree.setArticleId("three");
-        articleThree.setPublishDate(Instant.now().toString());
-        articles.add(articleThree);
-        ArticleList articleList = new ArticleList();
-        articleList.setArticles(articles);
-        ArticleList emptyArticleList = new ArticleList();
-        emptyArticleList.setArticles(Collections.emptyList());
+        articleThree.set("DOC_ID", "three");
+        articleThree.set("PUBLISHING_DATE", "2026-03-23T02:00:00");
 
         InfomediaHarvesterConfig config = newConfig();
 
-        // There is a small risk that this test will
-        // fail if run very close to midnight so that
-        // the 'today' used to match the mocked call
-        // differs from the 'today' used by the execute()
-        // method.
+        LocalDate today = LocalDate.now(HarvestOperation.getTimezone());
+        LocalDate yesterday = today.minusDays(1);
 
-        Instant today = Instant.now().truncatedTo(ChronoUnit.DAYS);
-        Duration oneDay = Duration.ofHours(23).plusMinutes(59).plusSeconds(59);
-        Instant yesterday = today.minus(1, ChronoUnit.DAYS);
-        when(infomediaConnector.searchArticleIdsByPublishDate(today, oneDay, config.getContent().getId())).thenReturn(articleIds);
-        when(infomediaConnector.searchArticleIdsByPublishDate(yesterday, oneDay, config.getContent().getId())).thenReturn(Collections.emptySet());
-        when(infomediaConnector.getArticles(articleIds)).thenReturn(articleList);
-        when(infomediaConnector.getArticles(Collections.emptySet())).thenReturn(emptyArticleList);
+        // Also tests paging of retriever responses.
+        ArticlesRequest todayRequest1 = ArticlesRequest.builder()
+                .fromDate(today)
+                .toDate(today)
+                .query("srcid:" + config.getContent().getId())
+                .page(1)
+                .size(2)
+                .formatFulltextHtml(false)
+                .build();
+        ArticlesRequest todayRequest2 = ArticlesRequest.builder()
+                .fromDate(today)
+                .toDate(today)
+                .query("srcid:" + config.getContent().getId())
+                .page(2)
+                .size(2)
+                .formatFulltextHtml(false)
+                .build();
+        ArticlesRequest yesterdayRequest1 = ArticlesRequest.builder()
+                .fromDate(yesterday)
+                .toDate(yesterday)
+                .query("srcid:" + config.getContent().getId())
+                .page(1)
+                .size(2)
+                .formatFulltextHtml(false)
+                .build();
+
+        when(retrieverConnector.searchArticles(todayRequest1))
+                .thenReturn(new ArticlesResponse(3, List.of(articleOne, articleTwo)));
+        when(retrieverConnector.searchArticles(todayRequest2))
+                .thenReturn(new ArticlesResponse(3, List.of(articleThree)));
+        when(retrieverConnector.searchArticles(yesterdayRequest1))
+                .thenReturn(new ArticlesResponse(0, Collections.emptyList()));
 
         // Setting next publication date to yesterday tests that
-        // multiple searchArticleIds calls are being made.
-        config.getContent().withNextPublicationDate(Date.from(yesterday));
+        // multiple searchArticles calls are being made.
+        config.getContent().withNextPublicationDate(Date.from(yesterday.atStartOfDay(ZoneId.systemDefault()).toInstant()));
 
-        DetectCreatorNamesRequest articleOneDetectCreatorNamesRequest = new DetectCreatorNamesRequest("kim skotte kiri kim lassen", articleOne.getArticleId());
+        DetectCreatorNamesRequest articleOneDetectCreatorNamesRequest = new DetectCreatorNamesRequest("kim skotte kiri kim lassen", "one");
         CreatorNameSuggestions articleOneCreatorNameSuggestions = new CreatorNameSuggestions();
         articleOneCreatorNameSuggestions.setResults(List.of(
                 new CreatorNameSuggestion("kim skotte", "870979:68943574", "kim skotte", 0.873639702796936, 7.805474625270857),
@@ -129,7 +164,7 @@ public class HarvestOperationTest {
         when(creatorDetectorConnector.detectCreatorNames(eq(articleOneDetectCreatorNamesRequest)))
                 .thenReturn(articleOneCreatorNameSuggestions);
 
-        DetectCreatorNamesRequest articleTwoDetectCreatorNamesRequest = new DetectCreatorNamesRequest("authorTwo", articleTwo.getArticleId());
+        DetectCreatorNamesRequest articleTwoDetectCreatorNamesRequest = new DetectCreatorNamesRequest("authorTwo", "two");
         when(creatorDetectorConnector.detectCreatorNames(eq(articleTwoDetectCreatorNamesRequest)))
                 .thenThrow(new CreatorDetectorConnectorException("died"));
 
@@ -137,94 +172,32 @@ public class HarvestOperationTest {
         addiMetadataExpectations.add(new AddiMetaData()
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("test-format").withBibliographicRecordId("one")
-                .withTrackingId("Infomedia.test.one").withDeleted(false));
+                .withTrackingId("Retriever.test.one").withDeleted(false));
         addiMetadataExpectations.add(new AddiMetaData()
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("test-format")
                 .withBibliographicRecordId("two")
-                .withTrackingId("Infomedia.test.two")
+                .withTrackingId("Retriever.test.two")
                 .withDeleted(false)
-                .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format("Getting author name suggestions failed for article %s: died", articleTwo.getArticleId()))));
+                .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format("Getting creator name suggestions failed for article %s: died", "two"))));
         addiMetadataExpectations.add(new AddiMetaData()
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("test-format")
                 .withBibliographicRecordId("three")
-                .withTrackingId("Infomedia.test.three")
+                .withTrackingId("Retriever.test.three")
                 .withDeleted(false));
 
-        final List<Expectation> addiContentExpectations = new ArrayList<>();
+        List<Expectation> addiContentExpectations = new ArrayList<>();
         addiContentExpectations.add(new Expectation(
-                "<record>" +
-                        "<infomedia>" +
-                        "<article>" +
-                        "<Heading/>" +
-                        "<SubHeading/>" +
-                        "<BodyText/>" +
-                        "<PublishDate>" + articleOne.getPublishDate() + "</PublishDate>" +
-                        "<Authors>" +
-                        "<Author>" + articleOne.getAuthors().get(0) + "</Author>" +
-                        "<Author>" + articleOne.getAuthors().get(1) + "</Author>" +
-                        "</Authors>" +
-                        "<ArticleUrl/>" +
-                        "<Paragraph/>" +
-                        "<Source/>" +
-                        "<WordCount/>" +
-                        "<ArticleId>one</ArticleId>" +
-                        "<Section/>" +
-                        "<Lead/>" +
-                        "</article>" +
-                        "</infomedia>" +
-                        "<author-name-suggestions>" +
-                        "<author-name-suggestion>" +
-                        "<aut-names>" +
-                        "<aut-name>" +
-                        "<input-name>kim skotte</input-name>" +
-                        "<authority>68943574</authority>" +
-                        "</aut-name>" +
-                        "<aut-name>" +
-                        "<input-name>kiri kim lassen</input-name>" +
-                        "<authority>19253007</authority>" +
-                        "</aut-name>" +
-                        "</aut-names>" +
-                        "</author-name-suggestion>" +
-                        "</author-name-suggestions>" +
-                        "</record>"));
+                "{\"article\":{\"DOC_ID\":\"one\",\"PUBLISHING_DATE\":\"2026-03-21T02:00:00\",\"BYLINE\":\"kim skotte kiri kim lassen\"},\"creatorNameSuggestions\":[{\"detected_ner_name\":\"kim skotte\",\"authority_id\":\"870979:68943574\",\"authority_name_normalized\":\"kim skotte\",\"match_score\":0.873639702796936,\"rerank_score\":7.805474625270857},{\"detected_ner_name\":\"kiri kim lassen\",\"authority_id\":\"870979:19253007\",\"authority_name_normalized\":\"kiri kim lassen\",\"match_score\":0.873639702796936,\"rerank_score\":5.407171771460119}]}"));
         addiContentExpectations.add(new Expectation(
-                "<record>" +
-                        "<infomedia>" +
-                        "<article>" +
-                        "<Heading/>" +
-                        "<SubHeading/>" +
-                        "<BodyText/>" +
-                        "<PublishDate>" + articleTwo.getPublishDate() + "</PublishDate>" +
-                        "<ArticleUrl/>" +
-                        "<Paragraph/>" +
-                        "<Source/>" +
-                        "<WordCount/>" +
-                        "<ArticleId>two</ArticleId>" +
-                        "<Section/>" +
-                        "<Lead/>" +
-                        "</article>" +
-                        "</infomedia>" +
-                        "</record>"));
+                "{\"article\":{\"DOC_ID\":\"two\",\"PUBLISHING_DATE\":\"2026-03-22T02:00:00\",\"BYLINE\":\"authorTwo\"}}"));
         addiContentExpectations.add(new Expectation(
-                "<record>" +
-                        "<infomedia>" +
-                        "<article>" +
-                        "<Heading/>" +
-                        "<SubHeading/>" +
-                        "<BodyText/>" +
-                        "<PublishDate>" + articleThree.getPublishDate() + "</PublishDate>" +
-                        "<ArticleUrl/>" +
-                        "<Paragraph/>" +
-                        "<Source/>" +
-                        "<WordCount/>" +
-                        "<ArticleId>three</ArticleId>" +
-                        "<Section/>" +
-                        "<Lead/>" +
-                        "</article>" +
-                        "</infomedia>" +
-                        "</record>"));
+                "{\"article\":{\"DOC_ID\":\"three\",\"PUBLISHING_DATE\":\"2026-03-23T02:00:00\"}}"));
+
+        Instant expectedNextPublicationDate = Instant.now()
+                .plus(1, ChronoUnit.DAYS)
+                .truncatedTo(ChronoUnit.DAYS);
 
         createHarvestOperation(config).execute();
 
@@ -234,69 +207,50 @@ public class HarvestOperationTest {
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(InfomediaHarvesterConfig.class));
 
-        assertThat(config.getContent().getNextPublicationDate(), is(Date.from(Instant.now().plus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS))));
+        assertThat(config.getContent().getNextPublicationDate(), is(Date.from(expectedNextPublicationDate)));
     }
 
     @Test
-    public void noAuthorNameSuggestionsForEmptyAuthors() throws HarvesterException, InfomediaConnectorException, FlowStoreServiceConnectorException, JobStoreServiceConnectorException {
-        Set<String> articleIds = new HashSet<>(Collections.singletonList("no-authors"));
-        List<Article> articles = new ArrayList<>(articleIds.size());
+    public void noCreatorNameSuggestionsForMissingByline() throws HarvesterException, RetrieverConnectorException, FlowStoreServiceConnectorException, JobStoreServiceConnectorException {
         Article articleNoAuthors = new Article();
-        articleNoAuthors.setArticleId("no-authors");
-        articleNoAuthors.setPublishDate(Instant.now().toString());
-        articleNoAuthors.setAuthors(Arrays.asList("", ""));
-        articles.add(articleNoAuthors);
-        ArticleList articleList = new ArticleList();
-        articleList.setArticles(articles);
-        ArticleList emptyArticleList = new ArticleList();
-        emptyArticleList.setArticles(Collections.emptyList());
+        articleNoAuthors.set("DOC_ID", "no-authors");
+        articleNoAuthors.set("PUBLISHING_DATE", "2026-03-23T02:00:00");
 
         InfomediaHarvesterConfig config = newConfig();
 
-        // There is a small risk that this test will
-        // fail if run very close to midnight so that
-        // the 'today' used to match the mocked call
-        // differs from the 'today' used by the execute()
-        // method.
+        LocalDate today = LocalDate.now(HarvestOperation.getTimezone());
 
-        Instant today = Instant.now().truncatedTo(ChronoUnit.DAYS);
-        Instant yesterday = today.minus(1, ChronoUnit.DAYS);
-        Duration oneDay = Duration.ofHours(23).plusMinutes(59).plusSeconds(59);
-        when(infomediaConnector.searchArticleIdsByPublishDate(today, oneDay, config.getContent().getId())).thenReturn(articleIds);
-        when(infomediaConnector.searchArticleIdsByPublishDate(yesterday, oneDay, config.getContent().getId())).thenReturn(Collections.emptySet());
-        when(infomediaConnector.getArticles(articleIds)).thenReturn(articleList);
-        when(infomediaConnector.getArticles(Collections.emptySet())).thenReturn(emptyArticleList);
+        ArticlesRequest todayRequest = ArticlesRequest.builder()
+                .fromDate(today)
+                .toDate(today)
+                .query("srcid:" + config.getContent().getId())
+                .page(1)
+                .size(2)
+                .formatFulltextHtml(false)
+                .build();
 
-        // Setting next publication date to yesterday tests that
-        // multiple searchArticleIds calls are being made.
-        config.getContent().withNextPublicationDate(Date.from(yesterday));
+        when(retrieverConnector.searchArticles(todayRequest))
+                .thenReturn(new ArticlesResponse(1, List.of(articleNoAuthors)));
+
+        config.getContent().withNextPublicationDate(Date.from(
+                today.atStartOfDay(HarvestOperation.getTimezone())
+                        .toInstant()));
 
         List<AddiMetaData> addiMetadataExpectations = new ArrayList<>();
-        addiMetadataExpectations.add(new AddiMetaData().withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER).withFormat("test-format").withBibliographicRecordId("no-authors").withTrackingId("Infomedia.test.no-authors").withDeleted(false));
+        addiMetadataExpectations.add(new AddiMetaData()
+                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
+                .withFormat("test-format")
+                .withBibliographicRecordId("no-authors")
+                .withTrackingId("Retriever.test.no-authors")
+                .withDeleted(false));
 
-        final List<Expectation> addiContentExpectations = new ArrayList<>();
+        List<Expectation> addiContentExpectations = new ArrayList<>();
         addiContentExpectations.add(new Expectation(
-                "<record>" +
-                        "<infomedia>" +
-                        "<article>" +
-                        "<Heading/>" +
-                        "<SubHeading/>" +
-                        "<BodyText/>" +
-                        "<PublishDate>" + articleNoAuthors.getPublishDate() + "</PublishDate>" +
-                        "<Authors>" +
-                        "<Author></Author>" +
-                        "<Author></Author>" +
-                        "</Authors>" +
-                        "<ArticleUrl/>" +
-                        "<Paragraph/>" +
-                        "<Source/>" +
-                        "<WordCount/>" +
-                        "<ArticleId>no-authors</ArticleId>" +
-                        "<Section/>" +
-                        "<Lead/>" +
-                        "</article>" +
-                        "</infomedia>" +
-                        "</record>"));
+                "{\"article\":{\"DOC_ID\":\"no-authors\",\"PUBLISHING_DATE\":\"2026-03-23T02:00:00\"}}"));
+
+        Instant expectedNextPublicationDate = Instant.now()
+                .plus(1, ChronoUnit.DAYS)
+                .truncatedTo(ChronoUnit.DAYS);
 
         createHarvestOperation(config).execute();
 
@@ -306,34 +260,41 @@ public class HarvestOperationTest {
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(InfomediaHarvesterConfig.class));
 
-        assertThat(config.getContent().getNextPublicationDate(), is(Date.from(Instant.now().plus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS))));
+        assertThat(config.getContent().getNextPublicationDate(), is(Date.from(expectedNextPublicationDate)));
     }
 
     @Test
     public void getPublicationDatesToHarvestWhenNextPublicationDateIsNull() {
-        List<Instant> dates = HarvestOperation.getPublicationDatesToHarvest(newConfig());
-        assertThat(dates, is(Collections.singletonList(Instant.now().truncatedTo(ChronoUnit.DAYS))));
+        LocalDate today = LocalDate.now(HarvestOperation.getTimezone());
+        List<LocalDate> dates = HarvestOperation.getPublicationDatesToHarvest(newConfig());
+        assertThat(dates, is(List.of(today)));
     }
 
     @Test
     public void getPublicationDatesToHarvestWhenNextPublicationDateIsInTheFuture() {
+        LocalDate today = LocalDate.now(HarvestOperation.getTimezone());
         InfomediaHarvesterConfig config = newConfig();
-        config.getContent().withNextPublicationDate(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
-        List<Instant> dates = HarvestOperation.getPublicationDatesToHarvest(config);
-        assertThat(dates, is(Collections.singletonList(Instant.now().truncatedTo(ChronoUnit.DAYS))));
+        config.getContent().withNextPublicationDate(Date.from(
+                today.plusDays(1).atStartOfDay(HarvestOperation.getTimezone())
+                        .toInstant()));
+        List<LocalDate> dates = HarvestOperation.getPublicationDatesToHarvest(config);
+        assertThat(dates, is(List.of(today)));
     }
 
     @Test
     public void getPublicationDatesToHarvestWhenNextPublicationDateIsInThePast() {
+        LocalDate today = LocalDate.now(HarvestOperation.getTimezone());
         InfomediaHarvesterConfig config = newConfig();
-        config.getContent().withNextPublicationDate(Date.from(Instant.now().minus(2, ChronoUnit.DAYS)));
-        List<Instant> dates = HarvestOperation.getPublicationDatesToHarvest(config);
-        assertThat(dates, is(Arrays.asList(Instant.now().minus(2, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), Instant.now().minus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), Instant.now().truncatedTo(ChronoUnit.DAYS))));
+        config.getContent().withNextPublicationDate(Date.from(
+                today.minusDays(2).atStartOfDay(HarvestOperation.getTimezone())
+                        .toInstant()));
+        List<LocalDate> dates = HarvestOperation.getPublicationDatesToHarvest(config);
+        assertThat(dates, is(List.of(today.minusDays(2), today.minusDays(1), today)));
     }
 
     private HarvestOperation createHarvestOperation(InfomediaHarvesterConfig config) {
         try {
-            return new HarvestOperation(config, new BinaryFileStoreFsImpl(Files.createDirectory(tmpFolder.resolve("im-op-test-" + UUID.randomUUID()))), flowStoreServiceConnector, fileStoreServiceConnector, jobStoreServiceConnector, infomediaConnector, creatorDetectorConnector);
+            return new HarvestOperation(config, new BinaryFileStoreFsImpl(Files.createDirectory(tmpFolder.resolve("im-op-test-" + UUID.randomUUID()))), flowStoreServiceConnector, fileStoreServiceConnector, jobStoreServiceConnector, retrieverConnector, creatorDetectorConnector);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

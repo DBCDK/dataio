@@ -21,10 +21,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-xml</artifactId>
-        </dependency>
-        <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-web-api</artifactId>
         </dependency>
@@ -77,7 +73,8 @@
       </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>infomedia-connector</artifactId>
+            <artifactId>dataio-commons-retriever-connector</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>

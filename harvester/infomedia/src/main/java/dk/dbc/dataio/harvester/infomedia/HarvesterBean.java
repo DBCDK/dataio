@@ -3,15 +3,17 @@ package dk.dbc.dataio.harvester.infomedia;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.creatordetector.connector.CreatorDetectorConnector;
+import dk.dbc.dataio.commons.retriever.connector.RetrieverConnector;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
-import dk.dbc.infomedia.InfomediaConnector;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,20 +31,32 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Infomedi
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @Inject
-    InfomediaConnector infomediaConnector;
+    RetrieverConnector retrieverConnector;
+
     @Inject
     CreatorDetectorConnector creatorDetectorConnector;
 
+    @Inject
+    MetricRegistry metricRegistry;
+
     @Override
     public int executeFor(InfomediaHarvesterConfig config) throws HarvesterException {
-        return new HarvestOperation(config,
-                binaryFileStoreBean,
-                flowStoreServiceConnectorBean.getConnector(),
-                fileStoreServiceConnectorBean.getConnector(),
-                jobStoreServiceConnectorBean.getConnector(),
-                infomediaConnector,
-                creatorDetectorConnector)
-                .execute();
+        try {
+            return new HarvestOperation(config,
+                    binaryFileStoreBean,
+                    flowStoreServiceConnectorBean.getConnector(),
+                    fileStoreServiceConnectorBean.getConnector(),
+                    jobStoreServiceConnectorBean.getConnector(),
+                    retrieverConnector,
+                    creatorDetectorConnector)
+                    .execute();
+        } catch (HarvesterException e) {
+            metricRegistry.counter(
+                    HarvesterMetrics.UNEXPECTED_HARVESTER_EXCEPTIONS.getMetadata(),
+                    new Tag("srcId", config.getContent().getId())
+            ).inc();
+            throw e;
+        }
     }
 
     @Override

@@ -1,11 +1,10 @@
 package dk.dbc.dataio.commons.retriever.connector.model;
 
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -21,7 +20,7 @@ import java.util.Map;
  * required if instances are accessed concurrently by multiple threads.
  */
 public class Article {
-    private final Map<String, Object> fields = new HashMap<>();
+    private final Map<String, Object> fields = new LinkedHashMap<>();
 
     @JsonAnySetter
     public void set(String name, Object value) {

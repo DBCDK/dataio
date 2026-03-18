@@ -117,7 +117,6 @@ public class RetrieverConnector implements AutoCloseable {
         try {
             return Optional.ofNullable(response.readEntity(ErrorResponse.class));
         } catch (RuntimeException e) {
-            e.printStackTrace();
             return Optional.empty();
         }
     }

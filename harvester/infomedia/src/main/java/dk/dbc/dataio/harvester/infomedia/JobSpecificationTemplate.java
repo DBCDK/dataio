@@ -11,7 +11,7 @@ class JobSpecificationTemplate {
         try {
             final InfomediaHarvesterConfig.Content configFields = config.getContent();
             return new JobSpecification()
-                    .withPackaging("addi-xml")
+                    .withPackaging("addi-json")
                     .withFormat(configFields.getFormat())
                     .withCharset("utf8")
                     .withDestination(configFields.getDestination())

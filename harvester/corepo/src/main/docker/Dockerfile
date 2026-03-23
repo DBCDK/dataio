@@ -1,8 +1,4 @@
-FROM docker-dbc.artifacts.dbccloud.dk/payara5-micro:latest
+FROM docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest
+LABEL org.opencontainers.image.authors="de-team"
 
-ARG build_number=unknown
-LABEL BuildNumber=$build_number
-ARG git_commit=unknown
-LABEL GitCommit=$git_commit
-
-COPY dataio-harvester-corepo-${project.version}.war docker/harvester-corepo.json deployments/
+ADD target/*.war target/docker/*.json deployments/

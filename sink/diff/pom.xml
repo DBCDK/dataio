@@ -15,6 +15,8 @@
 
     <properties>
         <main-class>dk.dbc.dataio.sink.diff.DiffSinkApp</main-class>
+        <docker.build.skip>false</docker.build.skip>
+        <docker.repo>${docker.registry}/dataio-sink-diff</docker.repo>
     </properties>
 
     <dependencies>
@@ -72,26 +74,6 @@
     <build>
         <plugins>
             <plugin>
-                <artifactId>exec-maven-plugin</artifactId>
-                <groupId>org.codehaus.mojo</groupId>
-                <version>${exec-maven-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>validate-test-environment</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>${basedir}/script/validate-test-environment.sh</executable>
-                            <arguments>
-                                <argument>${basedir}/target</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
                 <version>1.0.0</version>
@@ -137,86 +119,24 @@
                 <artifactId>maven-assembly-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>build</id>
-                        <phase>pre-integration-test</phase>
+                        <id>validate-test-environment</id>
+                        <phase>initialize</phase>
                         <goals>
-                            <goal>build</goal>
+                            <goal>exec</goal>
                         </goals>
+                        <configuration>
+                            <executable>${basedir}/script/validate-test-environment.sh</executable>
+                            <arguments>
+                                <argument>${basedir}/target</argument>
+                            </arguments>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <tagName>devel</tagName>
-                    <verbose>true</verbose>
-                    <images>
-                        <image>
-                            <name>docker-metascrum.artifacts.dbccloud.dk/%a:${tag}</name>
-                            <build>
-                                <from>${java.image}</from>
-                                <user>java</user>
-                                <runCmds>
-                                    <user>root</user>
-                                    <run>apt-get update -o Acquire::AllowInsecureRepositories=true -o Acquire::AllowDowngradeToInsecureRepositories=true &amp;&amp; apt-get install -qy --no-install-recommends libxml2-utils &amp;&amp; apt-get clean &amp;&amp; rm -rf /var/lib/apt/lists/*</run>
-                                </runCmds>
-                                <assemblies>
-                                    <assembly>
-                                        <mode>dir</mode>
-                                        <inline>
-                                            <fileSets>
-                                                <fileSet>
-                                                    <directory>script</directory>
-                                                    <outputDirectory>.</outputDirectory>
-                                                    <includes>
-                                                        <include>xmldiff</include>
-                                                        <include>plaintextdiff</include>
-                                                        <include>jsondiff</include>
-                                                    </includes>
-                                                </fileSet>
-                                            </fileSets>
-                                        </inline>
-                                    </assembly>
-                                    <assembly>
-                                        <name>jar</name>
-                                        <descriptorRef>artifact</descriptorRef>
-                                        <targetDir>/work</targetDir>
-                                    </assembly>
-                                </assemblies>
-                                <!--suppress UnresolvedMavenProperty -->
-                                <cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-256m} -jar /work/${project.build.finalName}.jar</cmd>
-                            </build>
-                        </image>
-                    </images>
-                </configuration>
             </plugin>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>docker-push</id>
-            <properties>
-                <!--suppress UnresolvedMavenProperty -->
-                <tag>${BUILD_NUMBER}</tag>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>push</id>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

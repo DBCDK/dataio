@@ -6,10 +6,10 @@ DataIO is an internal software platform for data ingestion, transformation, and 
 company DBC.
 
 ## Tech stack
-- Java 17
-- Maven multi-module reactor
-- Jakarta EE / Payara Micro 6
-- Docker
+- Java SE 17
+- Jakarta EE 10 / Payara Micro 6
+- Maven multi-module reactor, use mvn
+- Docker, images are built as part of the maven package lifecycle
 
 ## Architecture
 DataIO is organized around job processing:
@@ -19,18 +19,21 @@ DataIO is organized around job processing:
 - The job-store-service partitions jobs into chunks of up to 10 items containing the actual records to be processed
 - The job-store-service uses the flow-store-service component to determine the actual processing flow and destination to be used for each job
 - Each chunk is processed by the job-processor component, which uses JavaScript business logic external to the dataIO system to transform the data
-- sinks deliver results from the processing to internal and external systems
+- Sinks deliver results from the processing to internal and external systems
 
 ## Conventions
 - All component paths are relative to the root of the project
 
 # Component paths
-| Component                    | Path                                        | Notes      |
-|------------------------------|---------------------------------------------|------------|
-| file-store-service           | file-store-service/                         | service    |
-| file-store-service-connector | commons/utils/file-store-service-connector/ | client lib |
-| job-store-service            | job-store-service/war/                      | service    |
-| job-store-service-connector  | commons/utils/job-store-service-connector/  | client lib |
-| flow-store-service           | flow-store-service/                         | service    |
-| flow-store-service-connector | commons/utils/flow-store-service-connector/ | client lib |
-| job-processor                | job-processor2/                             | service    |
+| Component                    | Path                                        | Notes                                                                              |
+|------------------------------|---------------------------------------------|------------------------------------------------------------------------------------|
+| file-store-service           | file-store-service/                         | service                                                                            |
+| file-store-service-connector | commons/utils/file-store-service-connector/ | client lib                                                                         |
+| flow-store-service           | flow-store-service/                         | service                                                                            |
+| flow-store-service-connector | commons/utils/flow-store-service-connector/ | client lib                                                                         |
+| harvester                    | harvester/                                  | see subdirectories of `harvester/` for the full list of harvester implementations. | 
+| job-processor                | job-processor2/app                          | service                                                                            |
+| job-store-service            | job-store-service/war/                      | service                                                                            |
+| job-store-service-connector  | commons/utils/job-store-service-connector/  | client lib                                                                         |
+| sink                         | sink/                                       | see subdirectories of `sink/` for the full list of sink implementations.           |
+

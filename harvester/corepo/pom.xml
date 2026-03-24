@@ -15,6 +15,11 @@
     <name>dataio-harvester-corepo</name>
     <packaging>war</packaging>
 
+    <properties>
+        <docker.build.skip>false</docker.build.skip>
+        <docker.repo>${docker.registry}/dataio-harvester-corepo</docker.repo>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>jakarta.platform</groupId>
@@ -106,35 +111,9 @@
                 <artifactId>maven-war-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>docker-push</id>
-            <properties>
-                <!--suppress UnresolvedMavenProperty -->
-                <tag>${BUILD_NUMBER}</tag>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>push</id>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

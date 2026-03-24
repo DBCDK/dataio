@@ -6,7 +6,7 @@ public enum SinkConfig implements EnvConfig {
     QUEUE("sink::diff"),
     MESSAGE_FILTER(null),
     USE_NATIVE_DIFF("true"),
-    TOOL_PATH("/work");
+    TOOL_PATH("/home/java/tools");
 
     private final String defaultValue;
 

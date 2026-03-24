@@ -31,11 +31,16 @@
     </modules>
 
     <properties>
-        <tag>devel</tag>
+        <team>de-team</team>
+
+        <!-- java runtime version -->
+        <java.rt.version>17</java.rt.version>
+
+        <docker.registry>docker-metascrum.artifacts.dbccloud.dk</docker.registry>
+        <docker.payara.version>latest</docker.payara.version>
+        <docker.build.skip>true</docker.build.skip>
+
         <sonar.cpd.exclusions>harvester/rr-dm3/**/*</sonar.cpd.exclusions>
-        <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest</java.image>
-        <docker.payaradir>/opt/payara6</docker.payaradir>
-        <docker.deploydir>/opt/payara6/deployments</docker.deploydir>
 
         <ejb.version>3.2</ejb.version>
         <maven.deploy.plugin.version>3.1.0</maven.deploy.plugin.version>
@@ -101,8 +106,6 @@
         <angus-mail.version>2.0.1</angus-mail.version>
         <sonar.projectKey>dataio</sonar.projectKey>
         <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
-
-        <docker.build.skip>true</docker.build.skip>
     </properties>
 
     <dependencies>
@@ -827,68 +830,6 @@
                     </configuration>
                 </plugin>
                 <plugin>
-                    <groupId>io.fabric8</groupId>
-                    <artifactId>docker-maven-plugin</artifactId>
-                    <version>0.45-SNAPSHOT</version>
-                    <executions>
-                        <execution>
-                            <id>build</id>
-                            <phase>pre-integration-test</phase>
-                            <goals>
-                                <goal>build</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <configuration>
-                        <tagName>devel</tagName>
-                        <!--suppress UnresolvedMavenProperty -->
-                        <skip>${docker.skip}</skip>
-                        <images>
-                            <image>
-                                <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
-                                <build>
-                                    <from>${java.image}</from>
-                                    <env>
-                                        <TZ default-value="Europe/Copenhagen"/>
-                                    </env>
-                                    <workdir>/opt/payara6</workdir>
-                                    <assemblies>
-                                        <assembly>
-                                            <name>payara-resources</name>
-                                            <inline>
-                                                <fileSets>
-                                                    <fileSet>
-                                                        <directory>${basedir}/src/main/docker</directory>
-                                                        <includes>
-                                                            <include>*.json</include>
-                                                            <include>*.xml</include>
-                                                        </includes>
-                                                        <outputDirectory>.</outputDirectory>
-                                                    </fileSet>
-                                                    <fileSet>
-                                                        <directory>${basedir}/src/main/docker</directory>
-                                                        <includes>
-                                                            <include>*.bash</include>
-                                                            <include>*.sh</include>
-                                                        </includes>
-                                                        <outputDirectory>/opt/payara6/scripts</outputDirectory>
-                                                    </fileSet>
-                                                </fileSets>
-                                            </inline>
-                                            <targetDir>${docker.deploydir}</targetDir>
-                                        </assembly>
-                                        <assembly>
-                                            <name>war</name>
-                                            <descriptorRef>artifact</descriptorRef>
-                                            <targetDir>${docker.deploydir}</targetDir>
-                                        </assembly>
-                                    </assemblies>
-                                </build>
-                            </image>
-                        </images>
-                    </configuration>
-                </plugin>
-                <plugin>
                     <groupId>com.googlecode.maven-download-plugin</groupId>
                     <artifactId>download-maven-plugin</artifactId>
                     <version>1.3.0</version>
@@ -920,7 +861,6 @@
                     <version>3.6.3</version>
                     <executions>
                         <execution>
-                            <!-- Phase out the use of the io.fabric8:docker-maven-plugin -->
                             <id>build-docker</id>
                             <phase>package</phase>
 

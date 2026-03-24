@@ -13,6 +13,8 @@
 
     <properties>
         <sonar.skip>true</sonar.skip>
+        <docker.build.skip>false</docker.build.skip>
+        <docker.repo>${docker.registry}/dataio-cli</docker.repo>
     </properties>
 
     <dependencies>
@@ -26,92 +28,37 @@
             <artifactId>dataio-cli-job-replicator</artifactId>
             <version>${project.version}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>dk.dbc</groupId>-->
-<!--            <artifactId>dataio-cli-lhr-retriever</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <configuration combine.self="override">
-                    <tagName>devel</tagName>
-                    <images>
-                        <image>
-                            <name>docker-metascrum.artifacts.dbccloud.dk/dataio-cli:${tag}</name>
-                            <build>
-                                <from>${java.image}</from>
-                                <user>gfish</user>
-                                <env>
-                                    <TZ default-value="Europe/Copenhagen"/>
-                                </env>
-                                <workdir>/work</workdir>
-                                <assemblies>
-                                    <assembly>
-                                        <mode>dir</mode>
-                                        <targetDir>/work</targetDir>
-                                        <inline>
-                                            <dependencySets>
-                                                <dependencySet>
-                                                    <includes>
-                                                        <include>dk.dbc:dataio-cli-datafile-exporter</include>
-                                                    </includes>
-                                                    <outputFileNameMapping>dataio-cli-datafile-exporter.jar</outputFileNameMapping>
-                                                </dependencySet>
-                                                <dependencySet>
-                                                    <includes>
-                                                        <include>dk.dbc:dataio-cli-job-replicator</include>
-                                                    </includes>
-                                                    <outputFileNameMapping>dataio-cli-job-replicator.jar</outputFileNameMapping>
-                                                </dependencySet>
-<!--                                                <dependencySet>-->
-<!--                                                    <includes>-->
-<!--                                                        <include>dk.dbc:dataio-cli-lhr-retriever</include>-->
-<!--                                                    </includes>-->
-<!--                                                    <outputFileNameMapping>dataio-cli-lhr-retriever.jar</outputFileNameMapping>-->
-<!--                                                </dependencySet>-->
-                                            </dependencySets>
-                                        </inline>
-                                    </assembly>
-                                </assemblies>
-                                <!--suppress UnresolvedMavenProperty -->
-                                <cmd>java -Xms${INIT_HEAP:-128m} -Xmx${MAX_HEAP:-256m} -XX:+ExitOnOutOfMemoryError -jar /work/${project.build.finalName}.jar</cmd>
-                            </build>
-                        </image>
-                    </images>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.10.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-cli-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <includeArtifactIds>
+                                dataio-cli-datafile-exporter,dataio-cli-job-replicator
+                            </includeArtifactIds>
+                            <prependGroupId>false</prependGroupId>
+                            <stripVersion>true</stripVersion>
+                            <includeScope>runtime</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>docker-push</id>
-            <properties>
-                <!--suppress UnresolvedMavenProperty -->
-                <tag>${BUILD_NUMBER}</tag>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>push</id>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

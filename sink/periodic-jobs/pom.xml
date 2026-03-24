@@ -22,6 +22,8 @@
 
     <properties>
         <main-class>dk.dbc.dataio.sink.periodicjobs.PeriodicJobsSinkApp</main-class>
+        <docker.build.skip>false</docker.build.skip>
+        <docker.repo>${docker.registry}/dataio-sink-periodic-jobs</docker.repo>
     </properties>
 
     <dependencies>
@@ -146,6 +148,14 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
@@ -159,40 +169,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-            </plugin>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>docker-push</id>
-            <properties>
-                <!--suppress UnresolvedMavenProperty -->
-                <tag>${BUILD_NUMBER}</tag>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>push</id>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

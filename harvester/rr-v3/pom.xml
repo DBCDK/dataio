@@ -16,7 +16,7 @@
 
     <properties>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>docker-metascrum.artifacts.dbccloud.dk/dataio-harvester-rr-v3</docker.repo>
+        <docker.repo>${docker.registry}/dataio-harvester-rr-v3</docker.repo>
     </properties>
 
     <dependencies>

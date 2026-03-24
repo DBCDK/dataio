@@ -152,8 +152,8 @@ pipeline {
     }
     post {
         always {
-            echo 'Cleaning up'
-            cleanWs()
+            //echo 'Cleaning up'
+            //cleanWs()
         }
     }
 }

@@ -1,5 +1,5 @@
-FROM docker-dbc.artifacts.dbccloud.dk/dbc-java17:latest
-LABEL org.opencontainers.image.authors="de-team"
+FROM docker-dbc.artifacts.dbccloud.dk/dbc-java${java.rt.version}:latest
+LABEL org.opencontainers.image.authors="${team}"
 
 ENV LOG_FORMAT=json \
     LOG_LEVEL=INFO \

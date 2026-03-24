@@ -1,5 +1,5 @@
-FROM docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest
-LABEL org.opencontainers.image.authors="de-team"
+FROM docker-dbc.artifacts.dbccloud.dk/payara6-micro:${docker.payara.version}
+LABEL org.opencontainers.image.authors="${team}"
 
 ENV TZ=Europe/Copenhagen
 

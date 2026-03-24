@@ -31,13 +31,16 @@
     </modules>
 
     <properties>
-        <docker.registry>docker-metascrum.artifacts.dbccloud.dk</docker.registry>
+        <team>de-team</team>
 
-        <tag>devel</tag>
+        <!-- java runtime version -->
+        <java.rt.version>17</java.rt.version>
+
+        <docker.registry>docker-metascrum.artifacts.dbccloud.dk</docker.registry>
+        <docker.payara.version>latest</docker.payara.version>
+        <docker.build.skip>true</docker.build.skip>
+
         <sonar.cpd.exclusions>harvester/rr-dm3/**/*</sonar.cpd.exclusions>
-        <java.image>docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest</java.image>
-        <docker.payaradir>/opt/payara6</docker.payaradir>
-        <docker.deploydir>/opt/payara6/deployments</docker.deploydir>
 
         <ejb.version>3.2</ejb.version>
         <maven.deploy.plugin.version>3.1.0</maven.deploy.plugin.version>
@@ -103,8 +106,6 @@
         <angus-mail.version>2.0.1</angus-mail.version>
         <sonar.projectKey>dataio</sonar.projectKey>
         <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
-
-        <docker.build.skip>true</docker.build.skip>
     </properties>
 
     <dependencies>

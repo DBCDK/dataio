@@ -59,13 +59,9 @@ pipeline {
                             def sonarOptions = "-Dsonar.branch.name=$BRANCH_NAME"
                             if (env.BRANCH_NAME != 'master') {
                                 sonarOptions += " -Dsonar.newCode.referenceBranch=master"
-                                sh """
-                                    # ensure that sonarqube can see the master branch
-                                    git fetch origin master
-                                """
                             }
                             status += sh returnStatus: true, script: """
-                                mvn -B --no-transfer-progress -T 6 $sonarOptions sonar:sonar
+                                mvn -B --no-transfer-progress $sonarOptions sonar:sonar
                             """
                         }
 

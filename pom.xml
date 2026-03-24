@@ -34,7 +34,7 @@
         <team>de-team</team>
 
         <!-- java runtime version -->
-        <java.rt.version>17</java.rt.version>
+        <java.rt.version>21</java.rt.version>
 
         <docker.registry>docker-metascrum.artifacts.dbccloud.dk</docker.registry>
         <docker.payara.version>latest</docker.payara.version>

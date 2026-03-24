@@ -65,7 +65,7 @@ pipeline {
                                 """
                             }
                             status += sh returnStatus: true, script: """
-                                mvn -B --no-transfer-progress $sonarOptions sonar:sonar
+                                mvn -B --no-transfer-progress -T 6 $sonarOptions sonar:sonar
                             """
                         }
 

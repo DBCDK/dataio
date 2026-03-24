@@ -2,41 +2,42 @@ package dk.dbc.dataio.commons.testcontainers;
 
 import org.testcontainers.containers.GenericContainer;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 public enum Containers {
-    FILE_STORE("dataio-file-store-service:" + getTag()),
-    FLOW_STORE("dataio-flow-store-service:" + getTag()),
-    JOB_STORE("dataio-job-store-service-war:" + getTag()),
-    ARTEMIS("artemis:2_30_0-0"),
-    LOG_STORE("dataio-log-store-service-war:" + getTag());
+    FILE_STORE("file-store-service/target/docker.out"),
+    FLOW_STORE("flow-store-service/target/docker.out"),
+    JOB_STORE("job-store-service/war/target/docker.out"),
+    ARTEMIS("docker-metascrum.artifacts.dbccloud.dk/artemis:2_30_0-0"),
+    LOG_STORE("log-store-service/war/target/docker.out");
 
-    private final String dockerRepo;
-    private final String path;
+    private final String imageSource;
 
-    Containers(String path) {
-        this("docker-metascrum.artifacts.dbccloud.dk", path);
-    }
-
-    Containers(String dockerRepo, String path) {
-        this.dockerRepo = dockerRepo;
-        this.path = path;
+    Containers(String imageSource) {
+        this.imageSource = imageSource;
     }
 
     public GenericContainer<?> makeContainer() {
-        return new GenericContainer<>(dockerRepo + "/" + path);
+        return new GenericContainer<>(resolveImageName());
     }
 
-    public static String getTag() {
-        String tag;
-        final String buildNumber = System.getenv("BUILD_NUMBER");
-        if (buildNumber == null || buildNumber.isEmpty()) {
-            tag = "devel";
-        } else {
-            tag = buildNumber;
-            final String branchName = System.getenv("BRANCH_NAME");
-            if (branchName != null && !branchName.isEmpty()) {
-                tag = branchName + "-" + buildNumber;
-            }
+    private String resolveImageName() {
+        if (this == ARTEMIS) {
+            return imageSource;
         }
-        return tag;
+
+        Path projectRoot = getProjectRoot();
+        Path dockerOut = projectRoot.resolve(imageSource);
+        try {
+            return Files.readString(dockerOut).trim();
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to read docker image name from " + dockerOut, e);
+        }
+    }
+
+    private Path getProjectRoot() {
+        return Path.of(System.getProperty("maven.multiModuleProjectDirectory"));
     }
 }

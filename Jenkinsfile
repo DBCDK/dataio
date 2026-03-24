@@ -51,7 +51,8 @@ pipeline {
                 withSonarQubeEnv(installationName: 'sonarqube.dbc.dk') {
                     script {
                         def status = sh returnStatus: true, script: """
-                            mvn -B --no-transfer-progress -T 4 -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install
+                            mvn -B --no-transfer-progress -Dcyclonedx.skip=true -T 6 -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install 
+                            mvn org.cyclonedx:cyclonedx-maven-plugin:2.9.1:makeAggregateBom
                         """
 
                         if (status == 0) {

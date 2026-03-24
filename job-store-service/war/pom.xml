@@ -16,6 +16,8 @@
 
     <properties>
         <jobstore.it.persistence.unit.name>jobstoreIT</jobstore.it.persistence.unit.name>
+        <docker.build.skip>false</docker.build.skip>
+        <docker.repo>${docker.registry}/dataio-job-store-service-war</docker.repo>
     </properties>
 
     <dependencies>
@@ -297,25 +299,8 @@
                 <artifactId>maven-war-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <configuration>
-                    <images>
-                        <image>
-                            <name>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}:${tag}</name>
-                            <build>
-                                <runCmds>
-                                    <run>
-                                        echo 'set server.thread-pools.thread-pool.http-thread-pool.max-thread-pool-size=200\n\
-                                        set server.thread-pools.thread-pool.http-thread-pool.min-thread-pool-size=50\n\
-                                        set server.thread-pools.thread-pool.thread-pool-1.max-thread-pool-size=200\n\
-                                        set server.thread-pools.thread-pool.thread-pool-1.min-thread-pool-size=50' >> scripts/prebootcommandfile.txt
-                                    </run>
-                                </runCmds>
-                            </build>
-                        </image>
-                    </images>
-                </configuration>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -334,30 +319,4 @@
             </plugin>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>docker-push</id>
-            <properties>
-                <!--suppress UnresolvedMavenProperty -->
-                <tag>${BUILD_NUMBER}</tag>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>push</id>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

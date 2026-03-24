@@ -1,0 +1,13 @@
+FROM docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest
+LABEL org.opencontainers.image.authors="de-team"
+
+ENV TZ=Europe/Copenhagen
+
+RUN printf '%s\n' \
+  'set server.thread-pools.thread-pool.http-thread-pool.max-thread-pool-size=200' \
+  'set server.thread-pools.thread-pool.http-thread-pool.min-thread-pool-size=50' \
+  'set server.thread-pools.thread-pool.thread-pool-1.max-thread-pool-size=200' \
+  'set server.thread-pools.thread-pool.thread-pool-1.min-thread-pool-size=50' \
+  >> scripts/prebootcommandfile.txt
+
+ADD target/*.war target/docker/*.json target/docker/hz-data.xml deployments/

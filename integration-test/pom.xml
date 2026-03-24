@@ -46,6 +46,7 @@
           <systemPropertyVariables>
             <user.name>${user.name}</user.name>
             <build.dir>${project.build.directory}</build.dir>
+            <maven.multiModuleProjectDirectory>${maven.multiModuleProjectDirectory}</maven.multiModuleProjectDirectory>
           </systemPropertyVariables>
         </configuration>
       </plugin>

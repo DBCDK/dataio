@@ -51,7 +51,7 @@ pipeline {
                 withSonarQubeEnv(installationName: 'sonarqube.dbc.dk') {
                     script {
                         def status = sh returnStatus: true, script: """
-                            mvn -B --no-transfer-progress -T 1 -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install
+                            mvn -B --no-transfer-progress -T 4 -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install
                         """
 
                         if (status == 0) {
@@ -93,25 +93,13 @@ pipeline {
             }
             steps {
                 sh """
-                    mvn -B --no-transfer-progress -Dcyclonedx.skip=true deploy -T 1 -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}" -am
+                    mvn -B --no-transfer-progress -Dcyclonedx.skip=true deploy -T 4 -Dmaven.test.skip=true -Ddocker.skip=true -pl "${DEPLOY_ARTIFACTS}" -am
                 """
             }
         }
         stage("publish docker images") {
             steps {
                 script {
-                    // The -Pdocker-push method is to be gradually phased out
-                    // in favour of the docker/publish.sh script.
-                    if (env.BRANCH_NAME != 'master') {
-                        sh """
-                            mvn -B --no-transfer-progress -Dcyclonedx.skip=true install -T 1 -Dmaven.test.skip=true -Pdocker-push -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
-                        """
-                    } else {
-                        sh """
-                            mvn -B --no-transfer-progress -Dcyclonedx.skip=true install -T 1 -Dmaven.test.skip=true -Pdocker-push
-                        """
-                    }
-
                     sh """
                         ./docker/publish.sh
                     """

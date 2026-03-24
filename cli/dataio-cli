@@ -45,12 +45,9 @@ case "$1" in
     "job-replicator")
         JAR=dataio-cli-job-replicator.jar
         ;;
-    "acctest")
-        JAR=dataio-cli-acctest.jar
-        ;;
     *)
         echo "usage: $0 prog
-            prog: [datafile-exporter|job-replicator|acctest]
+            prog: [datafile-exporter|job-replicator]
 
             ex: $0 datafile-exporter -h"
         exit 1

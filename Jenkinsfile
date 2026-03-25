@@ -1,6 +1,6 @@
 #!groovy
 
-String workerNode = "devel11-java17"
+String workerNode = "devel12"
 
 pipeline {
     agent { label workerNode }
@@ -51,7 +51,7 @@ pipeline {
                 withSonarQubeEnv(installationName: 'sonarqube.dbc.dk') {
                     script {
                         def status = sh returnStatus: true, script: """
-                            mvn -B --no-transfer-progress -Dcyclonedx.skip=true -T 6 -Dtag="${env.BRANCH_NAME}-${env.BUILD_NUMBER}" install 
+                            mvn -B --no-transfer-progress -Dcyclonedx.skip=true -T 6 install 
                             mvn org.cyclonedx:cyclonedx-maven-plugin:2.9.1:makeAggregateBom
                         """
 
@@ -148,12 +148,6 @@ pipeline {
                     """
                 }
             }
-        }
-    }
-    post {
-        always {
-            echo 'Cleaning up'
-            //cleanWs()
         }
     }
 }

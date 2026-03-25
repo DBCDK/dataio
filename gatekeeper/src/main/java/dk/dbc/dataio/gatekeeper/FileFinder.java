@@ -58,24 +58,27 @@ public class FileFinder {
         }
 
         List<Path> getMatchingFilesFound() {
-            Collections.sort(matchingFilesFound, new ByFileCreationTimeThenByFileName());
+            Collections.sort(matchingFilesFound, new ByFileModifiedTimeThenByFileName());
             return Collections.unmodifiableList(matchingFilesFound);
         }
 
-        private static class ByFileCreationTimeThenByFileName implements Comparator<Path> {
+        // Prefer lastModifiedTime over creationTime because creation time is not reliably
+        // writable or portable across filesystems and JDK versions, while last modified
+        // time can be controlled consistently in tests and gives stable ordering behavior.
+        private static class ByFileModifiedTimeThenByFileName implements Comparator<Path> {
             @Override
             public int compare(Path p1, Path p2) {
                 // Note: FileTime granularity is one second
-                int compareTo = getCreationTime(p1).compareTo(getCreationTime(p2));
+                int compareTo = getModifiedTime(p1).compareTo(getModifiedTime(p2));
                 if (compareTo == 0) {
                     compareTo = p1.getFileName().compareTo(p2.getFileName());
                 }
                 return compareTo;
             }
 
-            private FileTime getCreationTime(Path path) {
+            private FileTime getModifiedTime(Path path) {
                 try {
-                    return Files.readAttributes(path, BasicFileAttributes.class).creationTime();
+                    return Files.readAttributes(path, BasicFileAttributes.class).lastModifiedTime();
                 } catch (IOException e) {
                     throw new IllegalStateException(e);
                 }

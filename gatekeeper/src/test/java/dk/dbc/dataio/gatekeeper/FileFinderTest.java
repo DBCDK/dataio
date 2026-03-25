@@ -71,9 +71,9 @@ public class FileFinderTest {
         Path second = files.get(1);
         Path third = files.get(2);
         long now = System.currentTimeMillis();
-        setFileCreationTime(first, now);
-        setFileCreationTime(second, now);
-        setFileCreationTime(third, now);
+        setFileModifiedTime(first, now);
+        setFileModifiedTime(second, now);
+        setFileModifiedTime(third, now);
 
         List<Path> matchingFiles = FileFinder.findFilesWithExtension(testFolder, Set.of(".trans"));
 
@@ -91,8 +91,8 @@ public class FileFinderTest {
         Path first = files.get(0);
         Path second = files.get(1);
         Path third = files.get(2);
-        setFileCreationTime(second, Files.getLastModifiedTime(first).toMillis() + 1000);
-        setFileCreationTime(third, Files.getLastModifiedTime(first).toMillis() + 2000);
+        setFileModifiedTime(second, Files.getLastModifiedTime(first).toMillis() + 1000);
+        setFileModifiedTime(third, Files.getLastModifiedTime(first).toMillis() + 2000);
 
         List<Path> matchingFiles = FileFinder.findFilesWithExtension(testFolder, Set.of(".trans"));
 
@@ -101,7 +101,7 @@ public class FileFinderTest {
         assertThat("third", matchingFiles.get(2), is(third));
     }
 
-    private static void setFileCreationTime(Path file, long creationTime) {
+    private static void setFileModifiedTime(Path file, long creationTime) {
         BasicFileAttributeView attributes = Files.getFileAttributeView(file, BasicFileAttributeView.class);
         FileTime time = FileTime.fromMillis(creationTime);
         try {

@@ -12,3 +12,5 @@ target
 **/.iml
 env-files
 /environments/
+
+.claude/skills/

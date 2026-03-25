@@ -7,12 +7,12 @@
     <parent>
         <groupId>dk.dbc</groupId>
         <artifactId>microservice-pom</artifactId>
-        <version>java17-SNAPSHOT</version>
+        <version>java21-SNAPSHOT</version>
         <relativePath/>
     </parent>
 
     <artifactId>dataio</artifactId>
-    <version>2.0-SNAPSHOT</version>
+    <version>21.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -156,12 +156,12 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-partitioner</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-url-resolver-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
@@ -191,7 +191,7 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
@@ -201,27 +201,27 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-harvester-types</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-service</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-job-store-service-types</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-types</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-testcontainers</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -229,11 +229,6 @@
                 <artifactId>dbc-commons-testcontainers-postgres</artifactId>
                 <version>2.0-SNAPSHOT</version>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>auto-nomen-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
@@ -248,41 +243,41 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <type>ejb</type>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-harvester-task-repo-api</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-stopwatch</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-log-store-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <type>ejb</type>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-file-store-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <type>ejb</type>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-rr-harvester-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <type>ejb</type>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-tickle-harvester-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <type>ejb</type>
             </dependency>
             <dependency>
@@ -294,29 +289,29 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-harvester-task-repo-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-test</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-integration-test-jms-queue</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-binary-file-store</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <type>ejb</type>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-harvester-utils-harvester-job-builder</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
@@ -326,17 +321,17 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-harvester-framework</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-harvester-utils-rawrepo-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-harvester-task-repo-rest</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
@@ -346,7 +341,7 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-openupdate-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
@@ -356,91 +351,91 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-addi-binding</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-harvester-utils-holdings-items-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-harvester-utils-datafile-verifier</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <type>ejb</type>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-job-store-service-test</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-harvester-utils-time-interval</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-sink-testutil</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-svn</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-lang</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-query-language</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-io</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-sink-util</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-conversion</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-macro-expansion</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-cache</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-javascript</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-query-builder</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
 
             <dependency>
@@ -970,21 +965,6 @@
 
     <reporting>
         <plugins>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.5</version>
-                <configuration>
-                    <xmlOutput>true</xmlOutput>
-                </configuration>
-            </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -1004,7 +984,6 @@
                     </sourceFileExcludes>
                 </configuration>
             </plugin>
-
         </plugins>
     </reporting>
 </project>

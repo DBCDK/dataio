@@ -8,21 +8,16 @@
     <parent>
         <artifactId>jse-app</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>2.0-SNAPSHOT</version>
+        <version>21.2.0-SNAPSHOT</version>
         <relativePath>../jse-app</relativePath>
     </parent>
 
     <artifactId>dataio-cli</artifactId>
     <packaging>pom</packaging>
 
-    <properties>
-        <jdk.target.version>11</jdk.target.version>
-    </properties>
-
     <modules>
         <module>datafile-exporter</module>
         <module>job-replicator</module>
-<!--        <module>lhr-retriever</module>-->
         <module>cli-image</module>
         <module>acc-test-runner</module>
         <module>flow-test-runner</module>

@@ -6,7 +6,7 @@
     <parent>
         <groupId>dk.dbc</groupId>
         <artifactId>dataio-job-processor2</artifactId>
-        <version>2.0-SNAPSHOT</version>
+        <version>21.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>dataio-job-processor2-lib</artifactId>
@@ -24,7 +24,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-javascript</artifactId>
-            <version>2.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>

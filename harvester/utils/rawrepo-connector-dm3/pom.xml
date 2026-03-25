@@ -8,11 +8,10 @@
     <parent>
         <artifactId>dataio-harvester-utils</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>2.0-SNAPSHOT</version>
+        <version>21.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>dataio-harvester-utils-rawrepo-connector-dm3</artifactId>
-    <version>3.0-SNAPSHOT</version>
 
     <dependencies>
         <dependency>

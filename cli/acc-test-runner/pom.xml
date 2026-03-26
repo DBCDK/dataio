@@ -27,24 +27,24 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dataio-sink-diff</artifactId>
+            <artifactId>dataio-partitioner</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dataio-partitioner</artifactId>
+            <artifactId>dataio-sink-diff</artifactId>
         </dependency>
         <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-core</artifactId>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-text</artifactId>
         </dependency>
     </dependencies>
 

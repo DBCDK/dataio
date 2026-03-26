@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -25,21 +24,21 @@
     <module>addi-binding</module>
     <module>binary-file-store</module>
     <module>file-store-service-connector</module>
+    <module>flow-store-service-connector</module>
+    <module>io</module>
     <module>javascript</module>
+    <module>job-store-service-connector</module>
     <module>junit-xml</module>
     <module>lang</module>
     <module>log-store-service-connector</module>
-    <module>flow-store-service-connector</module>
-    <module>job-store-service-connector</module>
-    <module>url-resolver-service-connector</module>
-    <module>rr-harvester-service-connector</module>
-    <module>tickle-harvester-service-connector</module>
     <module>openupdate-service-connector</module>
-    <module>io</module>
-    <module>svn</module>
+    <module>rr-harvester-service-connector</module>
     <module>service</module>
     <module>stopwatch</module>
+    <module>svn</module>
     <module>test</module>
+    <module>tickle-harvester-service-connector</module>
+    <module>url-resolver-service-connector</module>
   </modules>
 
 </project>

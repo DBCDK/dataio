@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -16,6 +14,20 @@
 
     <dependencies>
         <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-test</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-jdbc-util</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-testcontainers-postgres</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>compile</scope>
@@ -28,20 +40,6 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dbc-commons-testcontainers-postgres</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dbc-commons-jdbc-util</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dataio-commons-utils-test</artifactId>
             <scope>compile</scope>
         </dependency>
     </dependencies>

@@ -2,24 +2,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>dataio-commons</artifactId>
         <groupId>dk.dbc</groupId>
         <version>21.2.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jmx-metric-registry</artifactId>
 
     <dependencies>
         <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>invariant-utils</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.eclipse.microprofile.metrics</groupId>
             <artifactId>microprofile-metrics-api</artifactId>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>invariant-utils</artifactId>
         </dependency>
     </dependencies>
 </project>

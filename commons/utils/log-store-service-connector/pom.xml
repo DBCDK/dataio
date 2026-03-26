@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -16,8 +15,16 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
+    </dependency>
+    <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-stopwatch</artifactId>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -32,22 +39,14 @@
       <artifactId>jakarta.jakartaee-api</artifactId>
     </dependency>
     <dependency>
-	    <groupId>org.glassfish.jersey.core</groupId>
-	    <artifactId>jersey-client</artifactId>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-client</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-stopwatch</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.github.stefanbirkner</groupId>
-      <artifactId>system-rules</artifactId>
     </dependency>
   </dependencies>
 

@@ -787,18 +787,14 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>1.9</version>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-war-plugin</artifactId>
-                    <configuration>
-                        <failOnMissingWebXml>false</failOnMissingWebXml>
-                        <webResources>
-                            <resource>
-                                <directory>${basedir}/src/main/webapp/WEB-INF</directory>
-                                <filtering>true</filtering>
-                                <targetPath>WEB-INF</targetPath>
-                            </resource>
-                        </webResources>
-                    </configuration>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.10.0</version>
                 </plugin>
                 <plugin>
                     <groupId>com.googlecode.maven-download-plugin</groupId>
@@ -807,8 +803,33 @@
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>1.9</version>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.6.3</version>
+                    <executions>
+                        <execution>
+                            <id>build-docker</id>
+                            <phase>package</phase>
+
+                            <!-- In a module that needs to build a docker image activate with
+                            <properties>
+                                <docker.build.skip>false</docker.build.skip>
+                                <docker.repo>your.docker.repo</docker.repo>
+                            </properties>
+                            -->
+                            <goals>
+                                <goal>exec</goal>
+                            </goals>
+                            <configuration>
+                                <skip>${docker.build.skip}</skip>
+                                <executable>bash</executable>
+                                <arguments>
+                                    <argument>${maven.multiModuleProjectDirectory}/docker/build.sh</argument>
+                                    <argument>--docker-repo</argument>
+                                    <argument>${docker.repo}</argument>
+                                </arguments>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -847,34 +868,18 @@
                     </executions>
                 </plugin>
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>exec-maven-plugin</artifactId>
-                    <version>3.6.3</version>
-                    <executions>
-                        <execution>
-                            <id>build-docker</id>
-                            <phase>package</phase>
-
-                            <!-- In a module that needs to build a docker image activate with
-                            <properties>
-                                <docker.build.skip>false</docker.build.skip>
-                                <docker.repo>your.docker.repo</docker.repo>
-                            </properties>
-                            -->
-                            <goals>
-                                <goal>exec</goal>
-                            </goals>
-                            <configuration>
-                                <skip>${docker.build.skip}</skip>
-                                <executable>bash</executable>
-                                <arguments>
-                                    <argument>${maven.multiModuleProjectDirectory}/docker/build.sh</argument>
-                                    <argument>--docker-repo</argument>
-                                    <argument>${docker.repo}</argument>
-                                </arguments>
-                            </configuration>
-                        </execution>
-                    </executions>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <configuration>
+                        <failOnMissingWebXml>false</failOnMissingWebXml>
+                        <webResources>
+                            <resource>
+                                <directory>${basedir}/src/main/webapp/WEB-INF</directory>
+                                <filtering>true</filtering>
+                                <targetPath>WEB-INF</targetPath>
+                            </resource>
+                        </webResources>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

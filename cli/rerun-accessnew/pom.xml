@@ -57,7 +57,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-log-store-service-logback-appender</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>net.logstash.logback</groupId>

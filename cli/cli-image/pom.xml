@@ -21,12 +21,10 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-cli-datafile-exporter</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-cli-job-replicator</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

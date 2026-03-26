@@ -46,7 +46,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>jmx-metric-registry</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.microprofile.metrics</groupId>

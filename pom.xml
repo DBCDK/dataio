@@ -146,6 +146,16 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
+                <artifactId>artemis-jse-app</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>artemis-jse-db-app</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
                 <artifactId>batch-exchange-api</artifactId>
                 <version>2.0-SNAPSHOT</version>
             </dependency>
@@ -238,6 +248,11 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-creatordetector-connector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-conversion</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -254,6 +269,11 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-query-language</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-retriever-connector</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -372,6 +392,16 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
+                <artifactId>dataio-cli-datafile-exporter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-cli-job-replicator</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
                 <artifactId>dataio-harvester-framework</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -428,6 +458,16 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
+                <artifactId>dataio-javascript</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-job-processor2-lib</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
                 <artifactId>dataio-job-store-service-test</artifactId>
                 <version>${project.version}</version>
                 <scope>test</scope>
@@ -439,7 +479,22 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
+                <artifactId>dataio-log-store-service-logback-appender</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-log-store-service-types</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
                 <artifactId>dataio-partitioner</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-sink-diff</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -451,6 +506,11 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-sink-util</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>distributed-objects</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -475,6 +535,11 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
+                <artifactId>jmx-metric-registry</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
                 <artifactId>libcore</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
@@ -482,6 +547,11 @@
                 <groupId>dk.dbc</groupId>
                 <artifactId>lobby-connector</artifactId>
                 <version>2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>marc-client</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>

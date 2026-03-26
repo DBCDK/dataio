@@ -17,7 +17,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-log-store-service-types</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

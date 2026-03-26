@@ -40,7 +40,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>jmx-metric-registry</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.qpid</groupId>
@@ -59,7 +58,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-log-store-service-logback-appender</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -72,7 +70,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-log-store-service-types</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>

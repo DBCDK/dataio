@@ -29,21 +29,6 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>marc-client</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>artemis-jse-app</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>artemis-jse-db-app</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>32.0.1-jre</version>

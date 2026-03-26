@@ -103,7 +103,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-javascript</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

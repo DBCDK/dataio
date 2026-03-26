@@ -76,7 +76,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
-                <version>1.0.0</version>
                 <executions>
                     <execution>
                         <id>set-test-environment-properties</id>

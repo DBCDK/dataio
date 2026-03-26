@@ -45,7 +45,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>invariant-utils</artifactId>
-      <version>${invariant-utils.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -21,10 +20,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>jakarta.platform</groupId>
-            <artifactId>jakarta.jakartaee-web-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
         </dependency>
@@ -34,27 +29,11 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-testcontainers</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-service</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dataio-harvester-utils-harvester-job-builder</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dataio-harvester-utils-datafile-verifier</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dataio-harvester-task-repo-rest</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>tickle-repo-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dataio-job-store-service-test</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -62,15 +41,23 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dbc-commons-jdbc-util</artifactId>
+            <artifactId>dataio-harvester-task-repo-rest</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>rawrepo-record-service-connector</artifactId>
+            <artifactId>dataio-harvester-utils-datafile-verifier</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-text</artifactId>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-harvester-utils-harvester-job-builder</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-job-store-service-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-jdbc-util</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -78,9 +65,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-client</artifactId>
-            <scope>test</scope>
+            <groupId>dk.dbc</groupId>
+            <artifactId>rawrepo-record-service-connector</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -92,7 +78,20 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dataio-commons-testcontainers</artifactId>
+            <artifactId>tickle-repo-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-web-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>

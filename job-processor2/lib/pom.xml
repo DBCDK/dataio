@@ -3,6 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>dk.dbc</groupId>
         <artifactId>dataio-job-processor2</artifactId>
@@ -12,6 +13,14 @@
     <artifactId>dataio-job-processor2-lib</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>ch.qos.logback.db</groupId>
+            <artifactId>logback-classic-db</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>artemis-jse-app</artifactId>
@@ -23,29 +32,20 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dataio-javascript</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-test</artifactId>
         </dependency>
         <dependency>
-            <groupId>ch.qos.logback.db</groupId>
-            <artifactId>logback-classic-db</artifactId>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-javascript</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>jscommon</artifactId>
-            <version>2012.1-SNAPSHOT</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
         </dependency>
     </dependencies>
 </project>

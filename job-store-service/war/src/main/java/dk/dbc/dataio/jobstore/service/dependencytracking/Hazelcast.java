@@ -10,7 +10,6 @@ import jakarta.servlet.annotation.WebListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -96,8 +95,7 @@ public class Hazelcast implements ServletContextListener {
             this.supplier = supplier;
         }
 
-        @SuppressWarnings("unchecked")
-        @Nonnull  public <T> T get() {
+        public <T> T get() {
             return (T)supplier.get();
         }
     }

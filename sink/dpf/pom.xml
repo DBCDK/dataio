@@ -19,6 +19,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>artemis-jse-app</artifactId>
         </dependency>
@@ -33,19 +37,27 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>lobby-connector</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>dk.dbc</groupId>
-          <artifactId>dataio-sink-util</artifactId>
+            <artifactId>dataio-sink-util</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>updateservice-rest-connector</artifactId>
+            <artifactId>dbc-commons-json-binding</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>lobby-connector</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>opennumberroll-connector</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>rawrepo-record-service-connector</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>updateservice-rest-connector</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -56,20 +68,8 @@
             <artifactId>weekresolver-model</artifactId>
         </dependency>
         <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>opennumberroll-connector</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.xmlunit</groupId>
-          <artifactId>xmlunit-matchers</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dbc-commons-json-binding</artifactId>
+            <groupId>org.xmlunit</groupId>
+            <artifactId>xmlunit-matchers</artifactId>
         </dependency>
     </dependencies>
 

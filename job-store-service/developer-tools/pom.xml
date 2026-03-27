@@ -17,17 +17,14 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>artemis-jse-app</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-job-processor2-lib</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 

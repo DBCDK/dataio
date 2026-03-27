@@ -28,6 +28,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-testutil-assert</artifactId>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>jakarta.platform</groupId>

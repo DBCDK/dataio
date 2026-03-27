@@ -21,12 +21,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>artemis-jse-app</artifactId>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>jaxws-rt</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>marc-client</artifactId>
+            <artifactId>artemis-jse-app</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -38,16 +38,16 @@
             <artifactId>dataio-commons-utils-test</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wiremock</groupId>
-            <artifactId>wiremock</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.ws</groupId>
-            <artifactId>jaxws-rt</artifactId>
+            <groupId>dk.dbc</groupId>
+            <artifactId>marc-client</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.xml.ws</groupId>
             <artifactId>jakarta.xml.ws-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock</artifactId>
         </dependency>
     </dependencies>
 

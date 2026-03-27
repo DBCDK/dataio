@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -21,8 +20,17 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>artemis-jse-app</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
+            <type>ejb</type>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -33,14 +41,8 @@
             <artifactId>dataio-sink-util</artifactId>
         </dependency>
         <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
-            <type>ejb</type>
-        </dependency>
-        <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.wiremock</groupId>
@@ -49,10 +51,6 @@
         <dependency>
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-matchers</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
         </dependency>
     </dependencies>
 

@@ -3,6 +3,7 @@ package dk.dbc.dataio.harvester.corepo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import dk.dbc.corepo.access.RepositoryException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.AddiMetaData;
@@ -12,7 +13,6 @@ import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorExcep
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.opensearch.commons.repository.RepositoryException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.jackson.JacksonFeature;

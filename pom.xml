@@ -568,7 +568,7 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dmat-connector</artifactId>
-                <version>2.5-SNAPSHOT</version>
+                <version>21.2.5-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>

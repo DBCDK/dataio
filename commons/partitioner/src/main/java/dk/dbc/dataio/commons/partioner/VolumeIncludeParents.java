@@ -116,6 +116,7 @@ public class VolumeIncludeParents extends JobItemReorderer {
             }
             final MarcXchangeV1Writer writer = new MarcXchangeV1Writer();
             final ChunkItem volume = collection.get(0);
+            marcRecords.forEach(MarcRecord::sortFields);
             return ChunkItem.successfulChunkItem()
                     .withType(volume.getType().toArray(new ChunkItem.Type[0]))
                     .withData(writer.writeCollection(marcRecords, volume.getEncoding()));

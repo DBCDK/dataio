@@ -222,7 +222,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
             } else {
                 chunkItem = ChunkItem.successfulChunkItem()
                         .withType(ChunkItem.Type.MARCXCHANGE)
-                        .withData(marcWriter.write(marcRecord, encoding));
+                        .withData(marcWriter.write(marcRecord.sortFields(), encoding));
                 recordInfo = marcRecordInfoBuilder.parse(marcRecord);
             }
         } catch (MarcWriterException e) {

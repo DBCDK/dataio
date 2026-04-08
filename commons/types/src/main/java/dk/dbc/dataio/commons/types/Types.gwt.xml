@@ -1,8 +1,0 @@
-
-<module>
-  <inherits name="dk.dbc.invariant.InvariantUtil"/>
-
-  <source path="">
-    <include name="**/*.java"/>
-  </source>
-</module>

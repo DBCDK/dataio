@@ -19,6 +19,35 @@
         <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
+    <!--
+    As long as dataIO primarily uses rawrepo v2, we need this dependencyManagement section
+    to force rawrepo v3 dependency overrides.
+    -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>common-records</artifactId>
+                <version>3.4-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>rawrepo-queue-dao</artifactId>
+                <version>3.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>rawrepo-record-service-connector</artifactId>
+                <version>3.4-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>rawrepo-record-service-dto</artifactId>
+                <version>3.4-SNAPSHOT</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
@@ -27,11 +56,6 @@
         <dependency>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>jaxws-rt</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>common-records</artifactId>
-            <version>3.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -85,13 +109,10 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-marc</artifactId>
-            <version>4.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-testcontainers-postgres-17</artifactId>
-            <version>2.0-SNAPSHOT</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -108,27 +129,15 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>rawrepo-record-service-connector</artifactId>
-            <version>3.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>rawrepo-record-service-dto</artifactId>
-            <version>3.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
             <artifactId>vipcore-connector</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-web-api</artifactId>
         </dependency>
-        <!-- fix commons-lang3 dependency hell discrepancy -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.20.0</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.microprofile.config</groupId>

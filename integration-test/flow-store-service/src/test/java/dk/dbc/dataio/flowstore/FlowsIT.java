@@ -3,6 +3,7 @@ package dk.dbc.dataio.flowstore;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Flow;
@@ -109,7 +110,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
      */
     @Test
     public void createFlow_invalidJson_BadRequest() {
-        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient(), UserAgent.forInternalRequests()))
                 .withBaseUrl(flowStoreServiceBaseUrl)
                 .withPathElements(FlowStoreServiceConstants.FLOWS)
                 .withJsonData("<invalid json />")

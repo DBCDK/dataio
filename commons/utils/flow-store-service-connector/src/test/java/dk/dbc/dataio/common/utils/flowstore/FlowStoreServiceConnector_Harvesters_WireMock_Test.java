@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
@@ -83,7 +84,7 @@ public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
 
     private FlowStoreServiceConnector createTestConnector() {
         Client client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
-        return new FlowStoreServiceConnector(client, wireMockEndpoint);
+        return new FlowStoreServiceConnector(client, new UserAgent("test"), wireMockEndpoint);
     }
 
     private <T extends HarvesterConfig> String marshall(List<T> list) throws JSONBException {

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.filestore.service.connector.ejb;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.httpclient.HttpClient;
 import jakarta.annotation.PreDestroy;
@@ -47,7 +48,7 @@ public class FileStoreServiceConnectorBean {
         config.register(new JacksonFeature());
         Client client = HttpClient.newClient(config);
 
-        fileStoreServiceConnector = new FileStoreServiceConnector(client, fileStoreUrl);
+        fileStoreServiceConnector = new FileStoreServiceConnector(client, UserAgent.forInternalRequests(), fileStoreUrl);
         LOGGER.info("Using service endpoint {}", fileStoreUrl);
     }
 

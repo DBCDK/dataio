@@ -1,5 +1,6 @@
 package dk.dbc.dataio.filestore.service.connector;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.httpclient.FailSafeHttpClient;
@@ -31,6 +32,10 @@ public class FileStoreServiceConnectorTest {
     private final InputStream is = mock(InputStream.class);
     private final FileStoreServiceConnector fileStoreServiceConnector =
             new FileStoreServiceConnector(failSafeHttpClient, FILE_STORE_URL);
+    private final UserAgent userAgent = new UserAgent(getClass().getName());
+    {
+        when(failSafeHttpClient.getUserAgent()).thenReturn(userAgent);
+    }
 
     private final HttpGet getFileRequest = new HttpGet(failSafeHttpClient)
             .withHeader("Accept-Encoding", "")

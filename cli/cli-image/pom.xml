@@ -12,9 +12,10 @@
     <artifactId>cli-image</artifactId>
 
     <properties>
+        <app-name>dataio-cli</app-name>
         <sonar.skip>true</sonar.skip>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-cli</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.utils.jobstore.ejb;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.httpclient.HttpClient;
 import jakarta.annotation.PostConstruct;
@@ -33,7 +34,7 @@ public class JobStoreServiceConnectorBean {
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
         final String endpoint = System.getenv("JOBSTORE_URL");
-        jobStoreServiceConnector = new JobStoreServiceConnector(endpoint, metricRegistry);
+        jobStoreServiceConnector = new JobStoreServiceConnector(UserAgent.forInternalRequests(), endpoint, metricRegistry);
         LOGGER.info("Using service endpoint {}", endpoint);
     }
 

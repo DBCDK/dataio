@@ -1,5 +1,6 @@
 package dk.dbc.dataio.common.utils.flowstore.ejb;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.httpclient.HttpClient;
 import jakarta.annotation.PreDestroy;
@@ -26,7 +27,7 @@ public class FlowStoreServiceConnectorBean {
     public FlowStoreServiceConnectorBean(String flowsStoreUrl) {
         LOGGER.debug("Initializing connector");
         Client client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
-        flowStoreServiceConnector = new FlowStoreServiceConnector(client, flowsStoreUrl);
+        flowStoreServiceConnector = new FlowStoreServiceConnector(client, UserAgent.forInternalRequests(), flowsStoreUrl);
         LOGGER.info("Using service endpoint {}", flowsStoreUrl);
     }
 

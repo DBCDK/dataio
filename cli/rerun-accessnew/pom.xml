@@ -12,9 +12,10 @@
     <artifactId>dataio-rerun-accessnew</artifactId>
 
     <properties>
+        <app-name>dataio-rerun-accessnew</app-name>
         <main-class>dk.dbc.dataio.accessnew.Rerun</main-class>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-rerun-accessnew</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>

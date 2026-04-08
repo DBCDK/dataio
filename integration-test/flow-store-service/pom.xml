@@ -99,6 +99,9 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <environmentVariables>
+                        <APP_NAME>${project.artifactId}</APP_NAME>
+                    </environmentVariables>
                     <systemPropertyVariables>
                         <flowstore.it.service.context>${flow-store-service.context}</flowstore.it.service.context>
                     </systemPropertyVariables>

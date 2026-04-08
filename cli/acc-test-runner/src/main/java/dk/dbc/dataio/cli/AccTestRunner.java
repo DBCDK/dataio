@@ -1,6 +1,7 @@
 package dk.dbc.dataio.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.partioner.DataPartitioner;
 import dk.dbc.dataio.commons.partioner.DataPartitionerFactory;
@@ -223,7 +224,7 @@ public class AccTestRunner implements Callable<Integer> {
 
     private static FlowManager flowManager(String serviceUrl) {
         Client httpClient = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
-        FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(httpClient, new RetryPolicy<Response>()
+        FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(httpClient, UserAgent.forInternalRequests(), new RetryPolicy<Response>()
             .handle(ProcessingException.class)
             .handleResultIf(response -> response.getStatus() == 500 || response.getStatus() == 502)
             .withDelay(Duration.ofSeconds(10))

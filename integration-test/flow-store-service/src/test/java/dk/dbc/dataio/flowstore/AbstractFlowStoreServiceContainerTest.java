@@ -2,6 +2,7 @@ package dk.dbc.dataio.flowstore;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.testcontainers.Containers;
 import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
@@ -58,7 +59,8 @@ public abstract class AbstractFlowStoreServiceContainerTest implements PostgresC
                 ":" + flowstoreServiceContainer.getMappedPort(8080) +
                 System.getProperty("flowstore.it.service.context");
         flowStoreServiceConnector = new FlowStoreServiceConnector(
-                FailSafeHttpClient.create(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), new RetryPolicy().withMaxRetries(0)),
+                FailSafeHttpClient.create(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())),
+                        UserAgent.forInternalRequests(), new RetryPolicy().withMaxRetries(0)),
                 flowStoreServiceBaseUrl);
     }
 

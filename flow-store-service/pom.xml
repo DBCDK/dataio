@@ -15,8 +15,9 @@
     <packaging>war</packaging>
 
     <properties>
+        <app-name>dataio-flow-store-service</app-name>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-flow-store-service</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>

@@ -13,9 +13,10 @@
     <artifactId>dataio-sink-worldcat</artifactId>
 
     <properties>
+        <app-name>dataio-sink-worldcat</app-name>
         <main-class>dk.dbc.dataio.sink.worldcat.WorldCatSinkApp</main-class>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-sink-worldcat</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>
@@ -56,10 +57,6 @@
             <groupId>jakarta.xml.ws</groupId>
             <artifactId>jakarta.xml.ws-api</artifactId>
         </dependency>
-        <!--dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-inline</artifactId>
-        </dependency-->
     </dependencies>
 
     <build>
@@ -76,6 +73,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <APP_NAME>${app-name}</APP_NAME>
+                    </environmentVariables>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                </configuration>
             </plugin>
         </plugins>
     </build>

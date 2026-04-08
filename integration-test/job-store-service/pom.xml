@@ -133,6 +133,9 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <environmentVariables>
+                        <APP_NAME>${project.artifactId}</APP_NAME>
+                    </environmentVariables>
                     <systemPropertyVariables>
                         <jobstore.it.service.context>${job-store-service.context}</jobstore.it.service.context>
                         <jobstore.it.wiremock.port>${wiremock.port}</jobstore.it.wiremock.port>

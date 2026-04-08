@@ -1,5 +1,6 @@
 package dk.dbc.dataio.flowstore;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Flow;
@@ -161,7 +162,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
      */
     @Test
     public void createSubmitter_invalidJson_BadRequest() {
-        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient(), UserAgent.forInternalRequests()))
                 .withBaseUrl(flowStoreServiceBaseUrl)
                 .withPathElements(FlowStoreServiceConstants.SUBMITTERS)
                 .withJsonData("<invalid json />")
@@ -364,7 +365,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
                 .build();
         Submitter submitter = flowStoreServiceConnector.createSubmitter(content);
 
-        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient(), UserAgent.forInternalRequests()))
                 .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, "1")
                 .withBaseUrl(flowStoreServiceBaseUrl)
                 .withPathElements(FlowStoreServiceConstants.SUBMITTERS, Long.toString(submitter.getId()), "content")

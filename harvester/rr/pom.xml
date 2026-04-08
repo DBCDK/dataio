@@ -14,8 +14,9 @@
     <packaging>war</packaging>
 
     <properties>
+        <app-name>dataio-harvester-rr</app-name>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-harvester-rr</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>

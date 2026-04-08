@@ -14,8 +14,9 @@
     <packaging>war</packaging>
 
     <properties>
+        <app-name>dataio-file-store-service</app-name>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-file-store-service</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>

@@ -1,5 +1,6 @@
 package dk.dbc.dataio;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
@@ -42,8 +43,6 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -86,20 +85,20 @@ public class TracerBullet {
 
         Client httpClient = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
 
-        fileStoreServiceConnector = new FileStoreServiceConnector(httpClient, filestoreBaseurl);
-        flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, flowstoreBaseurl);
-        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, jobstoreBaseurl);
+        fileStoreServiceConnector = new FileStoreServiceConnector(httpClient, UserAgent.forInternalRequests(), filestoreBaseurl);
+        flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, UserAgent.forInternalRequests(), flowstoreBaseurl);
+        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, UserAgent.forInternalRequests(), jobstoreBaseurl);
     }
 
     @Test
-    public void fire() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException, JobStoreServiceConnectorException, IOException, URISyntaxException {
+    public void fire() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException, JobStoreServiceConnectorException, IOException {
         initialiseFlowStore();
         FileStoreUrn dataFileUrn = createDataFile();
         JobInfoSnapshot jobInfoSnapshot = createJob(dataFileUrn);
         waitForJobCompletion(jobInfoSnapshot.getJobId());
     }
 
-    private void initialiseFlowStore() throws FlowStoreServiceConnectorException, UnsupportedEncodingException {
+    private void initialiseFlowStore() throws FlowStoreServiceConnectorException {
         Submitter submitter = createSubmitter();
         Flow flow = createFlow();
         Sink sink = createSink();
@@ -107,7 +106,7 @@ public class TracerBullet {
     }
 
     /* Creates a tiny javascript for use in the tracer bullet. */
-    private List<JavaScript> getTinyJavaScript() throws UnsupportedEncodingException {
+    private List<JavaScript> getTinyJavaScript() {
         // This method must return a list of javascripts where the first javascript has a function called
         // invocationfunction for use as entrance to the javascripts.
         return new ArrayList<>(Arrays.asList(

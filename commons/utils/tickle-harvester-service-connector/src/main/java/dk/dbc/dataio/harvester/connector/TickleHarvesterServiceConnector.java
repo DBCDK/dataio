@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.connector;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.httpclient.FailSafeHttpClient;
@@ -12,9 +13,9 @@ import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 
 public class TickleHarvesterServiceConnector extends HarvesterTaskServiceConnector {
-    public TickleHarvesterServiceConnector(Client httpClient, String baseUrl)
+    public TickleHarvesterServiceConnector(Client httpClient, UserAgent userAgent, String baseUrl)
             throws NullPointerException, IllegalArgumentException {
-        super(httpClient, baseUrl);
+        super(httpClient, userAgent, baseUrl);
     }
 
     public TickleHarvesterServiceConnector(FailSafeHttpClient failSafeHttpClient, String baseUrl) {

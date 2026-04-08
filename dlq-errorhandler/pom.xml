@@ -13,9 +13,10 @@
     <artifactId>dataio-dlq-errorhandler</artifactId>
 
     <properties>
+        <app-name>dataio-dlq-errorhandler</app-name>
         <main-class>dk.dbc.dataio.dlq.errorhandler.DLQErrorHandler</main-class>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-dlq-errorhandler</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>

@@ -13,9 +13,10 @@
     <artifactId>dataio-sink-diff</artifactId>
 
     <properties>
+        <app-name>dataio-sink-diff</app-name>
         <main-class>dk.dbc.dataio.sink.diff.DiffSinkApp</main-class>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-sink-diff</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>

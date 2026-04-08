@@ -1,5 +1,6 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
@@ -74,12 +75,13 @@ public class FlowStoreServiceConnector {
      * Class constructor
      *
      * @param httpClient web resources client
+     * @param userAgent  user agent
      * @param baseUrl    base URL for flow-store service endpoint
      * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
-    public FlowStoreServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this(FailSafeHttpClient.create(httpClient, RETRY_POLICY), baseUrl);
+    public FlowStoreServiceConnector(Client httpClient, UserAgent userAgent, String baseUrl) throws NullPointerException, IllegalArgumentException {
+        this(FailSafeHttpClient.create(httpClient, userAgent, RETRY_POLICY), baseUrl);
     }
 
     public FlowStoreServiceConnector(FailSafeHttpClient failSafeHttpClient, String baseUrl) {

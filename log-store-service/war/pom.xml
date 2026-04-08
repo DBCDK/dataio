@@ -16,8 +16,9 @@
     <packaging>war</packaging>
 
     <properties>
+        <app-name>dataio-log-store-service-war</app-name>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-log-store-service-war</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>

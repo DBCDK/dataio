@@ -2,6 +2,7 @@ package dk.dbc.dataio.sink.dpf;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
@@ -29,7 +30,8 @@ public class ConfigBean {
 
     @SuppressWarnings("java:S2095")
     public ConfigBean() {
-        flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FLOWSTORE_URL.asString());
+        flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()),
+                UserAgent.forInternalRequests(), SinkConfig.FLOWSTORE_URL.asString());
     }
 
     public ConfigBean(FlowStoreServiceConnector flowStoreServiceConnector) {

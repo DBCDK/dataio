@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.task.connector;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.rest.HarvesterServiceConstants;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
@@ -23,6 +24,11 @@ import static org.mockito.Mockito.when;
 public class HarvesterTaskServiceConnectorTest {
     private static final String SERVICE_URL = "http://dataio/harvester/xyz";
     private final FailSafeHttpClient failSafeHttpClient = mock(FailSafeHttpClient.class);
+    private final UserAgent userAgent = new UserAgent(getClass().getName());
+    {
+        when(failSafeHttpClient.getUserAgent()).thenReturn(userAgent);
+    }
+    
     private final HarvesterTaskServiceConnector rrHarvesterServiceConnector = new HarvesterTaskServiceConnector(failSafeHttpClient, SERVICE_URL);
 
     @Test

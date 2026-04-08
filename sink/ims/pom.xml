@@ -14,9 +14,10 @@
     <artifactId>dataio-sink-ims</artifactId>
 
     <properties>
+        <app-name>dataio-sink-ims</app-name>
         <main-class>dk.dbc.dataio.sink.ims.ImsSinkApp</main-class>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-sink-ims</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>

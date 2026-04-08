@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.periodicjobs;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -53,7 +54,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
 
     @PostConstruct
     public void init() {
-        fbiInfoConnector = new FbiInfoConnector(fbiInfoUrl);
+        fbiInfoConnector = new FbiInfoConnector(UserAgent.forInternalRequests(), fbiInfoUrl);
     }
 
     @Override

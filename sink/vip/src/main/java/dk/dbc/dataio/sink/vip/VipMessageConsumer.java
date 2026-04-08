@@ -4,6 +4,7 @@ import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -131,6 +132,7 @@ public class VipMessageConsumer extends MessageConsumerAdapter {
         if (vipCoreConnector != null) {
             vipCoreConnector.close();
         }
-        return new VipCoreConnector(ClientBuilder.newClient().register(new JacksonFeature()), config.getEndpoint());
+        return new VipCoreConnector(ClientBuilder.newClient().register(new JacksonFeature()),
+                UserAgent.forInternalRequests(), config.getEndpoint());
     }
 }

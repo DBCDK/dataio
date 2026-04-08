@@ -12,9 +12,10 @@
     <artifactId>dataio-sink-dpf</artifactId>
 
     <properties>
+        <app-name>dataio-sink-dpf</app-name>
         <main-class>dk.dbc.dataio.sink.dpf.DpfSinkApp</main-class>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-sink-dpf</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>
@@ -42,6 +43,10 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-json-binding</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-user-agent</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -76,6 +81,15 @@
     <build>
         <finalName>${project.name}</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <APP_NAME>${app-name}</APP_NAME>
+                    </environmentVariables>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>

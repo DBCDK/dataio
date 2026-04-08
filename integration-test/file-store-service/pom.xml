@@ -89,6 +89,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
+          <environmentVariables>
+            <APP_NAME>${project.artifactId}</APP_NAME>
+          </environmentVariables>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>
             <filestore.it.service.context>${file-store-service.context}</filestore.it.service.context>

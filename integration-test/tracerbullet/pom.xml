@@ -85,6 +85,9 @@
               <includes>
                 <include>**/TracerBullet.java</include>
               </includes>
+              <environmentVariables>
+                <APP_NAME>${project.artifactId}</APP_NAME>
+              </environmentVariables>
               <systemProperties>
                 <property>
                   <name>env.properties</name>

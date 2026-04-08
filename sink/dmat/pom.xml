@@ -13,9 +13,10 @@
     <artifactId>dataio-sink-dmat</artifactId>
 
     <properties>
+        <app-name>dataio-sink-dmat</app-name>
         <main-class>dk.dbc.dataio.sink.dmat.DMatSinkApp</main-class>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-sink-dmat</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>

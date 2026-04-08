@@ -13,10 +13,11 @@
     <artifactId>dataio-job-processor2-app</artifactId>
 
     <properties>
+        <app-name>dataio-job-processor2-app</app-name>
         <main-class>dk.dbc.dataio.jobprocessor2.Jobprocessor</main-class>
         <sonar.skip>true</sonar.skip>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-job-processor2-app</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>

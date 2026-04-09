@@ -13,10 +13,6 @@
     <artifactId>dataio-sink</artifactId>
     <packaging>pom</packaging>
 
-    <properties>
-        <flyway.version>9.0.4</flyway.version>
-    </properties>
-
     <modules>
         <module>batch-exchange</module>
         <module>diff</module>

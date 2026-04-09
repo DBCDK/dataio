@@ -18,7 +18,7 @@
     <module>harvester-job-builder</module>
     <module>holdings-items-connector</module>
     <module>rawrepo-connector</module>
-    <module>rawrepo-connector-dm3</module>
+    <module>rawrepo-connector-v3</module>
     <module>time-interval</module>
   </modules>
 

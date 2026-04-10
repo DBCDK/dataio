@@ -1,5 +1,6 @@
 package dk.dbc.dataio.filestore.service.connector;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.httpclient.HttpClient;
 import jakarta.ws.rs.ProcessingException;
 
@@ -28,7 +29,7 @@ public class MockedFileStoreServiceConnector extends FileStoreServiceConnector {
     private int sequenceNumber = 0;
 
     public MockedFileStoreServiceConnector() {
-        super(HttpClient.newClient(), BASEURL);
+        super(HttpClient.newClient(),  new UserAgent(MockedFileStoreServiceConnector.class.getSimpleName()), BASEURL);
         this.destinations = new LinkedList<>();
     }
 

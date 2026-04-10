@@ -74,7 +74,7 @@ public class ViafDataPartitioner extends Iso2709DataPartitioner {
                     marcRecord.getFields(hasTag("710").and(hasSubFieldValueStartingWith('0', "(DBC)"))).size() > 0) {
                 chunkItem = ChunkItem.successfulChunkItem()
                         .withType(ChunkItem.Type.MARCXCHANGE)
-                        .withData(marcWriter.write(marcRecord, encoding));
+                        .withData(marcWriter.write(marcRecord.sortFields(), encoding));
                 recordInfo = marcRecordInfoBuilder.parse(marcRecord);
             } else {
                 skippedCount++;

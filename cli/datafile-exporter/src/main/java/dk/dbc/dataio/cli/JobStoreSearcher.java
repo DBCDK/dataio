@@ -1,5 +1,6 @@
 package dk.dbc.dataio.cli;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -25,7 +26,7 @@ public class JobStoreSearcher {
     public JobStoreSearcher(String jobStoreServiceEndpoint) {
         final Client client = HttpClient.newClient(new ClientConfig()
                 .register(new JacksonFeature()));
-        jobStoreServiceConnector = new JobStoreServiceConnector(client, jobStoreServiceEndpoint);
+        jobStoreServiceConnector = new JobStoreServiceConnector(client, UserAgent.forInternalRequests(), jobStoreServiceEndpoint);
     }
 
     public Map<String, Datafile> findDatafiles(Namespace args) {

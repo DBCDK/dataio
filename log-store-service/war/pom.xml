@@ -9,15 +9,16 @@
     <parent>
         <artifactId>dataio-log-store-service</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>2.0-SNAPSHOT</version>
+        <version>21.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>dataio-log-store-service-war</artifactId>
     <packaging>war</packaging>
 
     <properties>
+        <app-name>dataio-log-store-service-war</app-name>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-log-store-service-war</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>

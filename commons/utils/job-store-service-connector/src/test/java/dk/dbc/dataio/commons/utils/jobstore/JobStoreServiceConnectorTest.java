@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
@@ -59,6 +60,10 @@ public class JobStoreServiceConnectorTest {
     private static final ChunkItem CHUNK_ITEM = new ChunkItemBuilder().setData(ITEM_DATA).build();
 
     private final HttpClient httpClient = mock(HttpClient.class);
+    private final UserAgent userAgent = new UserAgent(getClass().getName());
+    {
+        when(httpClient.getUserAgent()).thenReturn(userAgent);
+    }
 
     private final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, JOB_STORE_URL, null);
 

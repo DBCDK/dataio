@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -8,15 +7,16 @@
     <parent>
         <artifactId>dataio-sink</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>2.0-SNAPSHOT</version>
+        <version>21.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>dataio-sink-diff</artifactId>
 
     <properties>
+        <app-name>dataio-sink-diff</app-name>
         <main-class>dk.dbc.dataio.sink.diff.DiffSinkApp</main-class>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-sink-diff</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>
@@ -26,29 +26,23 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dbc-commons-es</artifactId>
-            <version>1.3-SNAPSHOT</version>
-            <type>jar</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.googlecode.jmockit</groupId>
-                    <artifactId>jmockit</artifactId>
-                </exclusion>
-            </exclusions>
+            <artifactId>dataio-commons-utils-test</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-sink-testutil</artifactId>
-            <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dataio-commons-utils-test</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-jslib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.deblockt</groupId>
+            <artifactId>json-diff</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.java-diff-utils</groupId>
+            <artifactId>java-diff-utils</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -59,16 +53,6 @@
             <artifactId>xmlunit-core</artifactId>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>io.github.java-diff-utils</groupId>
-            <artifactId>java-diff-utils</artifactId>
-            <version>4.12</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.deblockt</groupId>
-            <artifactId>json-diff</artifactId>
-            <version>1.0.1</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -76,7 +60,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
-                <version>1.0.0</version>
                 <executions>
                     <execution>
                         <id>set-test-environment-properties</id>

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gatekeeper.operation;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -154,7 +155,7 @@ public class CreateInvalidTransfileNotificationOperationTest {
         public final LinkedList<AddNotificationRequest> addNotificationRequests;
 
         public MockedJobStoreServiceConnector() {
-            super(HttpClient.newClient(), "baseurl");
+            super(HttpClient.newClient(), UserAgent.forInternalRequests(), "baseurl");
             addNotificationRequests = new LinkedList<>();
         }
 

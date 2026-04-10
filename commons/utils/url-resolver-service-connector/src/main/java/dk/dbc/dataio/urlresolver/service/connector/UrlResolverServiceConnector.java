@@ -1,5 +1,6 @@
 package dk.dbc.dataio.urlresolver.service.connector;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.HttpGet;
@@ -20,7 +21,7 @@ public class UrlResolverServiceConnector {
     private final String baseUrl;
 
     public UrlResolverServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this.httpClient = HttpClient.create(InvariantUtil.checkNotNullOrThrow(httpClient, "client"));
+        this.httpClient = HttpClient.create(InvariantUtil.checkNotNullOrThrow(httpClient, "client"), UserAgent.forInternalRequests());
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 

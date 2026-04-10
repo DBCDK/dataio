@@ -149,7 +149,7 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
             } else {
                 chunkItem = ChunkItem.successfulChunkItem()
                         .withType(ChunkItem.Type.MARCXCHANGE)
-                        .withData(marcWriter.write(marcRecord, getEncoding()));
+                        .withData(marcWriter.write(marcRecord.sortFields(), getEncoding()));
                 recordInfo = marcRecordInfoBuilder.parse(marcRecord);
             }
         } catch (MarcWriterException e) {

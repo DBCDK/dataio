@@ -1,5 +1,6 @@
 package dk.dbc.dataio.logstore.service.connector;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.rest.LogStoreServiceConstants;
 import dk.dbc.httpclient.HttpClient;
@@ -33,12 +34,13 @@ public class LogStoreServiceConnector {
      * Class constructor
      *
      * @param httpClient web resources client
+     * @param userAgent  user agent to use when communicating with log-store service endpoint.
      * @param baseUrl    base URL for log-store service endpoint
      * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
-    public LogStoreServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this.httpClient = HttpClient.create(InvariantUtil.checkNotNullOrThrow(httpClient, "client"));
+    public LogStoreServiceConnector(Client httpClient, UserAgent userAgent, String baseUrl) throws NullPointerException, IllegalArgumentException {
+        this.httpClient = HttpClient.create(InvariantUtil.checkNotNullOrThrow(httpClient, "client"), userAgent);
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 

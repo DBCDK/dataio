@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -8,7 +7,7 @@
   <parent>
     <artifactId>dataio-commons-utils</artifactId>
     <groupId>dk.dbc</groupId>
-    <version>2.0-SNAPSHOT</version>
+    <version>21.2.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>dataio-commons-utils-file-store-service-connector</artifactId>
@@ -16,8 +15,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>jakarta.platform</groupId>
-      <artifactId>jakarta.jakartaee-api</artifactId>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -29,10 +28,6 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dbc-commons-httpclient</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-stopwatch</artifactId>
     </dependency>
     <dependency>
@@ -41,14 +36,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.jersey.core</groupId>
-      <artifactId>jersey-client</artifactId>
-      <scope>provided</scope>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-httpclient</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.jersey.media</groupId>
-      <artifactId>jersey-media-json-jackson</artifactId>
-      <scope>provided</scope>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.connectors</groupId>
@@ -65,18 +58,18 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-client</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.5.13</version>
-    </dependency>
-     <dependency>
-      <groupId>com.github.stefanbirkner</groupId>
-      <artifactId>system-rules</artifactId>
     </dependency>
   </dependencies>
 
@@ -85,6 +78,15 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-ejb-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <environmentVariables>
+            <APP_NAME>${project.artifactId}-test</APP_NAME>
+          </environmentVariables>
+        </configuration>
       </plugin>
     </plugins>
   </build>

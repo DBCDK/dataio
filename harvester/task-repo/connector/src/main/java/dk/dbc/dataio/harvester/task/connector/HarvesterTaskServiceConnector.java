@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.task.connector;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.rest.HarvesterServiceConstants;
 import dk.dbc.dataio.harvester.types.HarvestRequest;
@@ -45,12 +46,13 @@ public class HarvesterTaskServiceConnector {
      * Class constructor
      *
      * @param httpClient web resources client
+     * @param userAgent  user agent to use when communicating with harvester service endpoint
      * @param baseUrl    base URL for rr-harvester service endpoint
      * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
-    public HarvesterTaskServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this(FailSafeHttpClient.create(httpClient, RETRY_POLICY), baseUrl);
+    public HarvesterTaskServiceConnector(Client httpClient, UserAgent userAgent, String baseUrl) throws NullPointerException, IllegalArgumentException {
+        this(FailSafeHttpClient.create(httpClient, userAgent, RETRY_POLICY), baseUrl);
     }
 
     public HarvesterTaskServiceConnector(FailSafeHttpClient failSafeHttpClient, String baseUrl) {

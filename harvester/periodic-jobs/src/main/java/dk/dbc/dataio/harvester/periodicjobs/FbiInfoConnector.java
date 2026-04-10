@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.periodicjobs;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.HttpPost;
@@ -28,8 +29,8 @@ public class FbiInfoConnector {
     private final HttpClient httpClient;
 
 
-    public FbiInfoConnector(String baseUrl) {
-        httpClient = FailSafeHttpClient.create(ClientBuilder.newClient(), RETRY_POLICY);
+    public FbiInfoConnector(UserAgent userAgent, String baseUrl) {
+        httpClient = FailSafeHttpClient.create(ClientBuilder.newClient(), userAgent, RETRY_POLICY);
         this.baseUrl = baseUrl;
     }
 

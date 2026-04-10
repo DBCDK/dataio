@@ -1,5 +1,6 @@
 package dk.dbc.dataio.flowstore;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Flow;
@@ -85,7 +86,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      */
     @Test
     public void createFlowBinder_invalidJson_BadRequest() {
-        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient(), UserAgent.forInternalRequests()))
                 .withBaseUrl(flowStoreServiceBaseUrl)
                 .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS)
                 .withJsonData("<invalid json />")
@@ -549,7 +550,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
         // Given ...
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects(ns);
 
-        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient(), UserAgent.forInternalRequests()))
                 .withBaseUrl(flowStoreServiceBaseUrl)
                 .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS, Long.toString(flowBinder.getId()), "content")
                 .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(flowBinder.getVersion()))

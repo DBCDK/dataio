@@ -7,7 +7,7 @@
     <parent>
         <artifactId>dataio-harvester</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>2.0-SNAPSHOT</version>
+        <version>21.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>dataio-harvester-dmat</artifactId>
@@ -15,8 +15,9 @@
     <packaging>war</packaging>
 
     <properties>
+        <app-name>dataio-harvester-dmat</app-name>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-harvester-dmat</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>
@@ -53,7 +54,20 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>dataio-harvester-utils-rawrepo-connector</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-addi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-httpclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-jdbc-util</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -61,11 +75,28 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-testutil-jpa</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dmat-connector</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>rawrepo-record-service-connector</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>rawrepo-record-service-dto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>run-schedule</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>stopwatch</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.platform</groupId>
@@ -76,34 +107,6 @@
             <artifactId>microprofile-config-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>uk.org.webcompere</groupId>
-            <artifactId>system-stubs-jupiter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>rawrepo-record-service-connector</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dataio-harvester-utils-rawrepo-connector</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>rawrepo-record-service-dto</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dbc-commons-httpclient</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>stopwatch</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
         </dependency>
@@ -112,14 +115,12 @@
             <artifactId>jersey-hk2</artifactId>
         </dependency>
         <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dbc-commons-testutil-jpa</artifactId>
-            <scope>test</scope>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
         </dependency>
         <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dbc-commons-jdbc-util</artifactId>
-            <scope>test</scope>
+            <groupId>uk.org.webcompere</groupId>
+            <artifactId>system-stubs-jupiter</artifactId>
         </dependency>
     </dependencies>
 

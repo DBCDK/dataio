@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -8,16 +7,12 @@
   <parent>
     <artifactId>dataio-harvester-task-repo</artifactId>
     <groupId>dk.dbc</groupId>
-    <version>2.0-SNAPSHOT</version>
+    <version>21.2.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>dataio-harvester-task-repo-rest</artifactId>
 
   <dependencies>
-    <dependency>
-      <groupId>jakarta.platform</groupId>
-      <artifactId>jakarta.jakartaee-web-api</artifactId>
-    </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
@@ -27,14 +22,8 @@
       <artifactId>jackson-databind</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.jersey.core</groupId>
-      <artifactId>jersey-client</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dbc-commons-testutil-jpa</artifactId>
-      <scope>test</scope>
+      <artifactId>dataio-commons-testcontainers</artifactId>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -50,7 +39,17 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-testcontainers</artifactId>
+      <artifactId>dbc-commons-testutil-jpa</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-web-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-client</artifactId>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 

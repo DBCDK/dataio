@@ -1,5 +1,6 @@
 package dk.dbc.dataio.accessnew;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
@@ -45,7 +46,7 @@ public class Rerun {
             SolrQuery query = new SolrQuery("rec.collectionIdentifier:870970\\-accessnew").setFields("rec.manifestationId").setRows(1_000_000);
             SolrDocumentList results = client.query(query).getResults();
             LOGGER.info("Got {} results from Solr", results.getNumFound());
-            HarvesterTaskServiceConnector taskServiceConnector = new HarvesterTaskServiceConnector(httpClient, env.harvester);
+            HarvesterTaskServiceConnector taskServiceConnector = new HarvesterTaskServiceConnector(httpClient, UserAgent.forInternalRequests(), env.harvester);
             List<AddiMetaData> records = results.stream()
                     .map(d -> d.getFieldValue("rec.manifestationId"))
                     .map(Rerun::toAddiMetaData)

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -8,27 +7,27 @@
     <parent>
         <artifactId>dataio</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>2.0-SNAPSHOT</version>
+        <version>21.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>dataio-commons</artifactId>
     <packaging>pom</packaging>
 
     <modules>
+        <module>artemis-jse-app</module>
+        <module>artemis-jse-db-app</module>
         <module>conversion</module>
         <module>creatordetector-connector</module>
         <module>faust-factory</module>
+        <module>javascript</module>
+        <module>jmx-metric-registry</module>
         <module>macro-expansion</module>
+        <module>partitioner</module>
         <module>query-builder</module>
         <module>query-language</module>
         <module>retriever-connector</module>
         <module>testcontainers</module>
         <module>types</module>
         <module>utils</module>
-        <module>jmx-metric-registry</module>
-        <module>javascript</module>
-        <module>artemis-jse-app</module>
-        <module>artemis-jse-db-app</module>
-        <module>partitioner</module>
     </modules>
 </project>

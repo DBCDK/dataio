@@ -8,7 +8,7 @@
   <parent>
     <artifactId>dataio-commons</artifactId>
     <groupId>dk.dbc</groupId>
-    <version>2.0-SNAPSHOT</version>
+    <version>21.2.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>dataio-commons-query-language</artifactId>
@@ -27,7 +27,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>javacc-maven-plugin</artifactId>
-        <version>2.6</version>
         <executions>
           <execution>
             <phase>generate-sources</phase>
@@ -35,7 +34,7 @@
               <goal>javacc</goal>
             </goals>
             <configuration>
-              <jdkVersion>11</jdkVersion>
+              <jdkVersion>21</jdkVersion>
               <javadocFriendlyComments>true</javadocFriendlyComments>
               <packageName>dk.dbc.dataio.querylanguage</packageName>
               <sourceDirectory>src/main/javacc/dk/dbc/dataio/querylanguage</sourceDirectory>
@@ -48,7 +47,7 @@
           <dependency>
             <groupId>net.java.dev.javacc</groupId>
             <artifactId>javacc</artifactId>
-            <version>7.0.5</version>
+            <version>7.0.13</version>
           </dependency>
         </dependencies>
       </plugin>

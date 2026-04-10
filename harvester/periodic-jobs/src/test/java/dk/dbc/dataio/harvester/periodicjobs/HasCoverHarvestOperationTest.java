@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.periodicjobs;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.bfs.api.BinaryFileFsImpl;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
@@ -76,7 +77,7 @@ class HasCoverHarvestOperationTest {
 
     @Test @Disabled("Explorative test to verify that the connector is working against the actual service")
     public void test() {
-        FbiInfoConnector connector = new FbiInfoConnector("http://fbiinfo-service.cisterne.svc.cloud.dbc.dk/api/v1");
+        FbiInfoConnector connector = new FbiInfoConnector(new UserAgent(getClass().getSimpleName()), "http://fbiinfo-service.cisterne.svc.cloud.dbc.dk/api/v1");
         Set<RecordIdDTO> filter = connector.hasCoverFilter(List.of(new RecordIdDTO("137198827", 870970), new RecordIdDTO("123123123", 870970)));
         assertThat(filter.size(), is(1));
     }

@@ -1,4 +1,5 @@
 # Please be aware that this file is not deployed as a part of the build process
+APP_NAME="dataio-gatekeeper"
 MAX_HEAP="256m"
 FTP_DIR="/data/ftp/datain"
 FILESTORE_SERVICE="http://dataio-filestore-service.metascrum-prod.svc.dbc.dk/dataio/file-store-service"

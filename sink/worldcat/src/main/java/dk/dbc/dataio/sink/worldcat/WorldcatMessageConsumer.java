@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.worldcat;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -46,7 +47,8 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
     public WorldcatMessageConsumer(ServiceHub serviceHub, EntityManagerFactory entityManagerFactory) {
         super(serviceHub);
         this.entityManagerFactory = entityManagerFactory;
-        flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FLOWSTORE_URL.asString());
+        flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()),
+                UserAgent.forInternalRequests(), SinkConfig.FLOWSTORE_URL.asString());
         worldCatConfigBean = new WorldCatConfigBean(flowStoreServiceConnector);
     }
 

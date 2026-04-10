@@ -6,18 +6,23 @@
     <parent>
         <artifactId>dataio-sink</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>2.0-SNAPSHOT</version>
+        <version>21.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>dataio-sink-dpf</artifactId>
 
     <properties>
+        <app-name>dataio-sink-dpf</app-name>
         <main-class>dk.dbc.dataio.sink.dpf.DpfSinkApp</main-class>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-sink-dpf</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>artemis-jse-app</artifactId>
@@ -33,19 +38,31 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>lobby-connector</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>dk.dbc</groupId>
-          <artifactId>dataio-sink-util</artifactId>
+            <artifactId>dataio-sink-util</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>updateservice-rest-connector</artifactId>
+            <artifactId>dbc-commons-json-binding</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-user-agent</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>lobby-connector</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>opennumberroll-connector</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>rawrepo-record-service-connector</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>updateservice-rest-connector</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -56,26 +73,23 @@
             <artifactId>weekresolver-model</artifactId>
         </dependency>
         <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>opennumberroll-connector</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.xmlunit</groupId>
-          <artifactId>xmlunit-matchers</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dbc-commons-json-binding</artifactId>
+            <groupId>org.xmlunit</groupId>
+            <artifactId>xmlunit-matchers</artifactId>
         </dependency>
     </dependencies>
 
     <build>
         <finalName>${project.name}</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <APP_NAME>${app-name}</APP_NAME>
+                    </environmentVariables>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>

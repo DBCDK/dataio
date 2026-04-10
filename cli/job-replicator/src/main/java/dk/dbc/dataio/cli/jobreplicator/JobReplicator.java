@@ -1,5 +1,6 @@
 package dk.dbc.dataio.cli.jobreplicator;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.cli.jobreplicator.arguments.ArgParseException;
 import dk.dbc.dataio.cli.jobreplicator.arguments.Arguments;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -74,9 +75,9 @@ public class JobReplicator {
             String sourceFlowStoreEndpoint = sourceEndpoints.get("FLOWSTORE_URL");
             String targetFlowStoreEndpoint = targetEndpoints.get("FLOWSTORE_URL");
             FlowStoreServiceConnector sourceFlowStoreServiceConnector =
-                    new FlowStoreServiceConnector(client, sourceFlowStoreEndpoint);
+                    new FlowStoreServiceConnector(client, UserAgent.forInternalRequests(), sourceFlowStoreEndpoint);
             FlowStoreServiceConnector targetFlowStoreConnector =
-                    new FlowStoreServiceConnector(client, targetFlowStoreEndpoint);
+                    new FlowStoreServiceConnector(client, UserAgent.forInternalRequests(), targetFlowStoreEndpoint);
             long submitterNumber = specification.getSubmitterId();
             JobReplicatorInfo jobReplicatorInfo = new JobReplicatorInfo()
                     .withJobSpecification(specification)
@@ -98,7 +99,7 @@ public class JobReplicator {
             JobInputStream jobInputStream = new JobInputStream(specification);
             String targetJobStoreEndpoint = targetEndpoints.get("JOBSTORE_URL");
             JobStoreServiceConnector targetJobStore =
-                    new JobStoreServiceConnector(client, targetJobStoreEndpoint);
+                    new JobStoreServiceConnector(client, UserAgent.forInternalRequests(), targetJobStoreEndpoint);
             JobInfoSnapshot jobInfoSnapshot = targetJobStore.addJob(
                     jobInputStream);
             System.out.printf("added job %d%n", jobInfoSnapshot.getJobId());
@@ -122,7 +123,7 @@ public class JobReplicator {
     private JobSpecification getJobSpecificationFromJobId(long jobId,
                                                           Client client, String jobStoreEndpoint) throws JobReplicatorException {
         JobStoreServiceConnector jobStoreServiceConnector =
-                new JobStoreServiceConnector(client, jobStoreEndpoint);
+                new JobStoreServiceConnector(client, UserAgent.forInternalRequests(), jobStoreEndpoint);
         JobListCriteria criteria = new JobListCriteria();
         criteria.where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
         try {
@@ -144,12 +145,12 @@ public class JobReplicator {
             String sourceFileStoreEndpoint = sourceEndpoints.get("FILESTORE_URL");
             String targetFileStoreEndpoint = targetEndpoints.get("FILESTORE_URL");
             FileStoreServiceConnector sourceFileStoreServiceConnector =
-                    new FileStoreServiceConnector(client, sourceFileStoreEndpoint);
+                    new FileStoreServiceConnector(client, UserAgent.forInternalRequests(), sourceFileStoreEndpoint);
             String fileId = new FileStoreUrn(dataFile).getFileId();
             InputStream is = sourceFileStoreServiceConnector.getFile(fileId);
 
             FileStoreServiceConnector targetFileStoreServiceConnector =
-                    new FileStoreServiceConnector(client, targetFileStoreEndpoint);
+                    new FileStoreServiceConnector(client, UserAgent.forInternalRequests(), targetFileStoreEndpoint);
             String newFileId = targetFileStoreServiceConnector.addFile(is);
 
             return FileStoreUrn.create(newFileId).toString();

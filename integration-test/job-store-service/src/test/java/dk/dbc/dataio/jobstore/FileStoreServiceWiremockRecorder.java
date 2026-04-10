@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.httpclient.HttpClient;
@@ -45,7 +46,8 @@ public class FileStoreServiceWiremockRecorder {
         config.property(ApacheClientProperties.CONNECTION_MANAGER, poolingHttpClientConnectionManager);
         config.register(new JacksonFeature());
         Client client = HttpClient.newClient(config);
-        fileStoreServiceConnector = new FileStoreServiceConnector(client, "http://localhost:8080");
+        fileStoreServiceConnector = new FileStoreServiceConnector(client, new UserAgent(getClass().getSimpleName()),
+                "http://localhost:8080");
     }
 
     private void getFile(String fileId) throws FileStoreServiceConnectorException, IOException {

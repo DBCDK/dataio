@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.retriever.connector;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.retriever.connector.model.ArticlesRequest;
 import dk.dbc.dataio.commons.retriever.connector.model.ArticlesResponse;
 import dk.dbc.dataio.commons.retriever.connector.model.ErrorResponse;
@@ -42,8 +43,8 @@ public class RetrieverConnector implements AutoCloseable {
     private final String baseUrl;
     private final String apiKey;
 
-    public RetrieverConnector(Client httpClient, String baseUrl, String apiKey) {
-        this(FailSafeHttpClient.create(httpClient, RETRY_POLICY), baseUrl, apiKey);
+    public RetrieverConnector(Client httpClient, UserAgent userAgent, String baseUrl, String apiKey) {
+        this(FailSafeHttpClient.create(httpClient, userAgent, RETRY_POLICY), baseUrl, apiKey);
     }
 
     /**

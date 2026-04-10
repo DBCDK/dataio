@@ -8,25 +8,26 @@
     <parent>
         <artifactId>dataio-sink</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>2.0-SNAPSHOT</version>
+        <version>21.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>dataio-sink-ims</artifactId>
 
     <properties>
+        <app-name>dataio-sink-ims</app-name>
         <main-class>dk.dbc.dataio.sink.ims.ImsSinkApp</main-class>
         <docker.build.skip>false</docker.build.skip>
-        <docker.repo>${docker.registry}/dataio-sink-ims</docker.repo>
+        <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>artemis-jse-app</artifactId>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>jaxws-rt</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>marc-client</artifactId>
+            <artifactId>artemis-jse-app</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -38,16 +39,16 @@
             <artifactId>dataio-commons-utils-test</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wiremock</groupId>
-            <artifactId>wiremock</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.ws</groupId>
-            <artifactId>jaxws-rt</artifactId>
+            <groupId>dk.dbc</groupId>
+            <artifactId>marc-client</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.xml.ws</groupId>
             <artifactId>jakarta.xml.ws-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock</artifactId>
         </dependency>
     </dependencies>
 

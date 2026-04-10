@@ -2,6 +2,7 @@ package dk.dbc.dataio.sink.dpf;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.DpfSinkConfig;
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
@@ -9,6 +10,7 @@ import dk.dbc.dataio.sink.dpf.transform.BibliographicRecordFactory;
 import dk.dbc.dataio.sink.dpf.transform.BibliographicRecordFactoryException;
 import dk.dbc.dataio.sink.dpf.transform.MarcRecordFactory;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
+import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.lobby.LobbyConnector;
 import dk.dbc.lobby.LobbyConnectorException;
 import dk.dbc.marc.binding.DataField;
@@ -29,12 +31,16 @@ import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
 import dk.dbc.weekresolver.model.WeekResolverResult;
+import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.Response;
+import net.jodah.failsafe.RetryPolicy;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,6 +53,15 @@ import static dk.dbc.dataio.sink.dpf.SinkConfig.WEEKRESOLVER_SERVICE_URL;
 
 @SuppressWarnings("PMD")
 public class ServiceBroker {
+    private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
+            .handle(ProcessingException.class)
+            .handleResultIf(response ->
+                    response.getStatus() == 404
+                            || response.getStatus() == 500
+                            || response.getStatus() == 502)
+            .withDelay(Duration.ofSeconds(5))
+            .withMaxRetries(3);
+
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
     private static final String UPDATE_SERVICE_WS = UPDATE_SERVICE_WS_URL.asString();
     private final BibliographicRecordFactory bibliographicRecordFactory = new BibliographicRecordFactory();
@@ -63,11 +78,12 @@ public class ServiceBroker {
     public ServiceBroker() {
         configBean = new ConfigBean();
         Client client = ClientBuilder.newClient().register(new JacksonFeature());
-        lobbyConnector = new LobbyConnector(client, LOBBY_SERVICE_URL.asString());
-        doubleRecordCheckConnector = new UpdateServiceDoubleRecordCheckConnector(client, UPDATE_SERVICE_URL.asString());
-        recordServiceConnector = new RecordServiceConnector(client, RAWREPO_RECORD_SERVICE_URL.asString());
-        weekResolverConnector = new WeekResolverConnector(client, WEEKRESOLVER_SERVICE_URL.asString());
-        opennumberRollConnector = new OpennumberRollConnector(client, OPENNUMBERROLL_SERVICE_URL.asString());
+        final FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(client, UserAgent.forInternalRequests(), RETRY_POLICY);
+        lobbyConnector = new LobbyConnector(failSafeHttpClient, LOBBY_SERVICE_URL.asString());
+        doubleRecordCheckConnector = new UpdateServiceDoubleRecordCheckConnector(failSafeHttpClient, UPDATE_SERVICE_URL.asString());
+        recordServiceConnector = new RecordServiceConnector(failSafeHttpClient, RAWREPO_RECORD_SERVICE_URL.asString());
+        weekResolverConnector = new WeekResolverConnector(failSafeHttpClient, WEEKRESOLVER_SERVICE_URL.asString());
+        opennumberRollConnector = new OpennumberRollConnector(failSafeHttpClient, OPENNUMBERROLL_SERVICE_URL.asString());
     }
 
     public void sendToLobby(DpfRecord dpfRecord) throws LobbyConnectorException, JsonProcessingException {

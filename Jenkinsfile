@@ -144,7 +144,8 @@ pipeline {
             steps {
                 script {
                     sh """
-                        set-new-version services/dataio-project "${env.GITLAB_PRIVATE_TOKEN}" metascrum/dit-gitops-secrets "${env.BUILD_NUMBER}" -b master
+                        echo "automatic dit version update temporarily disabled while migrating to java21"
+                        #set-new-version services/dataio-project "${env.GITLAB_PRIVATE_TOKEN}" metascrum/dit-gitops-secrets "${env.BUILD_NUMBER}" -b master
                     """
                 }
             }

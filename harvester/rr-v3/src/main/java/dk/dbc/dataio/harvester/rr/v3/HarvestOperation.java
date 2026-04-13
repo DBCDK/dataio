@@ -3,6 +3,7 @@ package dk.dbc.dataio.harvester.rr.v3;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
@@ -18,6 +19,8 @@ import dk.dbc.dataio.harvester.types.MarcXchangeCollection;
 import dk.dbc.dataio.harvester.types.RRV3HarvesterConfig;
 import dk.dbc.dataio.harvester.types.SubmitterFilter;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
+import dk.dbc.httpclient.FailSafeHttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.marc.binding.MarcBinding;
@@ -29,13 +32,18 @@ import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
-import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
 import dk.dbc.rawrepo.record.RecordServiceConnectorNoContentStatusCodeException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.Response;
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.Tag;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +71,7 @@ public class HarvestOperation implements AutoCloseable {
             870970, 870971, 190002, 870973, 190004, 870974, 870975, 870976, 870977, 870978, 870979).collect(Collectors.toSet());
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
+    private static final Map<String, Object> CONNECTOR_CACHE =  new ConcurrentHashMap<>();
 
     final RRV3HarvesterConfig config;
     final RRV3HarvesterConfig.Content configContent;
@@ -77,7 +86,6 @@ public class HarvestOperation implements AutoCloseable {
     private final TaskRepo taskRepo;
     private int basedOnJob = 0;
     private final String workerKey;
-    private static final Map<String, Object> CONNECTOR_CACHE =  new ConcurrentHashMap<>();
 
     MetricRegistry metricRegistry;
 
@@ -114,7 +122,9 @@ public class HarvestOperation implements AutoCloseable {
         this.taskRepo = InvariantUtil.checkNotNullOrThrow(taskRepo, "taskRepo");
         this.vipCoreConnection = InvariantUtil.checkNotNullOrThrow(vipCoreConnection, "vipCoreConnection");
         this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config, workerKey);
-        this.recordServiceConnector = recordServiceConnector == null ? (RecordServiceConnector) CONNECTOR_CACHE.computeIfAbsent(this.rawRepoConnector.getRecordServiceUrl(), RecordServiceConnectorFactory::create) : recordServiceConnector;
+        this.recordServiceConnector = recordServiceConnector == null
+                ? (RecordServiceConnector) CONNECTOR_CACHE.computeIfAbsent(this.rawRepoConnector.getRecordServiceUrl(), url -> getRawRepoRecordServiceConnector(url))
+                : recordServiceConnector;
         this.metricRegistry = metricRegistry;
         this.workerKey = InvariantUtil.checkNotNullOrThrow(workerKey, "workerKey");
     }
@@ -180,6 +190,17 @@ public class HarvestOperation implements AutoCloseable {
         recordHarvestTaskQueue.commit();
         if(itemsProcessed > 0) LOGGER.info("Processed {} items from {} queue in {} ms", itemsProcessed, configContent.getConsumerId(), stopWatch.getElapsedTime());
         return itemsProcessed;
+    }
+
+    @Override
+    public void close() {}
+
+    public List<RawRepoRecordHarvestTask> preprocessRecordHarvestTask(RawRepoRecordHarvestTask task) {
+        return List.of();
+    }
+
+    protected TaskQueue makeTaskQueue(RRV3HarvesterConfig config, TaskRepo taskRepo) {
+        return new TaskQueue(config, taskRepo);
     }
 
     void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
@@ -249,6 +270,23 @@ public class HarvestOperation implements AutoCloseable {
         return new RawRepo3Connector(config.getContent().getResource(), workerKey);
     }
 
+    RecordServiceConnector getRawRepoRecordServiceConnector(String recordServiceUrl) {
+        RetryPolicy<Response> retryPolicy = new RetryPolicy<Response>()
+                .handle(ProcessingException.class)
+                .handleResultIf(response -> response.getStatus() == 404
+                        || response.getStatus() == 502
+                        || response.getStatus() == 503)
+                .withDelay(Duration.ofSeconds(5))
+                .withMaxRetries(3);
+
+        Client client = HttpClient.newClient(new ClientConfig()
+                .register(new JacksonFeature()));
+        FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(client,
+                UserAgent.forInternalRequests(), retryPolicy);
+
+        return new RecordServiceConnector(failSafeHttpClient, recordServiceUrl);
+    }
+
     JobSpecification getJobSpecificationTemplate(int agencyId) {
         final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry()
                 .withHarvesterToken(config.getHarvesterToken());
@@ -270,10 +308,6 @@ public class HarvestOperation implements AutoCloseable {
         TaskQueue queue = makeTaskQueue(config, taskRepo);
         basedOnJob = queue.basedOnJob();
         return queue;
-    }
-
-    protected TaskQueue makeTaskQueue(RRV3HarvesterConfig config, TaskRepo taskRepo) {
-        return new TaskQueue(config, taskRepo);
     }
 
     int getAgencyIdFromEnrichmentTrail(RecordEntryDTO recordData) throws HarvesterInvalidRecordException {
@@ -310,6 +344,61 @@ public class HarvestOperation implements AutoCloseable {
             }
         } finally {
             closeHarvesterJobBuilders();
+        }
+    }
+
+    MarcJSonCollection getMarcJsonCollection(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterException {
+        MarcJSonCollection marcJSonCollection = new MarcJSonCollection();
+        marcJSonCollection.addMember(getRecordContent(recordId, records));
+        if (configContent.hasIncludeRelations()) {
+            for (RecordEntryDTO recordData : records.values()) {
+                if (recordId.equals(recordData.getRecordId())) {
+                    continue;
+                }
+                LOGGER.debug("Adding {} member to {} marcjson collection", recordData.getRecordId(), recordId);
+                marcJSonCollection.addMember(getRecordContent(recordData.getRecordId(), recordData));
+            }
+        }
+        return marcJSonCollection;
+    }
+
+    Predicate<Integer> getSubmitterSkipPredicate() {
+        final SubmitterFilter submitterFilter = configContent.getSubmitterFilter();
+        if (submitterFilter == null) {
+            return submitterNumber -> false;
+        }
+        return submitterFilter::shouldSkip;
+    }
+
+    RecordEntryDTO fetchRecord(RecordIdDTO recordId)
+            throws HarvesterSourceException, HarvesterInvalidRecordException {
+        try {
+            RecordEntryDTO recordData = recordServiceConnector.getRecordData(recordId);
+            if (recordData == null) {
+                throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
+            }
+            return recordData;
+        } catch (RecordServiceConnectorNoContentStatusCodeException e) {
+            throw new HarvesterNoContentException(recordId.toString() + " - fetchRecord");
+        } catch (RecordServiceConnectorException e) {
+            throw new HarvesterSourceException("Unable to fetch record for " +
+                    recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
+        }
+    }
+
+    Map<String, RecordEntryDTO> fetchRecordCollection(RecordIdDTO recordId)
+            throws HarvesterInvalidRecordException, HarvesterSourceException {
+        try {
+            RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(configContent.expand());
+            List<RecordEntryDTO> recordDataCollection = recordServiceConnector.getRecordDataCollectionDataIO(recordId, params);
+            if (recordDataCollection == null || recordDataCollection.isEmpty()) {
+                throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
+            }
+            return recordDataCollection.stream().collect(Collectors.groupingBy(e -> e.getRecordId().getBibliographicRecordId(), Collectors.reducing(null, (e1, e2) -> e1 == null ? e2 : e1)));
+        } catch (RecordServiceConnectorNoContentStatusCodeException e) {
+            throw new HarvesterNoContentException(recordId.toString() + " - fetchRecordCollection");
+        } catch (RecordServiceConnectorException e) {
+            throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
         }
     }
 
@@ -387,21 +476,6 @@ public class HarvestOperation implements AutoCloseable {
         addiMetaData.withFormat(getFormat(addiMetaData.submitterNumber()));
     }
 
-    MarcJSonCollection getMarcJsonCollection(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterException {
-        MarcJSonCollection marcJSonCollection = new MarcJSonCollection();
-        marcJSonCollection.addMember(getRecordContent(recordId, records));
-        if (configContent.hasIncludeRelations()) {
-            for (RecordEntryDTO recordData : records.values()) {
-                if (recordId.equals(recordData.getRecordId())) {
-                    continue;
-                }
-                LOGGER.debug("Adding {} member to {} marcjson collection", recordData.getRecordId(), recordId);
-                marcJSonCollection.addMember(getRecordContent(recordData.getRecordId(), recordData));
-            }
-        }
-        return marcJSonCollection;
-    }
-
     // The existing dataIO flows that work on rawrepo data all currently expect to be given marcXchange.
     // In the future, we should consider having DAM change the dataIO flows to accept marcjson directly instead.
     private MarcXchangeCollection toMarcXchangeCollection(MarcJSonCollection marcJSonCollection) {
@@ -450,52 +524,5 @@ public class HarvestOperation implements AutoCloseable {
         } catch (JSONBException e) {
             throw new HarvesterException(e);
         }
-    }
-
-    Predicate<Integer> getSubmitterSkipPredicate() {
-        final SubmitterFilter submitterFilter = configContent.getSubmitterFilter();
-        if (submitterFilter == null) {
-            return submitterNumber -> false;
-        }
-        return submitterFilter::shouldSkip;
-    }
-
-    RecordEntryDTO fetchRecord(RecordIdDTO recordId)
-            throws HarvesterSourceException, HarvesterInvalidRecordException {
-        try {
-            RecordEntryDTO recordData = recordServiceConnector.getRecordData(recordId);
-            if (recordData == null) {
-                throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
-            }
-            return recordData;
-        } catch (RecordServiceConnectorNoContentStatusCodeException e) {
-            throw new HarvesterNoContentException(recordId.toString() + " - fetchRecord");
-        } catch (RecordServiceConnectorException e) {
-            throw new HarvesterSourceException("Unable to fetch record for " +
-                    recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
-        }
-    }
-
-    Map<String, RecordEntryDTO> fetchRecordCollection(RecordIdDTO recordId)
-            throws HarvesterInvalidRecordException, HarvesterSourceException {
-        try {
-            RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(configContent.expand());
-            List<RecordEntryDTO> recordDataCollection = recordServiceConnector.getRecordDataCollectionDataIO(recordId, params);
-            if (recordDataCollection == null || recordDataCollection.isEmpty()) {
-                throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
-            }
-            return recordDataCollection.stream().collect(Collectors.groupingBy(e -> e.getRecordId().getBibliographicRecordId(), Collectors.reducing(null, (e1, e2) -> e1 == null ? e2 : e1)));
-        } catch (RecordServiceConnectorNoContentStatusCodeException e) {
-            throw new HarvesterNoContentException(recordId.toString() + " - fetchRecordCollection");
-        } catch (RecordServiceConnectorException e) {
-            throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void close() {}
-
-    public List<RawRepoRecordHarvestTask> preprocessRecordHarvestTask(RawRepoRecordHarvestTask task) {
-        return List.of();
     }
 }

@@ -36,10 +36,8 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHa
 
     private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
             .handle(ProcessingException.class)
-            .handleResultIf(response ->
-                    response.getStatus() == 404
-                            || response.getStatus() == 500
-                            || response.getStatus() == 502)
+            .handleResultIf(response -> response.getStatus() == 500
+                    || response.getStatus() == 502)
             .withDelay(Duration.ofSeconds(5))
             .withMaxRetries(3);
 

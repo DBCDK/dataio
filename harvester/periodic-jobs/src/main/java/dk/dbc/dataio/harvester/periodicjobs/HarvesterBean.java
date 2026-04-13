@@ -12,6 +12,8 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+import dk.dbc.httpclient.FailSafeHttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
@@ -20,17 +22,35 @@ import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
 import jakarta.enterprise.concurrent.ManagedExecutorService;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.Response;
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Singleton
 public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PeriodicJobsHarvesterConfig> {
+
+    private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
+            .handle(ProcessingException.class)
+            .handleResultIf(response ->
+                    response.getStatus() == 404
+                            || response.getStatus() == 500
+                            || response.getStatus() == 502)
+            .withDelay(Duration.ofSeconds(5))
+            .withMaxRetries(3);
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
+
     @EJB
     BinaryFileStoreBean binaryFileStoreBean;
     @EJB
@@ -39,12 +59,17 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+
     @Inject
+    @ConfigProperty(name = "WEEKRESOLVER_SERVICE_URL")
+    private String weekResolverUrl;
     WeekResolverConnector weekresolverConnector;
+
     @Inject
     @ConfigProperty(name = "FBI_INFO_URL")
     private String fbiInfoUrl;
     private FbiInfoConnector fbiInfoConnector;
+
     @Resource(lookup = "java:comp/DefaultManagedExecutorService")
     private ManagedExecutorService executor;
     final static AtomicInteger THREAD_ID = new AtomicInteger();
@@ -54,6 +79,11 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
 
     @PostConstruct
     public void init() {
+        final Client client = HttpClient.newClient(new ClientConfig()
+                .register(new JacksonFeature()));
+        final FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(client,
+                UserAgent.forInternalRequests(), RETRY_POLICY);
+        weekresolverConnector = new WeekResolverConnector(failSafeHttpClient, weekResolverUrl);
         fbiInfoConnector = new FbiInfoConnector(UserAgent.forInternalRequests(), fbiInfoUrl);
     }
 

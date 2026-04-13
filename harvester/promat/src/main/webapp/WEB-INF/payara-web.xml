@@ -3,4 +3,5 @@
 <payara-web-app error-url="">
   <context-root>/</context-root>
   <class-loader delegate="true"/>
+  <scanning-exclude>promat-connector*</scanning-exclude>
 </payara-web-app>

@@ -1,6 +1,7 @@
 package dk.dbc.dataio.harvester.periodicjobs;
 
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -16,17 +17,23 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.httpclient.FailSafeHttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
-import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import dk.dbc.weekresolver.connector.WeekResolverConnectorException;
 import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.Response;
+import net.jodah.failsafe.RetryPolicy;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -287,9 +295,23 @@ public class HarvestOperation {
 
     RecordServiceConnector createRecordServiceConnector() throws HarvesterException {
         try {
+            RetryPolicy<Response> retryPolicy = new RetryPolicy<Response>()
+                    .handle(ProcessingException.class)
+                    .handleResultIf(response ->
+                            response.getStatus() == 404
+                                    || response.getStatus() == 500
+                                    || response.getStatus() == 502)
+                    .withDelay(Duration.ofSeconds(5))
+                    .withMaxRetries(3);
+
+            Client client = HttpClient.newClient(new ClientConfig()
+                    .register(new JacksonFeature()));
+            FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(client,
+                    UserAgent.forInternalRequests(), retryPolicy);
+            
             String recordServiceUrl = rawRepoConnector.getRecordServiceUrl();
             LOGGER.info("Using record service URL: {}", recordServiceUrl);
-            return RecordServiceConnectorFactory.create(recordServiceUrl);
+            return new RecordServiceConnector(failSafeHttpClient, recordServiceUrl);
         } catch (SQLException | QueueException | ConfigurationException e) {
             throw new HarvesterException("Unable to obtain record service URL", e);
         }

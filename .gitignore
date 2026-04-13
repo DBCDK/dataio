@@ -12,3 +12,8 @@ target
 **/.iml
 env-files
 /environments/
+
+cli/acc-test-runner/dependency-reduced-pom.xml
+
+.claude/settings.local.json
+.claude/skills/

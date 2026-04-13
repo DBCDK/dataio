@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -8,24 +7,19 @@
     <parent>
         <artifactId>jse-app</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>2.0-SNAPSHOT</version>
+        <version>21.2.0-SNAPSHOT</version>
         <relativePath>../jse-app</relativePath>
     </parent>
 
     <artifactId>dataio-cli</artifactId>
     <packaging>pom</packaging>
 
-    <properties>
-        <jdk.target.version>11</jdk.target.version>
-    </properties>
-
     <modules>
-        <module>datafile-exporter</module>
-        <module>job-replicator</module>
-<!--        <module>lhr-retriever</module>-->
-        <module>cli-image</module>
         <module>acc-test-runner</module>
+        <module>cli-image</module>
+        <module>datafile-exporter</module>
         <module>flow-test-runner</module>
+        <module>job-replicator</module>
         <module>rerun-accessnew</module>
     </modules>
 
@@ -33,12 +27,10 @@
         <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
-            <version>1.58</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.microprofile.metrics</groupId>
             <artifactId>microprofile-metrics-api</artifactId>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

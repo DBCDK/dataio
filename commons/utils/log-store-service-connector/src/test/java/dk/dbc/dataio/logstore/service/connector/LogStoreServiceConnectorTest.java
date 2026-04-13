@@ -1,5 +1,6 @@
 package dk.dbc.dataio.logstore.service.connector;
 
+import dk.dbc.commons.useragent.UserAgent;
 import jakarta.ws.rs.client.Client;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 public class LogStoreServiceConnectorTest {
+    private static final UserAgent USER_AGENT = new UserAgent(LogStoreServiceConnectorTest.class.getSimpleName());
     private static final Client CLIENT = mock(Client.class);
     private static final String LOG_STORE_URL = "http://dataio/log-store";
     private static final String JOB_ID = "jobId";
@@ -19,17 +21,17 @@ public class LogStoreServiceConnectorTest {
 
     @Test
     public void constructor_httpClientArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new LogStoreServiceConnector(null, LOG_STORE_URL));
+        assertThrows(NullPointerException.class, () -> new LogStoreServiceConnector(null, USER_AGENT, LOG_STORE_URL));
     }
 
     @Test
     public void constructor_baseUrlArgIsNull_throws() {
-        assertThrows(NullPointerException.class, () -> new LogStoreServiceConnector(CLIENT, null));
+        assertThrows(NullPointerException.class, () -> new LogStoreServiceConnector(CLIENT, USER_AGENT, null));
     }
 
     @Test
     public void constructor_baseUrlArgIsEmpty_throws() {
-        assertThrows(IllegalArgumentException.class, () -> new LogStoreServiceConnector(CLIENT, ""));
+        assertThrows(IllegalArgumentException.class, () -> new LogStoreServiceConnector(CLIENT, USER_AGENT, ""));
     }
 
     @Test
@@ -61,6 +63,6 @@ public class LogStoreServiceConnectorTest {
     }
 
     private LogStoreServiceConnector newLogStoreServiceConnector() {
-        return new LogStoreServiceConnector(CLIENT, LOG_STORE_URL);
+        return new LogStoreServiceConnector(CLIENT, USER_AGENT, LOG_STORE_URL);
     }
 }

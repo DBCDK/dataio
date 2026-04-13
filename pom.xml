@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -7,27 +6,27 @@
     <parent>
         <groupId>dk.dbc</groupId>
         <artifactId>microservice-pom</artifactId>
-        <version>java17-SNAPSHOT</version>
+        <version>java21-SNAPSHOT</version>
         <relativePath/>
     </parent>
 
     <artifactId>dataio</artifactId>
-    <version>2.0-SNAPSHOT</version>
+    <version>21.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
         <module>cli</module>
         <module>commons</module>
+        <module>dlq-errorhandler</module>
         <module>file-store-service</module>
         <module>flow-store-service</module>
         <module>gatekeeper</module>
         <module>harvester</module>
+        <module>integration-test</module>
+        <module>job-processor2</module>
         <module>job-store-service</module>
         <module>log-store-service</module>
         <module>sink</module>
-        <module>job-processor2</module>
-        <module>dlq-errorhandler</module>
-        <module>integration-test</module>
     </modules>
 
     <properties>
@@ -40,72 +39,16 @@
         <docker.payara.version>latest</docker.payara.version>
         <docker.build.skip>true</docker.build.skip>
 
-        <sonar.cpd.exclusions>harvester/rr-dm3/**/*</sonar.cpd.exclusions>
-
-        <ejb.version>3.2</ejb.version>
-        <maven.deploy.plugin.version>3.1.0</maven.deploy.plugin.version>
-        <maven.install.plugin.version>3.1.0</maven.install.plugin.version>
-        <svnkit.version>1.7.8</svnkit.version>
-        <microprofile.version>4.1</microprofile.version>
-        <maven.jaxws.plugin.version>2.3</maven.jaxws.plugin.version>
-        <maven-download-plugin.version>1.1.0</maven-download-plugin.version>
-        <maven-failsafe-plugin.version>2.14.1</maven-failsafe-plugin.version>
-        <spotify-dockerfile-maven-plugin.version>1.3.6</spotify-dockerfile-maven-plugin.version>
-        <truezip-maven-plugin.version>1.2</truezip-maven-plugin.version>
-        <rawrepo.version>1.10-SNAPSHOT</rawrepo.version>
-        <rawrepo-queue-dao.version>1.1-SNAPSHOT</rawrepo-queue-dao.version>
-        <janino.version>2.6.1</janino.version>
-        <mock-javamail.version>2.1</mock-javamail.version>
-        <mock-javamail.javax.version>1.9</mock-javamail.javax.version>
-        <xmlunit.version>2.6.3</xmlunit.version>
-        <dbc-commons.version>1.3-SNAPSHOT</dbc-commons.version>
-        <dbc-commons-testcontainers-postgres-version>1.0-SNAPSHOT</dbc-commons-testcontainers-postgres-version>
-        <serviceutils.version>0.1-SNAPSHOT</serviceutils.version>
-        <json-binding.version>0.1-SNAPSHOT</json-binding.version>
-        <invariant-utils.version>0.1.0</invariant-utils.version>
-        <rawrepo-record-service-dto.version>1.0-SNAPSHOT</rawrepo-record-service-dto.version>
-        <vipcore-connector.version>1.5-SNAPSHOT</vipcore-connector.version>
-        <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
-        <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
-        <argparse4j.version>0.9.0</argparse4j.version>
-
-        <file.store.basejakarta.jakartaee-apipath>${user.dir}/integration-test/mountpoint/file-store</file.store.basejakarta.jakartaee-apipath>
-        <harvester.basepath>${user.dir}/integration-test/mountpoint/harvester</harvester.basepath>
-
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <sonar.projectKey>dataio</sonar.projectKey>
+        <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
 
         <file-store-service.context>/dataio/file-store-service</file-store-service.context>
         <flow-store-service.context>/dataio/flow-store-service</flow-store-service.context>
         <job-store-service.context>/dataio/job-store-service</job-store-service.context>
         <log-store-service.context>/dataio/log-store-service</log-store-service.context>
-        <job-processor.context>/dataio/job-processor</job-processor.context>
         <corepo-harvester.context>/dataio/harvester/corepo</corepo-harvester.context>
-        <ph-holdingsitems-harvester.context>/dataio/harvester/phholdingsitems</ph-holdingsitems-harvester.context>
         <rr-harvester.context>/dataio/harvester/rr</rr-harvester.context>
         <tickle-repo-harvester.context>/dataio/harvester/tickle-repo</tickle-repo-harvester.context>
-        <tickle-repo-sink.context>/dataio/sink/tickle-repo</tickle-repo-sink.context>
-        <worldcat-sink.context>/dataio/sink/worldcat</worldcat-sink.context>
-        <diff-sink.context>/dataio/sink/diff</diff-sink.context>
-        <dummy-sink.context>/dataio/sink/dummy</dummy-sink.context>
-        <ims-sink.context>/dataio/sink/ims</ims-sink.context>
-        <openupdate-sink.context>/dataio/sink/openupdate</openupdate-sink.context>
-        <es-sink.context>/dataio/sink/es</es-sink.context>
-        <batch-exchange-sink.context>/dataio/sink/batch-exchange</batch-exchange-sink.context>
-        <dmat-sink.context>/dataio/sink/dmat</dmat-sink.context>
-<!--        <flyway.version>9.0.4</flyway.version> &lt;!&ndash; flyway versions 9.1.0 till 9.22.2 (latest) hangs in the migrate call &ndash;&gt;-->
-
-        <sink.context>/dataio/sink</sink.context>
-
-        <opencataloging.updatemarcxchange.ws.wsdl>http://oss-services.dbc.dk/opencat/WSContracts/updateMarcXchange/trunk/updateMarcXchange.wsdl
-        </opencataloging.updatemarcxchange.ws.wsdl>
-
-        <!--suppress UnresolvedMavenProperty -->
-        <ftpclient.version>1.0-SNAPSHOT</ftpclient.version>
-        <mockftpserver.version>2.7.1</mockftpserver.version>
-        <dbc-commons-json-binding.version>1.4-SNAPSHOT</dbc-commons-json-binding.version>
-        <angus-mail.version>2.0.1</angus-mail.version>
-        <sonar.projectKey>dataio</sonar.projectKey>
-        <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
     </properties>
 
     <dependencies>
@@ -117,6 +60,16 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>
             <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>${junit5.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -132,16 +85,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <version>${junit5.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
@@ -154,304 +97,19 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-partitioner</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <groupId>ch.qos.logback.db</groupId>
+                <artifactId>logback-classic-db</artifactId>
+                <version>1.2.11.1</version>
             </dependency>
             <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-url-resolver-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <groupId>com.beust</groupId>
+                <artifactId>jcommander</artifactId>
+                <version>1.58</version>
             </dependency>
             <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>batch-exchange-api</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>solr-doc-store-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>opennumberroll-connector</artifactId>
-                <version>2.3-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>updateservice-rest-connector</artifactId>
-                <version>2.2-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>lobby-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>pg-queue-consumer</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-harvester-types</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-service</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-job-store-service-types</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-types</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-testcontainers</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-testcontainers-postgres</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>auto-nomen-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dmat-connector</artifactId>
-                <version>2.5-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>infomedia-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <type>ejb</type>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-harvester-task-repo-api</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-stopwatch</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-log-store-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <type>ejb</type>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-file-store-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <type>ejb</type>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-rr-harvester-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <type>ejb</type>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-tickle-harvester-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <type>ejb</type>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>artemis-admin-client</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <scope>compile</scope>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-harvester-task-repo-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-test</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-integration-test-jms-queue</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-binary-file-store</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <type>ejb</type>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-harvester-utils-harvester-job-builder</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>oai-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-harvester-framework</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-harvester-utils-rawrepo-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-harvester-task-repo-rest</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>tickle-repo-api</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-openupdate-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-jpa-resultset</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-addi-binding</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-harvester-utils-holdings-items-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-harvester-utils-datafile-verifier</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <type>ejb</type>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-job-store-service-test</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-harvester-utils-time-interval</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-sink-testutil</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-svn</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-lang</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-query-language</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-io</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-sink-util</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-conversion</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-macro-expansion</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-cache</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-utils-javascript</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-commons-query-builder</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.sun.xml.ws</groupId>
-                <artifactId>jaxws-rt</artifactId>
-                <version>4.0.1</version>
-            </dependency>
-            <dependency>
-                <groupId>jakarta.xml.ws</groupId>
-                <artifactId>jakarta.xml.ws-api</artifactId>
-                <version>4.0.0</version>
+                <groupId>com.fasterxml.jackson.datatype</groupId>
+                <artifactId>jackson-datatype-jsr310</artifactId>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.module</groupId>
@@ -459,19 +117,111 @@
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.github.mwiede</groupId>
+                <artifactId>jsch</artifactId>
+                <version>0.2.20</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.stefanbirkner</groupId>
+                <artifactId>fake-sftp-server-rule</artifactId>
+                <version>2.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.stefanbirkner</groupId>
+                <artifactId>system-rules</artifactId>
+                <version>1.19.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>32.0.1-jre</version>
+            </dependency>
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>2.2.224</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ibm.icu</groupId>
+                <artifactId>icu4j</artifactId>
+                <version>72.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.j256.simplemagic</groupId>
+                <artifactId>simplemagic</artifactId>
+                <version>1.12</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ongres</groupId>
+                <artifactId>fluent-process</artifactId>
+                <version>1.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>4.0.3</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.ws</groupId>
+                <artifactId>jaxws-rt</artifactId>
+                <version>4.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-cli</groupId>
+                <artifactId>commons-cli</artifactId>
+                <version>1.2</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.11.0</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>1.2</version>
+            </dependency>
+            <dependency>
                 <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-proxy</artifactId>
+                <artifactId>artemis-admin-client</artifactId>
                 <version>2.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
-                <artifactId>rawrepo-record-service-dto</artifactId>
-                <version>2.2-SNAPSHOT</version>
+                <artifactId>artemis-jse-app</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
-                <artifactId>stopwatch</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <artifactId>artemis-jse-db-app</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>batch-exchange-api</artifactId>
+                <version>21.2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>corepo-access</artifactId>
+                <version>2.0-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.googlecode.jmockit</groupId>
+                        <artifactId>jmockit</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-addi</artifactId>
+                <version>21.2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-httpclient</artifactId>
+                <version>21.5.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
@@ -480,19 +230,377 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
-                <artifactId>ftp-client</artifactId>
-                <version>1.1-SNAPSHOT</version>
+                <artifactId>dbc-commons-jpa-converter</artifactId>
+                <version>21.3.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-jpa-resultset</artifactId>
+                <version>2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-json-binding</artifactId>
+                <version>21.3.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-log</artifactId>
+                <version>21.2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-marc</artifactId>
+                <version>21.6.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-proxy</artifactId>
+                <version>21.3.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dbc-commons-sftp-client</artifactId>
-                <version>2.1-SNAPSHOT</version>
+                <version>21.3.0-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>nl.jqno.equalsverifier</groupId>
-                <artifactId>equalsverifier</artifactId>
-                <version>1.2</version>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-testcontainers-postgres</artifactId>
+                <version>21.3.0-SNAPSHOT</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-testcontainers-postgres-17</artifactId>
+                <version>21.3.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-testee</artifactId>
+                <version>21.3.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-testutil-assert</artifactId>
+                <version>1.3-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-testutil-jpa</artifactId>
+                <version>2.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-user-agent</artifactId>
+                <version>21.2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-jslib</artifactId>
+                <version>4.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-creatordetector-connector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-conversion</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-macro-expansion</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-query-builder</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-query-language</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-retriever-connector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-testcontainers</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-types</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-addi-binding</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-binary-file-store</artifactId>
+                <version>${project.version}</version>
+                <type>ejb</type>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-cache</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-file-store-service-connector</artifactId>
+                <version>${project.version}</version>
+                <type>ejb</type>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
+                <version>${project.version}</version>
+                <type>ejb</type>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-io</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-javascript</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
+                <version>${project.version}</version>
+                <type>ejb</type>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-lang</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-log-store-service-connector</artifactId>
+                <version>${project.version}</version>
+                <type>ejb</type>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-openupdate-service-connector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-rr-harvester-service-connector</artifactId>
+                <version>${project.version}</version>
+                <type>ejb</type>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-stopwatch</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-svn</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-tickle-harvester-service-connector</artifactId>
+                <version>${project.version}</version>
+                <type>ejb</type>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-url-resolver-service-connector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-cli-datafile-exporter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-cli-job-replicator</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-framework</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-task-repo-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-task-repo-connector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-task-repo-rest</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-types</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-utils-datafile-verifier</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-utils-harvester-job-builder</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-utils-holdings-items-connector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-utils-rawrepo-connector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-utils-rawrepo-connector-v3</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-harvester-utils-time-interval</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-integration-test-jms-queue</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-javascript</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-job-processor2-lib</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-job-store-service-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-job-store-service-types</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-log-store-service-logback-appender</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-log-store-service-types</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-partitioner</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-sink-diff</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-sink-testutil</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dataio-sink-util</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>distributed-objects</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dmat-connector</artifactId>
+                <version>21.2.5-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>dk.dbc</groupId>
+                        <artifactId>dbc-commons-httpclient</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>ftp-client</artifactId>
+                <version>2.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>infomedia-connector</artifactId>
+                <version>2.0-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>dk.dbc</groupId>
+                        <artifactId>dbc-commons-httpclient</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
@@ -500,195 +608,14 @@
                 <version>0.1.0</version>
             </dependency>
             <dependency>
-                <groupId>org.openjdk.nashorn</groupId>
-                <artifactId>nashorn-core</artifactId>
-                <version>15.4</version>
-            </dependency>
-            <dependency>
-                <groupId>jakarta.xml.bind</groupId>
-                <artifactId>jakarta.xml.bind-api</artifactId>
-                <version>4.0.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.xml.bind</groupId>
-                <artifactId>jaxb-impl</artifactId>
-                <version>4.0.3</version>
-            </dependency>
-            <dependency>
-                <groupId>com.j256.simplemagic</groupId>
-                <artifactId>simplemagic</artifactId>
-                <version>1.12</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-jdk14</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.json</groupId>
-                <artifactId>javax.json-api</artifactId>
-                <version>1.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.angus</groupId>
-                <artifactId>angus-mail</artifactId>
-                <version>2.0.1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.stefanbirkner</groupId>
-                <artifactId>fake-sftp-server-rule</artifactId>
-                <version>2.0.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mockftpserver</groupId>
-                <artifactId>MockFtpServer</artifactId>
-                <version>2.7.1</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish</groupId>
-                <artifactId>javax.json</artifactId>
-                <version>1.1.4</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>jakarta.ws.rs</groupId>
-                <artifactId>jakarta.ws.rs-api</artifactId>
-                <version>3.1.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xmlunit</groupId>
-                <artifactId>xmlunit-core</artifactId>
-                <version>${xmlunit.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.xmlunit</groupId>
-                <artifactId>xmlunit-matchers</artifactId>
-                <version>${xmlunit.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.inject</groupId>
-                <artifactId>jersey-hk2</artifactId>
-                <scope>provided</scope>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.solr</groupId>
-                <artifactId>solr-solrj</artifactId>
-                <version>9.4.0</version>
+                <groupId>dk.dbc</groupId>
+                <artifactId>jmx-metric-registry</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
-                <artifactId>vipcore-connector</artifactId>
-                <version>${vipcore-connector.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>jakarta.xml.ws</groupId>
-                        <artifactId>jakarta.xml.ws-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.sun.xml.ws</groupId>
-                        <artifactId>jaxws-rt</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-compress</artifactId>
-                <version>1.21</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-csv</artifactId>
-                <version>1.4</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jsoup</groupId>
-                <artifactId>jsoup</artifactId>
-                <version>1.14.2</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
-                <version>2.11.0</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dbc-jslib</artifactId>
-                <version>3.0-SNAPSHOT</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.postgresql</groupId>
-                        <artifactId>postgresql</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>oracle</groupId>
-                        <artifactId>ojdbc7</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-core</artifactId>
-                <version>${flyway.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-database-postgresql</artifactId>
-                <version>${flyway.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.persistence</groupId>
-                <artifactId>eclipselink</artifactId>
-                <version>${eclipselink.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-addi</artifactId>
-                <version>1.3-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.mwiede</groupId>
-                <artifactId>jsch</artifactId>
-                <version>0.2.20</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-httpclient</artifactId>
-                <version>3.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-jpa-converter</artifactId>
-                <version>2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-json-binding</artifactId>
-                <version>1.4-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-log</artifactId>
-                <version>1.3-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-marc</artifactId>
-                <version>4.1-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-testutil-assert</artifactId>
-                <version>${dbc-commons.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-testutil-jpa</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <artifactId>jscommon</artifactId>
+                <version>2012.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
@@ -697,13 +624,72 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
-                <artifactId>rawrepo-record-service-connector</artifactId>
+                <artifactId>lobby-connector</artifactId>
                 <version>2.0-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>dk.dbc</groupId>
+                        <artifactId>dbc-commons-httpclient</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>marc-client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>oai-connector</artifactId>
+                <version>2.0-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>dk.dbc</groupId>
+                        <artifactId>dbc-commons-httpclient</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>ocn-repo-api</artifactId>
+                <version>21.2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>opennumberroll-connector</artifactId>
+                <version>21.2.3-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>dk.dbc</groupId>
+                        <artifactId>dbc-commons-httpclient</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>pg-queue-consumer</artifactId>
+                <version>21.2.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>rawrepo-queue-dao</artifactId>
-                <version>3.1-SNAPSHOT</version>
+                <version>2.3-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>rawrepo-record-service-connector</artifactId>
+                <version>2.0-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>dk.dbc</groupId>
+                        <artifactId>dbc-commons-httpclient</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>rawrepo-record-service-dto</artifactId>
+                <version>2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
@@ -717,13 +703,164 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
+                <artifactId>solr-doc-store-connector</artifactId>
+                <version>2.0-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>dk.dbc</groupId>
+                        <artifactId>dbc-commons-httpclient</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>stopwatch</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>tickle-repo-api</artifactId>
+                <version>21.2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>updateservice-rest-connector</artifactId>
+                <version>2.3-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>dk.dbc</groupId>
+                        <artifactId>dbc-commons-httpclient</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>vipcore-connector</artifactId>
+                <version>21.1.6-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>dk.dbc</groupId>
+                        <artifactId>dbc-commons-httpclient</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>jakarta.xml.ws</groupId>
+                        <artifactId>jakarta.xml.ws-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sun.xml.ws</groupId>
+                        <artifactId>jaxws-rt</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
                 <artifactId>weekresolver-connector</artifactId>
-                <version>2.2-SNAPSHOT</version>
+                <version>2.3-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>dk.dbc</groupId>
+                        <artifactId>dbc-commons-httpclient</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>weekresolver-model</artifactId>
-                <version>2.2-SNAPSHOT</version>
+                <version>2.3-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>info.picocli</groupId>
+                <artifactId>picocli</artifactId>
+                <version>4.7.4</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.deblockt</groupId>
+                <artifactId>json-diff</artifactId>
+                <version>1.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.java-diff-utils</groupId>
+                <artifactId>java-diff-utils</artifactId>
+                <version>4.12</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.annotation</groupId>
+                <artifactId>jakarta.annotation-api</artifactId>
+                <version>1.3.5</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.inject</groupId>
+                <artifactId>jakarta.inject-api</artifactId>
+                <version>2.0.1</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.jms</groupId>
+                <artifactId>jakarta.jms-api</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.ws.rs</groupId>
+                <artifactId>jakarta.ws.rs-api</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>4.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.xml.ws</groupId>
+                <artifactId>jakarta.xml.ws-api</artifactId>
+                <version>4.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>junit-addons</groupId>
+                <artifactId>junit-addons</artifactId>
+                <version>1.4</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>7.3</version>
+            </dependency>
+            <dependency>
+                <groupId>net.sourceforge.argparse4j</groupId>
+                <artifactId>argparse4j</artifactId>
+                <version>0.9.0</version>
+            </dependency>
+            <dependency>
+                <groupId>nl.jqno.equalsverifier</groupId>
+                <artifactId>equalsverifier</artifactId>
+                <version>1.2</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>1.8</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>artemis-jakarta-client</artifactId>
+                <version>2.30.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>1.21</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-csv</artifactId>
+                <version>1.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.20.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -731,21 +868,116 @@
                 <version>1.14.0</version>
             </dependency>
             <dependency>
-                <groupId>org.eclipse.microprofile.health</groupId>
-                <artifactId>microprofile-health-api</artifactId>
-                <version>${microprofile-health-api.version}</version>
+                <groupId>org.apache.qpid</groupId>
+                <artifactId>qpid-jms-client</artifactId>
+                <version>2.4.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.solr</groupId>
+                <artifactId>solr-solrj</artifactId>
+                <version>9.4.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.angus</groupId>
+                <artifactId>angus-mail</artifactId>
+                <version>2.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>11.0.18</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-servlet</artifactId>
+                <version>11.0.18</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jgit</groupId>
+                <artifactId>org.eclipse.jgit</artifactId>
+                <version>6.7.0.202309050840-r</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-database-postgresql</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>2.3.32</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish</groupId>
+                <artifactId>javax.json</artifactId>
+                <version>1.1.4</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dbc-commons-testee</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <groupId>org.glassfish.hk2</groupId>
+                <artifactId>hk2-api</artifactId>
+                <version>3.0.3</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.hk2</groupId>
+                <artifactId>hk2-locator</artifactId>
+                <version>3.0.3</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.hk2</groupId>
+                <artifactId>hk2-utils</artifactId>
+                <version>3.0.3</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.inject</groupId>
+                <artifactId>jersey-hk2</artifactId>
+                <version>${jersey.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>1.14.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jvnet.mock-javamail</groupId>
+                <artifactId>mock-javamail</artifactId>
+                <version>2.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>ocn-repo-api</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <groupId>org.mockftpserver</groupId>
+                <artifactId>MockFtpServer</artifactId>
+                <version>2.7.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.openjdk.nashorn</groupId>
+                <artifactId>nashorn-core</artifactId>
+                <version>15.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-nop</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-jdk14</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                 <groupId>org.tmatesoft.svnkit</groupId>
+                 <artifactId>svnkit</artifactId>
+                 <version>1.7.8</version>
             </dependency>
             <dependency>
                 <groupId>org.testcontainers</groupId>
@@ -754,21 +986,27 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>com.github.stefanbirkner</groupId>
-                <artifactId>system-rules</artifactId>
-                <version>1.19.0</version>
+                <groupId>org.wiremock</groupId>
+                <artifactId>wiremock</artifactId>
+                <version>3.3.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.xmlunit</groupId>
+                <artifactId>xmlunit-core</artifactId>
+                <version>2.6.3</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.xmlunit</groupId>
+                <artifactId>xmlunit-matchers</artifactId>
+                <version>2.6.3</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>uk.org.webcompere</groupId>
                 <artifactId>system-stubs-jupiter</artifactId>
                 <version>1.1.0</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.wiremock</groupId>
-                <artifactId>wiremock</artifactId>
-                <version>3.3.1</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -786,16 +1024,6 @@
             <id>mavenrepo.dbc.dk</id>
             <url>https://mavenrepo.dbc.dk/content/groups/public/</url>
         </repository>
-        <repository>
-            <id>snapshots-repo</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
     </repositories>
 
     <build>
@@ -803,36 +1031,8 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-war-plugin</artifactId>
-                    <version>3.4.0</version>
-                    <configuration>
-                        <failOnMissingWebXml>false</failOnMissingWebXml>
-                        <webResources>
-                            <resource>
-                                <directory>${basedir}/src/main/webapp/WEB-INF</directory>
-                                <filtering>true</filtering>
-                                <targetPath>WEB-INF</targetPath>
-                            </resource>
-                        </webResources>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-pmd-plugin</artifactId>
-                    <version>3.21.0</version>
-                    <configuration>
-                        <sourceEncoding>utf-8</sourceEncoding>
-                        <minimumTokens>100</minimumTokens>
-                        <targetJdk>${jdk.target.version}</targetJdk>
-                        <excludeRoots>
-                            <excludeRoot>${project.build.directory}/generated-sources</excludeRoot>
-                        </excludeRoots>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>com.googlecode.maven-download-plugin</groupId>
-                    <artifactId>download-maven-plugin</artifactId>
-                    <version>1.3.0</version>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>3.1.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -841,19 +1041,18 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>${maven-failsafe-plugin.version}</version>
-                    <configuration>
-                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>integration-test</goal>
-                                <goal>verify</goal>
-                            </goals>
-                        </execution>
-                    </executions>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.10.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.googlecode.maven-download-plugin</groupId>
+                    <artifactId>download-maven-plugin</artifactId>
+                    <version>1.3.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.5.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -885,6 +1084,76 @@
                         </execution>
                     </executions>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <configuration>
+                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        <!-- Newer versions of maven-failsafe-plugin are module-path aware.
+                             When a JAR on the test classpath that contains a module-info.class is found,
+                             it is automatically moved to the module path.
+                             Named modules don't allow reflective access to unexported packages by default,
+                             so this might cause builds to start failing.
+                             Setting useModulePath to false tells failsafe to keep everything on the classpath,
+                             where the old unrestricted reflection rules apply.
+                        -->
+                        <useModulePath>false</useModulePath>
+                        <useSystemClassLoader>false</useSystemClassLoader>
+                        <!-- When the maven-assembly-plugin is configured with appendAssemblyId=false, the
+                             fat JAR replaces the project artifact. Failsafe 3.x then puts this fat JAR on
+                             the test classpath as the main artifact, ahead of individual dependency JARs.
+                             Any META-INF/javamail.providers or META-INF/services entries bundled in the fat
+                             JAR will shadow the ones from test-scoped mocks (e.g. mock-javamail) that appear
+                             later on the classpath.
+                             Explicitly pointing classesDirectory at the compiled output directory tells
+                             failsafe to use the exploded classes instead of the fat JAR, so each dependency
+                             (including test mocks) retains its expected classpath position.
+                        -->
+                        <classesDirectory>${project.build.outputDirectory}</classesDirectory>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>integration-test</goal>
+                                <goal>verify</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>javacc-maven-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.sun.xml.ws</groupId>
+                    <artifactId>jaxws-maven-plugin</artifactId>
+                    <version>4.0.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>properties-maven-plugin</artifactId>
+                    <version>1.0.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.6.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <configuration>
+                        <failOnMissingWebXml>false</failOnMissingWebXml>
+                        <webResources>
+                            <resource>
+                                <directory>${basedir}/src/main/webapp/WEB-INF</directory>
+                                <filtering>true</filtering>
+                                <targetPath>WEB-INF</targetPath>
+                            </resource>
+                        </webResources>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -892,9 +1161,42 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>3.5.0</version>
             </plugin>
-
+            <plugin>
+                <!--
+                  If you need to exclude deploy for a specific module
+                  add this plugin to the module and set 'skip' to 'true'.
+                -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>false</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-ejb-plugin</artifactId>
+                <configuration>
+                    <ejbVersion>3.2</ejbVersion>
+                    <filterDeploymentDescriptor>true</filterDeploymentDescriptor>
+                </configuration>
+            </plugin>
+            <plugin>
+                <!--
+                  This plugin is used in order to not install any
+                  of the reactor-modules below this pom.
+                  If you need to install a specific module
+                  add this plugin to the module and set 'skip' to 'false'.
+                -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.1.4</version>
+                <configuration>
+                    <!--suppress MavenModelInspection -->
+                    <skip>${skip.install}</skip>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -918,93 +1220,6 @@
                     </dependency>
                 </dependencies>
             </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
-                <configuration>
-                    <source>11</source>
-                    <nohelp>true</nohelp>
-                    <excludePackageNames>dk.dbc.oss.ns.*:info.lc.xmlns.*:dk.dbc.dataio.querylanguage</excludePackageNames>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <!--
-                  If you need to exclude deploy for a specific module
-                  add this plugin to the module and set 'skip' to 'true'.
-                -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>${maven.deploy.plugin.version}</version>
-                <configuration>
-                    <skip>false</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-ejb-plugin</artifactId>
-                <configuration>
-                    <ejbVersion>${ejb.version}</ejbVersion>
-                    <filterDeploymentDescriptor>true</filterDeploymentDescriptor>
-                </configuration>
-            </plugin>
-            <plugin>
-                <!--
-                  This plugin is used in order to not install any
-                  of the reactor-modules below this pom.
-                  If you need to install a specific module
-                  add this plugin to the module and set 'skip' to 'false'.
-                -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>${maven.install.plugin.version}</version>
-                <configuration>
-                    <!--suppress MavenModelInspection -->
-                    <skip>${skip.install}</skip>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
-
-    <reporting>
-        <plugins>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.5</version>
-                <configuration>
-                    <xmlOutput>true</xmlOutput>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
-                <configuration>
-                    <show>public</show>
-                    <source>11</source>
-                    <nohelp>true</nohelp>
-                    <excludePackageNames>dk.dbc.oss.ns.*:info.lc.xmlns.*</excludePackageNames>
-                    <tags>
-                        <tag>
-                            <name>todo</name>
-                        </tag>
-                    </tags>
-                    <sourceFileExcludes>
-                        <sourceFileExclude>${project.build.directory}/generated-sources/**/*.java</sourceFileExclude>
-                    </sourceFileExcludes>
-                </configuration>
-            </plugin>
-
-        </plugins>
-    </reporting>
 </project>

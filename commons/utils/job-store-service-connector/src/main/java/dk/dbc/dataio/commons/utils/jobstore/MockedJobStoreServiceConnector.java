@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -18,7 +19,7 @@ public class MockedJobStoreServiceConnector extends JobStoreServiceConnector {
     public Queue<Chunk> chunks;
 
     public MockedJobStoreServiceConnector() throws NullPointerException, IllegalArgumentException {
-        super("baseurl", null);
+        super(new UserAgent(MockedJobStoreServiceConnector.class.getSimpleName()), "baseurl", null);
         jobInputStreams = new LinkedList<>();
         jobInfoSnapshots = new LinkedList<>();
         chunks = new LinkedList<>();

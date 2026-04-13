@@ -3,6 +3,8 @@ package dk.dbc.dataio.harvester.corepo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import dk.dbc.commons.useragent.UserAgent;
+import dk.dbc.corepo.access.RepositoryException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.AddiMetaData;
@@ -12,7 +14,6 @@ import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorExcep
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.opensearch.commons.repository.RepositoryException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -126,7 +127,8 @@ public class HarvestOperationTest {
     @Test
     public void rrConnectorTest() throws HarvesterTaskServiceConnectorException, JsonProcessingException {
         String baseUrl = wireMockServer.baseUrl() + "/dataio/harvester/";
-        HarvesterTaskServiceConnector connector = new HarvesterTaskServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), baseUrl);
+        HarvesterTaskServiceConnector connector = new HarvesterTaskServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()),
+                new UserAgent(getClass().getSimpleName()), baseUrl);
         AddiMetaData data = new AddiMetaData()
                 .withBibliographicRecordId("12356789")
                 .withSubmitterNumber(191919)

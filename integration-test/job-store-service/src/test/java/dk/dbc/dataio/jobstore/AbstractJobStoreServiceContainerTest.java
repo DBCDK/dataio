@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.testcontainers.Containers;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.jms.JmsQueueTester;
@@ -69,7 +70,8 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
     private static JobStoreServiceConnector makeJobStoreConnector(GenericContainer<?> jobStoreContainer) {
         String url = "http://" + jobStoreContainer.getHost() + ":" + jobStoreContainer.getMappedPort(8080) + "/dataio/job-store-service";
-        return new JobStoreServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), url);
+        return new JobStoreServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())),
+                UserAgent.forInternalRequests(), url);
     }
 
     private static JmsQueueTester makeJmsQueueTester(GenericContainer<?> artemisContainer) {
@@ -78,7 +80,8 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
     private static LogStoreServiceConnector makeLogstoreConnector(GenericContainer<?> logstoreContainer) {
         String url = "http://" + logstoreContainer.getHost() + ":" + logstoreContainer.getMappedPort(8080) + "/dataio/log-store-service/";
-        return new LogStoreServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), url);
+        return new LogStoreServiceConnector(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())),
+                UserAgent.forInternalRequests(), url);
     }
 
     private static DBCPostgreSQLContainer startLogStoreDB(Network network) {

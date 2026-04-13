@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.FlowBinder;
@@ -32,7 +33,8 @@ public class FlowStoreServiceWiremockRecorder {
     private FlowStoreServiceWiremockRecorder() {
         final Client client = HttpClient.newClient(new ClientConfig()
                 .register(new JacksonFeature()));
-        flowStoreServiceConnector = new FlowStoreServiceConnector(client, "http://localhost:8080");
+        flowStoreServiceConnector = new FlowStoreServiceConnector(client, new UserAgent(getClass().getSimpleName()),
+                "http://localhost:8080");
     }
 
     private void lookupEntities(String packaging, String format, String charset, String submitterNumber,

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.filestore.service.connector;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
@@ -61,12 +62,13 @@ public class FileStoreServiceConnector {
      * Class constructor
      *
      * @param httpClient web resources client
+     * @param userAgent  user agent to use when communicating with file-store-service service
      * @param baseUrl    base URL for job-store service endpoint
      * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
-    public FileStoreServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this(FailSafeHttpClient.create(httpClient, RETRY_POLICY), baseUrl);
+    public FileStoreServiceConnector(Client httpClient, UserAgent userAgent, String baseUrl) throws NullPointerException, IllegalArgumentException {
+        this(FailSafeHttpClient.create(httpClient, userAgent, RETRY_POLICY), baseUrl);
     }
 
     public FileStoreServiceConnector(FailSafeHttpClient failSafeHttpClient, String baseUrl) {

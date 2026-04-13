@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.creatordetector.connector;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.httpclient.HttpClient;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -44,10 +45,9 @@ public class CreatorDetectorConnectorFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(CreatorDetectorConnectorFactory.class);
 
     public static CreatorDetectorConnector create(String baseUrl) {
-        final Client client = HttpClient.newClient(new ClientConfig()
-                .register(new JacksonFeature()));
+        final Client client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
         LOGGER.info("Creating CreatorDetectorConnector for: {}", baseUrl);
-        return new CreatorDetectorConnector(client, baseUrl);
+        return new CreatorDetectorConnector(client, UserAgent.forInternalRequests(), baseUrl);
     }
 
     @Inject

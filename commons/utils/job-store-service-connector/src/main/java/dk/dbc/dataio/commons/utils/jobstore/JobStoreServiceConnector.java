@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -82,15 +83,16 @@ public class JobStoreServiceConnector {
      * Class constructor
      *
      * @param client  web resources client
+     * @param userAgent user agent
      * @param baseUrl base URL for job-store service endpoint
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
-    public JobStoreServiceConnector(Client client, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this(HttpClient.create(client), baseUrl, null);
+    public JobStoreServiceConnector(Client client, UserAgent userAgent, String baseUrl) throws NullPointerException, IllegalArgumentException {
+        this(HttpClient.create(client, userAgent), baseUrl, null);
     }
 
-    public JobStoreServiceConnector(String baseUrl, MetricRegistry metricRegistry) throws NullPointerException, IllegalArgumentException {
-        this(HttpClient.create(HttpClient.newClient(new ClientConfig().register(new JacksonFeature()))), baseUrl, metricRegistry);
+    public JobStoreServiceConnector(UserAgent userAgent, String baseUrl, MetricRegistry metricRegistry) throws NullPointerException, IllegalArgumentException {
+        this(HttpClient.create(HttpClient.newClient(new ClientConfig().register(new JacksonFeature())), userAgent), baseUrl, metricRegistry);
     }
 
     public JobStoreServiceConnector(HttpClient httpClient, String baseUrl, MetricRegistry metricRegistry) throws NullPointerException, IllegalArgumentException {

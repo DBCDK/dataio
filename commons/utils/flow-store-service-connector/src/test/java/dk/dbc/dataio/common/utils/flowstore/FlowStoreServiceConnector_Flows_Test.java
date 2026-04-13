@@ -1,6 +1,7 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.FlowView;
@@ -30,6 +31,10 @@ import static org.mockito.Mockito.when;
 public class FlowStoreServiceConnector_Flows_Test {
     private static final String FLOW_STORE_URL = "http://dataio/flow-store";
     private final FailSafeHttpClient failSafeHttpClient = mock(FailSafeHttpClient.class);
+    private final UserAgent userAgent = new UserAgent(getClass().getName());
+    {
+        when(failSafeHttpClient.getUserAgent()).thenReturn(userAgent);
+    }
 
     private final FlowStoreServiceConnector flowStoreServiceConnector =
             new FlowStoreServiceConnector(failSafeHttpClient, FLOW_STORE_URL);

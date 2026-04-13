@@ -7,7 +7,7 @@
     <parent>
         <artifactId>dataio-sink</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>2.0-SNAPSHOT</version>
+        <version>21.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>marc-client</artifactId>
@@ -31,7 +31,6 @@
                     <plugin>
                         <groupId>com.sun.xml.ws</groupId>
                         <artifactId>jaxws-maven-plugin</artifactId>
-                        <version>4.0.1</version>
                         <executions>
                             <execution>
                                 <phase>generate-resources</phase>

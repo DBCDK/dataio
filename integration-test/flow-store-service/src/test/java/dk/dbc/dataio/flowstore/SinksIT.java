@@ -1,5 +1,6 @@
 package dk.dbc.dataio.flowstore;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Flow;
@@ -68,7 +69,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
      */
     @Test
     public void createSink_invalidJson_BadRequest() {
-        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient(), UserAgent.forInternalRequests()))
                 .withBaseUrl(flowStoreServiceBaseUrl)
                 .withPathElements(FlowStoreServiceConstants.SINKS)
                 .withJsonData("<invalid json />")
@@ -194,7 +195,7 @@ public class SinksIT extends AbstractFlowStoreServiceContainerTest {
                 .setName("SinksIT.updateSink_invalidJson_BadRequest")
                 .build());
 
-        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient()))
+        new HttpPost(HttpClient.create(flowStoreServiceConnector.getClient(), UserAgent.forInternalRequests()))
                 .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, "1")
                 .withBaseUrl(flowStoreServiceBaseUrl)
                 .withPathElements(FlowStoreServiceConstants.SINKS, Long.toString(sink.getId()), "content")

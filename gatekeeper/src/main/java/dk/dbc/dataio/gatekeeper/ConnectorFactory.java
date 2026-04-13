@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gatekeeper;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.registry.JMXMetricRegistry;
@@ -38,8 +39,8 @@ public class ConnectorFactory {
         config.connectorProvider(new ApacheConnectorProvider());
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 8 * 1024);
         client = HttpClient.newClient(config);
-        fileStoreServiceConnector = new FileStoreServiceConnector(client, fileStoreServiceEndpoint);
-        jobStoreServiceConnector = new JobStoreServiceConnector(HttpClient.create(client), jobStoreServiceEndpoint, JMXMetricRegistry.create());
+        fileStoreServiceConnector = new FileStoreServiceConnector(client, UserAgent.forInternalRequests(), fileStoreServiceEndpoint);
+        jobStoreServiceConnector = new JobStoreServiceConnector(HttpClient.create(client, UserAgent.forInternalRequests()), jobStoreServiceEndpoint, JMXMetricRegistry.create());
     }
 
     public FileStoreServiceConnector getFileStoreServiceConnector() {

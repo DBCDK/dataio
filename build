@@ -1,10 +1,39 @@
 #!/usr/bin/env bash
+
+usage() {
+    cat <<'EOF'
+Usage: ./build [--threads N]
+
+Options:
+  --threads N   Number of Maven build threads to use (default: 1)
+  -h, --help    Show this help message
+EOF
+}
+
+THREADS=1
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --threads)
+            if [[ -z "${2:-}" ]]; then
+                echo "Error: --threads requires a value" >&2
+                usage
+                exit 1
+            fi
+            THREADS="$2"
+            shift 2
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Error: unknown option: $1" >&2
+            usage
+            exit 1
+            ;;
+    esac
+done
+
 echo "### building dataIO project ###"
- case "$1" in
-    nodocker)
-        SKIP_BUILD_DOCKER_IMAGE=true mvn -P '!integration-test' verify || exit 1
-        ;;
-    *)
-        mvn verify || exit 1
-        ;;
-esac
+mvn --no-transfer-progress -Dcyclonedx.skip=true -T "$THREADS" verify || exit 1

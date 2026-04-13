@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.retriever.connector;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.retriever.connector.model.ArticlesRequest;
 import dk.dbc.dataio.commons.retriever.connector.model.ArticlesResponse;
 import dk.dbc.httpclient.FailSafeHttpClient;
@@ -25,6 +26,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class RetrieverConnectorTest {
+
+    private static final UserAgent USER_AGENT = new UserAgent(RetrieverConnectorTest.class.getSimpleName());
 
     private static final String BASE_URL = "http://localhost";
     private static final String API_KEY = "TEST_API_KEY";
@@ -62,7 +65,7 @@ class RetrieverConnectorTest {
     void constructor_baseUrlArgIsNull_throws() {
         assertThrows(NullPointerException.class, () -> {
             try (Client client = ClientBuilder.newClient()) {
-                new RetrieverConnector(client, null, API_KEY);
+                new RetrieverConnector(client, USER_AGENT, null, API_KEY);
             }
         });
     }
@@ -71,7 +74,7 @@ class RetrieverConnectorTest {
     void constructor_baseUrlArgIsEmpty_throws() {
         assertThrows(IllegalArgumentException.class, () -> {
             try (Client client = ClientBuilder.newClient()) {
-                new RetrieverConnector(client, " ", API_KEY);
+                new RetrieverConnector(client, USER_AGENT, " ", API_KEY);
             }
         });
     }
@@ -80,7 +83,7 @@ class RetrieverConnectorTest {
     void constructor_apiKeyArgIsNull_throws() {
         assertThrows(NullPointerException.class, () -> {
             try (Client client = ClientBuilder.newClient()) {
-                new RetrieverConnector(client, BASE_URL, null);
+                new RetrieverConnector(client, USER_AGENT, BASE_URL, null);
             }
         });
     }
@@ -89,7 +92,7 @@ class RetrieverConnectorTest {
     void constructor_apiKeyArgIsEmpty_throws() {
         assertThrows(IllegalArgumentException.class, () -> {
             try (Client client = ClientBuilder.newClient()) {
-                new RetrieverConnector(client, BASE_URL, " ");
+                new RetrieverConnector(client, USER_AGENT, BASE_URL, " ");
             }
         });
     }
@@ -138,7 +141,7 @@ class RetrieverConnectorTest {
     }
 
     @Test
-    void searchArticles_serviceReturnsError() throws RetrieverConnectorException {
+    void searchArticles_serviceReturnsError() {
         String responseBody = """
             {
               "status": 417,

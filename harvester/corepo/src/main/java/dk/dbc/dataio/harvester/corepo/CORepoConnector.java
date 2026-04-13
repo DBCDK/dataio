@@ -2,9 +2,9 @@ package dk.dbc.dataio.harvester.corepo;
 
 import dk.dbc.corepo.access.CORepoDAO;
 import dk.dbc.corepo.access.CORepoProvider;
+import dk.dbc.corepo.access.RepositoryException;
+import dk.dbc.corepo.access.RepositoryIdentifier;
 import dk.dbc.dataio.commons.types.Pid;
-import dk.dbc.opensearch.commons.repository.IRepositoryIdentifier;
-import dk.dbc.opensearch.commons.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public class CORepoConnector {
      * @throws RepositoryException on failure to query modified records
      */
     public List<Pid> getChangesInRepository(Instant from, Instant to, Predicate<Pid> acceptedPids) throws RepositoryException {
-        try (CORepoDAO repository = (CORepoDAO) coRepoProvider.getRepository()) {
+        try (CORepoDAO repository = coRepoProvider.getRepository()) {
             final String query = getIntervalQuery(from, to);
             LOGGER.info("finding changes in repository where {}", query);
             return Arrays.stream(repository.searchRepository(query))
@@ -63,7 +63,7 @@ public class CORepoConnector {
         return "modified >= " + DATE_TIME_FORMATTER.format(from) + " AND modified < " + DATE_TIME_FORMATTER.format(to);
     }
 
-    private Optional<Pid> toPid(IRepositoryIdentifier identifier) {
+    private Optional<Pid> toPid(RepositoryIdentifier identifier) {
         try {
             return Optional.of(Pid.of(identifier.toString()));
         } catch (RuntimeException e) {

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.creatordetector.connector;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpPost;
 import jakarta.ws.rs.ProcessingException;
@@ -25,8 +26,8 @@ public class CreatorDetectorConnector implements AutoCloseable {
     private final FailSafeHttpClient failSafeHttpClient;
     private final String baseUrl;
 
-    public CreatorDetectorConnector(Client httpClient, String baseUrl) {
-        this(FailSafeHttpClient.create(httpClient, RETRY_POLICY), baseUrl);
+    public CreatorDetectorConnector(Client httpClient, UserAgent userAgent, String baseUrl) {
+        this(FailSafeHttpClient.create(httpClient, userAgent, RETRY_POLICY), baseUrl);
     }
 
     /**

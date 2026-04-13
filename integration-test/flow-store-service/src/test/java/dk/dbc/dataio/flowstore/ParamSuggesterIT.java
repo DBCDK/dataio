@@ -1,6 +1,7 @@
 package dk.dbc.dataio.flowstore;
 
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.ParameterSuggestion;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.httpclient.HttpClient;
@@ -45,7 +46,7 @@ public class ParamSuggesterIT extends AbstractFlowStoreServiceContainerTest {
     }
 
     private ParameterSuggestion getSuggestion(String parmName) throws JSONBException {
-        HttpClient httpClient = HttpClient.create(HttpClient.newClient());
+        HttpClient httpClient = HttpClient.create(HttpClient.newClient(), UserAgent.forInternalRequests());
         HttpGet httpGet = new HttpGet(httpClient)
                 .withBaseUrl(flowStoreServiceConnector.getBaseUrl())
                 .withPathElements(

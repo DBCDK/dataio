@@ -1,5 +1,6 @@
 package dk.dbc.dataio.cli;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.httpclient.HttpClient;
@@ -36,7 +37,7 @@ public class FileStoreFetcher {
         config.property(ApacheClientProperties.CONNECTION_MANAGER, poolingHttpClientConnectionManager);
         config.register(new JacksonFeature());
         final Client client = HttpClient.newClient(config);
-        fileStoreServiceConnector = new FileStoreServiceConnector(client, fileStoreServiceEndpoint);
+        fileStoreServiceConnector = new FileStoreServiceConnector(client, UserAgent.forInternalRequests(), fileStoreServiceEndpoint);
     }
 
     public long getDownloadSizeMB(Collection<Datafile> datafiles) {

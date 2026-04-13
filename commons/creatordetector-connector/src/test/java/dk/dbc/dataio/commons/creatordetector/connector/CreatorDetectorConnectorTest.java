@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.creatordetector.connector;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -24,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CreatorDetectorConnectorTest {
+
+    private static final UserAgent USER_AGENT = new UserAgent(CreatorDetectorConnectorTest.class.getSimpleName());
 
     private static WireMockServer wireMockServer;
     private static CreatorDetectorConnector connector;
@@ -54,7 +57,7 @@ class CreatorDetectorConnectorTest {
     void constructor_baseUrlArgIsNull_throws() {
         assertThrows(NullPointerException.class, () -> {
             try (Client client = ClientBuilder.newClient()) {
-                new CreatorDetectorConnector(client, null);
+                new CreatorDetectorConnector(client, USER_AGENT, null);
             }
         });
     }
@@ -63,7 +66,7 @@ class CreatorDetectorConnectorTest {
     void constructor_baseUrlArgIsEmpty_throws() {
         assertThrows(IllegalArgumentException.class, () -> {
             try (Client client = ClientBuilder.newClient()) {
-                new CreatorDetectorConnector(client, " ");
+                new CreatorDetectorConnector(client, USER_AGENT, " ");
             }
         });
     }

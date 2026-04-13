@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.vip.connector;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.HttpPost;
@@ -62,13 +63,14 @@ public class VipCoreConnector {
      * Class constructor
      *
      * @param httpClient web resources client
+     * @param userAgent  user agent to use for requests
      * @param baseUrl    base URL for job-store service endpoint
      * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
-    public VipCoreConnector(Client httpClient, String baseUrl)
+    public VipCoreConnector(Client httpClient, UserAgent userAgent, String baseUrl)
             throws NullPointerException, IllegalArgumentException {
-        this(FailSafeHttpClient.create(httpClient, RETRY_POLICY), baseUrl);
+        this(FailSafeHttpClient.create(httpClient, userAgent, RETRY_POLICY), baseUrl);
     }
 
     VipCoreConnector(FailSafeHttpClient failSafeHttpClient, String baseUrl) {

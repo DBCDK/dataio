@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.connector.ejb;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.harvester.connector.TickleHarvesterServiceConnector;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
 import dk.dbc.httpclient.HttpClient;
@@ -27,7 +28,7 @@ public class TickleHarvesterServiceConnectorBean {
 
     public TickleHarvesterServiceConnectorBean(String tickleRepoHarvesterUrl) {
         Client client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
-        connector = new TickleHarvesterServiceConnector(client, tickleRepoHarvesterUrl);
+        connector = new TickleHarvesterServiceConnector(client, UserAgent.forInternalRequests(), tickleRepoHarvesterUrl);
         LOGGER.info("Using service endpoint {}", tickleRepoHarvesterUrl);
     }
 

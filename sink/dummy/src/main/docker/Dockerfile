@@ -1,7 +1,8 @@
 FROM docker-dbc.artifacts.dbccloud.dk/dbc-java${java.rt.version}:latest
 LABEL org.opencontainers.image.authors="${team}"
 
-ENV LOG_FORMAT=json \
+ENV APP_NAME=${app-name} \
+    LOG_FORMAT=json \
     LOG_LEVEL=INFO \
     TZ=Europe/Copenhagen
 

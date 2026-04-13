@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.conversion.Conversion;
 import dk.dbc.dataio.commons.conversion.ConversionException;
@@ -23,13 +24,18 @@ import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsFtpFinalizerBean;
 import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsHttpFinalizerBean;
 import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsMailFinalizerBean;
 import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsSFtpFinalizerBean;
+import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.proxy.ProxyBean;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.Response;
+import net.jodah.failsafe.RetryPolicy;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,10 +44,21 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
 public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
+
+    private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
+            .handle(ProcessingException.class)
+            .handleResultIf(response ->
+                    response.getStatus() == 404
+                            || response.getStatus() == 500
+                            || response.getStatus() == 502)
+            .withDelay(Duration.ofSeconds(5))
+            .withMaxRetries(3);
+
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsMessageConsumer.class);
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
@@ -62,9 +79,14 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
     public PeriodicJobsMessageConsumer(ServiceHub serviceHub, EntityManagerFactory entityManagerFactory) {
         super(serviceHub);
         this.entityManagerFactory = entityManagerFactory;
-        this.flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FLOWSTORE_URL.asString());
-        this.fileStoreServiceConnector = new FileStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.FILESTORE_URL.asString());
-        this.weekResolverConnector = new WeekResolverConnector(ClientBuilder.newClient().register(new JacksonFeature()), SinkConfig.WEEKRESOLVER_SERVICE_URL.asString());
+        this.flowStoreServiceConnector = new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()),
+                UserAgent.forInternalRequests(), SinkConfig.FLOWSTORE_URL.asString());
+        this.fileStoreServiceConnector = new FileStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()),
+                UserAgent.forInternalRequests(), SinkConfig.FILESTORE_URL.asString());
+
+        final Client client = ClientBuilder.newClient().register(new JacksonFeature());
+        final FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(client, UserAgent.forInternalRequests(), RETRY_POLICY);
+        this.weekResolverConnector = new WeekResolverConnector(failSafeHttpClient, SinkConfig.WEEKRESOLVER_SERVICE_URL.asString());
 
         this.proxyBean = SinkConfig.PROXY_HOSTNAME.asOptionalString()
                 .map(s -> new ProxyBean(s)

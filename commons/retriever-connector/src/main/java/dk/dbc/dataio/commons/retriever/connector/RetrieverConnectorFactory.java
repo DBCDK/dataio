@@ -3,6 +3,7 @@ package dk.dbc.dataio.commons.retriever.connector;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.httpclient.HttpClient;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -68,7 +69,7 @@ public class RetrieverConnectorFactory {
                 .register(new ObjectMapperProvider())
                 .register(new JacksonFeature()));
         LOGGER.info("Creating CreatorDetectorConnector for: {}", baseUrl);
-        return new RetrieverConnector(client, baseUrl, apiKey);
+        return new RetrieverConnector(client, UserAgent.forExternalRequests(), baseUrl, apiKey);
     }
 
     @Inject

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.rrharvester.service.connector.ejb;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
 import dk.dbc.httpclient.HttpClient;
 import jakarta.annotation.PostConstruct;
@@ -41,7 +42,7 @@ public class RRHarvesterServiceConnectorBean {
         if (endpoint == null || endpoint.trim().isEmpty()) {
             throw new EJBException("RAWREPO_HARVESTER_URL must be set");
         }
-        harvesterTaskServiceConnector = new HarvesterTaskServiceConnector(client, endpoint);
+        harvesterTaskServiceConnector = new HarvesterTaskServiceConnector(client, UserAgent.forInternalRequests(), endpoint);
         LOGGER.info("Using service endpoint {}", endpoint);
     }
 

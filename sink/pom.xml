@@ -6,25 +6,22 @@
     <parent>
         <artifactId>jse-app</artifactId>
         <groupId>dk.dbc</groupId>
-        <version>2.0-SNAPSHOT</version>
+        <version>21.2.0-SNAPSHOT</version>
         <relativePath>../jse-app</relativePath>
     </parent>
 
     <artifactId>dataio-sink</artifactId>
     <packaging>pom</packaging>
 
-    <properties>
-        <flyway.version>9.0.4</flyway.version>
-    </properties>
-
     <modules>
-        <module>marc-client</module>
         <module>batch-exchange</module>
         <module>diff</module>
+        <module>dmat</module>
         <module>dpf</module>
         <module>dummy</module>
         <module>holdings-items</module>
         <module>ims</module>
+        <module>marc-client</module>
         <module>marcconv</module>
         <module>openupdate</module>
         <module>periodic-jobs</module>
@@ -33,6 +30,5 @@
         <module>util</module>
         <module>vip</module>
         <module>worldcat</module>
-        <module>dmat</module>
     </modules>
 </project>

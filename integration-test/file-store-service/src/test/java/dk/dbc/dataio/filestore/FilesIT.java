@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.testcontainers.Containers;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -98,6 +99,7 @@ public class FilesIT {
     @BeforeClass
     public static void setupFileStoreServiceConnector() {
         FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(newRestClient(),
+                UserAgent.forInternalRequests(),
                 new RetryPolicy().withMaxRetries(0));
 
         fileStoreServiceConnector = new FileStoreServiceConnector(failSafeHttpClient,
@@ -316,7 +318,7 @@ public class FilesIT {
             fileStoreServiceConnector.deleteFile(fileId);
 
             // Then...
-            HttpClient httpClient = HttpClient.create(HttpClient.newClient());
+            HttpClient httpClient = HttpClient.create(HttpClient.newClient(), UserAgent.forInternalRequests());
             HttpGet httpGet = new HttpGet(httpClient)
                     .withBaseUrl(fileStoreServiceConnector.getBaseUrl())
                     .withPathElements(

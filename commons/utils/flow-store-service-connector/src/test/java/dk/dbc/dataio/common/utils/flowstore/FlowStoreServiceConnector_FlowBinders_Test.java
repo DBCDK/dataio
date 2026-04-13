@@ -1,6 +1,7 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.rest.FlowBinderResolveQuery;
@@ -31,6 +32,10 @@ import static org.mockito.Mockito.when;
 public class FlowStoreServiceConnector_FlowBinders_Test {
     private static final String FLOW_STORE_URL = "http://dataio/flow-store";
     private final FailSafeHttpClient failSafeHttpClient = mock(FailSafeHttpClient.class);
+    private final UserAgent userAgent = new UserAgent(getClass().getName());
+    {
+        when(failSafeHttpClient.getUserAgent()).thenReturn(userAgent);
+    }
 
     private final FlowStoreServiceConnector flowStoreServiceConnector =
             new FlowStoreServiceConnector(failSafeHttpClient, FLOW_STORE_URL);

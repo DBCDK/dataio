@@ -1,5 +1,6 @@
 package dk.dbc.dataio.logstore.service.connector.ejb;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
 import dk.dbc.httpclient.HttpClient;
 import jakarta.annotation.PreDestroy;
@@ -22,7 +23,7 @@ public class LogStoreServiceConnectorBean {
     }
 
     public LogStoreServiceConnectorBean(String logStoreUrl) {
-        logStoreServiceConnector = new LogStoreServiceConnector(HttpClient.newClient(), logStoreUrl);
+        logStoreServiceConnector = new LogStoreServiceConnector(HttpClient.newClient(), UserAgent.forInternalRequests(), logStoreUrl);
         LOGGER.info("Using service endpoint {}", logStoreUrl);
     }
 

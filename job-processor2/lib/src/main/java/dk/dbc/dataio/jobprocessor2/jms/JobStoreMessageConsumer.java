@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobprocessor2.jms;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Chunk;
@@ -51,7 +52,8 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
         super(serviceHub);
         healthService = serviceHub.healthService;
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
-        flowStoreServiceConnector = ProcessorConfig.FLOWSTORE_URL.asOptionalString().map(fs -> new FlowStoreServiceConnector(ClientBuilder.newClient().register(new JacksonFeature()), fs)).orElse(null);
+        flowStoreServiceConnector = ProcessorConfig.FLOWSTORE_URL.asOptionalString().map(fs -> new FlowStoreServiceConnector(
+                ClientBuilder.newClient().register(new JacksonFeature()), UserAgent.forInternalRequests(), fs)).orElse(null);
         chunkProcessor = new ChunkProcessor(healthService, this::getFlow);
         Metric.dataio_jobprocessor_chunk_duration_ms.gauge(this::getLongestRunningChunkDuration);
         zombieWatch.addCheck("script-check" , this::scriptRuntimeCheck);

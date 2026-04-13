@@ -78,7 +78,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarv
                 .register(new JacksonFeature()));
         final FailSafeHttpClient dmatFailSafeHttpClient = FailSafeHttpClient.create(dmatClient,
                 UserAgent.forInternalRequests(), RETRY_POLICY);
-        dMatServiceConnector = new DMatServiceConnector(dmatFailSafeHttpClient, dmatDownloadBaseUrl);
+        dMatServiceConnector = new DMatServiceConnector(dmatFailSafeHttpClient, dmatServiceBaseUrl);
 
         final Client recordServiceClient = HttpClient.newClient(new ClientConfig()
                 .register(new JacksonFeature()));

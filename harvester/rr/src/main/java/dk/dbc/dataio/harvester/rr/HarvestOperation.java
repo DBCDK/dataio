@@ -3,6 +3,7 @@ package dk.dbc.dataio.harvester.rr;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
@@ -15,6 +16,8 @@ import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.MarcXchangeCollection;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.httpclient.FailSafeHttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.rawrepo.dto.RecordDTO;
@@ -23,12 +26,17 @@ import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
-import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.Response;
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.Tag;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,7 +112,7 @@ public class HarvestOperation implements AutoCloseable {
                 vipCoreConnection, "vipCoreConnection");
         this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config);
         this.rawRepoRecordServiceConnector = recordServiceConnector != null ? recordServiceConnector
-                : RecordServiceConnectorFactory.create(this.rawRepoConnector.getRecordServiceUrl());
+                : createRawRepoRecordServiceConnector(this.rawRepoConnector.getRecordServiceUrl());
         this.metricRegistry = metricRegistry;
     }
 
@@ -383,6 +391,24 @@ public class HarvestOperation implements AutoCloseable {
         } catch (JSONBException e) {
             throw new HarvesterException(e);
         }
+    }
+
+    private RecordServiceConnector createRawRepoRecordServiceConnector(String recordServiceUrl) {
+        RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
+                .handle(ProcessingException.class)
+                .handleResultIf(response ->
+                        response.getStatus() == 404
+                                || response.getStatus() == 500
+                                || response.getStatus() == 502)
+                .withDelay(Duration.ofSeconds(5))
+                .withMaxRetries(3);
+
+        Client client = HttpClient.newClient(new ClientConfig()
+                .register(new JacksonFeature()));
+        FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(client,
+                UserAgent.forInternalRequests(), RETRY_POLICY);
+
+        return new RecordServiceConnector(failSafeHttpClient, recordServiceUrl);
     }
 
     RecordDTO fetchRecord(RecordIdDTO recordId)

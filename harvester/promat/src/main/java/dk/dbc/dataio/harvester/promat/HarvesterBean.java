@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.promat;
 
+import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -7,18 +8,41 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
+import dk.dbc.httpclient.FailSafeHttpClient;
+import dk.dbc.httpclient.HttpClient;
+import dk.dbc.promat.service.connector.JacksonConfig;
 import dk.dbc.promat.service.connector.PromatServiceConnector;
+import jakarta.annotation.PostConstruct;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.Response;
+import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.annotation.RegistryType;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
+
 @Singleton
 public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHarvesterConfig> {
+
+    private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
+            .handle(ProcessingException.class)
+            .handleResultIf(response ->
+                    response.getStatus() == 404
+                            || response.getStatus() == 500
+                            || response.getStatus() == 502)
+            .withDelay(Duration.ofSeconds(5))
+            .withMaxRetries(3);
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
 
     static final Metadata caseCounterMetadata = Metadata.builder()
@@ -32,6 +56,10 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHa
             .withUnit("exception")
             .build();
 
+    @Inject
+    @ConfigProperty(name = "PROMAT_SERVICE_URL")
+    private String promatServiceBaseUrl;
+
     @EJB
     BinaryFileStoreBean binaryFileStoreBean;
     @EJB
@@ -40,12 +68,21 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHa
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-    @Inject
+
     PromatServiceConnector promatServiceConnector;
 
     @Inject
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
     MetricRegistry metricRegistry;
+
+    @PostConstruct
+    public void init() {
+        final Client client = HttpClient.newClient(new ClientConfig()
+                .register(new JacksonConfig())
+                .register(new JacksonFeature()));
+        final FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(client, UserAgent.forInternalRequests(), RETRY_POLICY);
+        promatServiceConnector = new PromatServiceConnector(failSafeHttpClient, promatServiceBaseUrl);
+    }
 
     @Override
     public int executeFor(PromatHarvesterConfig config) throws HarvesterException {

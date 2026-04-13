@@ -394,7 +394,7 @@ public class HarvestOperation implements AutoCloseable {
     }
 
     private RecordServiceConnector createRawRepoRecordServiceConnector(String recordServiceUrl) {
-        RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
+        RetryPolicy<Response> retryPolicy = new RetryPolicy<Response>()
                 .handle(ProcessingException.class)
                 .handleResultIf(response ->
                         response.getStatus() == 404
@@ -406,7 +406,7 @@ public class HarvestOperation implements AutoCloseable {
         Client client = HttpClient.newClient(new ClientConfig()
                 .register(new JacksonFeature()));
         FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(client,
-                UserAgent.forInternalRequests(), RETRY_POLICY);
+                UserAgent.forInternalRequests(), retryPolicy);
 
         return new RecordServiceConnector(failSafeHttpClient, recordServiceUrl);
     }

@@ -295,7 +295,7 @@ public class HarvestOperation {
 
     RecordServiceConnector createRecordServiceConnector() throws HarvesterException {
         try {
-            RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
+            RetryPolicy<Response> retryPolicy = new RetryPolicy<Response>()
                     .handle(ProcessingException.class)
                     .handleResultIf(response ->
                             response.getStatus() == 404
@@ -307,7 +307,7 @@ public class HarvestOperation {
             Client client = HttpClient.newClient(new ClientConfig()
                     .register(new JacksonFeature()));
             FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(client,
-                    UserAgent.forInternalRequests(), RETRY_POLICY);
+                    UserAgent.forInternalRequests(), retryPolicy);
             
             String recordServiceUrl = rawRepoConnector.getRecordServiceUrl();
             LOGGER.info("Using record service URL: {}", recordServiceUrl);

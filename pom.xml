@@ -1099,8 +1099,8 @@
                         -->
                         <useModulePath>false</useModulePath>
                         <useSystemClassLoader>false</useSystemClassLoader>
-                        <!-- When the maven-assembly-plugin is configured with appendAssemblyId=false, the
-                             fat JAR replaces the project artifact. Failsafe 3.x then puts this fat JAR on
+                        <!-- When the maven-shade-plugin (or maven-assembly-plugin with appendAssemblyId=false)
+                             builds a fat JAR, it replaces the project artifact. Failsafe 3.x then puts this fat JAR on
                              the test classpath as the main artifact, ahead of individual dependency JARs.
                              Any META-INF/javamail.providers or META-INF/services entries bundled in the fat
                              JAR will shadow the ones from test-scoped mocks (e.g. mock-javamail) that appear

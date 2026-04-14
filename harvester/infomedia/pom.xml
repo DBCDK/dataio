@@ -30,6 +30,10 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-run-schedule</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-binary-file-store</artifactId>
             <type>ejb</type>
         </dependency>
@@ -69,10 +73,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-testutil-assert</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>run-schedule</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.platform</groupId>

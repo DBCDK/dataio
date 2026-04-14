@@ -124,6 +124,12 @@
                 <version>0.2.20</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.sshd</groupId>
+                <artifactId>sshd-sftp</artifactId>
+                <version>2.13.2</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>com.github.stefanbirkner</groupId>
                 <artifactId>system-rules</artifactId>
                 <version>1.19.0</version>
@@ -254,6 +260,11 @@
                 <groupId>dk.dbc</groupId>
                 <artifactId>dbc-commons-proxy</artifactId>
                 <version>21.3.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-run-schedule</artifactId>
+                <version>21.2.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
@@ -687,11 +698,6 @@
                 <groupId>dk.dbc</groupId>
                 <artifactId>rawrepo-record-service-dto</artifactId>
                 <version>2.2-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>run-schedule</artifactId>
-                <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>

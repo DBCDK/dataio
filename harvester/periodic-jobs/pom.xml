@@ -87,11 +87,11 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>rawrepo-record-service-connector</artifactId>
+            <artifactId>dbc-commons-run-schedule</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>run-schedule</artifactId>
+            <artifactId>rawrepo-record-service-connector</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>

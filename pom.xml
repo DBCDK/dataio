@@ -124,9 +124,10 @@
                 <version>0.2.20</version>
             </dependency>
             <dependency>
-                <groupId>com.github.stefanbirkner</groupId>
-                <artifactId>fake-sftp-server-rule</artifactId>
-                <version>2.0.1</version>
+                <groupId>org.apache.sshd</groupId>
+                <artifactId>sshd-sftp</artifactId>
+                <version>2.13.2</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.github.stefanbirkner</groupId>
@@ -259,6 +260,11 @@
                 <groupId>dk.dbc</groupId>
                 <artifactId>dbc-commons-proxy</artifactId>
                 <version>21.3.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-run-schedule</artifactId>
+                <version>21.2.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
@@ -695,11 +701,6 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
-                <artifactId>run-schedule</artifactId>
-                <version>1.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
                 <artifactId>solr-api</artifactId>
                 <version>1.1-SNAPSHOT</version>
             </dependency>
@@ -877,7 +878,13 @@
             <dependency>
                 <groupId>org.apache.solr</groupId>
                 <artifactId>solr-solrj</artifactId>
-                <version>9.4.0</version>
+                <version>9.10.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.sshd</groupId>
+                <artifactId>sshd-sftp</artifactId>
+                <version>2.13.2</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.angus</groupId>

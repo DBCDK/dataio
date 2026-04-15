@@ -75,6 +75,10 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-run-schedule</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-testutil-jpa</artifactId>
             <scope>test</scope>
         </dependency>
@@ -89,10 +93,6 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>rawrepo-record-service-dto</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>run-schedule</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>

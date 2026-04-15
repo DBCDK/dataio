@@ -73,16 +73,16 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-run-schedule</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-testutil-jpa</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>promat-connector</artifactId>
             <version>2.2-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>run-schedule</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>

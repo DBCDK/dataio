@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.FlowView;
+import dk.dbc.dataio.commons.types.JavaScriptEngine;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
@@ -70,6 +71,37 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
         assertEquals("Something even more wonderfully descriptive", flow2.getDescription());
         byte[] jsar2Result = flowStoreServiceConnector.getJsar(flow.getId());
         assertArrayEquals("Downloaded jsar should be identical to the local one", jsar2, jsar2Result);
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : a JSAR with Flow-JavaScript-Engine: GRAALJS is uploaded
+     * Then : the returned FlowView reports engine GRAALJS
+     */
+    @Test
+    public void createJsarFlow_graaljsEngineAttribute_preservedInFlowView() throws FlowStoreServiceConnectorException {
+        byte[] jsar = new TestJsar("FlowsIT.createJsarFlow_graaljsEngineAttribute_preservedInFlowView")
+                .withEngine(JavaScriptEngine.GRAALJS)
+                .build();
+
+        FlowView flowView = flowStoreServiceConnector.createFlow(Instant.now().toEpochMilli(), jsar);
+
+        assertThat(flowView.getEngine(), is(JavaScriptEngine.GRAALJS));
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : a JSAR with no Flow-JavaScript-Engine manifest attribute is uploaded
+     * Then : the returned FlowView reports engine NASHORN (the default)
+     */
+    @Test
+    public void createJsarFlow_missingEngineAttribute_defaultsToNashorn() throws FlowStoreServiceConnectorException {
+        byte[] jsar = new TestJsar("FlowsIT.createJsarFlow_missingEngineAttribute_defaultsToNashorn")
+                .build();
+
+        FlowView flowView = flowStoreServiceConnector.createFlow(Instant.now().toEpochMilli(), jsar);
+
+        assertThat(flowView.getEngine(), is(JavaScriptEngine.NASHORN));
     }
 
     private byte[] readFile(String name) throws URISyntaxException, IOException {

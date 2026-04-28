@@ -69,7 +69,7 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
                 is(5));
 
         // And...
-        jobInfoSnapshot = jobStoreServiceConnector.listJobs("job:id = " + jobInfoSnapshot.getJobId()).get(0);
+        jobInfoSnapshot = jobStoreServiceConnector.listJobs("job:id = " + jobInfoSnapshot.getJobId()).getFirst();
         assertThat("job is partitioned", jobInfoSnapshot.getState().phaseIsDone(State.Phase.PARTITIONING),
                 is(true));
         assertThat("job number of chunks", jobInfoSnapshot.getNumberOfChunks(),
@@ -88,7 +88,7 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
         chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
                         JmsQueueTester.Queue.SINK_BE_CISTERNE, 2, 20000)
                 .stream().map(this::getChunk)
-                .collect(Collectors.toList());
+                .toList();
 
         assertThat("1st sink chunk ID", chunks.get(0).getChunkId(),
                 is(0L));
@@ -110,7 +110,72 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
                 jobInfoSnapshot.getJobId(), chunks.get(1).getChunkId());
 
         // Then...
-        jobInfoSnapshot = jobStoreServiceConnector.listJobs("job:id = " + jobInfoSnapshot.getJobId()).get(0);
+        jobInfoSnapshot = jobStoreServiceConnector.listJobs("job:id = " + jobInfoSnapshot.getJobId()).getFirst();
+        assertThat("all job phases are done", jobInfoSnapshot.getState().allPhasesAreDone(), is(true));
+        assertThat("job is complete", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
+    }
+
+    /**
+     * Given: a valid job request backed by a GraalJS flow
+     * When : submitted to job-store
+     * Then : a job is created and partitioned
+     * And : two chunks are sent to the GraalJS processor queue (not the Nashorn queue)
+     * When : processor results are received for both chunks
+     * Then : two chunks are sent to the sink queue
+     * When : sink results are received for both chunks
+     * Then : the job is completed
+     */
+    @Test
+    public void jobWithGraaljsFlow_chunksRoutedToGraaljsQueue() throws JobStoreServiceConnectorException {
+        // Given...
+        final JobInputStream jobInputStream = newGraaljsJobInputStream();
+
+        // When...
+        JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(jobInputStream);
+
+        // Then...
+        assertThat("job is created", jobInfoSnapshot, is(notNullValue()));
+        assertThat("job is not complete", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
+
+        // And... chunks must land on the GraalJS queue, not the Nashorn queue
+        List<Chunk> chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
+                JmsQueueTester.Queue.PROCESSING_GRAALJS, 2, 20000)
+                .stream().map(this::getChunk)
+                .sorted(Comparator.comparing(chunk1 -> chunk1 != null ? chunk1.getChunkId() : 0))
+                .collect(Collectors.toList());
+
+        assertThat("Nashorn queue is empty", jmsQueueServiceConnector.getQueueSize(JmsQueueTester.Queue.PROCESSING_BUSINESS), is(0));
+        assertThat("1st processor chunk belongs to job", chunks.get(0).getJobId(), is(jobInfoSnapshot.getJobId()));
+        assertThat("number of items in 1st processor chunk", chunks.get(0).getItems().size(), is(10));
+        assertThat("2nd processor chunk ID", chunks.get(1).getChunkId(), is(1L));
+        assertThat("2nd processor chunk belongs to job", chunks.get(1).getJobId(), is(jobInfoSnapshot.getJobId()));
+        assertThat("number of items in 2nd processor chunk", chunks.get(1).getItems().size(), is(5));
+
+        // When...
+        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(0), Chunk.Type.PROCESSED),
+                jobInfoSnapshot.getJobId(), chunks.get(0).getChunkId());
+        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(1), Chunk.Type.PROCESSED),
+                jobInfoSnapshot.getJobId(), chunks.get(1).getChunkId());
+
+        // Then...
+        chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
+                        JmsQueueTester.Queue.SINK_BE_CISTERNE, 2, 20000)
+                .stream().map(this::getChunk)
+                .toList();
+
+        assertThat("1st sink chunk ID", chunks.get(0).getChunkId(), is(0L));
+        assertThat("1st sink chunk belongs to job", chunks.get(0).getJobId(), is(jobInfoSnapshot.getJobId()));
+        assertThat("2nd sink chunk ID", chunks.get(1).getChunkId(), is(1L));
+        assertThat("2nd sink chunk belongs to job", chunks.get(1).getJobId(), is(jobInfoSnapshot.getJobId()));
+
+        // When...
+        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(0), Chunk.Type.DELIVERED),
+                jobInfoSnapshot.getJobId(), chunks.get(0).getChunkId());
+        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(1), Chunk.Type.DELIVERED),
+                jobInfoSnapshot.getJobId(), chunks.get(1).getChunkId());
+
+        // Then...
+        jobInfoSnapshot = jobStoreServiceConnector.listJobs("job:id = " + jobInfoSnapshot.getJobId()).getFirst();
         assertThat("all job phases are done", jobInfoSnapshot.getState().allPhasesAreDone(), is(true));
         assertThat("job is complete", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
     }
@@ -121,6 +186,17 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
                 .withDataFile(FileStoreUrn.create("13613666").toString())
                 .withPackaging("addi-xml")
                 .withFormat("basis")
+                .withCharset("utf8")
+                .withDestination("broend-cisterne")
+                .withSubmitterId(870970), true, 0);
+    }
+
+    private JobInputStream newGraaljsJobInputStream() {
+        return new JobInputStream(new JobSpecification()
+                .withType(JobSpecification.Type.TRANSIENT)
+                .withDataFile(FileStoreUrn.create("13613666").toString())
+                .withPackaging("addi-xml")
+                .withFormat("graaljs-test")
                 .withCharset("utf8")
                 .withDestination("broend-cisterne")
                 .withSubmitterId(870970), true, 0);

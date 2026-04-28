@@ -3,11 +3,15 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.JavaScriptEngine;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.types.jms.MessageIdentifiers;
+import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
@@ -43,19 +47,37 @@ public class JobProcessorMessageProducerBean extends AbstractMessageProducer imp
     @ConfigProperty(name = "ARTEMIS_MQ_HOST")
     private String artemisHost;
 
+    @Inject
+    @ConfigProperty(name = "PROCESSOR_NASHORN_QUEUE", defaultValue = "processor::business")
+    private String nashornQueue;
+
+    @Inject
+    @ConfigProperty(name = "PROCESSOR_GRAALJS_QUEUE", defaultValue = "processor-graaljs::processor-graaljs")
+    private String graaljsQueue;
+
     public JobProcessorMessageProducerBean() {
         this(new RetryPolicy<>().handle(JMSRuntimeException.class).withDelay(Duration.ofSeconds(30)).withMaxRetries(10)
                 .onFailedAttempt(attempt -> LOGGER.warn("Unable to send message to processor", attempt.getLastFailure())));
     }
 
     public JobProcessorMessageProducerBean(RetryPolicy<?> retryPolicy) {
-        super(JobEntity::getProcessorQueue);
+        super(null);
         this.retryPolicy = retryPolicy;
     }
 
     @PostConstruct
     public void init() {
         connectionFactory = new ActiveMQXAConnectionFactory("tcp://" + artemisHost + ":61616");
+        queueNameFromJob = this::resolveProcessorQueue;
+    }
+
+    String resolveProcessorQueue(JobEntity job) {
+        JavaScriptEngine engine = Optional.ofNullable(job.getCachedFlow())
+                .map(FlowCacheEntity::getFlow)
+                .map(Flow::getContent)
+                .map(FlowContent::getEngine)
+                .orElse(JavaScriptEngine.NASHORN);
+        return engine == JavaScriptEngine.GRAALJS ? graaljsQueue : nashornQueue;
     }
 
     /**

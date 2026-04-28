@@ -27,6 +27,7 @@
         <module>job-store-service</module>
         <module>log-store-service</module>
         <module>sink</module>
+        <module>job-processor-graaljs</module>
     </modules>
 
     <properties>

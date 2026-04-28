@@ -14,6 +14,8 @@ services:
       - VIPCORE_ENDPOINT=none
       - JOBSTORE_DB_URL=jobstore:jobstore@jobstoredb:5432/jobstore
       - ARTEMIS_MQ_HOST=artemis
+      - PROCESSOR_NASHORN_QUEUE=processor::business
+      - PROCESSOR_GRAALJS_QUEUE=processor-graaljs::processor-graaljs
       - ARTEMIS_ADMIN_PORT=8161
       - ARTEMIS_CREDENTIALS=admin:GoFish
       - MAIL_HOST=webmail.dbc.dk

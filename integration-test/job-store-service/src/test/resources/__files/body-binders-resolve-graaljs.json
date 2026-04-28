@@ -1,0 +1,1 @@
+{"id":2999,"version":1,"content":{"name":"GraalJS IT binder","description":"Flow binder for GraalJS integration test","packaging":"addi-xml","format":"graaljs-test","charset":"utf8","destination":"broend-cisterne","priority":"NORMAL","recordSplitter":"ADDI_MARC_XML","flowId":999,"submitterIds":[3],"sinkId":4213}}

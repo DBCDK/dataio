@@ -17,6 +17,7 @@ public class FlowView implements Serializable {
     private long version;
     private String name;
     private String description;
+    private JavaScriptEngine engine;
     private Date timeOfLastModification;
     @JsonIgnore
     private Date timeOfComponentUpdate;
@@ -67,6 +68,15 @@ public class FlowView implements Serializable {
 
     public FlowView withDescription(String description) {
         this.description = description;
+        return this;
+    }
+
+    public JavaScriptEngine getEngine() {
+        return engine != null ? engine : JavaScriptEngine.NASHORN;
+    }
+
+    public FlowView withEngine(JavaScriptEngine engine) {
+        this.engine = engine;
         return this;
     }
 

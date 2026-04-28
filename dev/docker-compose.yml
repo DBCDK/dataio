@@ -1,0 +1,177 @@
+services:
+
+  # ── Infrastructure ────────────────────────────────────────────────────────────
+
+  artemis:
+    image: "docker-metascrum.artifacts.dbccloud.dk/artemis:2_30_0-0"
+    ports:
+      - "8161:8161"    # admin console
+      - "61616:61616"  # JMS (AMQP)
+
+  filestoredb:
+    image: "docker-dbc.artifacts.dbccloud.dk/dbc-postgres-14:latest"
+    environment:
+      POSTGRES_USER: filestore
+      POSTGRES_PASSWORD: filestore
+      POSTGRES_DB: filestore
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "filestore"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  flowstoredb:
+    image: "docker-dbc.artifacts.dbccloud.dk/dbc-postgres-14:latest"
+    environment:
+      POSTGRES_USER: flowstore
+      POSTGRES_PASSWORD: flowstore
+      POSTGRES_DB: flowstore
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "flowstore"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  jobstoredb:
+    image: "docker-dbc.artifacts.dbccloud.dk/dbc-postgres-14:latest"
+    environment:
+      POSTGRES_USER: jobstore
+      POSTGRES_PASSWORD: jobstore
+      POSTGRES_DB: jobstore
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "jobstore"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Services ──────────────────────────────────────────────────────────────────
+
+  filestore:
+    image: "docker-metascrum.artifacts.dbccloud.dk/dataio-file-store-service:devel"
+    depends_on:
+      filestoredb:
+        condition: service_healthy
+    environment:
+      FILESTORE_DB_URL: filestore:filestore@filestoredb:5432/filestore
+      HZ_CLUSTER_NAME: dataio-filestore-dev
+      BFS_ROOT: /tmp/bfs
+      LOG_FORMAT: text
+      JAVA_MAX_HEAP_SIZE: 2G
+    ports:
+      - "8082:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/dataio/file-store-service/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+
+  flowstore:
+    image: "docker-metascrum.artifacts.dbccloud.dk/dataio-flow-store-service:devel"
+    depends_on:
+      flowstoredb:
+        condition: service_healthy
+    environment:
+      FLOWSTORE_DB_URL: flowstore:flowstore@flowstoredb:5432/flowstore
+      HZ_CLUSTER_NAME: dataio-flowstore-dev
+      SUBVERSION_URL: NONE
+      LOG_FORMAT: text
+      JAVA_MAX_HEAP_SIZE: 2G
+    ports:
+      - "8081:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/dataio/flow-store-service/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+
+  jobstore:
+    image: "docker-metascrum.artifacts.dbccloud.dk/dataio-job-store-service-war:devel"
+    depends_on:
+      jobstoredb:
+        condition: service_healthy
+      filestore:
+        condition: service_healthy
+      flowstore:
+        condition: service_healthy
+      artemis:
+        condition: service_started
+    environment:
+      JOBSTORE_DB_URL: jobstore:jobstore@jobstoredb:5432/jobstore
+      FLOWSTORE_URL: http://flowstore:8080/dataio/flow-store-service
+      FILESTORE_URL: http://filestore:8080/dataio/file-store-service
+      ARTEMIS_MQ_HOST: artemis
+      ARTEMIS_ADMIN_PORT: "8161"
+      ARTEMIS_CREDENTIALS: admin:GoFish
+      MAIL_HOST: webmail.dbc.dk
+      MAIL_USER: mailuser
+      MAIL_FROM: danbib@kiska.dbc.dk
+      MAIL_TO_FALLBACK: bruges-ikke@dbc.dk
+      PROCESSOR_NASHORN_QUEUE: processor::business
+      PROCESSOR_GRAALJS_QUEUE: processor-graaljs::processor-graaljs
+      LOGSTORE_URL: none
+      RAWREPO_HARVESTER_URL: none
+      TICKLE_REPO_HARVESTER_URL: none
+      VIPCORE_ENDPOINT: none
+      DEVELOPER: "on"
+      ENABLE_REMOTE_DEBUGGING: "yes"
+      HZ_CLUSTER_NAME: dataio-jobstore-dev
+      LOG_FORMAT: text
+      TZ: Europe/Copenhagen
+      JAVA_MAX_HEAP_SIZE: 2G
+    ports:
+      - "8080:8080"  # REST API
+      - "9009:9009"  # remote debug
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/dataio/job-store-service/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+  # ── Processors ────────────────────────────────────────────────────────────────
+
+  job-processor2:
+    image: "docker-metascrum.artifacts.dbccloud.dk/dataio-job-processor2-app:devel"
+    depends_on:
+      jobstore:
+        condition: service_healthy
+      artemis:
+        condition: service_started
+    environment:
+      QUEUE: processor::business
+      ARTEMIS_MQ_HOST: artemis
+      ARTEMIS_JMS_PORT: "61616"
+      ARTEMIS_USER: admin
+      ARTEMIS_PASSWORD: GoFish
+      JOBSTORE_URL: http://jobstore:8080/dataio/job-store-service
+      FLOWSTORE_URL: http://flowstore:8080/dataio/flow-store-service
+      WEB_PORT: "8080"
+      LOG_FORMAT: text
+    ports:
+      - "8083:8080"  # health + metrics
+
+  job-processor-graaljs:
+    image: "docker-metascrum.artifacts.dbccloud.dk/dataio-job-processor-graaljs:devel"
+    depends_on:
+      jobstore:
+        condition: service_healthy
+      artemis:
+        condition: service_started
+    environment:
+      QUEUE: processor-graaljs::processor-graaljs
+      ARTEMIS_MQ_HOST: artemis
+      ARTEMIS_JMS_PORT: "61616"
+      ARTEMIS_USER: admin
+      ARTEMIS_PASSWORD: GoFish
+      JOBSTORE_URL: http://jobstore:8080/dataio/job-store-service
+      FLOWSTORE_URL: http://flowstore:8080/dataio/flow-store-service
+      WEB_PORT: "8080"
+      LOG_FORMAT: text
+    ports:
+      - "8084:8080"  # health + metrics
+
+networks:
+  default:
+    name: dataio-dev

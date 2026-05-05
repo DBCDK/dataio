@@ -11,6 +11,9 @@
     },
     "jdbc/dataio/rawrepo-fbstest-dm3": {
       "url": "${RAWREPO_FBSTEST_DM3_DB_URL}"
+    },
+    "jdbc/dataio/rawrepo-test": {
+      "url": "${RAWREPO_TEST_DB_URL}"
     }
   }
 }

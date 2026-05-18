@@ -35,6 +35,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dmat-connector</artifactId>
+            <version>21.2.6-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

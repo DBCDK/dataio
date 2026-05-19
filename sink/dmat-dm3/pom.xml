@@ -19,6 +19,21 @@
         <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dmat-connector</artifactId>
+                <version>21.2.6-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dmat-model</artifactId>
+                <version>21.2.6-SNAPSHOT</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -35,7 +50,14 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dmat-connector</artifactId>
-            <version>21.2.6-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dmat-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
     </dependencies>
 

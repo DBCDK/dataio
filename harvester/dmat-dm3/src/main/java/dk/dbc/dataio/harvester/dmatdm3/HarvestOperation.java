@@ -171,15 +171,15 @@ public class HarvestOperation {
 
             return recordsProcessed;
         } catch (DMatServiceConnectorException e) {
-            LOGGER.error(PROCESSING_ERROR);
+            LOGGER.error(PROCESSING_ERROR, e);
             metricRegistry.counter(DmatDm3HarvesterMetrics.EXCEPTIONS.getMetadata()).inc();
             throw new HarvesterException("Caught DMatServiceConnectorException", e);
         } catch (HarvesterException e) {
-            LOGGER.error(PROCESSING_ERROR);
+            LOGGER.error(PROCESSING_ERROR, e);
             metricRegistry.counter(DmatDm3HarvesterMetrics.EXCEPTIONS.getMetadata()).inc();
             throw e;
         } catch (Exception e) {
-            LOGGER.error(PROCESSING_ERROR);
+            LOGGER.error(PROCESSING_ERROR, e);
             metricRegistry.counter(DmatDm3HarvesterMetrics.UNHANDLED_EXCEPTIONS.getMetadata()).inc();
             throw new HarvesterException("Caught Exception", e);
         } finally {
@@ -403,6 +403,7 @@ public class HarvestOperation {
             queryParams.put("limit", Integer.toString(dmatServiceFetchSize));
             queryParams.put("from", Integer.toString(from));
             final ExportedRecordList result = dmatServiceConnector.getExportedRecords(queryParams);
+            LOGGER.info("Fetched {} records from DMat", result.getNumFound());
 
             this.records = result.getRecords().iterator();
             this.creationTime = result.getCreationDate();

@@ -11,6 +11,11 @@
   </parent>
 
   <artifactId>dataio-harvester-types</artifactId>
+  <properties>
+
+    <!-- Temporary: whole module is intentional duplication of dmat harvester until that is removed -->
+    <sonar.cpd.exclusions>**/*</sonar.cpd.exclusions>
+  </properties>
 
   <dependencies>
     <dependency>

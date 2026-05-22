@@ -21,9 +21,6 @@
         <sonar.issue.ignore.multicriteria>s6813</sonar.issue.ignore.multicriteria>
         <sonar.issue.ignore.multicriteria.s6813.ruleKey>java:S6813</sonar.issue.ignore.multicriteria.s6813.ruleKey>
         <sonar.issue.ignore.multicriteria.s6813.resourceKey>**/*.java</sonar.issue.ignore.multicriteria.s6813.resourceKey>
-
-        <!-- Temporary: whole module is intentional duplication of dmat harvester until that is removed -->
-        <sonar.cpd.exclusions>**/*</sonar.cpd.exclusions>
     </properties>
 
     <dependencies>

@@ -18,6 +18,9 @@
         <app-name>dataio-harvester-dmat</app-name>
         <docker.build.skip>false</docker.build.skip>
         <docker.repo>${docker.registry}/${app-name}</docker.repo>
+
+        <!-- Temporary: whole module is intentional duplication of dmat harvester until that is removed -->
+        <sonar.cpd.exclusions>**/*</sonar.cpd.exclusions>
     </properties>
 
     <dependencies>

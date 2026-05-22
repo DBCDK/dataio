@@ -2,7 +2,6 @@ package dk.dbc.dataio.harvester.dmatdm3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.MarcXchangeCollection;
 import dk.dbc.dmat.service.persistence.DMatRecord;
 import dk.dbc.dmat.service.persistence.enums.Selection;
 import dk.dbc.dmat.service.persistence.enums.UpdateCode;
@@ -26,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 class RecordFetcherTest {
     private final RecordServiceConnector connector = mock(RecordServiceConnector.class);
-    private final byte[] emptyCollection = new MarcXchangeCollection().emptyCollection();
+    private final byte[] emptyCollection = "[]".getBytes();
     private final List<RecordEntryDTO> someRecordList = List.of(
             new RecordEntryDTO()
     );

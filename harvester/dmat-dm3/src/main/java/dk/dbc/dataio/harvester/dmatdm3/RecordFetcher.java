@@ -3,7 +3,6 @@ package dk.dbc.dataio.harvester.dmatdm3;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.MarcXchangeCollection;
 import dk.dbc.dmat.service.persistence.DMatRecord;
 import dk.dbc.dmat.service.persistence.enums.Selection;
 import dk.dbc.dmat.service.persistence.enums.UpdateCode;
@@ -37,7 +36,7 @@ public class RecordFetcher {
             return mapper.writeValueAsBytes(marcRecords);
         } else {
             LOGGER.info("No attached record for updateCode {} and selection {}", dMatRecord.getUpdateCode(), dMatRecord.getSelection());
-            return new MarcXchangeCollection().emptyCollection();
+            return mapper.writeValueAsBytes(List.of());
         }
     }
 

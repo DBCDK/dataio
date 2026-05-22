@@ -17,6 +17,9 @@
         <main-class>dk.dbc.dataio.sink.dmat.DMatSinkApp</main-class>
         <docker.build.skip>false</docker.build.skip>
         <docker.repo>${docker.registry}/${app-name}</docker.repo>
+
+        <!-- Temporary: whole module is intentional duplication of dmat sink until that is removed -->
+        <sonar.cpd.exclusions>**/*</sonar.cpd.exclusions>
     </properties>
 
     <dependencies>

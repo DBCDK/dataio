@@ -29,6 +29,9 @@ import dk.dbc.tagstack.connector.TagStackConnectorException;
 import dk.dbc.tagstack.connector.model.TagRequest;
 import dk.dbc.tagstack.connector.model.TagResponse;
 import dk.dbc.tagstack.connector.model.TagResult;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,6 +67,7 @@ public class HarvestOperationTest {
     private JobStoreServiceConnector jobStoreServiceConnector;
     private MockedFileStoreServiceConnector fileStoreServiceConnector;
     private TagStackConnector tagStackConnector;
+    private MetricRegistry metricRegistry;
     private Path harvesterTmpFile;
 
     @TempDir
@@ -83,6 +87,11 @@ public class HarvestOperationTest {
         retrieverConnector = mock(RetrieverConnector.class);
         creatorDetectorConnector = mock(CreatorDetectorConnector.class);
         tagStackConnector = mock(TagStackConnector.class);
+
+        Timer mockTimer = mock(Timer.class);
+        when(mockTimer.time()).thenReturn(mock(Timer.Context.class));
+        metricRegistry = mock(MetricRegistry.class);
+        when(metricRegistry.timer(any(Metadata.class), any())).thenReturn(mockTimer);
     }
 
     @BeforeEach
@@ -488,7 +497,7 @@ public class HarvestOperationTest {
 
     private HarvestOperation createHarvestOperation(InfomediaHarvesterConfig config) {
         try {
-            return new HarvestOperation(config, new BinaryFileStoreFsImpl(Files.createDirectory(tmpFolder.resolve("im-op-test-" + UUID.randomUUID()))), flowStoreServiceConnector, fileStoreServiceConnector, jobStoreServiceConnector, retrieverConnector, creatorDetectorConnector, tagStackConnector);
+            return new HarvestOperation(config, new BinaryFileStoreFsImpl(Files.createDirectory(tmpFolder.resolve("im-op-test-" + UUID.randomUUID()))), flowStoreServiceConnector, fileStoreServiceConnector, jobStoreServiceConnector, retrieverConnector, creatorDetectorConnector, tagStackConnector, metricRegistry);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

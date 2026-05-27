@@ -53,7 +53,8 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Infomedi
                     jobStoreServiceConnectorBean.getConnector(),
                     retrieverConnector,
                     creatorDetectorConnector,
-                    tagStackConnector)
+                    tagStackConnector,
+                    metricRegistry)
                     .execute();
         } catch (HarvesterException e) {
             metricRegistry.counter(

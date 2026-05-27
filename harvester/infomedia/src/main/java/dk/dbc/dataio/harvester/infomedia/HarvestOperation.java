@@ -27,6 +27,9 @@ import dk.dbc.tagstack.connector.TagStackConnectorException;
 import dk.dbc.tagstack.connector.model.TagRequest;
 import dk.dbc.tagstack.connector.model.TagResponse;
 import dk.dbc.tagstack.connector.model.TagResult;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,6 +171,7 @@ public class HarvestOperation {
     private final RetrieverConnector retrieverConnector;
     private final CreatorDetectorConnector creatorDetectorConnector;
     private final TagStackConnector tagStackConnector;
+    private final MetricRegistry metricRegistry;
     private final JSONBContext jsonbContext = new JSONBContext();
 
     public HarvestOperation(InfomediaHarvesterConfig config,
@@ -177,7 +181,8 @@ public class HarvestOperation {
                             JobStoreServiceConnector jobStoreServiceConnector,
                             RetrieverConnector retrieverConnector,
                             CreatorDetectorConnector creatorDetectorConnector,
-                            TagStackConnector tagStackConnector) {
+                            TagStackConnector tagStackConnector,
+                            MetricRegistry metricRegistry) {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
@@ -186,6 +191,7 @@ public class HarvestOperation {
         this.retrieverConnector = retrieverConnector;
         this.creatorDetectorConnector = creatorDetectorConnector;
         this.tagStackConnector = tagStackConnector;
+        this.metricRegistry = metricRegistry;
     }
 
     public int execute() throws HarvesterException {
@@ -231,7 +237,9 @@ public class HarvestOperation {
     }
 
     private void enrichWithCreatorNames(Article article, AddiMetaData addiMetaData, ArticlePayload payload) {
-        try {
+        try (Timer.Context timerContext = metricRegistry.timer(
+                HarvesterMetrics.CREATOR_NAME_SUGGESTIONS_TIMER.getMetadata(),
+                new Tag("srcId", config.getContent().getId())).time()) {
             final List<CreatorNameSuggestion> suggestions =
                     getCreatorNameSuggestions(article, addiMetaData.bibliographicRecordId());
             if (!suggestions.isEmpty()) {
@@ -243,7 +251,9 @@ public class HarvestOperation {
     }
 
     private void enrichWithTags(Article article, AddiMetaData addiMetaData, ArticlePayload payload) {
-        try {
+        try (Timer.Context timerContext = metricRegistry.timer(
+                HarvesterMetrics.TAGS_TIMER.getMetadata(),
+                new Tag("srcId", config.getContent().getId())).time()) {
             final List<TagResult> tags = getTags(article);
             if (!tags.isEmpty()) {
                 payload.setTags(tags);

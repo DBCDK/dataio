@@ -26,10 +26,6 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dataio-commons-retriever-connector</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-run-schedule</artifactId>
         </dependency>
         <dependency>
@@ -73,6 +69,10 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-testutil-assert</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>retriever-connector</artifactId>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>

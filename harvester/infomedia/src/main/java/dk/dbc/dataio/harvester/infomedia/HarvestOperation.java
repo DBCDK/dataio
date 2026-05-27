@@ -62,6 +62,7 @@ import java.util.function.Supplier;
  * The operation integrates with multiple external services:
  * - Retriever platform for fetching articles
  * - Creator-Detector service for enriching articles with creator name suggestions
+ * - Tag-Stack service for enriching articles with tag suggestions
  * <p>
  * Each harvested article is transformed into an ADDI record with associated metadata including
  * tracking information, bibliographic record identifiers, and diagnostic information if
@@ -77,6 +78,7 @@ import java.util.function.Supplier;
 public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
     private static final int RETRIEVER_DEFAULT_PAGE_SIZE = 100;
+    static final int TAG_TOP_K = 10;
 
     private static Supplier<ZoneId> timezoneSupplier = HarvestOperation::resolveTimezone;
 
@@ -201,36 +203,7 @@ public class HarvestOperation {
                     for (Article article : getArticles(publicationDate)) {
                         final AddiMetaData addiMetaData = createAddiMetaData(article);
                         LOGGER.info("harvested {}", addiMetaData.bibliographicRecordId());
-
-                        final ArticlePayload articlePayload = new ArticlePayload();
-                        articlePayload.setArticle(article);
-
-                        try {
-                            final List<CreatorNameSuggestion> creatorNameSuggestions =
-                                    getCreatorNameSuggestions(article, addiMetaData.bibliographicRecordId());
-                            if (!creatorNameSuggestions.isEmpty()) {
-                                articlePayload.setCreatorNameSuggestions(creatorNameSuggestions);
-                            }
-                        } catch (RuntimeException | CreatorDetectorConnectorException e) {
-                            final String errMsg = String.format("Getting creator name suggestions failed for article %s: %s",
-                                    addiMetaData.bibliographicRecordId(), e.getMessage());
-                            addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errMsg));
-                            LOGGER.error(errMsg, e);
-                        }
-
-                        try {
-                            final List<TagResult> tags = getTags(article);
-                            if (!tags.isEmpty()) {
-                                articlePayload.setTags(tags);
-                            }
-                        } catch (RuntimeException | TagStackConnectorException e) {
-                            final String errMsg = String.format("Getting tags failed for article %s: %s",
-                                    addiMetaData.bibliographicRecordId(), e.getMessage());
-                            addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errMsg));
-                            LOGGER.error(errMsg, e);
-                        }
-
-                        jobBuilder.addRecord(createAddiRecord(addiMetaData, articlePayload));
+                        jobBuilder.addRecord(createAddiRecord(addiMetaData, buildArticlePayload(article, addiMetaData)));
                     }
 
                     jobBuilder.build();
@@ -247,6 +220,44 @@ public class HarvestOperation {
             LOGGER.info("Harvested {} records in {} ms",
                     recordsHarvested, stopwatch.getElapsedTime());
         }
+    }
+
+    private ArticlePayload buildArticlePayload(Article article, AddiMetaData addiMetaData) {
+        final ArticlePayload payload = new ArticlePayload();
+        payload.setArticle(article);
+        enrichWithCreatorNames(article, addiMetaData, payload);
+        enrichWithTags(article, addiMetaData, payload);
+        return payload;
+    }
+
+    private void enrichWithCreatorNames(Article article, AddiMetaData addiMetaData, ArticlePayload payload) {
+        try {
+            final List<CreatorNameSuggestion> suggestions =
+                    getCreatorNameSuggestions(article, addiMetaData.bibliographicRecordId());
+            if (!suggestions.isEmpty()) {
+                payload.setCreatorNameSuggestions(suggestions);
+            }
+        } catch (RuntimeException | CreatorDetectorConnectorException e) {
+            recordEnrichmentFailure("Getting creator name suggestions", addiMetaData, e);
+        }
+    }
+
+    private void enrichWithTags(Article article, AddiMetaData addiMetaData, ArticlePayload payload) {
+        try {
+            final List<TagResult> tags = getTags(article);
+            if (!tags.isEmpty()) {
+                payload.setTags(tags);
+            }
+        } catch (RuntimeException | TagStackConnectorException e) {
+            recordEnrichmentFailure("Getting tags", addiMetaData, e);
+        }
+    }
+
+    private void recordEnrichmentFailure(String description, AddiMetaData addiMetaData, Exception e) {
+        final String errMsg = String.format("%s failed for article %s: %s",
+                description, addiMetaData.bibliographicRecordId(), e.getMessage());
+        addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errMsg));
+        LOGGER.error(errMsg, e);
     }
 
     private AddiMetaData createAddiMetaData(Article article) {
@@ -357,7 +368,7 @@ public class HarvestOperation {
         if (fulltext == null || fulltext.isBlank()) {
             return Collections.emptyList();
         }
-        final TagRequest tagRequest = TagRequest.builder(fulltext).topK(10).build();
+        final TagRequest tagRequest = TagRequest.builder(fulltext).topK(TAG_TOP_K).build();
         final TagResponse tagResponse = tagStackConnector.tag(tagRequest);
         final List<TagResult> tags = tagResponse.response();
         if (tags == null || tags.isEmpty()) {

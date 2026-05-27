@@ -326,7 +326,7 @@ public class HarvestOperationTest {
         when(retrieverConnector.searchArticles(articlesRequest))
                 .thenReturn(new ArticlesResponse(1, List.of(article)));
 
-        TagRequest tagRequest = TagRequest.builder(fulltext).topK(10).build();
+        TagRequest tagRequest = TagRequest.builder(fulltext).topK(HarvestOperation.TAG_TOP_K).build();
         List<TagResult> tagResults = List.of(
                 new TagResult("biology", "marine biology topic", 0.95),
                 new TagResult("science", "general science", 0.80));
@@ -418,7 +418,7 @@ public class HarvestOperationTest {
         when(retrieverConnector.searchArticles(articlesRequest))
                 .thenReturn(new ArticlesResponse(1, List.of(article)));
 
-        TagRequest tagRequest = TagRequest.builder(fulltext).topK(10).build();
+        TagRequest tagRequest = TagRequest.builder(fulltext).topK(HarvestOperation.TAG_TOP_K).build();
         when(tagStackConnector.tag(eq(tagRequest)))
                 .thenReturn(new TagResponse(null, Collections.emptyList()));
 
@@ -464,7 +464,7 @@ public class HarvestOperationTest {
         when(retrieverConnector.searchArticles(articlesRequest))
                 .thenReturn(new ArticlesResponse(1, List.of(article)));
 
-        TagRequest tagRequest = TagRequest.builder(fulltext).topK(10).build();
+        TagRequest tagRequest = TagRequest.builder(fulltext).topK(HarvestOperation.TAG_TOP_K).build();
         when(tagStackConnector.tag(eq(tagRequest)))
                 .thenThrow(new TagStackConnectorException("tag service unavailable"));
 

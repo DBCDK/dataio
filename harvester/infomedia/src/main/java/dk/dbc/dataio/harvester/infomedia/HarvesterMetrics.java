@@ -18,6 +18,14 @@ public enum HarvesterMetrics {
             .withName("dataio_harvester_infomedia_unexpected_harvester_exceptions_counter")
             .withDescription("Number of unexpected HarvesterException instances thrown")
             .withUnit("exceptions")
+            .build()),
+    CREATOR_NAME_SUGGESTIONS_TIMER(Metadata.builder()
+            .withName("dataio_harvester_infomedia_creator_name_suggestions_timer")
+            .withDescription("Time spent fetching creator name suggestions from creator-detector service")
+            .build()),
+    TAGS_TIMER(Metadata.builder()
+            .withName("dataio_harvester_infomedia_tags_timer")
+            .withDescription("Time spent fetching tags from tag-stack service")
             .build());
 
     private final Metadata metadata;

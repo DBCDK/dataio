@@ -3,12 +3,13 @@ package dk.dbc.dataio.harvester.infomedia;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.creatordetector.connector.CreatorDetectorConnector;
-import dk.dbc.dataio.commons.retriever.connector.RetrieverConnector;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
+import dk.dbc.retriever.connector.RetrieverConnector;
+import dk.dbc.tagstack.connector.TagStackConnector;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
 import jakarta.inject.Inject;
@@ -37,6 +38,9 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Infomedi
     CreatorDetectorConnector creatorDetectorConnector;
 
     @Inject
+    TagStackConnector tagStackConnector;
+
+    @Inject
     MetricRegistry metricRegistry;
 
     @Override
@@ -48,7 +52,9 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Infomedi
                     fileStoreServiceConnectorBean.getConnector(),
                     jobStoreServiceConnectorBean.getConnector(),
                     retrieverConnector,
-                    creatorDetectorConnector)
+                    creatorDetectorConnector,
+                    tagStackConnector,
+                    metricRegistry)
                     .execute();
         } catch (HarvesterException e) {
             metricRegistry.counter(

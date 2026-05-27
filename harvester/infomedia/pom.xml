@@ -75,6 +75,10 @@
             <artifactId>dbc-commons-testutil-assert</artifactId>
         </dependency>
         <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>tag-stack-connector</artifactId>
+        </dependency>
+        <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-web-api</artifactId>
         </dependency>

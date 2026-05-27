@@ -3,6 +3,7 @@ package dk.dbc.dataio.harvester.infomedia;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import dk.dbc.dataio.commons.creatordetector.connector.CreatorNameSuggestion;
 import dk.dbc.dataio.commons.retriever.connector.model.Article;
+import dk.dbc.tagstack.connector.model.TagResult;
 
 import java.util.List;
 
@@ -11,6 +12,7 @@ public class ArticlePayload {
 
     private Article article;
     private List<CreatorNameSuggestion> creatorNameSuggestions;
+    private List<TagResult> tags;
 
     public Article getArticle() {
         return article;
@@ -26,5 +28,13 @@ public class ArticlePayload {
 
     public void setCreatorNameSuggestions(List<CreatorNameSuggestion> creatorNameSuggestions) {
         this.creatorNameSuggestions = creatorNameSuggestions;
+    }
+
+    public List<TagResult> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<TagResult> tags) {
+        this.tags = tags;
     }
 }

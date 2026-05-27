@@ -9,6 +9,7 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
+import dk.dbc.tagstack.connector.TagStackConnector;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
 import jakarta.inject.Inject;
@@ -37,6 +38,9 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Infomedi
     CreatorDetectorConnector creatorDetectorConnector;
 
     @Inject
+    TagStackConnector tagStackConnector;
+
+    @Inject
     MetricRegistry metricRegistry;
 
     @Override
@@ -48,7 +52,8 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Infomedi
                     fileStoreServiceConnectorBean.getConnector(),
                     jobStoreServiceConnectorBean.getConnector(),
                     retrieverConnector,
-                    creatorDetectorConnector)
+                    creatorDetectorConnector,
+                    tagStackConnector)
                     .execute();
         } catch (HarvesterException e) {
             metricRegistry.counter(

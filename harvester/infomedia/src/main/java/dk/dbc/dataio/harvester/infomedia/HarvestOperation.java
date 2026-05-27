@@ -22,6 +22,11 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
+import dk.dbc.tagstack.connector.TagStackConnector;
+import dk.dbc.tagstack.connector.TagStackConnectorException;
+import dk.dbc.tagstack.connector.model.TagRequest;
+import dk.dbc.tagstack.connector.model.TagResponse;
+import dk.dbc.tagstack.connector.model.TagResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,6 +165,7 @@ public class HarvestOperation {
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final RetrieverConnector retrieverConnector;
     private final CreatorDetectorConnector creatorDetectorConnector;
+    private final TagStackConnector tagStackConnector;
     private final JSONBContext jsonbContext = new JSONBContext();
 
     public HarvestOperation(InfomediaHarvesterConfig config,
@@ -168,7 +174,8 @@ public class HarvestOperation {
                             FileStoreServiceConnector fileStoreServiceConnector,
                             JobStoreServiceConnector jobStoreServiceConnector,
                             RetrieverConnector retrieverConnector,
-                            CreatorDetectorConnector creatorDetectorConnector) {
+                            CreatorDetectorConnector creatorDetectorConnector,
+                            TagStackConnector tagStackConnector) {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
@@ -176,6 +183,7 @@ public class HarvestOperation {
         this.jobStoreServiceConnector = jobStoreServiceConnector;
         this.retrieverConnector = retrieverConnector;
         this.creatorDetectorConnector = creatorDetectorConnector;
+        this.tagStackConnector = tagStackConnector;
     }
 
     public int execute() throws HarvesterException {
@@ -205,6 +213,18 @@ public class HarvestOperation {
                             }
                         } catch (RuntimeException | CreatorDetectorConnectorException e) {
                             final String errMsg = String.format("Getting creator name suggestions failed for article %s: %s",
+                                    addiMetaData.bibliographicRecordId(), e.getMessage());
+                            addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errMsg));
+                            LOGGER.error(errMsg, e);
+                        }
+
+                        try {
+                            final List<TagResult> tags = getTags(article);
+                            if (!tags.isEmpty()) {
+                                articlePayload.setTags(tags);
+                            }
+                        } catch (RuntimeException | TagStackConnectorException e) {
+                            final String errMsg = String.format("Getting tags failed for article %s: %s",
                                     addiMetaData.bibliographicRecordId(), e.getMessage());
                             addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errMsg));
                             LOGGER.error(errMsg, e);
@@ -327,6 +347,23 @@ public class HarvestOperation {
                 .filter(creatorNameSuggestion -> creatorNameSuggestion.authorityId() != null
                         && !creatorNameSuggestion.authorityId().isBlank())
                 .toList();
+    }
+
+    private List<TagResult> getTags(Article article) throws TagStackConnectorException {
+        if (article == null) {
+            return Collections.emptyList();
+        }
+        final String fulltext = article.get("FULLTEXT", String.class);
+        if (fulltext == null || fulltext.isBlank()) {
+            return Collections.emptyList();
+        }
+        final TagRequest tagRequest = TagRequest.builder(fulltext).topK(10).build();
+        final TagResponse tagResponse = tagStackConnector.tag(tagRequest);
+        final List<TagResult> tags = tagResponse.response();
+        if (tags == null || tags.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return tags;
     }
 
     private Instant safeParsePublishingDate(String publishingDate) {

@@ -24,6 +24,11 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.tagstack.connector.TagStackConnector;
+import dk.dbc.tagstack.connector.TagStackConnectorException;
+import dk.dbc.tagstack.connector.model.TagRequest;
+import dk.dbc.tagstack.connector.model.TagResponse;
+import dk.dbc.tagstack.connector.model.TagResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +53,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -57,6 +63,7 @@ public class HarvestOperationTest {
     private RetrieverConnector retrieverConnector;
     private JobStoreServiceConnector jobStoreServiceConnector;
     private MockedFileStoreServiceConnector fileStoreServiceConnector;
+    private TagStackConnector tagStackConnector;
     private Path harvesterTmpFile;
 
     @TempDir
@@ -75,6 +82,7 @@ public class HarvestOperationTest {
         flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         retrieverConnector = mock(RetrieverConnector.class);
         creatorDetectorConnector = mock(CreatorDetectorConnector.class);
+        tagStackConnector = mock(TagStackConnector.class);
     }
 
     @BeforeEach
@@ -292,9 +300,195 @@ public class HarvestOperationTest {
         assertThat(dates, is(List.of(today.minusDays(2), today.minusDays(1), today)));
     }
 
+    @Test
+    public void tagsAreAddedToArticlePayload() throws HarvesterException, RetrieverConnectorException,
+            FlowStoreServiceConnectorException, JobStoreServiceConnectorException, TagStackConnectorException {
+        final String fulltext = "Scientists discover new species of deep-sea fish";
+
+        Article article = new Article();
+        article.set("DOC_ID", "with-tags");
+        article.set("PUBLISHING_DATE", "2026-03-21T02:00:00");
+        article.set("FULLTEXT", fulltext);
+
+        InfomediaHarvesterConfig config = newConfig();
+        LocalDate today = LocalDate.now(HarvestOperation.getTimezone());
+        config.getContent().withNextPublicationDate(Date.from(
+                today.atStartOfDay(HarvestOperation.getTimezone()).toInstant()));
+
+        ArticlesRequest articlesRequest = ArticlesRequest.builder()
+                .fromDate(today)
+                .toDate(today)
+                .query("srcid:" + config.getContent().getId())
+                .page(1)
+                .size(2)
+                .formatFulltextHtml(false)
+                .build();
+        when(retrieverConnector.searchArticles(articlesRequest))
+                .thenReturn(new ArticlesResponse(1, List.of(article)));
+
+        TagRequest tagRequest = TagRequest.builder(fulltext).topK(10).build();
+        List<TagResult> tagResults = List.of(
+                new TagResult("biology", "marine biology topic", 0.95),
+                new TagResult("science", "general science", 0.80));
+        when(tagStackConnector.tag(eq(tagRequest)))
+                .thenReturn(new TagResponse(null, tagResults));
+
+        List<AddiMetaData> addiMetadataExpectations = List.of(new AddiMetaData()
+                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
+                .withFormat("test-format")
+                .withBibliographicRecordId("with-tags")
+                .withTrackingId("Retriever.test.with-tags")
+                .withDeleted(false));
+
+        List<Expectation> addiContentExpectations = List.of(new Expectation(
+                "{\"article\":{\"DOC_ID\":\"with-tags\",\"PUBLISHING_DATE\":\"2026-03-21T02:00:00\",\"FULLTEXT\":\"Scientists discover new species of deep-sea fish\"}," +
+                "\"tags\":[{\"tag\":\"biology\",\"explanation\":\"marine biology topic\",\"score\":0.95},{\"tag\":\"science\",\"explanation\":\"general science\",\"score\":0.8}]}"));
+
+        createHarvestOperation(config).execute();
+
+        AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
+        addiFileVerifier.verify(harvesterTmpFile.toFile(), addiMetadataExpectations, addiContentExpectations);
+    }
+
+    @Test
+    public void noTagsForMissingFulltext() throws HarvesterException, RetrieverConnectorException,
+            FlowStoreServiceConnectorException, JobStoreServiceConnectorException, TagStackConnectorException {
+        Article article = new Article();
+        article.set("DOC_ID", "no-fulltext");
+        article.set("PUBLISHING_DATE", "2026-03-21T02:00:00");
+        // FULLTEXT field intentionally absent
+
+        InfomediaHarvesterConfig config = newConfig();
+        LocalDate today = LocalDate.now(HarvestOperation.getTimezone());
+        config.getContent().withNextPublicationDate(Date.from(
+                today.atStartOfDay(HarvestOperation.getTimezone()).toInstant()));
+
+        ArticlesRequest articlesRequest = ArticlesRequest.builder()
+                .fromDate(today)
+                .toDate(today)
+                .query("srcid:" + config.getContent().getId())
+                .page(1)
+                .size(2)
+                .formatFulltextHtml(false)
+                .build();
+        when(retrieverConnector.searchArticles(articlesRequest))
+                .thenReturn(new ArticlesResponse(1, List.of(article)));
+
+        List<AddiMetaData> addiMetadataExpectations = List.of(new AddiMetaData()
+                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
+                .withFormat("test-format")
+                .withBibliographicRecordId("no-fulltext")
+                .withTrackingId("Retriever.test.no-fulltext")
+                .withDeleted(false));
+
+        List<Expectation> addiContentExpectations = List.of(new Expectation(
+                "{\"article\":{\"DOC_ID\":\"no-fulltext\",\"PUBLISHING_DATE\":\"2026-03-21T02:00:00\"}}"));
+
+        createHarvestOperation(config).execute();
+
+        AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
+        addiFileVerifier.verify(harvesterTmpFile.toFile(), addiMetadataExpectations, addiContentExpectations);
+
+        verify(tagStackConnector, never()).tag(any());
+    }
+
+    @Test
+    public void noTagsWhenTagResponseIsEmpty() throws HarvesterException, RetrieverConnectorException,
+            FlowStoreServiceConnectorException, JobStoreServiceConnectorException, TagStackConnectorException {
+        final String fulltext = "Some article text with no matching tags";
+
+        Article article = new Article();
+        article.set("DOC_ID", "empty-tags");
+        article.set("PUBLISHING_DATE", "2026-03-21T02:00:00");
+        article.set("FULLTEXT", fulltext);
+
+        InfomediaHarvesterConfig config = newConfig();
+        LocalDate today = LocalDate.now(HarvestOperation.getTimezone());
+        config.getContent().withNextPublicationDate(Date.from(
+                today.atStartOfDay(HarvestOperation.getTimezone()).toInstant()));
+
+        ArticlesRequest articlesRequest = ArticlesRequest.builder()
+                .fromDate(today)
+                .toDate(today)
+                .query("srcid:" + config.getContent().getId())
+                .page(1)
+                .size(2)
+                .formatFulltextHtml(false)
+                .build();
+        when(retrieverConnector.searchArticles(articlesRequest))
+                .thenReturn(new ArticlesResponse(1, List.of(article)));
+
+        TagRequest tagRequest = TagRequest.builder(fulltext).topK(10).build();
+        when(tagStackConnector.tag(eq(tagRequest)))
+                .thenReturn(new TagResponse(null, Collections.emptyList()));
+
+        List<AddiMetaData> addiMetadataExpectations = List.of(new AddiMetaData()
+                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
+                .withFormat("test-format")
+                .withBibliographicRecordId("empty-tags")
+                .withTrackingId("Retriever.test.empty-tags")
+                .withDeleted(false));
+
+        List<Expectation> addiContentExpectations = List.of(new Expectation(
+                "{\"article\":{\"DOC_ID\":\"empty-tags\",\"PUBLISHING_DATE\":\"2026-03-21T02:00:00\",\"FULLTEXT\":\"Some article text with no matching tags\"}}"));
+
+        createHarvestOperation(config).execute();
+
+        AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
+        addiFileVerifier.verify(harvesterTmpFile.toFile(), addiMetadataExpectations, addiContentExpectations);
+    }
+
+    @Test
+    public void tagsConnectorExceptionResultsInFatalDiagnostic() throws HarvesterException, RetrieverConnectorException,
+            FlowStoreServiceConnectorException, JobStoreServiceConnectorException, TagStackConnectorException {
+        final String fulltext = "Article text that causes tagging to fail";
+
+        Article article = new Article();
+        article.set("DOC_ID", "tags-fail");
+        article.set("PUBLISHING_DATE", "2026-03-21T02:00:00");
+        article.set("FULLTEXT", fulltext);
+
+        InfomediaHarvesterConfig config = newConfig();
+        LocalDate today = LocalDate.now(HarvestOperation.getTimezone());
+        config.getContent().withNextPublicationDate(Date.from(
+                today.atStartOfDay(HarvestOperation.getTimezone()).toInstant()));
+
+        ArticlesRequest articlesRequest = ArticlesRequest.builder()
+                .fromDate(today)
+                .toDate(today)
+                .query("srcid:" + config.getContent().getId())
+                .page(1)
+                .size(2)
+                .formatFulltextHtml(false)
+                .build();
+        when(retrieverConnector.searchArticles(articlesRequest))
+                .thenReturn(new ArticlesResponse(1, List.of(article)));
+
+        TagRequest tagRequest = TagRequest.builder(fulltext).topK(10).build();
+        when(tagStackConnector.tag(eq(tagRequest)))
+                .thenThrow(new TagStackConnectorException("tag service unavailable"));
+
+        List<AddiMetaData> addiMetadataExpectations = List.of(new AddiMetaData()
+                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
+                .withFormat("test-format")
+                .withBibliographicRecordId("tags-fail")
+                .withTrackingId("Retriever.test.tags-fail")
+                .withDeleted(false)
+                .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL,
+                        "Getting tags failed for article tags-fail: tag service unavailable")));
+
+        List<Expectation> addiContentExpectations = List.of(new Expectation(
+                "{\"article\":{\"DOC_ID\":\"tags-fail\",\"PUBLISHING_DATE\":\"2026-03-21T02:00:00\",\"FULLTEXT\":\"Article text that causes tagging to fail\"}}"));
+
+        createHarvestOperation(config).execute();
+
+        AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
+        addiFileVerifier.verify(harvesterTmpFile.toFile(), addiMetadataExpectations, addiContentExpectations);
+    }
+
     private HarvestOperation createHarvestOperation(InfomediaHarvesterConfig config) {
         try {
-            return new HarvestOperation(config, new BinaryFileStoreFsImpl(Files.createDirectory(tmpFolder.resolve("im-op-test-" + UUID.randomUUID()))), flowStoreServiceConnector, fileStoreServiceConnector, jobStoreServiceConnector, retrieverConnector, creatorDetectorConnector);
+            return new HarvestOperation(config, new BinaryFileStoreFsImpl(Files.createDirectory(tmpFolder.resolve("im-op-test-" + UUID.randomUUID()))), flowStoreServiceConnector, fileStoreServiceConnector, jobStoreServiceConnector, retrieverConnector, creatorDetectorConnector, tagStackConnector);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

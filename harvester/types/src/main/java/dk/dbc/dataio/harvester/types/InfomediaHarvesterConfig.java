@@ -1,6 +1,7 @@
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -32,7 +33,14 @@ public class InfomediaHarvesterConfig extends HarvesterConfig<InfomediaHarvester
         }
 
         /**
-         * ID of harvest operation
+         * Identifies the retriever source to harvest from.
+         * <p>
+         * Must begin with the numeric retriever source ID (e.g. {@code 35010}).
+         * May optionally be followed by a non-digit character and a descriptive
+         * suffix (e.g. {@code 35010-Politiken-dm2}) to allow multiple harvest
+         * configurations targeting the same source. Only the leading digits are
+         * extracted and used when querying the retriever.
+         * </p>
          */
         private String id;
 
@@ -71,6 +79,14 @@ public class InfomediaHarvesterConfig extends HarvesterConfig<InfomediaHarvester
 
         public String getId() {
             return id;
+        }
+
+        @JsonIgnore
+        public String getRetrieverSourceId() {
+            if (id == null) {
+                return null;
+            }
+            return id.replaceFirst("^(\\d+).*", "$1");
         }
 
         public Content withId(String id) {

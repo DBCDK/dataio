@@ -311,7 +311,7 @@ public class HarvestOperation {
                 final ArticlesRequest request = ArticlesRequest.builder()
                         .fromDate(publicationDate)
                         .toDate(publicationDate)
-                        .query("srcid:" + config.getContent().getId())
+                        .query("srcid:" + config.getContent().getRetrieverSourceId())
                         .page(page)
                         .size(pageSize)
                         .formatFulltextHtml(false)

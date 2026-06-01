@@ -6,7 +6,10 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class InfomediaHarvesterConfigTest {
@@ -24,6 +27,33 @@ public class InfomediaHarvesterConfigTest {
                 is(config));
         assertThat("enabled default", configFromString.getContent().isEnabled(),
                 is(false));
+    }
+
+    @Test
+    public void getRetrieverSourceId_nullId_returnsNull() {
+        InfomediaHarvesterConfig.Content content = new InfomediaHarvesterConfig.Content();
+        assertThat(content.getRetrieverSourceId(), is(nullValue()));
+    }
+
+    @Test
+    public void getRetrieverSourceId_numericOnlyId_returnsSameValue() {
+        InfomediaHarvesterConfig.Content content = new InfomediaHarvesterConfig.Content()
+                .withId("35010");
+        assertThat(content.getRetrieverSourceId(), is("35010"));
+    }
+
+    @Test
+    public void getRetrieverSourceId_numericIdWithSuffix_returnsLeadingDigitsOnly() {
+        InfomediaHarvesterConfig.Content content = new InfomediaHarvesterConfig.Content()
+                .withId("35010-Politiken-dm2");
+        assertThat(content.getRetrieverSourceId(), is("35010"));
+    }
+
+    @Test
+    public void getRetrieverSourceId_notIncludedInJson() throws JSONBException {
+        InfomediaHarvesterConfig config = new InfomediaHarvesterConfig(1, 2,
+                new InfomediaHarvesterConfig.Content().withId("35010-Politiken-dm2"));
+        assertThat(jsonbContext.marshall(config), not(containsString("retrieverSourceId")));
     }
 
     @Test

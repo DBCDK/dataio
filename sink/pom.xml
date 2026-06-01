@@ -25,6 +25,7 @@
         <module>marc-client</module>
         <module>marcconv</module>
         <module>openupdate</module>
+        <module>rawrepo-update</module>
         <module>periodic-jobs</module>
         <module>testutil</module>
         <module>tickle-repo</module>

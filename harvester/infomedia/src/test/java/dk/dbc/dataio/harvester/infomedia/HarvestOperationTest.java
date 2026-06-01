@@ -139,7 +139,7 @@ public class HarvestOperationTest {
         ArticlesRequest todayRequest1 = ArticlesRequest.builder()
                 .fromDate(today)
                 .toDate(today)
-                .query("srcid:" + config.getContent().getId())
+                .query("srcid:" + config.getContent().getRetrieverSourceId())
                 .page(1)
                 .size(2)
                 .formatFulltextHtml(false)
@@ -147,7 +147,7 @@ public class HarvestOperationTest {
         ArticlesRequest todayRequest2 = ArticlesRequest.builder()
                 .fromDate(today)
                 .toDate(today)
-                .query("srcid:" + config.getContent().getId())
+                .query("srcid:" + config.getContent().getRetrieverSourceId())
                 .page(2)
                 .size(2)
                 .formatFulltextHtml(false)
@@ -155,7 +155,7 @@ public class HarvestOperationTest {
         ArticlesRequest yesterdayRequest1 = ArticlesRequest.builder()
                 .fromDate(yesterday)
                 .toDate(yesterday)
-                .query("srcid:" + config.getContent().getId())
+                .query("srcid:" + config.getContent().getRetrieverSourceId())
                 .page(1)
                 .size(2)
                 .formatFulltextHtml(false)
@@ -189,19 +189,19 @@ public class HarvestOperationTest {
         addiMetadataExpectations.add(new AddiMetaData()
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("test-format").withBibliographicRecordId("one")
-                .withTrackingId("Retriever.test.one").withDeleted(false));
+                .withTrackingId("Retriever.35010.one").withDeleted(false));
         addiMetadataExpectations.add(new AddiMetaData()
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("test-format")
                 .withBibliographicRecordId("two")
-                .withTrackingId("Retriever.test.two")
+                .withTrackingId("Retriever.35010.two")
                 .withDeleted(false)
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format("Getting creator name suggestions failed for article %s: died", "two"))));
         addiMetadataExpectations.add(new AddiMetaData()
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("test-format")
                 .withBibliographicRecordId("three")
-                .withTrackingId("Retriever.test.three")
+                .withTrackingId("Retriever.35010.three")
                 .withDeleted(false));
 
         List<Expectation> addiContentExpectations = new ArrayList<>();
@@ -240,7 +240,7 @@ public class HarvestOperationTest {
         ArticlesRequest todayRequest = ArticlesRequest.builder()
                 .fromDate(today)
                 .toDate(today)
-                .query("srcid:" + config.getContent().getId())
+                .query("srcid:" + config.getContent().getRetrieverSourceId())
                 .page(1)
                 .size(2)
                 .formatFulltextHtml(false)
@@ -258,7 +258,7 @@ public class HarvestOperationTest {
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("test-format")
                 .withBibliographicRecordId("no-authors")
-                .withTrackingId("Retriever.test.no-authors")
+                .withTrackingId("Retriever.35010.no-authors")
                 .withDeleted(false));
 
         List<Expectation> addiContentExpectations = new ArrayList<>();
@@ -327,7 +327,7 @@ public class HarvestOperationTest {
         ArticlesRequest articlesRequest = ArticlesRequest.builder()
                 .fromDate(today)
                 .toDate(today)
-                .query("srcid:" + config.getContent().getId())
+                .query("srcid:" + config.getContent().getRetrieverSourceId())
                 .page(1)
                 .size(2)
                 .formatFulltextHtml(false)
@@ -346,7 +346,7 @@ public class HarvestOperationTest {
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("test-format")
                 .withBibliographicRecordId("with-tags")
-                .withTrackingId("Retriever.test.with-tags")
+                .withTrackingId("Retriever.35010.with-tags")
                 .withDeleted(false));
 
         List<Expectation> addiContentExpectations = List.of(new Expectation(
@@ -375,7 +375,7 @@ public class HarvestOperationTest {
         ArticlesRequest articlesRequest = ArticlesRequest.builder()
                 .fromDate(today)
                 .toDate(today)
-                .query("srcid:" + config.getContent().getId())
+                .query("srcid:" + config.getContent().getRetrieverSourceId())
                 .page(1)
                 .size(2)
                 .formatFulltextHtml(false)
@@ -387,7 +387,7 @@ public class HarvestOperationTest {
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("test-format")
                 .withBibliographicRecordId("no-fulltext")
-                .withTrackingId("Retriever.test.no-fulltext")
+                .withTrackingId("Retriever.35010.no-fulltext")
                 .withDeleted(false));
 
         List<Expectation> addiContentExpectations = List.of(new Expectation(
@@ -419,7 +419,7 @@ public class HarvestOperationTest {
         ArticlesRequest articlesRequest = ArticlesRequest.builder()
                 .fromDate(today)
                 .toDate(today)
-                .query("srcid:" + config.getContent().getId())
+                .query("srcid:" + config.getContent().getRetrieverSourceId())
                 .page(1)
                 .size(2)
                 .formatFulltextHtml(false)
@@ -435,7 +435,7 @@ public class HarvestOperationTest {
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("test-format")
                 .withBibliographicRecordId("empty-tags")
-                .withTrackingId("Retriever.test.empty-tags")
+                .withTrackingId("Retriever.35010.empty-tags")
                 .withDeleted(false));
 
         List<Expectation> addiContentExpectations = List.of(new Expectation(
@@ -465,7 +465,7 @@ public class HarvestOperationTest {
         ArticlesRequest articlesRequest = ArticlesRequest.builder()
                 .fromDate(today)
                 .toDate(today)
-                .query("srcid:" + config.getContent().getId())
+                .query("srcid:" + config.getContent().getRetrieverSourceId())
                 .page(1)
                 .size(2)
                 .formatFulltextHtml(false)
@@ -481,7 +481,7 @@ public class HarvestOperationTest {
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("test-format")
                 .withBibliographicRecordId("tags-fail")
-                .withTrackingId("Retriever.test.tags-fail")
+                .withTrackingId("Retriever.35010.tags-fail")
                 .withDeleted(false)
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL,
                         "Getting tags failed for article tags-fail: tag service unavailable")));
@@ -505,7 +505,7 @@ public class HarvestOperationTest {
 
     private InfomediaHarvesterConfig newConfig() {
         InfomediaHarvesterConfig config = new InfomediaHarvesterConfig(1, 2, new InfomediaHarvesterConfig.Content());
-        config.getContent().withId("test").withFormat("test-format").withDestination("test-destination");
+        config.getContent().withId("35010").withFormat("test-format").withDestination("test-destination");
         return config;
     }
 }

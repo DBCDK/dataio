@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this tool does
 
-`flow-test-runner` is a CLI tool for locally testing a JSAR (JavaScript ARchive) against pre-recorded expected output files. It runs each scenario's input through the local script and compares the actual output to committed reference files in `expected_state/`. Unlike `acc-test-runner`, it makes no network calls and has no flow-store dependency.
+`flow-test-runner` is a CLI tool for locally testing a **Nashorn-based** JSAR (JavaScript ARchive) against pre-recorded expected output files. It runs each scenario's input through the local script and compares the actual output to committed reference files in `expected_state/`. Unlike `acc-test-runner`, it makes no network calls and has no flow-store dependency.
+
+**GraalJS flows are not supported.** The tool uses `ChunkProcessor` from `job-processor2-lib`, which runs Nashorn exclusively. Flows intended for the GraalJS processor will be processed through Nashorn, which may produce different results than production.
 
 ## Build and test
 
@@ -83,10 +85,6 @@ Egenskab: <description>
 | `FlowTestRunner` | picocli entry point; orchestrates suite discovery, scenario execution, logging setup, and report writing |
 | `FlowTestSuite` | represents one `.feature` file and its directory structure; `FeatureFileParser` parses the Danish DSL |
 | `junit.testsuite.*` | JAXB classes generated from `junit-10.xsd` for XML report output |
-
-### JavaScript engine constraint
-
-`FlowTestRunner.getChunkProcessor()` hardcodes `ChunkProcessor` from `job-processor2-lib`, which uses the **Nashorn** engine. Flows intended for the GraalJS processor (`job-processor-graaljs`) will be processed through Nashorn here, which may produce different results than production.
 
 ### Updating test JSARs
 

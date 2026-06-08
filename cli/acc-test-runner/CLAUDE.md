@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this tool does
 
-`acc-test-runner` is a CLI tool for locally running acceptance tests on DataIO flows before committing them to the flow-store. It compares the output of a **local JSAR** (the candidate script) against the **remote flow** (current production script) using the same input data, and diffs the results. No DataIO jobs are created — everything runs in-process.
+`acc-test-runner` is a CLI tool for locally running acceptance tests on **Nashorn-based** DataIO flows before committing them to the flow-store. It compares the output of a **local JSAR** (the candidate script) against the **remote flow** (current production script) using the same input data, and diffs the results. No DataIO jobs are created — everything runs in-process.
+
+**GraalJS flows are not supported.** The tool uses `ChunkProcessor` from `job-processor2-lib`, which runs Nashorn exclusively. Flows targeting the GraalJS processor cannot be tested with this tool.
 
 ## Build and test
 
@@ -56,10 +58,6 @@ The three actions are:
 | `AccTestSuite` | parses a `.acctest` spec file and locates its paired data file |
 | `FlowManager` | all flow-store interactions (resolve, create, update, commit) |
 | `ReportFormat` | TEXT/XML diff output; `junit.testsuite.*` are JAXB classes generated from `junit-10.xsd` |
-
-### JavaScript engine constraint
-
-`AccTestRunner.processChunk()` hardcodes `ChunkProcessor` from `job-processor2-lib`, which uses the **Nashorn** engine. Flows intended for the GraalJS processor (`job-processor-graaljs`) will be processed through Nashorn here, which may produce different results than production.
 
 ### Flow resolution logic
 

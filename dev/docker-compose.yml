@@ -104,10 +104,10 @@ services:
       ARTEMIS_MQ_HOST: artemis
       ARTEMIS_ADMIN_PORT: "8161"
       ARTEMIS_CREDENTIALS: admin:GoFish
-      MAIL_HOST: webmail.dbc.dk
-      MAIL_USER: mailuser
-      MAIL_FROM: danbib@kiska.dbc.dk
-      MAIL_TO_FALLBACK: bruges-ikke@dbc.dk
+      MAIL_HOST: ""
+      MAIL_USER: ""
+      MAIL_FROM: ""
+      MAIL_TO_FALLBACK: ""
       PROCESSOR_NASHORN_QUEUE: processor::business
       PROCESSOR_GRAALJS_QUEUE: processor-graaljs::processor-graaljs
       LOGSTORE_URL: none

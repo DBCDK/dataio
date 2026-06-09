@@ -71,7 +71,18 @@
         <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
-            <version>${junit5.version}</version>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- JUnit 6 unified all modules (jupiter, vintage, platform) onto the same version line.
+             maven-surefire-plugin bundles its own junit-platform-launcher from the 1.x stream,
+             which is incompatible with the 6.x engines. Declaring the launcher here at ${junit.version}
+             places a 6.x launcher on the test classpath before surefire's bundled one, aligning all
+             platform jars and preventing the "OutputDirectoryCreator not available" error at runtime. -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -107,6 +118,11 @@
                 <groupId>com.beust</groupId>
                 <artifactId>jcommander</artifactId>
                 <version>1.58</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson-annotations.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.datatype</groupId>
@@ -1225,12 +1241,12 @@
                     <dependency>
                         <groupId>org.junit.jupiter</groupId>
                         <artifactId>junit-jupiter-engine</artifactId>
-                        <version>${junit5.version}</version>
+                        <version>${junit.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.junit.vintage</groupId>
                         <artifactId>junit-vintage-engine</artifactId>
-                        <version>${junit5.version}</version>
+                        <version>${junit.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>

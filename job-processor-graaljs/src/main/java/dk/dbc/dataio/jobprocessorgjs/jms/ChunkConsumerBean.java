@@ -80,6 +80,7 @@ public class ChunkConsumerBean {
     private Client flowStoreClient;
 
     @PostConstruct
+    @SuppressWarnings("java:S2095") // clients are closed in @PreDestroy stop()
     void start() {
         connectionFactory = new ActiveMQConnectionFactory(
                 "tcp://" + artemisHost + ":" + artemisPort, artemisUser, artemisPassword);

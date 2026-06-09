@@ -19,6 +19,7 @@ import jakarta.jms.JMSConsumer;
 import jakarta.jms.JMSContext;
 import jakarta.jms.JMSRuntimeException;
 import jakarta.jms.Message;
+import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -75,20 +76,20 @@ public class ChunkConsumerBean {
     private ConnectionFactory connectionFactory;
     private ExecutorService executor;
     private final AtomicBoolean running = new AtomicBoolean(false);
+    private Client jobStoreClient;
+    private Client flowStoreClient;
 
     @PostConstruct
     void start() {
         connectionFactory = new ActiveMQConnectionFactory(
                 "tcp://" + artemisHost + ":" + artemisPort, artemisUser, artemisPassword);
 
+        jobStoreClient = ClientBuilder.newClient().register(new JacksonFeature());
         JobStoreServiceConnector jobStoreConnector = new JobStoreServiceConnector(
-                ClientBuilder.newClient().register(new JacksonFeature()),
-                UserAgent.forInternalRequests(), jobstoreUrl);
-
-        FlowStoreServiceConnector flowStoreConnector = flowstoreUrl.isBlank() ? null
-                : new FlowStoreServiceConnector(
-                        ClientBuilder.newClient().register(new JacksonFeature()),
-                        UserAgent.forInternalRequests(), flowstoreUrl);
+                jobStoreClient, UserAgent.forInternalRequests(), jobstoreUrl);
+        flowStoreClient = ClientBuilder.newClient().register(new JacksonFeature());
+        FlowStoreServiceConnector flowStoreConnector = new FlowStoreServiceConnector(
+                    flowStoreClient, UserAgent.forInternalRequests(), flowstoreUrl);
 
         List<ChunkMessageConsumer> consumers = new ArrayList<>(consumerThreads);
         running.set(true);
@@ -111,6 +112,8 @@ public class ChunkConsumerBean {
     void stop() {
         running.set(false);
         executor.shutdownNow();
+        jobStoreClient.close();
+        flowStoreClient.close();
     }
 
     @Schedule(hour = "*", minute = "*", second = "*/30", persistent = false)

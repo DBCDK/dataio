@@ -90,6 +90,7 @@ public class GraalJsScript implements AutoCloseable {
         context.close();
     }
 
+    @SuppressWarnings("java:S5042") // entries are read into memory only, never written to the filesystem; zip slip does not apply
     private static Map<String, String> extractJsFiles(byte[] jsar) {
         Map<String, String> jsFiles = new HashMap<>();
         try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(jsar))) {

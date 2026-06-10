@@ -16,7 +16,6 @@
         <app-name>dataio-job-processor-graaljs</app-name>
         <docker.build.skip>false</docker.build.skip>
         <docker.repo>${docker.registry}/${app-name}</docker.repo>
-        <graalvm.version>23.1.2</graalvm.version>
     </properties>
 
     <dependencies>
@@ -57,12 +56,10 @@
         <dependency>
             <groupId>org.graalvm.polyglot</groupId>
             <artifactId>polyglot</artifactId>
-            <version>${graalvm.version}</version>
         </dependency>
         <dependency>
             <groupId>org.graalvm.polyglot</groupId>
             <artifactId>js-community</artifactId>
-            <version>${graalvm.version}</version>
             <type>pom</type>
         </dependency>
         <dependency>

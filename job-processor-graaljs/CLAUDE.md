@@ -3,16 +3,6 @@
 GraalVM JavaScript-based chunk processor. See `README.md` for environment variables, message
 format, and health/metrics endpoints.
 
-## Build and test
-
-```bash
-# Build (skips Docker and ITs)
-mvn -pl job-processor-graaljs -am install -DskipITs
-
-# Run integration tests (requires Docker)
-mvn -pl job-processor-graaljs -am verify
-```
-
 Integration tests spin up a real Artemis container and the service container via Testcontainers.
 The Docker image must exist before running ITs — if you only changed test code, run
 `mvn -pl job-processor-graaljs package -DskipITs` first to produce `target/docker.out`.

@@ -5,20 +5,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build and Test Commands
 
 ```bash
-# Full build with integration tests
-mvn clean verify
-
-# Build without tests
-mvn clean package -DskipTests -DskipITs
-
 # Run a single integration test class
 mvn -pl war verify -Dit.test=PgJobStoreRepositoryIT
 
 # Run only unit tests (failsafe integration tests are skipped)
 mvn -pl war test
-
-# Build the Docker image
-mvn clean package
 ```
 
 ## Module Structure

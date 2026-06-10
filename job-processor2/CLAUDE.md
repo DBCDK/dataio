@@ -14,16 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build commands
 
 ```bash
-# Build everything (runs unit tests, builds Docker image)
-mvn package
-
-# Skip Docker image build
-mvn package -Ddocker.build.skip=true
-
-# Skip tests
-mvn package -DskipTests
-
-# Run all unit tests
+# Run all unit tests (targets the lib submodule)
 mvn test -pl lib
 
 # Run a single test class

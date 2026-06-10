@@ -2,28 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Commands
-
-Build and package (includes Docker image):
-```
-mvn package
-```
-
-Run unit tests only:
-```
-mvn test
-```
-
-Run a single test class:
-```
-mvn test -Dtest=FlowBindersBeanTest
-```
-
-Skip Docker build during development:
-```
-mvn package -Ddocker.build.skip=true
-```
-
 ## Architecture
 
 This is a single-module WAR packaged as a Payara Micro 6 service. It is the configuration registry for DataIO — other services query it to determine which processing flow and sink apply to a given job.

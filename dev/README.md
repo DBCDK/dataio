@@ -182,7 +182,7 @@ curl -s -X POST http://localhost:8080/dataio/job-store-service/jobs/searches \
 ### Artemis queue depths
 
 Open http://localhost:8161 in a browser. Log in with `admin` / `GoFish`.
-Navigate to **Queues** to see pending messages in `processor::business` and `processor-graaljs::processor-graaljs`.
+Navigate to **Queues** to see pending messages in `processor::business` and `processor-graaljs::business`.
 
 ### Processor health and metrics
 
@@ -233,7 +233,7 @@ curl -s http://localhost:8081/dataio/flow-store-service/flows/1 | jq '{id, name:
 The developer endpoint hardcodes flow ID 1. If the flow-store DB already contains flows from a previous run, the passthrough flow will get a higher ID and the Nashorn processor will fail to find a JSAR. Wipe the stack with `docker compose down -v` and re-seed.
 
 **GraalJS job not routed to GraalJS queue**
-Verify the flow binder resolution by checking the Artemis `processor-graaljs::processor-graaljs` queue for pending messages. The GraalJS binder requires `destination: dev-graaljs` to match in the job specification.
+Verify the flow binder resolution by checking the Artemis `processor-graaljs::business` queue for pending messages. The GraalJS binder requires `destination: dev-graaljs` to match in the job specification.
 
 **Artemis credentials rejected**
 The DBC Artemis image uses `admin` / `GoFish`. If the image version changes, credentials may differ — check the container logs with `docker compose logs artemis`.

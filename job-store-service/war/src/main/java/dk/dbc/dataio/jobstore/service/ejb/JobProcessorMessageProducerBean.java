@@ -52,7 +52,7 @@ public class JobProcessorMessageProducerBean extends AbstractMessageProducer imp
     private String nashornQueue;
 
     @Inject
-    @ConfigProperty(name = "PROCESSOR_GRAALJS_QUEUE", defaultValue = "processor-graaljs::processor-graaljs")
+    @ConfigProperty(name = "PROCESSOR_GRAALJS_QUEUE", defaultValue = "processor-graaljs::business")
     private String graaljsQueue;
 
     public JobProcessorMessageProducerBean() {

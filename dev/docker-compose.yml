@@ -109,7 +109,7 @@ services:
       MAIL_FROM: ""
       MAIL_TO_FALLBACK: ""
       PROCESSOR_NASHORN_QUEUE: processor::business
-      PROCESSOR_GRAALJS_QUEUE: processor-graaljs::processor-graaljs
+      PROCESSOR_GRAALJS_QUEUE: processor-graaljs::business
       LOGSTORE_URL: none
       RAWREPO_HARVESTER_URL: none
       TICKLE_REPO_HARVESTER_URL: none
@@ -160,7 +160,7 @@ services:
       artemis:
         condition: service_started
     environment:
-      QUEUE: processor-graaljs::processor-graaljs
+      QUEUE: processor-graaljs::business
       ARTEMIS_MQ_HOST: artemis
       ARTEMIS_JMS_PORT: "61616"
       ARTEMIS_USER: admin

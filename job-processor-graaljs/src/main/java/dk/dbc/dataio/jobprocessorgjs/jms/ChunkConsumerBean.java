@@ -123,11 +123,10 @@ public class ChunkConsumerBean {
     }
 
     private void listen(ChunkMessageConsumer messageConsumer) {
-        String fqn = queue.contains("::") ? queue : queue + "::" + queue;
         try {
             while (running.get()) {
                 try (JMSContext context = connectionFactory.createContext(JMSContext.SESSION_TRANSACTED)) {
-                    try (JMSConsumer consumer = context.createConsumer(context.createQueue(fqn))) {
+                    try (JMSConsumer consumer = context.createConsumer(context.createQueue(queue))) {
                         receiveMessages(context, consumer, messageConsumer);
                     }
                 } catch (JMSRuntimeException e) {

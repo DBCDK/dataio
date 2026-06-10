@@ -82,13 +82,13 @@ This starts the service on port 8080 (debug on 9009), PostgreSQL on 5432, and Ac
 
 ## Key Environment Variables
 
-| Variable | Purpose |
-|---|---|
-| `JOBSTORE_DB_URL` | JDBC URL for PostgreSQL |
-| `ARTEMIS_MQ_HOST` | ActiveMQ Artemis host |
-| `FLOWSTORE_URL` | Flow store service URL |
-| `FILESTORE_URL` | File store service URL |
-| `PROCESSOR_TIMEOUT` | ISO-8601 duration before a chunk is considered stale (default `PT1H`) |
-| `PROCESSOR_NASHORN_QUEUE` | Artemis queue for the Nashorn processor (default `processor::business`) |
-| `PROCESSOR_GRAALJS_QUEUE` | Artemis queue for the GraalJS processor (default `processor-graaljs::processor-graaljs`) |
-| `DEVELOPER` | Set to `on` to enable developer endpoints |
+| Variable | Purpose                                                                         |
+|---|---------------------------------------------------------------------------------|
+| `JOBSTORE_DB_URL` | JDBC URL for PostgreSQL                                                         |
+| `ARTEMIS_MQ_HOST` | ActiveMQ Artemis host                                                           |
+| `FLOWSTORE_URL` | Flow store service URL                                                          |
+| `FILESTORE_URL` | File store service URL                                                          |
+| `PROCESSOR_TIMEOUT` | ISO-8601 duration before a chunk is considered stale (default `PT1H`)           |
+| `PROCESSOR_NASHORN_QUEUE` | Artemis queue for the Nashorn processor (default `processor::business`)         |
+| `PROCESSOR_GRAALJS_QUEUE` | Artemis queue for the GraalJS processor (default `processor-graaljs::business`) |
+| `DEVELOPER` | Set to `on` to enable developer endpoints                                       |

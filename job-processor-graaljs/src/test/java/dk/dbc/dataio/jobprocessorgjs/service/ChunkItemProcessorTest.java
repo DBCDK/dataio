@@ -5,6 +5,9 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobprocessorgjs.javascript.GraalJsScript;
+import org.graalvm.polyglot.Engine;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -20,6 +23,18 @@ class ChunkItemProcessorTest {
     private static final String SCRIPT_ID = "main.js";
     private static final String FUNCTION = "process";
     private static final String ADDITIONAL_ARGS = "{}";
+
+    private static Engine engine;
+
+    @BeforeAll
+    static void createEngine() {
+        engine = Engine.newBuilder("js").build();
+    }
+
+    @AfterAll
+    static void closeEngine() {
+        engine.close();
+    }
 
     @Test
     void process_itemWithFailedStatus_returnsIgnoredItem() throws IOException {
@@ -48,7 +63,7 @@ class ChunkItemProcessorTest {
         ChunkItem input = new ChunkItemBuilder()
                 .setId(1).setData("hello").setTrackingId("t1")
                 .build();
-        try (GraalJsScript script = scriptWith("function process(d, s) { return d.toUpperCase(); }")) {
+        try (GraalJsScript script = scriptWith("export function process(d, s) { return d.toUpperCase(); }")) {
             ChunkItem result = processor(script).process(input);
             assertThat(result.getStatus(), is(ChunkItem.Status.SUCCESS));
             assertThat(new String(result.getData(), StandardCharsets.UTF_8), is("HELLO"));
@@ -60,7 +75,7 @@ class ChunkItemProcessorTest {
         ChunkItem input = new ChunkItemBuilder()
                 .setId(1).setData("hello").setTrackingId("t1")
                 .build();
-        try (GraalJsScript script = scriptWith("function process(d, s) { return null; }")) {
+        try (GraalJsScript script = scriptWith("export function process(d, s) { return null; }")) {
             ChunkItem result = processor(script).process(input);
             assertThat(result.getStatus(), is(ChunkItem.Status.IGNORE));
         }
@@ -71,7 +86,7 @@ class ChunkItemProcessorTest {
         ChunkItem input = new ChunkItemBuilder()
                 .setId(1).setData("hello").setTrackingId("t1")
                 .build();
-        try (GraalJsScript script = scriptWith("function process(d, s) { return ''; }")) {
+        try (GraalJsScript script = scriptWith("export function process(d, s) { return ''; }")) {
             ChunkItem result = processor(script).process(input);
             assertThat(result.getStatus(), is(ChunkItem.Status.IGNORE));
         }
@@ -82,7 +97,7 @@ class ChunkItemProcessorTest {
         ChunkItem input = new ChunkItemBuilder()
                 .setId(1).setData("hello").setTrackingId("t1")
                 .build();
-        String js = "function process(d, s) {" +
+        String js = "export function process(d, s) {" +
                 " Java.type('dk.dbc.javascript.recordprocessing.IgnoreRecord').doThrow('skip'); }";
         try (GraalJsScript script = scriptWith(js)) {
             ChunkItem result = processor(script).process(input);
@@ -95,7 +110,7 @@ class ChunkItemProcessorTest {
         ChunkItem input = new ChunkItemBuilder()
                 .setId(1).setData("hello").setTrackingId("t1")
                 .build();
-        String js = "function process(d, s) {" +
+        String js = "export function process(d, s) {" +
                 " Java.type('dk.dbc.javascript.recordprocessing.FailRecord').doThrow('bad record'); }";
         try (GraalJsScript script = scriptWith(js)) {
             ChunkItem result = processor(script).process(input);
@@ -109,7 +124,7 @@ class ChunkItemProcessorTest {
         ChunkItem input = new ChunkItemBuilder()
                 .setId(1).setData("hello").setTrackingId("t1")
                 .build();
-        try (GraalJsScript script = scriptWith("function process(d, s) { throw 'something went wrong'; }")) {
+        try (GraalJsScript script = scriptWith("export function process(d, s) { throw 'something went wrong'; }")) {
             ChunkItem result = processor(script).process(input);
             assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
             assertThat(result.getDiagnostics().getFirst().getLevel(), is(Diagnostic.Level.FATAL));
@@ -122,7 +137,7 @@ class ChunkItemProcessorTest {
                 .setId(1).setData("hello").setTrackingId("t1")
                 .build();
         try (GraalJsScript script = scriptWith(
-                "function process(d, s) { throw 'Illegal operation on control field'; }")) {
+                "export function process(d, s) { throw 'Illegal operation on control field'; }")) {
             ChunkItem result = processor(script).process(input);
             assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
             assertThat(result.getDiagnostics().getFirst().getLevel(), is(Diagnostic.Level.ERROR));
@@ -139,7 +154,7 @@ class ChunkItemProcessorTest {
                 .withData(new AddiRecord(meta, content).getBytes())
                 .withTrackingId("t1");
 
-        String js = "function process(data, supplement) { return supplement.format + ':' + data; }";
+        String js = "export function process(data, supplement) { return supplement.format + ':' + data; }";
         try (GraalJsScript script = scriptWith(js)) {
             ChunkItem result = processor(script).process(input);
             assertThat(result.getStatus(), is(ChunkItem.Status.SUCCESS));
@@ -152,7 +167,7 @@ class ChunkItemProcessorTest {
     }
 
     private static GraalJsScript identityScript() throws IOException {
-        return scriptWith("function process(d, s) { return d; }");
+        return scriptWith("export function process(d, s) { return d; }");
     }
 
     private static GraalJsScript scriptWith(String jsSource) throws IOException {
@@ -162,6 +177,6 @@ class ChunkItemProcessorTest {
             zos.write(jsSource.getBytes(StandardCharsets.UTF_8));
             zos.closeEntry();
         }
-        return new GraalJsScript(SCRIPT_ID, FUNCTION, baos.toByteArray());
+        return new GraalJsScript(SCRIPT_ID, FUNCTION, baos.toByteArray(), engine);
     }
 }

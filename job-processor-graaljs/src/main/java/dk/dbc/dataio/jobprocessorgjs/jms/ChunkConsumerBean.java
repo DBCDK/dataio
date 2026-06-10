@@ -24,6 +24,7 @@ import jakarta.ws.rs.client.ClientBuilder;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.graalvm.polyglot.Engine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Singleton
@@ -78,6 +80,7 @@ public class ChunkConsumerBean {
     private final AtomicBoolean running = new AtomicBoolean(false);
     private Client jobStoreClient;
     private Client flowStoreClient;
+    private Engine jsEngine;
 
     @PostConstruct
     @SuppressWarnings("java:S2095") // clients are closed in @PreDestroy stop()
@@ -92,12 +95,24 @@ public class ChunkConsumerBean {
         FlowStoreServiceConnector flowStoreConnector = new FlowStoreServiceConnector(
                     flowStoreClient, UserAgent.forInternalRequests(), flowstoreUrl);
 
+        // Single engine shared across all consumer threads and flows: it is thread-safe and
+        // caches compiled JavaScript code, so the same flow compiled on different threads (or
+        // different flows) reuse cached code. Each script still gets its own thread-confined context.
+        jsEngine = Engine.newBuilder("js").build();
+
         List<ChunkMessageConsumer> consumers = new ArrayList<>(consumerThreads);
+        List<FlowCache> flowCaches = new ArrayList<>(consumerThreads);
         running.set(true);
         executor = Executors.newFixedThreadPool(consumerThreads,
                 Thread.ofPlatform().name("graaljs-consumer-", 0).factory());
+        // Each consumer thread owns a thread-confined FlowCache (GraalJS contexts cannot be shared
+        // across threads), so FLOW_CACHE_SIZE is divided to make the configured value the total
+        // number of cached scripts across all threads rather than a per-thread bound.
+        int perThreadCacheSize = Math.max(1, flowCacheSize / consumerThreads);
+        Duration cacheExpiry = Duration.parse(flowCacheExpiry);
         for (int i = 0; i < consumerThreads; i++) {
-            FlowCache flowCache = new FlowCache(flowCacheSize, Duration.parse(flowCacheExpiry));
+            FlowCache flowCache = new FlowCache(perThreadCacheSize, cacheExpiry, jsEngine);
+            flowCaches.add(flowCache);
             ChunkProcessor chunkProcessor = new ChunkProcessor(
                     health, flowCache,
                     jobId -> getFlow(jobId, jobStoreConnector, flowStoreConnector));
@@ -105,6 +120,7 @@ public class ChunkConsumerBean {
             consumers.add(consumer);
             executor.submit(() -> listen(consumer));
         }
+        FlowCache.registerMetrics(List.copyOf(flowCaches));
         messageConsumers = List.copyOf(consumers);
         LOGGER.info("Started {} GraalJS chunk consumer thread(s) on queue {}", consumerThreads, queue);
     }
@@ -113,6 +129,20 @@ public class ChunkConsumerBean {
     void stop() {
         running.set(false);
         executor.shutdownNow();
+        try {
+            executor.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        if (jsEngine != null) {
+            // Consumer threads have stopped, so no context is executing; closing the engine
+            // also closes the cached contexts still open in the flow caches.
+            try {
+                jsEngine.close();
+            } catch (RuntimeException e) {
+                LOGGER.warn("Error closing JS engine during shutdown", e);
+            }
+        }
         jobStoreClient.close();
         flowStoreClient.close();
     }

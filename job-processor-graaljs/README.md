@@ -17,7 +17,7 @@ job-store-service via HTTP.
 | `QUEUE`              | yes      | —        | Incoming queue FQN, e.g. `processor::processor`                                      |
 | `JOBSTORE_URL`       | yes      | —        | Base URL of the job-store-service HTTP API                                           |
 | `FLOWSTORE_URL`      | no       | `""`     | Base URL of the flow-store-service HTTP API. When blank, flows must carry an embedded JSAR |
-| `FLOW_CACHE_SIZE`    | no       | `100`    | Max number of compiled flows held in memory                                          |
+| `FLOW_CACHE_SIZE`    | no       | `100`    | Max number of compiled flows held in memory in total; split evenly across `CONSUMER_THREADS` (min 1 per thread) |
 | `FLOW_CACHE_EXPIRY`  | no       | `PT10m`  | Flow cache TTL (ISO-8601 duration)                                                   |
 | `CONSUMER_THREADS`   | no       | `1`      | Number of parallel JMS consumer threads                                              |
 | `WEB_PORT`           | no       | `8080`   | HTTP port for health and metrics endpoints                                           |

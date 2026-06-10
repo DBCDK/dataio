@@ -1,63 +1,56 @@
 package dk.dbc.dataio.jobprocessorgjs.javascript;
 
+import dk.dbc.commons.graaljs.core.JsInterop;
+import dk.dbc.commons.graaljs.core.JsarResourceFileSystem;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.HostAccess;
+import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class GraalJsScript implements AutoCloseable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GraalJsScript.class);
 
     private final Context context;
     private final String scriptId;
     private final String invocationMethod;
 
-    public GraalJsScript(String scriptId, String invocationMethod, byte[] jsar) {
+    public GraalJsScript(String scriptId, String invocationMethod, byte[] jsar, Engine engine) {
         this.scriptId = scriptId;
         this.invocationMethod = invocationMethod;
 
-        Map<String, String> jsFiles = extractJsFiles(jsar);
-
-        context = Context.newBuilder("js")
-                .allowHostAccess(HostAccess.ALL)
-                .allowHostClassLookup(name -> name.startsWith("dk.dbc.javascript.recordprocessing."))
-                .build();
-
-        context.getBindings("js").putMember("use", (ProxyExecutable) args -> {
-            String name = args[0].asString();
-            String source = findModule(jsFiles, name);
-            if (source == null) {
-                throw new RuntimeException("Module not found in JSAR: " + name);
-            }
-            try {
-                context.eval(Source.newBuilder("js", source, name).build());
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-            return null;
-        });
-
-        String entrySource = jsFiles.get(scriptId);
-        if (entrySource == null) {
-            throw new IllegalArgumentException("Entry point script not found in JSAR: " + scriptId);
-        }
+        JsarResourceFileSystem fileSystem;
         try {
-            context.eval(Source.newBuilder("js", entrySource, scriptId).build());
+            fileSystem = new JsarResourceFileSystem(jsar);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException("Failed to read JSAR", e);
         }
+
+        // The engine is shared across all scripts and consumer threads so compiled JavaScript
+        // code is cached and reused; it is owned and closed by the caller, not by this script.
+        JsInterop jsInterop = JsInterop.newBuilder()
+                .engine(engine)
+                .jsFileSystem(fileSystem)
+                .build();
+        context = jsInterop.createContext();
+
+        // The entry point is an ES module; evaluating it directly would not expose its
+        // exports as global bindings. Instead evaluate a synthetic module that imports the
+        // entry point's exports and copies them onto globalThis, so the named invocation
+        // function becomes reachable via getBindings("js").getMember(invocationMethod).
+        // (mirrors dk.dbc.commons.graaljs.cli.runner.JsHandler)
+        Source exporter = fileSystem.createSource(globalExporter(scriptId));
+        try {
+            context.eval(exporter);
+        } catch (RuntimeException e) {
+            throw new IllegalStateException(
+                    "Error loading JavaScript entry point '" + scriptId + "': " + e.getMessage(), e);
+        }
+
+        // The backing store is no longer needed once the entry module (and its transitive
+        // imports) have been evaluated; release it to reclaim memory.
+        fileSystem.pruneUnusedFiles();
     }
 
     public String invoke(Object[] args) {
@@ -87,37 +80,12 @@ public class GraalJsScript implements AutoCloseable {
 
     @Override
     public void close() {
+        // Closes only this script's context; the shared engine is closed by its owner.
         context.close();
     }
 
-    @SuppressWarnings("java:S5042") // entries are read into memory only, never written to the filesystem; zip slip does not apply
-    private static Map<String, String> extractJsFiles(byte[] jsar) {
-        Map<String, String> jsFiles = new HashMap<>();
-        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(jsar))) {
-            ZipEntry entry;
-            while ((entry = zip.getNextEntry()) != null) {
-                if (!entry.isDirectory() && entry.getName().endsWith(".js")) {
-                    jsFiles.put(entry.getName(), new String(zip.readAllBytes(), StandardCharsets.UTF_8));
-                }
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to extract JSAR", e);
-        }
-        return jsFiles;
-    }
-
-    private static String findModule(Map<String, String> jsFiles, String name) {
-        String source = jsFiles.get(name);
-        if (source != null) return source;
-        String withExt = name.endsWith(".js") ? name : name + ".js";
-        source = jsFiles.get(withExt);
-        if (source != null) return source;
-        for (Map.Entry<String, String> entry : jsFiles.entrySet()) {
-            if (entry.getKey().endsWith("/" + withExt)) {
-                return entry.getValue();
-            }
-        }
-        LOGGER.warn("Module '{}' not found in JSAR, available: {}", name, jsFiles.keySet());
-        return null;
+    private static String globalExporter(String scriptId) {
+        return "import * as TopLevelModule from '" + scriptId + "';\n"
+                + "Object.keys(TopLevelModule).forEach(name => globalThis[name] = TopLevelModule[name]);";
     }
 }

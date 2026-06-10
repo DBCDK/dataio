@@ -69,7 +69,7 @@ class ChunkMessageConsumerIT extends ContainerTest {
 
     @Test
     void scriptIsExecutedForChunkWithItems() throws Exception {
-        byte[] jsar = buildJsar("function process(data, supplement) { return data.toUpperCase(); }");
+        byte[] jsar = buildJsar("export function process(data, supplement) { return data.toUpperCase(); }");
 
         String flowJson = "{\"id\":42,\"version\":1,\"content\":{" +
                 "\"name\":\"test-flow\"," +
@@ -128,7 +128,7 @@ class ChunkMessageConsumerIT extends ContainerTest {
                 "{\"format\":\"test-format\"}".getBytes(StandardCharsets.UTF_8),
                 "hello".getBytes(StandardCharsets.UTF_8)).getBytes();
 
-        byte[] jsar = buildJsar("function process(data, supplement) { return supplement.format + ':' + data; }");
+        byte[] jsar = buildJsar("export function process(data, supplement) { return supplement.format + ':' + data; }");
 
         String flowJson = "{\"id\":42,\"version\":2,\"content\":{" +
                 "\"name\":\"test-flow\"," +

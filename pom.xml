@@ -430,6 +430,11 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
+                <artifactId>dataio-commons-utils-rawrepo-update-v3-connector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
                 <artifactId>dataio-commons-utils-rr-harvester-service-connector</artifactId>
                 <version>${project.version}</version>
                 <type>ejb</type>

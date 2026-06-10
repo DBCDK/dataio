@@ -26,6 +26,7 @@
         <module>marcconv</module>
         <module>openupdate</module>
         <module>periodic-jobs</module>
+        <module>rawrepo-update-v3</module>
         <module>testutil</module>
         <module>tickle-repo</module>
         <module>util</module>

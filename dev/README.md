@@ -42,7 +42,7 @@ Rebuild after code changes with the same command.
 docker compose -f dev/docker-compose.yml up -d
 ```
 
-Watch startup (Payara services take ~60–90 s):
+Watch startup:
 
 ```bash
 docker compose -f dev/docker-compose.yml logs -f
@@ -61,8 +61,6 @@ echo "job-store ready"
 
 ## 3. Seed the flow-store (one-time per fresh stack)
 
-Run once after `docker compose up`. Data is lost on `docker compose down -v`.
-
 The JSARs are pre-built and checked in to `dev/testdata/`. Run the seed script from the **project root**:
 
 ```bash
@@ -70,8 +68,6 @@ bash dev/scripts/seed-flowstore.sh
 ```
 
 The script uploads both passthrough flows, creates the submitter and sink, and creates a flow binder for each processor engine. It is idempotent — re-running it on an already-seeded stack detects existing entities and skips them.
-
-> **Note:** The seed script prints the Nashorn and GraalJS flow IDs. Step 5a uses the Nashorn flow ID so the processor can fetch the correct JSAR.
 
 ---
 
@@ -90,17 +86,11 @@ echo "File URN: urn:dataio-fs:$FILE_URN"
 
 ## 5. Submit jobs
 
-### 5a. Nashorn — via developer endpoint (fastest)
-
-The developer endpoint bypasses flow-binder resolution. Pass the actual Nashorn flow ID returned by the seed script so the processor can fetch the JSAR.
+### 5a. Nashorn
 
 ```bash
-# Look up the Nashorn flow ID (needed so the processor can fetch the JSAR)
-NASHORN_FLOW_ID=$(curl -s http://localhost:8081/dataio/flow-store-service/flows \
-  | jq '[.[] | select(.name == "Passthrough")] | .[0].id')
-
 JOB=$(curl -s -X POST \
-  "http://localhost:8080/dataio/job-store-service/jobs/developer/JSON?flowId=$NASHORN_FLOW_ID" \
+  http://localhost:8080/dataio/job-store-service/jobs \
   -H "Content-Type: application/json" \
   -d '{
     "jobSpecification": {
@@ -121,7 +111,7 @@ NASHORN_JOB_ID=$(echo "$JOB" | jq '.jobId')
 echo "Nashorn job ID: $NASHORN_JOB_ID"
 ```
 
-### 5b. GraalJS — via normal endpoint (full flow-binder resolution)
+### 5b. GraalJS
 
 ```bash
 JOB=$(curl -s -X POST \
@@ -152,23 +142,21 @@ echo "GraalJS job ID: $GRAALJS_JOB_ID"
 
 ### Job state
 
-The job-store has no `GET /jobs/{id}` endpoint. Queries go through `POST /jobs/searches`:
+The job-store has no `GET /jobs/{id}` endpoint. Use `GET /jobs/queries?q=` with an IOQL expression for parameterised lookups, or `POST /jobs/searches` with a filter object for open-ended queries:
 
 ```bash
-# All jobs (compact) — empty criteria returns all
+# Single job by ID
+curl -s "http://localhost:8080/dataio/job-store-service/jobs/queries?q=job:id+%3D+$NASHORN_JOB_ID" \
+  | jq '.[0] | {jobId, partitioning: .state.states.PARTITIONING, processing: .state.states.PROCESSING, delivering: .state.states.DELIVERING}'
+
+# All jobs (compact) — empty filtering returns all
 curl -s -X POST http://localhost:8080/dataio/job-store-service/jobs/searches \
   -H "Content-Type: application/json" \
   -d '{"filtering":[]}' \
-  | jq '.[] | {jobId, processing: .state.states.PROCESSING, delivering: .state.states.DELIVERING}'
-
-# Single job by ID
-curl -s -X POST http://localhost:8080/dataio/job-store-service/jobs/searches \
-  -H "Content-Type: application/json" \
-  -d "{\"filtering\":[{\"members\":[{\"filter\":{\"field\":\"JOB_ID\",\"operator\":\"EQUAL\",\"value\":\"$NASHORN_JOB_ID\"},\"logicalOperator\":\"AND\"}]}]}" \
-  | jq '.[0] | {jobId, processing: .state.states.PROCESSING, delivering: .state.states.DELIVERING}'
+  | jq '.[] | {jobId, partitioning: .state.states.PARTITIONING, processing: .state.states.PROCESSING, delivering: .state.states.DELIVERING}'
 ```
 
-Expected transitions: `PROCESSING.succeeded` increments as chunks are processed, then `DELIVERING.succeeded` increments as chunks are delivered.
+Expected transitions: `PARTITIONING.succeeded` equals the number of chunks once partitioned; `PROCESSING.succeeded` increments as chunks are processed; `DELIVERING.succeeded` increments as chunks are delivered.
 
 ### Chunk detail
 

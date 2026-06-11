@@ -169,6 +169,7 @@ services:
       FLOWSTORE_URL: http://flowstore:8080/dataio/flow-store-service
       WEB_PORT: "8080"
       LOG_FORMAT: text
+      JAVA_MAX_HEAP_SIZE: 1G
     ports:
       - "8084:8080"  # health + metrics
 

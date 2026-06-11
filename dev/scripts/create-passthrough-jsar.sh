@@ -9,31 +9,33 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TESTDATA_DIR="$SCRIPT_DIR/../testdata"
-WORK_DIR=$(mktemp -d)
-trap 'rm -rf "$WORK_DIR"' EXIT
-
-mkdir -p "$WORK_DIR/META-INF"
-cp "$TESTDATA_DIR/passthrough.js" "$WORK_DIR/passthrough.js"
 
 build_jsar() {
-    local outfile="$1"
-    local flow_name="$2"
-    local engine_line="$3"
-    cat > "$WORK_DIR/META-INF/MANIFEST.MF" <<EOF
-Manifest-Version: 1.0
-Flow-Name: ${flow_name}
-Flow-Description: Returns input record unchanged
-Flow-Entrypoint-Script: passthrough.js
-Flow-Entrypoint-Function: process
-${engine_line}
-EOF
-    # Trailing newline required by the Manifest spec
-    echo "" >> "$WORK_DIR/META-INF/MANIFEST.MF"
+    local src_dir="$1"
+    local outfile="$2"
+    local flow_name="$3"
+    local engine_line="$4"
+
+    local work_dir
+    work_dir=$(mktemp -d)
+    trap 'rm -rf "$work_dir"' RETURN
+
+    cp -r "$src_dir/." "$work_dir/"
+    mkdir -p "$work_dir/META-INF"
+    {
+        echo "Manifest-Version: 1.0"
+        echo "Flow-Name: ${flow_name}"
+        echo "Flow-Description: Returns input record unchanged"
+        echo "Flow-Entrypoint-Script: passthrough.js"
+        echo "Flow-Entrypoint-Function: process"
+        [[ -n "$engine_line" ]] && echo "$engine_line"
+        echo ""
+    } > "$work_dir/META-INF/MANIFEST.MF"
 
     rm -f "$outfile"
-    (cd "$WORK_DIR" && zip -q "$outfile" META-INF/MANIFEST.MF passthrough.js)
+    (cd "$work_dir" && zip -qr "$outfile" .)
     echo "Created $(basename "$outfile")"
 }
 
-build_jsar "$TESTDATA_DIR/passthrough-nashorn.jsar" "Passthrough" ""
-build_jsar "$TESTDATA_DIR/passthrough-graaljs.jsar" "Passthrough GraalJS" "Flow-JavaScript-Engine: GRAALJS"
+build_jsar "$SCRIPT_DIR/jsar-nashorn" "$TESTDATA_DIR/passthrough-nashorn.jsar" "Passthrough" ""
+build_jsar "$SCRIPT_DIR/jsar-graaljs" "$TESTDATA_DIR/passthrough-graaljs.jsar" "Passthrough GraalJS" "Flow-JavaScript-Engine: GRAALJS"

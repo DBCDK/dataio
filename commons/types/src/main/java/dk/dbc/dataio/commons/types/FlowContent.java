@@ -32,11 +32,13 @@ public class FlowContent implements Serializable {
     private static final String ATTRIBUTE_DESCRIPTION = "Flow-Description";
     private static final String ATTRIBUTE_ENTRYPOINT_SCRIPT = "Flow-Entrypoint-Script";
     private static final String ATTRIBUTE_ENTRYPOINT_FUNCTION = "Flow-Entrypoint-Function";
+    private static final String ATTRIBUTE_ENGINE = "Flow-JavaScript-Engine";
 
     private final String name;
     private final String description;
     private String entrypointScript;
     private String entrypointFunction;
+    private JavaScriptEngine engine;
     @JsonIgnore
     private byte[] jsar;
     private Date timeOfLastModification;
@@ -65,6 +67,9 @@ public class FlowContent implements Serializable {
         this.entrypointFunction = getAttributeValue(mainAttributes, ATTRIBUTE_ENTRYPOINT_FUNCTION).orElseThrow(() ->
                 new IllegalArgumentException(String.format(
                         "Invalid jsar - %s missing value for %s", MANIFEST_FILE, ATTRIBUTE_ENTRYPOINT_FUNCTION)));
+        this.engine = getAttributeValue(mainAttributes, ATTRIBUTE_ENGINE)
+                .map(s -> JavaScriptEngine.valueOf(s.toUpperCase()))
+                .orElse(JavaScriptEngine.NASHORN);
         this.jsar = jsar;
         this.timeOfLastModification = timeOfLastModification;
     }
@@ -75,18 +80,20 @@ public class FlowContent implements Serializable {
             @JsonProperty("description") String description,
             @JsonProperty("entrypointScript") String entrypointScript,
             @JsonProperty("entrypointFunction") String entrypointFunction,
+            @JsonProperty("engine") JavaScriptEngine engine,
             @JsonProperty("jsar") byte[] jsar,
             @JsonProperty("timeOfLastModification") Date timeOfLastModification) {
         this.name = name;
         this.description = description;
         this.entrypointScript = entrypointScript;
         this.entrypointFunction = entrypointFunction;
+        this.engine = engine != null ? engine : JavaScriptEngine.NASHORN;
         this.jsar = jsar;
         this.timeOfLastModification = timeOfLastModification;
     }
 
     public FlowContent(String name, String description) {
-        this(name, description, null, null, null, null);
+        this(name, description, null, null, null, null, null);
     }
 
     public String getName() {
@@ -103,6 +110,10 @@ public class FlowContent implements Serializable {
 
     public String getEntrypointFunction() {
         return entrypointFunction;
+    }
+
+    public JavaScriptEngine getEngine() {
+        return engine;
     }
 
     public byte[] getJsar() {
@@ -125,12 +136,12 @@ public class FlowContent implements Serializable {
             return false;
         }
         FlowContent that = (FlowContent) o;
-        return Objects.equals(name, that.name) && Objects.equals(description, that.description) && Objects.equals(entrypointScript, that.entrypointScript) && Objects.equals(entrypointFunction, that.entrypointFunction) && Arrays.equals(jsar, that.jsar) && Objects.equals(timeOfLastModification, that.timeOfLastModification);
+        return Objects.equals(name, that.name) && Objects.equals(description, that.description) && Objects.equals(entrypointScript, that.entrypointScript) && Objects.equals(entrypointFunction, that.entrypointFunction) && engine == that.engine && Arrays.equals(jsar, that.jsar) && Objects.equals(timeOfLastModification, that.timeOfLastModification);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(name, description, entrypointScript, entrypointFunction, timeOfLastModification);
+        int result = Objects.hash(name, description, entrypointScript, entrypointFunction, engine, timeOfLastModification);
         result = 31 * result + Arrays.hashCode(jsar);
         return result;
     }

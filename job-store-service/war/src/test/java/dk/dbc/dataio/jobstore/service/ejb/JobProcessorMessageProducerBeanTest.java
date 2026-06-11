@@ -3,11 +3,15 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.JavaScriptEngine;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
+import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferenceBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
@@ -26,6 +30,7 @@ import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.time.Duration;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
@@ -44,6 +49,9 @@ public class JobProcessorMessageProducerBeanTest {
     private final JMSProducer jmsProducer = mock(JMSProducer.class);
     private final ConnectionFactory jmsConnectionFactory = mock(ConnectionFactory.class);
     private final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
+
+    public JobProcessorMessageProducerBeanTest() throws Exception {
+    }
 
     @BeforeEach
     public void setupMocks() {
@@ -96,7 +104,7 @@ public class JobProcessorMessageProducerBeanTest {
     }
 
     @Test
-    public void sendRetryAndFail() {
+    public void sendRetryAndFail() throws Exception {
         when(jmsProducer.send(any(Queue.class), any(Message.class))).thenThrow(new JMSRuntimeException("Argh"));
         JobProcessorMessageProducerBean producerBean = getInitializedBean();
         JobEntity jobEntity = buildJobEntity();
@@ -105,12 +113,60 @@ public class JobProcessorMessageProducerBeanTest {
         verify(jmsProducer, times(4)).send(any(Queue.class), any(Message.class));
     }
 
-    private JobProcessorMessageProducerBean getInitializedBean() {
+    @Test
+    public void resolveProcessorQueue_noCachedFlow_returnsNashornQueue() throws Exception {
+        JobProcessorMessageProducerBean bean = beanWithQueues("nashorn-queue", "graaljs-queue");
+        JobEntity job = new JobEntity();
+        assertThat(bean.resolveProcessorQueue(job), is("nashorn-queue"));
+    }
+
+    @Test
+    public void resolveProcessorQueue_nashornFlow_returnsNashornQueue() throws Exception {
+        JobProcessorMessageProducerBean bean = beanWithQueues("nashorn-queue", "graaljs-queue");
+        JobEntity job = new JobEntity();
+        job.setCachedFlow(flowCacheEntityWithEngine(JavaScriptEngine.NASHORN));
+        assertThat(bean.resolveProcessorQueue(job), is("nashorn-queue"));
+    }
+
+    @Test
+    public void resolveProcessorQueue_graaljsFlow_returnsGraaljsQueue() throws Exception {
+        JobProcessorMessageProducerBean bean = beanWithQueues("nashorn-queue", "graaljs-queue");
+        JobEntity job = new JobEntity();
+        job.setCachedFlow(flowCacheEntityWithEngine(JavaScriptEngine.GRAALJS));
+        assertThat(bean.resolveProcessorQueue(job), is("graaljs-queue"));
+    }
+
+    private static JobProcessorMessageProducerBean beanWithQueues(String nashornQueue, String graaljsQueue) throws Exception {
+        JobProcessorMessageProducerBean bean = new JobProcessorMessageProducerBean(
+                new RetryPolicy<>().withDelay(Duration.ofMillis(1)).withMaxRetries(0));
+        setField(bean, "nashornQueue", nashornQueue);
+        setField(bean, "graaljsQueue", graaljsQueue);
+        return bean;
+    }
+
+    private static FlowCacheEntity flowCacheEntityWithEngine(JavaScriptEngine engine) throws Exception {
+        FlowCacheEntity entity = new FlowCacheEntity();
+        setField(entity, "flow", new FlowBuilder()
+                .setContent(new FlowContentBuilder().setEngine(engine).build())
+                .build());
+        return entity;
+    }
+
+    private static void setField(Object target, String name, Object value) throws Exception {
+        Field field = target.getClass().getDeclaredField(name);
+        field.setAccessible(true);
+        field.set(target, value);
+    }
+
+    private JobProcessorMessageProducerBean getInitializedBean() throws Exception {
         RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withDelay(Duration.ofMillis(1)).withMaxRetries(3);
-        JobProcessorMessageProducerBean jobProcessorMessageProducerBean = new JobProcessorMessageProducerBean(retryPolicy);
-        jobProcessorMessageProducerBean.connectionFactory = jmsConnectionFactory;
-        jobProcessorMessageProducerBean.jsonbContext = new JSONBContext();
-        return jobProcessorMessageProducerBean;
+        JobProcessorMessageProducerBean bean = new JobProcessorMessageProducerBean(retryPolicy);
+        bean.connectionFactory = jmsConnectionFactory;
+        bean.jsonbContext = new JSONBContext();
+        setField(bean, "nashornQueue", "processor::business");
+        setField(bean, "graaljsQueue", "processor-graaljs::main");
+        bean.queueNameFromJob = bean::resolveProcessorQueue;
+        return bean;
     }
 
     private JobEntity buildJobEntity() {

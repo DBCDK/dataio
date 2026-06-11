@@ -29,17 +29,7 @@ public class JobSpecification implements Serializable {
         COMPACTED,
         SUPER_TRANSIENT;
 
-        public final String processorQueue;
-
         private static final EnumSet<Type> PREVIEW_SET = EnumSet.of(SUPER_TRANSIENT, TRANSIENT, PERSISTENT);
-
-        Type(String processorQueue) {
-            this.processorQueue = processorQueue;
-        }
-
-        Type() {
-            this.processorQueue = "processor::business";
-        }
 
         public boolean canBePreview() {
             return PREVIEW_SET.contains(this);

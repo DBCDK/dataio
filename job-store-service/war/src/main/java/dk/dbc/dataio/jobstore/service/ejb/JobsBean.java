@@ -118,7 +118,7 @@ public class JobsBean {
     }
 
     private void removeFromQueues(JobEntity job) {
-        List<String> queues = List.of(job.getProcessorQueue(), job.getSinkQueue());
+        List<String> queues = List.of(jobProcessorMessageProducerBean.resolveProcessorQueue(job), job.getSinkQueue());
         LOGGER.info("Removing job {} from queues: {}", job.getId(), queues);
         queues.forEach(q -> removeFromQueue(q, job.getId()));
     }

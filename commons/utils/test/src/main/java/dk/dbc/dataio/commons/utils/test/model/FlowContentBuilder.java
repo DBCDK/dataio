@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.utils.test.model;
 
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.JavaScriptEngine;
 
 import java.util.Date;
 
@@ -9,6 +10,7 @@ public class FlowContentBuilder {
     private String description = "description";
     private String entrypointScript = "entrypointScript";
     private String entrypointFunction = "entrypointFunction";
+    private JavaScriptEngine engine = JavaScriptEngine.NASHORN;
     private byte[] jsar = null;
     private Date timeOfLastModification = null;
 
@@ -32,6 +34,11 @@ public class FlowContentBuilder {
         return this;
     }
 
+    public FlowContentBuilder setEngine(JavaScriptEngine engine) {
+        this.engine = engine;
+        return this;
+    }
+
     public FlowContentBuilder setJsar(byte[] jsar) {
         this.jsar = jsar;
         return this;
@@ -43,6 +50,6 @@ public class FlowContentBuilder {
     }
 
     public FlowContent build() {
-        return new FlowContent(name, description, entrypointScript, entrypointFunction, jsar, timeOfLastModification);
+        return new FlowContent(name, description, entrypointScript, entrypointFunction, engine, jsar, timeOfLastModification);
     }
 }

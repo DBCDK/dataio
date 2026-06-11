@@ -18,7 +18,7 @@ import java.util.function.Function;
 
 public abstract class AbstractMessageProducer {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMessageProducer.class);
-    private final Function<JobEntity, String> queueNameFromJob;
+    protected Function<JobEntity, String> queueNameFromJob;
     protected ConnectionFactory connectionFactory;
 
     protected AbstractMessageProducer(Function<JobEntity, String> queueNameFromJob) {

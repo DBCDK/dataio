@@ -27,6 +27,7 @@
         <module>job-store-service</module>
         <module>log-store-service</module>
         <module>sink</module>
+        <module>job-processor-graaljs</module>
     </modules>
 
     <properties>
@@ -289,6 +290,11 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-graaljs-core</artifactId>
+                <version>21.3.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
                 <artifactId>dbc-commons-testcontainers-postgres</artifactId>
                 <version>21.3.0-SNAPSHOT</version>
                 <scope>test</scope>
@@ -296,6 +302,12 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dbc-commons-testcontainers-postgres-17</artifactId>
+                <version>21.3.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-commons-testcontainers-service</artifactId>
                 <version>21.3.0-SNAPSHOT</version>
                 <scope>test</scope>
             </dependency>
@@ -907,12 +919,6 @@
                 <version>9.10.1</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.sshd</groupId>
-                <artifactId>sshd-sftp</artifactId>
-                <version>2.13.2</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.eclipse.angus</groupId>
                 <artifactId>angus-mail</artifactId>
                 <version>2.0.1</version>
@@ -1024,6 +1030,12 @@
                 <groupId>org.wiremock</groupId>
                 <artifactId>wiremock</artifactId>
                 <version>3.3.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility</artifactId>
+                <version>4.2.0</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

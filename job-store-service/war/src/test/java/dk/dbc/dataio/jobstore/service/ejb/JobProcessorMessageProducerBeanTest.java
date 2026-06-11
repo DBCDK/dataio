@@ -164,7 +164,7 @@ public class JobProcessorMessageProducerBeanTest {
         bean.connectionFactory = jmsConnectionFactory;
         bean.jsonbContext = new JSONBContext();
         setField(bean, "nashornQueue", "processor::business");
-        setField(bean, "graaljsQueue", "processor-graaljs::business");
+        setField(bean, "graaljsQueue", "processor-graaljs::main");
         bean.queueNameFromJob = bean::resolveProcessorQueue;
         return bean;
     }

@@ -127,7 +127,7 @@ public class JmsQueueTester {
 
     public enum Queue {
         PROCESSING_BUSINESS("processor::business"),
-        PROCESSING_GRAALJS("processor-graaljs::business"),
+        PROCESSING_GRAALJS("processor-graaljs::main"),
         PROCESSING_ACCTEST("processor::acctest"),
         SINK_BE_CISTERNE("sink::batch-exchange/cisterne"),
         SINK_PERIODIC_JOBS("sink::periodic-jobs");

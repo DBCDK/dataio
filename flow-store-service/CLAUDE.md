@@ -26,7 +26,7 @@ The five primary entities and their tables:
 
 ### Flow JSAR
 
-Flows store their JavaScript business logic as a binary JSAR (JavaScript Archive) in the `flows.jsar` bytea column (added in `V3__flows_jsar_blob.sql`). `FlowsBean` exposes upload endpoints at `flows/jsar/{last-modified}` (create) and `flows/{id}/jsar/{last-modified}` (update). The optional `FLOWSTORE_FALLBACK` config property points to another flow-store instance to fall back to for JSAR retrieval. `SubversionFetcher` exposes SVN project browsing at `harvesters/svn/...` for fetching JavaScript from Subversion.
+Flows store their JavaScript business logic as a binary JSAR (JavaScript Archive) in the `flows.jsar` bytea column (added in `V3__flows_jsar_blob.sql`). `FlowsBean` exposes upload endpoints at `flows/jsar/{last-modified}` (create) and `flows/{id}/jsar/{last-modified}` (update). The optional `FLOWSTORE_FALLBACK` config property points to another flow-store instance to fall back to for JSAR retrieval. `SubversionFetcher` exposes SVN project browsing at `harvesters/svn/...` for fetching JavaScript from Subversion, this is a legacy class, and a candidate for removal.
 
 ### REST layer
 

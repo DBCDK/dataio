@@ -50,6 +50,7 @@ import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN
  * Jobs of type PERSISTENT are not deleted
  * Jobs of type INFOMEDIA are deleted 14 days after time of creation
  * Jobs of type PERIODIC are deleted 180 days after time of creation
+ * Jobs of type RETRIEVER are deleted 14 days after time of creation
  */
 @Singleton
 public class JobPurgeBean {
@@ -176,6 +177,7 @@ public class JobPurgeBean {
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.SUPER_TRANSIENT, 2));
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.INFOMEDIA, 14));
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.PERIODIC, 180));
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.RETRIEVER, 14));
         return toDelete;
     }
 

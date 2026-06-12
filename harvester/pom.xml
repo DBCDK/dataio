@@ -18,9 +18,9 @@
     <module>dmat</module>
     <module>dmat-dm3</module>
     <module>framework</module>
-    <module>infomedia</module>
     <module>periodic-jobs</module>
     <module>promat</module>
+    <module>retriever</module>
     <module>rr</module>
     <module>rr-v3</module>
     <module>task-repo</module>

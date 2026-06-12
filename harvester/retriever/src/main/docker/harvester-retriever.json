@@ -1,0 +1,4 @@
+{
+  "appName": "RetrieverHarvester",
+  "profiles": ["dmz-proxy"]
+}

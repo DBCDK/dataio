@@ -10,9 +10,6 @@ public class UpdateRequest {
     // body sent to the update service (type travels as a URL path segment, not a body field)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String type = "dbc";
-    // WRITE_ONLY: populated from incoming JSON and used as the groupId in Authentication,
-    // but excluded from the body sent to the update service
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String submitter;
     private String templateName;
     private String trackingId;

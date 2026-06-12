@@ -19,7 +19,7 @@ public class SinkContentTest {
     private static final String QUEUE = "queue";
     private static final String DESCRIPTION = "description";
     private static final SinkContent.SinkType SINK_TYPE = SinkContent.SinkType.OPENUPDATE;
-    private static final SinkConfig SINK_CONFIG = OpenUpdateSinkConfigTest.newOpenUpdateSinkConfigInstance();
+    private static final SinkConfig SINK_CONFIG = OpenUpdateSinkConfigTest.config();
     private static final SinkContent.SequenceAnalysisOption SEQUENCE_ANALYSIS_OPTION = SinkContent.SequenceAnalysisOption.ALL;
 
     public static SinkContent newSinkContentInstance() {

@@ -4,13 +4,14 @@ import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
@@ -21,10 +22,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * unitOfWork_stateUnderTest_expectedBehavior
  */
 public class OpenUpdateSinkConfigTest {
-    private static final String USER_ID = "userId";
-    private static final String PASSWORD = "password";
-    private static final String ENDPOINT = "endpoint";
-    private static final List<String> AVAILABLE_QUEUE_PROVIDERS = Arrays.asList("qp1", "qp2");
 
     @Test
     public void withUserId_userIdArgIsNull_throws() {
@@ -70,13 +67,32 @@ public class OpenUpdateSinkConfigTest {
     @Test
     public void marshalling() throws JSONBException {
         JSONBContext jsonbContext = new JSONBContext();
-        OpenUpdateSinkConfig openUpdateSinkConfig = new OpenUpdateSinkConfig();
-        OpenUpdateSinkConfig unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(openUpdateSinkConfig), OpenUpdateSinkConfig.class);
+        OpenUpdateSinkConfig openUpdateSinkConfig = config();
+        OpenUpdateSinkConfig unmarshalled = jsonbContext.unmarshall(
+                jsonbContext.marshall(openUpdateSinkConfig),
+                OpenUpdateSinkConfig.class);
         assertThat(unmarshalled, is(openUpdateSinkConfig));
     }
 
-    public static OpenUpdateSinkConfig newOpenUpdateSinkConfigInstance() {
-        return new OpenUpdateSinkConfig().withUserId(USER_ID).withPassword(PASSWORD).withEndpoint(ENDPOINT).withAvailableQueueProviders(AVAILABLE_QUEUE_PROVIDERS);
+    @Test
+    public void marshalling_withIgnoredFields() throws JSONBException {
+        JSONBContext jsonbContext = new JSONBContext();
+        OpenUpdateSinkConfig openUpdateSinkConfig = config()
+                .withGroupId("group")
+                .withValidateOnly(false);
+        OpenUpdateSinkConfig unmarshalled = jsonbContext.unmarshall(
+                jsonbContext.marshall(openUpdateSinkConfig),
+                OpenUpdateSinkConfig.class);
+        assertThat("unmarshalled", unmarshalled, is(not(openUpdateSinkConfig)));
+        assertThat("unmarshalled.getGroupId", unmarshalled.getGroupId(), is(nullValue()));
+        assertThat("unmarshalled.isValidateOnly", unmarshalled.isValidateOnly(), is(nullValue()));
     }
 
+    public static OpenUpdateSinkConfig config() {
+        return new OpenUpdateSinkConfig()
+                .withUserId("user")
+                .withPassword("secret")
+                .withEndpoint("http://update-service")
+                .withAvailableQueueProviders(List.of("qp1", "qp2"));
+    }
 }

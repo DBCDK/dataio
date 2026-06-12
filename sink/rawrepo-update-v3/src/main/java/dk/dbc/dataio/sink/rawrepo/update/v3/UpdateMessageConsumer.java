@@ -40,8 +40,7 @@ public class UpdateMessageConsumer extends MessageConsumerAdapter {
         try {
             OpenUpdateSinkConfig sinkConfig = getConfig(consumedMessage);
             Chunk outcome = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-            ChunkItemProcessor chunkItemProcessor = new ChunkItemProcessor(
-                    connector, sinkConfig, configRefresher.validateOnly);
+            ChunkItemProcessor chunkItemProcessor = new ChunkItemProcessor(connector, sinkConfig);
             try {
                 for (ChunkItem chunkItem : chunk) {
                     DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());

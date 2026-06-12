@@ -6,6 +6,7 @@ public enum SinkConfig implements EnvConfig {
     QUEUE,
     MESSAGE_FILTER,
     FLOWSTORE_URL,
+    GROUP_ID,
     UPDATE_VALIDATE_ONLY_FLAG("false");
 
     private final String defaultValue;

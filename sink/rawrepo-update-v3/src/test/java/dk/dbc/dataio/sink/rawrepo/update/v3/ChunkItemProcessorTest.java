@@ -26,14 +26,17 @@ import static org.mockito.Mockito.when;
 
 class ChunkItemProcessorTest {
     private final UpdateServiceConnector connector = mock(UpdateServiceConnector.class);
-    private final OpenUpdateSinkConfig config = new OpenUpdateSinkConfig()
-            .withEndpoint("http://update-service")
-            .withUserId("user")
-            .withPassword("secret");
+
+    private OpenUpdateSinkConfig config() {
+        return new OpenUpdateSinkConfig()
+                .withEndpoint("http://update-service")
+                .withUserId("user")
+                .withPassword("secret")
+                .withGroupId("010100")
+                .withValidateOnly(false);
+    }
 
     // Builds ChunkItem data as raw JSON strings (matching real job-processor output).
-    // submitter is WRITE_ONLY on UpdateRequest so it must be in the JSON source, not
-    // constructed via setSubmitter() before serialisation — WRITE_ONLY excludes it on write.
     private ChunkItem chunkItemWithRequests(String... jsonElements) {
         String json = "[" + String.join(",", jsonElements) + "]";
         return ChunkItem.successfulChunkItem()
@@ -73,7 +76,7 @@ class ChunkItemProcessorTest {
         when(connector.update(any())).thenReturn(okResponse());
 
         // no "type" key → UpdateRequest.type stays at its default "dbc"
-        ChunkItem result = new ChunkItemProcessor(connector, config, false)
+        ChunkItem result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests("{\"submitter\":\"870970\",\"templateName\":\"bog\",\"content\":{}}"));
 
         verify(connector).update(any(UpdateRequest.class));
@@ -84,7 +87,7 @@ class ChunkItemProcessorTest {
     void process_singleRequestWithType_callsConnectorWithThatType() throws Exception {
         when(connector.update(any())).thenReturn(okResponse());
 
-        new ChunkItemProcessor(connector, config, false)
+        new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req("dbc")));
 
         verify(connector).update(any(UpdateRequest.class));
@@ -98,12 +101,12 @@ class ChunkItemProcessorTest {
             return okResponse();
         });
 
-        new ChunkItemProcessor(connector, config, false)
+        new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req()));
 
         assertThat(captured[0].getAuthentication(), notNullValue());
         assertThat(captured[0].getAuthentication().getUserId(), is("user"));
-        assertThat(captured[0].getAuthentication().getGroupId(), is("870970"));
+        assertThat(captured[0].getAuthentication().getGroupId(), is("010100"));
         assertThat(captured[0].getAuthentication().getPassword(), is("secret"));
     }
 
@@ -111,7 +114,7 @@ class ChunkItemProcessorTest {
     void process_validateOnly_callsValidate() throws Exception {
         when(connector.validate(any())).thenReturn(okResponse());
 
-        new ChunkItemProcessor(connector, config, true)
+        new ChunkItemProcessor(connector, config().withValidateOnly(true))
                 .process(chunkItemWithRequests(req()));
 
         verify(connector).validate(any(UpdateRequest.class));
@@ -121,7 +124,7 @@ class ChunkItemProcessorTest {
     void process_okResponse_returnsSuccessfulChunkItem() throws Exception {
         when(connector.update(any())).thenReturn(okResponse());
 
-        ChunkItem result = new ChunkItemProcessor(connector, config, false)
+        ChunkItem result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req()));
 
         assertThat(result.getStatus(), is(ChunkItem.Status.SUCCESS));
@@ -132,12 +135,12 @@ class ChunkItemProcessorTest {
     void process_errorResponse_returnsFailedChunkItemWithDiagnostics() throws Exception {
         when(connector.update(any())).thenReturn(errorResponse("Felt 245 delfelt a mangler"));
 
-        ChunkItem result = new ChunkItemProcessor(connector, config, false)
+        ChunkItem result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req()));
 
         assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(result.getDiagnostics().size(), is(1));
-        assertThat(result.getDiagnostics().get(0).getMessage(), is("Felt 245 delfelt a mangler"));
+        assertThat(result.getDiagnostics().getFirst().getMessage(), is("Felt 245 delfelt a mangler"));
         assertThat(new String(result.getData(), StandardCharsets.UTF_8).contains("e01 00"), is(true));
     }
 
@@ -145,7 +148,7 @@ class ChunkItemProcessorTest {
     void process_multipleRequests_allAttempted() throws Exception {
         when(connector.update(any())).thenReturn(okResponse());
 
-        ChunkItem result = new ChunkItemProcessor(connector, config, false)
+        ChunkItem result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req(), req("dbc")));
 
         verify(connector, times(2)).update(any());
@@ -158,7 +161,7 @@ class ChunkItemProcessorTest {
                 .thenReturn(okResponse())
                 .thenReturn(errorResponse("error in second"));
 
-        ChunkItem result = new ChunkItemProcessor(connector, config, false)
+        ChunkItem result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req(), req()));
 
         assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
@@ -178,7 +181,7 @@ class ChunkItemProcessorTest {
         response.setErrors(List.of(vm));
         when(connector.update(any())).thenReturn(response);
 
-        ChunkItem result = new ChunkItemProcessor(connector, config, false)
+        ChunkItem result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req()));
 
         assertThat(result.getStatus(), is(ChunkItem.Status.SUCCESS));
@@ -189,12 +192,12 @@ class ChunkItemProcessorTest {
     void process_connectorException_accumulatedAsFatalDiagnostic() throws Exception {
         when(connector.update(any())).thenThrow(new UpdateServiceConnectorException("auth failed"));
 
-        ChunkItem result = new ChunkItemProcessor(connector, config, false)
+        ChunkItem result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req()));
 
         assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(result.getDiagnostics().size(), is(1));
-        assertThat(result.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat(result.getDiagnostics().getFirst().getLevel(), is(Diagnostic.Level.FATAL));
     }
 
     @Test
@@ -205,9 +208,9 @@ class ChunkItemProcessorTest {
                 .withType(ChunkItem.Type.STRING)
                 .withEncoding(StandardCharsets.UTF_8);
 
-        ChunkItem result = new ChunkItemProcessor(connector, config, false).process(item);
+        ChunkItem result = new ChunkItemProcessor(connector, config()).process(item);
 
         assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(result.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat(result.getDiagnostics().getFirst().getLevel(), is(Diagnostic.Level.FATAL));
     }
 }

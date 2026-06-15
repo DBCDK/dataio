@@ -89,7 +89,7 @@ public class ChunkItemProcessor {
                     ? connector.validate(record)
                     : connector.update(record);
             Metric.update_service_requests.timer(
-                    new Tag("submitter", Objects.requireNonNullElse(record.getSubmitter(), "unknown")),
+                    new Tag("submitter", Objects.requireNonNullElse(record.getOverrideSubmitter(), "unknown")),
                     new Tag("template", record.getTemplateName()))
                     .update(Duration.ofMillis(System.currentTimeMillis() - startTime));
 

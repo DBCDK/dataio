@@ -87,7 +87,7 @@ class UpdateServiceConnectorTest {
 
         UpdateRequest request = new UpdateRequest();
         request.setType(type);
-        request.setSubmitter("870970");
+        request.setOverrideSubmitter("870970");
         request.setAuthentication(auth);
         request.setTemplateName(templateName);
         request.setContent(content);

@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ChunkItemProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkItemProcessor.class);
@@ -29,15 +30,11 @@ public class ChunkItemProcessor {
     private final UpdateServiceConnector connector;
     private final OpenUpdateSinkConfig config;
     private final ValidationMessageInterpreter validationMessageInterpreter;
-    private final boolean validateOnly;
 
-    public ChunkItemProcessor(UpdateServiceConnector connector,
-                              OpenUpdateSinkConfig config,
-                              boolean validateOnly) {
+    public ChunkItemProcessor(UpdateServiceConnector connector, OpenUpdateSinkConfig config) {
         this.connector = connector;
         this.config = config;
         this.validationMessageInterpreter = new ValidationMessageInterpreter(config.getIgnoredValidationErrors());
-        this.validateOnly = validateOnly;
     }
 
     public ChunkItem process(ChunkItem chunkItem) {
@@ -79,7 +76,7 @@ public class ChunkItemProcessor {
     private void setAuthentication(UpdateRequest record) {
         Authentication auth = new Authentication();
         auth.setUserId(config.getUserId());
-        auth.setGroupId(record.getSubmitter());
+        auth.setGroupId(config.getGroupId());
         auth.setPassword(config.getPassword());
         record.setAuthentication(auth);
     }
@@ -88,11 +85,11 @@ public class ChunkItemProcessor {
                                    List<Diagnostic> diagnostics, int index, int total) {
         try {
             long startTime = System.currentTimeMillis();
-            UpdateResponse response = validateOnly
+            UpdateResponse response = config.isValidateOnly()
                     ? connector.validate(record)
                     : connector.update(record);
             Metric.update_service_requests.timer(
-                    new Tag("submitter", record.getSubmitter()),
+                    new Tag("submitter", Objects.requireNonNullElse(record.getOverrideSubmitter(), "unknown")),
                     new Tag("template", record.getTemplateName()))
                     .update(Duration.ofMillis(System.currentTimeMillis() - startTime));
 

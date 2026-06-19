@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.rawrepo.update.v3.connector;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -10,10 +11,8 @@ public class UpdateRequest {
     // body sent to the update service (type travels as a URL path segment, not a body field)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String type = "dbc";
-    // WRITE_ONLY: populated from incoming JSON and used as the groupId in Authentication,
-    // but excluded from the body sent to the update service
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String submitter;
+    @JsonAlias("submitter")
+    private String overrideSubmitter;
     private String templateName;
     private String trackingId;
     private Authentication authentication;
@@ -28,12 +27,12 @@ public class UpdateRequest {
         this.type = type;
     }
 
-    public String getSubmitter() {
-        return submitter;
+    public String getOverrideSubmitter() {
+        return overrideSubmitter;
     }
 
-    public void setSubmitter(String submitter) {
-        this.submitter = submitter;
+    public void setOverrideSubmitter(String overrideSubmitter) {
+        this.overrideSubmitter = overrideSubmitter;
     }
 
     public String getTemplateName() {

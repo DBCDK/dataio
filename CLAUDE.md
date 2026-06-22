@@ -6,7 +6,7 @@ DataIO is an internal software platform for data ingestion, transformation, and 
 company DBC.
 
 ## Tech stack
-- Java SE 17
+- Java SE 21
 - Jakarta EE 10 / Payara Micro 6
 - Maven multi-module reactor, use mvn
 - Docker, images are built as part of the maven package lifecycle
@@ -21,6 +21,19 @@ DataIO is organized around job processing:
 - Each chunk is processed by the job-processor component, which uses JavaScript business logic external to the dataIO system to transform the data
 - Sinks deliver results from the processing to internal and external systems
 
+## Commands
+
+```bash
+# Build single component (skips Docker image build and ITs)
+mvn -pl <component-path> -am install -DskipITs
+
+# Build full reactor (skips Docker and ITs)
+mvn install -DskipITs
+
+# Run integration tests for a component
+mvn -pl <component-path> -am verify
+```
+
 ## Conventions
 - All component paths are relative to the root of the project
 
@@ -32,7 +45,8 @@ DataIO is organized around job processing:
 | flow-store-service           | flow-store-service/                         | service                                                                            |
 | flow-store-service-connector | commons/utils/flow-store-service-connector/ | client lib                                                                         |
 | harvester                    | harvester/                                  | see subdirectories of `harvester/` for the full list of harvester implementations. | 
-| job-processor                | job-processor2/app                          | service                                                                            |
+| job-processor                | job-processor2/app                          | service (legacy)                                                                   |
+| job-processor-graaljs        | job-processor-graaljs/                      | service (new GraalJS-based processor)                                              |
 | job-store-service            | job-store-service/war/                      | service                                                                            |
 | job-store-service-connector  | commons/utils/job-store-service-connector/  | client lib                                                                         |
 | sink                         | sink/                                       | see subdirectories of `sink/` for the full list of sink implementations.           |

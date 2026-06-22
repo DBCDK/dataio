@@ -31,8 +31,17 @@ public class FlowContentTest {
         assertThat("description", flowContent.getDescription(), is("Used for unit testing"));
         assertThat("entrypointScript", flowContent.getEntrypointScript(), is("entrypoint.js"));
         assertThat("entrypointFunction", flowContent.getEntrypointFunction(), is("callMe"));
+        assertThat("engine", flowContent.getEngine(), is(JavaScriptEngine.NASHORN));
         assertThat("jsar", flowContent.getJsar(), is(jsarBytes));
         assertThat("timeOfLastModification", flowContent.getTimeOfLastModification(), is(timeOfLastModification));
+    }
+
+    @Test
+    void constructor_jsarWithGraalJsEngine_setsEngineFromManifest() throws IOException {
+        byte[] jsarBytes = Files.readAllBytes(Path.of("src", "test", "resources", "flow-graaljs.jsar"));
+
+        final FlowContent flowContent = new FlowContent(jsarBytes, new Date());
+        assertThat(flowContent.getEngine(), is(JavaScriptEngine.GRAALJS));
     }
 
     @Test
@@ -51,7 +60,7 @@ public class FlowContentTest {
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        FlowContent instance = new FlowContent(NAME, DESCRIPTION, null, null, null, null);
+        FlowContent instance = new FlowContent(NAME, DESCRIPTION, null, null, null, null, null);
         assertThat(instance, is(notNullValue()));
     }
 

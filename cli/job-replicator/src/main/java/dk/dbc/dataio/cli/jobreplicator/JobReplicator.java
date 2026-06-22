@@ -194,6 +194,7 @@ public class JobReplicator {
                     sourceFlow.getContent().getDescription(),
                     sourceFlow.getContent().getEntrypointScript(),
                     sourceFlow.getContent().getEntrypointFunction(),
+                    sourceFlow.getContent().getEngine(),
                     sourceFlow.getContent().getJsar(),
                     sourceFlow.getContent().getTimeOfLastModification());
             return targetFlowStoreConnector.createFlow(targetFlowContent);

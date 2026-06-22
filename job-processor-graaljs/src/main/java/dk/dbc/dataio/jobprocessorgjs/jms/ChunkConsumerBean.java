@@ -1,0 +1,212 @@
+package dk.dbc.dataio.jobprocessorgjs.jms;
+
+import dk.dbc.commons.useragent.UserAgent;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.jobprocessorgjs.health.ProcessorHealth;
+import dk.dbc.dataio.jobprocessorgjs.service.ChunkProcessor;
+import dk.dbc.dataio.jobprocessorgjs.service.FlowCache;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.ejb.Schedule;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
+import jakarta.inject.Inject;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSConsumer;
+import jakarta.jms.JMSContext;
+import jakarta.jms.JMSRuntimeException;
+import jakarta.jms.Message;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.graalvm.polyglot.Engine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+@Singleton
+@Startup
+public class ChunkConsumerBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChunkConsumerBean.class);
+
+    @Inject @ConfigProperty(name = "ARTEMIS_MQ_HOST")
+    private String artemisHost;
+
+    @Inject @ConfigProperty(name = "ARTEMIS_JMS_PORT", defaultValue = "61616")
+    private String artemisPort;
+
+    @Inject @ConfigProperty(name = "ARTEMIS_USER")
+    private String artemisUser;
+
+    @Inject @ConfigProperty(name = "ARTEMIS_PASSWORD")
+    private String artemisPassword;
+
+    @Inject @ConfigProperty(name = "QUEUE")
+    private String queue;
+
+    @Inject @ConfigProperty(name = "JOBSTORE_URL")
+    private String jobstoreUrl;
+
+    @Inject @ConfigProperty(name = "FLOWSTORE_URL", defaultValue = "")
+    private String flowstoreUrl;
+
+    @Inject @ConfigProperty(name = "FLOW_CACHE_SIZE", defaultValue = "100")
+    private int flowCacheSize;
+
+    @Inject @ConfigProperty(name = "FLOW_CACHE_EXPIRY", defaultValue = "PT10m")
+    private String flowCacheExpiry;
+
+    @Inject @ConfigProperty(name = "CONSUMER_THREADS", defaultValue = "1")
+    private int consumerThreads;
+
+    @Inject
+    private ProcessorHealth health;
+
+    private List<ChunkMessageConsumer> messageConsumers = List.of();
+    private ConnectionFactory connectionFactory;
+    private ExecutorService executor;
+    private final AtomicBoolean running = new AtomicBoolean(false);
+    private Client jobStoreClient;
+    private Client flowStoreClient;
+    private Engine jsEngine;
+
+    @PostConstruct
+    @SuppressWarnings("java:S2095") // clients are closed in @PreDestroy stop()
+    void start() {
+        connectionFactory = new ActiveMQConnectionFactory(
+                "tcp://" + artemisHost + ":" + artemisPort, artemisUser, artemisPassword);
+
+        jobStoreClient = ClientBuilder.newClient().register(new JacksonFeature());
+        JobStoreServiceConnector jobStoreConnector = new JobStoreServiceConnector(
+                jobStoreClient, UserAgent.forInternalRequests(), jobstoreUrl);
+        flowStoreClient = ClientBuilder.newClient().register(new JacksonFeature());
+        FlowStoreServiceConnector flowStoreConnector = new FlowStoreServiceConnector(
+                    flowStoreClient, UserAgent.forInternalRequests(), flowstoreUrl);
+
+        // Single engine shared across all consumer threads and flows: it is thread-safe and
+        // caches compiled JavaScript code, so the same flow compiled on different threads (or
+        // different flows) reuse cached code. Each script still gets its own thread-confined context.
+        jsEngine = Engine.newBuilder("js").build();
+
+        List<ChunkMessageConsumer> consumers = new ArrayList<>(consumerThreads);
+        List<FlowCache> flowCaches = new ArrayList<>(consumerThreads);
+        running.set(true);
+        executor = Executors.newFixedThreadPool(consumerThreads,
+                Thread.ofPlatform().name("graaljs-consumer-", 0).factory());
+        // Each consumer thread owns a thread-confined FlowCache (GraalJS contexts cannot be shared
+        // across threads), so FLOW_CACHE_SIZE is divided to make the configured value the total
+        // number of cached scripts across all threads rather than a per-thread bound.
+        int perThreadCacheSize = Math.max(1, flowCacheSize / consumerThreads);
+        Duration cacheExpiry = Duration.parse(flowCacheExpiry);
+        for (int i = 0; i < consumerThreads; i++) {
+            FlowCache flowCache = new FlowCache(perThreadCacheSize, cacheExpiry, jsEngine);
+            flowCaches.add(flowCache);
+            ChunkProcessor chunkProcessor = new ChunkProcessor(
+                    health, flowCache,
+                    jobId -> getFlow(jobId, jobStoreConnector, flowStoreConnector));
+            ChunkMessageConsumer consumer = new ChunkMessageConsumer(chunkProcessor, jobStoreConnector);
+            consumers.add(consumer);
+            executor.submit(() -> listen(consumer));
+        }
+        FlowCache.registerMetrics(List.copyOf(flowCaches));
+        messageConsumers = List.copyOf(consumers);
+        LOGGER.info("Started {} GraalJS chunk consumer thread(s) on queue {}", consumerThreads, queue);
+    }
+
+    @PreDestroy
+    void stop() {
+        running.set(false);
+        executor.shutdownNow();
+        try {
+            executor.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        if (jsEngine != null) {
+            // Consumer threads have stopped, so no context is executing; closing the engine
+            // also closes the cached contexts still open in the flow caches.
+            try {
+                jsEngine.close();
+            } catch (RuntimeException e) {
+                LOGGER.warn("Error closing JS engine during shutdown", e);
+            }
+        }
+        jobStoreClient.close();
+        flowStoreClient.close();
+    }
+
+    @Schedule(hour = "*", minute = "*", second = "*/30", persistent = false)
+    void checkTimeouts() {
+        messageConsumers.forEach(c -> c.checkTimeouts(health));
+    }
+
+    private void listen(ChunkMessageConsumer messageConsumer) {
+        try {
+            while (running.get()) {
+                try (JMSContext context = connectionFactory.createContext(JMSContext.SESSION_TRANSACTED)) {
+                    try (JMSConsumer consumer = context.createConsumer(context.createQueue(queue))) {
+                        receiveMessages(context, consumer, messageConsumer);
+                    }
+                } catch (JMSRuntimeException e) {
+                    LOGGER.error("JMS connection failed, retrying in 10s", e);
+                    sleep(10_000);
+                } catch (RuntimeException e) {
+                    LOGGER.error("Unexpected error in consumer loop, retrying in 10s", e);
+                    sleep(10_000);
+                }
+            }
+        } catch (Throwable t) {
+            // An unrecoverable error (e.g. OutOfMemoryError) escaped the reconnect loop.
+            // Signal liveness failure so the liveness probe triggers a pod restart.
+            LOGGER.error("Consumer thread terminated by unrecoverable error — signalling liveness failure", t);
+            health.signalFatal(t.getClass().getSimpleName() + ": " + t.getMessage());
+            throw t;
+        }
+    }
+
+    private void receiveMessages(JMSContext context, JMSConsumer consumer,
+                                 ChunkMessageConsumer messageConsumer) {
+        while (running.get()) {
+            Message message = consumer.receive(1000);
+            if (message == null) continue;
+            try {
+                messageConsumer.onMessage(message);
+                context.commit();
+            } catch (Exception e) {
+                LOGGER.warn("Rolling back message due to processing error", e);
+                context.rollback();
+            }
+        }
+    }
+
+    private Flow getFlow(int jobId, JobStoreServiceConnector jobStoreConnector,
+                         FlowStoreServiceConnector flowStoreConnector) throws Exception {
+        Flow flow = jobStoreConnector.getCachedFlow(jobId);
+        if (flow.getContent().getJsar() == null && flowStoreConnector != null) {
+            byte[] jsar = flowStoreConnector.getJsar(flow.getId());
+            return new Flow(flow.getId(), flow.getVersion(),
+                    new FlowContent(jsar, flow.getContent().getTimeOfLastModification()));
+        }
+        return flow;
+    }
+
+    private static void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
+    }
+}

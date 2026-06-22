@@ -26,10 +26,12 @@ import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -63,6 +65,7 @@ public class Developer {
     @Stopwatch
     public Response addJobDeveloper(@Context UriInfo uriInfo,
                                     @PathParam("recordsplitter") RecordSplitter recordSplitter,
+                                    @QueryParam("flowId") @DefaultValue("1") long flowId,
                                     String jobInputStreamData) throws JSONBException, JobStoreException {
         LOGGER.info("JobInputStream: {}", jobInputStreamData);
         final JobInputStream jobInputStream;
@@ -70,7 +73,7 @@ public class Developer {
 
         try {
             jobInputStream = jsonbContext.unmarshall(jobInputStreamData, JobInputStream.class);
-            Flow flow = new Flow(1, 1, new FlowContent("Flow 1", "describe 1"));
+            Flow flow = new Flow(flowId, 1, new FlowContent("Passthrough", "Passthrough flow for developer endpoint"));
             Sink sink = new Sink(1, 1, new SinkContent("sink 1", "sinkqueue1",
                     "descibe 1", SinkContent.SinkType.HIVE, null,
                     SinkContent.SequenceAnalysisOption.ID_ONLY));

@@ -25,6 +25,7 @@ public class JobSpecification implements Serializable {
         PERSISTENT,
         TEST,
         INFOMEDIA,
+        RETRIEVER,
         PERIODIC,
         COMPACTED,
         SUPER_TRANSIENT;

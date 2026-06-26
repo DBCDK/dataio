@@ -11,6 +11,7 @@ Runs the full processing pipeline locally for manual testing:
 | 8082 | file-store REST API |
 | 8083 | job-processor2 (Nashorn) health + metrics |
 | 8084 | job-processor-graaljs health + metrics |
+| 8085 | log-store REST API |
 
 ---
 
@@ -28,7 +29,7 @@ Runs the full processing pipeline locally for manual testing:
 Build Docker images for the four services (skip integration tests for speed):
 
 ```bash
-mvn -pl flow-store-service,file-store-service,job-store-service/war,job-processor2/app,job-processor-graaljs \
+mvn -pl flow-store-service,file-store-service,log-store-service/war,job-store-service/war,job-processor2/app,job-processor-graaljs \
     -am install -DskipITs
 ```
 
@@ -183,6 +184,17 @@ curl http://localhost:8084/health/ready    # job-processor-graaljs
 curl http://localhost:8083/metrics
 curl http://localhost:8084/metrics
 ```
+
+### Item log entries
+
+The log-store captures per-item processing logs written by the processors. Fetch the log for a specific item:
+
+```bash
+curl -s http://localhost:8085/dataio/log-store-service/logentries/jobs/$NASHORN_JOB_ID/chunks/0/items/0
+curl -s http://localhost:8085/dataio/log-store-service/logentries/jobs/$GRAALJS_JOB_ID/chunks/2/items/0
+```
+
+Replace `0/0` with the actual `chunkId/itemId`.
 
 ---
 

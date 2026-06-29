@@ -206,9 +206,7 @@ services:
       ARTEMIS_PASSWORD: GoFish
       JOBSTORE_URL: http://jobstore:8080/dataio/job-store-service
       FLOWSTORE_URL: http://flowstore:8080/dataio/flow-store-service
-      LOGSTORE_DB_URL: logstoredb:5432/logstore
-      LOGSTORE_DB_USER: logstore
-      LOGSTORE_DB_PASSWORD: logstore
+      LOGSTORE_DB_URL: logstore:logstore@logstoredb:5432/logstore
       WEB_PORT: "8080"
       LOG_FORMAT: text
       JAVA_MAX_HEAP_SIZE: 1G

@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessorgjs.health.ProcessorHealth;
+import dk.dbc.dataio.jobprocessorgjs.logstore.LogStoreWriter;
 import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,11 +24,14 @@ public class ChunkProcessor {
     private final FlowCache flowCache;
     private final ProcessorHealth health;
     private final FlowFetcher flowFetcher;
+    private final LogStoreWriter logStoreWriter;
 
-    public ChunkProcessor(ProcessorHealth health, FlowCache flowCache, FlowFetcher flowFetcher) {
+    public ChunkProcessor(ProcessorHealth health, FlowCache flowCache, FlowFetcher flowFetcher,
+                          LogStoreWriter logStoreWriter) {
         this.health = health;
         this.flowCache = flowCache;
         this.flowFetcher = flowFetcher;
+        this.logStoreWriter = logStoreWriter;
     }
 
     public Chunk process(Chunk chunk, long flowId, long flowVersion, String additionalArgs) {
@@ -79,7 +83,7 @@ public class ChunkProcessor {
     private List<ChunkItem> processItems(Chunk chunk, FlowCache.FlowCacheEntry entry,
                                          String additionalArgs) {
         ChunkItemProcessor itemProcessor = new ChunkItemProcessor(
-                chunk.getJobId(), chunk.getChunkId(), entry.script, additionalArgs);
+                chunk.getJobId(), chunk.getChunkId(), entry.script, additionalArgs, logStoreWriter);
         List<ChunkItem> results = new ArrayList<>();
         try {
             for (ChunkItem item : chunk) {

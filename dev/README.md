@@ -26,14 +26,12 @@ Runs the full processing pipeline locally for manual testing:
 
 ## 1. Build
 
-Build Docker images for the four services (skip integration tests for speed):
+Build Docker images (skip integration tests for speed):
 
 ```bash
 mvn -pl flow-store-service,file-store-service,log-store-service/war,job-store-service/war,job-processor2/app,job-processor-graaljs \
     -am install -DskipITs
 ```
-
-Rebuild after code changes with the same command.
 
 ---
 

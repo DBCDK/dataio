@@ -1,3 +1,8 @@
 {
-  "appName": "GraalJSProcessor"
+  "appName": "GraalJSProcessor",
+  "jdbc": {
+    "jdbc/dataio/logstore": {
+      "url": "${LOGSTORE_DB_URL}"
+    }
+  }
 }

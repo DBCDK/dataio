@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobprocessorgjs.javascript.GraalJsScript;
+import dk.dbc.dataio.jobprocessorgjs.logstore.LogStoreWriter;
 import org.graalvm.polyglot.Engine;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -18,6 +19,10 @@ import java.util.zip.ZipOutputStream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class ChunkItemProcessorTest {
     private static final String SCRIPT_ID = "main.js";
@@ -162,8 +167,32 @@ class ChunkItemProcessorTest {
         }
     }
 
+    @Test
+    void process_successItem_writesItemLogToLogStore() throws IOException {
+        ChunkItem input = new ChunkItemBuilder()
+                .setId(7).setData("hello").setTrackingId("t1")
+                .build();
+        LogStoreWriter logStoreWriter = mock(LogStoreWriter.class);
+        try (GraalJsScript script = scriptWith("export function process(d, s) { return d; }")) {
+            new ChunkItemProcessor(1, 0, script, ADDITIONAL_ARGS, logStoreWriter).process(input);
+        }
+        verify(logStoreWriter).write(eq("1"), eq(0L), eq(7L), any());
+    }
+
+    @Test
+    void process_failedScript_stillWritesItemLogToLogStore() throws IOException {
+        ChunkItem input = new ChunkItemBuilder()
+                .setId(7).setData("hello").setTrackingId("t1")
+                .build();
+        LogStoreWriter logStoreWriter = mock(LogStoreWriter.class);
+        try (GraalJsScript script = scriptWith("export function process(d, s) { throw 'boom'; }")) {
+            new ChunkItemProcessor(1, 0, script, ADDITIONAL_ARGS, logStoreWriter).process(input);
+        }
+        verify(logStoreWriter).write(eq("1"), eq(0L), eq(7L), any());
+    }
+
     private static ChunkItemProcessor processor(GraalJsScript script) {
-        return new ChunkItemProcessor(1, 0, script, ADDITIONAL_ARGS);
+        return new ChunkItemProcessor(1, 0, script, ADDITIONAL_ARGS, LogStoreWriter.NOOP);
     }
 
     private static GraalJsScript identityScript() throws IOException {

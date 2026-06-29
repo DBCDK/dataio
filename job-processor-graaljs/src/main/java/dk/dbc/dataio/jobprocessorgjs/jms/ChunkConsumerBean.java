@@ -1,15 +1,18 @@
 package dk.dbc.dataio.jobprocessorgjs.jms;
 
+import dk.dbc.commons.graaljs.core.JsInterop;
 import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.jobprocessorgjs.health.ProcessorHealth;
+import dk.dbc.dataio.jobprocessorgjs.logstore.LogStoreWriter;
 import dk.dbc.dataio.jobprocessorgjs.service.ChunkProcessor;
 import dk.dbc.dataio.jobprocessorgjs.service.FlowCache;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 import jakarta.ejb.Schedule;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
@@ -28,6 +31,7 @@ import org.graalvm.polyglot.Engine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +78,9 @@ public class ChunkConsumerBean {
     @Inject
     private ProcessorHealth health;
 
+    @Resource(lookup = "jdbc/dataio/logstore")
+    private DataSource logStoreDataSource;
+
     private List<ChunkMessageConsumer> messageConsumers = List.of();
     private ConnectionFactory connectionFactory;
     private ExecutorService executor;
@@ -100,6 +107,14 @@ public class ChunkConsumerBean {
         // different flows) reuse cached code. Each script still gets its own thread-confined context.
         jsEngine = Engine.newBuilder("js").build();
 
+        JsInterop.attachLogCollector();
+        LogStoreWriter logStoreWriter = logStoreDataSource == null
+                ? LogStoreWriter.NOOP
+                : new LogStoreWriter(logStoreDataSource);
+        if (logStoreDataSource == null) {
+            LOGGER.warn("No log-store data source available — item JavaScript logs will not be persisted");
+        }
+
         List<ChunkMessageConsumer> consumers = new ArrayList<>(consumerThreads);
         List<FlowCache> flowCaches = new ArrayList<>(consumerThreads);
         running.set(true);
@@ -115,7 +130,8 @@ public class ChunkConsumerBean {
             flowCaches.add(flowCache);
             ChunkProcessor chunkProcessor = new ChunkProcessor(
                     health, flowCache,
-                    jobId -> getFlow(jobId, jobStoreConnector, flowStoreConnector));
+                    jobId -> getFlow(jobId, jobStoreConnector, flowStoreConnector),
+                    logStoreWriter);
             ChunkMessageConsumer consumer = new ChunkMessageConsumer(chunkProcessor, jobStoreConnector);
             consumers.add(consumer);
             executor.submit(() -> listen(consumer));
@@ -128,6 +144,7 @@ public class ChunkConsumerBean {
     @PreDestroy
     void stop() {
         running.set(false);
+        JsInterop.detachLogCollector();
         executor.shutdownNow();
         try {
             executor.awaitTermination(10, TimeUnit.SECONDS);

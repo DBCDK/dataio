@@ -11,22 +11,6 @@
         <resetJUL>true</resetJUL>
     </contextListener>
 
-    <appender name="LOGSTORE" class="dk.dbc.dataio.logstore.logback.LogStoreMergingJdbcAppender">
-        <filter class="dk.dbc.dataio.logstore.logback.MdcKeyExistsFilter">
-            <MDCKey>logStoreTrackingId</MDCKey>
-            <OnMatch>ACCEPT</OnMatch>
-            <onMismatch>DENY</onMismatch>
-        </filter>
-
-        <connectionSource class="ch.qos.logback.core.db.DataSourceConnectionSource">
-            <dataSource class="org.postgresql.ds.PGPoolingDataSource">
-                <url>jdbc:postgresql://${LOGSTORE_DB_URL}</url>
-                <user>${LOGSTORE_DB_USER}</user>
-                <password>${LOGSTORE_DB_PASSWORD}</password>
-            </dataSource>
-        </connectionSource>
-    </appender>
-
     <appender name="STDOUT-json" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <fieldNames>
@@ -41,11 +25,6 @@
     </appender>
 
     <appender name="ASYNC-json" class="ch.qos.logback.classic.AsyncAppender">
-        <filter class="dk.dbc.dataio.logstore.logback.MdcKeyExistsFilter">
-            <MDCKey>logStoreTrackingId</MDCKey>
-            <OnMatch>DENY</OnMatch>
-            <onMismatch>ACCEPT</onMismatch>
-        </filter>
         <queueSize>1000</queueSize>
         <discardingThreshold>0</discardingThreshold>
         <appender-ref ref="STDOUT-json"/>
@@ -58,11 +37,6 @@
     </appender>
 
     <appender name="ASYNC-text" class="ch.qos.logback.classic.AsyncAppender">
-        <filter class="dk.dbc.dataio.logstore.logback.MdcKeyExistsFilter">
-            <MDCKey>logStoreTrackingId</MDCKey>
-            <OnMatch>DENY</OnMatch>
-            <onMismatch>ACCEPT</onMismatch>
-        </filter>
         <queueSize>1000</queueSize>
         <discardingThreshold>0</discardingThreshold>
         <appender-ref ref="STDOUT-text"/>
@@ -70,7 +44,6 @@
 
     <root level="${LOG_LEVEL}">
         <appender-ref ref="ASYNC-${LOG_FORMAT}"/>
-        <appender-ref ref="LOGSTORE"/>
     </root>
 
 </configuration>

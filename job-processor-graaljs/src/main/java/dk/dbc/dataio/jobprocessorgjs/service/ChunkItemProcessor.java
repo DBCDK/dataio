@@ -2,17 +2,17 @@ package dk.dbc.dataio.jobprocessorgjs.service;
 
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.commons.graaljs.core.JsInterop;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessorgjs.javascript.GraalJsScript;
-import dk.dbc.dataio.logstore.types.LogStoreTrackingId;
+import dk.dbc.dataio.jobprocessorgjs.logstore.LogStoreWriter;
 import dk.dbc.javascript.recordprocessing.FailRecord;
 import dk.dbc.javascript.recordprocessing.IgnoreRecord;
 import org.graalvm.polyglot.PolyglotException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.io.ByteArrayInputStream;
 
@@ -23,12 +23,15 @@ public class ChunkItemProcessor {
     private final long chunkId;
     private final GraalJsScript script;
     private final String supplementaryData;
+    private final LogStoreWriter logStoreWriter;
 
-    public ChunkItemProcessor(long jobId, long chunkId, GraalJsScript script, String supplementaryData) {
+    public ChunkItemProcessor(long jobId, long chunkId, GraalJsScript script, String supplementaryData,
+                              LogStoreWriter logStoreWriter) {
         this.jobId = jobId;
         this.chunkId = chunkId;
         this.script = script;
         this.supplementaryData = supplementaryData;
+        this.logStoreWriter = logStoreWriter;
     }
 
     public ChunkItem process(ChunkItem chunkItem) {
@@ -41,7 +44,9 @@ public class ChunkItemProcessor {
                     .withTrackingId(chunkItem.getTrackingId());
         }
 
-        mdcPut(chunkItem);
+        // Discard any JS log events left on this (reused) consumer thread before processing
+        // the item, so getEvents() below returns only the events produced for this item.
+        JsInterop.logCollector.clearEvents();
         try {
             String itemData;
             Object supplement;
@@ -101,7 +106,11 @@ public class ChunkItemProcessor {
             LOGGER.error("process(): unhandled exception for item {}/{}/{}", jobId, chunkId, chunkItem.getId(), t);
             return failedItem(chunkItem, t);
         } finally {
-            mdcRemove(chunkItem);
+            // Persist whatever the JavaScript logged for this item, regardless of outcome,
+            // then clear the thread-local collector for the next item.
+            logStoreWriter.write(String.valueOf(jobId), chunkId, chunkItem.getId(),
+                    JsInterop.logCollector.getEvents());
+            JsInterop.logCollector.clearEvents();
         }
     }
 
@@ -118,17 +127,5 @@ public class ChunkItemProcessor {
                 .withType(ChunkItem.Type.STRING)
                 .withTrackingId(chunkItem.getTrackingId())
                 .withDiagnostics(diagnostic);
-    }
-
-    private void mdcPut(ChunkItem chunkItem) {
-        MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY,
-                LogStoreTrackingId.create(String.valueOf(jobId), chunkId, chunkItem.getId()).toString());
-    }
-
-    private void mdcRemove(ChunkItem chunkItem) {
-        MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY, "true");
-        LOGGER.info("log-store commit for item {}/{}/{}", jobId, chunkId, chunkItem.getId());
-        MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY);
-        MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY);
     }
 }

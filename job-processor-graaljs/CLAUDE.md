@@ -11,9 +11,11 @@ The Docker image must exist before running ITs — if you only changed test code
 
 | Class | Role |
 |-------|------|
-| `ChunkConsumerBean` | `@Singleton @Startup` — reads env config, starts consumer threads, schedules timeout checks |
+| `ChunkConsumerBean` | `@Singleton @Startup` — reads env config, starts consumer threads, schedules timeout checks; attaches the JS `LogCollector` and injects the `jdbc/dataio/logstore` data source |
 | `ChunkMessageConsumer` | Handles one JMS `TextMessage`; delegates to `ChunkProcessor`, reports result to job-store via HTTP |
 | `ChunkProcessor` | Per-chunk orchestration; throws on flow-fetch failure so the JMS transaction rolls back and retries |
+| `ChunkItemProcessor` | Per-item script invocation; captures the item's JS logs via `LogCollector` and persists them through `LogStoreWriter` |
+| `LogStoreWriter` | Writes an item's captured `dk.dbc.js.*` log events to the log-store DB as one merged `LOGENTRY` row (self-contained JDBC; inlined insert SQL) |
 | `FlowCache` | Guava cache of compiled `GraalJsScript` instances keyed by `flowId.flowVersion` |
 | `GraalJsScript` | Wraps a GraalVM JS context with the flow's JSAR unpacked |
 | `ProcessorHealth` | MicroProfile `@Liveness` — latches to `down` on fatal errors and never resets (requires pod restart) |

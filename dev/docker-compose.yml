@@ -44,7 +44,37 @@ services:
       timeout: 3s
       retries: 10
 
+  logstoredb:
+    image: "docker-dbc.artifacts.dbccloud.dk/dbc-postgres-14:latest"
+    environment:
+      POSTGRES_USER: logstore
+      POSTGRES_PASSWORD: logstore
+      POSTGRES_DB: logstore
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "logstore"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   # ── Services ──────────────────────────────────────────────────────────────────
+
+  logstore:
+    image: "docker-metascrum.artifacts.dbccloud.dk/dataio-log-store-service-war:devel"
+    depends_on:
+      logstoredb:
+        condition: service_healthy
+    environment:
+      LOGSTORE_DB_URL: logstore:logstore@logstoredb:5432/logstore
+      LOG_FORMAT: text
+      JAVA_MAX_HEAP_SIZE: 1G
+    ports:
+      - "8085:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/dataio/log-store-service/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
 
   filestore:
     image: "docker-metascrum.artifacts.dbccloud.dk/dataio-file-store-service:devel"
@@ -95,6 +125,8 @@ services:
         condition: service_healthy
       flowstore:
         condition: service_healthy
+      logstore:
+        condition: service_healthy
       artemis:
         condition: service_started
     environment:
@@ -110,7 +142,7 @@ services:
       MAIL_TO_FALLBACK: ""
       PROCESSOR_NASHORN_QUEUE: processor::business
       PROCESSOR_GRAALJS_QUEUE: processor-graaljs::main
-      LOGSTORE_URL: none
+      LOGSTORE_URL: http://logstore:8080/dataio/log-store-service
       RAWREPO_HARVESTER_URL: none
       TICKLE_REPO_HARVESTER_URL: none
       VIPCORE_ENDPOINT: none
@@ -137,6 +169,8 @@ services:
     depends_on:
       jobstore:
         condition: service_healthy
+      logstoredb:
+        condition: service_healthy
       artemis:
         condition: service_started
     environment:
@@ -147,6 +181,9 @@ services:
       ARTEMIS_PASSWORD: GoFish
       JOBSTORE_URL: http://jobstore:8080/dataio/job-store-service
       FLOWSTORE_URL: http://flowstore:8080/dataio/flow-store-service
+      LOGSTORE_DB_URL: logstoredb:5432/logstore
+      LOGSTORE_DB_USER: logstore
+      LOGSTORE_DB_PASSWORD: logstore
       WEB_PORT: "8080"
       LOG_FORMAT: text
     ports:
@@ -156,6 +193,8 @@ services:
     image: "docker-metascrum.artifacts.dbccloud.dk/dataio-job-processor-graaljs:devel"
     depends_on:
       jobstore:
+        condition: service_healthy
+      logstoredb:
         condition: service_healthy
       artemis:
         condition: service_started
@@ -167,6 +206,7 @@ services:
       ARTEMIS_PASSWORD: GoFish
       JOBSTORE_URL: http://jobstore:8080/dataio/job-store-service
       FLOWSTORE_URL: http://flowstore:8080/dataio/flow-store-service
+      LOGSTORE_DB_URL: logstore:logstore@logstoredb:5432/logstore
       WEB_PORT: "8080"
       LOG_FORMAT: text
       JAVA_MAX_HEAP_SIZE: 1G

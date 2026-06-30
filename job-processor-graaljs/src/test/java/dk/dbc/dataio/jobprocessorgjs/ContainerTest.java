@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobprocessorgjs;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.commons.testcontainers.service.DBCServiceContainer;
 import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.testcontainers.Containers;
@@ -29,6 +30,7 @@ public abstract class ContainerTest {
     public static final GenericContainer<?> artemisContainer;
     public static final int ARTEMIS_PORT;
     public static final WireMockServer wireMockServer;
+    public static final DBCPostgreSQLContainer logStoreDbContainer;
     public static final DBCServiceContainer serviceContainer;
 
     static {
@@ -41,6 +43,13 @@ public abstract class ContainerTest {
         LOGGER.info("Started Artemis Container");
 
         ARTEMIS_PORT = artemisContainer.getMappedPort(61616);
+
+        // The processor declares a jdbc/dataio/logstore connection pool from LOGSTORE_DB_URL,
+        // so it needs a reachable log-store database to boot. The schema is irrelevant here —
+        // the test flow logs nothing under dk.dbc.js, so no rows are written.
+        logStoreDbContainer = new DBCPostgreSQLContainer().withReuse(false);
+        logStoreDbContainer.start();
+        logStoreDbContainer.exposeHostPort();
 
         wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
         wireMockServer.start();
@@ -59,9 +68,7 @@ public abstract class ContainerTest {
                 .withEnv("QUEUE", QUEUE_NAME)
                 .withEnv("JOBSTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
                 .withEnv("FLOWSTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
-                .withEnv("LOGSTORE_DB_URL", "none")
-                .withEnv("LOGSTORE_DB_USER", "none")
-                .withEnv("LOGSTORE_DB_PASSWORD", "none")
+                .withEnv("LOGSTORE_DB_URL", logStoreDbContainer.getPayaraDockerJdbcUrl())
                 .withHttpClient(createHttpClient())
                 .withExposedPorts(8080)
                 .waitingFor(Wait.forHttp("/health/ready"))

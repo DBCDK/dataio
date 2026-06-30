@@ -21,9 +21,7 @@ job-store-service via HTTP.
 | `FLOW_CACHE_EXPIRY`  | no       | `PT10m`  | Flow cache TTL (ISO-8601 duration)                                                   |
 | `CONSUMER_THREADS`   | no       | `1`      | Number of parallel JMS consumer threads                                              |
 | `WEB_PORT`           | no       | `8080`   | HTTP port for health and metrics endpoints                                           |
-| `LOGSTORE_DB_URL`    | yes      | —        | PostgreSQL host:port/dbname for the log-store JDBC appender, e.g. `db-host:5432/logstore` |
-| `LOGSTORE_DB_USER`   | yes      | —        | Database username for the log-store JDBC appender                                    |
-| `LOGSTORE_DB_PASSWORD` | yes    | —        | Database password for the log-store JDBC appender                                    |
+| `LOGSTORE_DB_URL`    | yes      | —        | Log-store PostgreSQL connection in `user:password@host:port/dbname` form, e.g. `logstore:logstore@db-host:5432/logstore`. Backs the `jdbc/dataio/logstore` pool used to persist per-item JS logs |
 
 Queue FQN format: `<address>::<queue>`. When address and queue are the same the short form
 `<name>` is also accepted (resolved as `<name>::<name>` internally).

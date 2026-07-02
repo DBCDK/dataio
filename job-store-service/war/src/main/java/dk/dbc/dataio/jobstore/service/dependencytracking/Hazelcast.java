@@ -27,7 +27,7 @@ public class Hazelcast implements ServletContextListener {
     private static HazelcastInstance startInstance() {
         String configFile = Optional.ofNullable(System.getenv("JOBSTORE_HZ_CONFIG"))
                 .filter(s -> !s.isEmpty())
-                .orElse("/opt/payara6/deployments/hz-data.xml");
+                .orElse("/opt/payara7/deployments/hz-data.xml");
         try(InputStream is = new FileInputStream(configFile)) {
             HazelcastInstance instance = com.hazelcast.core.Hazelcast.newHazelcastInstance(makeConfig(is));
             Runtime.getRuntime().addShutdownHook(new Thread(Hazelcast::shutdownNode));

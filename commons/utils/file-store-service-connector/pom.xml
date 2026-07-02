@@ -45,7 +45,7 @@
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.connectors</groupId>
-      <artifactId>jersey-apache-connector</artifactId>
+      <artifactId>jersey-apache5-connector</artifactId>
       <exclusions>
         <exclusion>
           <groupId>org.glassfish.jersey.core</groupId>

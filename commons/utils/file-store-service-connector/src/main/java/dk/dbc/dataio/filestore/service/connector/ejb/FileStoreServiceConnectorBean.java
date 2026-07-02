@@ -7,9 +7,9 @@ import jakarta.annotation.PreDestroy;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Singleton;
 import jakarta.ws.rs.client.Client;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.glassfish.jersey.apache5.connector.Apache5ClientProperties;
+import org.glassfish.jersey.apache5.connector.Apache5ConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -42,9 +42,9 @@ public class FileStoreServiceConnectorBean {
         poolingHttpClientConnectionManager.setDefaultMaxPerRoute(MAX_HTTP_CONNECTIONS);
 
         ClientConfig config = new ClientConfig();
-        config.connectorProvider(new ApacheConnectorProvider());
+        config.connectorProvider(new Apache5ConnectorProvider());
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 8 * 1024);
-        config.property(ApacheClientProperties.CONNECTION_MANAGER, poolingHttpClientConnectionManager);
+        config.property(Apache5ClientProperties.CONNECTION_MANAGER, poolingHttpClientConnectionManager);
         config.register(new JacksonFeature());
         Client client = HttpClient.newClient(config);
 

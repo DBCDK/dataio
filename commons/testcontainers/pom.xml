@@ -26,6 +26,14 @@
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-testcontainers-postgres</artifactId>
             <scope>compile</scope>
+            <exclusions>
+                <!-- org.eclipse.persistence.core:4.0.7 conflicts with eclipselink:5.0.0 fat jar;
+                     5.0.0 already includes PostgreSQL platform support -->
+                <exclusion>
+                    <groupId>org.eclipse.persistence</groupId>
+                    <artifactId>org.eclipse.persistence.pgsql</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

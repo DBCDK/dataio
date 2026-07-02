@@ -1,4 +1,4 @@
-FROM docker-dbc.artifacts.dbccloud.dk/payara6-micro:${docker.payara.version}
+FROM docker-dbc.artifacts.dbccloud.dk/payara7-micro:${docker.payara.version}
 LABEL org.opencontainers.image.authors="${team}"
 
 ENV APP_NAME=${app-name} \

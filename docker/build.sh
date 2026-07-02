@@ -37,7 +37,7 @@ if is_ci_server; then
   fi
 fi
 
-docker pull docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest
+#docker pull docker-dbc.artifacts.dbccloud.dk/payara7-micro:latest
 echo "building docker image: $DOCKER_REPO:$DOCKER_TAG"
 docker_args=(build -f target/docker/Dockerfile . -t "$DOCKER_REPO:$DOCKER_TAG")
 echo "docker ${docker_args[*]}"

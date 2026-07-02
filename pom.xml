@@ -6,7 +6,7 @@
     <parent>
         <groupId>dk.dbc</groupId>
         <artifactId>microservice-pom</artifactId>
-        <version>java21-SNAPSHOT</version>
+        <version>master-SNAPSHOT</version>
         <relativePath/>
     </parent>
 
@@ -37,7 +37,7 @@
         <java.rt.version>21</java.rt.version>
 
         <docker.registry>docker-metascrum.artifacts.dbccloud.dk</docker.registry>
-        <docker.payara.version>latest</docker.payara.version>
+        <docker.payara.version>main-2</docker.payara.version>
         <docker.build.skip>true</docker.build.skip>
 
         <sonar.projectKey>dataio</sonar.projectKey>
@@ -812,11 +812,6 @@
                 <groupId>io.github.java-diff-utils</groupId>
                 <artifactId>java-diff-utils</artifactId>
                 <version>4.12</version>
-            </dependency>
-            <dependency>
-                <groupId>jakarta.annotation</groupId>
-                <artifactId>jakarta.annotation-api</artifactId>
-                <version>1.3.5</version>
             </dependency>
             <dependency>
                 <groupId>jakarta.inject</groupId>

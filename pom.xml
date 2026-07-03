@@ -113,7 +113,7 @@
             <dependency>
                 <groupId>ch.qos.logback.db</groupId>
                 <artifactId>logback-classic-db</artifactId>
-                <version>1.2.11.1</version>
+                <version>1.5.32</version>
             </dependency>
             <dependency>
                 <groupId>com.beust</groupId>
@@ -848,7 +848,7 @@
             <dependency>
                 <groupId>net.logstash.logback</groupId>
                 <artifactId>logstash-logback-encoder</artifactId>
-                <version>7.3</version>
+                <version>8.0</version>
             </dependency>
             <dependency>
                 <groupId>net.sourceforge.argparse4j</groupId>

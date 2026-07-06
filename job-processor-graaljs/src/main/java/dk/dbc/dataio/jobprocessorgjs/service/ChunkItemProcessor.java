@@ -67,7 +67,7 @@ public class ChunkItemProcessor {
 
             String scriptResult = script.invoke(new Object[]{itemData, supplement});
 
-            if (scriptResult == null || scriptResult.isEmpty()) {
+            if (scriptResult.isEmpty()) {
                 return ChunkItem.ignoredChunkItem()
                         .withId(chunkItem.getId())
                         .withData("Ignored by job-processor since returned data was empty")

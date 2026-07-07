@@ -60,7 +60,15 @@ public class GraalJsScript implements AutoCloseable {
                     "Invocation method '" + invocationMethod + "' not found in script '" + scriptId + "'");
         }
         Value result = function.execute(args);
-        return result.isString() ? result.asString() : null;
+        // The record-processing contract requires the invocation method to return the
+        // transformed record as a string (an empty string signals "ignore"). Anything else
+        // is a script bug; fail the item loudly rather than silently discarding it.
+        if (!result.isString()) {
+            throw new IllegalStateException(String.format(
+                    "Invocation method '%s' in script '%s' returned a non-string value; expected a string but got: %s",
+                    invocationMethod, scriptId, result.isNull() ? "null or undefined" : result));
+        }
+        return result.asString();
     }
 
     // eval is intentional: the expression is either the JMS additionalArgs JSON (non-ADDI items)

@@ -76,13 +76,13 @@ class ChunkItemProcessorTest {
     }
 
     @Test
-    void process_successItem_scriptReturnsNull_returnsIgnoredItem() throws IOException {
+    void process_successItem_scriptReturnsNonString_returnsFailedItem() throws IOException {
         ChunkItem input = new ChunkItemBuilder()
                 .setId(1).setData("hello").setTrackingId("t1")
                 .build();
         try (GraalJsScript script = scriptWith("export function process(d, s) { return null; }")) {
             ChunkItem result = processor(script).process(input);
-            assertThat(result.getStatus(), is(ChunkItem.Status.IGNORE));
+            assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
         }
     }
 

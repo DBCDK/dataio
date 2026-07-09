@@ -35,13 +35,15 @@ import java.sql.Timestamp;
                         "WHERE job.specification->>'submitterId' NOT IN(" +
                         "SELECT specification->>'submitterId' FROM jobqueue jq_join INNER JOIN job ON jq_join.jobid = job.id " +
                         "WHERE jq_join.state = 'IN_PROGRESS' AND jq_join.sinkId = ?" + JobQueueEntity.FIELD_SINK_ID + ") " +
-                        "AND jq.sinkId = ?" + JobQueueEntity.FIELD_SINK_ID + " ORDER BY jq.id ASC LIMIT 1 FOR UPDATE;",
+                        "AND jq.sinkId = ?" + JobQueueEntity.FIELD_SINK_ID + " ORDER BY jq.id ASC LIMIT 1 FOR UPDATE OF jq;",
                 resultClass = JobQueueEntity.class),
 })
 public class JobQueueEntity {
     public static final String NQ_FIND_BY_STATE = "NQ_FIND_BY_STATE";
     // this is native sql because jpql doesn't support json operators.
-    // finds jobqueue entities with submitter ids which are not already in jobs marked as in progress
+    // finds jobqueue entities with submitter ids which are not already in jobs marked as in progress.
+    // FOR UPDATE OF jq is required: an unqualified FOR UPDATE also locks the joined job row,
+    // which deadlocks against chunk creation
     public static final String NQ_FIND_BY_SINK_AND_AVAILABLE_SUBMITTER = "NQ_FIND_BY_SINK_AND_AVAILABLE_SUBMITTER";
     public static final String DELETE_BY_JOBID = "JobQueueEntity.deleteByJobId";
 

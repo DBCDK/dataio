@@ -44,6 +44,8 @@ public class FileStoreServiceConnectorBean {
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 8 * 1024);
+        config.property(ClientProperties.CONNECT_TIMEOUT, 10_000);
+        config.property(ClientProperties.READ_TIMEOUT, 60_000);
         config.property(ApacheClientProperties.CONNECTION_MANAGER, poolingHttpClientConnectionManager);
         config.register(new JacksonFeature());
         Client client = HttpClient.newClient(config);

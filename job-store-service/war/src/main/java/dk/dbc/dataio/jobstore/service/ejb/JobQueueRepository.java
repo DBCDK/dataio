@@ -83,6 +83,8 @@ public class JobQueueRepository extends RepositoryBase {
 
         final List rs = query.getResultList();
         JobQueueEntity e = rs.isEmpty() ? null : (JobQueueEntity) rs.get(0);
+        // SQL guarantees only WAITING rows are returned; this guard is now redundant
+        // but kept as defence-in-depth against any future query regression.
         if (e == null || e.getState() != JobQueueEntity.State.WAITING) {
             return Optional.empty();
         }

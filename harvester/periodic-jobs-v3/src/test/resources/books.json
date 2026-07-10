@@ -1,0 +1,112 @@
+[
+  {
+    "id": 553573403,
+    "cat": "book",
+    "title": "A Game of Thrones",
+    "price": 7.99,
+    "inStock": "true",
+    "author": "George R.R. Martin",
+    "series": "A Song of Ice and Fire",
+    "sequence": 1,
+    "genre": "fantasy"
+  },
+  {
+    "id": 553579908,
+    "cat": "book",
+    "title": "A Clash of Kings",
+    "price": 7.99,
+    "inStock": "true",
+    "author": "George R.R. Martin",
+    "series": "A Song of Ice and Fire",
+    "sequence": 2,
+    "genre": "fantasy"
+  },
+  {
+    "id": "055357342X",
+    "cat": "book",
+    "title": "A Storm of Swords",
+    "price": 7.99,
+    "inStock": "true",
+    "author": "George R.R. Martin",
+    "series": "A Song of Ice and Fire",
+    "sequence": 3,
+    "genre": "fantasy"
+  },
+  {
+    "id": 553293354,
+    "cat": "book",
+    "title": "Foundation",
+    "price": 7.99,
+    "inStock": "true",
+    "author": "Isaac Asimov",
+    "series": "Foundation Novels",
+    "sequence": 1,
+    "genre": "scifi"
+  },
+  {
+    "id": 812521390,
+    "cat": "book",
+    "title": "The Black Company",
+    "price": 6.99,
+    "inStock": "false",
+    "author": "Glen Cook",
+    "series": "The Chronicles of The Black Company",
+    "sequence": 1,
+    "genre": "fantasy"
+  },
+  {
+    "id": 812550706,
+    "cat": "book",
+    "title": "Ender's Game",
+    "price": 6.99,
+    "inStock": "true",
+    "author": "Orson Scott Card",
+    "series": "Ender",
+    "sequence": 1,
+    "genre": "scifi"
+  },
+  {
+    "id": 441385532,
+    "cat": "book",
+    "title": "Jhereg",
+    "price": 7.95,
+    "inStock": "false",
+    "author": "Steven Brust",
+    "series": "Vlad Taltos",
+    "sequence": 1,
+    "genre": "fantasy"
+  },
+  {
+    "id": 380014300,
+    "cat": "book",
+    "title": "Nine Princes In Amber",
+    "price": 6.99,
+    "inStock": "true",
+    "author": "Roger Zelazny",
+    "series": "the Chronicles of Amber",
+    "sequence": 1,
+    "genre": "fantasy"
+  },
+  {
+    "id": 805080481,
+    "cat": "book",
+    "title": "The Book of Three",
+    "price": 5.99,
+    "inStock": "true",
+    "author": "Lloyd Alexander",
+    "series": "The Chronicles of Prydain",
+    "sequence": 1,
+    "genre": "fantasy"
+  },
+  {
+    "id": "080508049X",
+    "cat": "book",
+    "title": "The Black Cauldron",
+    "price": 5.99,
+    "inStock": "true",
+    "author": "Lloyd Alexander",
+    "series": "The Chronicles of Prydain",
+    "sequence": 2,
+    "genre": "fantasy"
+  }
+]

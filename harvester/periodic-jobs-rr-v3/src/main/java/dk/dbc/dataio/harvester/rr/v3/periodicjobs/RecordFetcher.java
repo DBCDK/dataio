@@ -42,7 +42,6 @@ public class RecordFetcher implements Callable<AddiRecord> {
     final RecordIdDTO recordId;
     final RecordServiceConnector recordServiceConnector;
     final PeriodicJobsV3HarvesterConfig config;
-    private final MarcXchangeV1Writer marcXchangeWriter = getMarcXchangeWriter();
 
     public RecordFetcher(RecordIdDTO recordId, RecordServiceConnector recordServiceConnector,
                          PeriodicJobsV3HarvesterConfig config) {
@@ -122,7 +121,6 @@ public class RecordFetcher implements Callable<AddiRecord> {
         }
     }
 
-
     Map<String, RecordEntryDTO> fetchRecordCollection(RecordIdDTO recordId)
             throws HarvesterInvalidRecordException, HarvesterSourceException {
         try {
@@ -138,7 +136,6 @@ public class RecordFetcher implements Callable<AddiRecord> {
             throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
         }
     }
-
 
     Map<String, RecordEntryDTO> fetchRecordCollectionDataIO(RecordIdDTO recordId,
                                                             boolean expand,
@@ -169,17 +166,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
         return Date.from(Instant.parse(recordData.getCreated()));
     }
 
-
     byte[] getRecordContent(RecordIdDTO recordId, RecordEntryDTO record) throws HarvesterInvalidRecordException {
-        if (record == null) {
-            throw new HarvesterInvalidRecordException(String.format("Record %s has null-valued content", recordId));
-        }
-        if (record.getContent() == null) return null;
-        return record.getContent().toString().getBytes();
-    }
-
-    byte[] getRecordContent(RecordIdDTO recordId, Map<String, RecordEntryDTO> records) throws HarvesterInvalidRecordException {
-        RecordEntryDTO record = records.get(recordId.getBibliographicRecordId());
         if (record == null) {
             throw new HarvesterInvalidRecordException(String.format("Record %s has null-valued content", recordId));
         }

@@ -19,7 +19,7 @@
     <module>dmat-dm3</module>
     <module>framework</module>
     <module>periodic-jobs</module>
-    <module>periodic-jobs-v3</module>
+    <module>periodic-jobs-rr-v3</module>
     <module>promat</module>
     <module>retriever</module>
     <module>rr</module>

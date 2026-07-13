@@ -10,7 +10,7 @@
         <version>21.2.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>dataio-harvester-periodic-jobs-v3</artifactId>
+    <artifactId>dataio-harvester-periodic-jobs-rr-v3</artifactId>
     <packaging>war</packaging>
 
     <properties>

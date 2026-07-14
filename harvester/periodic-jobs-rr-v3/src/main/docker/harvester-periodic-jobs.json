@@ -1,0 +1,8 @@
+{
+  "appName": "PeriodicJobsHarvesterV3",
+  "jdbc": {
+    "jdbc/dataio/rawrepo-test": {
+      "url": "${RAWREPO_TEST_DB_URL}"
+    }
+  }
+}

@@ -244,10 +244,9 @@ JMS message per item:
 ```java
 for (ItemEntity item : chunkItems) {
     Message msg = session.createTextMessage(serialize(item.getProcessingOutcome()));
-    msg.setIntProperty(JMSHeader.jobId,          jobId);
-    msg.setIntProperty(JMSHeader.chunkId,         chunkId);
-    msg.setShortProperty(JMSHeader.itemId,        item.getKey().getId());
-    msg.setShortProperty(JMSHeader.numberOfItems, chunk.getNumberOfItems());
+    msg.setIntProperty(JMSHeader.jobId,    jobId);
+    msg.setIntProperty(JMSHeader.chunkId,  chunkId);
+    msg.setShortProperty(JMSHeader.itemId, item.getKey().getId());
     RecordInfo ri = item.getRecordInfo();
     if (ri != null && ri.getCorrelationKey() != null) {
         msg.setStringProperty("JMSXGroupID", ri.getCorrelationKey());
@@ -260,8 +259,14 @@ Items with null `recordInfo` or null `correlationKey` receive no `JMSXGroupID` a
 distributed freely across consumers — they are processed unconditionally anyway.
 
 `RecordInfo` is already stored per `ItemEntity`; no new schema is required. The
-`JMSHeader.itemId` and `JMSHeader.numberOfItems` constants do not exist today and must
-be added to `commons/types` (`JMSHeader.java`).
+`JMSHeader.itemId` constant does not exist today and must be added to `commons/types`
+(`JMSHeader.java`). It identifies the individual item within the chunk: it is part of
+the `(jobId, chunkId, itemId)` version tuple compared against the watermark before
+delivery, and of the result-reporting endpoint path
+`POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivering`. No chunk-size
+header is needed: job-store detects chunk completion from its own phase counters, and
+since the broker distributes items by record group — not by chunk — no single consumer
+is guaranteed to see all items of a chunk anyway.
 
 ---
 
@@ -712,7 +717,7 @@ Two ordering constraints shape the sequence:
 
 ### Phase 6 — Per-item dispatch (`SinkMessageProducerBean`)
 
-- Add `itemId` and `numberOfItems` constants to `JMSHeader` (`commons/types`)
+- Add `itemId` constant to `JMSHeader` (`commons/types`)
 - Iterate items; set `JMSXGroupID` from `RecordInfo.getCorrelationKey()`; send one
   message per item
 - Requires Phase 5 broker config to be live

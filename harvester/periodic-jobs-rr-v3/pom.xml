@@ -14,7 +14,7 @@
     <packaging>war</packaging>
 
     <properties>
-        <app-name>dataio-harvester-periodic-jobs</app-name>
+        <app-name>dataio-harvester-periodic-jobs-rr-v3</app-name>
         <docker.build.skip>false</docker.build.skip>
         <docker.repo>${docker.registry}/${app-name}</docker.repo>
     </properties>

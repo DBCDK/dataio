@@ -41,4 +41,17 @@ public class RecordInfoTest {
         assertThat(recordInfo.getKeys(sequenceAnalysisOption).size(), is(1));
         assertThat(recordInfo.getKeys(sequenceAnalysisOption).contains(id), is(true));
     }
+
+    @Test
+    public void getCorrelationKey_returnsId() {
+        RecordInfo recordInfo = new RecordInfo(id);
+        assertThat(recordInfo.getCorrelationKey(), is(id));
+    }
+
+    @Test
+    public void marshalling_correlationKeyIsNotSerialized() throws JSONBException {
+        JSONBContext jsonbContext = new JSONBContext();
+        RecordInfo recordInfo = new RecordInfo(id);
+        assertThat(jsonbContext.marshall(recordInfo).contains("correlationKey"), is(false));
+    }
 }

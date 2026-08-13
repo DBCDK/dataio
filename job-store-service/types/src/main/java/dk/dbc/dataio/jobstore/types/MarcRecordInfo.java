@@ -1,9 +1,5 @@
 package dk.dbc.dataio.jobstore.types;
 
-/**
- * This class contains information about a bibliographic record
- * extended with information deduced from the fact that we know it is a MARC record
- */
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -12,10 +8,33 @@ import dk.dbc.dataio.commons.types.SinkContent;
 
 import java.util.Set;
 
+/**
+ * This class contains information about a bibliographic record
+ * extended with information deduced from the fact that we know it is a MARC record
+ */
 public class MarcRecordInfo extends RecordInfo {
     public enum RecordType {
         STANDALONE, HEAD, SECTION, VOLUME
     }
+
+    /**
+     * Shared correlationKey for every head, section and volume record, regardless of
+     * which hierarchy (i.e. which physical head record) they actually belong to (see
+     * {@link #getCorrelationKey()}).
+     * <p>
+     * This is a deliberate simplification. Correctly serializing per-hierarchy would
+     * require the correlationKey to be the head record's own id, which in turn would
+     * require every section/volume record to resolve which head it belongs to, a
+     * section-to-head lookup that today's MARC parsing does not perform and that this
+     * design explicitly avoids (docs/chunk-scheduling-redesign.md, "Record Identity —
+     * correlationKey"). Using one constant key for all hierarchy records instead
+     * serializes delivery of every hierarchy on a given sink, one record at a time.
+     * This is an accepted throughput trade-off, not a correctness compromise. Hierarchy
+     * records are a small fraction of total workload, and per-hierarchy grouping can be
+     * introduced later (switching this constant for the head record's id) without any
+     * <i>protocol</i> change, should the single group ever become a measured bottleneck.
+     */
+    public static final String HIERARCHY_CORRELATION_KEY = "__hierarchy__";
 
     private final RecordType type;
     private final boolean delete;
@@ -85,6 +104,35 @@ public class MarcRecordInfo extends RecordInfo {
 
     public boolean hasParentRelation() {
         return parentRelation != null;
+    }
+
+    /**
+     * Derives the correlationKey primarily from the record's own {@code type}:
+     * <ul>
+     *     <li>{@link RecordType#STANDALONE} → the record's own {@code id}, same as the
+     *     {@link RecordInfo} base behaviour. A standalone record is serialized only
+     *     against older/newer versions of itself</li>
+     *     <li>{@link RecordType#HEAD}, {@link RecordType#SECTION},
+     *     {@link RecordType#VOLUME} → {@link #HIERARCHY_CORRELATION_KEY}: every record
+     *     that is part of a head/section/volume hierarchy shares this one constant
+     *     key, so that all such records on a given sink are serialized into a single
+     *     broker delivery group.</li>
+     * </ul>
+     *
+     * @return {@link #HIERARCHY_CORRELATION_KEY} for hierarchy record types, or for an
+     * unresolved type with a {@link #parentRelation}, the record's own {@code id}
+     * otherwise
+     */
+    @Override
+    @JsonIgnore
+    public String getCorrelationKey() {
+        if (type == null) {
+            return hasParentRelation() ? HIERARCHY_CORRELATION_KEY : getId();
+        }
+        return switch (type) {
+            case HEAD, SECTION, VOLUME -> HIERARCHY_CORRELATION_KEY;
+            case STANDALONE -> getId();
+        };
     }
 
     @Override

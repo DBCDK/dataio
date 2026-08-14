@@ -458,14 +458,26 @@ group serialisation before relying on ordering correctness.
 -- record id. The agency qualification lives inside the string, not as a separate
 -- column, so this table's shape does not change from an earlier, unqualified design.
 CREATE TABLE sink_record_delivery_watermark (
-    sink_id    INT         NOT NULL,
-    record_key VARCHAR     NOT NULL,
-    job_id     INT         NOT NULL,
-    chunk_id   INT         NOT NULL,
-    item_id    SMALLINT    NOT NULL,
+    sink_id       INT          NOT NULL,
+    record_key    VARCHAR      NOT NULL,
+    job_id        INT          NOT NULL,
+    chunk_id      INT          NOT NULL,
+    item_id       SMALLINT     NOT NULL,
+    last_modified TIMESTAMPTZ  NOT NULL DEFAULT now(),
     PRIMARY KEY (sink_id, record_key)
 );
 ```
+
+`last_modified` exists solely to drive retention pruning (see [Retention Policy](
+#retention-policy) below) — it plays no role in the version comparison itself, which
+is done purely on `(job_id, chunk_id, item_id)`. It is set on first insert, and
+refreshed only when the `ON CONFLICT DO UPDATE` branch actually fires — that branch
+is gated by the same `WHERE (...) > (...)` version-advance guard as the rest of the
+row, so `last_modified` advances exactly when the watermark itself advances, **not**
+on every delivery attempt for the record. A delivery that the `WHERE` clause rejects
+(an exact retransmit where `incoming == watermark`, or an older version that gets
+`SKIPPED`) leaves `last_modified` untouched. See [Retention Policy](#retention-policy)
+for why this matters.
 
 An explicit `agency_id INT` column in the primary key (rather than folding it into
 `record_key`) would make the dimension visible in the schema and give ops a plain index
@@ -484,12 +496,13 @@ in practice, add denormalised `agency_id`/`record_id` columns alongside the opaq
 
 ```sql
 INSERT INTO sink_record_delivery_watermark
-       (sink_id, record_key, job_id, chunk_id, item_id)
-VALUES (?, ?, ?, ?, ?)
+       (sink_id, record_key, job_id, chunk_id, item_id, last_modified)
+VALUES (?, ?, ?, ?, ?, now())
 ON CONFLICT (sink_id, record_key) DO UPDATE
-  SET job_id   = EXCLUDED.job_id,
-      chunk_id = EXCLUDED.chunk_id,
-      item_id  = EXCLUDED.item_id
+  SET job_id        = EXCLUDED.job_id,
+      chunk_id      = EXCLUDED.chunk_id,
+      item_id       = EXCLUDED.item_id,
+      last_modified = EXCLUDED.last_modified
   WHERE (EXCLUDED.job_id, EXCLUDED.chunk_id, EXCLUDED.item_id)
       > (sink_record_delivery_watermark.job_id,
          sink_record_delivery_watermark.chunk_id,
@@ -551,6 +564,51 @@ comparison in the SQL upsert above. No bit-packing into a `long`: a packed encod
 would impose hard bit-width limits (e.g. 16 bits caps `chunkId` at 65 535, which
 million-record jobs exceed) and risks diverging from the SQL tuple comparison. The
 tuple is carried as three plain integer fields in the REST payloads.
+
+### Retention Policy
+
+`sink_record_delivery_watermark` grows with the number of unique record keys ever
+delivered per sink, and is never pruned by the upsert itself. A nightly job removes
+rows whose watermark has not *advanced* — not merely rows with no delivery activity
+at all, see the note on `last_modified` under [Delivery Watermark](
+#delivery-watermark) — for longer than a configurable retention window:
+
+- `WatermarkPurgeBean.purgeStaleWatermarks()` deletes rows whose `last_modified` is
+  older than `now() - retention`, in one bulk statement.
+- `ScheduledWatermarkPurgeBean` fires the purge once daily (`@Schedule(hour = "3")`),
+  mirroring the existing `ScheduledJobPurgeBean` → `JobPurgeBean` pair used for job
+  purging, including the same `Hazelcast.isSlave()` master-only guard.
+- The retention window is a MicroProfile Config property, `WATERMARK_RETENTION`
+  (`java.time.Duration`, default `P90D`), following the same idiom as
+  `PROCESSOR_TIMEOUT`.
+
+**Accepted correctness trade-off.** A record whose watermark has not *advanced* for
+longer than the retention window loses its row — this is a stronger condition than
+"no delivery at all". An exact retransmit (`incoming == watermark`, always delivered
+per [Per-item delivery sequence](#per-item-delivery-sequence)) or an older version
+that gets `SKIPPED` both leave `last_modified` untouched, so a record can keep
+receiving delivery attempts indefinitely without its row ever refreshing. If a
+genuinely older version of that record then arrives after the row is pruned, it is
+no longer caught by the version check and is delivered instead of skipped.
+
+This remains acceptable, but for a narrower reason than "no delivery in months is
+irrelevant": under normal operation a record simply stops generating any traffic
+once its current version has been delivered — no new messages exist for it until a
+later job supersedes it — so "time since last watermark advance" and "time since
+last delivery attempt" coincide for the overwhelming majority of records. The two
+diverge only under redelivery/retry scenarios — crash-then-redelivery, or
+`AdminBean`'s stale-chunk re-dispatch (see [Stale recovery](#stale-recovery)) — and
+those resolve within the same operational incident (minutes to hours), not months
+later, so they don't meaningfully extend the pruning window in practice.
+
+The residual case this doesn't cover: a chunk stuck being redelivered against a
+persistently failing target for longer than the retention window, without ever
+being superseded by a newer job, would have its watermark row pruned mid-incident.
+A chunk retried for 90+ days is itself an operational anomaly that monitoring should
+already be surfacing independently of this trade-off, so it is accepted as a known,
+narrow limitation rather than grounds for a different design — but the retention
+window should be chosen with comfortable margin over any expected stuck-retry
+duration, not just normal job turnaround.
 
 ---
 
@@ -990,11 +1048,9 @@ complete) — see ordering constraint 1 above.
    `job-store-service` construction-site change, (b) rides along with the Phase 6/7
    `JMSHeader.recordKey` work once it lands.
 
-2. **Watermark table growth**: the table grows with the number of unique record keys
-   delivered per sink. A retention policy (e.g., prune rows not updated within a
-   configurable window) reduces growth at the cost of a small correctness risk for
-   records not seen recently. Define the retention policy before the table reaches
-   operational scale.
+2. **Watermark table growth** — resolved, see [Retention Policy](#retention-policy):
+   `last_modified` on `sink_record_delivery_watermark`, a nightly `WatermarkPurgeBean`
+   purge, and a configurable `WATERMARK_RETENTION` window (default `P90D`).
 
 3. **Should FAILED advance the watermark?** Currently only `DELIVERED` does. In the
    priority-inversion case a newer version can be dispatched first, fail at the target,

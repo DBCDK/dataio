@@ -39,6 +39,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.service.entity.WatermarkEntity;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -61,6 +62,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -86,6 +88,7 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     protected static final String NOTIFICATION_TABLE_NAME = "notification";
     protected static final String REORDERED_ITEM_TABLE_NAME = "reordereditem";
     protected static final String RERUN_TABLE_NAME = "rerun";
+    protected static final String SINK_RECORD_DELIVERY_WATERMARK_TABLE_NAME = "sink_record_delivery_watermark";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobStoreIT.class);
     protected static final DataSource datasource = dbContainer.bindDatasource(DependencyTrackingStore.DS_JNDI).datasource();
     private static final long SUBMITTERID = 123456;
@@ -151,7 +154,7 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
             for (String tableName : Arrays.asList(
                     CHUNK_TABLE_NAME, ITEM_TABLE_NAME, JOBQUEUE_TABLE_NAME, NOTIFICATION_TABLE_NAME, RERUN_TABLE_NAME,
                     JOB_TABLE_NAME, FLOW_CACHE_TABLE_NAME, SINK_CACHE_TABLE_NAME, DEPENDENCYTRACKING_TABLE_NAME,
-                    REORDERED_ITEM_TABLE_NAME)) {
+                    REORDERED_ITEM_TABLE_NAME, SINK_RECORD_DELIVERY_WATERMARK_TABLE_NAME)) {
                 JDBCUtil.update(connection, String.format("DELETE FROM %s", tableName));
             }
             connection.commit();
@@ -353,6 +356,30 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
         return new RerunEntity()
                 .withJob(job)
                 .withState(RerunEntity.State.WAITING);
+    }
+
+    protected WatermarkEntity newWatermarkEntity(WatermarkEntity.Key key, int jobId, int chunkId, short itemId) {
+        return new WatermarkEntity()
+                .withKey(key)
+                .withJobId(jobId)
+                .withChunkId(chunkId)
+                .withItemId(itemId);
+    }
+
+    /* last_modified is insertable = false, updatable = false (the DB owns it via DEFAULT now()),
+       so a desired test value is written with a direct SQL update after persisting. */
+    protected WatermarkEntity newPersistedWatermarkEntity(WatermarkEntity.Key key, int jobId, int chunkId, short itemId, Timestamp lastModified) {
+        WatermarkEntity watermarkEntity = newWatermarkEntity(key, jobId, chunkId, itemId);
+        persist(watermarkEntity);
+        try (Connection connection = newConnection()) {
+            JDBCUtil.update(connection,
+                    "UPDATE sink_record_delivery_watermark SET last_modified = ? WHERE sink_id = ? AND record_key = ?",
+                    lastModified, key.getSinkId(), key.getRecordKey());
+            connection.commit();
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+        return watermarkEntity;
     }
 
     protected List<ChunkEntity> findAllChunks() {

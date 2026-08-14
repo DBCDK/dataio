@@ -470,8 +470,14 @@ CREATE TABLE sink_record_delivery_watermark (
 
 `last_modified` exists solely to drive retention pruning (see [Retention Policy](
 #retention-policy) below) — it plays no role in the version comparison itself, which
-is done purely on `(job_id, chunk_id, item_id)`. It is set by the upsert on every
-insert and every `ON CONFLICT DO UPDATE`, not only on first insert.
+is done purely on `(job_id, chunk_id, item_id)`. It is set on first insert, and
+refreshed only when the `ON CONFLICT DO UPDATE` branch actually fires — that branch
+is gated by the same `WHERE (...) > (...)` version-advance guard as the rest of the
+row, so `last_modified` advances exactly when the watermark itself advances, **not**
+on every delivery attempt for the record. A delivery that the `WHERE` clause rejects
+(an exact retransmit where `incoming == watermark`, or an older version that gets
+`SKIPPED`) leaves `last_modified` untouched. See [Retention Policy](#retention-policy)
+for why this matters.
 
 An explicit `agency_id INT` column in the primary key (rather than folding it into
 `record_key`) would make the dimension visible in the schema and give ops a plain index
@@ -563,7 +569,9 @@ tuple is carried as three plain integer fields in the REST payloads.
 
 `sink_record_delivery_watermark` grows with the number of unique record keys ever
 delivered per sink, and is never pruned by the upsert itself. A nightly job removes
-rows that have gone untouched for longer than a configurable retention window:
+rows whose watermark has not *advanced* — not merely rows with no delivery activity
+at all, see the note on `last_modified` under [Delivery Watermark](
+#delivery-watermark) — for longer than a configurable retention window:
 
 - `WatermarkPurgeBean.purgeStaleWatermarks()` deletes rows whose `last_modified` is
   older than `now() - retention`, in one bulk statement.
@@ -574,13 +582,33 @@ rows that have gone untouched for longer than a configurable retention window:
   (`java.time.Duration`, default `P90D`), following the same idiom as
   `PROCESSOR_TIMEOUT`.
 
-**Accepted correctness trade-off.** A record with no delivery for longer than the
-retention window loses its watermark row. A subsequently delivered, very-stale
-redelivery for that record would then no longer be caught by the version check in
-[Per-item delivery sequence](#per-item-delivery-sequence) and would be delivered
-instead of skipped. This is acceptable because normal job turnaround is measured in
-hours to days, not months — by the time a watermark row is old enough to be pruned,
-that record's delivery history is no longer operationally relevant.
+**Accepted correctness trade-off.** A record whose watermark has not *advanced* for
+longer than the retention window loses its row — this is a stronger condition than
+"no delivery at all". An exact retransmit (`incoming == watermark`, always delivered
+per [Per-item delivery sequence](#per-item-delivery-sequence)) or an older version
+that gets `SKIPPED` both leave `last_modified` untouched, so a record can keep
+receiving delivery attempts indefinitely without its row ever refreshing. If a
+genuinely older version of that record then arrives after the row is pruned, it is
+no longer caught by the version check and is delivered instead of skipped.
+
+This remains acceptable, but for a narrower reason than "no delivery in months is
+irrelevant": under normal operation a record simply stops generating any traffic
+once its current version has been delivered — no new messages exist for it until a
+later job supersedes it — so "time since last watermark advance" and "time since
+last delivery attempt" coincide for the overwhelming majority of records. The two
+diverge only under redelivery/retry scenarios — crash-then-redelivery, or
+`AdminBean`'s stale-chunk re-dispatch (see [Stale recovery](#stale-recovery)) — and
+those resolve within the same operational incident (minutes to hours), not months
+later, so they don't meaningfully extend the pruning window in practice.
+
+The residual case this doesn't cover: a chunk stuck being redelivered against a
+persistently failing target for longer than the retention window, without ever
+being superseded by a newer job, would have its watermark row pruned mid-incident.
+A chunk retried for 90+ days is itself an operational anomaly that monitoring should
+already be surfacing independently of this trade-off, so it is accepted as a known,
+narrow limitation rather than grounds for a different design — but the retention
+window should be chosen with comfortable margin over any expected stuck-retry
+duration, not just normal job turnaround.
 
 ---
 

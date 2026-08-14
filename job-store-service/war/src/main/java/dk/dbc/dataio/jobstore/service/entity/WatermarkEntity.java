@@ -25,7 +25,15 @@ public class WatermarkEntity {
     @Column(name = "item_id")
     private short itemId;
 
-    @Column(name = "last_modified")
+    /* insertable/updatable = false: this column is never written through JPA. On
+       insert the DB's own DEFAULT now() applies. The only writer once the delivery
+       upsert lands is a hand-authored native "INSERT ... ON CONFLICT DO UPDATE"
+       statement (see docs/chunk-scheduling-redesign.md, "Upsert on delivery") that
+       bumps last_modified only when the watermark actually advances; these flags
+       only constrain EclipseLink-generated SQL, so they don't affect that native
+       statement. They do stop this column from being silently overwritten by an
+       unrelated JPA merge()/flush() on this entity. */
+    @Column(name = "last_modified", insertable = false, updatable = false)
     private Timestamp lastModified;
 
     public Key getKey() {
@@ -66,11 +74,6 @@ public class WatermarkEntity {
 
     public Timestamp getLastModified() {
         return lastModified;
-    }
-
-    public WatermarkEntity withLastModified(Timestamp lastModified) {
-        this.lastModified = lastModified;
-        return this;
     }
 
     @Embeddable

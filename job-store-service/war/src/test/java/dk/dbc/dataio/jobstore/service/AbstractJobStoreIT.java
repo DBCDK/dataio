@@ -358,18 +358,27 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
                 .withState(RerunEntity.State.WAITING);
     }
 
-    protected WatermarkEntity newWatermarkEntity(WatermarkEntity.Key key, int jobId, int chunkId, short itemId, Timestamp lastModified) {
+    protected WatermarkEntity newWatermarkEntity(WatermarkEntity.Key key, int jobId, int chunkId, short itemId) {
         return new WatermarkEntity()
                 .withKey(key)
                 .withJobId(jobId)
                 .withChunkId(chunkId)
-                .withItemId(itemId)
-                .withLastModified(lastModified);
+                .withItemId(itemId);
     }
 
+    /* last_modified is insertable = false, updatable = false (the DB owns it via DEFAULT now()),
+       so a desired test value is written with a direct SQL update after persisting. */
     protected WatermarkEntity newPersistedWatermarkEntity(WatermarkEntity.Key key, int jobId, int chunkId, short itemId, Timestamp lastModified) {
-        WatermarkEntity watermarkEntity = newWatermarkEntity(key, jobId, chunkId, itemId, lastModified);
+        WatermarkEntity watermarkEntity = newWatermarkEntity(key, jobId, chunkId, itemId);
         persist(watermarkEntity);
+        try (Connection connection = newConnection()) {
+            JDBCUtil.update(connection,
+                    "UPDATE sink_record_delivery_watermark SET last_modified = ? WHERE sink_id = ? AND record_key = ?",
+                    lastModified, key.getSinkId(), key.getRecordKey());
+            connection.commit();
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
         return watermarkEntity;
     }
 

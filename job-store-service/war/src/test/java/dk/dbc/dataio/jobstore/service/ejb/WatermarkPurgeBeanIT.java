@@ -34,6 +34,13 @@ public class WatermarkPurgeBeanIT extends AbstractJobStoreIT {
 
         final int deleted = persistenceContext.run(() -> watermarkPurgeBean.purgeStaleWatermarks());
 
+        /* the JPQL bulk delete doesn't detach the still-managed instances from this
+           test's long-lived persistence context, nor invalidate the L2 shared cache,
+           so find() below would otherwise return a stale object instead of reflecting
+           the DB delete */
+        entityManager.clear();
+        entityManager.getEntityManagerFactory().getCache().evict(WatermarkEntity.class);
+
         assertThat("number of rows purged", deleted, is(1));
         assertThat("stale watermark removed",
                 entityManager.find(WatermarkEntity.class, staleWatermark.getKey()), is(nullValue()));
@@ -49,5 +56,19 @@ public class WatermarkPurgeBeanIT extends AbstractJobStoreIT {
         final int deleted = persistenceContext.run(() -> watermarkPurgeBean.purgeStaleWatermarks());
 
         assertThat("number of rows purged", deleted, is(0));
+    }
+
+    @org.junit.Test
+    public void persist_lastModifiedIsDbManaged_defaultsToNowRegardlessOfEntityState() {
+        final WatermarkEntity watermarkEntity = new WatermarkEntity()
+                .withKey(new WatermarkEntity.Key(1, "870970:12345678"))
+                .withJobId(100)
+                .withChunkId(0)
+                .withItemId((short) 0);
+
+        persist(watermarkEntity);
+        entityManager.refresh(watermarkEntity);
+
+        assertThat("lastModified defaulted on persist", watermarkEntity.getLastModified(), is(notNullValue()));
     }
 }

@@ -1242,7 +1242,7 @@
                            Property value seems to magically default to false -->
                     <!--suppress UnresolvedMavenProperty, MavenModelInspection -->
                     <skipTests>${skip.surefire.tests}</skipTests>
-                    <argLine>-Djava.io.tmpdir=/tmp -Djna.tmpdir=/tmp</argLine>
+                    <argLine>-Djava.io.tmpdir=${project.build.directory}/tmp -Djna.tmpdir=${project.build.directory}/tmp</argLine>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -1256,14 +1256,6 @@
                         <version>${junit.version}</version>
                     </dependency>
                 </dependencies>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <configuration>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <argLine>-Djava.io.tmpdir=/tmp -Djna.tmpdir=/tmp</argLine>
-                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -363,7 +363,7 @@ scope, using the exact same value the dependency-tracking system already derives
 The composed string is deliberately kept a single opaque token, not an
 `(agencyId, id)` pair split across two columns/properties/parameters. Everything
 downstream — the `sink_record_delivery_watermark.record_key` column, the
-`GET /v1/sinks/{sinkId}/watermarks/{recordKey}` path, and the
+`GET /v1/sinks/{sinkId}/watermarks?recordKey={recordKey}` query, and the
 `WatermarkServiceConnector` signatures (`getWatermark(long sinkId, String recordKey)`,
 `reportItemResult(..., String recordKey, ...)`, see below) — stays exactly as specced,
 because the composition happens once, in job-store, at the same place that already
@@ -514,10 +514,19 @@ ON CONFLICT (sink_id, record_key) DO UPDATE
 **Read watermark (called by sink before each delivery):**
 
 ```
-GET /v1/sinks/{sinkId}/watermarks/{recordKey}
+GET /v1/sinks/{sinkId}/watermarks?recordKey={recordKey}
 → 200 {"watermark": {"jobId": 1234567, "chunkId": 42, "itemId": 3}}
 → 200 {"watermark": null}          (no watermark exists for this record key)
 ```
+
+`recordKey` is a query parameter, not a path segment. `RecordInfo.id` is arbitrary
+harvested data — `RecordInfo`'s constructor only normalises whitespace (see above), so
+nothing rules out `/` or `%` inside it. A path segment containing a literal `/` breaks
+route matching outright (silent 404, indistinguishable from "no watermark exists" — the
+same silent-wrong-answer class the whitespace discussion above worries about), and a
+percent-encoded `%2F` is rejected or normalised by some servlet container
+configurations before it ever reaches application code. A query parameter value has no
+such restriction and round-trips any byte sequence through standard URL encoding.
 
 Backed by a direct PostgreSQL PK read: `(sinkId, recordKey)` is the primary key; the
 lookup is O(1). No Hazelcast. If throughput under per-delivery call rate becomes a
@@ -892,7 +901,7 @@ Two ordering constraints shape the sequence:
 ### Phase 3 — Watermark table and endpoints (job-store-service)
 
 - Flyway migration: create `sink_record_delivery_watermark`
-- Add `GET /v1/sinks/{sinkId}/watermarks/{recordKey}` endpoint
+- Add `GET /v1/sinks/{sinkId}/watermarks?recordKey={recordKey}` endpoint
 - Add `POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivering` endpoint
 - Add watermark upsert to `reportItemResult` write path
 - Integration tests against real PostgreSQL

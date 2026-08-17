@@ -35,11 +35,9 @@ public class WatermarkPurgeBeanIT extends AbstractJobStoreIT {
         final int deleted = persistenceContext.run(() -> watermarkPurgeBean.purgeStaleWatermarks());
 
         /* the JPQL bulk delete doesn't detach the still-managed instances from this
-           test's long-lived persistence context, nor invalidate the L2 shared cache,
-           so find() below would otherwise return a stale object instead of reflecting
-           the DB delete */
+           test's long-lived persistence context, so find() below would otherwise
+           return a stale object instead of reflecting the DB delete */
         entityManager.clear();
-        entityManager.getEntityManagerFactory().getCache().evict(WatermarkEntity.class);
 
         assertThat("number of rows purged", deleted, is(1));
         assertThat("stale watermark removed",

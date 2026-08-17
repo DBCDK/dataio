@@ -6,6 +6,7 @@ public class JobStoreServiceConstants {
     public static final String CHUNK_ID_VARIABLE = "chunkId";
     public static final String ITEM_ID_VARIABLE = "itemId";
     public static final String SINK_ID_VARIABLE = "sinkId";
+    public static final String RECORD_KEY_QUERY_PARAM = "recordKey";
 
 
     public static final String JOB_COLLECTION = "jobs";
@@ -55,6 +56,7 @@ public class JobStoreServiceConstants {
     public static final String DEPENDENCIES = "dependencies/{jobId}";
 
     public static final String SINK_STATUS = "status/sinks/{sinkId}";
+    public static final String SINK_WATERMARK = "sinks/{" + SINK_ID_VARIABLE + "}/watermarks";
     public static final String SINKS_STATUS = "status/sinks";
     public static final String SINKS_STATUS_RECOUNT = "status/sinks/recount";
     public static final String CLEAR_CACHE = "cache/clear";

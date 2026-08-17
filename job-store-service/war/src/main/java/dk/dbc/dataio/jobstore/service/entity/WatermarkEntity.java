@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
@@ -10,7 +11,14 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Objects;
 
+/* Not cacheable: the only writer once a row exists is a hand-authored native
+   "INSERT ... ON CONFLICT DO UPDATE" (see docs/chunk-scheduling-redesign.md,
+   "Upsert on delivery"), which EclipseLink can't see and so never invalidates
+   for. Under the persistence unit's DISABLE_SELECTIVE shared-cache-mode this
+   entity would otherwise be cached by default, letting em.find() serve a
+   stale watermark. */
 @Entity
+@Cacheable(false)
 @Table(name = "sink_record_delivery_watermark")
 public class WatermarkEntity {
     @EmbeddedId

@@ -322,7 +322,7 @@ record (see the invariant discussion below).
 added to `commons/types` (`JMSHeader.java`). `itemId` identifies the individual item
 within the chunk: it is part of the `(jobId, chunkId, itemId)` version tuple compared
 against the watermark before delivery, and of the result-reporting endpoint path
-`POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivering`. No chunk-size
+`POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivered`. No chunk-size
 header is needed: job-store detects chunk completion from its own phase counters, and
 since the broker distributes items by record group — not by chunk — no single consumer
 is guaranteed to see all items of a chunk anyway.
@@ -545,11 +545,18 @@ correctness argument.
 **Report item result (called by sink after delivery):**
 
 ```
-POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivering
+POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivered
 Content-Type: application/json
 
 { "sinkId": 42, "recordKey": "...", "status": "DELIVERED" | "SKIPPED" | "FAILED" }
 ```
+
+Same path as the existing `GET .../items/{itemId}/delivered` (which reads back
+`ItemEntity.deliveringOutcome`) — POST writes the delivery result, GET reads it, one
+resource. This also matches the existing bulk `POST /v1/jobs/{jobId}/chunks/{chunkId}/delivered`
+endpoint's naming: "delivered" there already covers `FAILURE`/`IGNORE` item outcomes
+within the chunk, not just success, so the same word covering `SKIPPED`/`FAILED` at
+item granularity here is consistent, not a stretch.
 
 Implementation (one transaction):
 
@@ -637,7 +644,7 @@ duration, not just normal job turnaround.
            return
        // incoming == watermark: exact retransmit, always deliver (idempotent re-delivery)
 4. deliver item to target system
-5. POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivering  (reportItemResult)
+5. POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivered  (reportItemResult)
 6. session.commit()   →   JMS ACK
 ```
 
@@ -756,7 +763,7 @@ is extracted from job-store-service into its own dedicated service.
 
 | Layer | Handles |
 |---|---|
-| job-store-service (N instances) | All inbound REST requests: job submission, partitioning callbacks (`/chunks/{id}/processed`), item delivery results (`/items/{id}/delivering`), watermark reads. Writes item/chunk state, the watermark, the per-job counters (`delivered_data_chunks`), and `gate_open` to PostgreSQL. |
+| job-store-service (N instances) | All inbound REST requests: job submission, partitioning callbacks (`/chunks/{id}/processed`), item delivery results (`/items/{id}/delivered`), watermark reads. Writes item/chunk state, the watermark, the per-job counters (`delivered_data_chunks`), and `gate_open` to PostgreSQL. |
 | scheduler-service (1 instance) | Continuously reads `dependencytracking` from PostgreSQL, advances chunk `status` through the state machine, fires JMS dispatch. Holds in-memory `SINK_STATUS` counters. |
 
 **Why this eliminates leader election entirely:**
@@ -902,7 +909,8 @@ Two ordering constraints shape the sequence:
 
 - Flyway migration: create `sink_record_delivery_watermark`
 - Add `GET /v1/sinks/{sinkId}/watermarks?recordKey={recordKey}` endpoint
-- Add `POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivering` endpoint
+- Add `POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivered` endpoint
+  (same path as the existing `GET` that reads `ItemEntity.deliveringOutcome` back)
 - Add watermark upsert to `reportItemResult` write path
 - Integration tests against real PostgreSQL
 
@@ -1061,11 +1069,14 @@ complete) — see ordering constraint 1 above.
    `last_modified` on `sink_record_delivery_watermark`, a nightly `WatermarkPurgeBean`
    purge, and a configurable `WATERMARK_RETENTION` window (default `P90D`).
 
-3. **Should FAILED advance the watermark?** Currently only `DELIVERED` does. In the
-   priority-inversion case a newer version can be dispatched first, fail at the target,
-   and then an older version behind it passes the watermark check and is delivered —
-   the target regresses to old data with no newer write coming. Advancing the watermark
-   on `FAILED` (recording the latest *attempted* version) would suppress the older
-   delivery instead, leaving the target unchanged and the failure visible in the job
-   state. Both behaviours are defensible; decide and document before Phase 3
-   (watermark table and endpoints).
+3. **Should FAILED advance the watermark?** — resolved for DI-2997 (Phase 3's write
+   endpoint): **no, only `DELIVERED` does**, matching the "Upsert on delivery"
+   pseudocode above (`If status == DELIVERED AND recordKey != null`) as-is. The
+   priority-inversion case this leaves unresolved — a newer version is dispatched
+   first, fails at the target, and an older version behind it then passes the
+   watermark check and is delivered, regressing the target to old data with no newer
+   write coming — is accepted as a known limitation rather than solved here. Advancing
+   the watermark on `FAILED` (recording the latest *attempted* version) would suppress
+   the older delivery instead, leaving the target unchanged and the failure visible in
+   the job state, and remains a defensible alternative if the priority-inversion case
+   is later observed to matter in practice — just not adopted now.

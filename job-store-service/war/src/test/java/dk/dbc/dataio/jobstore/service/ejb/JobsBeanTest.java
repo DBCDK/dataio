@@ -25,11 +25,13 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult.Status;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -644,11 +646,108 @@ public class JobsBeanTest extends HazelcastTestSupport {
         assertThat("ItemInfoSnapshot.workflowNote", returnedItemInfoSnapshot.getWorkflowNote(), is(itemInfoSnapshot.getWorkflowNote()));
     }
 
+    // ************************************* addItemDelivered() tests **********************************************************
+
+    @org.junit.Test
+    public void addItemDelivered_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception {
+        Response response = jobsBean.addItemDelivered("invalid JSON", JOB_ID, CHUNK_ID, ITEM_ID);
+        assertBadRequestResponse(response, JobError.Code.INVALID_JSON);
+    }
+
+    @org.junit.Test
+    public void addItemDelivered_missingStatus_returnsResponseWithHttpStatusBadRequest() throws Exception {
+        String requestBody = jsonbContext.marshall(new ItemDeliveryResult(
+                42L, "870970:12345678", null, ChunkItem.successfulChunkItem().withId(ITEM_ID).withData("data")));
+        Response response = jobsBean.addItemDelivered(requestBody, JOB_ID, CHUNK_ID, ITEM_ID);
+
+        assertBadRequestResponse(response, JobError.Code.INVALID_INPUT);
+        verify(jobsBean.jobStore, org.mockito.Mockito.never()).addItemDelivered(
+                anyInt(), anyInt(), anyShort(), any(ItemDeliveryResult.class));
+    }
+
+    @org.junit.Test
+    public void addItemDelivered_missingChunkItem_returnsResponseWithHttpStatusBadRequest() throws Exception {
+        String requestBody = jsonbContext.marshall(new ItemDeliveryResult(
+                42L, "870970:12345678", Status.DELIVERED, null));
+        Response response = jobsBean.addItemDelivered(requestBody, JOB_ID, CHUNK_ID, ITEM_ID);
+
+        assertBadRequestResponse(response, JobError.Code.INVALID_INPUT);
+        verify(jobsBean.jobStore, org.mockito.Mockito.never()).addItemDelivered(
+                anyInt(), anyInt(), anyShort(), any(ItemDeliveryResult.class));
+    }
+
+    @org.junit.Test
+    public void addItemDelivered_missingSinkId_returnsResponseWithHttpStatusBadRequest() throws Exception {
+        String requestBody = jsonbContext.marshall(new ItemDeliveryResult(
+                0L, "870970:12345678", Status.DELIVERED, ChunkItem.successfulChunkItem().withId(ITEM_ID).withData("data")));
+        Response response = jobsBean.addItemDelivered(requestBody, JOB_ID, CHUNK_ID, ITEM_ID);
+
+        assertBadRequestResponse(response, JobError.Code.INVALID_INPUT);
+        verify(jobsBean.jobStore, org.mockito.Mockito.never()).addItemDelivered(
+                anyInt(), anyInt(), anyShort(), any(ItemDeliveryResult.class));
+    }
+
+    @org.junit.Test
+    public void addItemDelivered_sinkIdAboveIntRange_returnsResponseWithHttpStatusBadRequest() throws Exception {
+        String requestBody = jsonbContext.marshall(new ItemDeliveryResult(
+                9999999999L, "870970:12345678", Status.DELIVERED, ChunkItem.successfulChunkItem().withId(ITEM_ID).withData("data")));
+        Response response = jobsBean.addItemDelivered(requestBody, JOB_ID, CHUNK_ID, ITEM_ID);
+
+        assertBadRequestResponse(response, JobError.Code.INVALID_INPUT);
+        verify(jobsBean.jobStore, org.mockito.Mockito.never()).addItemDelivered(
+                anyInt(), anyInt(), anyShort(), any(ItemDeliveryResult.class));
+    }
+
+    @org.junit.Test
+    public void addItemDelivered_chunkNotYetComplete_returnsOkResponse_doesNotCallChunkDeliveringDone() throws Exception {
+        ChunkItem chunkItem = ChunkItem.successfulChunkItem().withId(ITEM_ID).withData("data");
+        when(jobsBean.jobStore.addItemDelivered(
+                eq(JOB_ID), eq(CHUNK_ID), eq(ITEM_ID),
+                eq(new ItemDeliveryResult(42L, "870970:12345678", Status.DELIVERED, chunkItem))))
+                .thenReturn(false);
+
+        String requestBody = jsonbContext.marshall(new ItemDeliveryResult(42L, "870970:12345678", Status.DELIVERED, chunkItem));
+        Response response = jobsBean.addItemDelivered(requestBody, JOB_ID, CHUNK_ID, ITEM_ID);
+
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        verify(jobSchedulerBean, org.mockito.Mockito.never()).chunkDeliveringDone(any(Chunk.class));
+    }
+
+    @org.junit.Test
+    public void addItemDelivered_chunkJustCompleted_returnsOkResponse_callsChunkDeliveringDone() throws Exception {
+        ChunkItem chunkItem = ChunkItem.failedChunkItem().withId(ITEM_ID).withData("data");
+        when(jobsBean.jobStore.addItemDelivered(
+                eq(JOB_ID), eq(CHUNK_ID), eq(ITEM_ID),
+                eq(new ItemDeliveryResult(42L, "870970:12345678", Status.FAILED, chunkItem))))
+                .thenReturn(true);
+
+        String requestBody = jsonbContext.marshall(new ItemDeliveryResult(42L, "870970:12345678", Status.FAILED, chunkItem));
+        Response response = jobsBean.addItemDelivered(requestBody, JOB_ID, CHUNK_ID, ITEM_ID);
+
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        verify(jobSchedulerBean).chunkDeliveringDone(any(Chunk.class));
+    }
+
+    @org.junit.Test
+    public void addItemDelivered_nullRecordKey_isPassedThrough() throws Exception {
+        ChunkItem chunkItem = ChunkItem.ignoredChunkItem().withId(ITEM_ID).withData("data");
+        when(jobsBean.jobStore.addItemDelivered(
+                eq(JOB_ID), eq(CHUNK_ID), eq(ITEM_ID),
+                eq(new ItemDeliveryResult(42L, null, Status.SKIPPED, chunkItem))))
+                .thenReturn(false);
+
+        String requestBody = jsonbContext.marshall(new ItemDeliveryResult(42L, null, Status.SKIPPED, chunkItem));
+        Response response = jobsBean.addItemDelivered(requestBody, JOB_ID, CHUNK_ID, ITEM_ID);
+
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+    }
+
     private void initializeJobsBean() {
         jobsBean = new JobsBean();
         jobsBean.jobStore = mock(PgJobStore.class);
         jobsBean.jobStoreRepository = mock(PgJobStoreRepository.class);
         jobsBean.jobNotificationRepository = mock(JobNotificationRepository.class);
+        jobsBean.jobSchedulerBean = jobSchedulerBean;
     }
 
     private String asJson(Object object) throws JSONBException {

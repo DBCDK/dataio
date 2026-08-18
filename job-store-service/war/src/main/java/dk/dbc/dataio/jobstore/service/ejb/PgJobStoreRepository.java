@@ -452,6 +452,37 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     /**
+     * Advances the sink_record_delivery_watermark row for (sinkId, recordKey) to
+     * (jobId, chunkId, itemId), but only if that tuple is newer than what is already
+     * stored (see docs/chunk-scheduling-redesign.md, "Upsert on delivery").
+     *
+     * @param sinkId    sink id
+     * @param recordKey opaque, agency-qualified record key
+     * @param jobId     job id
+     * @param chunkId   chunk id
+     * @param itemId    item id
+     */
+    public void upsertWatermark(long sinkId, String recordKey, int jobId, int chunkId, short itemId) {
+        entityManager.createNativeQuery(
+                "INSERT INTO sink_record_delivery_watermark " +
+                        "       (sink_id, record_key, job_id, chunk_id, item_id, last_modified) " +
+                        "VALUES (?1, ?2, ?3, ?4, ?5, now()) " +
+                        "ON CONFLICT (sink_id, record_key) DO UPDATE " +
+                        "  SET job_id = EXCLUDED.job_id, chunk_id = EXCLUDED.chunk_id, " +
+                        "      item_id = EXCLUDED.item_id, last_modified = EXCLUDED.last_modified " +
+                        "  WHERE (EXCLUDED.job_id, EXCLUDED.chunk_id, EXCLUDED.item_id) " +
+                        "      > (sink_record_delivery_watermark.job_id, " +
+                        "         sink_record_delivery_watermark.chunk_id, " +
+                        "         sink_record_delivery_watermark.item_id)")
+                .setParameter(1, Math.toIntExact(sinkId))
+                .setParameter(2, recordKey)
+                .setParameter(3, jobId)
+                .setParameter(4, chunkId)
+                .setParameter(5, itemId)
+                .executeUpdate();
+    }
+
+    /**
      * sets a workflow note on an existing job. Any workflow previously added will be wiped in the process
      *
      * @param workflowNote the note to set
@@ -866,7 +897,25 @@ public class PgJobStoreRepository extends RepositoryBase {
         }
     }
 
-    private State updateItemEntityState(ItemEntity itemEntity, StateChange stateChange) {
+    /**
+     * Applies a state change to an item's state. Replaces the entity's State instance
+     * rather than mutating the existing one, which is what marks the converted json
+     * column dirty (see the note on ItemEntity.state).
+     * <p>
+     * The counters on the state change are deltas, not absolute totals: State.updateState
+     * adds them onto whatever is already persisted. The affected phase closes either when
+     * the state change carries an explicit end date, or automatically once its running
+     * total reaches the item's PARTITIONING total. Once a phase is closed, further changes
+     * to it are silently ignored, so callers whose contribution could arrive twice before
+     * the phase closes need their own idempotency check.
+     *
+     * @param itemEntity  item entity whose state to advance
+     * @param stateChange the change to apply
+     * @return the item's new state
+     * @throws IllegalStateException if the change would close a PROCESSING or DELIVERING
+     *                               phase while the item's PARTITIONING phase is still open
+     */
+    public State updateItemEntityState(ItemEntity itemEntity, StateChange stateChange) {
         final State itemState = new State(itemEntity.getState());
         itemState.updateState(stateChange);
         itemEntity.setState(itemState);

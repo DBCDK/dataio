@@ -17,6 +17,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -733,6 +734,53 @@ public class JobsBean {
     }
 
     /**
+     * Records the outcome of a single item's delivery attempt (see
+     * docs/chunk-scheduling-redesign.md, "Delivery Watermark"). Idempotent: a repeated
+     * call for an item whose delivery outcome is already recorded is a silent no-op.
+     *
+     * @param requestBody delivery result as json: {"sinkId", "recordKey", "status"}
+     * @param jobId       the job id
+     * @param chunkId     the chunk id
+     * @param itemId      the item id
+     * @return a HTTP 200 OK response
+     * @throws JSONBException    on marshalling failure
+     * @throws JobStoreException on failure to retrieve the referenced item, chunk or job
+     */
+    @POST
+    @Path(JobStoreServiceConstants.CHUNK_ITEM_DELIVERED)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    @Stopwatch
+    public Response addItemDelivered(
+            String requestBody,
+            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
+            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
+            @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
+
+        final ItemDeliveryResult result;
+        try {
+            result = jsonbContext.unmarshall(requestBody, ItemDeliveryResult.class);
+        } catch (JSONBException e) {
+            return buildBadRequestResponse(e);
+        }
+        if (result.status() == null) {
+            return buildBadRequestResponse(JobError.Code.INVALID_INPUT, "status must not be null");
+        }
+        if (result.chunkItem() == null) {
+            return buildBadRequestResponse(JobError.Code.INVALID_INPUT, "chunkItem must not be null");
+        }
+        if (result.sinkId() <= 0 || result.sinkId() > Integer.MAX_VALUE) {
+            return buildBadRequestResponse(JobError.Code.INVALID_INPUT,
+                    String.format("sinkId must be a positive value representable as int, was %d", result.sinkId()));
+        }
+        final boolean chunkDeliveringDone = jobStore.addItemDelivered(jobId, chunkId, itemId, result);
+        if (chunkDeliveringDone) {
+            jobSchedulerBean.chunkDeliveringDone(new Chunk(jobId, chunkId, Chunk.Type.DELIVERED));
+        }
+        return Response.status(Response.Status.OK).build();
+    }
+
+    /**
      * @param jobId   the job id
      * @param chunkId the chunk id
      * @param itemId  the item idjobs/{jobId}/chunks/{chunkId}/processed
@@ -872,6 +920,12 @@ public class JobsBean {
     private Response buildBadRequestResponse(JSONBException e) throws JSONBException {
         return Response.status(BAD_REQUEST).entity(
                         jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                .build();
+    }
+
+    private Response buildBadRequestResponse(JobError.Code code, String message) throws JSONBException {
+        return Response.status(BAD_REQUEST).entity(
+                        jsonbContext.marshall(new JobError(code, message, JobError.NO_STACKTRACE)))
                 .build();
     }
 

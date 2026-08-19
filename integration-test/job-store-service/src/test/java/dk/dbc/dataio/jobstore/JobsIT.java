@@ -3,19 +3,23 @@ package dk.dbc.dataio.jobstore;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.jms.JmsQueueTester;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.Watermark;
 import jakarta.jms.JMSException;
 import org.junit.Test;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -110,6 +114,71 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
                 jobInfoSnapshot.getJobId(), chunks.get(1).getChunkId());
 
         // Then...
+        jobInfoSnapshot = jobStoreServiceConnector.listJobs("job:id = " + jobInfoSnapshot.getJobId()).getFirst();
+        assertThat("all job phases are done", jobInfoSnapshot.getState().allPhasesAreDone(), is(true));
+        assertThat("job is complete", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
+    }
+
+    /**
+     * Given: a job whose chunks have been partitioned and processed, ready for delivery
+     * When : the sink reports each item's delivery result individually (the per-item
+     *        watermark protocol, docs/chunk-scheduling-redesign.md)
+     * Then : no watermark exists for a record before its item is reported delivered
+     * And  : the watermark reflects the exact (jobId, chunkId, itemId) once reported
+     * And  : the job completes exactly as it would via the bulk delivery path
+     */
+    @Test
+    public void perItemDeliveryProtocol_watermarkAdvancesAndJobCompletes() throws JobStoreServiceConnectorException {
+        // Given...
+        final JobInputStream jobInputStream = newJobInputStream();
+        JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(jobInputStream);
+
+        List<Chunk> chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
+                        JmsQueueTester.Queue.PROCESSING_BUSINESS, 2, 20000)
+                .stream().map(this::getChunk)
+                .sorted(Comparator.comparing(chunk1 -> chunk1 != null ? chunk1.getChunkId() : 0))
+                .collect(Collectors.toList());
+
+        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(0), Chunk.Type.PROCESSED),
+                jobInfoSnapshot.getJobId(), chunks.get(0).getChunkId());
+        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(1), Chunk.Type.PROCESSED),
+                jobInfoSnapshot.getJobId(), chunks.get(1).getChunkId());
+
+        chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
+                        JmsQueueTester.Queue.SINK_BE_CISTERNE, 2, 20000)
+                .stream().map(this::getChunk)
+                .toList();
+
+        final int sinkId = 1;
+        for (int i = 0; i < chunks.size(); i++) {
+            final Chunk chunk = chunks.get(i);
+            final int chunkId = (int) chunk.getChunkId();
+            for (ChunkItem item : chunk.getItems()) {
+                // item.getId() restarts at 0 in every chunk, so recordKey needs both
+                // jobId and chunkId to stay unique across this job's own chunks.
+                final String recordKey = "870970:" + jobInfoSnapshot.getJobId() + "-" + chunkId + "-" + item.getId();
+                final short itemId = (short) item.getId();
+
+                assertThat("no watermark before delivery for " + recordKey,
+                        jobStoreServiceConnector.getWatermark(sinkId, recordKey), is(Optional.empty()));
+
+                jobStoreServiceConnector.addItemDelivered(
+                        new ItemDeliveryResult(sinkId, recordKey, ItemDeliveryResult.Status.DELIVERED, item),
+                        chunk.getJobId(), chunkId, itemId);
+
+                assertThat("watermark reflects delivery for " + recordKey,
+                        jobStoreServiceConnector.getWatermark(sinkId, recordKey),
+                        is(Optional.of(new Watermark(chunk.getJobId(), chunkId, itemId))));
+            }
+
+            if (i < chunks.size() - 1) {
+                jobInfoSnapshot = jobStoreServiceConnector.listJobs("job:id = " + jobInfoSnapshot.getJobId()).getFirst();
+                assertThat("job not complete after only chunk " + chunkId + " is delivered",
+                        jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
+            }
+        }
+
+        // Then... the job completes exactly as it would via the bulk delivery path
         jobInfoSnapshot = jobStoreServiceConnector.listJobs("job:id = " + jobInfoSnapshot.getJobId()).getFirst();
         assertThat("all job phases are done", jobInfoSnapshot.getState().allPhasesAreDone(), is(true));
         assertThat("job is complete", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));

@@ -120,17 +120,76 @@ total_data_chunks      INT  NOT NULL  -- set when the job is partitioned
 ```
 
 The gate logic is owned by **job-store-service**: it runs in `chunkDeliveringDone(jobId,
-chunkId)`, inside the same transaction as the `reportItemResult` call that completed the
-chunk's DELIVERING phase. The scheduler-service only *reads* `gate_open` in its dispatch
-query.
+chunkId)`. The scheduler-service only *reads* `gate_open` in its dispatch query.
 
 ```
 1. If job has a termination chunk AND gate_open = FALSE:
-     atomically: INCREMENT delivered_data_chunks for this job
-     if delivered_data_chunks == total_data_chunks:
-         SET gate_open = TRUE for this job's termination chunk
-         (scheduler picks it up on its next poll cycle)
+     if this call is the one that removed the chunk's dependencytracking row:
+         INCREMENT delivered_data_chunks for this job
+         if delivered_data_chunks >= total_data_chunks:
+             SET gate_open = TRUE for this job's termination chunk
+             (scheduler picks it up on its next poll cycle)
 ```
+
+**Which transaction the increment belongs to.** Not the job-store transaction that wrote
+the item's delivery result. `chunkDeliveringDone` is invoked from `JobsBean` *after*
+`PgJobStore.addItemDelivered` (`REQUIRES_NEW`) has committed, deliberately so, and the
+increment runs in that outer `JobsBean` transaction. See "Why `addItemDelivered`'s return
+value is a snapshot, not an event" under [Same-item concurrent redelivery](
+#same-item-concurrent-redelivery-job-store-service).
+
+Two orderings make that safe. The chunk's DELIVERING write is already committed when the
+increment runs, so the increment can never count a chunk whose phase is not actually
+done. And `JobsBean` is `@Stateless` with the default `REQUIRED`, so its transaction
+commits before JAX-RS writes the response, meaning no sink can ACK a message whose
+increment has not committed. A crash in the gap between the two commits is recovered by
+the same mechanism as everything else on this path: the sink never gets its 200, never
+ACKs, and on redelivery `addItemDelivered`'s fast path reports DELIVERING done again, so
+`JobsBean` calls `chunkDeliveringDone` again.
+
+Moving the increment into the job-store transaction would gain none of this and would
+hold the chunk, item and job row locks across the gate update, which is exactly what
+keeping `chunkDeliveringDone` outside that transaction avoids.
+
+**The increment must be once-only per chunk.** This is the constraint that actually
+matters, and it is about the *token*, not the transaction boundary. `chunkDeliveringDone`
+is called more than once for the same chunk by design - every redelivery re-triggers it,
+and the false-failure-detection race can produce two genuinely concurrent calls. A
+double increment makes `delivered_data_chunks` overtake the number of data chunks that
+have actually been delivered. Each call adds exactly 1, so the counter still reaches
+`total_data_chunks` exactly, just too early, and the gate opens while data chunks are
+still outstanding - precisely what the barrier exists to prevent. The termination chunk
+is dispatched ahead of them, and job-end work such as marcconv's `ConversionFinalizer`
+or `PeriodicJobs*FinalizerBean` runs against incomplete data. This is the same shape of
+failure as the item counters under [Same-item concurrent redelivery](
+#same-item-concurrent-redelivery-job-store-service): premature completion, not a stall.
+
+The hazard that *does* strand the gate permanently is the opposite one. A non-atomic
+read-modify-write increment can lose an update, leaving the counter one short of
+`total_data_chunks` with no further chunk to deliver, so the gate never opens. That is
+why the increment must be a single atomic statement
+(`SET delivered_data_chunks = delivered_data_chunks + 1`) rather than a read followed by
+a write.
+
+The removal of the chunk's `dependencytracking` row is the natural token, since exactly
+one concurrent caller can perform it. The increment must therefore be conditioned on
+having won that removal, not on a preceding read of the row - the current
+`get`-then-`remove` sequence in `chunkDeliveringDone` is a non-atomic check-then-act that
+two callers can both pass. Harmless for the idempotent work that follows it today, not
+harmless for a counter. See [Phase 1](#phase-1--gate-and-ordered-dispatch-job-store-service)
+for the required signature change. The `>=` in the pseudocode above is defensive only:
+it does not mitigate either hazard above, since double counting reaches the total exactly
+and a lost update leaves the counter below it forever. It guards only against the counter
+being pushed above `total_data_chunks` by something other than the increment, such as a
+backfill or a revised total.
+
+Note that full transactional atomicity between the increment and the row removal only
+arrives once `dependencytracking` is read and written directly in PostgreSQL. While it
+remains a Hazelcast map with a Postgres MapStore, map mutations are not enrolled in the
+JTA transaction, so a rollback after the removal reverts the increment without restoring
+the row, leaving the chunk uncounted and unrecoverable. That window is pre-existing (it
+already applies to the unblock cascade), but the gate is the first logic whose
+correctness depends on closing it.
 
 **Cross-job submitter barrier.** When job B's per-job counter completes, check whether
 any earlier job with the same submitter and same sink still has a termination chunk
@@ -322,7 +381,7 @@ record (see the invariant discussion below).
 added to `commons/types` (`JMSHeader.java`). `itemId` identifies the individual item
 within the chunk: it is part of the `(jobId, chunkId, itemId)` version tuple compared
 against the watermark before delivery, and of the result-reporting endpoint path
-`POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivering`. No chunk-size
+`POST /jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivered`. No chunk-size
 header is needed: job-store detects chunk completion from its own phase counters, and
 since the broker distributes items by record group — not by chunk — no single consumer
 is guaranteed to see all items of a chunk anyway.
@@ -363,7 +422,7 @@ scope, using the exact same value the dependency-tracking system already derives
 The composed string is deliberately kept a single opaque token, not an
 `(agencyId, id)` pair split across two columns/properties/parameters. Everything
 downstream — the `sink_record_delivery_watermark.record_key` column, the
-`GET /v1/sinks/{sinkId}/watermarks?recordKey={recordKey}` query, and the
+`GET /sinks/{sinkId}/watermarks?recordKey={recordKey}` query, and the
 `WatermarkServiceConnector` signatures (`getWatermark(long sinkId, String recordKey)`,
 `reportItemResult(..., String recordKey, ...)`, see below) — stays exactly as specced,
 because the composition happens once, in job-store, at the same place that already
@@ -514,7 +573,7 @@ ON CONFLICT (sink_id, record_key) DO UPDATE
 **Read watermark (called by sink before each delivery):**
 
 ```
-GET /v1/sinks/{sinkId}/watermarks?recordKey={recordKey}
+GET /sinks/{sinkId}/watermarks?recordKey={recordKey}
 → 200 {"watermark": {"jobId": 1234567, "chunkId": 42, "itemId": 3}}
 → 200 {"watermark": null}          (no watermark exists for this record key)
 ```
@@ -538,32 +597,57 @@ The new protocol makes one GET plus one POST per *item* — a ~20× increase in 
 to job-store-service, plus one watermark upsert per item on PostgreSQL. At a sink
 throughput of 1 000 items/s this is 2 000 requests/s against the job-store fleet.
 Capacity-plan job-store-service instances and their connection pools accordingly. If
-needed, a batched read (`GET /v1/sinks/{sinkId}/watermarks?keys=k1,k2,…`) lets a sink
+needed, a batched read (`GET /sinks/{sinkId}/watermarks?keys=k1,k2,…`) lets a sink
 prefetch watermarks for all items of a chunk in one round trip without changing the
 correctness argument.
 
 **Report item result (called by sink after delivery):**
 
 ```
-POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivering
+POST /jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivered
 Content-Type: application/json
 
 { "sinkId": 42, "recordKey": "...", "status": "DELIVERED" | "SKIPPED" | "FAILED" }
 ```
 
+Same path as the existing `GET .../items/{itemId}/delivered` (which reads back
+`ItemEntity.deliveringOutcome`) — POST writes the delivery result, GET reads it, one
+resource. This also matches the existing bulk `POST /jobs/{jobId}/chunks/{chunkId}/delivered`
+endpoint's naming: "delivered" there already covers `FAILURE`/`IGNORE` item outcomes
+within the chunk, not just success, so the same word covering `SKIPPED`/`FAILED` at
+item granularity here is consistent, not a stretch.
+
 Implementation (one transaction):
 
 ```
 1. Write deliveredResult to ItemEntity.deliveringOutcome
-2. Increment State.Phase.DELIVERING counters on ItemEntity and ChunkEntity
-3. If status == DELIVERED AND recordKey != null:
+2. Increment State.Phase.DELIVERING counters on ItemEntity, ChunkEntity and JobEntity
+3. If this item completes the job (see below):
+       set fatal-error flag when it is a FAILED termination item,
+       set timeOfCompletion, add the JOB_COMPLETED notification
+4. If status == DELIVERED AND recordKey != null:
        DB upsert watermark (using conditional upsert above)
-4. If ChunkEntity.state passes State.phaseDone(DELIVERING):
+5. If ChunkEntity.state passes State.phaseDone(DELIVERING):
        call chunkDeliveringDone()  → per-job counter + gate logic
 ```
 
+Steps 1 to 4 are the job-store transaction (`PgJobStore.addItemDelivered`,
+`REQUIRES_NEW`). Step 5 runs in `JobsBean` *after* that transaction commits, driven by
+the method's boolean return value - deliberately outside it, so the chunk, item and job
+row locks are released before `chunkDeliveringDone`'s unbounded unblock cascade and its
+JMS sends begin. See "Why `addItemDelivered`'s return value is a snapshot, not an event"
+under [Same-item concurrent redelivery](#same-item-concurrent-redelivery-job-store-service).
+
+Step 3's "completes the job" test is `itemCompletesJob`, the single-item counterpart to
+the bulk path's `chunkCompletesJob`: all job phases done, **and** either
+`numberOfItems == the job's PARTITIONING counter total` or this item is the termination
+item. Both clauses are needed, and no additional "was the job already done" guard may
+be added - see [Same-item concurrent redelivery](#same-item-concurrent-redelivery-job-store-service)
+for why such a guard would
+silently break every job that has a termination chunk.
+
 **Idempotency:** if `ItemEntity.deliveringOutcome` is already set, return 200 and take
-no further action. This handles crash-then-redelivery between step 3 and `session.commit()`.
+no further action. This handles crash-then-redelivery between step 4 and `session.commit()`.
 
 ### Version comparison
 
@@ -580,7 +664,7 @@ tuple is carried as three plain integer fields in the REST payloads.
 delivered per sink, and is never pruned by the upsert itself. A nightly job removes
 rows whose watermark has not *advanced* — not merely rows with no delivery activity
 at all, see the note on `last_modified` under [Delivery Watermark](
-#delivery-watermark) — for longer than a configurable retention window:
+#delivery-watermark-job-store-service) — for longer than a configurable retention window:
 
 - `WatermarkPurgeBean.purgeStaleWatermarks()` deletes rows whose `last_modified` is
   older than `now() - retention`, in one bulk statement.
@@ -629,7 +713,7 @@ duration, not just normal job turnaround.
 1. Receive item message (session not yet committed)
 2. key = getRecordKey(message)
 3. if key != null:
-       watermark = GET /v1/sinks/{sinkId}/watermarks/{key}
+       watermark = GET /sinks/{sinkId}/watermarks/{key}
        incoming  = (jobId, chunkId, itemId)
        if watermark != null AND incoming < watermark:   // lexicographic tuple compare
            POST reportItemResult(... SKIPPED)
@@ -637,7 +721,7 @@ duration, not just normal job turnaround.
            return
        // incoming == watermark: exact retransmit, always deliver (idempotent re-delivery)
 4. deliver item to target system
-5. POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivering  (reportItemResult)
+5. POST /jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivered  (reportItemResult)
 6. session.commit()   →   JMS ACK
 ```
 
@@ -666,7 +750,7 @@ event.
 Subclasses implement one method:
 
 ```java
-protected abstract ItemStatus deliverItem(Message message) throws Exception;
+protected abstract ItemDeliveryResult.Status deliverItem(Message message) throws Exception;
 ```
 
 `getRecordKey(Message message)` is **not** left to subclasses — it is a final method on
@@ -696,7 +780,7 @@ public record Watermark(int jobId, int chunkId, short itemId)
 public interface WatermarkServiceConnector {
     Optional<Watermark> getWatermark(long sinkId, String recordKey);
     void reportItemResult(long sinkId, int jobId, int chunkId, short itemId,
-                          String recordKey, ItemStatus status);
+                          String recordKey, ItemDeliveryResult.Status status);
 }
 ```
 
@@ -713,6 +797,101 @@ HTTP implementation following the existing connector pattern.
 | Before step 4 (deliver) | Message rolls back; redelivered to next available group consumer | No side effects |
 | After step 4, before step 5 (reportItemResult) | Message rolls back; redelivered | Duplicate target call. Idempotent targets (rawrepo, solr-doc-store) absorb it. Same exposure as current `addChunkIgnoreDuplicates` retry |
 | After step 5, before step 6 (session.commit) | Message rolls back; redelivered | `reportItemResult` called again; idempotency guard sees `deliveringOutcome` already set; ignored cleanly |
+
+### Same-item concurrent redelivery (job-store-service)
+
+The table above assumes redelivery is sequential: the prior attempt's session has
+rolled back or timed out *before* the broker hands the message to a second consumer.
+That assumption can break under a false failure-detection positive - the broker's
+heartbeat/session timeout fires (e.g. during a long GC pause on the sink) while the
+original consumer's thread is still alive and mid-flight on its own `reportItemResult`
+call - producing two genuinely concurrent calls for the *same* item, not two
+sequential ones.
+
+`addItemDelivered`'s idempotency check (`ItemEntity.deliveringOutcome != null`) is not
+lock-protected on its own, so both concurrent calls can see it unset and proceed. A
+naive implementation would then double-count that item's contribution to the chunk's
+and job's DELIVERING counters. A duplicate on an *already-closed* phase is a plain
+no-op (see `State.updateStateElement`), but one that lands while the phase is still
+open makes the running total overtake the number of items that have actually reported.
+Each call adds exactly 1, and `State.phaseDone` compares the running total against the
+PARTITIONING total, so the phase still closes on an exact match - just one item too
+early. `chunkDeliveringDone` then fires, downstream chunks unblock, and the job can
+complete while an item was never delivered at all. Nothing in the job state records the
+missing delivery, which makes this worse than a stall rather than a milder version of
+one.
+
+The fix is a second, authoritative idempotency re-check, taken only after acquiring
+the chunk's exclusive lock (`getExclusiveAccessFor`) - so the two concurrent calls
+serialise there, and whichever runs second re-reads `deliveringOutcome` fresh and
+observes the first call's already-committed write. The unlocked check at the top of
+`addItemDelivered` is kept purely as a fast path for the overwhelmingly common case
+(a genuinely already-committed replay), not as the correctness guard. Locking order
+is chunk, then item - matching `PgJobStoreRepository.updateChunkItemEntities`'s
+existing chunk-then-item order for the bulk path, so no new deadlock risk is
+introduced.
+
+**Why `addItemDelivered`'s return value is a snapshot, not an event.** It reports
+"is the chunk's DELIVERING phase done as of right now", not "did this specific call
+complete it". This matters for two independent reasons:
+
+1. It keeps the same-item race above correct: the call that loses the race and
+   returns early through either idempotency check still needs to report accurate,
+   current chunk status rather than an unconditional `false`.
+2. It makes recovery self-healing across the gap between the job-store transaction
+   committing and `JobsBean` invoking `jobSchedulerBean.chunkDeliveringDone(...)`
+   afterwards (deliberately outside that transaction - see "Delivery Watermark").
+   If the pod dies in that gap, the sink never gets its response, the message is
+   never ACKed, and it gets redelivered. Under an event-based return value, that
+   redelivery would hit the idempotency guard and report nothing happened, so the
+   gate notification would never fire again - stranding the chunk exactly as above,
+   just via a different trigger. A snapshot return value means every redelivery,
+   however it arises, re-evaluates and reports current status, and `JobsBean` can
+   simply call `chunkDeliveringDone(...)` again whenever it reports done -
+   `JobSchedulerBean.chunkDeliveringDone` already tolerates being called on an
+   unknown or already-completed tracking key (it logs and returns), so a redundant
+   call is harmless. This mirrors the legacy `addChunkDelivered` path, which already
+   calls `chunkDeliveringDone` unconditionally rather than trying to suppress
+   duplicates itself.
+
+**Why job completion needs no equivalent "already done" guard.** The completion block
+in `addItemDelivered` (fatal-error flag, `timeOfCompletion`, the `JOB_COMPLETED`
+notification) must run exactly once per job. It is tempting to reach for the same
+transition-detection shape as the chunk-level fix above - snapshot whether the job was
+already done *before* applying this call's delta, and fire only on the not-done to done
+edge. That is both unnecessary and actively harmful here.
+
+It is unnecessary because there is no job-level analogue of the same-item race. Every
+read and write of job state in `addItemDelivered` happens after
+`getExclusiveAccessFor(JobEntity.class, jobId)`, so two concurrent item deliveries for
+one job - whether from the same chunk or two different chunks - serialise at exactly
+that point. Chunk locks being independent of each other is true but irrelevant: the
+job row lock is what orders the completion check.
+
+Once-only is instead guaranteed by `itemCompletesJob`'s own two clauses, given how
+termination chunks are accounted for:
+
+- **Job without a termination chunk** (the common case): `numberOfItems` equals the
+  job's `PARTITIONING` counter total, so the first clause selects the single item whose
+  delta closes the job's DELIVERING phase. No item reports after it, because the
+  item-level idempotency check guarantees each item contributes exactly one delta.
+- **Job with a termination chunk** (less common, but it happens):
+  `createJobTerminationChunkEntity` bumps `jobEntity.numberOfItems` by one while
+  passing `updateJobEntityState` a `StateChange` with zeroed counters, so
+  `numberOfItems` is the `PARTITIONING` total **+ 1**. The first clause is therefore
+  false for every data item, and only the termination item selects itself, through the
+  `isTerminationItem` clause. This mirrors the bulk path's
+  `chunkCompletesJob(...)`/`chunk.isTerminationChunk()` pair, whose `||` clause exists
+  for precisely this reason.
+
+And it is harmful because of that second case. The job's DELIVERING phase closes when
+its delivering total reaches its `PARTITIONING` total (`State.phaseDone`), which the
+last **data** item achieves - before the termination item has reported at all. A
+"was the job already done" guard therefore sees the job as complete by the time the
+termination item arrives and suppresses the completion block entirely, so such jobs
+would never get `timeOfCompletion`, never emit `JOB_COMPLETED`, and never set the
+fatal-error flag for a failed termination item. `PgJobStore_AddItemDeliveredIT`
+pins all four cases, including this one.
 
 ### Job-store restart
 
@@ -756,7 +935,7 @@ is extracted from job-store-service into its own dedicated service.
 
 | Layer | Handles |
 |---|---|
-| job-store-service (N instances) | All inbound REST requests: job submission, partitioning callbacks (`/chunks/{id}/processed`), item delivery results (`/items/{id}/delivering`), watermark reads. Writes item/chunk state, the watermark, the per-job counters (`delivered_data_chunks`), and `gate_open` to PostgreSQL. |
+| job-store-service (N instances) | All inbound REST requests: job submission, partitioning callbacks (`/chunks/{id}/processed`), item delivery results (`/items/{id}/delivered`), watermark reads. Writes item/chunk state, the watermark, the per-job counters (`delivered_data_chunks`), and `gate_open` to PostgreSQL. |
 | scheduler-service (1 instance) | Continuously reads `dependencytracking` from PostgreSQL, advances chunk `status` through the state machine, fires JMS dispatch. Holds in-memory `SINK_STATUS` counters. |
 
 **Why this eliminates leader election entirely:**
@@ -880,6 +1059,17 @@ Two ordering constraints shape the sequence:
   `(sinkid, submitter, is_termination)` barrier index
 - Implement the per-job gate logic in `chunkDeliveringDone` (runs alongside the
   existing `waitingOn` mechanism — redundant but harmless)
+- Change `DependencyTrackingService.remove(TrackingKey)` to report whether *this* call
+  performed the removal, and condition the `delivered_data_chunks` increment on it.
+  It already computes this and discards it: `dependencyTracker.remove(key)` returns the
+  previous value atomically per key and the method checks `removed == null`, but returns
+  `void`, so no caller can learn it won the race. Without this the increment sits behind
+  `chunkDeliveringDone`'s non-atomic `get`-then-`remove` check and can double-count,
+  opening the gate before all data chunks are delivered, see [Barrier Chunks](
+  #barrier-chunks--per-job-gate)
+- Increment `delivered_data_chunks` with a single atomic statement, never a read followed
+  by a write: a lost update leaves the counter permanently below `total_data_chunks` and
+  the gate never opens
 - Update the bulk-scheduler ordering query to `(priority DESC, jobid ASC, chunkid ASC)`
   with the `gate_open` filter
 - Dependency tracking, `BLOCKED` and sequence analysis remain fully active
@@ -901,8 +1091,9 @@ Two ordering constraints shape the sequence:
 ### Phase 3 — Watermark table and endpoints (job-store-service)
 
 - Flyway migration: create `sink_record_delivery_watermark`
-- Add `GET /v1/sinks/{sinkId}/watermarks?recordKey={recordKey}` endpoint
-- Add `POST /v1/jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivering` endpoint
+- Add `GET /sinks/{sinkId}/watermarks?recordKey={recordKey}` endpoint
+- Add `POST /jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivered` endpoint
+  (same path as the existing `GET` that reads `ItemEntity.deliveringOutcome` back)
 - Add watermark upsert to `reportItemResult` write path
 - Integration tests against real PostgreSQL
 
@@ -997,6 +1188,7 @@ complete) — see ordering constraint 1 above.
 | Exact retransmit (stale recovery) | `addChunkIgnoreDuplicates` | `incoming == watermark` → always deliver (idempotent re-delivery) |
 | Pod crash, stale watermark after rebalance | Hazelcast MapStore reloads from PostgreSQL | No local cache to become stale; `group-rebalance-pause-dispatch` ensures watermark is current before any post-rebalance dispatch |
 | Live head/section before volume delivery | Dependency tracking + barrier | Constant hierarchy group serialises all hierarchy records; priority override ensures head chunk dispatched first |
+| Job completion fires exactly once, incl. jobs with a termination chunk | One `addChunk` call per chunk; `chunkCompletesJob` | One `addItemDelivered` call per item under the job row lock; `itemCompletesJob` selects the last data item, or the termination item when `numberOfItems == PARTITIONING total + 1` |
 
 ---
 
@@ -1061,11 +1253,14 @@ complete) — see ordering constraint 1 above.
    `last_modified` on `sink_record_delivery_watermark`, a nightly `WatermarkPurgeBean`
    purge, and a configurable `WATERMARK_RETENTION` window (default `P90D`).
 
-3. **Should FAILED advance the watermark?** Currently only `DELIVERED` does. In the
-   priority-inversion case a newer version can be dispatched first, fail at the target,
-   and then an older version behind it passes the watermark check and is delivered —
-   the target regresses to old data with no newer write coming. Advancing the watermark
-   on `FAILED` (recording the latest *attempted* version) would suppress the older
-   delivery instead, leaving the target unchanged and the failure visible in the job
-   state. Both behaviours are defensible; decide and document before Phase 3
-   (watermark table and endpoints).
+3. **Should FAILED advance the watermark?** — resolved for DI-2997 (Phase 3's write
+   endpoint): **no, only `DELIVERED` does**, matching the "Upsert on delivery"
+   pseudocode above (`If status == DELIVERED AND recordKey != null`) as-is. The
+   priority-inversion case this leaves unresolved — a newer version is dispatched
+   first, fails at the target, and an older version behind it then passes the
+   watermark check and is delivered, regressing the target to old data with no newer
+   write coming — is accepted as a known limitation rather than solved here. Advancing
+   the watermark on `FAILED` (recording the latest *attempted* version) would suppress
+   the older delivery instead, leaving the target unchanged and the failure visible in
+   the job state, and remains a defensible alternative if the priority-inversion case
+   is later observed to matter in practice — just not adopted now.

@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.service.rs;
+package dk.dbc.dataio.jobstore.service.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.dbc.commons.jsonb.JSONBContext;

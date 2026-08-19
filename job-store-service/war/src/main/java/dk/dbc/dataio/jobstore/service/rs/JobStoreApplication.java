@@ -5,6 +5,7 @@ import dk.dbc.dataio.jobstore.service.ejb.JobsExportsBean;
 import dk.dbc.dataio.jobstore.service.ejb.NotificationsBean;
 import dk.dbc.dataio.jobstore.service.ejb.RerunsBean;
 import dk.dbc.dataio.jobstore.service.ejb.SinkMessageProducerBean;
+import dk.dbc.dataio.jobstore.service.ejb.WatermarksBean;
 import dk.dbc.dataio.jobstore.service.ejb.developer.Developer;
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;

@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.WatermarkEntity;
 import dk.dbc.dataio.jobstore.types.Watermark;
+import dk.dbc.dataio.jobstore.types.WatermarkResponse;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -50,17 +51,5 @@ public class WatermarksBean {
 
     private Watermark toWatermark(WatermarkEntity entity) {
         return new Watermark(entity.getJobId(), entity.getChunkId(), entity.getItemId());
-    }
-
-    private static class WatermarkResponse {
-        private final Watermark watermark;
-
-        private WatermarkResponse(Watermark watermark) {
-            this.watermark = watermark;
-        }
-
-        public Watermark getWatermark() {
-            return watermark;
-        }
     }
 }

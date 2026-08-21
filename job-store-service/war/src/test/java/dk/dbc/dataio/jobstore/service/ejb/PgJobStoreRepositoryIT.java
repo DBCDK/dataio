@@ -215,6 +215,64 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         assertThat("skipped", jobEntity.getSkipped(), is(73));
     }
 
+    @org.junit.Test
+    public void createChunkEntity_chunkContainsLiveHeadRecord_flagIsSetAndPersisted() {
+        final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
+
+        final ChunkEntity chunkEntity = newChunkEntityFromLineFormat(jobEntity,
+                "001 00 *ahead\n"
+                        + "004 00 *ah\n"
+                        + "$\n");
+
+        assertThat("chunk entity", chunkEntity, is(notNullValue()));
+        assertThat("contains live head or section record",
+                chunkEntity.getContainsLiveHeadOrSectionRecord(), is(true));
+        assertThat("containsliveheadorsectionrecord column",
+                readContainsLiveHeadOrSectionRecordColumn(chunkEntity), is(true));
+        assertThat("contains live head or section record after re-read",
+                reReadChunkEntity(chunkEntity).getContainsLiveHeadOrSectionRecord(), is(true));
+    }
+
+    @org.junit.Test
+    public void createChunkEntity_chunkContainsLiveSectionRecord_flagIsSetAndPersisted() {
+        final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
+
+        final ChunkEntity chunkEntity = newChunkEntityFromLineFormat(jobEntity,
+                "001 00 *asection\n"
+                        + "004 00 *as\n"
+                        + "014 00 *ahead\n"
+                        + "$\n");
+
+        assertThat("chunk entity", chunkEntity, is(notNullValue()));
+        assertThat("contains live head or section record",
+                chunkEntity.getContainsLiveHeadOrSectionRecord(), is(true));
+        assertThat("containsliveheadorsectionrecord column",
+                readContainsLiveHeadOrSectionRecordColumn(chunkEntity), is(true));
+    }
+
+    @org.junit.Test
+    public void createChunkEntity_chunkContainsNoLiveHeadOrSectionRecord_flagIsNotSet() {
+        final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
+
+        final ChunkEntity chunkEntity = newChunkEntityFromLineFormat(jobEntity,
+                "001 00 *aheadDeleted\n"
+                        + "004 00 *ah*rd\n"
+                        + "$\n"
+                        + "001 00 *avolume\n"
+                        + "004 00 *ab\n"
+                        + "014 00 *asection\n"
+                        + "$\n"
+                        + "001 00 *astandalone\n"
+                        + "004 00 *ae\n"
+                        + "$\n");
+
+        assertThat("chunk entity", chunkEntity, is(notNullValue()));
+        assertThat("contains live head or section record",
+                chunkEntity.getContainsLiveHeadOrSectionRecord(), is(false));
+        assertThat("containsliveheadorsectionrecord column",
+                readContainsLiveHeadOrSectionRecordColumn(chunkEntity), is(false));
+    }
+
     /**
      * Given: a job store where a job exists
      * When : requesting a flow bundle for the existing job
@@ -418,6 +476,29 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         itemEntity.setProcessingOutcome(new ChunkItemBuilder().setData(StringUtil.asBytes("Processing outcome data")).build());
         itemEntity.setDeliveringOutcome(new ChunkItemBuilder().setData(StringUtil.asBytes("Delivering outcome data")).build());
         return itemEntity;
+    }
+
+    private ChunkEntity newChunkEntityFromLineFormat(JobEntity jobEntity, String lineFormat) {
+        final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
+                new ByteArrayInputStream(lineFormat.getBytes(StandardCharsets.ISO_8859_1)), "latin1");
+        return persistenceContext.run(() -> pgJobStoreRepository.createChunkEntity(
+                jobEntity.getSpecification().getSubmitterId(), jobEntity.getId(), 0, (short) 10,
+                dataPartitioner, new DefaultKeyGenerator(), jobEntity.getSpecification().getDataFile()));
+    }
+
+    /* Reads the raw column to assert that the migration and the entity mapping line up */
+    private boolean readContainsLiveHeadOrSectionRecordColumn(ChunkEntity chunkEntity) {
+        return (Boolean) entityManager.createNativeQuery(
+                        "SELECT containsliveheadorsectionrecord FROM chunk WHERE jobid = ? AND id = ?")
+                .setParameter(1, chunkEntity.getKey().getJobId())
+                .setParameter(2, chunkEntity.getKey().getId())
+                .getSingleResult();
+    }
+
+    private ChunkEntity reReadChunkEntity(ChunkEntity chunkEntity) {
+        entityManager.clear();
+        entityManager.getEntityManagerFactory().getCache().evictAll();
+        return entityManager.find(ChunkEntity.class, chunkEntity.getKey());
     }
 
     private JobEntity newPersistedJobEntityWithSinkAndFlowCache() {

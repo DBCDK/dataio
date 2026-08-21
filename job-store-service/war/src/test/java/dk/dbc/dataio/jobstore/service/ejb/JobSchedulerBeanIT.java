@@ -256,6 +256,51 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         });
     }
 
+    @org.junit.Test
+    public void scheduleChunk_chunkContainsNoLiveHeadOrSectionRecord_jobPriorityIsUsed() {
+        assertScheduleChunkPriority(false, Priority.LOW, Priority.LOW);
+    }
+
+    @org.junit.Test
+    public void scheduleChunk_chunkContainsLiveHeadOrSectionRecord_priorityIsOverriddenToHigh() {
+        assertScheduleChunkPriority(true, Priority.LOW, Priority.HIGH);
+    }
+
+    private void assertScheduleChunkPriority(boolean containsLiveHeadOrSectionRecord,
+                                             Priority jobPriority, Priority expectedPriority) {
+        final int jobId = 3;
+        final int chunkId = 0;
+
+        final JobEntity jobEntity = new JobEntity(jobId);
+        jobEntity.setPriority(jobPriority);
+        jobEntity.setSpecification(new JobSpecification().withSubmitterId(1));
+        jobEntity.setState(new State());
+        jobEntity.setCachedSink(SinkCacheEntity.create(new SinkBuilder()
+                .setId(1)
+                .build()));
+
+        final ChunkEntity chunkEntity = new ChunkEntity()
+                .withJobId(jobId)
+                .withChunkId(chunkId)
+                .withNumberOfItems((short) 1)
+                .withSequenceAnalysisData(makeSequenceAnalyseData("CK0"))
+                .withContainsLiveHeadOrSectionRecord(containsLiveHeadOrSectionRecord);
+
+        final JobSchedulerTransactionsBean jobSchedulerTransactionsBean = mock(JobSchedulerTransactionsBean.class);
+        DependencyTrackingService trackingService = new DependencyTrackingService().init();
+        final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean(entityManager, jobSchedulerTransactionsBean, null, null, trackingService);
+        jobSchedulerTransactionsBean.dependencyTrackingService = trackingService;
+
+        JobsBeanTest.notAborted(jobId, jb -> jobSchedulerBean.scheduleChunk(chunkEntity, jobEntity));
+
+        // The priority handed to processing...
+        verify(jobSchedulerTransactionsBean).submitToProcessingIfPossibleAsync(
+                chunkEntity, jobEntity.getCachedSink().getSink().getId(), expectedPriority.getValue());
+        // ...and the priority driving delivery ordering downstream
+        assertThat("dependency tracking priority",
+                getDependencyTrackingEntity(jobId, chunkId).getPriority(), is(expectedPriority.getValue()));
+    }
+
     private TrackingKey mk(int jobId, int chunkId) {
         return new TrackingKey(jobId, chunkId);
     }
@@ -270,7 +315,6 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         return res;
     }
 
-    @SuppressWarnings("SameParameterValue")
     private DependencyTracking getDependencyTrackingEntity(int jobId, int chunkId) {
         IMap<TrackingKey, DependencyTracking> map = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
         return map.get(new TrackingKey(jobId, chunkId));

@@ -439,20 +439,121 @@ one dimension further.
 
 ## Artemis Broker Configuration
 
-Per sink queue in `broker.xml`:
+Sink queues are **not declared** in `broker.xml`. Each sink resolves its queue name at
+runtime from its `QUEUE` environment variable (for example `sink::dummy`,
+`sink::update/fbstest/validate-only`), and the queue is auto-created by the broker on
+first connect. A new sink is deployed without touching broker config, so the group
+settings cannot be attached to individual `<queue>` elements.
+
+### Queue naming is FQQN, so all sinks share one address
+
+`sink::dummy` is not an address called `sink::dummy`. `::` is Artemis Fully Qualified
+Queue Name syntax, so it means **queue `dummy` on address `sink`**. Every sink queue
+therefore lives on the single address `sink`:
+
+| `QUEUE` value | Address | Queue |
+|---|---|---|
+| `sink::dummy` | `sink` | `dummy` |
+| `sink::update/fbstest/validate-only` | `sink` | `update/fbstest/validate-only` |
+| `processor::business` | `processor` | `business` |
+| `DLQ::DLQ` | `DLQ` | `DLQ` |
+
+Address settings match on the address, so one exact-match rule covers every current and
+future sink, with no wildcard and no list of queue names:
 
 ```xml
-<address name="Sink.{name}">
-  <anycast>
-    <queue name="Sink.{name}"
-           group-rebalance="true"
-           group-rebalance-pause-dispatch="true"
-           group-first-key="JMSXGroupFirstForConsumer">
-      <group-buckets>1048576</group-buckets>
-    </queue>
-  </anycast>
-</address>
+<address-settings>
+   <address-setting match="sink">
+      <default-group-rebalance>true</default-group-rebalance>
+      <default-group-rebalance-pause-dispatch>true</default-group-rebalance-pause-dispatch>
+      <default-group-first-key>JMSXGroupFirstForConsumer</default-group-first-key>
+      <default-group-buckets>1048576</default-group-buckets>
+   </address-setting>
+   ...
+</address-settings>
 ```
+
+Verified against Artemis 2.42.0: queues reached through `sink::*` receive all four
+settings, while `processor`, `processor-graaljs` and `DLQ` are untouched, since they are
+separate addresses. `group-buckets` is a per-queue attribute, so each of the 36 sink
+queues gets its own bucket table despite sharing an address.
+
+Scoping the settings to sinks is deliberate rather than cosmetic. `group-rebalance` fires
+on every consumer add or remove regardless of whether the queue has any groups, and
+combined with `group-rebalance-pause-dispatch` it pauses dispatch until in-flight
+messages are acked. Applied to the processor addresses that would mean a dispatch pause on
+every processor pod restart for no benefit.
+
+Two consequences of FQQN worth knowing when operating the broker:
+
+- Management resource names and JMX object names use the **real** address and queue, so it
+  is `address="sink",queue="dummy"`, never `address="sink::dummy"`. Per-queue management
+  lookups keyed on `queue.sink::dummy` fail.
+- Destructive operations must be given the FQQN form. `destroyQueue("sink::vip")` removes
+  exactly that queue, whereas the bare queue name is ambiguous across addresses and was
+  observed removing queues of the same name on more than one address.
+
+### What these settings do and do not provide
+
+Measured against a real broker with and without the settings: per-group serialisation is
+provided by `JMSXGroupID` itself and is on by default. With all four settings absent,
+groups were still pinned to one consumer, per-group order was still preserved, and two
+messages of a group were never in flight together.
+
+The ordering guarantee that replaces `BLOCKED` therefore comes from Phase 6 setting
+`JMSXGroupID`, not from this configuration. What the configuration adds:
+
+| Setting | What it adds |
+|---|---|
+| `group-buckets` | Bounds group-tracking memory. The default of -1 tracks every group id ever seen, which is unbounded when the id is a record id |
+| `group-rebalance` | Lets a consumer that joins later receive work at all. Without it a late-joining consumer took 0 of 480 messages while the others carried the load |
+| `group-rebalance-pause-dispatch` | Makes the handover that `group-rebalance` introduces safe, by holding dispatch until in-flight messages are acked |
+| `group-first-key` | Nothing that is consumed, see below |
+
+In short, this phase does not create the guarantee. It keeps the guarantee true across
+scaling events and pod restarts, and bounds its memory cost. That distinction matters when
+reasoning about what breaks if the configuration is missing: deliveries stay correctly
+serialised, but new sink replicas sit idle and broker memory grows with the number of
+distinct record ids seen.
+
+### `group-first-key` is set but not consumed
+
+`group-first-key=JMSXGroupFirstForConsumer` makes the broker set a
+`JMSXGroupFirstForConsumer=true` header on the first message of a group dispatched to a
+given consumer, so a consumer can detect that it has just been handed that group. The key
+name comes from the Artemis documentation example.
+
+Nothing in dataio reads this header, and the delivery protocol does not need it. A sink
+resolves the record key and checks it against the watermark per item, so it never depends
+on knowing whether it has just acquired a group, and per-record state lives in PostgreSQL
+rather than in the pod. It is retained because it is named in the DI-2999 acceptance
+criteria, costs one boolean header, and is a useful signal when debugging group handover.
+
+Phase 7 therefore does not need to expose it through `MessageConsumerAdapter`. If a later
+change does come to depend on it, note that it marks a *consumer handover*, not the first
+version of a record, so it is not a substitute for any part of the watermark comparison.
+
+### Existing queues do not inherit these settings
+
+`default-*` address settings are applied **when a queue is created**. A queue that already
+exists keeps its stored attributes across a broker restart, so deploying the config above
+against a broker whose sink queues already exist changes nothing, silently. The config
+file reads correctly while every queue still reports `group-buckets=-1` and
+`group-rebalance=false`.
+
+`group-rebalance-pause-dispatch` also cannot be set on an existing queue at all.
+`QueueControl` exposes `isGroupRebalancePauseDispatch()` for reading, but no
+`ActiveMQServerControl.updateQueue` overload accepts it, so the management API and the
+`artemis queue update` CLI can repair only three of the four attributes.
+
+Existing sink queues must therefore be **dropped and re-created** once, while drained, so
+that the address-setting defaults apply. Verified against 2.42.0: after a drop, the
+auto-created replacement carries all four attributes, and they persist across a
+subsequent broker restart. This relies on `auto-delete-queues` remaining `false` in
+`broker.xml`, otherwise an empty re-created queue is removed again on the next restart.
+
+Because `JMSXGroupID` is only set from Phase 6 onwards, this recreation is behaviourally
+inert and can be done well ahead of any delivery-path change.
 
 ### `group-buckets`
 
@@ -1104,9 +1205,18 @@ Two ordering constraints shape the sequence:
 
 ### Phase 5 — Broker configuration
 
-- Add `group-rebalance`, `group-rebalance-pause-dispatch`, `group-first-key`,
-  `group-buckets=1048576` to each sink queue in `broker.xml`
-- Configuration-only change; deploy and verify before Phase 6
+- Add one `<address-setting match="sink">` carrying `default-group-rebalance`,
+  `default-group-rebalance-pause-dispatch`, `default-group-first-key` and
+  `default-group-buckets=1048576`. All sink queues share the address `sink`, so no
+  wildcard is needed
+- Drop and re-create the existing sink queues, drained, so the defaults take effect. This
+  is **not** a configuration-only change, see
+  [Artemis Broker Configuration](#artemis-broker-configuration)
+- Align the Artemis image used by integration tests with the version staging and
+  production run, so tests exercise the same broker and the same config
+- Deploy and verify before Phase 6. Verification has to read the four attributes back per
+  queue and exercise `JMSXGroupID` serialisation against a real broker, because a correct
+  config file is not evidence that the running queues carry the settings
 
 ### Phase 6 — Per-item dispatch (`SinkMessageProducerBean`)
 

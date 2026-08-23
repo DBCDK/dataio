@@ -156,6 +156,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("First chunk: number of items", chunkEntity.getNumberOfItems(), is(params.maxChunkSize));
         assertThat("First chunk: Partitioning phase endDate set", chunkEntity.getState().getPhase(PARTITIONING).getEndDate(), is(notNullValue()));
         assertThat("First chunk: number of seq keys", chunkEntity.getSequenceAnalysisData().getData().size(), is(0));
+        assertThat("First chunk: contains live head or section record", chunkEntity.getContainsLiveHeadOrSectionRecord(), is(false));
         assertThat("Job: number of chunks after first chunk", jobEntity.getNumberOfChunks(), is(1));
         assertThat("Job: number of items after first chunk", jobEntity.getNumberOfItems(), is((int) params.maxChunkSize));
         assertThat("Job: partitioning phase endDate not set after first chunk", jobEntity.getState().getPhase(PARTITIONING).getEndDate(), is(nullValue()));
@@ -167,6 +168,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("Second chunk: number of items", chunkEntity.getNumberOfItems(), is((short) (EXPECTED_NUMBER_OF_ITEMS - params.maxChunkSize)));
         assertThat("Second chunk: Partitioning phase endDate set", chunkEntity.getState().getPhase(PARTITIONING).getEndDate(), is(notNullValue()));
         assertThat("Second chunk: number of seq keys", chunkEntity.getSequenceAnalysisData().getData().size(), is(0));
+        assertThat("Second chunk: contains live head or section record", chunkEntity.getContainsLiveHeadOrSectionRecord(), is(false));
         assertThat("Job: number of chunks after second chunk", jobEntity.getNumberOfChunks(), is(2));
         assertThat("Job: number of items after second chunk", jobEntity.getNumberOfItems(), is(EXPECTED_NUMBER_OF_ITEMS));
         assertThat("Job: partitioning phase endDate not set after second chunk", jobEntity.getState().getPhase(PARTITIONING).getEndDate(), is(nullValue()));

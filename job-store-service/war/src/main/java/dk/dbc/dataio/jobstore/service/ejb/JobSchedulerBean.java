@@ -168,7 +168,8 @@ public class JobSchedulerBean {
 
         TrackingKey key = new TrackingKey(chunk.getKey().getJobId(), chunk.getKey().getId());
         DependencyTracking e = new DependencyTracking(key, sinkId, (int)job.getSpecification().getSubmitterId(), chunk.getKey().getId() == 0 ? barrierMatchKey : null, chunk.getSequenceAnalysisData().getData());
-        e.setPriority(job.getPriority().getValue());
+        Priority priority = chunk.getContainsLiveHeadOrSectionRecord() ? Priority.HIGH : job.getPriority();
+        e.setPriority(priority.getValue());
         dependencyTrackingService.addAndBuildDependencies(e, barrierMatchKey);
         jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sinkId, e.getPriority());
     }

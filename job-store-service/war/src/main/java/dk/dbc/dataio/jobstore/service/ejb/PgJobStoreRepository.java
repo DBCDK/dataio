@@ -330,6 +330,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         if (chunkItemEntities.size() > 0) {
             chunkEntity.setNumberOfItems(chunkItemEntities.size());
             chunkEntity.setSequenceAnalysisData(getSequenceAnalysisData(keyGenerator, chunkItemEntities));
+            chunkEntity.setContainsLiveHeadOrSectionRecord(containsLiveHeadOrSectionRecord(chunkItemEntities));
 
             final State chunkState = chunkItemEntities.getChunkState();
             chunkEntity.setState(chunkState);
@@ -937,6 +938,14 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     private SequenceAnalysisData getSequenceAnalysisData(KeyGenerator keyGenerator, ChunkItemEntities chunkItemEntities) {
         return new SequenceAnalysisData(keyGenerator.getKeys(chunkItemEntities.keys));
+    }
+
+    boolean containsLiveHeadOrSectionRecord(ChunkItemEntities chunkItemEntities) {
+        return chunkItemEntities.entities.stream()
+                .map(ItemEntity::getRecordInfo)
+                .anyMatch(recordInfo -> recordInfo instanceof MarcRecordInfo marcRecordInfo
+                        && (marcRecordInfo.isHead() || marcRecordInfo.isSection())
+                        && !marcRecordInfo.isDelete());
     }
 
     private void throwInvalidInputException(String errMsg, JobError.Code jobErrorCode) throws InvalidInputException {

@@ -398,7 +398,12 @@ public class PgJobStoreRepository extends RepositoryBase {
                 .withState(itemState)
                 .withPartitioningOutcome(chunkItem)
                 .withProcessingOutcome(chunkItem)
-                .withRecordInfo(new RecordInfo("End Item"));
+                // Null record id, and thereby a null correlationKey, is deliberate: this
+                // item is a per-job barrier, not a bibliographic record. A non-null id
+                // would serialise every job's termination item into one broker group and
+                // make them share a delivery watermark key. See
+                // docs/chunk-scheduling-redesign.md, Open Questions 1.
+                .withRecordInfo(new RecordInfo(null));
 
         entityManager.persist(itemEntity);
 

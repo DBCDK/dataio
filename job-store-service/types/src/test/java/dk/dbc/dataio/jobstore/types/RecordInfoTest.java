@@ -9,6 +9,7 @@ import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.nullValue;
 
 public class RecordInfoTest {
     private final String id = "42";
@@ -46,6 +47,21 @@ public class RecordInfoTest {
     public void getCorrelationKey_returnsId() {
         RecordInfo recordInfo = new RecordInfo(id);
         assertThat(recordInfo.getCorrelationKey(), is(id));
+    }
+
+    @Test
+    void getCorrelationKey_idIsNull_returnsNull() {
+        RecordInfo recordInfo = new RecordInfo(null);
+        assertThat(recordInfo.getCorrelationKey(), is(nullValue()));
+    }
+
+    @Test
+    void marshalling_idIsNull_roundTrips() throws JSONBException {
+        JSONBContext jsonbContext = new JSONBContext();
+        RecordInfo recordInfo = new RecordInfo(null);
+        RecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), RecordInfo.class);
+        assertThat("unmarshalled", unmarshalled, is(recordInfo));
+        assertThat("unmarshalled id", unmarshalled.getId(), is(nullValue()));
     }
 
     @Test

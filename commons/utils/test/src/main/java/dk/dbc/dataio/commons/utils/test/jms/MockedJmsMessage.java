@@ -208,7 +208,7 @@ public class MockedJmsMessage implements Message {
 
     @Override
     public short getShortProperty(String s) throws JMSException {
-        return 0;
+        return (Short) properties.get(s);
     }
 
     @Override
@@ -236,6 +236,7 @@ public class MockedJmsMessage implements Message {
 
     @Override
     public void setShortProperty(String s, short i) throws JMSException {
+        properties.put(s, i);
     }
 
     @Override

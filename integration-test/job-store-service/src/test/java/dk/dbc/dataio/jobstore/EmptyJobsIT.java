@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
@@ -75,7 +76,7 @@ public class EmptyJobsIT extends AbstractJobStoreServiceContainerTest {
      * Given: a valid "empty job" request
      * When : submitted to job-store
      * Then : a job is created
-     * And : a job-termination chunk with ID 0 is sent to the sink queue
+     * And : the job-termination item of chunk 0 is sent to the sink queue, unkeyed
      * When : a delivery result for the chunk is submitted to job-store
      * Then : the job is completed
      */
@@ -93,22 +94,34 @@ public class EmptyJobsIT extends AbstractJobStoreServiceContainerTest {
         // And...
         final List<MockedJmsTextMessage> jmsMessages = jmsQueueServiceConnector.awaitQueueSizeAndList(
                 JmsQueueTester.Queue.SINK_PERIODIC_JOBS, 1, 10000);
+        // Delivery is per item, so the body is the termination item itself and its
+        // identity is carried in the message headers.
         final MockedJmsTextMessage jmsMessage = jmsMessages.get(0);
-        final Chunk endChunk = jsonbContext.unmarshall(jmsMessage.getText(), Chunk.class);
-        assertThat("chunk ID", endChunk.getChunkId(), is(0L));
-        assertThat("chunk belongs to job", endChunk.getJobId(), is(jobInfoSnapshot.getJobId()));
-        assertThat("number of items in chunk", endChunk.getItems().size(), is(1));
-        assertThat("chunk is termination chunk", endChunk.getItems().get(0).getType().get(0),
+        final ChunkItem endItem = jsonbContext.unmarshall(jmsMessage.getText(), ChunkItem.class);
+        final int jobId = Integer.parseInt(jmsMessage.getStringProperty(JMSHeader.jobId.name));
+        final long chunkId = Long.parseLong(jmsMessage.getStringProperty(JMSHeader.chunkId.name));
+        assertThat("payload type", jmsMessage.getStringProperty(JMSHeader.payload.name),
+                is(JMSHeader.ITEM_PAYLOAD_TYPE));
+        assertThat("chunk ID", chunkId, is(0L));
+        assertThat("chunk belongs to job", jobId, is(jobInfoSnapshot.getJobId()));
+        assertThat("item ID", jmsMessage.getStringProperty(JMSHeader.itemId.name), is("0"));
+        assertThat("item is termination item", endItem.getType().get(0),
                 is(ChunkItem.Type.JOB_END));
+        // The termination item is a per-job barrier, not a record, so it carries neither
+        // a watermark key nor a broker group and is delivered unconditionally.
+        assertThat("termination item has no record key",
+                jmsMessage.getStringProperty(JMSHeader.recordKey.name), is(nullValue()));
+        assertThat("termination item has no broker group",
+                jmsMessage.getStringProperty("JMSXGroupID"), is(nullValue()));
 
         // When...
-        final Chunk result = new Chunk(endChunk.getJobId(), endChunk.getChunkId(), Chunk.Type.DELIVERED);
+        final Chunk result = new Chunk(jobId, chunkId, Chunk.Type.DELIVERED);
         result.insertItem(ChunkItem.successfulChunkItem()
                 .withId(0)
                 .withData("done")
                 .withType(ChunkItem.Type.JOB_END)
                 .withEncoding(StandardCharsets.UTF_8));
-        jobInfoSnapshot = jobStoreServiceConnector.addChunk(result, endChunk.getJobId(), endChunk.getChunkId());
+        jobInfoSnapshot = jobStoreServiceConnector.addChunk(result, jobId, chunkId);
         assertThat("job is complete", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
     }
 

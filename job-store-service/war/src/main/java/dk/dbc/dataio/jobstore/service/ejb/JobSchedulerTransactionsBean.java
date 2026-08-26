@@ -194,9 +194,13 @@ public class JobSchedulerTransactionsBean {
             LOGGER.info("submitToDelivering: chunk {}/{} scheduled for delivery for sink {}",
                     trackingKey.getJobId(), trackingKey.getChunkId(), dependencyTracking.getSinkId());
         } catch (JobStoreException e) {
-            dependencyTrackingService.setStatus(trackingKey, SCHEDULED_FOR_DELIVERY);
+            // Log before the status update. JobStoreException is @ApplicationException
+            // (rollback = true), so the transaction is already marked rollback-only here
+            // and setStatus fails with "Client's transaction aborted", which would
+            // otherwise replace this exception and leave no trace of the real cause.
             LOGGER.error("submitToDelivering: unable to send chunk {}/{} to JMS queue - chunk has been scheduled for delivery",
                     trackingKey.getJobId(), trackingKey.getChunkId(), e);
+            dependencyTrackingService.setStatus(trackingKey, SCHEDULED_FOR_DELIVERY);
         }
     }
 

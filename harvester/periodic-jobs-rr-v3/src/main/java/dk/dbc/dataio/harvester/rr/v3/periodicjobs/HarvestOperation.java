@@ -221,7 +221,7 @@ public class HarvestOperation {
      * </p>
      *
      * @param recordIds file where each line contains a record ID on the
-     *                  form bibliographicRecordId:agencyId
+     *                  form agencyId:bibliographicRecordId
      * @return number of records harvested
      * @throws HarvesterException on failure to complete harvest operation
      */

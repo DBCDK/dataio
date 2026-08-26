@@ -71,7 +71,7 @@ public class RecordIdFile implements Iterable<RecordIdDTO>, AutoCloseable {
             final String[] parts = line.split(":");
             if (parts.length == 2) {
                 try {
-                    return new RecordIdDTO(parts[0], Integer.parseInt(parts[1]));
+                    return new RecordIdDTO(parts[1], Integer.parseInt(parts[0]));
                 } catch (NumberFormatException e) {
                     LOGGER.error("line '{}' contained invalid ID", line, e);
                 }

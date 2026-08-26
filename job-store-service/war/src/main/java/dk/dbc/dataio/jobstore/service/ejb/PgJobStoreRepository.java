@@ -556,13 +556,9 @@ public class PgJobStoreRepository extends RepositoryBase {
         final Profiler profiler = new Profiler("pgJobStoreRepository.getChunk");
         try {
             final State.Phase phase = chunkTypeToStatePhase(InvariantUtil.checkNotNullOrThrow(type, "type"));
-            final ItemListCriteria criteria = new ItemListCriteria()
-                    .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId))
-                    .and(new ListFilter<>(ItemListCriteria.Field.CHUNK_ID, ListFilter.Op.EQUAL, chunkId))
-                    .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
 
             profiler.start("execute Query");
-            final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
+            final List<ItemEntity> itemEntities = queryChunkItemEntities(jobId, chunkId);
             profiler.stop();
             if (!itemEntities.isEmpty()) {
                 profiler.start("Loop itemEntities");
@@ -581,6 +577,25 @@ public class PgJobStoreRepository extends RepositoryBase {
         } finally {
             LOGGER.info("pgJobStoreRepository.getChunk timings:\n{}", profiler);
         }
+    }
+
+    /**
+     * @param jobId   id of job containing chunk
+     * @param chunkId id of chunk
+     * @return item entities of the given chunk in ascending item ID order,
+     * empty if the chunk has no items
+     */
+    @Stopwatch
+    public List<ItemEntity> getChunkItemEntities(int jobId, int chunkId) {
+        return queryChunkItemEntities(jobId, chunkId);
+    }
+
+    private List<ItemEntity> queryChunkItemEntities(int jobId, int chunkId) {
+        final ItemListCriteria criteria = new ItemListCriteria()
+                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId))
+                .and(new ListFilter<>(ItemListCriteria.Field.CHUNK_ID, ListFilter.Op.EQUAL, chunkId))
+                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
+        return new ItemListQuery(entityManager).execute(criteria);
     }
 
     @Stopwatch

@@ -49,6 +49,11 @@ public enum JMSHeader {
 
     public final String name;
     public static final String CHUNK_PAYLOAD_TYPE = "Chunk";
+    /**
+     * {@link #payload} value of a message whose body is a single {@code ChunkItem} rather
+     * than a whole {@code Chunk}.
+     */
+    public static final String ITEM_PAYLOAD_TYPE = "Item";
     public static final String ABORT_PAYLOAD_TYPE = "ABORT";
 
     JMSHeader() {

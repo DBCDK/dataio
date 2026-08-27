@@ -11,7 +11,7 @@ class JobSpecificationTemplate {
             final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry()
                     .withHarvesterToken(config.getHarvesterToken());
             return new JobSpecification()
-                    .withPackaging("addi-json")
+                    .withPackaging("addi-xml")
                     .withFormat(configFields.getFormat())
                     .withCharset("utf8")
                     .withDestination(configFields.getDestination())

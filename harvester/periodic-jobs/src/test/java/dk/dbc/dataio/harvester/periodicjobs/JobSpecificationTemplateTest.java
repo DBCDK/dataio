@@ -23,7 +23,7 @@ public class JobSpecificationTemplateTest {
         assertThat("template", template,
                 is(notNullValue()));
         assertThat("template packaging", template.getPackaging(),
-                is("addi-xml"));
+                is("addi-json"));
         assertThat("template format", template.getFormat(),
                 is(config.getContent().getFormat()));
         assertThat("template charset", template.getCharset(),

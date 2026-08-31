@@ -8,9 +8,9 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.DataIOConnectorException;
 import dk.dbc.dataio.jobprocessor2.ProcessorConfig;
+import dk.dbc.dataio.jobprocessor2.exception.FlowFetchException;
 import dk.dbc.dataio.jobprocessor2.util.ChunkItemProcessor;
 import dk.dbc.dataio.jobprocessor2.util.FlowCache;
-import dk.dbc.dataio.jse.artemis.common.JobProcessorException;
 import dk.dbc.dataio.jse.artemis.common.service.HealthService;
 import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
@@ -92,12 +92,12 @@ public class ChunkProcessor {
         return flowCache.get(cacheKey, () -> flowFromJobStore(chunk));
     }
 
-    private Flow flowFromJobStore(Chunk chunk) throws JobProcessorException {
+    private Flow flowFromJobStore(Chunk chunk) throws FlowFetchException {
         StopWatch stopWatch = new StopWatch();
         try {
             return flowFetcher.fetch(chunk.getJobId());
         } catch (DataIOConnectorException e) {
-            throw new JobProcessorException(String.format(
+            throw new FlowFetchException(String.format(
                     "Exception caught while fetching flow for job %s", chunk.getJobId()), e);
         } finally {
             LOGGER.debug("Fetching flow took {} milliseconds", stopWatch.getElapsedTime());

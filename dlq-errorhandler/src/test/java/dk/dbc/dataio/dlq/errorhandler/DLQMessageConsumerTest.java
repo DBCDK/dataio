@@ -42,7 +42,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 
-public class DmqMessageConsumerBeanTest {
+public class DLQMessageConsumerTest {
     private static final int JOB_ID = 42;
     private static final int CHUNK_ID = 7;
     private static final short ITEM_ID = 3;
@@ -54,7 +54,7 @@ public class DmqMessageConsumerBeanTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final DLQMessageConsumer dlqMessageConsumer = new DLQMessageConsumer(new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).build());
 
-    public DmqMessageConsumerBeanTest() {
+    public DLQMessageConsumerTest() {
 
     }
 

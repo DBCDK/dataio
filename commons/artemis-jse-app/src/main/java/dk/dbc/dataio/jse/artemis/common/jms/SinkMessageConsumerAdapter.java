@@ -43,6 +43,13 @@ import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.status;
  * Sinks with no bibliographic record identity to protect, such as those aggregating a
  * whole job before delivering anything, opt out with {@link #usesDeliveryWatermark()}.
  * <p>
+ * The watermark key is taken from {@link JMSHeader#recordKey} rather than re-derived from
+ * the delivered content, and no sink is given a say in it: {@code RecordInfo} whitespace
+ * normalizes the record ID, so a key composed from raw record bytes can differ from the
+ * one job-store composed and compares against. Nothing would report that mismatch - the
+ * watermark lookup would simply never match, and stale delivery detection would stop
+ * working for that record.
+ * <p>
  * {@link MessageConsumerAdapter} is deliberately left as the base for consumers of whole
  * chunks, which job-processor and dlq-errorhandler remain.
  */
@@ -65,16 +72,38 @@ public abstract class SinkMessageConsumerAdapter extends MessageConsumerAdapter 
                 header(consumedMessage, JMSHeader.chunkId, Long.class).intValue(),
                 header(consumedMessage, JMSHeader.itemId, Short.class));
         long sinkId = header(consumedMessage, JMSHeader.sinkId, Long.class);
-        String recordKey = getRecordKey(consumedMessage);
         ChunkItem item = unmarshallItem(consumedMessage);
 
-        Watermark delivered = recordKey == null ? null : getWatermark(sinkId, recordKey);
-        if (delivered != null && incoming.compareTo(delivered) < 0) {
-            report(ItemDeliveryResult.of(ItemDeliveryResult.Status.SKIPPED, supersededItem(item, incoming, delivered))
-                    .withWatermarkKey(sinkId, recordKey), incoming);
-            return;
+        // A null record key means no watermark row to check and none to advance, either
+        // because this sink opted out of the watermark, or because the item has no record
+        // identity, as the job termination item has not.
+        String recordKey = usesDeliveryWatermark()
+                ? JMSHeader.recordKey.getHeader(consumedMessage, String.class)
+                : null;
+
+        ItemDeliveryResult result = deliverUnlessSuperseded(consumedMessage, item, incoming, sinkId, recordKey);
+        report(result.withWatermarkKey(sinkId, recordKey), incoming);
+    }
+
+    /**
+     * Delivers the item unless the watermark row it belongs to already names an
+     * equal-or-newer version of the same record
+     *
+     * @param recordKey watermark key of the item, or null when no watermark row applies to
+     *                  it, in which case the item is delivered unconditionally
+     * @return outcome to report, without the watermark key the caller adds to it
+     */
+    private ItemDeliveryResult deliverUnlessSuperseded(ConsumedMessage message, ChunkItem item, Watermark incoming,
+                                                       long sinkId, String recordKey) {
+        if (recordKey == null) {
+            return deliver(message, item);
         }
-        report(deliver(consumedMessage, item).withWatermarkKey(sinkId, recordKey), incoming);
+        Watermark delivered = getWatermark(sinkId, recordKey);
+        if (delivered != null && incoming.compareTo(delivered) < 0) {
+            return ItemDeliveryResult.of(ItemDeliveryResult.Status.SKIPPED,
+                    supersededItem(item, incoming, delivered));
+        }
+        return deliver(message, item);
     }
 
     /**
@@ -108,26 +137,6 @@ public abstract class SinkMessageConsumerAdapter extends MessageConsumerAdapter 
      */
     protected boolean usesDeliveryWatermark() {
         return true;
-    }
-
-    /**
-     * Reads the delivery watermark key of the item carried by the given message
-     * <p>
-     * Final, and reading {@link JMSHeader#recordKey} rather than the delivered content, on
-     * purpose: {@code RecordInfo} whitespace normalizes the record ID, so a key re-derived
-     * from raw record bytes can differ from the one job-store composed and compares
-     * against. Nothing would report that mismatch - the watermark lookup would simply never
-     * match, and stale delivery detection would stop working for that record.
-     *
-     * @param message message carrying the item
-     * @return watermark key, or null when this sink opts out of the watermark or the item
-     * has no record identity, as the job termination item has not
-     */
-    protected final String getRecordKey(ConsumedMessage message) {
-        if (!usesDeliveryWatermark()) {
-            return null;
-        }
-        return JMSHeader.recordKey.getHeader(message, String.class);
     }
 
     private ItemDeliveryResult deliver(ConsumedMessage message, ChunkItem item) {

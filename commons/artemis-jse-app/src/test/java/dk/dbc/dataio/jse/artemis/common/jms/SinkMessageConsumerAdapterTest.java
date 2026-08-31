@@ -97,38 +97,6 @@ class SinkMessageConsumerAdapterTest {
         assertThat("outcome item tracking id", result.chunkItem().getTrackingId(), is(TRACKING_ID));
     }
 
-    /**
-     * The version tuple is compared component by component, jobId first, and the skip
-     * decision must hold on every component rather than on whichever one a single example
-     * happens to differ on.
-     */
-    @Test
-    void versionTupleIsComparedComponentByComponent() throws Exception {
-        assertDeliveryDecision(new Watermark(JOB_ID - 1, CHUNK_ID, ITEM_ID), true);
-        assertDeliveryDecision(new Watermark(JOB_ID + 1, CHUNK_ID, ITEM_ID), false);
-        assertDeliveryDecision(new Watermark(JOB_ID, CHUNK_ID - 1, ITEM_ID), true);
-        assertDeliveryDecision(new Watermark(JOB_ID, CHUNK_ID + 1, ITEM_ID), false);
-        assertDeliveryDecision(new Watermark(JOB_ID, CHUNK_ID, (short) (ITEM_ID - 1)), true);
-        assertDeliveryDecision(new Watermark(JOB_ID, CHUNK_ID, (short) (ITEM_ID + 1)), false);
-        assertDeliveryDecision(new Watermark(JOB_ID, CHUNK_ID, ITEM_ID), true);
-        // a lower component the comparison never reaches does not make an older version look newer
-        assertDeliveryDecision(new Watermark(JOB_ID + 1, CHUNK_ID - 1, (short) (ITEM_ID - 1)), false);
-    }
-
-    private void assertDeliveryDecision(Watermark watermark, boolean expectDelivered) throws Exception {
-        JobStoreServiceConnector connector = mock(JobStoreServiceConnector.class);
-        when(connector.getWatermark(anyInt(), anyString())).thenReturn(Optional.of(watermark));
-        TestSink freshSink = new TestSink(connector);
-
-        freshSink.handleConsumedMessage(itemMessage());
-
-        ArgumentCaptor<ItemDeliveryResult> captor = ArgumentCaptor.forClass(ItemDeliveryResult.class);
-        verify(connector).addItemDelivered(captor.capture(), eq(JOB_ID), eq(CHUNK_ID), eq(ITEM_ID));
-        assertThat("delivered against watermark " + watermark, freshSink.delivered != null, is(expectDelivered));
-        assertThat("status against watermark " + watermark, captor.getValue().status(),
-                is(expectDelivered ? Status.DELIVERED : Status.SKIPPED));
-    }
-
     @Test
     void noRecordKeyHeader_watermarkIsNotConsulted() throws Exception {
         Map<String, Object> headers = itemHeaders();

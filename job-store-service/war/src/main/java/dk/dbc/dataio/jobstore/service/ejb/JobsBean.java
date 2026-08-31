@@ -369,9 +369,13 @@ public class JobsBean {
             return buildBadRequestResponse(e);
         }
 
+        // The chunk must be persisted before it is scheduled for delivery. Delivery
+        // dispatch reads the chunk's ItemEntity rows to build one message per item, and
+        // until addChunk has run, those rows carry no processing outcome.
+        Response response = addChunk(uriInfo, jobId, chunkId, Chunk.Type.PROCESSED, processedChunk);
         jobSchedulerBean.chunkProcessingDone(processedChunk);
 
-        return addChunk(uriInfo, jobId, chunkId, Chunk.Type.PROCESSED, processedChunk);
+        return response;
     }
 
     /**

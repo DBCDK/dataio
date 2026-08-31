@@ -116,8 +116,36 @@ New per-job counters (on the `job` table or a dedicated small table):
 
 ```sql
 delivered_data_chunks  INT  NOT NULL DEFAULT 0
-total_data_chunks      INT  NOT NULL  -- set when the job is partitioned
+total_data_chunks      INT  NOT NULL DEFAULT 0
 ```
+
+`total_data_chunks` is the job's data-chunk count, meaning `numberOfChunks` as read in
+`markJobAsPartitioned` *before* `createAndScheduleTerminationChunk` runs.
+`createJobTerminationChunkEntity` increments `numberOfChunks` itself, so a read taken
+after it returns is one too high, the counter can never reach the total, and the gate
+stays closed forever. For a job that has a termination chunk the value therefore equals
+that chunk's `chunkId`, which makes it cheap to assert. The column needs a default
+because the migration runs against a non-empty `job` table, and it is written on every
+partitioned job, including those that leave `markJobAsPartitioned` through its early
+returns without a termination chunk.
+
+A job can have zero data chunks. `addAndScheduleEmptyJob` calls `markJobAsPartitioned`
+with `numberOfChunks = 0`, and partitioning an empty data file reaches the same state.
+Such a job still gets a termination chunk, at `chunkId = 0`. Its gate must be evaluated
+when that chunk is inserted, subject to the same cross-job barrier as any other, because
+no data chunk will ever be delivered to trigger the increment. Opening the gate only from
+`chunkDeliveringDone` strands these jobs permanently.
+
+Note that `total_data_chunks = 0` therefore carries two opposite meanings, and the gate
+must not try to tell them apart by the counter. It is the value the migration's default
+leaves on every job that predates the gate, including any job partitioned between the
+migration and the gate logic going live, which must be ignored entirely. And it is the
+legitimate value for a job with genuinely zero data chunks, whose gate must be evaluated
+at once. The flag that separates them is `is_termination` on the job's `dependencytracking`
+row, so the gate keys on that and treats the counter only as a total to compare against.
+The overlap is benign in one direction only: pre-gate jobs already carry `gate_open = TRUE`
+from the default, so mistakenly opening their gate is a no-op. Mistakenly ignoring an empty
+job strands it.
 
 The gate logic is owned by **job-store-service**: it runs in `chunkDeliveringDone(jobId,
 chunkId)`. The scheduler-service only *reads* `gate_open` in its dispatch query.
@@ -313,6 +341,19 @@ final long agencyId = job.getSpecification().getSubmitterId();
 final String recordKeyPrefix = agencyId + ":";
 for (ItemEntity item : chunkItems) {
     Message msg = session.createTextMessage(serialize(item.getProcessingOutcome()));
+
+    // routing and validation headers, carried unchanged from the chunk message
+    // (see "Headers on an item message" below - these are not optional)
+    JMSHeader.payload.addHeader(msg, JMSHeader.ITEM_PAYLOAD_TYPE);
+    JMSHeader.sinkId.addHeader(msg, sinkReference.getId());
+    JMSHeader.sinkVersion.addHeader(msg, sinkReference.getVersion());
+    if (flowBinderReference != null) {
+        JMSHeader.flowBinderId.addHeader(msg, flowBinderReference.getId());
+        JMSHeader.flowBinderVersion.addHeader(msg, flowBinderReference.getVersion());
+    }
+    JMSHeader.trackingId.addHeader(msg, chunk.getTrackingId());
+
+    // item identity
     msg.setIntProperty(JMSHeader.jobId,    jobId);
     msg.setIntProperty(JMSHeader.chunkId,  chunkId);
     msg.setShortProperty(JMSHeader.itemId, item.getKey().getId());
@@ -328,6 +369,75 @@ for (ItemEntity item : chunkItems) {
     producer.send(msg);
 }
 ```
+
+The sample is illustrative rather than literal in two respects. Headers are set through
+`JMSHeader.<name>.addHeader(message, value)` rather than the raw `setXxxProperty` calls,
+and `chunkId` is a **long** property, not an int: that is what `MessageIdentifiers
+.addIdentifiers` writes on the chunk message today, consumers read it back through
+`getObjectProperty` and unbox it, so an item message has to carry the identical property
+type. `jobId` is an int and `itemId` a short, as shown.
+
+The body is the item's processing outcome alone. `ItemEntity` also carries a
+`nextProcessingOutcome`, populated only for acceptance-test runs, and `sink/diff` is its
+sole consumer. It is deliberately not carried onto the item message: the diff sink is
+being deprecated, so it does not shape the wire format, and adding a wrapper body for it
+would put a second shape in front of every other sink.
+
+### Items of a chunk are sent in ascending `itemId` order
+
+Two items of the same chunk can share a `correlationKey`, either as two versions of one
+record or as any two records of one hierarchy, since every hierarchy record carries the
+same `MarcRecordInfo.HIERARCHY_CORRELATION_KEY`. The broker serialises a group in the
+order its messages were sent, so sending out of order would let a lower
+`(jobId, chunkId, itemId)` version arrive after a higher one, and the watermark would
+then judge the higher one stale.
+
+The producer therefore requires its input to be ordered by ascending item id, and gets it
+from a single `ORDER BY item_id ASC` query. This has always been the order
+`PgJobStoreRepository.getChunk` produced, but as an incidental property of how it built a
+`Chunk` rather than as a stated contract. Under per-item dispatch it is load-bearing.
+
+All item messages of a chunk are produced through one `JMSContext`, so the enlisted XA
+session makes either all of them or none of them visible to the sink. A partially
+dispatched chunk is therefore not a state the sink can observe.
+
+### Headers on an item message
+
+Splitting one chunk message into N item messages does not change what the sink framework
+reads off a message *before* any per-sink code runs, so every header the chunk message
+carries today has to be carried by each item message. `MessageConsumer.onMessage` and
+`MessageConsumer.validateMessage` (`commons/artemis-jse-app`) enforce most of this
+already, and the failure modes are silent rather than loud:
+
+| Header | Read by | Consequence if absent |
+|---|---|---|
+| `payload` | `validateMessage` | `InvalidMessageException`, and `onMessage` catches it and **discards the message with a warning**. Not a rollback, so the item is lost with no retry |
+| `jobId` | `onMessage`, unboxed to `int` | NPE inside `onMessage`, rethrown as `IllegalStateException`, transaction rolls back and the message is redelivered forever |
+| `chunkId` | `onMessage` (logging), result reporting | Item cannot be attributed to a chunk when reporting delivery |
+| `trackingId` | `onMessage` (logging) | Loses the correlation id that ties log lines across components together |
+| `sinkId`, `sinkVersion` | config refresh in `ims`, `vip`, `dpf`, `openupdate`, `rawrepo-update-v3`, each unboxed to `long` | NPE on every message, so those five sinks stop delivering entirely |
+| `flowBinderId`, `flowBinderVersion` | queue-provider lookup in `dpf` (`ConfigBean`) and `openupdate` (`UpdateMessageConsumer`), each unboxed to `long` | NPE in those two sinks whenever the job has a flow-binder reference |
+
+None of these are new requirements. They are the existing contract, and the point of
+listing them is that the per-item send path is a second producer that has to satisfy the
+same contract as `createMessage` does today.
+
+**A new payload type.** `payload` cannot keep the value `CHUNK_PAYLOAD_TYPE`, because
+`unmarshallPayload` accepts that value and then parses the body as a `Chunk`. An item
+body is a single `ChunkItem`, so a sink that has not yet been migrated would fail inside
+Jackson with a message about invalid `Chunk` JSON, which says nothing about the actual
+cause. A new constant `JMSHeader.ITEM_PAYLOAD_TYPE = "Item"` alongside
+`CHUNK_PAYLOAD_TYPE` makes the same situation produce the explicit
+`payload type Item != Chunk` diagnostic instead. Either way the message is discarded,
+so this is about diagnosability during rollout, not about tolerating an un-migrated
+sink. Both halves of the rollout still have to ship together, as
+[Phase 8+](#phase-8--individual-sink-migrations-one-pr-per-sink) requires.
+
+**The abort path is untouched.** `AbstractMessageProducer.sendAbort` sends a chunk-level
+message with `payload = ABORT_PAYLOAD_TYPE` and `abortId`, handled by `onMessage` before
+the `jobId` read and before validation. It stays as it is. The `ABORTED_JOBS` discard
+check in `onMessage` keys on `jobId` alone and therefore filters individual item
+messages of an aborted job with no change.
 
 `agencyId` is read via `job.getSpecification().getSubmitterId()` — `JobSpecification`
 has no separate `agencyId` accessor, but `submitterId` *is* the agency/library number in
@@ -1174,6 +1284,14 @@ Two ordering constraints shape the sequence:
 - Update the bulk-scheduler ordering query to `(priority DESC, jobid ASC, chunkid ASC)`
   with the `gate_open` filter
 - Dependency tracking, `BLOCKED` and sequence analysis remain fully active
+- Accepted for the duration: the cross-job submitter barrier cannot see termination chunks
+  that predate the migration, since they carry `is_termination = FALSE` from the column
+  default. A later same-submitter job's gate can therefore open while an older termination
+  chunk is still undelivered. Ordering for those chunks is still held by `waitingOn` and
+  their `barrierMatchKey` until Phase 9, so the gate being wrong here changes no behaviour.
+  Backfilling the flag was considered and rejected: the gate ignores pre-migration jobs
+  either way, and it would turn a purely additive migration into one that rewrites live
+  scheduling rows
 - `SINK_STATUS` remains a distributed Hazelcast map: it is mutated by callback
   handling on any job-store instance (see [Counter Management](#counter-management));
   it moves to a JVM map at scheduler extraction (Phase 11)
@@ -1220,7 +1338,18 @@ Two ordering constraints shape the sequence:
 
 ### Phase 6 — Per-item dispatch (`SinkMessageProducerBean`)
 
-- Add `itemId` and `recordKey` constants to `JMSHeader` (`commons/types`)
+- Add `itemId` and `recordKey` constants to `JMSHeader` (`commons/types`) - done under
+  DI-3000, ahead of the rest of this phase
+- Add the `ITEM_PAYLOAD_TYPE` constant to `JMSHeader` and set it as `payload` on every
+  item message, so an item body is never handed to `unmarshallPayload`'s `Chunk` parse
+- Send the items of a chunk in ascending `itemId` order, through a single `JMSContext`
+  (see [Items of a chunk are sent in ascending `itemId` order](
+  #items-of-a-chunk-are-sent-in-ascending-itemid-order))
+- Carry every routing and validation header from the chunk message onto each item
+  message (`payload`, `jobId`, `chunkId`, `trackingId`, `sinkId`, `sinkVersion`, and
+  `flowBinderId`/`flowBinderVersion` when the job has a flow-binder reference) - see
+  [Headers on an item message](#headers-on-an-item-message) for what each one breaks
+  when it is missing
 - Iterate items; set `JMSHeader.recordKey` from `<agencyId>:RecordInfo.getId()`
   (the job's `job.getSpecification().getSubmitterId()`, not `RecordInfo.getId()` alone —
   see "Why `recordKey` is carried on the message" under Per-Item Dispatch) and

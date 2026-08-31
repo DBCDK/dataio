@@ -285,8 +285,7 @@ public class JobSchedulerBean {
                 .setPriority(Priority.HIGH.getValue());
         TrackingKey jobEndKey = dependencyTrackingService.add(endTracker);
         jobSchedulerTransactionsBean.addDependencies(endTracker);
-        Chunk processedChunk = jobSchedulerTransactionsBean.getProcessedChunkFrom(jobEndKey);
-        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(processedChunk, jobEndKey);
+        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobEndKey);
     }
 
     /**
@@ -309,7 +308,7 @@ public class JobSchedulerBean {
             LOGGER.info("chunkProcessingDone: Conditional status update got undesirable result: {}, skipping", changeEvent);
             return;
         }
-        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(chunk, key);
+        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(key);
     }
 
 
@@ -409,9 +408,7 @@ public class JobSchedulerBean {
                 for (TrackingKey toSchedule : chunks) {
                     if(!JobsBean.isAborted(toSchedule.getJobId())) {
                         LOGGER.info("bulk scheduling for delivery - chunk {} to be scheduled for delivery for sink {}", toSchedule, sinkId);
-                        Chunk chunk = jobSchedulerTransactionsBean.getProcessedChunkFrom(toSchedule);
-                        if(chunk != null) {
-                            jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(chunk);
+                        if(jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(toSchedule)) {
                             chunksPushedToQueue++;
                         } else dependencyTrackingService.remove(toSchedule);
                     }

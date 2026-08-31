@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.jms.JmsQueueTester;
@@ -17,12 +18,16 @@ import dk.dbc.dataio.jobstore.types.Watermark;
 import jakarta.jms.JMSException;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,7 +42,7 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
      * And : the job is partitioned
      * And : two chunks are sent to the processor queue
      * When : processor results are received for both chunks
-     * Then : two chunks are sent to the sink queue
+     * Then : one message per item is sent to the sink queue
      * When : sink results are received for both chunks
      * Then : the job is completed
      */
@@ -89,11 +94,16 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
 
         // Then...
         // (And now taking chunk sequence very serious!)
-        chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
-                        JmsQueueTester.Queue.SINK_BE_CISTERNE, 2, 20000)
-                .stream().map(this::getChunk)
-                .toList();
+        // Delivery is per item, so the sink queue holds one message per item of the job,
+        // not one per chunk. Regroup them into the chunks they came from.
+        final List<MockedJmsTextMessage> itemMessages = jmsQueueServiceConnector.awaitQueueSizeAndList(
+                JmsQueueTester.Queue.SINK_BE_CISTERNE, 15, 20000);
+        assertItemMessageProtocol(itemMessages, jobInfoSnapshot.getJobId());
 
+        chunks = groupItemMessagesIntoChunks(itemMessages, Chunk.Type.DELIVERED);
+
+        assertThat("number of sink chunks", chunks.size(),
+                is(2));
         assertThat("1st sink chunk ID", chunks.get(0).getChunkId(),
                 is(0L));
         assertThat("1st sink chunk belongs to job", chunks.get(0).getJobId(),
@@ -108,9 +118,9 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
                 is(5));
 
         // When...
-        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(0), Chunk.Type.DELIVERED),
+        jobStoreServiceConnector.addChunk(chunks.get(0),
                 jobInfoSnapshot.getJobId(), chunks.get(0).getChunkId());
-        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(1), Chunk.Type.DELIVERED),
+        jobStoreServiceConnector.addChunk(chunks.get(1),
                 jobInfoSnapshot.getJobId(), chunks.get(1).getChunkId());
 
         // Then...
@@ -144,10 +154,11 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
         jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(1), Chunk.Type.PROCESSED),
                 jobInfoSnapshot.getJobId(), chunks.get(1).getChunkId());
 
-        chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
-                        JmsQueueTester.Queue.SINK_BE_CISTERNE, 2, 20000)
-                .stream().map(this::getChunk)
-                .toList();
+        final List<MockedJmsTextMessage> itemMessages = jmsQueueServiceConnector.awaitQueueSizeAndList(
+                JmsQueueTester.Queue.SINK_BE_CISTERNE, 15, 20000);
+        assertItemMessageProtocol(itemMessages, jobInfoSnapshot.getJobId());
+
+        chunks = groupItemMessagesIntoChunks(itemMessages, Chunk.Type.PROCESSED);
 
         final int sinkId = 1;
         for (int i = 0; i < chunks.size(); i++) {
@@ -226,21 +237,23 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
         jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(1), Chunk.Type.PROCESSED),
                 jobInfoSnapshot.getJobId(), chunks.get(1).getChunkId());
 
-        // Then...
-        chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
-                        JmsQueueTester.Queue.SINK_BE_CISTERNE, 2, 20000)
-                .stream().map(this::getChunk)
-                .toList();
+        // Then... one message per item on the sink queue, regrouped into their chunks
+        final List<MockedJmsTextMessage> itemMessages = jmsQueueServiceConnector.awaitQueueSizeAndList(
+                JmsQueueTester.Queue.SINK_BE_CISTERNE, 15, 20000);
+        assertItemMessageProtocol(itemMessages, jobInfoSnapshot.getJobId());
 
+        chunks = groupItemMessagesIntoChunks(itemMessages, Chunk.Type.DELIVERED);
+
+        assertThat("number of sink chunks", chunks.size(), is(2));
         assertThat("1st sink chunk ID", chunks.get(0).getChunkId(), is(0L));
         assertThat("1st sink chunk belongs to job", chunks.get(0).getJobId(), is(jobInfoSnapshot.getJobId()));
         assertThat("2nd sink chunk ID", chunks.get(1).getChunkId(), is(1L));
         assertThat("2nd sink chunk belongs to job", chunks.get(1).getJobId(), is(jobInfoSnapshot.getJobId()));
 
         // When...
-        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(0), Chunk.Type.DELIVERED),
+        jobStoreServiceConnector.addChunk(chunks.get(0),
                 jobInfoSnapshot.getJobId(), chunks.get(0).getChunkId());
-        jobStoreServiceConnector.addChunk(newChunkOfType(chunks.get(1), Chunk.Type.DELIVERED),
+        jobStoreServiceConnector.addChunk(chunks.get(1),
                 jobInfoSnapshot.getJobId(), chunks.get(1).getChunkId());
 
         // Then...
@@ -282,6 +295,75 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
             return jsonbContext.unmarshall(message.getText(), Chunk.class);
         } catch (JMSException | JSONBException e) {
             return null;
+        }
+    }
+
+    private ChunkItem getChunkItem(MockedJmsTextMessage message) {
+        try {
+            return jsonbContext.unmarshall(message.getText(), ChunkItem.class);
+        } catch (JMSException | JSONBException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Asserts what every sink bound item message must carry, so that a header lost in
+     * job-store shows up here rather than as a message a sink silently discards.
+     */
+    private void assertItemMessageProtocol(List<MockedJmsTextMessage> itemMessages, int jobId) {
+        for (MockedJmsTextMessage message : itemMessages) {
+            assertThat("payload type", header(message, JMSHeader.payload),
+                    is(JMSHeader.ITEM_PAYLOAD_TYPE));
+            assertThat("jobId header", header(message, JMSHeader.jobId),
+                    is(Integer.toString(jobId)));
+            assertThat("chunkId header", header(message, JMSHeader.chunkId),
+                    is(notNullValue()));
+            assertThat("itemId header", header(message, JMSHeader.itemId),
+                    is(notNullValue()));
+            assertThat("trackingId header", header(message, JMSHeader.trackingId),
+                    is(jobId + "/" + header(message, JMSHeader.chunkId)));
+            assertThat("sinkId header", header(message, JMSHeader.sinkId),
+                    is(notNullValue()));
+            assertThat("sinkVersion header", header(message, JMSHeader.sinkVersion),
+                    is(notNullValue()));
+
+            final String recordKey = header(message, JMSHeader.recordKey);
+            if (recordKey != null) {
+                assertThat("recordKey is qualified by the job's submitter number",
+                        recordKey, startsWith("870970:"));
+            }
+        }
+    }
+
+    /**
+     * Regroups per-item messages into the chunks they were dispatched from, in ascending
+     * chunk and item ID order, so a test can still drive the bulk chunk endpoints.
+     */
+    private List<Chunk> groupItemMessagesIntoChunks(List<MockedJmsTextMessage> itemMessages, Chunk.Type type) {
+        final Map<Long, List<MockedJmsTextMessage>> messagesByChunkId = new TreeMap<>();
+        for (MockedJmsTextMessage message : itemMessages) {
+            final long chunkId = Long.parseLong(header(message, JMSHeader.chunkId));
+            messagesByChunkId.computeIfAbsent(chunkId, key -> new ArrayList<>()).add(message);
+        }
+
+        final List<Chunk> chunks = new ArrayList<>();
+        for (Map.Entry<Long, List<MockedJmsTextMessage>> entry : messagesByChunkId.entrySet()) {
+            final List<MockedJmsTextMessage> messages = entry.getValue();
+            messages.sort(Comparator.comparingInt(
+                    message -> Integer.parseInt(header(message, JMSHeader.itemId))));
+            final int jobId = Integer.parseInt(header(messages.get(0), JMSHeader.jobId));
+            final Chunk chunk = new Chunk(jobId, entry.getKey(), type);
+            chunk.addAllItems(messages.stream().map(this::getChunkItem).collect(Collectors.toList()));
+            chunks.add(chunk);
+        }
+        return chunks;
+    }
+
+    private String header(MockedJmsTextMessage message, JMSHeader jmsHeader) {
+        try {
+            return message.getStringProperty(jmsHeader.name);
+        } catch (JMSException e) {
+            throw new IllegalStateException("Unable to read header " + jmsHeader.name, e);
         }
     }
 }

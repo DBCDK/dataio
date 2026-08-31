@@ -498,7 +498,7 @@ is guaranteed to see all items of a chunk anyway.
 
 **Why `recordKey` is carried on the message instead of re-derived by the sink.** An
 earlier version of this design left `getRecordKey(Message)` (see [Sink framework](
-#sink-framework-messageconsumeradapter) below) entirely up to each sink, on the
+#sink-framework-sinkmessageconsumeradapter) below) entirely up to each sink, on the
 assumption that any sink can parse its own record's identity back out of the delivered
 content (e.g. MARC field 001 §a) as reliably as job-store did. It cannot, in general:
 `RecordInfo`'s constructor applies `StringUtil.removeWhitespace(id)`
@@ -538,7 +538,7 @@ downstream — the `sink_record_delivery_watermark.record_key` column, the
 because the composition happens once, in job-store, at the same place that already
 carries `RecordInfo.id` onto the message. This matters specifically because
 `getRecordKey(Message)` deliberately lives on `MessageConsumerAdapter` itself, not per
-sink (see [Sink framework](#sink-framework-messageconsumeradapter) below): every
+sink (see [Sink framework](#sink-framework-sinkmessageconsumeradapter) below): every
 semantic the sink framework has to know about the key's internal structure is a
 semantic some sink's `deliverItem` could still end up depending on by accident. An
 opaque pass-through token has no internal structure for a sink to depend on in the
@@ -936,6 +936,11 @@ duration, not just normal job turnaround.
 6. session.commit()   →   JMS ACK
 ```
 
+Every result reports the watermark row it concerns, whatever its status, and only a
+`DELIVERED` one advances that row (see [Upsert on delivery](#upsert-on-delivery)). A null
+`recordKey` therefore means the item has no watermark row at all - a barrier item, or a
+sink that has opted out - and never "this outcome must not advance the watermark".
+
 Step 5 before step 6 preserves the existing crash-safety guarantee: if the pod dies
 between steps 5 and 6, the message is redelivered and the idempotency guard in step 5
 handles the duplicate.
@@ -956,46 +961,102 @@ authoritative store. The `group-rebalance-pause-dispatch=true` broker setting gu
 that the store is fully up-to-date at the moment dispatch resumes after any rebalancing
 event.
 
-### Sink framework (`MessageConsumerAdapter`)
+### Sink framework (`SinkMessageConsumerAdapter`)
+
+The protocol lives on a new `SinkMessageConsumerAdapter extends MessageConsumerAdapter`,
+not on `MessageConsumerAdapter` itself. Two of that class's subclasses consume whole
+chunks permanently and will never deliver an item: `job-processor2`'s
+`JobStoreMessageConsumer` (`JobProcessorMessageProducerBean` keeps sending
+`CHUNK_PAYLOAD_TYPE`) and `dlq-errorhandler`'s `DLQMessageConsumer` (which handles both,
+see [Dead item messages](#dead-item-messages)). Putting the item protocol on the shared
+base would leave both inheriting a `deliverItem` that is meaningless for them and could
+never be made abstract. With the split, the 15 sinks extend the new class, `deliverItem`
+is abstract from the start, and `handleConsumedMessage` is final there.
 
 Subclasses implement one method:
 
 ```java
-protected abstract ItemDeliveryResult.Status deliverItem(Message message) throws Exception;
+protected abstract ItemDeliveryResult deliverItem(ConsumedMessage message, ChunkItem item)
+        throws Exception;
 ```
 
-`getRecordKey(Message message)` is **not** left to subclasses — it is a final method on
-`MessageConsumerAdapter` itself, reading `JMSHeader.recordKey` straight off the message
-(`null` if absent, e.g. for a barrier/termination item whose `RecordInfo.getId()` was
-null at dispatch time — see [Open Questions](#open-questions) §1). No sink re-derives
-this key from delivered content; see the rationale in [Per-Item Dispatch](
-#per-item-dispatch) above. This also means adding a new sink no longer requires getting
-record-key derivation right per sink — one less thing for Phase 8+ migrations to get
-wrong.
+`ItemDeliveryResult`, rather than its `Status` alone, because job-store stores
+`deliveryResult.chunkItem()` verbatim as `ItemEntity.deliveringOutcome` — the status
+alone leaves the sink no way to say what it delivered. The sink builds its half with
+`ItemDeliveryResult.of(status, chunkItem)` and the framework adds the half it owns with
+`withWatermarkKey(sinkId, recordKey)` - the pair being the primary key of
+`sink_record_delivery_watermark` - so no sink names a watermark key. The status is
+deliberately not derived from the returned `ChunkItem.Status`: `SKIPPED` means one
+specific thing (see [`ItemDeliveryResult.Status`](#per-item-delivery-sequence)), and a
+sink that wants the old ignore semantics returns `DELIVERED` with an `IGNORE` item.
+
+The framework takes `ConsumedMessage` rather than the raw `jakarta.jms.Message`: it is
+what `validateMessage` already produces on the path to `handleConsumedMessage`, it
+carries every JMS property plus the body, and it needs no JMS provider in a test. The
+body is unmarshalled once, by the framework, and passed alongside the message, so the
+sink does not parse it a second time.
+
+Throwing from `deliverItem` rolls the session back and has the item redelivered, so a
+failure the target will not recover from must be *returned* as `FAILED` rather than
+thrown.
+
+`getRecordKey(ConsumedMessage message)` is **not** left to subclasses — it is a final
+method on `SinkMessageConsumerAdapter` itself, reading `JMSHeader.recordKey` straight off
+the message (`null` if absent, e.g. for a barrier/termination item whose
+`RecordInfo.getId()` was null at dispatch time — see [Open Questions](#open-questions)
+§1). No sink re-derives this key from delivered content; see the rationale in
+[Per-Item Dispatch](#per-item-dispatch) above. This also means adding a new sink no
+longer requires getting record-key derivation right per sink — one less thing for
+Phase 8+ migrations to get wrong.
 
 The framework handles the watermark check and result reporting around `deliverItem`. No
 lock is required: the broker guarantees that same-key items are never processed
 concurrently across threads or pods.
 
-`ServiceHub` gains a `WatermarkServiceConnector`. `MessageConsumerApp` is structurally
-unchanged.
+`MessageConsumerApp` and `ServiceHub` are structurally unchanged: the watermark calls
+went onto the existing `JobStoreServiceConnector` that `ServiceHub` already carries (see
+below), so there is no second connector to wire in.
 
-### `WatermarkServiceConnector` (job-store-service-connector)
+#### Watermark opt-out
+
+Not every sink has per-record supersession to enforce. `periodic-jobs` and `marcconv`
+treat an item as input to work carried out when the job ends rather than as a record
+delivered to a target on its own, so there is no "newer version already delivered"
+question to ask about them. They override:
+
+```java
+protected boolean usesDeliveryWatermark() {   // default true
+    return false;
+}
+```
+
+An opted-out sink skips the watermark GET, delivers every item unconditionally, and never
+advances a watermark — `getRecordKey` returns `null` for it, which is the same path an
+item with no record key already takes, so the rest of the protocol needs no second branch.
+
+What it does **not** skip is result reporting: every item is still reported individually,
+because the DELIVERING phase counters and the per-job gate are driven by those reports,
+and a job whose items are never reported never completes.
+
+### Watermark calls (`job-store-service-connector`)
+
+An earlier version of this document specified a separate `WatermarkServiceConnector`.
+What shipped instead puts both calls on the existing `JobStoreServiceConnector`, which
+every sink already holds through `ServiceHub`:
 
 ```java
 public record Watermark(int jobId, int chunkId, short itemId)
         implements Comparable<Watermark> {
-    // compareTo: jobId, then chunkId, then itemId
+    // compareTo: jobId, then chunkId, then itemId, agreeing with the SQL row comparison
 }
 
-public interface WatermarkServiceConnector {
-    Optional<Watermark> getWatermark(long sinkId, String recordKey);
-    void reportItemResult(long sinkId, int jobId, int chunkId, short itemId,
-                          String recordKey, ItemDeliveryResult.Status status);
-}
+Optional<Watermark> getWatermark(int sinkId, String recordKey);
+void addItemDelivered(ItemDeliveryResult itemDeliveryResult, int jobId, int chunkId, short itemId);
 ```
 
-HTTP implementation following the existing connector pattern.
+`ItemDeliveryResult(long sinkId, String recordKey, Status status, ChunkItem chunkItem)`
+carries what the report endpoint needs, so the result item travels with the verdict
+rather than as a separate argument.
 
 ---
 
@@ -1103,6 +1164,27 @@ termination item arrives and suppresses the completion block entirely, so such j
 would never get `timeOfCompletion`, never emit `JOB_COMPLETED`, and never set the
 fatal-error flag for a failed termination item. `PgJobStore_AddItemDeliveredIT`
 pins all four cases, including this one.
+
+### Dead item messages
+
+A message that exhausts its delivery attempts is moved by the broker to `DLQ::DLQ`, where
+`dlq-errorhandler` fails it on the job's behalf. Under per-item delivery that message is
+an item rather than a chunk, so the handler branches on `JMSHeader.payload` and reports
+the dead item with
+`addItemDelivered(ItemDeliveryResult.of(FAILED, deadItem).withWatermarkKey(sinkId, recordKey), …)`
+instead of `addChunk`.
+
+This is what keeps the failure visible rather than silent. Job completion is driven by
+one report per item, and no sink will ever report an item the broker has given up on, so
+without this branch the item's `deliveringOutcome` stays null, the DELIVERING counters
+never reach their total, and the job hangs unfinished with nothing saying why.
+
+The reported `recordKey` is whatever the message carries, as on every other reporting
+path: a `FAILED` result never advances a watermark, but that is the endpoint's rule to
+apply, and a null key means the item has no record identity at all rather than that this
+outcome must not advance anything. A dead termination item keeps `ChunkItem.Type.JOB_END`,
+recognised the way `Chunk.isTerminationChunk` recognises it, so it still reaches the
+fatal-error branch in `addItemDelivered`.
 
 ### Job-store restart
 
@@ -1361,19 +1443,32 @@ Two ordering constraints shape the sequence:
 
 ### Phase 7 — Sink framework (`commons/artemis-jse-app`)
 
-- `MessageConsumerAdapter`: watermark check + result reporting before and after `deliverItem`
-- `getRecordKey(Message)` implemented once on `MessageConsumerAdapter` itself, reading
-  `JMSHeader.recordKey` — not abstract, not per-sink (see [Sink framework](
-  #sink-framework-messageconsumeradapter))
-- `ServiceHub`: add `WatermarkServiceConnector`
-- Abstract `deliverItem(Message)` for subclasses
+- New `SinkMessageConsumerAdapter extends MessageConsumerAdapter`: watermark check +
+  result reporting before and after `deliverItem`, `handleConsumedMessage` final. The base
+  class is left alone for the two consumers that stay on whole chunks (see
+  [Sink framework](#sink-framework-sinkmessageconsumeradapter))
+- `getRecordKey(ConsumedMessage)` implemented once on `SinkMessageConsumerAdapter` itself,
+  reading `JMSHeader.recordKey` — not abstract, not per-sink
+- Abstract `deliverItem(ConsumedMessage, ChunkItem)` for subclasses, returning an
+  `ItemDeliveryResult`
+- `usesDeliveryWatermark()` for the sinks that opt out of watermark filtering (see
+  [Watermark opt-out](#watermark-opt-out))
+- `Watermark implements Comparable<Watermark>`, and `ItemDeliveryResult.of` /
+  `withWatermarkKey` to split what the sink decides from what the framework fills in
+- `dlq-errorhandler`: fail dead item messages per item, so a job whose item the broker
+  gave up on can still complete (see [Dead item messages](#dead-item-messages))
+- No `ServiceHub` change: the watermark calls live on the `JobStoreServiceConnector` it
+  already carries
 
 ### Phase 8+ — Individual sink migrations (one PR per sink)
 
-- Implement `deliverItem(Message)` per sink
-- Remove old chunk-aggregation logic
-- Coordinate with Phase 6/7 release to ensure backward compatibility or migrate all
-  sinks in one release
+- Change `extends MessageConsumerAdapter` to `extends SinkMessageConsumerAdapter` and
+  implement `deliverItem(ConsumedMessage, ChunkItem)` per sink
+- Remove old chunk-aggregation logic, including each sink's `handleConsumedMessage`
+- `periodic-jobs` and `marcconv` additionally override `usesDeliveryWatermark()`
+- Deployment is big-bang: job-store and every sink go live together against drained,
+  re-created queues, so no sink needs to handle both payload types during a rollout
+  window. Until the last of these merges, master builds but is not deployable
 
 ### Phase 9 — Remove dependency tracking (job-store-service)
 
@@ -1473,7 +1568,7 @@ complete) — see ordering constraint 1 above.
    termination item), the whole composed key is skipped and `getRecordKey(Message)` —
    now a single
    framework method on `MessageConsumerAdapter`, not a per-sink implementation, see
-   [Sink framework](#sink-framework-messageconsumeradapter) — reads no property, returns
+   [Sink framework](#sink-framework-sinkmessageconsumeradapter) — reads no property, returns
    `null`, and the framework skips the watermark check entirely for that item. No
    per-sink logic needs to "recognise" a termination message; every sink gets this for
    free from the same message-property mechanism that also fixes the record-key

@@ -30,4 +30,39 @@ public record ItemDeliveryResult(long sinkId, String recordKey, Status status, C
         SKIPPED,
         FAILED
     }
+
+    /**
+     * The half of the result a sink itself decides, for use as the return value of a
+     * sink's delivery method. sinkId and recordKey are left unset for the sink framework
+     * to fill in with {@link #withWatermarkKey(long, String)} from the message it is
+     * delivering, since those two identify the watermark row and are not the sink's to
+     * choose.
+     * <p>
+     * A static factory rather than a second constructor on purpose: this record is
+     * unmarshalled from the request body of the item delivery endpoint, and a second
+     * constructor would become a competing creator candidate for the JSON binding.
+     *
+     * @param status    delivery outcome
+     * @param chunkItem outcome item, stored verbatim as the item's delivering outcome
+     * @return delivery result carrying no sink identification
+     */
+    public static ItemDeliveryResult of(Status status, ChunkItem chunkItem) {
+        return new ItemDeliveryResult(0, null, status, chunkItem);
+    }
+
+    /**
+     * Adds the identity of the watermark row this result may advance, which is the pair
+     * (sinkId, recordKey) the sink framework owns rather than the sink itself: together
+     * they are the primary key of sink_record_delivery_watermark, and they are what the
+     * two are for - the delivery endpoint reads sinkId for the watermark upsert and
+     * nothing else.
+     *
+     * @param sinkId    id of the sink reporting the result
+     * @param recordKey watermark key of the delivered record, null when this delivery
+     *                  identifies no watermark row and must therefore advance none
+     * @return copy of this result with sinkId and recordKey replaced
+     */
+    public ItemDeliveryResult withWatermarkKey(long sinkId, String recordKey) {
+        return new ItemDeliveryResult(sinkId, recordKey, status, chunkItem);
+    }
 }

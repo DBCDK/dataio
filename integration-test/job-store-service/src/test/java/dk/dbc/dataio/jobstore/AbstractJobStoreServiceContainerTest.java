@@ -63,7 +63,8 @@ public abstract class AbstractJobStoreServiceContainerTest {
     private static final GenericContainer<?> logStoreContainer = startLogstoreServiceContainer(network, logStoreDBContainer);
     static final LogStoreServiceConnector logstoreServiceConnector = makeLogstoreConnector(logStoreContainer);
     private static final GenericContainer<?> artemisContainer = startArtemisContainer(network);
-    static final JmsQueueTester jmsQueueServiceConnector = makeJmsQueueTester(artemisContainer);
+    static final String artemisHostPort = artemisContainer.getHost() + ":" + artemisContainer.getMappedPort(61616);
+    static final JmsQueueTester jmsQueueServiceConnector = makeJmsQueueTester();
     private static final DBCPostgreSQLContainer jobstoreDBContainer = startJobstoreDB(network);
     private static final GenericContainer<?> jobStoreServiceContainer = startJobStoreServiceContainer(network);
     static final JobStoreServiceConnector jobStoreServiceConnector = makeJobStoreConnector(jobStoreServiceContainer);
@@ -74,8 +75,8 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 UserAgent.forInternalRequests(), url);
     }
 
-    private static JmsQueueTester makeJmsQueueTester(GenericContainer<?> artemisContainer) {
-        return new JmsQueueTester(artemisContainer.getHost() + ":" + artemisContainer.getMappedPort(61616));
+    private static JmsQueueTester makeJmsQueueTester() {
+        return new JmsQueueTester(artemisHostPort);
     }
 
     private static LogStoreServiceConnector makeLogstoreConnector(GenericContainer<?> logstoreContainer) {

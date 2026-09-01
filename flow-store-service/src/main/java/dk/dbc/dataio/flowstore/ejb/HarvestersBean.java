@@ -236,10 +236,38 @@ HarvestersBean {
     }
 
     private void validateContent(String type, String content) throws ClassNotFoundException, JSONBException {
-        // We assume that Content is always an inner class of given type.
-        final Class<?> clazz = Class.forName(type + "$Content");
         // unmarshall to make sure the input is valid
-        jsonbContext.unmarshall(content, clazz);
+        jsonbContext.unmarshall(content, getContentClass(type));
+    }
+
+    /**
+     * Resolves the Content class of a harvester config type
+     * <p>
+     * Every harvester config keeps the shape of its content in a nested Content class,
+     * which is the class the JSON content of a config is validated against. Most config
+     * types declare their own, but a config type may also inherit it from a super type,
+     * as {@link dk.dbc.dataio.harvester.types.PeriodicJobsV3HarvesterConfig} does. Such
+     * a type has no Content class file of its own, and since {@link Class#forName(String)}
+     * resolves binary names only, and therefore never sees an inherited nested class,
+     * the super types have to be walked explicitly.
+     * <p>
+     * The first Content found wins, meaning a config type declaring its own Content
+     * shadows the one of its super type, exactly as it does for the compiler.
+     *
+     * @param type type of config as class name with full path
+     * @return the Content class belonging to given type
+     * @throws ClassNotFoundException if type itself can not be resolved, or if neither
+     *                                type nor any of its super types declares a Content
+     */
+    private Class<?> getContentClass(String type) throws ClassNotFoundException {
+        for (Class<?> clazz = Class.forName(type); clazz != null; clazz = clazz.getSuperclass()) {
+            try {
+                return Class.forName(clazz.getName() + "$Content");
+            } catch (ClassNotFoundException e) {
+                // look for Content in super type
+            }
+        }
+        throw new ClassNotFoundException(type + "$Content");
     }
 
     private URI getResourceUriOfVersionedEntity(UriBuilder uriBuilder, HarvesterConfig harvesterConfig) {

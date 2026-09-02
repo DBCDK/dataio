@@ -50,6 +50,26 @@ public class JobEntity {
     private int priority;
     private int skipped;
 
+    /* The per-job gate counters and the cross-job barrier flag. Explicit @Column names are
+       required: every other column in this entity is single-word lowercase, so the default
+       naming strategy would look for "datachunksdelivered". See
+       docs/chunk-scheduling-redesign.md, "Barrier Chunks - Per-Job Gate".
+
+       data_chunks_delivered is also incremented by a native statement in JobGateRepository, so
+       a JobEntity read through this field can be stale. Read it there, not here, wherever the
+       gate verdict depends on it. */
+    @Column(name = "data_chunks_delivered")
+    private int dataChunksDelivered;
+
+    @Column(name = "data_chunks_expected")
+    private int dataChunksExpected;
+
+    /* Nullable on purpose: NULL means this job has no termination chunk and never imposes a
+       barrier, FALSE means it has one that is not lifted, TRUE means it has been lifted by
+       delivery or by abort. */
+    @Column(name = "termination_barrier_lifted")
+    private Boolean terminationBarrierLifted;
+
     // TODO: 4/4/17 Drop timeOfLastModification db trigger and use @PrePersist and @PreUpdate callbacks instead (to avoid unnecessary flush() and refresh() calls)
 
     @Column(insertable = false, updatable = false)
@@ -201,6 +221,30 @@ public class JobEntity {
 
     public void setCachedSink(SinkCacheEntity cachedSink) {
         this.cachedSink = cachedSink;
+    }
+
+    public int getDataChunksDelivered() {
+        return dataChunksDelivered;
+    }
+
+    public void setDataChunksDelivered(int dataChunksDelivered) {
+        this.dataChunksDelivered = dataChunksDelivered;
+    }
+
+    public int getDataChunksExpected() {
+        return dataChunksExpected;
+    }
+
+    public void setDataChunksExpected(int dataChunksExpected) {
+        this.dataChunksExpected = dataChunksExpected;
+    }
+
+    public Boolean getTerminationBarrierLifted() {
+        return terminationBarrierLifted;
+    }
+
+    public void setTerminationBarrierLifted(Boolean terminationBarrierLifted) {
+        this.terminationBarrierLifted = terminationBarrierLifted;
     }
 
     public int getSkipped() {

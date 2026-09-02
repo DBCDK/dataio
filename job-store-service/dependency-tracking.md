@@ -14,8 +14,13 @@ says how far the barrier reaches:
   [Barrier chunks](#barrier-chunks) below.
 - **Gate** - what is imposed on *the termination chunk itself*: it is withheld until its own job's
   data chunks are acknowledged and no earlier job with the same submitter on the same sink still
-  holds one. Carried by `dependencytracking.gate_open`, against the counters
-  `job.data_chunks_expected` and `job.data_chunks_delivered`.
+  holds a barrier that has not been lifted. Carried by `dependencytracking.gate_open`, against the
+  counters `job.data_chunks_expected` and `job.data_chunks_delivered`, with the cross-job half
+  answered from `job.termination_barrier_lifted`. That flag is named for the barrier and not for
+  delivery because delivery is only its usual cause: aborting a job lifts the barrier too, and its
+  termination chunk was never delivered. It is nullable on purpose, `NULL` for the majority of jobs
+  that have no termination chunk at all, `FALSE` while the barrier holds, `TRUE` once it is lifted.
+  Query it as `IS FALSE`, never as `NOT ...`.
 - **Barrier width** - how much of a later job the barrier holds back. Today it is full
   width: every data chunk of a later same-submitter job on the same sink waits for the
   earlier job's termination chunk, not just that job's own termination chunk. The redesign
@@ -27,6 +32,16 @@ says how far the barrier reaches:
 So a termination chunk both imposes a barrier on others and is held by a gate of its own. That is
 why the flag is `gate_open` and not `barrier_open`: it says this chunk may now be dispatched, not
 that the barrier it imposes on others has been lifted.
+
+Ownership of those four columns is split, and the split matters. `job.data_chunks_expected`,
+`job.data_chunks_delivered` and `job.termination_barrier_lifted` are ordinary job-store state on a
+table job-store owns outright. `dependencytracking.is_termination` and `gate_open` sit on a table
+whose rows are inserted and deleted by the Hazelcast MapStore on a write-behind schedule, and are
+job-store's only because `DependencyTrackingStore`'s `UPSERT` does not name them in its
+`on conflict ... do update set` clause. **They must never be added to that clause.** The cross-job
+half of the gate lives on `job` for exactly this reason: it is the half that would otherwise have
+had to read row presence, which job-store does not control. See
+`docs/chunk-scheduling-redesign.md`, "Who writes the gate columns before Phase 9".
 
 The gate's evaluation rules are set out in `docs/chunk-scheduling-redesign.md`, "Barrier Chunks —
 Per-Job Gate". The ordering described in the rest of this document is enforced through `waitingOn`
@@ -103,9 +118,13 @@ For sink types that require strict job-level ordering (MARCCONV, PERIODIC_JOBS, 
 completed) or is not in `QUEUED_FOR_DELIVERY`. Otherwise:
 
 1. The completed chunk's entry is removed from the IMap.
-2. `removeFromWaitingOn` runs `RemoveWaitingOn` as a Hazelcast `executeOnEntries` across all entries whose `waitingOn` contains this key. Hazelcast executes this atomically on whichever node owns each partition.
-3. `RemoveWaitingOn.process()` removes the key from `waitingOn`. If the set becomes empty and status is `BLOCKED`, it transitions to `READY_FOR_DELIVERY` and returns a `StatusChangeEvent`.
-4. Each newly unblocked chunk is handed to `attemptToUnblockChunk` in a **separate transaction** to avoid exhausting the JMS connection pool.
+2. The per-job gate is advanced for the chunk's job: a data chunk is counted, a termination chunk
+   lifts its job's barrier and re-evaluates the jobs queued behind it. This is synchronous SQL in
+   the caller's transaction and is independent of the `waitingOn` unblocking below, which is what
+   still enforces ordering. See "Terminology" above.
+3. `removeFromWaitingOn` runs `RemoveWaitingOn` as a Hazelcast `executeOnEntries` across all entries whose `waitingOn` contains this key. Hazelcast executes this atomically on whichever node owns each partition.
+4. `RemoveWaitingOn.process()` removes the key from `waitingOn`. If the set becomes empty and status is `BLOCKED`, it transitions to `READY_FOR_DELIVERY` and returns a `StatusChangeEvent`.
+5. Each newly unblocked chunk is handed to `attemptToUnblockChunk` in a **separate transaction** to avoid exhausting the JMS connection pool.
 
 ## Multi-instance safety
 
@@ -130,5 +149,7 @@ completed) or is not in `QUEUED_FOR_DELIVERY`. Otherwise:
 | `war/src/main/java/.../dependencytracking/DependencyTrackingService.java` | Singleton facade — primary API for all tracking operations |
 | `war/src/main/java/.../dependencytracking/Hazelcast.java` | IMap initializer and cluster membership helpers |
 | `war/src/main/java/.../ejb/JobSchedulerBean.java` | Primary caller; owns the scheduling and unblocking logic |
+| `war/src/main/java/.../ejb/JobGateBean.java` | Per-job gate, delivery side: counts data chunks, lifts barriers, re-triggers later jobs |
+| `war/src/main/java/.../ejb/JobGateRepository.java` | The gate's synchronous SQL, and the barrier-scope advisory lock |
 | `war/src/main/java/.../ejb/JobSchedulerBulkSubmitterBean.java` | Per-second bulk submission of `SCHEDULED_FOR_*` chunks to the JMS queues |
 | `war/src/main/java/.../rs/AdminBean.java` | Scheduled recovery tasks: stale chunks, blocked rechecks, job completion |

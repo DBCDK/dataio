@@ -1674,8 +1674,8 @@ is extracted from job-store-service into its own dedicated service.
 
 | Layer | Handles |
 |---|---|
-| job-store-service (N instances) | All inbound REST requests: job submission, partitioning callbacks (`/chunks/{id}/processed`), item delivery results (`/items/{id}/delivered`), watermark reads. Writes item/chunk state, the watermark, the per-job counters (`data_chunks_delivered`, `data_chunks_expected`), `job.termination_barrier_lifted`, and `gate_open` to PostgreSQL. Owns the whole per-job gate, `JobGateBean` and `JobGateRepository`, and issues the delivery-side `DELETE` of the chunk's `dependencytracking` row. |
-| scheduler-service (1 instance) | Continuously reads `dependencytracking` from PostgreSQL, advances chunk `status` through the state machine, fires JMS dispatch. Reads `gate_open` in its dispatch query and never writes it. Holds in-memory `SINK_STATUS` counters. |
+| job-store-service (N instances) | All inbound REST requests: job submission, partitioning callbacks (`/chunks/{id}/processed`), item delivery results (`/items/{id}/delivered`), watermark reads. Writes item/chunk state, the watermark, the per-job counters (`data_chunks_delivered`, `data_chunks_expected`), `job.termination_barrier_lifted`, and `gate_open` to PostgreSQL. Owns the whole per-job gate, `JobGateBean` and `JobGateRepository`, and owns `dependencytracking` row lifecycle: it inserts the row when partitioning creates the chunk and deletes it on delivery. |
+| scheduler-service (1 instance) | Continuously reads `dependencytracking` from PostgreSQL, advances chunk `status` through the state machine, fires JMS dispatch. Writes `status` and nothing else on the row, inserting and deleting none. Reads `gate_open` in its dispatch query and never writes it. Holds in-memory `SINK_STATUS` counters. |
 
 **Where the per-job gate lands.** The gate stays job-store's across the extraction, and the two
 beans that implement it, `JobGateBean` and `JobGateRepository`, stay in job-store-service. Site B
@@ -1683,7 +1683,7 @@ holds them there outright: `PgJobStoreRepository.createJobTerminationChunkEntity
 gate inside the partitioning transaction, under the job row lock it already holds, and partitioning
 does not move. Three consequences for the extraction:
 
-- **Site A has to be re-anchored before `JobSchedulerBean` moves.** `JobGateBean.onChunkDelivered`
+- **Site A has to be re-anchored before `JobSchedulerBean` moves.** `JobGateBean.advanceGateState`
   is called today from `JobSchedulerBean.chunkDeliveringDone`, which this phase moves wholesale.
   The call belongs on `JobsBean`'s delivery callback path instead, which is also where the
   transaction requirement puts it: the increment must run in the `JobsBean` transaction rather than
@@ -2011,10 +2011,22 @@ full barrier width until this phase deletes it, see [Barrier Width](
 - Scheduler-service connects to the same PostgreSQL instance as job-store-service
 - `JobGateBean` and `JobGateRepository` stay in job-store-service, held there by the gate's
   evaluation site inside `createJobTerminationChunkEntity`. Re-anchor
-  `JobGateBean.onChunkDelivered` from `JobSchedulerBean.chunkDeliveringDone` to `JobsBean`'s
+  `JobGateBean.advanceGateState` from `JobSchedulerBean.chunkDeliveringDone` to `JobsBean`'s
   delivery callback path if it has not already moved in an earlier phase, so the gate does not
   travel with the scheduler. See [Where the per-job gate lands](
   #scheduler-as-a-standalone-service)
+- Job-store-service inserts the `dependencytracking` row for every chunk, in the partitioning
+  transaction that creates the chunk, and scheduler-service picks it up on its next poll. Together
+  with the `DELETE` below that gives job-store the row lifecycle and scheduler-service `status`
+  and dispatch, which is the inverse of the split that held while the table was a projection, see
+  [Who writes the gate columns before Phase 9](#barrier-chunks--per-job-gate)
+- Split `JobSchedulerBean.scheduleChunk` rather than moving it. It is called synchronously per
+  chunk from `partitionJobIntoChunksAndItems`, which stays in job-store-service, so moving it
+  whole would need exactly the synchronous call into the scheduler that the interaction model
+  rules out. By this phase the method is down to building the row and one
+  `submitToProcessingIfPossibleAsync`: the row insert stays in job-store-service, the dispatch
+  attempt is dropped in favour of the poll loop, which is the direct-mode latency already accepted
+  above. Site C's gate verdict travels with the insert, since it is the same statement
 - Leave the delivery-side `DELETE` of the chunk's `dependencytracking` row in job-store-service,
   in the same transaction as the `data_chunks_delivered` increment it is the once-only token for
 - Leave the `recheckBlocks` gate sweep in job-store-service when `AdminBean`'s scheduling parts

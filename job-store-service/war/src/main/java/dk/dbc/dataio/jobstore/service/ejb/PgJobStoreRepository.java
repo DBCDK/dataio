@@ -48,6 +48,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
+import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
@@ -88,10 +89,18 @@ public class PgJobStoreRepository extends RepositoryBase {
     @Inject
     DependencyTrackingService dependencyTrackingService;
 
+    @EJB
+    protected JobGateRepository jobGateRepository;
+
     JSONBContext jsonbContext = new JSONBContext();
 
     public PgJobStoreRepository withEntityManager(EntityManager entityManager) {
         this.entityManager = entityManager;
+        return this;
+    }
+
+    public PgJobStoreRepository withJobGateRepository(JobGateRepository jobGateRepository) {
+        this.jobGateRepository = jobGateRepository;
         return this;
     }
 
@@ -359,10 +368,38 @@ public class PgJobStoreRepository extends RepositoryBase {
      * to allow the method to be called internally as an EJB business method.
      * </p>
      *
-     * @param jobId      id of job for which the chunk is to be created
-     * @param chunkId    id of the chunk to be created
-     * @param dataFileId for fake chunk
-     * @param itemStatus status for JOB_END item
+     * <p>
+     * This is also where the job's per-job gate comes into existence, see
+     * docs/chunk-scheduling-redesign.md, "Barrier Chunks - Per-Job Gate", site B. Three writes
+     * belong in this one transaction, under the job row lock taken below and the barrier scope's
+     * advisory lock:
+     * </p>
+     * <ul>
+     * <li>{@code data_chunks_expected}, from the {@code dataChunksExpected} parameter. It must
+     * <b>not</b> be re-read here: this method increments {@code numberOfChunks} itself, so a read
+     * taken here is one too high, the counter can never reach the total and the gate never opens.
+     * It must not be written in {@code markJobAsPartitioned} either, because that runs in a
+     * separate transaction whose uncommitted write is invisible to the gate verdict below.</li>
+     * <li>{@code termination_barrier_lifted = false}, the one place a barrier comes into
+     * existence. It stays in the same transaction as the {@code is_termination} row, so a job
+     * cannot end up with a termination row and an unset barrier, which is what makes that column's
+     * nullable default safe.</li>
+     * <li>The termination chunk's own {@code dependencytracking} row, with its gate verdict. The
+     * gate is evaluated here and not only on delivery because a job whose data chunks all finish
+     * delivering before partitioning ends gets no further delivery to evaluate on. Jobs with zero
+     * data chunks are just the extreme case of that.</li>
+     * </ul>
+     *
+     * @param jobId              id of job for which the chunk is to be created
+     * @param chunkId            id of the chunk to be created
+     * @param dataFileId         for fake chunk
+     * @param itemStatus         status for JOB_END item
+     * @param dataChunksExpected the job's data-chunk count as read in {@code markJobAsPartitioned}
+     *                           before this method runs, which for a job with a termination chunk
+     *                           is the same value as {@code chunkId}
+     * @param terminationTracker the dependency tracking entry the caller is about to add to the
+     *                           map, written to PostgreSQL here so that the row carries a closed
+     *                           gate from the moment it exists
      * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion*
      * @throws JobStoreException on referenced entities not found
      */
@@ -371,7 +408,9 @@ public class PgJobStoreRepository extends RepositoryBase {
     public ChunkEntity createJobTerminationChunkEntity(
             int jobId,
             int chunkId,
-            String dataFileId, ChunkItem.Status itemStatus) throws JobStoreException {
+            String dataFileId, ChunkItem.Status itemStatus,
+            int dataChunksExpected,
+            DependencyTracking terminationTracker) throws JobStoreException {
 
         final Date chunkBegin = new Date();
 
@@ -429,8 +468,33 @@ public class PgJobStoreRepository extends RepositoryBase {
         final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
         jobEntity.setNumberOfChunks(jobEntity.getNumberOfChunks() + 1);
         jobEntity.setNumberOfItems(jobEntity.getNumberOfItems() + chunkEntity.getNumberOfItems());
+        jobEntity.setDataChunksExpected(dataChunksExpected);
+        jobEntity.setTerminationBarrierLifted(false);
         updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
         entityManager.flush();
+
+        // Barrier scope locked after the job row, never before, see the lock ordering note on
+        // JobGateBean. It serializes this verdict against a concurrent re-trigger for the same
+        // (sink, submitter), which would otherwise let both decline and leave the gate closed with
+        // nothing left to open it.
+        final int sinkId = terminationTracker.getSinkId();
+        final int submitter = terminationTracker.getSubmitter();
+        jobGateRepository.advisoryLock(sinkId, submitter);
+
+        // The job row lock is held across the verdict, so a concurrent delivery of the job's last
+        // data chunk either committed its increment first, in which case the count read here is
+        // the higher one, or blocks on the lock above until this transaction commits and then
+        // finds the row and evaluates it. There is no interleaving in which both decline.
+        //
+        // The count is read from the database rather than from jobEntity because the delivery side
+        // increments it with a native statement, which leaves the managed entity stale. The total
+        // is the parameter rather than a read back of the column just written, so the verdict does
+        // not depend on the flush above having happened.
+        final boolean gateOpen =
+                jobGateRepository.dataChunksDelivered(jobId) >= dataChunksExpected
+                        && !jobGateRepository.hasEarlierUndeliveredTermination(sinkId, submitter, jobId);
+        jobGateRepository.upsertTerminationRow(terminationTracker.getKey(), sinkId, submitter,
+                terminationTracker.getStatus(), terminationTracker.getMatchKeys(), gateOpen);
 
         return chunkEntity;
     }

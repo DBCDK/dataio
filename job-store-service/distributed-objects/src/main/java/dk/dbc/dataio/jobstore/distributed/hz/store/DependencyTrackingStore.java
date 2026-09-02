@@ -33,6 +33,19 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
     private final DataSource dataSource;
     private static MetricRegistry metricRegistry;
 
+    /**
+     * The {@code on conflict ... do update set} list names five columns, and this store cannot
+     * clobber a column it does not name.
+     * <p>
+     * That is what lets job-store own {@code is_termination} and {@code gate_open} outright and
+     * write them in synchronous SQL in its own transactions, with no write-behind lag and no map
+     * involvement, while row lifecycle stays here. <b>Those two columns must never be added to the
+     * update list.</b> Adding them would reset every termination chunk's gate on its next status
+     * transition, dispatching job-end work ahead of the data it summarises.
+     * <p>
+     * See docs/chunk-scheduling-redesign.md, "Who writes the gate columns before Phase 9", and
+     * {@code JobGateRepository} in the war module.
+     */
     private static final String UPSERT = "insert into dependencytracking(jobid, chunkid, sinkid, status, waitingon, matchkeys, priority, submitter, lastmodified, retries) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) on conflict on constraint dependencytracking_pkey do " +
             "update set status=excluded.status, waitingon=excluded.waitingon, priority=excluded.priority, lastmodified=excluded.lastmodified, retries=excluded.retries";
     private static final String SELECT = "select * from dependencytracking where jobid=? and chunkid=?";

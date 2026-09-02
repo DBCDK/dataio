@@ -55,30 +55,30 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
 
 /**
- * Handles chunk scheduling as they pass through partitioning, processing and delivery phases.
+ * Handles chunk scheduling as chunks pass through partitioning, processing and delivery phases.
  * <p>
- * Three modes of operations exist for sink and queue type combinations:
+ * Enqueueing is rate limited per sink, by a cap on how many of that sink's chunks may sit in the
+ * queued states at once. {@code QUEUED_FOR_PROCESSING} and {@code QUEUED_FOR_DELIVERY} each carry
+ * that cap on {@link dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus}, and
+ * {@code DependencyTrackingService.capacity} answers what is left of it from the sink's chunk
+ * counts.
  * <p>
- * DIRECT : When no rate limiting is needed, chunks are enqueued directly
- * (this is the default mode).
- * </p>
+ * There are two ways a chunk reaches a JMS queue, and which one it takes is decided per chunk:
+ * <ul>
+ * <li>directly, when {@code JobSchedulerTransactionsBean.submitToProcessingIfPossible} or
+ *     {@code submitToDeliveringIfPossible} finds capacity at the moment the chunk becomes ready,</li>
+ * <li>otherwise the chunk is left in {@code SCHEDULED_FOR_PROCESSING} or
+ *     {@code SCHEDULED_FOR_DELIVERY}, and {@link JobSchedulerBulkSubmitterBean}'s timers pick it up
+ *     once the sink has room. Those timers call {@link #bulkScheduleToProcessingForSink} and
+ *     {@link #bulkScheduleToDeliveringForSink} here.</li>
+ * </ul>
+ * A chunk that finds a full queue simply waits where it is for the next sweep.
  * <p>
- * BULK   : If MAX_NUMBER_OF_.. chunks are enqueued, the scheduler transitions
- * to BULK mode and it is up to the {@link JobSchedulerBulkSubmitterBean}
- * to handle enqueueing.
- * </p>
- * <p>
- * TRANSITION_TO_DIRECT : The transition back from BULK to DIRECT mode must take
- * at least 2 seconds to allow time for all chunks to be picked
- * up by the DIRECT mode, meaning chunks are enqueued directly,
- * but at the same time the {@link JobSchedulerBulkSubmitterBean}
- * is also scanning for records to pickup chunks added during mode
- * switch.
- * </p>
- * <p>
- * Note: Queue limits are handled per JVM process posing a hindrance for distributed scheduling.
+ * The counts behind the cap are held in a distributed map, so the cap applies across job-store
+ * instances rather than per JVM. The timer-driven work, {@link #updateSinks} here and both sweeps
+ * in {@link JobSchedulerBulkSubmitterBean}, returns early on every instance but one, each guarded
+ * by {@code Hazelcast.isSlave}.
  */
-
 @Stateless
 @SuppressWarnings("PMD.TooManyStaticImports")
 public class JobSchedulerBean {
@@ -98,6 +98,9 @@ public class JobSchedulerBean {
     @EJB
     protected PgJobStoreRepository pgJobStoreRepository;
 
+    @EJB
+    protected JobGateBean jobGateBean;
+
     @Inject
     MetricRegistry metricRegistry;
     @EJB
@@ -111,12 +114,13 @@ public class JobSchedulerBean {
     public JobSchedulerBean() {
     }
 
-    public JobSchedulerBean(EntityManager entityManager, JobSchedulerTransactionsBean jobSchedulerTransactionsBean, PgJobStoreRepository pgJobStoreRepository, FlowStoreServiceConnectorBean flowStore, DependencyTrackingService dependencyTrackingService) {
+    public JobSchedulerBean(EntityManager entityManager, JobSchedulerTransactionsBean jobSchedulerTransactionsBean, PgJobStoreRepository pgJobStoreRepository, FlowStoreServiceConnectorBean flowStore, DependencyTrackingService dependencyTrackingService, JobGateBean jobGateBean) {
         this.entityManager = entityManager;
         this.jobSchedulerTransactionsBean = jobSchedulerTransactionsBean;
         this.pgJobStoreRepository = pgJobStoreRepository;
         this.flowStore = flowStore;
         this.dependencyTrackingService = dependencyTrackingService;
+        this.jobGateBean = jobGateBean;
     }
 
     public void registerMetrics() {
@@ -147,6 +151,11 @@ public class JobSchedulerBean {
 
     public JobSchedulerBean withEntityManager(EntityManager entityManager) {
         this.entityManager = entityManager;
+        return this;
+    }
+
+    public JobSchedulerBean withJobGateBean(JobGateBean jobGateBean) {
+        this.jobGateBean = jobGateBean;
         return this;
     }
 
@@ -271,7 +280,8 @@ public class JobSchedulerBean {
      *
      * @param jobEntity       job being marked as partitioned
      * @param sink            ID of sink for the job
-     * @param chunkId         ID of termination chunk
+     * @param chunkId         ID of termination chunk, which is also the job's data-chunk count and
+     *                        therefore the value the per-job gate counts up to
      * @param barrierMatchKey Additional barrier key to wait for
      * @param ItemStatus      status for termination chunk item
      * @throws JobStoreException on failure to create special job termination chunk
@@ -279,10 +289,18 @@ public class JobSchedulerBean {
     void createAndScheduleTerminationChunk(JobEntity jobEntity, Sink sink, int chunkId, String barrierMatchKey,
                                            ChunkItem.Status ItemStatus) throws JobStoreException {
         int sinkId = sink.getId();
-        ChunkEntity chunkEntity = pgJobStoreRepository.createJobTerminationChunkEntity(jobEntity.getId(), chunkId, "dummyDatafileId", ItemStatus);
-        TrackingKey key = new TrackingKey(chunkEntity.getKey().getJobId(), chunkId);
-        DependencyTracking endTracker = new DependencyTracking(key, sinkId, (int)jobEntity.getSpecification().getSubmitterId(), barrierMatchKey, chunkEntity.getSequenceAnalysisData().getData())
+        TrackingKey key = new TrackingKey(jobEntity.getId(), chunkId);
+        // Built before the chunk entity so that createJobTerminationChunkEntity can write the row
+        // to PostgreSQL with a closed gate in the same transaction that writes the counters, ahead
+        // of the map add below. A termination chunk carries no sequence analysis data, so its match
+        // keys are the barrier key alone.
+        DependencyTracking endTracker = new DependencyTracking(key, sinkId, (int)jobEntity.getSpecification().getSubmitterId(), barrierMatchKey, Set.of())
                 .setPriority(Priority.HIGH.getValue());
+        // chunkId is numberOfChunks as read in markJobAsPartitioned before this call, which is
+        // exactly the job's data-chunk count. Passing it rather than re-reading it downstream is
+        // what keeps data_chunks_expected reachable: createJobTerminationChunkEntity increments
+        // numberOfChunks itself.
+        pgJobStoreRepository.createJobTerminationChunkEntity(jobEntity.getId(), chunkId, "dummyDatafileId", ItemStatus, chunkId, endTracker);
         TrackingKey jobEndKey = dependencyTrackingService.add(endTracker);
         jobSchedulerTransactionsBean.addDependencies(endTracker);
         jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobEndKey);
@@ -343,6 +361,10 @@ public class JobSchedulerBean {
 
         int chunkDoneSinkId = chunkDone.getSinkId();
         dependencyTrackingService.remove(chunkDoneKey);
+
+        // Per-job gate: counts this delivery against the job's own gate, or lifts the job's
+        // barrier and re-evaluates later jobs if the chunk was its termination chunk.
+        jobGateBean.advanceGateState(chunkDoneKey, chunkDoneSinkId, chunkDone.getSubmitter());
 
         StopWatch findChunksWaitingForMeStopWatch = new StopWatch();
         Set<TrackingKey> unblocked = dependencyTrackingService.removeFromWaitingOn(chunkDoneKey);

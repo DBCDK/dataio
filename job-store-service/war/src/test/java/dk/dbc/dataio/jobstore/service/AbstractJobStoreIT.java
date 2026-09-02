@@ -27,6 +27,8 @@ import dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
+import dk.dbc.dataio.jobstore.service.ejb.JobGateBean;
+import dk.dbc.dataio.jobstore.service.ejb.JobGateRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobQueueRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobsBean;
@@ -294,7 +296,28 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
 
     protected JobSchedulerBean newJobSchedulerBean() {
         return new JobSchedulerBean()
-                .withEntityManager(entityManager);
+                .withEntityManager(entityManager)
+                .withJobGateBean(newJobGateBean());
+    }
+
+    protected JobGateRepository newJobGateRepository() {
+        return newJobGateRepository(entityManager);
+    }
+
+    /**
+     * For a test that drives the gate from another thread. Entity managers are not thread-safe, so
+     * such a test has to hand each thread its own rather than share the one this class creates.
+     */
+    protected JobGateRepository newJobGateRepository(EntityManager em) {
+        return new JobGateRepository().withEntityManager(em);
+    }
+
+    protected JobGateBean newJobGateBean() {
+        return new JobGateBean(newJobGateRepository());
+    }
+
+    protected JobGateBean newJobGateBean(EntityManager em) {
+        return new JobGateBean(newJobGateRepository(em));
     }
 
     public interface RequiresNewFunction<T> {
@@ -302,6 +325,15 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     }
 
     protected PgJobStoreRepository newPgJobStoreRepository() {
+        return newPgJobStoreRepository(entityManager);
+    }
+
+    /**
+     * For a test that drives partitioning from another thread, see {@link
+     * #newJobGateRepository(EntityManager)}.
+     */
+    protected PgJobStoreRepository newPgJobStoreRepository(EntityManager outerEntityManager) {
+        final JobGateRepository jobGateRepository = newJobGateRepository(outerEntityManager);
         // Subclass and simulate @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW) semantics
         // when required.
         return new PgJobStoreRepository() {
@@ -309,17 +341,22 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
                 var oldEntityManager = entityManager;
                 try( var requiresNewEntityManager = entityManager.getEntityManagerFactory().createEntityManager() ) {
                     entityManager = requiresNewEntityManager;
+                    // The gate SQL decides its verdict from writes made in this transaction, so
+                    // the simulated REQUIRES_NEW context has to reach it too.
+                    jobGateRepository.withEntityManager(requiresNewEntityManager);
                     requiresNewEntityManager.getTransaction().begin();
                     T res = r.downStreamEJBMethod();
                     requiresNewEntityManager.getTransaction().commit();
                     entityManager = oldEntityManager;
+                    jobGateRepository.withEntityManager(oldEntityManager);
                     return res;
                 }
             }
 
             @Override
-            public ChunkEntity createJobTerminationChunkEntity(int jobId, int chunkId, String dataFileId, ChunkItem.Status itemStatus) throws JobStoreException {
-                return handleRequiresNew(() -> super.createJobTerminationChunkEntity(jobId, chunkId, dataFileId, itemStatus));
+            public ChunkEntity createJobTerminationChunkEntity(int jobId, int chunkId, String dataFileId, ChunkItem.Status itemStatus,
+                                                               int dataChunksExpected, DependencyTracking terminationTracker) throws JobStoreException {
+                return handleRequiresNew(() -> super.createJobTerminationChunkEntity(jobId, chunkId, dataFileId, itemStatus, dataChunksExpected, terminationTracker));
             }
 
             @Override
@@ -338,7 +375,8 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
                 return handleRequiresNew(() -> super.createChunkEntity(submitterId, jobId, chunkId, maxChunkSize, dataPartitioner, keyGenerator, dataFileId));
             }
         }
-        .withEntityManager(entityManager);
+        .withJobGateRepository(jobGateRepository)
+        .withEntityManager(outerEntityManager);
     }
 
     protected RerunsRepository newRerunsRepository() {

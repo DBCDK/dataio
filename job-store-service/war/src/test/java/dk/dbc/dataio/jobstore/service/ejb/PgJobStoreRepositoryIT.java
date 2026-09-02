@@ -10,6 +10,8 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DefaultKeyGenerator;
 import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
@@ -29,8 +31,13 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Set;
 
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.commons.types.ChunkItem.Type.JOB_END;
@@ -401,13 +408,27 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
     public void createJobTerminationChunkEntity() throws Exception {
 
         final String TEST_FILE_NAME = "TestFileName";
-        short chunkId = 0;
+        final int sinkId = 1;
+        // Deliberately not 0. The termination chunk's id is the job's data-chunk count, so a
+        // non-zero one gives data_chunks_expected a value its column default cannot produce, and
+        // leaves data chunks outstanding so the gate has to be written closed against a column
+        // that defaults to open. With chunkId 0 both assertions below would hold whether or not
+        // this method wrote anything.
+        short chunkId = 3;
         short itemId = 0;
         // Given...
-        final int jobId = newPersistedJobEntity().getId();
+        final JobEntity jobEntity = newPersistedJobEntity();
+        final int jobId = jobEntity.getId();
+        // The tracker's submitter is the job's own. The gate writes the row from the tracker, and
+        // the cross-job barrier keys on that column, so a tracker carrying someone else's submitter
+        // would leave the row unreachable by the barrier for the job it belongs to.
+        final int submitter = (int) jobEntity.getSpecification().getSubmitterId();
 
         // When...
-        final ChunkEntity chunkEntity = persistenceContext.run(() -> pgJobStoreRepository.createJobTerminationChunkEntity(jobId, chunkId, TEST_FILE_NAME, SUCCESS));
+        final DependencyTracking terminationTracker = new DependencyTracking(
+                new TrackingKey(jobId, chunkId), sinkId, submitter, String.valueOf(submitter), Set.of());
+        final ChunkEntity chunkEntity = persistenceContext.run(() -> pgJobStoreRepository.createJobTerminationChunkEntity(
+                jobId, chunkId, TEST_FILE_NAME, SUCCESS, chunkId, terminationTracker));
 
 
         // Then ChunkEntity is
@@ -463,6 +484,34 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         assertThat("Number of chunks", job1.getNumberOfChunks(), is(1));
         assertThat("Number of Items ", job1.getNumberOfItems(), is(1));
 
+        // And the per-job gate state this method writes alongside the entities. The counter is the
+        // termination chunk's own id, which is the job's data-chunk count, and the barrier comes
+        // into existence here, unlifted, in the same transaction as the is_termination row.
+        assertThat("data_chunks_expected", job1.getDataChunksExpected(), is((int) chunkId));
+        assertThat("termination_barrier_lifted", job1.getTerminationBarrierLifted(), is(false));
+
+        assertThat("is_termination", trackingColumn(jobId, chunkId, "is_termination"), is(true));
+        // Three data chunks expected and none delivered, so the gate is written closed.
+        assertThat("gate_open", trackingColumn(jobId, chunkId, "gate_open"), is(false));
+        assertThat("row carries the job's submitter", trackingColumn(jobId, chunkId, "submitter"), is(submitter));
+        assertThat("row carries the sink", trackingColumn(jobId, chunkId, "sinkid"), is(sinkId));
+    }
+
+    /**
+     * Read straight from the table, because the row is written by native SQL that leaves no managed
+     * entity behind.
+     */
+    private Object trackingColumn(int jobId, int chunkId, String column) throws SQLException {
+        try (Connection connection = newConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "select " + column + " from dependencytracking where jobid = ? and chunkid = ?")) {
+            statement.setInt(1, jobId);
+            statement.setInt(2, chunkId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                assertThat("dependencytracking row for " + jobId + "/" + chunkId, resultSet.next(), is(true));
+                return resultSet.getObject(1);
+            }
+        }
     }
 
     private ItemEntity newPersistedItemEntityWithChunkItemsSet(ItemEntity.Key key) {

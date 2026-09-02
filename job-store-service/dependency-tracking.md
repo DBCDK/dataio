@@ -1,6 +1,36 @@
 # Dependency Tracking
 
-Dependency tracking is the mechanism that prevents chunks from being delivered to a sink out of sequence, and prevents duplicate or orphaned processing when multiple service instances are running. The authoritative state lives in three Hazelcast IMaps shared across all instances.
+Dependency tracking is the mechanism that prevents chunks from being delivered to a sink out of sequence, and prevents duplicate or orphaned processing when multiple service instances are running. The authoritative state lives in Hazelcast structures shared across all instances.
+
+## Terminology
+
+Three words are easy to conflate, and two of them face opposite ways. A fourth, width,
+says how far the barrier reaches:
+
+- **Termination chunk** - the object. A synthetic chunk appended to a job for the sink types that
+  require job-level ordering (`createJobTerminationChunkEntity`, `REQUIRES_TERMINATION_CHUNK`).
+- **Barrier** - what a termination chunk imposes on *other* chunks: nothing from the same submitter
+  and sink may pass until it has been delivered. Arranged by `barrierMatchKey`, see
+  [Barrier chunks](#barrier-chunks) below.
+- **Gate** - what is imposed on *the termination chunk itself*: it is withheld until its own job's
+  data chunks are acknowledged and no earlier job with the same submitter on the same sink still
+  holds one. Carried by `dependencytracking.gate_open`, against the counters
+  `job.data_chunks_expected` and `job.data_chunks_delivered`.
+- **Barrier width** - how much of a later job the barrier holds back. Today it is full
+  width: every data chunk of a later same-submitter job on the same sink waits for the
+  earlier job's termination chunk, not just that job's own termination chunk. The redesign
+  narrows this to termination chunks only, except for sink types whose job-end work is not
+  scoped to its own job (`TICKLE`, whose total-batch `mark`/`sweep` is dataset-wide), which
+  keep the current width. See `docs/chunk-scheduling-redesign.md`, "Barrier Width -
+  Per-Sink-Type Job Isolation".
+
+So a termination chunk both imposes a barrier on others and is held by a gate of its own. That is
+why the flag is `gate_open` and not `barrier_open`: it says this chunk may now be dispatched, not
+that the barrier it imposes on others has been lifted.
+
+The gate's evaluation rules are set out in `docs/chunk-scheduling-redesign.md`, "Barrier Chunks —
+Per-Job Gate". The ordering described in the rest of this document is enforced through `waitingOn`
+and `barrierMatchKey`.
 
 ## Hazelcast state
 
@@ -8,7 +38,8 @@ Dependency tracking is the mechanism that prevents chunks from being delivered t
 |---|---|---|---|
 | `DEPENDENCY_TRACKING` | `TrackingKey` (jobId + chunkId) | `DependencyTracking` | One entry per active chunk |
 | `SINK_STATUS` | sinkId | `Map<ChunkSchedulingStatus, Integer>` | Cached per-sink scheduling counters |
-| `LAST_TRACKER` | `WaitFor` | `TrackingKey` | Fast-path index for sequencing (opt-in via `WAIT_FOR_TRACKING_ENABLED`) |
+| `LAST_TRACKER` | `WaitFor` | `TrackingKey` | Fast-path index for sequencing (opt-in via `WAIT_FOR_TRACKING_ENABLED`, default off) |
+| `ABORTED_JOBS` | - | ISet of jobId | Jobs being aborted, checked on the scheduling and unblocking paths |
 
 ## The `DependencyTracking` record
 
@@ -64,11 +95,12 @@ When `scheduleChunk` is called, `addAndBuildDependencies` runs:
 
 ## Barrier chunks
 
-For sink types that require strict job-level ordering (MARCCONV, PERIODIC_JOBS, TICKLE), a synthetic **termination chunk** is appended at the end of each job. Its `barrierMatchKey` is the submitter ID, so it explicitly waits for all prior chunks from the same submitter that are still in flight. Future jobs from the same submitter then wait for this termination chunk, enforcing job-level ordering at the sink.
+For sink types that require strict job-level ordering (MARCCONV, PERIODIC_JOBS, TICKLE), a synthetic **termination chunk** is appended at the end of each job. Its `barrierMatchKey` is the submitter ID, so it explicitly waits for all prior chunks from the same submitter that are still in flight. Future jobs from the same submitter then wait for this termination chunk, enforcing job-level ordering at the sink. Note that this holds back *every* chunk of a future job, not only its termination chunk, because `scheduleChunk` passes the barrier key to `findChunksToWaitFor` for every chunk it schedules. See **Barrier width** under [Terminology](#terminology).
 
 ## Unblocking — the `RemoveWaitingOn` EntryProcessor
 
-When `chunkDeliveringDone` fires:
+`chunkDeliveringDone` first ignores the call outright if the chunk has no tracking entry (already
+completed) or is not in `QUEUED_FOR_DELIVERY`. Otherwise:
 
 1. The completed chunk's entry is removed from the IMap.
 2. `removeFromWaitingOn` runs `RemoveWaitingOn` as a Hazelcast `executeOnEntries` across all entries whose `waitingOn` contains this key. Hazelcast executes this atomically on whichever node owns each partition.
@@ -81,7 +113,11 @@ When `chunkDeliveringDone` fires:
 - EntryProcessors (`RemoveWaitingOn`, `UpdateStatus`, `UpdateCounter`, `UpdatePriority`) execute **on the owning node**, so mutations are atomic and require no network round-trip.
 - `modify()` uses `tryLock` (2-minute timeout) for cases that need a read-modify-write.
 - The `SINK_STATUS` counters IMap is maintained via `UpdateCounter` EntryProcessors, keeping per-sink scheduling counts consistent without full scans.
-- **Reaper tasks** (`@Schedule` in `JobSchedulerBean`) find chunks stuck in `QUEUED_FOR_PROCESSING` or `QUEUED_FOR_DELIVERY` beyond `PROCESSOR_TIMEOUT` (default 1 hour) and re-enqueue them, recovering from crashes or lost JMS messages.
+- **Scheduled tasks run on one instance only.** Every `@Schedule` method on this path opens with `if (Hazelcast.isSlave()) return;`, so the recovery work below happens once per cluster rather than once per instance.
+- **Recovery tasks** live in `AdminBean` (`rs` package), not in `JobSchedulerBean`, whose only `@Schedule` method is `updateSinks()`:
+  - `updateStaleChunks()` (every minute) re-drives chunks left behind by crashes or lost JMS messages. Entries stale in `READY_FOR_DELIVERY` for more than 5 minutes are pushed to `SCHEDULED_FOR_DELIVERY`; entries stale in `QUEUED_FOR_DELIVERY` beyond 1 hour, and in `QUEUED_FOR_PROCESSING` beyond `PROCESSOR_TIMEOUT` (default `PT1H`), are resent. It also maintains the per-sink stale-chunk metric.
+  - `recheckBlocks()` (hourly) drops trackers for jobs that are gone or already completed, and releases chunks left `BLOCKED` on dependencies that no longer exist.
+  - `completeFinishedJobs()` (hourly) closes jobs whose work finished without the completion being recorded.
 
 ## Key files
 
@@ -94,3 +130,5 @@ When `chunkDeliveringDone` fires:
 | `war/src/main/java/.../dependencytracking/DependencyTrackingService.java` | Singleton facade — primary API for all tracking operations |
 | `war/src/main/java/.../dependencytracking/Hazelcast.java` | IMap initializer and cluster membership helpers |
 | `war/src/main/java/.../ejb/JobSchedulerBean.java` | Primary caller; owns the scheduling and unblocking logic |
+| `war/src/main/java/.../ejb/JobSchedulerBulkSubmitterBean.java` | Per-second bulk submission of `SCHEDULED_FOR_*` chunks to the JMS queues |
+| `war/src/main/java/.../rs/AdminBean.java` | Scheduled recovery tasks: stale chunks, blocked rechecks, job completion |

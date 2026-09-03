@@ -11,23 +11,57 @@ import dk.dbc.dataio.commons.types.ChunkItem;
  */
 public record ItemDeliveryResult(long sinkId, String recordKey, Status status, ChunkItem chunkItem) {
     /**
-     * Drives job-store's own phase-counter/watermark logic for a single item's delivery
-     * result (see docs/chunk-scheduling-redesign.md). Deliberately kept separate from
-     * the sink's own {@link dk.dbc.dataio.commons.types.ChunkItem.Status}. The two
-     * happen to line up value-for-value today (SUCCESS/FAILURE/IGNORE), but ChunkItem.Status
-     * is a general-purpose outcome reused across partitioning/processing/delivering,
-     * whereas SKIPPED here has one specific meaning (see below). Coupling the two would
-     * silently tie job-store's counting/watermark behaviour to whatever a sink's
-     * ChunkItem.Status happens to be for unrelated reasons.
+     * Drives job-store's own phase-counter and watermark logic for a single item's delivery
+     * result (see docs/chunk-scheduling-redesign.md). Deliberately kept separate from the
+     * sink's own {@link dk.dbc.dataio.commons.types.ChunkItem.Status}, which is a
+     * general-purpose outcome reused across partitioning, processing and delivering,
+     * whereas every value here has one specific meaning for the delivering phase alone.
+     * Coupling the two would silently tie job-store's counting and watermark behaviour to
+     * whatever a sink's ChunkItem.Status happens to be for unrelated reasons.
+     * <p>
+     * The returned chunk item is stored verbatim as the item's delivering outcome and
+     * feeds no counter, so the value chosen here is the only thing deciding how the item
+     * is counted. What each one decides:
+     * <pre>
+     *                 DELIVERING counter   watermark   returned by
+     * DELIVERED       succeeded            advances    the sink
+     * SUPERSEDED      ignored              untouched   the sink framework only
+     * IGNORED         ignored              untouched   the sink
+     * FAILED          failed               untouched   the sink
+     * </pre>
+     * SUPERSEDED and IGNORED are indistinguishable to job-store, which counts both as
+     * ignored and advances neither watermark. They are separate values because they are
+     * separate answers to "why is this record not at the target", which is the question
+     * asked when investigating one, and because they have different authors.
      */
     public enum Status {
+        /**
+         * The sink sent this item to its target system.
+         * <p>
+         * The only value that advances the delivery watermark, so it must not be used for
+         * an item the sink chose not to send. Counted as succeeded.
+         */
         DELIVERED,
         /**
-         * The sink chose not to deliver this item because the delivery watermark showed
-         * an equal-or-newer version of the same record had already been delivered, not
-         * a general "ignored" outcome. Does not advance the watermark.
+         * Not sent, because the delivery watermark showed that a newer version of the same
+         * record had already been delivered.
+         * <p>
+         * Returned by the sink framework alone, never by a sink: a sink does not read the
+         * watermark and therefore cannot detect supersession. Counted as ignored.
          */
-        SKIPPED,
+        SUPERSEDED,
+        /**
+         * Not sent, because there was nothing to send.
+         * <p>
+         * Counted as ignored.
+         */
+        IGNORED,
+        /**
+         * The sink attempted the delivery and the target rejected it in a way retrying
+         * will not fix.
+         * <p>
+         * Counted as failed.
+         */
         FAILED
     }
 

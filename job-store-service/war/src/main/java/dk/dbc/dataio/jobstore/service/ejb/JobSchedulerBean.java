@@ -40,9 +40,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -101,6 +103,9 @@ public class JobSchedulerBean {
     @EJB
     protected JobGateBean jobGateBean;
 
+    @EJB
+    protected DeliveryDispatchRepository deliveryDispatchRepository;
+
     @Inject
     MetricRegistry metricRegistry;
     @EJB
@@ -114,13 +119,14 @@ public class JobSchedulerBean {
     public JobSchedulerBean() {
     }
 
-    public JobSchedulerBean(EntityManager entityManager, JobSchedulerTransactionsBean jobSchedulerTransactionsBean, PgJobStoreRepository pgJobStoreRepository, FlowStoreServiceConnectorBean flowStore, DependencyTrackingService dependencyTrackingService, JobGateBean jobGateBean) {
+    public JobSchedulerBean(EntityManager entityManager, JobSchedulerTransactionsBean jobSchedulerTransactionsBean, PgJobStoreRepository pgJobStoreRepository, FlowStoreServiceConnectorBean flowStore, DependencyTrackingService dependencyTrackingService, JobGateBean jobGateBean, DeliveryDispatchRepository deliveryDispatchRepository) {
         this.entityManager = entityManager;
         this.jobSchedulerTransactionsBean = jobSchedulerTransactionsBean;
         this.pgJobStoreRepository = pgJobStoreRepository;
         this.flowStore = flowStore;
         this.dependencyTrackingService = dependencyTrackingService;
         this.jobGateBean = jobGateBean;
+        this.deliveryDispatchRepository = deliveryDispatchRepository;
     }
 
     public void registerMetrics() {
@@ -156,6 +162,11 @@ public class JobSchedulerBean {
 
     public JobSchedulerBean withJobGateBean(JobGateBean jobGateBean) {
         this.jobGateBean = jobGateBean;
+        return this;
+    }
+
+    public JobSchedulerBean withDeliveryDispatchRepository(DeliveryDispatchRepository deliveryDispatchRepository) {
+        this.deliveryDispatchRepository = deliveryDispatchRepository;
         return this;
     }
 
@@ -371,7 +382,7 @@ public class JobSchedulerBean {
 
         LOGGER.info("chunkDeliveringDone: findChunksWaitingForMe for {} took {} ms unblocked {} chunks", chunkDone.getKey(), findChunksWaitingForMeStopWatch.getElapsedTime(), unblocked.size());
 
-        for (TrackingKey chunkBlockedKey : unblocked) {
+        for (TrackingKey chunkBlockedKey : inDispatchOrder(unblocked)) {
             // Attempts to unblock all chunks found waiting for "me" must happen
             // in separate transactions or else there is a risk of exhausting the
             // JMS connection pool and also of ending up stuck in DIRECT mode when
@@ -415,6 +426,16 @@ public class JobSchedulerBean {
         return new AsyncResult<>(chunksPushedToQueue);
     }
 
+    /**
+     * Fills a sink's delivery queue in {@code (priority DESC, jobId ASC, chunkId ASC)} order, never
+     * dispatching a chunk whose gate is closed.
+     * <p>
+     * Candidates come from SQL rather than from the Hazelcast map, because no predicate over the map
+     * can see {@code gate_open}, see {@link DeliveryDispatchRepository}. The table is not the
+     * authority on {@code status} though, so each candidate is re-checked against the map before it
+     * is acted on: a row still reading {@code SCHEDULED_FOR_DELIVERY} may belong to a chunk already
+     * dispatched, or already delivered and gone.
+     */
     @Asynchronous
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public Future<Integer> bulkScheduleToDeliveringForSink(int sinkId) {
@@ -424,22 +445,90 @@ public class JobSchedulerBean {
             if (spaceLeftInQueue > 0) {
                 LOGGER.debug("bulk scheduling for delivery - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
 
-                Set<TrackingKey> chunks = dependencyTrackingService.find(SCHEDULED_FOR_DELIVERY, sinkId, spaceLeftInQueue);
+                List<TrackingKey> chunks = deliveryDispatchRepository.findDeliveryCandidates(
+                        sinkId, spaceLeftInQueue + staleCandidateSlack());
 
-                if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for delivery - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
+                if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for delivery - found {} candidate chunks for sink {}", chunks.size(), sinkId);
                 for (TrackingKey toSchedule : chunks) {
-                    if(!JobsBean.isAborted(toSchedule.getJobId())) {
-                        LOGGER.info("bulk scheduling for delivery - chunk {} to be scheduled for delivery for sink {}", toSchedule, sinkId);
-                        if(jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(toSchedule)) {
-                            chunksPushedToQueue++;
-                        } else dependencyTrackingService.remove(toSchedule);
-                    }
+                    if(chunksPushedToQueue == spaceLeftInQueue) break;
+                    if(JobsBean.isAborted(toSchedule.getJobId())) continue;
+                    if(!isStillAwaitingDelivery(toSchedule)) continue;
+                    LOGGER.info("bulk scheduling for delivery - chunk {} to be scheduled for delivery for sink {}", toSchedule, sinkId);
+                    if(jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(toSchedule)) {
+                        chunksPushedToQueue++;
+                    } else dependencyTrackingService.remove(toSchedule);
                 }
             } else LOGGER.info("bulk scheduling for delivery - sink {} capacity={}", sinkId, spaceLeftInQueue);
         } catch (Exception ex) {
             LOGGER.error("Error in bulk scheduling for delivery for sink {}", sinkId, ex);
         }
         return new AsyncResult<>(chunksPushedToQueue);
+    }
+
+    /**
+     * Puts the chunks one delivery unblocked into the same order the bulk submitter dispatches in.
+     * <p>
+     * Each of these is handed to its own transaction and each can take the last free slot of
+     * {@code QUEUED_FOR_DELIVERY}, so the order they are visited in decides which of them reach the
+     * sink now and which wait for the next sweep. Unordered, that was whatever order the set
+     * happened to iterate in.
+     * <p>
+     * Priority is not carried by the keys, so it is read per key from dependency tracking. A key
+     * whose entry has gone in the meantime drops out, which is correct, there is nothing left to
+     * unblock.
+     *
+     * @param keys chunks whose last dependency was just cleared
+     * @return the same chunks in {@code (priority DESC, jobId ASC, chunkId ASC)} order
+     */
+    private List<TrackingKey> inDispatchOrder(Set<TrackingKey> keys) {
+        return keys.stream()
+                .map(dependencyTrackingService::get)
+                .filter(Objects::nonNull)
+                .sorted(Comparator.<DependencyTrackingRO>comparingInt(DependencyTrackingRO::getPriority).reversed()
+                        .thenComparingInt(dt -> dt.getKey().getJobId())
+                        .thenComparingInt(dt -> dt.getKey().getChunkId()))
+                .map(DependencyTrackingRO::getKey)
+                .toList();
+    }
+
+    /**
+     * How far past the free queue slots the candidate query reaches, to see past rows whose status
+     * is stale.
+     * <p>
+     * The MapStore writes {@code status} write-behind, so a chunk that has been dispatched keeps a
+     * row reading {@code SCHEDULED_FOR_DELIVERY} until the next flush. Those rows sort first, since
+     * they were queued earliest and so carry the lowest job ids, and under steady load there are far
+     * more of them than there are free slots. A window of exactly {@code spaceLeftInQueue} rows would
+     * be filled almost entirely by chunks that have already gone, and the sink would deliver close to
+     * nothing until the flush caught up.
+     * <p>
+     * The stale set is bounded by the chunks that have left {@code SCHEDULED_FOR_DELIVERY} since the
+     * last flush, and the cap on {@code QUEUED_FOR_DELIVERY} bounds how many of those can still be in
+     * flight. Rows for chunks removed inside the window are additional, so this is a good bound
+     * rather than a proof, and a sweep that comes up short costs one second: the next one runs
+     * immediately after.
+     * <p>
+     * <b>This method disappears with the Hazelcast MapStore.</b> Once {@code dependencytracking} is
+     * the sole store, {@code status} is written in the transaction that decides it, a window of
+     * exactly {@code spaceLeftInQueue} is correct, and there is no lag left to reach past. Delete
+     * this method, the call to it, {@link #isStillAwaitingDelivery} and
+     * {@code DeliveryDispatchStaleStatusIT} in the same commit as the MapStore.
+     */
+    private static int staleCandidateSlack() {
+        return QUEUED_FOR_DELIVERY.getMax();
+    }
+
+    /**
+     * @param key candidate returned by the SQL query
+     * @return true if the map, which is the authority on status, still has this chunk waiting for
+     * delivery
+     * <p>
+     * <b>This method disappears with the Hazelcast MapStore</b>, which is the only reason the table's
+     * {@code status} can be stale, see {@link #staleCandidateSlack}.
+     */
+    private boolean isStillAwaitingDelivery(TrackingKey key) {
+        DependencyTrackingRO tracker = dependencyTrackingService.get(key);
+        return tracker != null && tracker.getStatus() == SCHEDULED_FOR_DELIVERY;
     }
 
     /**

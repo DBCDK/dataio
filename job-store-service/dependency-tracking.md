@@ -47,6 +47,20 @@ The gate's evaluation rules are set out in `docs/chunk-scheduling-redesign.md`, 
 Per-Job Gate". The ordering described in the rest of this document is enforced through `waitingOn`
 and `barrierMatchKey`.
 
+**A closed gate actually withholds the chunk.** Both dispatch paths read `gate_open` and neither
+will send a chunk whose gate is closed, so the column decides delivery rather than merely recording
+a decision taken elsewhere. A chunk held by it waits in `SCHEDULED_FOR_DELIVERY`, which has no
+capacity cap, exactly as a `BLOCKED` chunk does today. **A gate that closes and is never reopened
+is a job that never completes**, which is why every removal of a termination row has to lift the
+barrier and re-trigger, and why the `recheckBlocks` sweep exists as a backstop.
+
+**Source of truth is split until the Hazelcast map goes.** Delivery order and `gate_open` are read
+from PostgreSQL; `status` is read from the map, because the table's copy of it is written write-behind
+by the MapStore and lags by up to `write-delay-seconds`. The bulk sweep therefore takes an ordered
+candidate list from SQL and re-checks each candidate against the map before dispatching it. See
+`docs/chunk-scheduling-redesign.md`, "Delivery Ordering", for why the query cannot be a Hazelcast
+predicate and what the split costs.
+
 ## Hazelcast state
 
 | IMap | Key | Value | Purpose |
@@ -98,6 +112,18 @@ READY_FOR_DELIVERY ────────────────────�
 
 `QUEUED_FOR_PROCESSING` and `QUEUED_FOR_DELIVERY` each have a cap of 1000 entries per sink, used for backpressure against the Artemis queues.
 
+Both edges into `QUEUED_FOR_DELIVERY` are gated, and neither dispatches a chunk with
+`gate_open = FALSE`:
+
+- **bulk** — `JobSchedulerBean.bulkScheduleToDeliveringForSink` takes candidates from
+  `DeliveryDispatchRepository.findDeliveryCandidates`, an SQL query ordered by
+  `(priority DESC, jobid ASC, chunkid ASC)` with the gate filter in its `WHERE` clause, then
+  re-checks each candidate's status against the map.
+- **direct** — `submitToDeliveringIfPossible` checks the gate after the capacity check and, when it
+  is closed, parks the chunk in `SCHEDULED_FOR_DELIVERY` so the bulk sweep picks it up once the gate
+  opens. `submitToDelivering` checks again immediately before the status change, which is the choke
+  point every path funnels through.
+
 ## How dependency relationships are built
 
 When `scheduleChunk` is called, `addAndBuildDependencies` runs:
@@ -124,7 +150,7 @@ completed) or is not in `QUEUED_FOR_DELIVERY`. Otherwise:
    still enforces ordering. See "Terminology" above.
 3. `removeFromWaitingOn` runs `RemoveWaitingOn` as a Hazelcast `executeOnEntries` across all entries whose `waitingOn` contains this key. Hazelcast executes this atomically on whichever node owns each partition.
 4. `RemoveWaitingOn.process()` removes the key from `waitingOn`. If the set becomes empty and status is `BLOCKED`, it transitions to `READY_FOR_DELIVERY` and returns a `StatusChangeEvent`.
-5. Each newly unblocked chunk is handed to `attemptToUnblockChunk` in a **separate transaction** to avoid exhausting the JMS connection pool.
+5. Each newly unblocked chunk is handed to `attemptToUnblockChunk` in a **separate transaction** to avoid exhausting the JMS connection pool, in `(priority DESC, jobId ASC, chunkId ASC)` order. The order matters because any one of them can take the last free slot of `QUEUED_FOR_DELIVERY`, so it decides which reach the sink now and which wait for the next sweep.
 
 ## Multi-instance safety
 
@@ -151,5 +177,6 @@ completed) or is not in `QUEUED_FOR_DELIVERY`. Otherwise:
 | `war/src/main/java/.../ejb/JobSchedulerBean.java` | Primary caller; owns the scheduling and unblocking logic |
 | `war/src/main/java/.../ejb/JobGateBean.java` | Per-job gate, delivery side: counts data chunks, lifts barriers, re-triggers later jobs |
 | `war/src/main/java/.../ejb/JobGateRepository.java` | The gate's synchronous SQL, and the barrier-scope advisory lock |
+| `war/src/main/java/.../ejb/DeliveryDispatchRepository.java` | Ordered delivery candidates and the gate check both dispatch paths read |
 | `war/src/main/java/.../ejb/JobSchedulerBulkSubmitterBean.java` | Per-second bulk submission of `SCHEDULED_FOR_*` chunks to the JMS queues |
 | `war/src/main/java/.../rs/AdminBean.java` | Scheduled recovery tasks: stale chunks, blocked rechecks, job completion |

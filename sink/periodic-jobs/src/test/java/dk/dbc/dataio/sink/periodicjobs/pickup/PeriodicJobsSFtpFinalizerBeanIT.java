@@ -1,6 +1,5 @@
 package dk.dbc.dataio.sink.periodicjobs.pickup;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
@@ -74,10 +73,9 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
                         .withSubmitterNumber("22222222")
                         .withTimeOfLastHarvest(new Date())
                         .withPickup(getPickup())));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = newPeriodicJobsSFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsSFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
+                periodicJobsSFtpFinalizerBean.deliver(jobId, 3, delivery, env().getEntityManager()));
         final String fileName = String.format("%s/periodisk-job-%d.data", testDir, jobId);
         assertThat("File is NOT present", fakeSFtpServer.existsFile(fileName), is(false));
     }
@@ -94,10 +92,9 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
                         .withSubmitterNumber("111111")
                         .withTimeOfLastHarvest(new Date())
                         .withPickup(getPickup())));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = newPeriodicJobsSFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsSFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
+                periodicJobsSFtpFinalizerBean.deliver(jobId, 3, delivery, env().getEntityManager()));
 
         String dataSentUsingSFtp = fakeSFtpServer.getFileContent(String
                 .format("%s/%s", testDir, String.
@@ -118,10 +115,9 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
                         .withTimeOfLastHarvest(new Date())
                         .withPickup(getPickup()
                                 .withOverrideFilename("testMyNewFileName.data"))));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = newPeriodicJobsSFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsSFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
+                periodicJobsSFtpFinalizerBean.deliver(jobId, 3, delivery, env().getEntityManager()));
 
         String dataSentUsingSFtp = fakeSFtpServer.getFileContent(
                 String.format("%s/%s", testDir, "testMyNewFileName.data"), StandardCharsets.UTF_8);
@@ -147,10 +143,9 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
                                 .withOverrideFilename("testMyNewFileName${__WEEKCODE_EMO__}.data")
                                 .withContentHeader("Ugekorrektur uge ${__WEEKCODE_EMO__}\n")
                                 .withContentFooter("\nslut uge ${__WEEKCODE_EMO__}"))));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = newPeriodicJobsSFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsSFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
+                periodicJobsSFtpFinalizerBean.deliver(jobId, 3, delivery, env().getEntityManager()));
 
         String dataSentUsingSFtp = fakeSFtpServer.getFileContent(
                 String.format("%s/%s", testDir, "testMyNewFileName202041.data"), StandardCharsets.UTF_8);

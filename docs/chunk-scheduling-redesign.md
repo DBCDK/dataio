@@ -1723,6 +1723,26 @@ What it does **not** skip is result reporting: every item is still reported indi
 because the DELIVERING phase counters and the per-job gate are driven by those reports,
 and a job whose items are never reported never completes.
 
+##### Job-end work runs against complete data by construction
+
+An aggregating sink's job-end work — the `PeriodicJobs*FinalizerBean`s, marcconv's
+`ConversionFinalizer` — reads what every preceding item of the job persisted, so it is
+only correct if all of those writes are committed before it starts. The per-item protocol
+gives that for free, from the order in which one item is handled: `deliverItem` commits
+its own transaction and returns, and `SinkMessageConsumerAdapter` reports the result only
+afterwards. A reported item is therefore an item whose writes are durable, and the
+termination chunk is released only once every data chunk of the job has reported (by
+`waitingOn` today, by `gate_open` once the dispatch filter lands — both driven by
+`chunkDeliveringDone`, which fires when a chunk's last item result is committed).
+
+The chunk protocol had this the other way round: each sink called
+`sendResultToJobStore(result)` *before* committing its own transaction, so job-store could
+see a chunk as delivered while that chunk's data was still uncommitted, and the
+termination chunk could be released against an incomplete set. `periodic-jobs` covered
+that window with a fixed five second sleep before finalizing, removed in DI-3015 along
+with the ordering problem it guessed at. `marcconv` has the same shape and the same
+argument applies to it.
+
 ### Watermark calls (`job-store-service-connector`)
 
 An earlier version of this document specified a separate `WatermarkServiceConnector`.

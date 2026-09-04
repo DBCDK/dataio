@@ -1009,7 +1009,7 @@ a literal id can end up serialised into the same broker group unnecessarily, whi
 the same benign "false collision" cost already accepted for `group-buckets` hashing,
 not a correctness issue. Only the watermark key needs the agency dimension, because
 unlike `JMSXGroupID` grouping — where over-grouping only costs a little latency — a
-watermark collision actively produces a wrong `SKIPPED` verdict for an unrelated
+watermark collision actively produces a wrong `SUPERSEDED` verdict for an unrelated
 record (see the invariant discussion below).
 
 `RecordInfo` is already stored per `ItemEntity`; no new schema is required. The
@@ -1049,7 +1049,7 @@ interact under `WaitFor`. `sink_record_delivery_watermark`'s primary key
 `RecordInfo.id`, it would assert a *stronger* uniqueness than the data actually has:
 two unrelated records from two agencies that happen to share an id would collide into
 one watermark row, and — unlike `WaitFor`'s "simply don't interact" failure mode — the
-older of the two jobs would be judged stale and wrongly reported `SKIPPED`. Composing
+older of the two jobs would be judged stale and wrongly reported `SUPERSEDED`. Composing
 `recordKey` as `<agencyId>:<id>` (see the code sample above) restores the missing
 dimension and makes the watermark's uniqueness claim match `RecordInfo.id`'s actual
 scope, using the exact same value the dependency-tracking system already derives from
@@ -1272,7 +1272,7 @@ is gated by the same `WHERE (...) > (...)` version-advance guard as the rest of 
 row, so `last_modified` advances exactly when the watermark itself advances, **not**
 on every delivery attempt for the record. A delivery that the `WHERE` clause rejects
 (an exact retransmit where `incoming == watermark`, or an older version that gets
-`SKIPPED`) leaves `last_modified` untouched. See [Retention Policy](#retention-policy)
+`SUPERSEDED`) leaves `last_modified` untouched. See [Retention Policy](#retention-policy)
 for why this matters.
 
 An explicit `agency_id INT` column in the primary key (rather than folding it into
@@ -1344,14 +1344,14 @@ correctness argument.
 POST /jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivered
 Content-Type: application/json
 
-{ "sinkId": 42, "recordKey": "...", "status": "DELIVERED" | "SKIPPED" | "FAILED" }
+{ "sinkId": 42, "recordKey": "...", "status": "DELIVERED" | "SUPERSEDED" | "IGNORED" | "FAILED" }
 ```
 
 Same path as the existing `GET .../items/{itemId}/delivered` (which reads back
 `ItemEntity.deliveringOutcome`) — POST writes the delivery result, GET reads it, one
 resource. This also matches the existing bulk `POST /jobs/{jobId}/chunks/{chunkId}/delivered`
 endpoint's naming: "delivered" there already covers `FAILURE`/`IGNORE` item outcomes
-within the chunk, not just success, so the same word covering `SKIPPED`/`FAILED` at
+within the chunk, not just success, so the same word covering `SUPERSEDED`/`IGNORED`/`FAILED` at
 item granularity here is consistent, not a stretch.
 
 Implementation (one transaction):
@@ -1416,7 +1416,7 @@ at all, see the note on `last_modified` under [Delivery Watermark](
 longer than the retention window loses its row — this is a stronger condition than
 "no delivery at all". An exact retransmit (`incoming == watermark`, always delivered
 per [Per-item delivery sequence](#per-item-delivery-sequence)) or an older version
-that gets `SKIPPED` both leave `last_modified` untouched, so a record can keep
+that gets `SUPERSEDED` both leave `last_modified` untouched, so a record can keep
 receiving delivery attempts indefinitely without its row ever refreshing. If a
 genuinely older version of that record then arrives after the row is pruned, it is
 no longer caught by the version check and is delivered instead of skipped.
@@ -1453,7 +1453,7 @@ duration, not just normal job turnaround.
        watermark = GET /sinks/{sinkId}/watermarks/{key}
        incoming  = (jobId, chunkId, itemId)
        if watermark != null AND incoming < watermark:   // lexicographic tuple compare
-           POST reportItemResult(... SKIPPED)
+           POST reportItemResult(... SUPERSEDED)
            session.commit()
            return
        // incoming == watermark: exact retransmit, always deliver (idempotent re-delivery)
@@ -1512,9 +1512,51 @@ alone leaves the sink no way to say what it delivered. The sink builds its half 
 `ItemDeliveryResult.of(status, chunkItem)` and the framework adds the half it owns with
 `withWatermarkKey(sinkId, recordKey)` - the pair being the primary key of
 `sink_record_delivery_watermark` - so no sink names a watermark key. The status is
-deliberately not derived from the returned `ChunkItem.Status`: `SKIPPED` means one
-specific thing (see [`ItemDeliveryResult.Status`](#per-item-delivery-sequence)), and a
-sink that wants the old ignore semantics returns `DELIVERED` with an `IGNORE` item.
+deliberately not derived from the returned `ChunkItem.Status`: each status value means one
+specific thing for the delivering phase (see [The four verdicts](#the-four-verdicts)
+below), where `ChunkItem.Status` is a general-purpose outcome reused across partitioning,
+processing and delivering. Coupling the two would tie job-store's counting to whatever a
+sink's `ChunkItem.Status` happens to be for unrelated reasons.
+
+#### The four verdicts
+
+The returned `ChunkItem` is stored verbatim and feeds no counter, so the status is the only
+thing deciding how job-store counts the item and whether the record's watermark moves:
+
+| `Status` | Meaning | DELIVERING counter | Watermark | Returned by |
+|---|---|---|---|---|
+| `DELIVERED` | sent to the target | succeeded | advances | the sink |
+| `SUPERSEDED` | not sent, a newer version of the record already was | ignored | untouched | the framework only |
+| `IGNORED` | not sent, there was nothing to send | ignored | untouched | the sink |
+| `FAILED` | attempted, rejected in a way retrying will not fix | failed | untouched | the sink |
+
+`IGNORED` is what a sink returns where it would previously have put an `IGNORE` item in a
+delivered chunk, typically for an item whose processing outcome was itself a failure or an
+ignore. It exists because the counters changed source: the chunk-level path read them off
+each item's `ChunkItem.Status` (`PgJobStoreRepository.setItemStateOnChunkItemFromStatus`,
+`FAILURE → failed`, `IGNORE → ignored`, `SUCCESS → succeeded`), and the per-item path reads
+them off the verdict (`PgJobStore.deliveryStatusAsStateChange`). Without a fourth value such
+an item has to be reported `DELIVERED`, which counts it as succeeded — overstating what
+reached the target in a `job_completed` mail that prints
+`state.states.DELIVERING.succeeded` as "heraf ok" — and, worse, advances the record's
+watermark, claiming a version as delivered that never was. A genuinely older version
+arriving afterwards is then judged stale and superseded, leaving the target with neither.
+Both halves follow from the verdict, so one value fixes both.
+
+`SUPERSEDED` and `IGNORED` are indistinguishable to job-store, which counts both as ignored
+and advances neither watermark. They are two values because they are two different answers
+to "why is this record not at the target", which is the question asked when investigating
+one, and because they have different authors: only `SinkMessageConsumerAdapter` returns
+`SUPERSEDED`, since a sink does not read the watermark and therefore cannot detect
+supersession. That split is documented rather than enforced — a sink returning it wrongly
+produces the same counter and the same watermark behaviour as `IGNORED`, so the mistake is
+misleading in metrics and harmless in effect, and enforcing it would add a failure mode to
+catch something that cannot corrupt anything.
+
+An earlier version of this document said instead that "a sink that wants the old ignore
+semantics returns `DELIVERED` with an `IGNORE` item". That preserves the item's visible
+outcome, which is stored verbatim, and not its contribution to the counters or its effect
+on the watermark, which is why it was replaced by a verdict of its own.
 
 The framework takes `ConsumedMessage` rather than the raw `jakarta.jms.Message`: it is
 what `validateMessage` already produces on the path to `handleConsumedMessage`, it
@@ -2051,6 +2093,11 @@ Two ordering constraints shape the sequence:
 - Change `extends MessageConsumerAdapter` to `extends SinkMessageConsumerAdapter` and
   implement `deliverItem(ConsumedMessage, ChunkItem)` per sink
 - Remove old chunk-aggregation logic, including each sink's `handleConsumedMessage`
+- Translate each sink's "pass a failed or ignored processing outcome through as ignored"
+  branch into an `IGNORED` verdict, not a `DELIVERED` one with an `IGNORE` item, so the
+  DELIVERING counters keep the meaning the chunk path gave them and the record's watermark
+  is not advanced by an item that was never sent (see [The four verdicts](#the-four-verdicts)).
+  The first migration, `dummy` under DI-3017, added the verdict and is the worked example
 - `periodic-jobs` and `marcconv` additionally override `usesDeliveryWatermark()`
 - Deployment is big-bang: job-store and every sink go live together against drained,
   re-created queues, so no sink needs to handle both payload types during a rollout
@@ -2134,7 +2181,7 @@ full barrier width until this phase deletes it, see [Barrier Width](
 |---|---|---|
 | Same record, concurrent threads, single pod | BLOCKED: one chunk in-flight per record | Broker serialises same-correlationKey items to one thread; no concurrent access |
 | Same record, multiple pods, any submitter | BLOCKED: guaranteed pre-delivery ordering | `JMSXGroupID = correlationKey` — serial delivery across all pods |
-| Same record, priority inversion | BLOCKED guarantees serial delivery | Broker delivers higher-priority item first; watermark check skips stale item |
+| Same record, priority inversion | BLOCKED guarantees serial delivery | Broker delivers higher-priority item first; watermark check supersedes stale item |
 | Termination chunk dispatched before all data chunks delivered | Impossible (BLOCKED) | Per-job counter gate: termination held until all `chunkDeliveringDone()` fired |
 | Cross-job termination ordering (same submitter, same sink) | Termination BLOCKED on prior-job termination | Gate checks no earlier same-submitter termination pending |
 | Cross-job data ordering (same submitter, same sink) | All of job B BLOCKED on job A's termination | Not held, except for sink types in `REQUIRES_FULL_JOB_BARRIER` |
@@ -2194,7 +2241,7 @@ full barrier width until this phase deletes it, see [Barrier Width](
    free from the same message-property mechanism that also fixes the record-key
    whitespace-normalisation bug. Before this fix landed, every job's termination item
    shared the literal watermark key `"End Item"`, so delivering job 1000's termination
-   item would have made job 999's look stale and get it wrongly reported `SKIPPED` —
+   item would have made job 999's look stale and get it wrongly reported `SUPERSEDED` —
    not a theoretical risk, since `PeriodicJobs*FinalizerBean` and marcconv's
    `ConversionFinalizer` do real delivery work on job end.
 

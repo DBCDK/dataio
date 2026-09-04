@@ -689,7 +689,7 @@ public class PgJobStore {
         final StateChange stateChange = new StateChange().setPhase(State.Phase.DELIVERING);
         return switch (status) {
             case FAILED -> stateChange.setFailed(1);
-            case SKIPPED -> stateChange.setIgnored(1);
+            case SUPERSEDED, IGNORED -> stateChange.setIgnored(1);
             case DELIVERED -> stateChange.setSucceeded(1);
         };
     }

@@ -182,7 +182,7 @@ public class SinkMessageProducerBean extends AbstractMessageProducer implements 
      * {@code JMSXGroupID} is the correlation key, which is what the broker serializes
      * deliveries on. It is deliberately not agency qualified: over grouping two agencies'
      * records that share a literal ID only costs a little latency, whereas over grouping a
-     * watermark key would produce a wrong SKIPPED verdict for an unrelated record.
+     * watermark key would produce a wrong SUPERSEDED verdict for an unrelated record.
      * <p>
      * An item without a record, such as the job termination item, gets neither header. It
      * is then distributed freely by the broker and skipped by the watermark check, which is

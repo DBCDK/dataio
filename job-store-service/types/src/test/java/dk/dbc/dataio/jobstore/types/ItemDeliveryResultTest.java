@@ -37,7 +37,7 @@ class ItemDeliveryResultTest {
 
     @Test
     void withWatermarkKey_nullRecordKeyIsCarried() {
-        ItemDeliveryResult result = ItemDeliveryResult.of(Status.SKIPPED, chunkItem).withWatermarkKey(42, null);
+        ItemDeliveryResult result = ItemDeliveryResult.of(Status.SUPERSEDED, chunkItem).withWatermarkKey(42, null);
 
         assertThat("recordKey", result.recordKey(), is(nullValue()));
     }
@@ -50,6 +50,18 @@ class ItemDeliveryResultTest {
     @Test
     void marshalling() throws JSONBException {
         ItemDeliveryResult result = ItemDeliveryResult.of(Status.FAILED, chunkItem).withWatermarkKey(42, "870970:123");
+
+        assertThat(jsonbContext.unmarshall(jsonbContext.marshall(result), ItemDeliveryResult.class), is(result));
+    }
+
+    /**
+     * IGNORED travels over the delivery endpoint like any other verdict, and a sink
+     * reporting it names the watermark row it declines to advance, exactly as a DELIVERED
+     * one names the row it does advance.
+     */
+    @Test
+    void marshalling_ignored() throws JSONBException {
+        ItemDeliveryResult result = ItemDeliveryResult.of(Status.IGNORED, chunkItem).withWatermarkKey(42, "870970:123");
 
         assertThat(jsonbContext.unmarshall(jsonbContext.marshall(result), ItemDeliveryResult.class), is(result));
     }

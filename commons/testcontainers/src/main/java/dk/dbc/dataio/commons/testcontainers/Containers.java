@@ -10,7 +10,7 @@ public enum Containers {
     FILE_STORE("file-store-service/target/docker.out"),
     FLOW_STORE("flow-store-service/target/docker.out"),
     JOB_STORE("job-store-service/war/target/docker.out"),
-    ARTEMIS("docker-metascrum.artifacts.dbccloud.dk/artemis:2_30_0-0"),
+    ARTEMIS("docker-metascrum.artifacts.dbccloud.dk/artemis:2_42_0-2"),
     LOG_STORE("log-store-service/war/target/docker.out");
 
     private final String imageSource;

@@ -34,6 +34,9 @@ public class ChunkEntity {
     @Column(nullable = false)
     private short numberOfItems;
 
+    @Column(nullable = false)
+    private boolean containsLiveHeadOrSectionRecord;
+
     private Timestamp timeOfCreation;
     private Timestamp timeOfLastModification;
     private Timestamp timeOfCompletion;
@@ -68,6 +71,14 @@ public class ChunkEntity {
 
     public void setNumberOfItems(short numberOfItems) {
         this.numberOfItems = numberOfItems;
+    }
+
+    public boolean getContainsLiveHeadOrSectionRecord() {
+        return containsLiveHeadOrSectionRecord;
+    }
+
+    public void setContainsLiveHeadOrSectionRecord(boolean containsLiveHeadOrSectionRecord) {
+        this.containsLiveHeadOrSectionRecord = containsLiveHeadOrSectionRecord;
     }
 
     public Timestamp getTimeOfCreation() {
@@ -125,6 +136,11 @@ public class ChunkEntity {
 
     public ChunkEntity withNumberOfItems(short numberOfItems) {
         this.numberOfItems = numberOfItems;
+        return this;
+    }
+
+    public ChunkEntity withContainsLiveHeadOrSectionRecord(boolean containsLiveHeadOrSectionRecord) {
+        this.containsLiveHeadOrSectionRecord = containsLiveHeadOrSectionRecord;
         return this;
     }
 

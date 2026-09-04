@@ -48,6 +48,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
+import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
@@ -88,10 +89,18 @@ public class PgJobStoreRepository extends RepositoryBase {
     @Inject
     DependencyTrackingService dependencyTrackingService;
 
+    @EJB
+    protected JobGateRepository jobGateRepository;
+
     JSONBContext jsonbContext = new JSONBContext();
 
     public PgJobStoreRepository withEntityManager(EntityManager entityManager) {
         this.entityManager = entityManager;
+        return this;
+    }
+
+    public PgJobStoreRepository withJobGateRepository(JobGateRepository jobGateRepository) {
+        this.jobGateRepository = jobGateRepository;
         return this;
     }
 
@@ -330,6 +339,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         if (chunkItemEntities.size() > 0) {
             chunkEntity.setNumberOfItems(chunkItemEntities.size());
             chunkEntity.setSequenceAnalysisData(getSequenceAnalysisData(keyGenerator, chunkItemEntities));
+            chunkEntity.setContainsLiveHeadOrSectionRecord(containsLiveHeadOrSectionRecord(chunkItemEntities));
 
             final State chunkState = chunkItemEntities.getChunkState();
             chunkEntity.setState(chunkState);
@@ -358,10 +368,38 @@ public class PgJobStoreRepository extends RepositoryBase {
      * to allow the method to be called internally as an EJB business method.
      * </p>
      *
-     * @param jobId      id of job for which the chunk is to be created
-     * @param chunkId    id of the chunk to be created
-     * @param dataFileId for fake chunk
-     * @param itemStatus status for JOB_END item
+     * <p>
+     * This is also where the job's per-job gate comes into existence, see
+     * docs/chunk-scheduling-redesign.md, "Barrier Chunks - Per-Job Gate", site B. Three writes
+     * belong in this one transaction, under the job row lock taken below and the barrier scope's
+     * advisory lock:
+     * </p>
+     * <ul>
+     * <li>{@code data_chunks_expected}, from the {@code dataChunksExpected} parameter. It must
+     * <b>not</b> be re-read here: this method increments {@code numberOfChunks} itself, so a read
+     * taken here is one too high, the counter can never reach the total and the gate never opens.
+     * It must not be written in {@code markJobAsPartitioned} either, because that runs in a
+     * separate transaction whose uncommitted write is invisible to the gate verdict below.</li>
+     * <li>{@code termination_barrier_lifted = false}, the one place a barrier comes into
+     * existence. It stays in the same transaction as the {@code is_termination} row, so a job
+     * cannot end up with a termination row and an unset barrier, which is what makes that column's
+     * nullable default safe.</li>
+     * <li>The termination chunk's own {@code dependencytracking} row, with its gate verdict. The
+     * gate is evaluated here and not only on delivery because a job whose data chunks all finish
+     * delivering before partitioning ends gets no further delivery to evaluate on. Jobs with zero
+     * data chunks are just the extreme case of that.</li>
+     * </ul>
+     *
+     * @param jobId              id of job for which the chunk is to be created
+     * @param chunkId            id of the chunk to be created
+     * @param dataFileId         for fake chunk
+     * @param itemStatus         status for JOB_END item
+     * @param dataChunksExpected the job's data-chunk count as read in {@code markJobAsPartitioned}
+     *                           before this method runs, which for a job with a termination chunk
+     *                           is the same value as {@code chunkId}
+     * @param terminationTracker the dependency tracking entry the caller is about to add to the
+     *                           map, written to PostgreSQL here so that the row carries a closed
+     *                           gate from the moment it exists
      * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion*
      * @throws JobStoreException on referenced entities not found
      */
@@ -370,7 +408,9 @@ public class PgJobStoreRepository extends RepositoryBase {
     public ChunkEntity createJobTerminationChunkEntity(
             int jobId,
             int chunkId,
-            String dataFileId, ChunkItem.Status itemStatus) throws JobStoreException {
+            String dataFileId, ChunkItem.Status itemStatus,
+            int dataChunksExpected,
+            DependencyTracking terminationTracker) throws JobStoreException {
 
         final Date chunkBegin = new Date();
 
@@ -397,7 +437,12 @@ public class PgJobStoreRepository extends RepositoryBase {
                 .withState(itemState)
                 .withPartitioningOutcome(chunkItem)
                 .withProcessingOutcome(chunkItem)
-                .withRecordInfo(new RecordInfo("End Item"));
+                // Null record id, and thereby a null correlationKey, is deliberate: this
+                // item is a per-job barrier, not a bibliographic record. A non-null id
+                // would serialise every job's termination item into one broker group and
+                // make them share a delivery watermark key. See
+                // docs/chunk-scheduling-redesign.md, Open Questions 1.
+                .withRecordInfo(new RecordInfo(null));
 
         entityManager.persist(itemEntity);
 
@@ -423,8 +468,33 @@ public class PgJobStoreRepository extends RepositoryBase {
         final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
         jobEntity.setNumberOfChunks(jobEntity.getNumberOfChunks() + 1);
         jobEntity.setNumberOfItems(jobEntity.getNumberOfItems() + chunkEntity.getNumberOfItems());
+        jobEntity.setDataChunksExpected(dataChunksExpected);
+        jobEntity.setTerminationBarrierLifted(false);
         updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
         entityManager.flush();
+
+        // Barrier scope locked after the job row, never before, see the lock ordering note on
+        // JobGateBean. It serializes this verdict against a concurrent re-trigger for the same
+        // (sink, submitter), which would otherwise let both decline and leave the gate closed with
+        // nothing left to open it.
+        final int sinkId = terminationTracker.getSinkId();
+        final int submitter = terminationTracker.getSubmitter();
+        jobGateRepository.advisoryLock(sinkId, submitter);
+
+        // The job row lock is held across the verdict, so a concurrent delivery of the job's last
+        // data chunk either committed its increment first, in which case the count read here is
+        // the higher one, or blocks on the lock above until this transaction commits and then
+        // finds the row and evaluates it. There is no interleaving in which both decline.
+        //
+        // The count is read from the database rather than from jobEntity because the delivery side
+        // increments it with a native statement, which leaves the managed entity stale. The total
+        // is the parameter rather than a read back of the column just written, so the verdict does
+        // not depend on the flush above having happened.
+        final boolean gateOpen =
+                jobGateRepository.dataChunksDelivered(jobId) >= dataChunksExpected
+                        && !jobGateRepository.hasEarlierUndeliveredTermination(sinkId, submitter, jobId);
+        jobGateRepository.upsertTerminationRow(terminationTracker.getKey(), sinkId, submitter,
+                terminationTracker.getStatus(), terminationTracker.getMatchKeys(), gateOpen);
 
         return chunkEntity;
     }
@@ -449,6 +519,37 @@ public class PgJobStoreRepository extends RepositoryBase {
         jobState.updateState(stateChange);
         jobEntity.setState(jobState);
         return jobState;
+    }
+
+    /**
+     * Advances the sink_record_delivery_watermark row for (sinkId, recordKey) to
+     * (jobId, chunkId, itemId), but only if that tuple is newer than what is already
+     * stored (see docs/chunk-scheduling-redesign.md, "Upsert on delivery").
+     *
+     * @param sinkId    sink id
+     * @param recordKey opaque, agency-qualified record key
+     * @param jobId     job id
+     * @param chunkId   chunk id
+     * @param itemId    item id
+     */
+    public void upsertWatermark(long sinkId, String recordKey, int jobId, int chunkId, short itemId) {
+        entityManager.createNativeQuery(
+                "INSERT INTO sink_record_delivery_watermark " +
+                        "       (sink_id, record_key, job_id, chunk_id, item_id, last_modified) " +
+                        "VALUES (?1, ?2, ?3, ?4, ?5, now()) " +
+                        "ON CONFLICT (sink_id, record_key) DO UPDATE " +
+                        "  SET job_id = EXCLUDED.job_id, chunk_id = EXCLUDED.chunk_id, " +
+                        "      item_id = EXCLUDED.item_id, last_modified = EXCLUDED.last_modified " +
+                        "  WHERE (EXCLUDED.job_id, EXCLUDED.chunk_id, EXCLUDED.item_id) " +
+                        "      > (sink_record_delivery_watermark.job_id, " +
+                        "         sink_record_delivery_watermark.chunk_id, " +
+                        "         sink_record_delivery_watermark.item_id)")
+                .setParameter(1, Math.toIntExact(sinkId))
+                .setParameter(2, recordKey)
+                .setParameter(3, jobId)
+                .setParameter(4, chunkId)
+                .setParameter(5, itemId)
+                .executeUpdate();
     }
 
     /**
@@ -519,13 +620,9 @@ public class PgJobStoreRepository extends RepositoryBase {
         final Profiler profiler = new Profiler("pgJobStoreRepository.getChunk");
         try {
             final State.Phase phase = chunkTypeToStatePhase(InvariantUtil.checkNotNullOrThrow(type, "type"));
-            final ItemListCriteria criteria = new ItemListCriteria()
-                    .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId))
-                    .and(new ListFilter<>(ItemListCriteria.Field.CHUNK_ID, ListFilter.Op.EQUAL, chunkId))
-                    .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
 
             profiler.start("execute Query");
-            final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
+            final List<ItemEntity> itemEntities = queryChunkItemEntities(jobId, chunkId);
             profiler.stop();
             if (!itemEntities.isEmpty()) {
                 profiler.start("Loop itemEntities");
@@ -544,6 +641,25 @@ public class PgJobStoreRepository extends RepositoryBase {
         } finally {
             LOGGER.info("pgJobStoreRepository.getChunk timings:\n{}", profiler);
         }
+    }
+
+    /**
+     * @param jobId   id of job containing chunk
+     * @param chunkId id of chunk
+     * @return item entities of the given chunk in ascending item ID order,
+     * empty if the chunk has no items
+     */
+    @Stopwatch
+    public List<ItemEntity> getChunkItemEntities(int jobId, int chunkId) {
+        return queryChunkItemEntities(jobId, chunkId);
+    }
+
+    private List<ItemEntity> queryChunkItemEntities(int jobId, int chunkId) {
+        final ItemListCriteria criteria = new ItemListCriteria()
+                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId))
+                .and(new ListFilter<>(ItemListCriteria.Field.CHUNK_ID, ListFilter.Op.EQUAL, chunkId))
+                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
+        return new ItemListQuery(entityManager).execute(criteria);
     }
 
     @Stopwatch
@@ -866,7 +982,25 @@ public class PgJobStoreRepository extends RepositoryBase {
         }
     }
 
-    private State updateItemEntityState(ItemEntity itemEntity, StateChange stateChange) {
+    /**
+     * Applies a state change to an item's state. Replaces the entity's State instance
+     * rather than mutating the existing one, which is what marks the converted json
+     * column dirty (see the note on ItemEntity.state).
+     * <p>
+     * The counters on the state change are deltas, not absolute totals: State.updateState
+     * adds them onto whatever is already persisted. The affected phase closes either when
+     * the state change carries an explicit end date, or automatically once its running
+     * total reaches the item's PARTITIONING total. Once a phase is closed, further changes
+     * to it are silently ignored, so callers whose contribution could arrive twice before
+     * the phase closes need their own idempotency check.
+     *
+     * @param itemEntity  item entity whose state to advance
+     * @param stateChange the change to apply
+     * @return the item's new state
+     * @throws IllegalStateException if the change would close a PROCESSING or DELIVERING
+     *                               phase while the item's PARTITIONING phase is still open
+     */
+    public State updateItemEntityState(ItemEntity itemEntity, StateChange stateChange) {
         final State itemState = new State(itemEntity.getState());
         itemState.updateState(stateChange);
         itemEntity.setState(itemState);
@@ -888,6 +1022,14 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     private SequenceAnalysisData getSequenceAnalysisData(KeyGenerator keyGenerator, ChunkItemEntities chunkItemEntities) {
         return new SequenceAnalysisData(keyGenerator.getKeys(chunkItemEntities.keys));
+    }
+
+    boolean containsLiveHeadOrSectionRecord(ChunkItemEntities chunkItemEntities) {
+        return chunkItemEntities.entities.stream()
+                .map(ItemEntity::getRecordInfo)
+                .anyMatch(recordInfo -> recordInfo instanceof MarcRecordInfo marcRecordInfo
+                        && (marcRecordInfo.isHead() || marcRecordInfo.isSection())
+                        && !marcRecordInfo.isDelete());
     }
 
     private void throwInvalidInputException(String errMsg, JobError.Code jobErrorCode) throws InvalidInputException {

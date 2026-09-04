@@ -5,6 +5,7 @@ import dk.dbc.dataio.jobstore.service.ejb.JobsExportsBean;
 import dk.dbc.dataio.jobstore.service.ejb.NotificationsBean;
 import dk.dbc.dataio.jobstore.service.ejb.RerunsBean;
 import dk.dbc.dataio.jobstore.service.ejb.SinkMessageProducerBean;
+import dk.dbc.dataio.jobstore.service.ejb.WatermarksBean;
 import dk.dbc.dataio.jobstore.service.ejb.developer.Developer;
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
@@ -26,7 +27,7 @@ public class JobStoreApplication extends Application {
 
     private static Set<Class<?>> makeClasses() {
         Stream<Class<?>> stream = Stream.of(JobsBean.class, JobsExportsBean.class, NotificationsBean.class, StatusBean.class,
-                RerunsBean.class, SinkMessageProducerBean.class, AdminBean.class);
+                RerunsBean.class, SinkMessageProducerBean.class, AdminBean.class, WatermarksBean.class);
 
         if("on".equals(System.getenv("DEVELOPER"))) {
             LOGGER.info("DEVELOPER signalled. Adding developer bean to pool of beans in JobstoreApplication");

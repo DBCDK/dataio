@@ -26,9 +26,11 @@ import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.RemotePartitioning;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult.Status;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -584,6 +586,146 @@ public class PgJobStore {
         // and the given chunk is not itself a termination chunk.
         return jobEntity.getNumberOfItems() == jobState.getPhase(State.Phase.PARTITIONING).getNumberOfItems()
                 || chunk.isTerminationChunk();
+    }
+
+    /**
+     * Records the outcome of a single item's delivery attempt (see
+     * docs/chunk-scheduling-redesign.md, "Delivery Watermark" and "Sink crash
+     * recovery"). Writes the outcome, advances DELIVERING-phase counters on the item,
+     * chunk, and job, conditionally advances the sink_record_delivery_watermark, and
+     * completes the job if this was its last outstanding item, all in one transaction.
+     * <p>
+     * Idempotent: a repeat call for an item whose deliveringOutcome is already set
+     * applies no delta to tolerate crash-then-redelivery.
+     *
+     * @param jobId          job id
+     * @param chunkId        chunk id
+     * @param itemId         item id
+     * @param deliveryResult delivery result
+     * @return true if the chunk's DELIVERING phase is done as of this call returning
+     * (not necessarily because this call completed it - see docs/chunk-scheduling-redesign.md)
+     * @throws JobStoreException if the referenced item, chunk or job could not be found
+     */
+    @Stopwatch
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public boolean addItemDelivered(int jobId, int chunkId, short itemId,
+                                     ItemDeliveryResult deliveryResult) throws JobStoreException {
+        final String recordKey = deliveryResult.recordKey();
+        final Status status = deliveryResult.status();
+        final ItemEntity.Key itemKey = new ItemEntity.Key(jobId, chunkId, itemId);
+        final ChunkEntity.Key chunkKey = new ChunkEntity.Key(chunkId, jobId);
+
+        final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
+        if (itemEntity == null) {
+            throw new JobStoreException(String.format("ItemEntity.%s could not be found", itemKey));
+        }
+        if (itemEntity.getDeliveringOutcome() != null) {
+            // Fast path only: not lock-protected, so not authoritative on its own,
+            // see the re-check below and docs/chunk-scheduling-redesign.md.
+            final ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, chunkKey);
+            return chunkEntity != null && chunkEntity.getState().phaseIsDone(State.Phase.DELIVERING);
+        }
+
+        final ChunkEntity chunkEntity = jobStoreRepository.getExclusiveAccessFor(ChunkEntity.class, chunkKey);
+        if (chunkEntity == null) {
+            throw new JobStoreException(String.format("ChunkEntity[%d,%d] could not be found", jobId, chunkId));
+        }
+        // Authoritative re-check, now serialized behind the chunk lock: see
+        // docs/chunk-scheduling-redesign.md for why the unlocked check above cannot
+        // be trusted alone.
+        final ItemEntity lockedItemEntity = jobStoreRepository.getExclusiveAccessFor(ItemEntity.class, itemKey);
+        if (lockedItemEntity.getDeliveringOutcome() != null) {
+            return chunkEntity.getState().phaseIsDone(State.Phase.DELIVERING);
+        }
+
+        final Date now = new Date();
+        final StateChange itemStateChange = deliveryStatusAsStateChange(status)
+                .setBeginDate(now)
+                .setEndDate(now);
+        // The sink's own outcome, stored verbatim.
+        lockedItemEntity.setDeliveringOutcome(deliveryResult.chunkItem().withId(itemId));
+        jobStoreRepository.updateItemEntityState(lockedItemEntity, itemStateChange);
+
+        // This item's contribution as a delta.
+        // The chunk/job phase must stay open until every item
+        // has reported back, so completion is auto-detected from the running totals
+        // (State.phaseDone()) rather than asserted by this one item.
+        final StateChange deliveryDelta = deliveryStatusAsStateChange(status);
+
+        final boolean chunkWasAlreadyDone = chunkEntity.getState().allPhasesAreDone();
+        final State chunkState = updateChunkEntityState(chunkEntity, deliveryDelta);
+        if (!chunkWasAlreadyDone && chunkState.allPhasesAreDone()) {
+            chunkEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+        }
+
+        final JobEntity jobEntity = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, jobId);
+        if (jobEntity == null) {
+            throw new JobStoreException(String.format("JobEntity.%d could not be found", jobId));
+        }
+        jobStoreRepository.updateJobEntityState(jobEntity, deliveryDelta);
+        if (itemCompletesJob(jobEntity, lockedItemEntity)) {
+            if (isTerminationItem(lockedItemEntity) && status == Status.FAILED) {
+                jobEntity.setFatalError(true);
+            }
+            jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+            addNotificationIfSpecificationHasDestination(Notification.Type.JOB_COMPLETED, jobEntity);
+            entityManager.flush();
+            logTimerMessage(jobEntity);
+        }
+
+        if (status == Status.DELIVERED && recordKey != null) {
+            jobStoreRepository.upsertWatermark(deliveryResult.sinkId(), recordKey, jobId, chunkId, itemId);
+        }
+
+        return chunkState.phaseIsDone(State.Phase.DELIVERING);
+    }
+
+    /**
+     * Maps a single item's delivery status onto a DELIVERING-phase {@link StateChange}
+     * carrying exactly one counter set to 1. Returns a fresh instance per call, so
+     * callers may decorate it (with dates, say) without affecting other uses.
+     */
+    private StateChange deliveryStatusAsStateChange(Status status) {
+        final StateChange stateChange = new StateChange().setPhase(State.Phase.DELIVERING);
+        return switch (status) {
+            case FAILED -> stateChange.setFailed(1);
+            case SKIPPED -> stateChange.setIgnored(1);
+            case DELIVERED -> stateChange.setSucceeded(1);
+        };
+    }
+
+    /**
+     * Decides whether the given item is the one that completes its job. True for exactly
+     * one item per job, so a true result is the caller's cue to run the job's completion
+     * side effects: the fatal-error flag, timeOfCompletion, and the JOB_COMPLETED
+     * notification.
+     * <p>
+     * Which item that is depends on whether the job has a termination chunk. Without one,
+     * numberOfItems equals the job's PARTITIONING counter total, and the completing item
+     * is the last to report, the one whose delta closes the job's DELIVERING phase. With
+     * one, createJobTerminationChunkEntity bumps numberOfItems without contributing to
+     * the PARTITIONING counters, so numberOfItems is that total + 1, no data item can
+     * satisfy the count comparison, and the termination item is the one that completes
+     * the job. In that case the job's DELIVERING phase closes on the last data item,
+     * ahead of the termination item reporting at all, which is why phase completion alone
+     * does not identify the completing item.
+     * <p>
+     * A termination item is recognized from its own already-persisted processing outcome,
+     * the per-item delivery path carrying no chunk-level type information (see
+     * docs/chunk-scheduling-redesign.md, Open Questions §1).
+     */
+    private boolean itemCompletesJob(JobEntity jobEntity, ItemEntity itemEntity) {
+        final State jobState = jobEntity.getState();
+        if (!jobState.allPhasesAreDone()) {
+            return false;
+        }
+        return jobEntity.getNumberOfItems() == jobState.getPhase(State.Phase.PARTITIONING).getNumberOfItems()
+                || isTerminationItem(itemEntity);
+    }
+
+    private boolean isTerminationItem(ItemEntity itemEntity) {
+        final ChunkItem outcome = itemEntity.getProcessingOutcome();
+        return outcome != null && outcome.isTyped() && outcome.getType().getFirst() == ChunkItem.Type.JOB_END;
     }
 
     /**

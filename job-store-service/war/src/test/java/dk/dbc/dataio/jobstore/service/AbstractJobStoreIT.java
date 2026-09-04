@@ -27,6 +27,9 @@ import dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
+import dk.dbc.dataio.jobstore.service.ejb.DeliveryDispatchRepository;
+import dk.dbc.dataio.jobstore.service.ejb.JobGateBean;
+import dk.dbc.dataio.jobstore.service.ejb.JobGateRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobQueueRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobsBean;
@@ -39,6 +42,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.service.entity.WatermarkEntity;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -61,6 +65,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -86,6 +91,7 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     protected static final String NOTIFICATION_TABLE_NAME = "notification";
     protected static final String REORDERED_ITEM_TABLE_NAME = "reordereditem";
     protected static final String RERUN_TABLE_NAME = "rerun";
+    protected static final String SINK_RECORD_DELIVERY_WATERMARK_TABLE_NAME = "sink_record_delivery_watermark";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobStoreIT.class);
     protected static final DataSource datasource = dbContainer.bindDatasource(DependencyTrackingStore.DS_JNDI).datasource();
     private static final long SUBMITTERID = 123456;
@@ -151,7 +157,7 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
             for (String tableName : Arrays.asList(
                     CHUNK_TABLE_NAME, ITEM_TABLE_NAME, JOBQUEUE_TABLE_NAME, NOTIFICATION_TABLE_NAME, RERUN_TABLE_NAME,
                     JOB_TABLE_NAME, FLOW_CACHE_TABLE_NAME, SINK_CACHE_TABLE_NAME, DEPENDENCYTRACKING_TABLE_NAME,
-                    REORDERED_ITEM_TABLE_NAME)) {
+                    REORDERED_ITEM_TABLE_NAME, SINK_RECORD_DELIVERY_WATERMARK_TABLE_NAME)) {
                 JDBCUtil.update(connection, String.format("DELETE FROM %s", tableName));
             }
             connection.commit();
@@ -291,7 +297,41 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
 
     protected JobSchedulerBean newJobSchedulerBean() {
         return new JobSchedulerBean()
-                .withEntityManager(entityManager);
+                .withEntityManager(entityManager)
+                .withJobGateBean(newJobGateBean())
+                .withDeliveryDispatchRepository(newDeliveryDispatchRepository());
+    }
+
+    protected DeliveryDispatchRepository newDeliveryDispatchRepository() {
+        return newDeliveryDispatchRepository(entityManager);
+    }
+
+    /**
+     * For a test that dispatches from another thread. Entity managers are not thread-safe, so such a
+     * test has to hand each thread its own rather than share the one this class creates.
+     */
+    protected DeliveryDispatchRepository newDeliveryDispatchRepository(EntityManager em) {
+        return new DeliveryDispatchRepository().withEntityManager(em);
+    }
+
+    protected JobGateRepository newJobGateRepository() {
+        return newJobGateRepository(entityManager);
+    }
+
+    /**
+     * For a test that drives the gate from another thread. Entity managers are not thread-safe, so
+     * such a test has to hand each thread its own rather than share the one this class creates.
+     */
+    protected JobGateRepository newJobGateRepository(EntityManager em) {
+        return new JobGateRepository().withEntityManager(em);
+    }
+
+    protected JobGateBean newJobGateBean() {
+        return new JobGateBean(newJobGateRepository());
+    }
+
+    protected JobGateBean newJobGateBean(EntityManager em) {
+        return new JobGateBean(newJobGateRepository(em));
     }
 
     public interface RequiresNewFunction<T> {
@@ -299,6 +339,15 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     }
 
     protected PgJobStoreRepository newPgJobStoreRepository() {
+        return newPgJobStoreRepository(entityManager);
+    }
+
+    /**
+     * For a test that drives partitioning from another thread, see {@link
+     * #newJobGateRepository(EntityManager)}.
+     */
+    protected PgJobStoreRepository newPgJobStoreRepository(EntityManager outerEntityManager) {
+        final JobGateRepository jobGateRepository = newJobGateRepository(outerEntityManager);
         // Subclass and simulate @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW) semantics
         // when required.
         return new PgJobStoreRepository() {
@@ -306,17 +355,22 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
                 var oldEntityManager = entityManager;
                 try( var requiresNewEntityManager = entityManager.getEntityManagerFactory().createEntityManager() ) {
                     entityManager = requiresNewEntityManager;
+                    // The gate SQL decides its verdict from writes made in this transaction, so
+                    // the simulated REQUIRES_NEW context has to reach it too.
+                    jobGateRepository.withEntityManager(requiresNewEntityManager);
                     requiresNewEntityManager.getTransaction().begin();
                     T res = r.downStreamEJBMethod();
                     requiresNewEntityManager.getTransaction().commit();
                     entityManager = oldEntityManager;
+                    jobGateRepository.withEntityManager(oldEntityManager);
                     return res;
                 }
             }
 
             @Override
-            public ChunkEntity createJobTerminationChunkEntity(int jobId, int chunkId, String dataFileId, ChunkItem.Status itemStatus) throws JobStoreException {
-                return handleRequiresNew(() -> super.createJobTerminationChunkEntity(jobId, chunkId, dataFileId, itemStatus));
+            public ChunkEntity createJobTerminationChunkEntity(int jobId, int chunkId, String dataFileId, ChunkItem.Status itemStatus,
+                                                               int dataChunksExpected, DependencyTracking terminationTracker) throws JobStoreException {
+                return handleRequiresNew(() -> super.createJobTerminationChunkEntity(jobId, chunkId, dataFileId, itemStatus, dataChunksExpected, terminationTracker));
             }
 
             @Override
@@ -335,7 +389,8 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
                 return handleRequiresNew(() -> super.createChunkEntity(submitterId, jobId, chunkId, maxChunkSize, dataPartitioner, keyGenerator, dataFileId));
             }
         }
-        .withEntityManager(entityManager);
+        .withJobGateRepository(jobGateRepository)
+        .withEntityManager(outerEntityManager);
     }
 
     protected RerunsRepository newRerunsRepository() {
@@ -353,6 +408,30 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
         return new RerunEntity()
                 .withJob(job)
                 .withState(RerunEntity.State.WAITING);
+    }
+
+    protected WatermarkEntity newWatermarkEntity(WatermarkEntity.Key key, int jobId, int chunkId, short itemId) {
+        return new WatermarkEntity()
+                .withKey(key)
+                .withJobId(jobId)
+                .withChunkId(chunkId)
+                .withItemId(itemId);
+    }
+
+    /* last_modified is insertable = false, updatable = false (the DB owns it via DEFAULT now()),
+       so a desired test value is written with a direct SQL update after persisting. */
+    protected WatermarkEntity newPersistedWatermarkEntity(WatermarkEntity.Key key, int jobId, int chunkId, short itemId, Timestamp lastModified) {
+        WatermarkEntity watermarkEntity = newWatermarkEntity(key, jobId, chunkId, itemId);
+        persist(watermarkEntity);
+        try (Connection connection = newConnection()) {
+            JDBCUtil.update(connection,
+                    "UPDATE sink_record_delivery_watermark SET last_modified = ? WHERE sink_id = ? AND record_key = ?",
+                    lastModified, key.getSinkId(), key.getRecordKey());
+            connection.commit();
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+        return watermarkEntity;
     }
 
     protected List<ChunkEntity> findAllChunks() {

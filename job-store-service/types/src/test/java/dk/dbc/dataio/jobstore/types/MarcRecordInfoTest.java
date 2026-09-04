@@ -148,6 +148,67 @@ public class MarcRecordInfoTest {
     }
 
     @Test
+    public void getCorrelationKey_typeIsStandalone_returnsId() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.STANDALONE, false, parentRelation);
+        assertThat(recordInfo.getCorrelationKey(), is(id));
+    }
+
+    @Test
+    public void getCorrelationKey_typeIsHead_returnsHierarchyConstant() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.HEAD, false, parentRelation);
+        assertThat(recordInfo.getCorrelationKey(), is(MarcRecordInfo.HIERARCHY_CORRELATION_KEY));
+    }
+
+    @Test
+    public void getCorrelationKey_typeIsSection_returnsHierarchyConstant() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.SECTION, false, parentRelation);
+        assertThat(recordInfo.getCorrelationKey(), is(MarcRecordInfo.HIERARCHY_CORRELATION_KEY));
+    }
+
+    @Test
+    public void getCorrelationKey_typeIsVolume_returnsHierarchyConstant() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.VOLUME, false, parentRelation);
+        assertThat(recordInfo.getCorrelationKey(), is(MarcRecordInfo.HIERARCHY_CORRELATION_KEY));
+    }
+
+    @Test
+    public void getCorrelationKey_typeIsDeleteMarked_isUnaffectedByDeleteFlag() {
+        MarcRecordInfo live = new MarcRecordInfo(id, MarcRecordInfo.RecordType.VOLUME, false, parentRelation);
+        MarcRecordInfo deleted = new MarcRecordInfo(id, MarcRecordInfo.RecordType.VOLUME, true, parentRelation);
+        assertThat(deleted.getCorrelationKey(), is(live.getCorrelationKey()));
+    }
+
+    @Test
+    public void getCorrelationKey_typeIsNullAndParentRelationIsNull_returnsIdInsteadOfThrowing() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, null, false, null);
+        assertThat(recordInfo.getCorrelationKey(), is(id));
+    }
+
+    @Test
+    public void getCorrelationKey_typeIsNullAndParentRelationIsPresent_returnsHierarchyConstant() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, null, false, parentRelation);
+        assertThat(recordInfo.getCorrelationKey(), is(MarcRecordInfo.HIERARCHY_CORRELATION_KEY));
+    }
+
+    @Test
+    public void getCorrelationKey_typeIsStandaloneAndIdIsNull_returnsNull() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(null, MarcRecordInfo.RecordType.STANDALONE, false, parentRelation);
+        assertThat(recordInfo.getCorrelationKey(), is(nullValue()));
+    }
+
+    @Test
+    public void getCorrelationKey_typeIsNullAndParentRelationIsNullAndIdIsNull_returnsNull() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(null, null, false, null);
+        assertThat(recordInfo.getCorrelationKey(), is(nullValue()));
+    }
+
+    @Test
+    public void marshalling_correlationKeyIsNotSerialized() throws JSONBException {
+        JSONBContext jsonbContext = new JSONBContext();
+        assertThat(jsonbContext.marshall(recordInfo).contains("correlationKey"), is(false));
+    }
+
+    @Test
     public void marshalling() throws JSONBException {
         JSONBContext jsonbContext = new JSONBContext();
         MarcRecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), MarcRecordInfo.class);

@@ -172,7 +172,9 @@ public class JobRerunnerBean {
                     jobExporter.exportFailedItemsRecordInfo(job.getId()) :
                     jobExporter.exportItemsRecordInfo(job.getId())) {
                 bibliographicRecordIds.forEach(recordInfo -> {
-                    if (recordInfo != null) {
+                    // Items without a record id, i.e. the job termination item, are not
+                    // harvestable records and must not become record references.
+                    if (recordInfo != null && recordInfo.getId() != null) {
                         recordReferences.add(new AddiMetaData()
                                 .withSubmitterNumber(submitter)
                                 .withBibliographicRecordId(recordInfo.getId())
@@ -221,7 +223,9 @@ public class JobRerunnerBean {
                 jobExporter.exportFailedItemsRecordInfo(job.getId()) :
                 jobExporter.exportItemsRecordInfo(job.getId())) {
             recordInfos.forEach(recordInfo -> {
-                if (recordInfo != null) {
+                // Items without a record id, i.e. the job termination item, are not
+                // harvestable records and must not become record references.
+                if (recordInfo != null && recordInfo.getId() != null) {
                     recordReferences.add(new AddiMetaData().withBibliographicRecordId(recordInfo.getId()));
                 }
             });

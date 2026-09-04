@@ -1242,6 +1242,7 @@
                            Property value seems to magically default to false -->
                     <!--suppress UnresolvedMavenProperty, MavenModelInspection -->
                     <skipTests>${skip.surefire.tests}</skipTests>
+                    <argLine>-Djava.io.tmpdir=${project.build.directory} -Djna.tmpdir=${project.build.directory}</argLine>
                 </configuration>
                 <dependencies>
                     <dependency>

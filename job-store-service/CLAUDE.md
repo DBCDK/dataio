@@ -83,3 +83,4 @@ This starts the service on port 8080 (debug on 9009), PostgreSQL on 5432, and Ac
 | `PROCESSOR_NASHORN_QUEUE` | Artemis queue for the Nashorn processor (default `processor::business`)     |
 | `PROCESSOR_GRAALJS_QUEUE` | Artemis queue for the GraalJS processor (default `processor-graaljs::main`) |
 | `DEVELOPER` | Set to `on` to enable developer endpoints                                   |
+| `WATERMARK_RETENTION` | ISO-8601 duration a `sink_record_delivery_watermark` row may go unmodified before nightly pruning removes it (default `P90D`) |

@@ -27,6 +27,7 @@ import dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
+import dk.dbc.dataio.jobstore.service.ejb.DeliveryDispatchRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobGateBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobGateRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobQueueRepository;
@@ -297,7 +298,20 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     protected JobSchedulerBean newJobSchedulerBean() {
         return new JobSchedulerBean()
                 .withEntityManager(entityManager)
-                .withJobGateBean(newJobGateBean());
+                .withJobGateBean(newJobGateBean())
+                .withDeliveryDispatchRepository(newDeliveryDispatchRepository());
+    }
+
+    protected DeliveryDispatchRepository newDeliveryDispatchRepository() {
+        return newDeliveryDispatchRepository(entityManager);
+    }
+
+    /**
+     * For a test that dispatches from another thread. Entity managers are not thread-safe, so such a
+     * test has to hand each thread its own rather than share the one this class creates.
+     */
+    protected DeliveryDispatchRepository newDeliveryDispatchRepository(EntityManager em) {
+        return new DeliveryDispatchRepository().withEntityManager(em);
     }
 
     protected JobGateRepository newJobGateRepository() {

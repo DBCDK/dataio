@@ -93,17 +93,79 @@ SELECT jobid, chunkid
  LIMIT ?
 ```
 
-An index on `(sinkid, status, gate_open, priority DESC, jobid, chunkid)` serves this
-without a sort. Both details matter. `priority DESC` has to be in the index: with equality
-on `sinkid` and `status`, an all-ASC index yields `priority ASC, jobid ASC, chunkid ASC`
-forward and all three DESC backward, and neither matches the `ORDER BY`, so the planner
-adds a sort and the `LIMIT` stops being cheap. `gate_open` is a third equality column
-rather than a partial `WHERE gate_open` predicate, which keeps the ordered suffix intact,
-makes the filter an index condition instead of a heap recheck, and leaves the index usable
-by a query looking for closed gates.
+An index on `(sinkid, status, gate_open, priority DESC, jobid, chunkid)` makes the sorting
+index-backed: the equality prefix pins one contiguous range, the ordered suffix is the `ORDER BY`
+itself, and the scan yields rows in order without a sort step. Both details matter.
+`priority DESC` has to be in the index: with equality on `sinkid` and `status`, an all-ASC
+index yields `priority ASC, jobid ASC, chunkid ASC` forward and all three DESC backward,
+and neither matches the `ORDER BY`, so the planner adds a sort and the `LIMIT` stops being
+cheap. `gate_open` is a third equality column rather than a partial `WHERE gate_open`
+predicate, which keeps the ordered suffix intact, makes the filter an index condition
+instead of a heap recheck, and leaves the index usable by a query looking for closed gates.
 Direct-mode dispatch (`READY_FOR_DELIVERY → QUEUED_FOR_DELIVERY`) applies the same
 order when multiple chunks become ready simultaneously, and the same `gate_open` filter,
-see [Barrier Width](#barrier-width--per-sink-type-job-isolation).
+see [Barrier Width](#barrier-width--per-sink-type-job-isolation). "Multiple chunks become ready
+simultaneously" has one site: the cascade in `chunkDeliveringDone` that hands each chunk unblocked
+by one delivery to its own transaction, any of which can take the last free queue slot. The other
+direct entry points handle one chunk each and have no order to apply.
+
+**Why the query has to be SQL, and what that costs before Phase 9.** The reason is not the index.
+`gate_open` and `is_termination` are columns on the table and deliberately not fields on
+`DependencyTracking`, so that the MapStore cannot clobber them, see [Who writes the gate columns
+before Phase 9](#barrier-chunks--per-job-gate). No Hazelcast predicate can see the gate at all, and
+putting it on the map value to make one possible is the thing that ownership split forbids. A
+`PagingPredicate` with a comparator would give the ordering and still not give the filter.
+
+That splits the source of truth while the table is still a projection of the map. Order and gate come
+from PostgreSQL and are exact: the gate columns are written synchronously by job-store, and the
+ordering keys do not change. `status` stays the map's, because the table's copy of it is written
+write-behind and lags by up to `write-delay-seconds`. Two consequences for the bulk sweep, neither
+optional:
+
+- **Each candidate is re-checked against the map before it is acted on.** A row still reading
+  `SCHEDULED_FOR_DELIVERY` may belong to a chunk already dispatched, or already delivered and
+  removed. Dispatching the first wastes a slot; dispatching the second delivers the chunk twice.
+- **The candidate window reaches past the free slots**, by the cap on `QUEUED_FOR_DELIVERY`. Stale
+  rows sort first, because they were queued earliest and so carry the lowest job ids, and under
+  steady load there are more of them than there are free slots. A window of exactly the free slots
+  would be filled by chunks that have already gone, every sweep, until the MapStore caught up. The
+  bound is the chunks that can have left `SCHEDULED_FOR_DELIVERY` since the last flush, which the cap
+  bounds; rows for chunks removed inside the window are additional, so it is a good bound rather than
+  a proof, and a sweep that comes up short costs one second.
+
+The map lookup is `IMap.get`, which is a read-through: `DependencyTrackingStore` implements `load`,
+so a key with no in-memory entry can in principle be rebuilt from a row that outlived its chunk,
+producing a tracker carrying the row's stale status. Measured, it is not: Hazelcast consults the
+write-behind staging area on load and answers null for a key whose `DELETE` is still queued, which is
+exactly the case that arises here. `DeliveryDispatchIT.deliveredCandidateIsSkippedAndNotResurrected`
+pins that behaviour, and is what fails if a Hazelcast upgrade changes it.
+
+The residual is the other direction of the same lag: a chunk that has just entered
+`SCHEDULED_FOR_DELIVERY` is invisible to the query until the next flush, so its bulk dispatch is
+delayed by up to `write-delay-seconds`. Latency, not a stall, and bounded, since coalescing writes
+the entry's latest state at flush time. All of this — the re-check, the over-fetch, and the delay —
+ends at Phase 9, when the table stops being a projection.
+
+**The processing phase is not converted with it, and the two are now asymmetric.**
+`bulkScheduleToProcessingForSink` still takes its candidates from the map through
+`DependencyTrackingService.findDependencies`, unordered. Nothing forces it to move yet: processing
+has no gate, so there is no column only PostgreSQL can see. Moving it is not free either. The
+`gate_open` predicate must not be applied to a processing query at all — a gate holds back delivery
+only, so under full barrier width a queued job's data chunks are processed normally while sitting at
+`gate_open = FALSE` — which means it cannot share the delivery statement, and cannot share the
+delivery index either: with `gate_open` absent from the predicate the ordered suffix
+`(priority desc, jobid, chunkid)` no longer follows the equality columns, so the query sorts. An
+ordered processing query therefore needs its own index, `(sinkid, status, priority desc, jobid,
+chunkid)`, and so a migration of its own. That is Phase 9 work, where the same conversion has to
+happen anyway and where none of the staleness compensation above is needed.
+
+What is left in the meantime is a **priority inversion in processing candidate selection**: the
+`PagingPredicate` truncates to an arbitrary page, so a `HIGH` priority chunk can sit behind
+lower-priority ones while `QUEUED_FOR_PROCESSING` is at its cap, which defeats the priority override
+for live head and section records at the first hop rather than at the sink. It is pre-existing and
+not made worse here, only more conspicuous now that the delivery half is ordered. The broker
+mitigates it once messages are enqueued, since `submitToProcessing` passes the chunk's priority as
+the JMS priority, but not while chunks are waiting for a queue slot.
 
 ### Barrier Chunks — Per-Job Gate
 
@@ -252,7 +314,24 @@ statement is order-independent against the MapStore: whichever runs first, the o
 conflict path, and each writes only its own columns. That insert must also supply every column the
 `do update set` clause will never repair, namely `sinkid`, `matchkeys` and `submitter`. `matchkeys`
 carries the termination chunk's `barrierMatchKey`, and leaving it null would break the `waitingOn`
-barrier across a restart while that mechanism is still load-bearing.
+barrier across a restart, for as long as that mechanism is the one enforcing it.
+
+**The read side: a missing row is an open gate.** Everything above is about who writes the gate.
+The dispatch paths that read it ask "is there a row saying this chunk's gate is closed", and answer
+absence with "open". That is the rule, not a shortcut. Row creation belongs to the MapStore, so
+between `scheduleChunk` and the next flush every chunk of every job has no row at all, and reading
+that as a closed gate would withhold every freshly scheduled chunk on every path — a system-wide
+stall wearing the costume of a safety check. Reading it as open is sound because a gate is only ever
+closed by a writer that creates the row itself, in the transaction that decides the verdict.
+
+Two layers with different lifespans, worth keeping apart. The tolerance of a *missing row* is
+transitional and ends at Phase 9: the table is written synchronously from then on, a chunk becomes
+visible to dispatch when its row commits, and the separate existence probe disappears rather than
+being fixed, since the filter is already `AND gate_open` in the query that selects the candidate. The
+convention underneath outlives it: `gate_open` is `NOT NULL DEFAULT TRUE` and only a writer meaning
+to close a gate touches the column, so an *unwritten* gate is an open gate. That is what makes site B
+and site C correct — a data chunk on a non-full-width sink never gets an explicit gate write at all —
+and it holds before and after.
 
 It also has to run after the termination chunk's own `chunk` row exists.
 `dependencytracking_jobid_fkey` is a foreign key on `(jobid, chunkid)` into `chunk`, so the insert
@@ -279,7 +358,7 @@ termination chunk's `dependencytracking` row, and that row does not exist until
 `markJobAsPartitioned` runs after the loop. Until then there is nothing to dispatch. This is
 the same reason the gate keys on `is_termination` rather than on `data_chunks_expected = 0`.
 
-Three consequences, all of them load-bearing:
+Three consequences, none of them optional:
 
 1. **`data_chunks_expected` is written in the transaction that inserts the termination
    chunk.** `markJobAsPartitioned` is `@REQUIRES_NEW`, and `createJobTerminationChunkEntity`
@@ -667,9 +746,9 @@ Full width holds delivery only, exactly as `BLOCKED` does today. Chunks are stil
 processed and accumulate in `SCHEDULED_FOR_DELIVERY`, which has no cap, so a large tickle
 job queued behind another is no more expensive to hold than it is now.
 
-**Not load-bearing until Phase 9.** Until `waitingOn` is deleted it still enforces full
-width for every sink type, so the gate being narrower changes no behaviour. The flag and
-site C can therefore land inert in Phase 1 and be verified against the `waitingOn`
+**Changes nothing until Phase 9.** Until `waitingOn` is deleted it still enforces full
+width for every sink type, so the gate being narrower has no observable effect. The flag
+and site C can therefore land inert in Phase 1 and be verified against the `waitingOn`
 behaviour they replace, but they must be live before Phase 9 removes the mechanism they
 are replacing.
 
@@ -841,7 +920,8 @@ then judge the higher one stale.
 The producer therefore requires its input to be ordered by ascending item id, and gets it
 from a single `ORDER BY item_id ASC` query. This has always been the order
 `PgJobStoreRepository.getChunk` produced, but as an incidental property of how it built a
-`Chunk` rather than as a stated contract. Under per-item dispatch it is load-bearing.
+`Chunk` rather than as a stated contract. Under per-item dispatch the watermark depends on
+that order, so it has to become one.
 
 All item messages of a chunk are produced through one `JMSContext`, so the enlisted XA
 session makes either all of them or none of them visible to the sink. A partially
@@ -1859,14 +1939,18 @@ Two ordering constraints shape the sequence:
   still enforces full width for every sink type until then, but required before it. No
   schema change, the `gate_open` column and both indexes from DI-3018 already carry it.
   See [Barrier Width](#barrier-width--per-sink-type-job-isolation)
-- Filter on `gate_open` in the direct dispatch path as well as in the bulk query, and
-  extend the hourly `recheckBlocks` sweep to open a gate closed with no earlier
-  termination row present
+- Extend the hourly `recheckBlocks` sweep to open a gate closed with no earlier termination row
+  present (**DI-3076**, alongside the abort path it also has to cover)
 - **DI-3020** Update the bulk-scheduler ordering query to
-  `(priority DESC, jobid ASC, chunkid ASC)` with the `gate_open` filter. It has to be issued
+  `(priority DESC, jobid ASC, chunkid ASC)` with the `gate_open` filter, and filter on `gate_open`
+  in the direct dispatch path as well, parking a held-back chunk in `SCHEDULED_FOR_DELIVERY` rather
+  than leaving it in `READY_FOR_DELIVERY`. The query has to be issued
   as SQL against PostgreSQL: the bulk scheduler picks candidates through a Hazelcast
-  `PagingPredicate` today (`DependencyTrackingService.find`), which the delivery index cannot
-  serve
+  `PagingPredicate` today (`DependencyTrackingService.find`), which cannot see the gate columns at
+  all. Because the table's `status` is written write-behind, the sweep re-checks each candidate
+  against the map and over-fetches by the `QUEUED_FOR_DELIVERY` cap; both end at Phase 9, see
+  [Delivery Ordering](#delivery-ordering). Adds no Hazelcast code, and removes one use of the map
+  from the dispatch path
 - Dependency tracking, `BLOCKED` and sequence analysis remain fully active
 - Accepted for the duration: the cross-job submitter barrier cannot see termination chunks
   that predate the migration, since they carry `is_termination = FALSE` from the column

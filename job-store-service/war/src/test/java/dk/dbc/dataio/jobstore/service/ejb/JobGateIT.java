@@ -219,7 +219,7 @@ public class JobGateIT extends AbstractJobStoreIT {
                 .setStatus(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY));
 
         JobSchedulerBean jobSchedulerBean = new JobSchedulerBean(entityManager,
-                mock(JobSchedulerTransactionsBean.class), null, null, trackingService, newJobGateBean());
+                mock(JobSchedulerTransactionsBean.class), null, null, trackingService, newJobGateBean(), newDeliveryDispatchRepository());
 
         persistenceContext.run(() -> JobsBeanTest.notAborted(job.getId(), jb ->
                 jobSchedulerBean.chunkDeliveringDone(new Chunk(job.getId(), 0, Chunk.Type.DELIVERED))));
@@ -532,7 +532,7 @@ public class JobGateIT extends AbstractJobStoreIT {
     private void markJobAsPartitioned(JobEntity job, EntityManager em) throws JobStoreException {
         JobSchedulerBean jobSchedulerBean = new JobSchedulerBean(em,
                 mock(JobSchedulerTransactionsBean.class), newPgJobStoreRepository(em), null,
-                new DependencyTrackingService().init(), newJobGateBean(em));
+                new DependencyTrackingService().init(), newJobGateBean(em), newDeliveryDispatchRepository(em));
         jobSchedulerBean.markJobAsPartitioned(job);
     }
 

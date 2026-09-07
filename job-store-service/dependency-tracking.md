@@ -117,7 +117,16 @@ depend on a row existing at a particular moment.
 Job-store owns the **gate column values**. `DependencyTrackingStore`'s upsert names five columns in
 its `on conflict ... do update set` clause, and cannot clobber a column it does not name.
 `is_termination` and `gate_open` are outside that list, which is what lets job-store write them in
-plain synchronous SQL with no lag. **Never add those two columns to that clause.**
+plain synchronous SQL with no lag. **Never add those two columns to that clause**, which
+`JobGateIT.mapStoreDoesNotClobberGateColumns` is there to enforce.
+
+`is_termination` is also a field on `DependencyTracking`, and that is not a contradiction. The clause
+still does not name it, so nothing about who writes the column changes, and a copy on the map value
+cannot go stale for a value decided when the row is created and never changed. A delivery reads the
+branch off the entry it removed rather than querying a row it has just removed, see
+[Where the gate is decided](#where-the-gate-is-decided). **`gate_open` gets no such field.** Four
+sites write it over a chunk's life, so a copy would be a second answer to a question with one, and a
+stale open gate dispatches a job's end-of-job work ahead of the data it summarises.
 
 Three consequences follow:
 
@@ -161,6 +170,16 @@ Five things about those sites are easy to get wrong:
   having a termination chunk, it would lose every chunk delivered before that chunk existed. As a
   read-then-write, it could lose an update and leave the counter permanently one short. Either way
   the gate never opens.
+- **Site A runs once per chunk, and what makes that true is the removal.** `chunkDeliveringDone` is
+  called again by every redelivery, and the broker's failure detection can produce two genuinely
+  concurrent calls for one chunk, so the count hangs off the one thing only one caller can do:
+  `DependencyTrackingService.remove` hands the removed entry to whichever caller removed it and null
+  to every other. The read of the entry before it is a filter on status, not the token, since
+  `get`-then-`remove` is a check-then-act two callers can both pass. Counted twice, the counter still
+  lands on `data_chunks_expected` exactly, only while a data chunk is still in flight, so the failure
+  is a job that reads as complete rather than one that stalls. The rest of `chunkDeliveringDone` runs
+  for every caller: `removeFromWaitingOn` reports only the entries it changed, so the caller that
+  lost the removal finds nothing left to unblock.
 - **`data_chunks_expected = 0` means two opposite things**: the migration default on jobs that
   predate the gate, which must be ignored, and a genuine job with no data chunks, whose gate must be
   decided at once. `is_termination` is what tells them apart, so the gate keys on that and uses the
@@ -275,6 +294,14 @@ Two ways a gate outlives its reason to be shut, each of them a job that never co
   loss on the termination branch never lifts the barrier, stalling every later job from that
   submitter.
 
+That second one is inherent while `dependencytracking` is a Hazelcast map, and it is accepted rather
+than overlooked. The removal is what both the count's once-only property and a redelivery's
+early return hang off, so no choice of marker closes the window: it closes when the row is deleted in
+the same transaction as the count, which is where the map goes away. Accepting it buys the far worse
+failure being gone. A count that is lost leaves a job visibly stuck and swept within the hour, while
+a count taken twice reaches the total early and lets end-of-job work run on data that never arrived,
+with nothing in the job state saying so.
+
 `AdminBean.recheckBlocks` sweeps for both hourly, which bounds the damage to one sweep interval. It
 lifts the barrier of any job left holding one with no termination row, then opens any gate closed
 with no earlier unlifted barrier, requiring additionally for a termination chunk that its own job's
@@ -302,10 +329,10 @@ Delivery order and `gate_open` are read from PostgreSQL, while `status` is read 
 the table's copy of it is written write-behind and lags. The bulk sweep therefore takes an ordered
 candidate list from SQL and re-checks each candidate against the map before dispatching it.
 
-The query cannot be a Hazelcast predicate, and the reason is the ownership split above:
-`gate_open` and `is_termination` are columns on the table and deliberately not fields on
-`DependencyTracking`, so no predicate can see them. Putting them on the map value to make one
-possible is the very thing that would let the MapStore clobber them.
+The query cannot be a Hazelcast predicate, and the reason is the ownership split above: `gate_open`
+is a column on the table and deliberately not a field on `DependencyTracking`, so no predicate can
+see it. Putting it on the map value to make one possible is what would give a chunk two answers to
+whether it may be dispatched, one of them written behind the other's back.
 
 ## Delivery watermark
 
@@ -377,6 +404,12 @@ Each entry holds:
 - **`matchKeys`** — string keys derived from sequence analysis data plus an optional barrier key; used to find chunks this one must sequence after
 - **`waitFor`** — indexed form of matchKeys as `WaitFor(sinkId, submitter, key)` tuples, used for Hazelcast predicate queries
 - **`waitingOn`** — set of `TrackingKey`s this chunk is currently blocked by
+- **`termination`** - whether this chunk is its job's termination chunk, mirroring the
+  `is_termination` column. The column is the authority and this is read back from it whenever an
+  entry is loaded, which is sound because the value is decided when the row is created and never
+  changes. It is here so that the caller who removes an entry on delivery can tell the two branches
+  of the gate apart from the entry it was handed, see [Where the gate is decided](#where-the-gate-is-decided).
+  **`gate_open` has no counterpart here, and must not get one**, see below
 - **`priority`**, **`lastModified`**, **`retries`**
 
 ## Chunk lifecycle

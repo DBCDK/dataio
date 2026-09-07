@@ -235,15 +235,28 @@ public class DependencyTrackingService {
         return statusChangeEvent;
     }
 
-    public void remove(TrackingKey key) {
+    /**
+     * Removes a chunk's entry and hands the removed entry to the caller that removed it.
+     * <p>
+     * The return value is the once-only token for this removal. {@code IMap.remove} is atomic per
+     * key across the cluster, so however many callers ask to remove one chunk, exactly one is given
+     * the entry and every other is given null. A caller that has to act once per chunk asks that
+     * question here rather than by reading the entry first, which two callers can both pass.
+     * {@code JobSchedulerBean.chunkDeliveringDone} counts a delivered data chunk on that basis.
+     *
+     * @param key chunk to remove
+     * @return the removed entry, or null if this call did not remove it
+     */
+    public DependencyTracking remove(TrackingKey key) {
         DependencyTracking removed = dependencyTracker.remove(key);
-        if(removed == null) return;
+        if(removed == null) return null;
         countersMap.executeOnKey(removed.getSinkId(), new UpdateCounter(removed.getStatus(), -1));
         if(enableWaitForTracking) {
             PredicateBuilder.EntryObject o = Predicates.newPredicateBuilder().getEntryObject();
             lastTracker.removeAll(o.get("jobId").equal(key.getJobId()).and(o.get("chunkId").equal(key.getChunkId())));
         }
         LOGGER.info("Removed tracking key {} from dependency tracker", key.toChunkIdentifier());
+        return removed;
     }
 
     public void remove(Predicate<TrackingKey, DependencyTracking> predicate) {

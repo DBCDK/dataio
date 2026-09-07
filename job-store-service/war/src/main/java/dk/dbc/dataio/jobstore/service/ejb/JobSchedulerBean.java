@@ -90,6 +90,23 @@ public class JobSchedulerBean {
 
     private static final Set<SinkContent.SinkType> REQUIRES_TERMINATION_CHUNK = new HashSet<>(Set.of(SinkContent.SinkType.MARCCONV, SinkContent.SinkType.PERIODIC_JOBS, SinkContent.SinkType.TICKLE));
 
+    /**
+     * Sink types whose job-end work is not scoped to its own job, so a later job's data must not
+     * reach the sink until the earlier job's termination chunk has been delivered.
+     * <p>
+     * A subset of {@link #REQUIRES_TERMINATION_CHUNK}, since holding a later job behind a barrier
+     * is meaningless for a sink type that raises no barrier. Tickle is the case: {@code createBatch}
+     * marks and {@code closeBatch} sweeps the whole dataset rather than one batch, so two open
+     * batches on one dataset delete each other's records. Marcconv and periodic-jobs finalize by job
+     * id and need only the narrower guarantee that job-end events reach the sink in order.
+     * <p>
+     * Kept here rather than on {@code SinkContent} because width follows from what the sink
+     * implementation does at job end, not from an operator choice, and because {@code SinkContent}
+     * is cached per job, so a new field would need a defensible default for every cached sink
+     * already written.
+     */
+    private static final Set<SinkContent.SinkType> REQUIRES_FULL_WIDTH_BARRIER = Set.of(SinkContent.SinkType.TICKLE);
+
     @Inject
     @JobstoreDB
     EntityManager entityManager;
@@ -190,8 +207,46 @@ public class JobSchedulerBean {
         DependencyTracking e = new DependencyTracking(key, sinkId, (int)job.getSpecification().getSubmitterId(), chunk.getKey().getId() == 0 ? barrierMatchKey : null, chunk.getSequenceAnalysisData().getData());
         Priority priority = chunk.getContainsLiveHeadOrSectionRecord() ? Priority.HIGH : job.getPriority();
         e.setPriority(priority.getValue());
+        closeDataChunkGateIfNeeded(e, job);
         dependencyTrackingService.addAndBuildDependencies(e, barrierMatchKey);
         jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sinkId, e.getPriority());
+    }
+
+    /**
+     * Closes a data chunk's gate when an earlier job in the same barrier scope still holds an
+     * unlifted barrier.
+     * <p>
+     * Only for the sink types in {@link #REQUIRES_FULL_WIDTH_BARRIER}. For every other type a data
+     * chunk is dispatchable as soon as it is processed, which is the narrower guarantee the gate
+     * gives by default, and nothing is written here at all.
+     * <p>
+     * Runs before the chunk enters dependency tracking, because that is what makes it dispatchable.
+     * A gate closed afterwards is a gate closed too late.
+     * <p>
+     * The unlocked read comes first and is the whole cost in the common case, see
+     * {@link JobGateBean#isBlockedByEarlierBarrier}. Only a chunk that has something to wait for
+     * pays for the locked re-read and the write.
+     * <p>
+     * <b>Insert time is the only evaluation site this needs</b>, unlike a job's own termination
+     * gate, and the reason sits outside the gate: the jobqueue partitions jobs with the same
+     * submitter on the same sink strictly one at a time in job id order
+     * ({@code NQ_FIND_BY_SINK_AND_AVAILABLE_SUBMITTER}), which is the same scope the barrier uses. By
+     * the time this job's chunks are inserted the earlier job is fully partitioned, so its barrier
+     * either stands or has already been lifted, and there is no window like the one that forces a
+     * termination gate to be evaluated in two places. If that jobqueue invariant is ever relaxed, a
+     * data chunk's gate needs evaluating in two places too.
+     */
+    private void closeDataChunkGateIfNeeded(DependencyTracking chunk, JobEntity job) {
+        if (!requiresFullWidthBarrier(job.getCachedSink().getSink().getContent().getSinkType())) {
+            return;
+        }
+        int sinkId = chunk.getSinkId();
+        int submitter = chunk.getSubmitter();
+        if (!jobGateBean.isBlockedByEarlierBarrier(sinkId, submitter, job.getId())) {
+            return;
+        }
+        jobGateBean.closeDataChunkGateIfBlocked(chunk.getKey(), sinkId, submitter,
+                chunk.getStatus(), chunk.getMatchKeys());
     }
 
     @SuppressWarnings("unused")
@@ -280,10 +335,28 @@ public class JobSchedulerBean {
     }
 
     private String getBarrierMatchKey(JobEntity job) {
-        if (REQUIRES_TERMINATION_CHUNK.contains(job.getCachedSink().getSink().getContent().getSinkType())) {
+        if (requiresTerminationChunk(job.getCachedSink().getSink().getContent().getSinkType())) {
             return String.valueOf(job.getSpecification().getSubmitterId());
         }
         return null;
+    }
+
+    /**
+     * @param sinkType sink type to ask about
+     * @return true if jobs for this sink type get a termination chunk, and so raise a barrier that
+     * orders their job-end against other jobs from the same submitter
+     */
+    static boolean requiresTerminationChunk(SinkContent.SinkType sinkType) {
+        return REQUIRES_TERMINATION_CHUNK.contains(sinkType);
+    }
+
+    /**
+     * @param sinkType sink type to ask about
+     * @return true if the barrier for this sink type is full width, holding back every chunk of a
+     * later job rather than only that job's termination chunk
+     */
+    static boolean requiresFullWidthBarrier(SinkContent.SinkType sinkType) {
+        return REQUIRES_FULL_WIDTH_BARRIER.contains(sinkType);
     }
 
     /**

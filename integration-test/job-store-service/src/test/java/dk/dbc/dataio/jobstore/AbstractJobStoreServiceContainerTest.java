@@ -65,8 +65,8 @@ public abstract class AbstractJobStoreServiceContainerTest {
     private static final GenericContainer<?> artemisContainer = startArtemisContainer(network);
     static final String artemisHostPort = artemisContainer.getHost() + ":" + artemisContainer.getMappedPort(61616);
     static final JmsQueueTester jmsQueueServiceConnector = makeJmsQueueTester();
-    private static final DBCPostgreSQLContainer jobstoreDBContainer = startJobstoreDB(network);
-    private static final GenericContainer<?> jobStoreServiceContainer = startJobStoreServiceContainer(network);
+    static final DBCPostgreSQLContainer jobstoreDBContainer = startJobstoreDB(network);
+    static final GenericContainer<?> jobStoreServiceContainer = startJobStoreServiceContainer(network);
     static final JobStoreServiceConnector jobStoreServiceConnector = makeJobStoreConnector(jobStoreServiceContainer);
 
     private static JobStoreServiceConnector makeJobStoreConnector(GenericContainer<?> jobStoreContainer) {

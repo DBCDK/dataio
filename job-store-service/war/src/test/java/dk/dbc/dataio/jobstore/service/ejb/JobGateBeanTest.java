@@ -1,12 +1,20 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 
 import java.util.List;
 import java.util.OptionalInt;
+import java.util.Set;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -37,6 +45,7 @@ class JobGateBeanTest {
     void advanceGateState_terminationChunk_isNotCounted() {
         TrackingKey terminationChunk = new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID);
         when(jobGateRepository.isTerminationChunk(terminationChunk)).thenReturn(true);
+        when(jobGateRepository.markTerminationBarrierLifted(JOB_ID)).thenReturn(1);
         when(jobGateRepository.laterClosedGates(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(List.of());
 
         jobGateBean.advanceGateState(terminationChunk, SINK_ID, SUBMITTER);
@@ -94,6 +103,7 @@ class JobGateBeanTest {
         TrackingKey terminationChunk = new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID);
         TrackingKey laterJobTermination = new TrackingKey(JOB_ID + 1, 5);
         when(jobGateRepository.isTerminationChunk(terminationChunk)).thenReturn(true);
+        when(jobGateRepository.markTerminationBarrierLifted(JOB_ID)).thenReturn(1);
         when(jobGateRepository.laterClosedGates(SINK_ID, SUBMITTER, JOB_ID))
                 .thenReturn(List.of(laterJobTermination));
         when(jobGateRepository.dataChunksAccountedFor(JOB_ID + 1)).thenReturn(true);
@@ -111,6 +121,7 @@ class JobGateBeanTest {
         TrackingKey terminationChunk = new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID);
         TrackingKey laterJobTermination = new TrackingKey(JOB_ID + 1, 5);
         when(jobGateRepository.isTerminationChunk(terminationChunk)).thenReturn(true);
+        when(jobGateRepository.markTerminationBarrierLifted(JOB_ID)).thenReturn(1);
         when(jobGateRepository.laterClosedGates(SINK_ID, SUBMITTER, JOB_ID))
                 .thenReturn(List.of(laterJobTermination));
         when(jobGateRepository.dataChunksAccountedFor(JOB_ID + 1)).thenReturn(false);
@@ -118,5 +129,128 @@ class JobGateBeanTest {
         jobGateBean.advanceGateState(terminationChunk, SINK_ID, SUBMITTER);
 
         verify(jobGateRepository, never()).openGate(laterJobTermination);
+    }
+
+    @Test
+    void liftBarrierAndRetrigger_opensDataChunksOfLaterJobs() {
+        when(jobGateRepository.markTerminationBarrierLifted(JOB_ID)).thenReturn(1);
+        when(jobGateRepository.laterClosedGates(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(List.of());
+
+        jobGateBean.liftBarrierAndRetrigger(JOB_ID, SINK_ID, SUBMITTER);
+
+        verify(jobGateRepository).openLaterDataChunkGates(SINK_ID, SUBMITTER, JOB_ID);
+    }
+
+    /**
+     * The guard is what lets the abort and recheck paths call this for any job at all. A job that
+     * held no barrier must not have its nullable flag rewritten, and must not pay for a scan of a
+     * scope it was never blocking.
+     */
+    @Test
+    void liftBarrierAndRetrigger_jobHeldNoBarrier_doesNothingFurther() {
+        when(jobGateRepository.markTerminationBarrierLifted(JOB_ID)).thenReturn(0);
+
+        jobGateBean.liftBarrierAndRetrigger(JOB_ID, SINK_ID, SUBMITTER);
+
+        verify(jobGateRepository, never()).advisoryLock(anyInt(), anyInt());
+        verify(jobGateRepository, never()).laterClosedGates(anyInt(), anyInt(), anyInt());
+        verify(jobGateRepository, never()).openLaterDataChunkGates(anyInt(), anyInt(), anyInt());
+    }
+
+    @Test
+    void closeDataChunkGateIfBlocked_stillBlocked_writesTheClosedRow() {
+        TrackingKey dataChunk = new TrackingKey(JOB_ID, 0);
+        when(jobGateRepository.hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(true);
+
+        jobGateBean.closeDataChunkGateIfBlocked(dataChunk, SINK_ID, SUBMITTER,
+                ChunkSchedulingStatus.READY_FOR_PROCESSING, Set.of("key"));
+
+        InOrder inOrder = inOrder(jobGateRepository);
+        inOrder.verify(jobGateRepository).advisoryLock(SINK_ID, SUBMITTER);
+        inOrder.verify(jobGateRepository).hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID);
+        inOrder.verify(jobGateRepository).upsertGateRow(dataChunk, SINK_ID, SUBMITTER,
+                ChunkSchedulingStatus.READY_FOR_PROCESSING, Set.of("key"), false, false);
+    }
+
+    /**
+     * The re-read under the lock is the whole point of the second evaluation: the barrier the
+     * unlocked pre-check saw may have been lifted since. An unwritten gate is an open gate, so
+     * declining here means writing nothing at all rather than writing {@code gate_open = TRUE}.
+     */
+    @Test
+    void closeDataChunkGateIfBlocked_barrierLiftedSincePreCheck_writesNothing() {
+        TrackingKey dataChunk = new TrackingKey(JOB_ID, 0);
+        when(jobGateRepository.hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(false);
+
+        jobGateBean.closeDataChunkGateIfBlocked(dataChunk, SINK_ID, SUBMITTER,
+                ChunkSchedulingStatus.READY_FOR_PROCESSING, Set.of("key"));
+
+        verify(jobGateRepository).advisoryLock(SINK_ID, SUBMITTER);
+        verify(jobGateRepository, never()).upsertGateRow(any(), anyInt(), anyInt(), any(), any(), anyBoolean(), anyBoolean());
+    }
+
+    @Test
+    void sweepClosedGates_terminationChunkWithUndeliveredDataChunks_staysClosed() {
+        TrackingKey terminationChunk = new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID);
+        when(jobGateRepository.closedGateScopes())
+                .thenReturn(List.of(new JobGateRepository.BarrierScope(SINK_ID, SUBMITTER)));
+        when(jobGateRepository.closedTerminationGates(SINK_ID, SUBMITTER)).thenReturn(List.of(terminationChunk));
+        when(jobGateRepository.hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(false);
+        when(jobGateRepository.hasUndeliveredDataChunks(JOB_ID)).thenReturn(true);
+
+        jobGateBean.sweepClosedGates();
+
+        verify(jobGateRepository).advisoryLock(SINK_ID, SUBMITTER);
+        verify(jobGateRepository).openDataChunkGates(SINK_ID, SUBMITTER);
+        verify(jobGateRepository, never()).openGate(terminationChunk);
+    }
+
+    /**
+     * The failure the sweep exists for: the delivered count was rolled back and is permanently
+     * short, so the gate has to open on the absence of data-chunk rows instead. A sweep that read
+     * {@code data_chunks_delivered} could not repair the one case it is there for, so this test
+     * fails on any implementation that does.
+     */
+    @Test
+    void sweepClosedGates_countWasLost_opensOnRowAbsenceAnyway() {
+        TrackingKey terminationChunk = new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID);
+        when(jobGateRepository.closedGateScopes())
+                .thenReturn(List.of(new JobGateRepository.BarrierScope(SINK_ID, SUBMITTER)));
+        when(jobGateRepository.closedTerminationGates(SINK_ID, SUBMITTER)).thenReturn(List.of(terminationChunk));
+        when(jobGateRepository.hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(false);
+        when(jobGateRepository.hasUndeliveredDataChunks(JOB_ID)).thenReturn(false);
+        when(jobGateRepository.dataChunksAccountedFor(JOB_ID)).thenReturn(false);
+
+        jobGateBean.sweepClosedGates();
+
+        verify(jobGateRepository).openGate(terminationChunk);
+        verify(jobGateRepository, never()).dataChunksAccountedFor(JOB_ID);
+    }
+
+    @Test
+    void sweepClosedGates_earlierBarrierStillStands_staysClosed() {
+        TrackingKey terminationChunk = new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID);
+        when(jobGateRepository.closedGateScopes())
+                .thenReturn(List.of(new JobGateRepository.BarrierScope(SINK_ID, SUBMITTER)));
+        when(jobGateRepository.closedTerminationGates(SINK_ID, SUBMITTER)).thenReturn(List.of(terminationChunk));
+        when(jobGateRepository.hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(true);
+
+        jobGateBean.sweepClosedGates();
+
+        verify(jobGateRepository, never()).openGate(terminationChunk);
+    }
+
+    @Test
+    void sweepUnliftedBarriers_liftsAndReTriggers() {
+        when(jobGateRepository.jobsWithUnliftedBarrierAndNoTerminationRow())
+                .thenReturn(List.of(new JobGateRepository.JobBarrier(JOB_ID, SINK_ID, SUBMITTER)));
+        when(jobGateRepository.markTerminationBarrierLifted(JOB_ID)).thenReturn(1);
+        when(jobGateRepository.laterClosedGates(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(List.of());
+
+        int lifted = jobGateBean.sweepUnliftedBarriers();
+
+        assertThat(lifted, is(1));
+        verify(jobGateRepository).markTerminationBarrierLifted(JOB_ID);
+        verify(jobGateRepository).openLaterDataChunkGates(SINK_ID, SUBMITTER, JOB_ID);
     }
 }

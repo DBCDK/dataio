@@ -53,6 +53,12 @@ public class JobStoreServiceConstants {
     public static final String FORCE_DEPENDENCY_TRACKING_RETRANSMIT_ID = "dependency/retransmit/{jobIds}";
     public static final String DEPENDENCY_CHECK_BLOCKED = "dependency/check_blocked";
     public static final String DEPENDENCY_RELOAD = "dependency/reload";
+    /**
+     * Runs the per-job gate sweep that {@code AdminBean.recheckBlocks} otherwise only runs hourly.
+     * The sweep is a recovery mechanism, so it has to be reachable when a gate is actually stranded
+     * rather than only at minute 10 of the next hour.
+     */
+    public static final String DEPENDENCY_GATE_SWEEP = "dependency/gate_sweep";
     public static final String DEPENDENCIES = "dependencies/{jobId}";
 
     public static final String SINK_STATUS = "status/sinks/{sinkId}";

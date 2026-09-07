@@ -370,7 +370,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      *
      * <p>
      * This is also where the job's per-job gate comes into existence, see
-     * docs/chunk-scheduling-redesign.md, "Barrier Chunks - Per-Job Gate", site B. Three writes
+     * docs/chunk-scheduling-redesign.md, "Barrier Chunks - Per-Job Gate". Three writes
      * belong in this one transaction, under the job row lock taken below and the barrier scope's
      * advisory lock:
      * </p>
@@ -493,8 +493,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         final boolean gateOpen =
                 jobGateRepository.dataChunksDelivered(jobId) >= dataChunksExpected
                         && !jobGateRepository.hasEarlierUndeliveredTermination(sinkId, submitter, jobId);
-        jobGateRepository.upsertTerminationRow(terminationTracker.getKey(), sinkId, submitter,
-                terminationTracker.getStatus(), terminationTracker.getMatchKeys(), gateOpen);
+        jobGateRepository.upsertGateRow(terminationTracker.getKey(), sinkId, submitter,
+                terminationTracker.getStatus(), terminationTracker.getMatchKeys(), true, gateOpen);
 
         return chunkEntity;
     }

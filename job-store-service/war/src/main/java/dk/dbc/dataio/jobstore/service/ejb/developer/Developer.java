@@ -57,7 +57,13 @@ public class Developer {
     @Inject
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
-
+    /**
+     * @param sinkType sink type the job is given, which decides whether it gets a termination chunk
+     *                 and whether its data chunks are gated behind an earlier job's barrier.
+     *                 Defaults to the type this endpoint has always built. The other half of the
+     *                 barrier scope, the submitter, needs no parameter: it is read from the
+     *                 {@code JobSpecification}, which the caller already supplies.
+     */
     @POST
     @Path(JobStoreServiceConstants.JOB_COLLECTION + "/developer/{recordsplitter}")
     @Consumes({MediaType.APPLICATION_JSON})
@@ -66,6 +72,7 @@ public class Developer {
     public Response addJobDeveloper(@Context UriInfo uriInfo,
                                     @PathParam("recordsplitter") RecordSplitter recordSplitter,
                                     @QueryParam("flowId") @DefaultValue("1") long flowId,
+                                    @QueryParam("sinkType") @DefaultValue("HIVE") SinkContent.SinkType sinkType,
                                     String jobInputStreamData) throws JSONBException, JobStoreException {
         LOGGER.info("JobInputStream: {}", jobInputStreamData);
         final JobInputStream jobInputStream;
@@ -75,7 +82,7 @@ public class Developer {
             jobInputStream = jsonbContext.unmarshall(jobInputStreamData, JobInputStream.class);
             Flow flow = new Flow(flowId, 1, new FlowContent("Passthrough", "Passthrough flow for developer endpoint"));
             Sink sink = new Sink(1, 1, new SinkContent("sink 1", "sinkqueue1",
-                    "descibe 1", SinkContent.SinkType.HIVE, null,
+                    "descibe 1", sinkType, null,
                     SinkContent.SequenceAnalysisOption.ID_ONLY));
 
             Submitter submitter = new Submitter(1, 1,

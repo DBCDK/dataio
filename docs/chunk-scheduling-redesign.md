@@ -650,7 +650,7 @@ private static final Set<SinkType> REQUIRES_TERMINATION_CHUNK =
 
 // Sink types whose job-end work is not scoped to its own job, so a later job's data
 // must not reach the sink until the earlier job's termination chunk is delivered.
-private static final Set<SinkType> REQUIRES_FULL_JOB_BARRIER = Set.of(TICKLE);
+private static final Set<SinkType> REQUIRES_FULL_WIDTH_BARRIER = Set.of(TICKLE);
 ```
 
 Kept in code next to `REQUIRES_TERMINATION_CHUNK` rather than added as a `SinkContent`
@@ -665,20 +665,87 @@ The toggle adds a third evaluation site, alongside A and B above:
 
 ```
 C. On data-chunk insert - scheduleChunk(chunk, job), only for a sink type in
-   REQUIRES_FULL_JOB_BARRIER:
+   REQUIRES_FULL_WIDTH_BARRIER, in its own transaction under the barrier-scope
+   advisory lock and under no job row lock at all:
 
-       INSERT the dependencytracking row with is_termination = FALSE and
-       gate_open = (no earlier job with the same submitter on this sink still has
-                    a termination chunk in dependencytracking)
+       if an earlier job with the same submitter on this sink still has an
+          unlifted termination barrier:
+
+           INSERT the dependencytracking row with is_termination = FALSE and
+           gate_open = FALSE
+
+       otherwise write nothing
 ```
+
+Two things the shape of that is deliberate about. It asks
+`job.termination_barrier_lifted` rather than whether a `dependencytracking` row is present, for
+the reason **Cross-job submitter barrier** gives above: row lifetime belongs to the MapStore until
+Phase 9, and a barrier that answers from presence reads a delivered chunk as still blocking for the
+whole delete delay. And it writes only to *close*. There is no such thing as writing
+`gate_open = TRUE` here, since an unwritten gate is already an open one, see **The read side: a
+missing row is an open gate** above. Site B is the exception that proves it: it has to create the
+row whichever way its verdict falls, because there may be no row otherwise.
 
 Insert time alone is enough on this path, and for a reason outside the gate: the jobqueue
 partitions jobs with the same submitter on the same sink strictly one at a time in job id
 order (`NQ_FIND_BY_SINK_AND_AVAILABLE_SUBMITTER`), which is the same `(sinkid, submitter)`
 scope the barrier uses. When job B's chunks are inserted, job A is fully partitioned, so
-A's termination row exists unless it has already been delivered. There is no window like
+A's barrier either stands or has already been lifted. There is no window like
 the one that forces site B to exist for a job's own gate. If that jobqueue invariant is
 ever relaxed, this site needs the same treatment the termination gate already has.
+
+**Which transaction site C runs in.** Sites A and B are each reached in a transaction opened for
+that one piece of work, so the lock *ordering* rule above is the whole of what they have to observe.
+Site C is not like that, and the difference decides its implementation.
+
+```
+PgJobStore.partitionNextJobForSinkIfAvailable   @Asynchronous, no tx annotation -> REQUIRED
+  +- handlePartitioning                          plain self-call, same transaction
+      +- self().partition                        @TransactionAttribute(SUPPORTS) -> joins it
+          +- partitionJobIntoChunksAndItems       private, same transaction
+          |    +- jobStoreRepository.createChunkEntity   REQUIRES_NEW  <- escapes it, per chunk
+          |    +- jobSchedulerBean.scheduleChunk         @EJB, REQUIRED -> joins it
+          +- jobSchedulerBean.markJobAsPartitioned       REQUIRES_NEW  <- site B, escapes it
+```
+
+The transaction `scheduleChunk` joins is open for the whole of the job's partitioning, which for a
+large tickle job is minutes. `createChunkEntity`'s own comment is the evidence: it is `REQUIRES_NEW`
+"to enable external visibility of job creation progress", which is only meaningful if an outer
+transaction is holding everything else invisible. `scheduleChunk` gets away with joining it today
+because it does no database work at all, handing the chunk to Hazelcast, which is not JTA-enlisted.
+
+Taking the advisory lock there would hold it for the whole of partitioning, and
+`markJobAsPartitioned` is `REQUIRES_NEW`, so site B would then ask for the same lock on a different
+connection and wait for a transaction that cannot commit until that call returns. **PostgreSQL sees
+no lock cycle, because the wait is on an EJB call rather than on a database lock, so nothing is
+detected and nothing times out.** It is an undetectable hang, not a deadlock, and it would hit every
+job on a full-width sink. Holding the lock that long would also block site A and the re-trigger for
+the deliveries of the job ahead, which run in the JAX-RS callback transaction with a sink waiting on
+the response.
+
+So the rule for site C is a boundary rather than an ordering: **it evaluates and writes in its own
+transaction, and takes no job row lock at all.** The lock is then held for one short transaction per
+closed chunk, and the row is committed by the time `scheduleChunk` returns rather than at the end of
+partitioning, so it is visible to dispatch for the whole window it is needed in. That the outer
+transaction holds no job row lock during the loop is not an assumption: site B takes
+`PESSIMISTIC_WRITE` on that job's row from a nested `REQUIRES_NEW` transaction today and does not
+hang.
+
+The barrier read can be split in two, which is what keeps the common case cheap. An unlocked read
+first, in the caller's transaction, and the lock and the write only if it says something is
+blocking. That is sound in one direction only, and it is the direction it is used in: a "nothing is
+blocking" answer cannot go stale into "blocking", since a barrier for an earlier job in this scope
+only comes into existence at that job's site B and the jobqueue finished partitioning it first. A
+"blocking" answer can go stale the other way, and that is precisely the answer that goes on to take
+the lock and read again. Note this depends on READ COMMITTED taking a fresh snapshot per statement;
+under REPEATABLE READ the read would be pinned to the opening snapshot of a transaction that spans
+the whole job.
+
+A single conditional statement, `INSERT ... SELECT ... WHERE EXISTS (barrier check) ON CONFLICT ...`,
+looks like it would remove the need for the lock and does not. One statement takes one snapshot at
+its start, so a re-trigger committing between that snapshot and the insert is still read as
+unlifted, while its `UPDATE` has already run and missed the not-yet-inserted row. Both decline,
+which is the same lost wakeup.
 
 The re-trigger widens to match. On removal of a termination chunk, for a full-width sink
 type, later same-submitter jobs need their data-chunk gates opened too:
@@ -691,16 +758,28 @@ UPDATE dependencytracking d
    AND NOT d.is_termination
    AND NOT EXISTS (SELECT 1
                      FROM dependencytracking e
+                     JOIN job j ON j.id = e.jobid
                     WHERE e.sinkid = d.sinkid
                       AND e.submitter = d.submitter
                       AND e.is_termination
-                      AND e.jobid < d.jobid)
+                      AND e.jobid < d.jobid
+                      AND j.termination_barrier_lifted IS FALSE)
 ```
 
 The `NOT EXISTS` is what keeps three or more queued jobs correct: delivering job A's
 termination chunk releases job B's data chunks, and job C's stay closed behind job B's
-still-present termination row. It is one probe of the partial
-`(sinkid, submitter, jobid) WHERE is_termination` index per candidate row.
+still unlifted barrier. It is one probe of the partial
+`(sinkid, submitter, jobid) WHERE is_termination` index per candidate row, plus a primary-key probe
+into `job`, and it joins `job` for the same reason site C's own predicate does.
+
+**The statement is run for every sink type, not only the full-width ones.** Only site C ever closes
+a data chunk's gate and it runs only for `REQUIRES_FULL_WIDTH_BARRIER`, so for any other sink type
+this matches nothing. Making it unconditional is what keeps the sink type out of the delivery path
+entirely: `chunkDeliveringDone` holds a `DependencyTracking` and would otherwise have to load a
+`JobEntity` per delivered termination chunk purely to ask what kind of sink it was, and the abort
+and recheck paths would each need the same. `REQUIRES_FULL_WIDTH_BARRIER` is therefore read in exactly
+one place, `scheduleChunk`. It also reopens a row closed by an earlier deployment, or by a sink
+whose type has since changed.
 
 **Direct-mode dispatch must filter on `gate_open` too**, not only order by the dispatch
 key. With termination width that mattered for one synthetic chunk per job. With full width
@@ -721,10 +800,48 @@ again. That is the same failure the flag exists to prevent, arriving by the abor
 the delivery path. It is also why the flag is named for the barrier rather than for delivery: an
 aborted termination chunk was never delivered, but its barrier is genuinely lifted.
 
+**The lift is guarded on `IS FALSE`, and the guard is not cosmetic.** These two call sites reach
+*any* job whose rows are being removed, not only the minority that hold a barrier. An unguarded
+`UPDATE job SET termination_barrier_lifted = TRUE WHERE id = ?` would rewrite `NULL` to `TRUE` on
+every job that never had a termination chunk, collapsing "never raised a barrier" into "raised one,
+now lifted" and undoing the whole point of the nullable column. Guarded, the statement's row count
+also answers whether this job was holding a barrier at all, so the re-trigger and its scan can be
+skipped entirely when it was not.
+
 Today the equivalent case is stale keys left in a later job's `waitingOn`, and the hourly
-`recheckBlocks` sweep is what releases them, so the gate belongs in that same sweep: open any gate
-that is closed with no earlier unlifted termination barrier. That sweep is also the backstop for
-the race below.
+`recheckBlocks` sweep is what releases them, so the gate belongs in that same sweep. That sweep is
+also the backstop for the race below, and it is not an afterthought to the width change: without it,
+widening the gate strands jobs in two reachable cases, so the two halves are one mechanism.
+
+Four requirements, and the third is the one that is easy to get wrong:
+
+1. **Open a closed gate when no earlier job in its scope holds an unlifted barrier.** For a data
+   chunk that is the whole condition, since a data chunk has no counter of its own.
+2. **For a termination chunk, additionally require the job's own data chunks to be delivered.**
+   Opened on the earlier barrier alone it would be dispatched while its own job's data chunks were
+   still in flight, which is what the per-job gate exists to prevent in the first place.
+3. **Derive "its own data chunks are delivered" from state that survives a rollback, never from
+   `data_chunks_delivered`.** `chunkDeliveringDone` removes the chunk's map entry *before* the gate
+   work and outside the JTA transaction, so anything throwing afterwards rolls the increment back
+   while the removal stands, and on redelivery `chunkDeliveringDone` finds no tracker and returns at
+   once. The counter is then permanently one short with no delivery left to arrive. A sweep reading
+   that counter cannot repair the one failure it is there for. The absence of `dependencytracking`
+   rows without `is_termination` for the job is the reading that survives, since the removal is the
+   half that stood; the DELIVERING phase counters on `job.state` are the alternative, committed by
+   `addItemDelivered` in its own `REQUIRES_NEW` transaction before the window opens.
+4. **Lift the barrier of a job standing with `termination_barrier_lifted = FALSE` and no
+   `is_termination` row**, and run the re-trigger afterwards. This is the same loss on the
+   termination branch, where the flag is never written and every later job on that submitter stalls.
+   It also catches a job whose rows were dropped by a path that could not resolve its scope.
+
+The window this covers opens when [Phase 1](#phase-1--gate-and-ordered-dispatch-job-store-service)
+starts filtering dispatch on `gate_open`, and closes at Phase 9, where the row removal becomes
+transactional. The sweep has to cover the interval between the two.
+
+The sweep needs no knowledge of sink type: a closed data-chunk row can only have been written by
+site C, which runs only for a full-width sink, so its existence is the answer. It works per barrier
+scope, taking each scope's advisory lock, so it never opens a gate on a barrier reading that another
+transaction is in the middle of changing.
 
 **Lost-wakeup race between site C and the re-trigger.** Site C reads "an earlier
 termination row exists" while another transaction is removing that row and running the
@@ -1932,15 +2049,20 @@ Two ordering constraints shape the sequence:
   Evaluate the gate at that insert as well as in `chunkDeliveringDone`. All three follow
   from partitioning and delivery overlapping, see [Barrier Chunks](
   #barrier-chunks--per-job-gate)
-- Add `REQUIRES_FULL_JOB_BARRIER` (`TICKLE` only) and gate the data chunks of a later
+- Add `REQUIRES_FULL_WIDTH_BARRIER` (`TICKLE` only) and gate the data chunks of a later
   same-submitter job on the same sink behind an earlier undelivered termination chunk for
   those sink types, widen the re-trigger to open them, and re-trigger on every removal of
   a termination row including the abort path. Inert until Phase 9, because `waitingOn`
   still enforces full width for every sink type until then, but required before it. No
   schema change, the `gate_open` column and both indexes from DI-3018 already carry it.
   See [Barrier Width](#barrier-width--per-sink-type-job-isolation)
-- Extend the hourly `recheckBlocks` sweep to open a gate closed with no earlier termination row
-  present (**DI-3076**, alongside the abort path it also has to cover)
+- **DI-3076** Extend the hourly `recheckBlocks` sweep to open a gate closed with no earlier
+  *unlifted termination barrier*, requiring for a termination chunk that its own job's data chunks
+  are delivered, derived from state that survives a rollback rather than from
+  `data_chunks_delivered`, and lift the barrier of a job left with one and no `is_termination` row.
+  Lands as one change together with the width toggle, site C, the widened re-trigger and the abort
+  path above: the sweep is what keeps widening the gate from stranding jobs, so splitting the two
+  would open that gap deliberately. See [Barrier Width](#barrier-width--per-sink-type-job-isolation)
 - **DI-3020** Update the bulk-scheduler ordering query to
   `(priority DESC, jobid ASC, chunkid ASC)` with the `gate_open` filter, and filter on `gate_open`
   in the direct dispatch path as well, parking a held-back chunk in `SCHEDULED_FOR_DELIVERY` rather
@@ -2060,7 +2182,7 @@ Two ordering constraints shape the sequence:
 
 Precondition: all sinks are live on the per-item + watermark protocol (Phase 8
 complete) — see ordering constraint 1 above. Second precondition:
-`REQUIRES_FULL_JOB_BARRIER` is live and verified, since `waitingOn` is what enforces
+`REQUIRES_FULL_WIDTH_BARRIER` is live and verified, since `waitingOn` is what enforces
 full barrier width until this phase deletes it, see [Barrier Width](
 #barrier-width--per-sink-type-job-isolation).
 
@@ -2137,8 +2259,8 @@ full barrier width until this phase deletes it, see [Barrier Width](
 | Same record, priority inversion | BLOCKED guarantees serial delivery | Broker delivers higher-priority item first; watermark check skips stale item |
 | Termination chunk dispatched before all data chunks delivered | Impossible (BLOCKED) | Per-job counter gate: termination held until all `chunkDeliveringDone()` fired |
 | Cross-job termination ordering (same submitter, same sink) | Termination BLOCKED on prior-job termination | Gate checks no earlier same-submitter termination pending |
-| Cross-job data ordering (same submitter, same sink) | All of job B BLOCKED on job A's termination | Not held, except for sink types in `REQUIRES_FULL_JOB_BARRIER` |
-| Overlapping `TOTAL` batches in one tickle dataset | Impossible: full-width barrier holds job B's data chunks | `REQUIRES_FULL_JOB_BARRIER` gates job B's data chunks on job A's termination chunk |
+| Cross-job data ordering (same submitter, same sink) | All of job B BLOCKED on job A's termination | Not held, except for sink types in `REQUIRES_FULL_WIDTH_BARRIER` |
+| Overlapping `TOTAL` batches in one tickle dataset | Impossible: full-width barrier holds job B's data chunks | `REQUIRES_FULL_WIDTH_BARRIER` gates job B's data chunks on job A's termination chunk |
 | Exact retransmit (stale recovery) | `addChunkIgnoreDuplicates` | `incoming == watermark` → always deliver (idempotent re-delivery) |
 | Pod crash, stale watermark after rebalance | Hazelcast MapStore reloads from PostgreSQL | No local cache to become stale; `group-rebalance-pause-dispatch` ensures watermark is current before any post-rebalance dispatch |
 | Live head/section before volume delivery | Dependency tracking + barrier | Constant hierarchy group serialises all hierarchy records; priority override ensures head chunk dispatched first |

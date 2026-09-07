@@ -94,10 +94,12 @@ public class JobsBean {
 
     @EJB
     SinkMessageProducerBean sinkMessageProducerBean;
+
     @EJB
     JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
 
-
+    @EJB
+    JobGateBean jobGateBean;
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
 
@@ -113,9 +115,30 @@ public class JobsBean {
             jobProcessorMessageProducerBean.sendAbort(job);
             sinkMessageProducerBean.sendAbort(job);
             dependencyTrackingService.removeJobId(job.getId());
+            // An aborted job's termination chunk is never delivered, but its barrier is genuinely
+            // lifted, and removing the rows above takes away the only thing a lift would have fired
+            // on. Skipping this holds every later job on the same submitter and sink permanently,
+            // since the re-trigger is edge triggered and the edge has already passed.
+            liftBarrierImposedBy(job);
         }
         LOGGER.info("Abort job {} and removed its dependencies", jobId);
         return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(jobs.stream().findFirst().orElse(null))).build();
+    }
+
+    /**
+     * Lifts the barrier an aborted job imposes on later jobs, and re-triggers those behind it.
+     * <p>
+     * A no-op single update for a job that never had a termination chunk, which is the majority, see
+     * {@link JobGateRepository#markTerminationBarrierLifted}.
+     *
+     * @param job job being aborted
+     */
+    private void liftBarrierImposedBy(JobEntity job) {
+        if (job.getCachedSink() == null) {
+            return;
+        }
+        jobGateBean.liftBarrierAndRetrigger(job.getId(), job.getCachedSink().getSink().getId(),
+                (int) job.getSpecification().getSubmitterId());
     }
 
     private void removeFromQueues(JobEntity job) {

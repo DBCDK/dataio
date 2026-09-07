@@ -14,6 +14,7 @@ import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
+import dk.dbc.dataio.jobstore.service.ejb.JobGateBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -76,6 +77,9 @@ public class AdminBean {
     JobSchedulerBean jobSchedulerBean;
     @EJB
     PgJobStoreRepository jobStoreRepository;
+    @EJB
+    JobGateBean jobGateBean;
+
     private Instant nextJobCheckFrom = null;
 
     @EJB
@@ -131,10 +135,45 @@ public class AdminBean {
             if(entity == null || entity.getTimeOfCompletion() != null) {
                 dependencyTrackingService.removeJobId(jobId);
                 LOGGER.info("Trackers for finished Job id: {} was removed", jobId);
+                // Dropping the rows takes away the termination row a barrier lift would have fired
+                // on, so the lift has to happen here. Without it the removed job reads as still
+                // blocking for the whole of the MapStore's delete delay and every later job on its
+                // submitter is held behind a barrier nothing can lift. A job with no barrier is a
+                // single no-op update, see JobGateRepository#markTerminationBarrierLifted.
+                if (entity != null) {
+                    liftBarrierImposedBy(entity);
+                }
             }
         }
         Set<TrackingKey> keys = dependencyTrackingService.recheckBlocks();
         if(!keys.isEmpty()) LOGGER.info("Hourly blocked check has released {}", keys);
+
+        // Barriers first, gates second: lifting a barrier is what makes the gates queued behind it
+        // openable in the same pass. A job whose entity was already gone above is picked up here,
+        // since this reads the scope from the job row rather than from the caller.
+        int lifted = jobGateBean.sweepUnliftedBarriers();
+        int opened = jobGateBean.sweepClosedGates();
+        if (lifted > 0 || opened > 0) {
+            LOGGER.info("Hourly gate sweep lifted {} barriers and opened {} gates", lifted, opened);
+        }
+    }
+
+    /**
+     * Lifts the barrier imposed by a job whose dependency tracking rows have just been removed,
+     * and re-triggers the jobs queued behind it.
+     * <p>
+     * In its own transaction, so this method's advisory lock is released here rather than at the end
+     * of the recheck. The gate sweep further down locks the same scopes from a nested transaction,
+     * and would wait forever on one this transaction was still holding.
+     *
+     * @param job job whose rows were removed
+     */
+    private void liftBarrierImposedBy(JobEntity job) {
+        if (job.getCachedSink() == null) {
+            return;
+        }
+        jobGateBean.liftBarrierForRemovedJob(job.getId(), job.getCachedSink().getSink().getId(),
+                (int) job.getSpecification().getSubmitterId());
     }
 
     @Schedule(minute = "15", hour = "*", persistent = false)
@@ -182,6 +221,31 @@ public class AdminBean {
     @Path(JobStoreServiceConstants.DEPENDENCY_CHECK_BLOCKED)
     public Response checkBlocked() throws JSONBException {
         return Response.ok(jsonbContext.marshall(dependencyTrackingService.recheckBlocks())).build();
+    }
+
+    /**
+     * Runs the per-job gate sweep on demand, which {@link #recheckBlocks} otherwise only runs
+     * hourly.
+     * <p>
+     * Not the same thing as {@link #checkBlocked}, which releases chunks left {@code BLOCKED} on
+     * dependencies that no longer exist. This opens gates closed behind a barrier that is gone and
+     * lifts the barrier of a job whose termination row was removed without one, which are the two
+     * ways a job can be left unable to complete with nothing edge triggered left to fire on.
+     * <p>
+     * Ordered barriers before gates, as {@link #recheckBlocks} orders it, since lifting a barrier is
+     * what makes the gates queued behind it openable in the same pass.
+     *
+     * @return the number of barriers lifted and gates opened
+     */
+    @POST
+    @Path(JobStoreServiceConstants.DEPENDENCY_GATE_SWEEP)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response gateSweep() throws JSONBException {
+        int lifted = jobGateBean.sweepUnliftedBarriers();
+        int opened = jobGateBean.sweepClosedGates();
+        LOGGER.info("Requested gate sweep lifted {} barriers and opened {} gates", lifted, opened);
+        return Response.ok(jsonbContext.marshall(
+                Map.of("barriersLifted", lifted, "gatesOpened", opened))).build();
     }
 
     @GET

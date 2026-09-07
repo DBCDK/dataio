@@ -29,6 +29,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -59,8 +60,8 @@ public class JobGateIT extends AbstractJobStoreIT {
         newPersistedChunkEntity(new ChunkEntity.Key(key.getChunkId(), key.getJobId()));
         DependencyTracking tracker = new DependencyTracking(key, SINK_ID, (int) SUBMITTER, "" + SUBMITTER, Set.of());
 
-        persistenceContext.run(() -> newJobGateRepository().upsertTerminationRow(
-                key, SINK_ID, (int) SUBMITTER, tracker.getStatus(), tracker.getMatchKeys(), false));
+        persistenceContext.run(() -> newJobGateRepository().upsertGateRow(
+                key, SINK_ID, (int) SUBMITTER, tracker.getStatus(), tracker.getMatchKeys(), true, false));
 
         new DependencyTrackingStore(datasource).store(key, tracker.setStatus(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY));
 
@@ -403,6 +404,82 @@ public class JobGateIT extends AbstractJobStoreIT {
 
         assertThat("earlier barrier lifted", terminationBarrierLifted(earlier.getId()), is(true));
         assertThat("later job's gate ends open", gateOpen(new TrackingKey(later.getId(), 1)), is(true));
+    }
+
+    /**
+     * Two writers race for one data chunk's gate: the close that would shut it, and the re-trigger
+     * that would open it because the job ahead has just finished. The advisory lock is what makes
+     * the outcome safe whichever wins, and this is the test for that.
+     * <p>
+     * Unlocked they can miss each other, in one direction only. The close reads the barrier and sees
+     * it standing. The re-trigger then commits its lift and scans for closed rows to open, finding
+     * none, because the close has not inserted its row yet. The close then writes that row. Nothing
+     * will ever look at it again, so the gate is not opened late, it is never opened at all.
+     * <p>
+     * The test holds the lock itself and starts both writers behind it, so neither can decide until
+     * the lock is released. Which one then acquires it first is left to PostgreSQL, because the gate
+     * has to end up open either way.
+     * <p>
+     * The two outcomes differ only in what they leave behind. Close first: it sees a barrier that is
+     * still standing, writes the closed row, and the re-trigger's scan finds and opens it.
+     * Re-trigger first: the close re-reads a barrier that is now lifted and writes nothing, and an
+     * absent row is an open gate.
+     */
+    @org.junit.Test
+    public void dataChunkCloseAgainstTheReTriggerOfAnEarlierJob_gateEndsUpOpen() throws Exception {
+        JobEntity earlier = newPersistedTerminationJob(SUBMITTER, 1);
+        markJobAsPartitioned(earlier);
+        deliverDataChunk(earlier.getId(), 0);
+        assertThat("earlier job still blocks", terminationBarrierLifted(earlier.getId()), is(false));
+
+        JobEntity later = newPersistedTerminationJob(SUBMITTER, 1);
+        TrackingKey laterDataChunk = new TrackingKey(later.getId(), 0);
+        // dependencytracking (jobid, chunkid) is a foreign key into chunk, and the partitioning loop
+        // has already committed the chunk row by the time the gate is written.
+        newPersistedChunkEntity(new ChunkEntity.Key(laterDataChunk.getChunkId(), laterDataChunk.getJobId()));
+
+        EntityManager lockEm = entityManager.getEntityManagerFactory().createEntityManager();
+        EntityManager closeEm = entityManager.getEntityManagerFactory().createEntityManager();
+        EntityManager reTriggerEm = entityManager.getEntityManagerFactory().createEntityManager();
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            // Held for the whole race, so neither site can decide until it is released.
+            lockEm.getTransaction().begin();
+            new JobGateRepository().withEntityManager(lockEm).advisoryLock(SINK_ID, (int) SUBMITTER);
+
+            JobGateBean closeGate = new JobGateBean(new JobGateRepository().withEntityManager(closeEm));
+            Future<?> close = executor.submit(() -> runInTransaction(closeEm, () -> {
+                closeGate.closeDataChunkGateIfBlocked(laterDataChunk, SINK_ID, (int) SUBMITTER,
+                        ChunkSchedulingStatus.READY_FOR_PROCESSING, Set.of());
+                return null;
+            }));
+            JobGateBean reTriggerGate = new JobGateBean(new JobGateRepository().withEntityManager(reTriggerEm));
+            Future<?> reTrigger = executor.submit(() -> runInTransaction(reTriggerEm, () -> {
+                reTriggerGate.advanceGateState(new TrackingKey(earlier.getId(), 1), SINK_ID, (int) SUBMITTER);
+                return null;
+            }));
+
+            awaitAdvisoryLockWaiters(2);
+            assertThat("the close is still waiting", close.isDone(), is(false));
+            assertThat("the re-trigger is still waiting", reTrigger.isDone(), is(false));
+
+            lockEm.getTransaction().commit();
+            close.get(30, TimeUnit.SECONDS);
+            reTrigger.get(30, TimeUnit.SECONDS);
+        } finally {
+            if (lockEm.getTransaction().isActive()) {
+                lockEm.getTransaction().rollback();
+            }
+            executor.shutdownNow();
+            executor.awaitTermination(30, TimeUnit.SECONDS);
+            lockEm.close();
+            closeEm.close();
+            reTriggerEm.close();
+        }
+
+        assertThat("earlier barrier lifted", terminationBarrierLifted(earlier.getId()), is(true));
+        assertThat("the later job's data chunk is not left closed, whichever site won the lock",
+                gateOpen(laterDataChunk), is(not(false)));
     }
 
     /**

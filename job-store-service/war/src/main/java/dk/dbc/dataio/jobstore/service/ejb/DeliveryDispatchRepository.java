@@ -73,7 +73,7 @@ public class DeliveryDispatchRepository extends RepositoryBase {
      * <p>
      * <b>An unwritten gate is an open gate.</b> {@code gate_open} is {@code NOT NULL DEFAULT TRUE}
      * and only a writer meaning to close a gate touches the column, see
-     * {@link JobGateRepository#upsertTerminationRow}, so the absence of a closing write is the
+     * {@link JobGateRepository#upsertGateRow}, so the absence of a closing write is the
      * answer and not a missing one. A chunk with no row at all answers false for the same reason:
      * nothing has closed its gate.
      */

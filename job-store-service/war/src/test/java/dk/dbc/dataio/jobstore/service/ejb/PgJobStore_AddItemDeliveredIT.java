@@ -180,6 +180,32 @@ public class PgJobStore_AddItemDeliveredIT extends AbstractJobStoreIT {
         assertThat("no watermark row", findWatermark(), is(nullValue()));
     }
 
+    /**
+     * An item a sink chose not to send counts as ignored and claims no watermark. Both
+     * halves matter: the counter keeps the meaning the chunk-level path gave it, and the
+     * absent row is what lets a genuinely older version of the record still be delivered
+     * rather than judged stale against a delivery that never happened.
+     */
+    @org.junit.Test
+    public void addItemDelivered_ignoredStatus_countsAsIgnoredAndDoesNotUpsertWatermark() throws JobStoreException {
+        JobEntity job = newJob(1);
+        ChunkEntity chunk = newChunk(job.getId(), 1);
+        ItemEntity item = newDeliverableItem(job.getId(), chunk.getKey().getId(), (short) 0);
+        PgJobStore pgJobStore = newPgJobStore();
+
+        persistenceContext.run(() ->
+                pgJobStore.addItemDelivered(job.getId(), chunk.getKey().getId(), item.getKey().getId(),
+                        new ItemDeliveryResult(SINK_ID, RECORD_KEY, Status.IGNORED,
+                                ChunkItem.ignoredChunkItem().withId(item.getKey().getId()).withData("data"))));
+
+        ItemEntity refreshedItem = entityManager.find(ItemEntity.class, item.getKey());
+        assertThat("item ignored in delivering",
+                refreshedItem.getState().getPhase(DELIVERING).getIgnored(), is(1));
+        assertThat("item succeeded in delivering",
+                refreshedItem.getState().getPhase(DELIVERING).getSucceeded(), is(0));
+        assertThat("no watermark row", findWatermark(), is(nullValue()));
+    }
+
     // ******************** jobs with a termination chunk ********************
     //
     // A job with a termination chunk has numberOfItems == PARTITIONING count + 1,

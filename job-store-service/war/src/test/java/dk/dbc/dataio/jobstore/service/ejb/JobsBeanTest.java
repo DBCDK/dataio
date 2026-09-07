@@ -733,10 +733,10 @@ public class JobsBeanTest extends HazelcastTestSupport {
         ChunkItem chunkItem = ChunkItem.ignoredChunkItem().withId(ITEM_ID).withData("data");
         when(jobsBean.jobStore.addItemDelivered(
                 eq(JOB_ID), eq(CHUNK_ID), eq(ITEM_ID),
-                eq(new ItemDeliveryResult(42L, null, Status.SKIPPED, chunkItem))))
+                eq(new ItemDeliveryResult(42L, null, Status.SUPERSEDED, chunkItem))))
                 .thenReturn(false);
 
-        String requestBody = jsonbContext.marshall(new ItemDeliveryResult(42L, null, Status.SKIPPED, chunkItem));
+        String requestBody = jsonbContext.marshall(new ItemDeliveryResult(42L, null, Status.SUPERSEDED, chunkItem));
         Response response = jobsBean.addItemDelivered(requestBody, JOB_ID, CHUNK_ID, ITEM_ID);
 
         assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));

@@ -25,8 +25,8 @@ import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.status;
  * {@link #deliverItem(ConsumedMessage, ChunkItem)}
  * (see docs/chunk-scheduling-redesign.md).
  * <p>
- * The sequence per item is: read the watermark, skip the item when an equal-or-newer
- * version of the same record has already been delivered, deliver, report the result, and
+ * The sequence per item is: read the watermark, skip the item when a newer version of the
+ * same record has already been delivered, deliver, report the result, and
  * only then let the JMS session commit. Reporting before the commit is what makes a crash
  * between the two harmless: the message is redelivered and the idempotency guard on the
  * report endpoint absorbs the duplicate.
@@ -86,8 +86,11 @@ public abstract class SinkMessageConsumerAdapter extends MessageConsumerAdapter 
     }
 
     /**
-     * Delivers the item unless the watermark row it belongs to already names an
-     * equal-or-newer version of the same record
+     * Delivers the item unless the watermark row it belongs to already names a newer
+     * version of the same record
+     * <p>
+     * A watermark equal to the incoming item is an exact retransmit rather than a
+     * supersession, and takes the ordinary delivery path.
      *
      * @param recordKey watermark key of the item, or null when no watermark row applies to
      *                  it, in which case the item is delivered unconditionally
@@ -100,7 +103,7 @@ public abstract class SinkMessageConsumerAdapter extends MessageConsumerAdapter 
         }
         Watermark delivered = getWatermark(sinkId, recordKey);
         if (delivered != null && incoming.compareTo(delivered) < 0) {
-            return ItemDeliveryResult.of(ItemDeliveryResult.Status.SKIPPED,
+            return ItemDeliveryResult.of(ItemDeliveryResult.Status.SUPERSEDED,
                     supersededItem(item, incoming, delivered));
         }
         return deliver(message, item);
@@ -114,6 +117,15 @@ public abstract class SinkMessageConsumerAdapter extends MessageConsumerAdapter 
      * will not recover from on its own must be returned as
      * {@link ItemDeliveryResult.Status#FAILED} rather than thrown, or the item is retried
      * for as long as the broker allows.
+     * <p>
+     * Three of the four statuses are the responsibility of the sink implementation,
+     * and the choice decides how job-store counts the item:
+     * {@link ItemDeliveryResult.Status#DELIVERED} for an item sent to the target,
+     * {@link ItemDeliveryResult.Status#IGNORED} for one there was nothing to send for,
+     * and {@code FAILED} as above.
+     * {@link ItemDeliveryResult.Status#SUPERSEDED} is this class's to return and not an
+     * implementation's, since a sink does not read the watermark and so cannot detect
+     * supersession.
      *
      * @param message message carrying the item, for the sinks reading their own headers
      *                off it

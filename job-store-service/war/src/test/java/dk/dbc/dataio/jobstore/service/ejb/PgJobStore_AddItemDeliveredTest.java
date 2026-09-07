@@ -109,6 +109,40 @@ public class PgJobStore_AddItemDeliveredTest extends PgJobStoreBaseTest {
         verify(entityManager, never()).createNativeQuery(anyString());
     }
 
+    /**
+     * The verdict feeds the counters, not the outcome item's status, so a sink reporting an
+     * item it never sent has to say IGNORED for the item to be counted as ignored the way
+     * the chunk-level path counted it, and for the record's watermark to stay where it is.
+     * Reporting DELIVERED with an IGNORE item instead counts as succeeded and claims a
+     * delivery that never happened.
+     */
+    @org.junit.Test
+    public void addItemDelivered_ignored_countsAsIgnoredAndLeavesWatermarkUntouched() throws JobStoreException {
+        ItemEntity itemEntity = getItemEntity();
+        ChunkEntity chunkEntity = getChunkEntity(1);
+        JobEntity jobEntity = buildJobEntity(1);
+        mockNativeQuery();
+
+        when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
+        when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class), eq(PESSIMISTIC_WRITE))).thenReturn(itemEntity);
+        when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
+
+        PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        pgJobStore.addItemDelivered(JOB_ID, CHUNK_ID, ITEM_ID, new ItemDeliveryResult(
+                SINK_ID, RECORD_KEY, Status.IGNORED, ChunkItem.ignoredChunkItem().withId(ITEM_ID)));
+
+        assertThat("item ignored in delivering",
+                itemEntity.getState().getPhase(DELIVERING).getIgnored(), is(1));
+        assertThat("item succeeded in delivering",
+                itemEntity.getState().getPhase(DELIVERING).getSucceeded(), is(0));
+        assertThat("chunk ignored in delivering",
+                chunkEntity.getState().getPhase(DELIVERING).getIgnored(), is(1));
+        assertThat("job ignored in delivering",
+                jobEntity.getState().getPhase(DELIVERING).getIgnored(), is(1));
+        verify(entityManager, never()).createNativeQuery(anyString());
+    }
+
     @org.junit.Test
     public void addItemDelivered_terminationItemFailed_marksJobFatalError() throws JobStoreException {
         ItemEntity itemEntity = getItemEntity();

@@ -90,7 +90,7 @@ class SinkMessageConsumerAdapterTest {
         assertThat("item not delivered", sink.delivered, is(nullValue()));
 
         ItemDeliveryResult result = reportedResult();
-        assertThat("reported status", result.status(), is(Status.SKIPPED));
+        assertThat("reported status", result.status(), is(Status.SUPERSEDED));
         assertThat("the skipped item still names its watermark row", result.recordKey(), is(RECORD_KEY));
         assertThat("outcome item id", result.chunkItem().getId(), is((long) ITEM_ID));
         assertThat("outcome item status", result.chunkItem().getStatus(), is(ChunkItem.Status.IGNORE));

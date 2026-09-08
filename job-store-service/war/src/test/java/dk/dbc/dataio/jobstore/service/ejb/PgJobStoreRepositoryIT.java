@@ -37,7 +37,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Set;
 
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.commons.types.ChunkItem.Type.JOB_END;
@@ -426,7 +425,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
         // When...
         final DependencyTracking terminationTracker = new DependencyTracking(
-                new TrackingKey(jobId, chunkId), sinkId, submitter, String.valueOf(submitter), Set.of());
+                new TrackingKey(jobId, chunkId), sinkId, submitter);
         final ChunkEntity chunkEntity = persistenceContext.run(() -> pgJobStoreRepository.createJobTerminationChunkEntity(
                 jobId, chunkId, TEST_FILE_NAME, SUCCESS, chunkId, terminationTracker));
 

@@ -86,7 +86,7 @@ public class DependencyTrackingStoreTest implements PostgresContainerJPAUtils {
         trackingStore.delete(Trackers.TRACKER_1_0.key());
         trackingStore.store(Trackers.TRACKER_1_0.key(), dt);
         assertEquals(dt, trackingStore.load(dt.getKey()), "Loaded tracker should be equal to the stored");
-        dt.setStatus(ChunkSchedulingStatus.BLOCKED).setPriority(5);
+        dt.setStatus(ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY).setPriority(5);
         trackingStore.store(dt.getKey(), dt);
         assertEquals(dt, trackingStore.load(dt.getKey()), "Store should allow status and priority to be updated");
     }
@@ -98,7 +98,7 @@ public class DependencyTrackingStoreTest implements PostgresContainerJPAUtils {
         trackingStore.deleteAll(map.keySet());
         trackingStore.storeAll(map);
         assertEquals(map, trackingStore.loadAll(map.keySet()), "Loaded trackers be equal to what we stored");
-        map.get(Trackers.TRACKER_1_0.key()).setStatus(ChunkSchedulingStatus.BLOCKED).setPriority(1).setWaitingOn(Set.of());
+        map.get(Trackers.TRACKER_1_0.key()).setStatus(ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY).setPriority(1);
         trackingStore.storeAll(map);
         assertEquals(map, trackingStore.loadAll(map.keySet()), "Existing entries should be updated");
     }
@@ -108,10 +108,9 @@ public class DependencyTrackingStoreTest implements PostgresContainerJPAUtils {
     }
 
     private enum Trackers {
-        TRACKER_1_0(() -> new DependencyTracking(new TrackingKey(1, 0), 0, 123456, Set.of("KK2", "K0", "C0"))
+        TRACKER_1_0(() -> new DependencyTracking(new TrackingKey(1, 0), 0, 123456)
                 .setStatus(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING)
-                .setPriority(4)
-                .setWaitingOn(Set.of(new TrackingKey(3, 0)))),
+                .setPriority(4)),
         TRACKERS_2_1(() -> new DependencyTracking(new TrackingKey(2, 1), 0, 0));
 
         public static Map<TrackingKey, DependencyTracking> getMap() {

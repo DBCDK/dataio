@@ -2,7 +2,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
-import java.util.Set;
 
 /**
  * The per-job gate's queries against {@code job} and {@code dependencytracking}.
@@ -46,7 +44,6 @@ import java.util.Set;
 @Stateless
 public class JobGateRepository extends RepositoryBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobGateRepository.class);
-    private static final StringSetConverter MATCH_KEYS_CONVERTER = new StringSetConverter();
 
     /**
      * "No job earlier than this row's still holds a barrier on this row's scope."
@@ -136,8 +133,7 @@ public class JobGateRepository extends RepositoryBase {
      * Creating the row means supplying more than the gate columns. {@code status} and
      * {@code sinkid} are NOT NULL with no default, and {@code submitter} is what the cross-job
      * barrier reads. The rest take defaults or nulls, since the scheduler writes them as the chunk
-     * advances. {@code matchkeys} is supplied for the {@code waitingOn} barrier, which reads it
-     * after a restart.
+     * advances.
      * <p>
      * Two writers reach this: {@link PgJobStoreRepository#createJobTerminationChunkEntity} inserts
      * the termination chunk's row, and {@link JobGateBean#closeDataChunkGateIfBlocked} inserts a
@@ -149,26 +145,24 @@ public class JobGateRepository extends RepositoryBase {
      * @param sinkId        sink the chunk is destined for
      * @param submitter     submitter the barrier is scoped to
      * @param status        status the chunk enters dependency tracking with
-     * @param matchKeys     the chunk's match keys, carrying its barrier key where it has one
      * @param isTermination true if the chunk is its job's termination chunk
      * @param gateOpen      true only if this chunk may be dispatched right away
      */
     public void upsertGateRow(TrackingKey key, int sinkId, int submitter, ChunkSchedulingStatus status,
-                              Set<String> matchKeys, boolean isTermination, boolean gateOpen) {
+                              boolean isTermination, boolean gateOpen) {
         entityManager.createNativeQuery(
                         "INSERT INTO dependencytracking " +
-                                "       (jobid, chunkid, sinkid, status, matchkeys, submitter, is_termination, gate_open) " +
-                                "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) " +
+                                "       (jobid, chunkid, sinkid, status, submitter, is_termination, gate_open) " +
+                                "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7) " +
                                 "ON CONFLICT ON CONSTRAINT dependencytracking_pkey DO UPDATE " +
                                 "  SET is_termination = excluded.is_termination, gate_open = excluded.gate_open")
                 .setParameter(1, key.getJobId())
                 .setParameter(2, key.getChunkId())
                 .setParameter(3, sinkId)
                 .setParameter(4, status.value)
-                .setParameter(5, MATCH_KEYS_CONVERTER.convertToDatabaseColumn(matchKeys))
-                .setParameter(6, submitter)
-                .setParameter(7, isTermination)
-                .setParameter(8, gateOpen)
+                .setParameter(5, submitter)
+                .setParameter(6, isTermination)
+                .setParameter(7, gateOpen)
                 .executeUpdate();
     }
 

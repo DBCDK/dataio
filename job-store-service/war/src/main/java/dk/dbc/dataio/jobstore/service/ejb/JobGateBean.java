@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.OptionalInt;
-import java.util.Set;
 
 /**
  * Owns the per-job gate, the state that decides whether a chunk may be delivered, and the writes
@@ -50,10 +49,9 @@ import java.util.Set;
  * No transaction may wait for a job row while holding the advisory lock. That is what rules out
  * the cycle, and it is not academic: a job's last data chunk and its termination chunk can be
  * acknowledged concurrently, and the two would then hold and want the same job row and the same
- * barrier scope in opposite orders. Deliveries within a job are not ordered, because
- * {@code optimizeDependencies} prunes the termination chunk's {@code waitingOn} down to the chunks
- * that transitively cover the rest, so it can be dispatched while an earlier data chunk of its own
- * job is still in flight.
+ * barrier scope in opposite orders. Deliveries within a job are not ordered against each other, so
+ * a job's termination chunk can be dispatched while an earlier data chunk of that same job is still
+ * in flight.
  * <p>
  * Two consequences that look wrong until read against that rule. The re-trigger writes
  * {@code termination_barrier_lifted} <i>before</i> taking the advisory lock, and
@@ -284,16 +282,15 @@ public class JobGateBean {
      * @param sinkId    sink the chunk is destined for
      * @param submitter submitter the chunk's job belongs to
      * @param status    status the chunk enters dependency tracking with
-     * @param matchKeys the chunk's match keys
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void closeDataChunkGateIfBlocked(TrackingKey key, int sinkId, int submitter,
-                                            ChunkSchedulingStatus status, Set<String> matchKeys) {
+                                            ChunkSchedulingStatus status) {
         jobGateRepository.advisoryLock(sinkId, submitter);
         if (!jobGateRepository.hasEarlierUndeliveredTermination(sinkId, submitter, key.getJobId())) {
             return;
         }
-        jobGateRepository.upsertGateRow(key, sinkId, submitter, status, matchKeys, false, false);
+        jobGateRepository.upsertGateRow(key, sinkId, submitter, status, false, false);
         LOGGER.info("gate closed for data chunk {} behind an earlier barrier on sink {} submitter {}",
                 key, sinkId, submitter);
     }

@@ -52,10 +52,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static jakarta.ws.rs.core.Response.Status.ACCEPTED;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -108,21 +106,18 @@ public class JobsBean {
     public Response abortJob(@PathParam("jobId") int jobId) throws JobStoreException {
         LOGGER.warn("Aborting job {}", jobId);
         abortedJobs.add(jobId);
-        Set<Integer> abortedIds = new HashSet<>();
-        List<JobEntity> jobs = jobStore.abortJob(jobId, abortedIds).collect(Collectors.toList());
-        for (JobEntity job : jobs) {
-            removeFromQueues(job);
-            jobProcessorMessageProducerBean.sendAbort(job);
-            sinkMessageProducerBean.sendAbort(job);
-            dependencyTrackingService.removeJobId(job.getId());
-            // An aborted job's termination chunk is never delivered, but its barrier is genuinely
-            // lifted, and removing the rows above takes away the only thing a lift would have fired
-            // on. Skipping this holds every later job on the same submitter and sink permanently,
-            // since the re-trigger is edge triggered and the edge has already passed.
-            liftBarrierImposedBy(job);
-        }
+        JobEntity job = jobStore.abortJob(jobId);
+        removeFromQueues(job);
+        jobProcessorMessageProducerBean.sendAbort(job);
+        sinkMessageProducerBean.sendAbort(job);
+        dependencyTrackingService.removeJobId(job.getId());
+        // An aborted job's termination chunk is never delivered, but its barrier is genuinely
+        // lifted, and removing the rows above takes away the only thing a lift would have fired
+        // on. Skipping this holds every later job on the same submitter and sink permanently,
+        // since the re-trigger is edge triggered and the edge has already passed.
+        liftBarrierImposedBy(job);
         LOGGER.info("Abort job {} and removed its dependencies", jobId);
-        return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(jobs.stream().findFirst().orElse(null))).build();
+        return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(job)).build();
     }
 
     /**

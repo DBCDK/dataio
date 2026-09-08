@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Set;
 
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
@@ -67,21 +66,6 @@ public class JobSchedulerTransactionsBean {
         this.dependencyTrackingService = dependencyTrackingService;
         this.deliveryDispatchRepository = deliveryDispatchRepository;
     }
-
-    /**
-     * Force new Chunk to Store before Async SubmitIfPossibleForProcessing.
-     * New Transaction to ensure Record is on Disk before async submit
-     * <p>
-     * Updates WaitingOn with chunks with matching keys
-     *
-     * @param e Dependency tracking Entity
-     */
-    @Stopwatch
-    public void addDependencies(DependencyTrackingRO e) {
-        Set<TrackingKey> chunksToWaitFor = dependencyTrackingService.findJobBarrier(e.getSinkId(), e.getKey().getJobId(), e.getMatchKeys());
-        dependencyTrackingService.addToChunksToWaitFor(e.getKey(), chunksToWaitFor);
-    }
-
 
     /**
      * Send JMS message to Processing, if queue size is lower than MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK

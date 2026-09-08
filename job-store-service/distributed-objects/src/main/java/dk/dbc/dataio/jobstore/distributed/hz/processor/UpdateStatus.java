@@ -31,7 +31,6 @@ public class UpdateStatus implements EntryProcessor<TrackingKey, DependencyTrack
         if(dt == null) return null;
         if(validateUpdate && dt.getStatus().isInvalidStatusChange(schedulingStatus)) return null;
         ChunkSchedulingStatus status = schedulingStatus;
-        if(status == ChunkSchedulingStatus.READY_FOR_DELIVERY && !dt.getWaitingOn().isEmpty()) status = ChunkSchedulingStatus.BLOCKED;
         StatusChangeEvent event = new StatusChangeEvent(dt.getSinkId(), dt.getStatus(), status);
         dt.setStatus(status);
         entry.setValue(dt);

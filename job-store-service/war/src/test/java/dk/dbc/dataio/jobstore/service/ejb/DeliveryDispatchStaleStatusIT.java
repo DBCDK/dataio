@@ -16,7 +16,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Set;
 
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
@@ -171,7 +170,7 @@ public class DeliveryDispatchStaleStatusIT extends AbstractJobStoreIT {
     }
 
     private DependencyTracking tracker(TrackingKey key, ChunkSchedulingStatus status) {
-        return new DependencyTracking(key, SINK_ID, (int) SUBMITTER, null, Set.of())
+        return new DependencyTracking(key, SINK_ID, (int) SUBMITTER)
                 .setPriority(Priority.NORMAL.getValue())
                 .setStatus(status);
     }

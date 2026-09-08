@@ -133,15 +133,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new JobListQuery(entityManager).count(query);
     }
 
-    public List<Integer> findDependingJobs(int jobId) {
-        Query query = entityManager.createNativeQuery("select distinct jobid from dependencytracking where waitingon::jsonb @@ '$[*].jobId==" + jobId + "'");
-        query.setParameter(1, jobId);
-        @SuppressWarnings("unchecked")
-        List<Integer> list = new ArrayList<Integer>(query.getResultList());
-        list.remove(Integer.valueOf(jobId));
-        return list;
-    }
-
     public int resetStatus(Set<Integer> jobIds, ChunkSchedulingStatus fromStatus, ChunkSchedulingStatus toStatus) {
         return dependencyTrackingService.resetStatus(fromStatus, toStatus, jobIds.toArray(Integer[]::new));
     }
@@ -494,7 +485,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                 jobGateRepository.dataChunksDelivered(jobId) >= dataChunksExpected
                         && !jobGateRepository.hasEarlierUndeliveredTermination(sinkId, submitter, jobId);
         jobGateRepository.upsertGateRow(terminationTracker.getKey(), sinkId, submitter,
-                terminationTracker.getStatus(), terminationTracker.getMatchKeys(), true, gateOpen);
+                terminationTracker.getStatus(), true, gateOpen);
 
         return chunkEntity;
     }

@@ -2,7 +2,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Priority;
@@ -24,7 +23,6 @@ import dk.dbc.invariant.InvariantUtil;
 import jakarta.ejb.AsyncResult;
 import jakarta.ejb.Asynchronous;
 import jakarta.ejb.EJB;
-import jakarta.ejb.Schedule;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
@@ -40,15 +38,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
@@ -77,9 +72,9 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED
  * A chunk that finds a full queue simply waits where it is for the next sweep.
  * <p>
  * The counts behind the cap are held in a distributed map, so the cap applies across job-store
- * instances rather than per JVM. The timer-driven work, {@link #updateSinks} here and both sweeps
- * in {@link JobSchedulerBulkSubmitterBean}, returns early on every instance but one, each guarded
- * by {@code Hazelcast.isSlave}.
+ * instances rather than per JVM. The timer-driven work, both sweeps in
+ * {@link JobSchedulerBulkSubmitterBean}, returns early on every instance but one, each guarded by
+ * {@code Hazelcast.isSlave}.
  */
 @Stateless
 @SuppressWarnings("PMD.TooManyStaticImports")
@@ -130,7 +125,6 @@ public class JobSchedulerBean {
     @Inject
     DependencyTrackingService dependencyTrackingService;
 
-    private static final Map<String, Integer> blockedCounts = new ConcurrentHashMap<>();
     private static final Map<Integer, Long> maxDeliveryDurations = new ConcurrentHashMap<>();
 
     public JobSchedulerBean() {
@@ -188,9 +182,9 @@ public class JobSchedulerBean {
     }
 
     /**
-     * Registers given chunk for sequence analysis and schedules it for processing
+     * Registers given chunk with the scheduler and schedules it for processing
      *
-     * @param chunk next chunk element to enter into sequence analysis
+     * @param chunk next chunk element to schedule
      * @param job   job associated with given chunk
      * @throws NullPointerException if given any null-valued argument
      */
@@ -201,14 +195,13 @@ public class JobSchedulerBean {
         InvariantUtil.checkNotNullOrThrow(job, "job");
         if(job.getState().isAborted() || JobsBean.isAborted(job.getId())) return;
         int sinkId = job.getCachedSink().getSink().getId();
-        String barrierMatchKey = getBarrierMatchKey(job);
 
         TrackingKey key = new TrackingKey(chunk.getKey().getJobId(), chunk.getKey().getId());
-        DependencyTracking e = new DependencyTracking(key, sinkId, (int)job.getSpecification().getSubmitterId(), chunk.getKey().getId() == 0 ? barrierMatchKey : null, chunk.getSequenceAnalysisData().getData());
+        DependencyTracking e = new DependencyTracking(key, sinkId, (int)job.getSpecification().getSubmitterId());
         Priority priority = chunk.getContainsLiveHeadOrSectionRecord() ? Priority.HIGH : job.getPriority();
         e.setPriority(priority.getValue());
         closeDataChunkGateIfNeeded(e, job);
-        dependencyTrackingService.addAndBuildDependencies(e, barrierMatchKey);
+        dependencyTrackingService.add(e);
         jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sinkId, e.getPriority());
     }
 
@@ -245,30 +238,7 @@ public class JobSchedulerBean {
         if (!jobGateBean.isBlockedByEarlierBarrier(sinkId, submitter, job.getId())) {
             return;
         }
-        jobGateBean.closeDataChunkGateIfBlocked(chunk.getKey(), sinkId, submitter,
-                chunk.getStatus(), chunk.getMatchKeys());
-    }
-
-    @SuppressWarnings("unused")
-    @Schedule(minute = "*", hour = "*", persistent = false)
-    public void updateSinks() {
-        if(Hazelcast.isSlave()) return;
-        try {
-            LOGGER.debug("Updating chunks.blocked metrics");
-            List<Sink> sinks = flowStore.getConnector().findAllSinks();
-            Map<Integer, Integer> counts = dependencyTrackingService.sinkBlockedCount();
-            Map<String, Integer> bc = sinks.stream().collect(Collectors.toMap(s -> s.getContent().getName(), s -> counts.getOrDefault(s.getId(), 0)));
-            blockedCounts.putAll(bc);
-            for (String sinkName : bc.keySet()) {
-                MetricID metricID = getBlockedMetricID(sinkName);
-                Gauge<?> gauge = metricRegistry.getGauge(metricID);
-                if (gauge == null) metricRegistry.gauge(metricID, () -> blockedCounts.get(sinkName));
-            }
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new RuntimeException(e);
-        } catch (ProcessingException e1) {
-            LOGGER.error("Flowstore unavailable:", e1);
-        }
+        jobGateBean.closeDataChunkGateIfBlocked(chunk.getKey(), sinkId, submitter, chunk.getStatus());
     }
 
     /**
@@ -320,8 +290,7 @@ public class JobSchedulerBean {
                 return;
         }
 
-        final String barrierMatchKey = getBarrierMatchKey(jobEntity);
-        if (barrierMatchKey != null) {
+        if (requiresTerminationChunk(jobEntity.getCachedSink().getSink().getContent().getSinkType())) {
             final Sink sink = jobEntity.getCachedSink().getSink();
 
             ChunkItem.Status terminationStatus = ChunkItem.Status.SUCCESS;
@@ -329,16 +298,8 @@ public class JobSchedulerBean {
                 terminationStatus = ChunkItem.Status.FAILURE;
             }
 
-            createAndScheduleTerminationChunk(jobEntity, sink, jobEntity.getNumberOfChunks(),
-                    barrierMatchKey, terminationStatus);
+            createAndScheduleTerminationChunk(jobEntity, sink, jobEntity.getNumberOfChunks(), terminationStatus);
         }
-    }
-
-    private String getBarrierMatchKey(JobEntity job) {
-        if (requiresTerminationChunk(job.getCachedSink().getSink().getContent().getSinkType())) {
-            return String.valueOf(job.getSpecification().getSubmitterId());
-        }
-        return null;
     }
 
     /**
@@ -366,23 +327,35 @@ public class JobSchedulerBean {
      * @param sink            ID of sink for the job
      * @param chunkId         ID of termination chunk, which is also the job's data-chunk count and
      *                        therefore the value the per-job gate counts up to
-     * @param barrierMatchKey Additional barrier key to wait for
      * @param ItemStatus      status for termination chunk item
      * @throws JobStoreException on failure to create special job termination chunk
      */
-    void createAndScheduleTerminationChunk(JobEntity jobEntity, Sink sink, int chunkId, String barrierMatchKey,
+    void createAndScheduleTerminationChunk(JobEntity jobEntity, Sink sink, int chunkId,
                                            ChunkItem.Status ItemStatus) throws JobStoreException {
         int sinkId = sink.getId();
         TrackingKey key = new TrackingKey(jobEntity.getId(), chunkId);
         // Built before the chunk entity so that createJobTerminationChunkEntity can write the row
         // to PostgreSQL with a closed gate in the same transaction that writes the counters, ahead
-        // of the map add below. A termination chunk carries no sequence analysis data, so its match
-        // keys are the barrier key alone.
+        // of the map add below.
         // The flag is set here rather than being read back from is_termination, so that the entry
         // handed to whoever removes it on delivery answers for itself whether it was the job's
         // termination chunk. createJobTerminationChunkEntity writes the column below.
-        DependencyTracking endTracker = new DependencyTracking(key, sinkId, (int)jobEntity.getSpecification().getSubmitterId(), barrierMatchKey, Set.of())
+        //
+        // READY_FOR_DELIVERY is set explicitly, and it has to be. A termination chunk is created
+        // already processed, its item carrying both a PARTITIONING and a PROCESSING outcome, so it
+        // never passes through the processing phase that would otherwise advance it. The status used
+        // to be set as a side effect of addDependencies, whose entry processor ended with
+        // "waitingOn.isEmpty() ? READY_FOR_DELIVERY : BLOCKED". With the graph gone nothing else
+        // moves it off READY_FOR_PROCESSING, and submitToDeliveringIfPossible would decline it
+        // because QUEUED_FOR_DELIVERY is not a valid change from there, leaving every job's
+        // end-of-job work undelivered.
+        //
+        // Unconditional, where the old side effect was conditional, and that is the whole point of
+        // the gate: what holds a termination chunk back until its own job's data chunks are
+        // acknowledged is gate_open on the row written below, not a status.
+        DependencyTracking endTracker = new DependencyTracking(key, sinkId, (int)jobEntity.getSpecification().getSubmitterId())
                 .setPriority(Priority.HIGH.getValue())
+                .setStatus(READY_FOR_DELIVERY)
                 .setTermination(true);
         // chunkId is numberOfChunks as read in markJobAsPartitioned before this call, which is
         // exactly the job's data-chunk count. Passing it rather than re-reading it downstream is
@@ -390,7 +363,6 @@ public class JobSchedulerBean {
         // numberOfChunks itself.
         pgJobStoreRepository.createJobTerminationChunkEntity(jobEntity.getId(), chunkId, "dummyDatafileId", ItemStatus, chunkId, endTracker);
         TrackingKey jobEndKey = dependencyTrackingService.add(endTracker);
-        jobSchedulerTransactionsBean.addDependencies(endTracker);
         jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobEndKey);
     }
 
@@ -460,33 +432,11 @@ public class JobSchedulerBean {
         // gate opens with data chunks still in flight. The removal is atomic per key, which is what
         // makes it the once-only marker.
         //
-        // The work below stays unconditional. removeFromWaitingOn reports only the entries it
-        // actually changed, so the caller that lost the removal finds nothing left to unblock and
-        // its dispatch loop does not run.
         if (removed != null) {
             jobGateBean.advanceGateState(removed);
         } else {
             LOGGER.info("chunkDeliveringDone: chunk {}/{} was removed by a concurrent call, so this one does not count it",
                     chunk.getJobId(), chunk.getChunkId());
-        }
-
-        StopWatch findChunksWaitingForMeStopWatch = new StopWatch();
-        Set<TrackingKey> unblocked = dependencyTrackingService.removeFromWaitingOn(chunkDoneKey);
-
-        LOGGER.info("chunkDeliveringDone: findChunksWaitingForMe for {} took {} ms unblocked {} chunks", chunkDone.getKey(), findChunksWaitingForMeStopWatch.getElapsedTime(), unblocked.size());
-
-        for (TrackingKey chunkBlockedKey : inDispatchOrder(unblocked)) {
-            // Attempts to unblock all chunks found waiting for "me" must happen
-            // in separate transactions or else there is a risk of exhausting the
-            // JMS connection pool and also of ending up stuck in DIRECT mode when
-            // it should be BULK causing the sink delivery to stall because changes
-            // to ready state will be seen to late by the bulk submitter.
-            if(JobsBean.isAborted(chunk.getJobId())) throw new JobAborted(chunk.getJobId());
-            jobSchedulerTransactionsBean.attemptToUnblockChunk(chunkBlockedKey);
-
-        }
-        if (!unblocked.isEmpty()) {
-            LOGGER.info("chunkDeliveringDone: removing {}", chunkDone.getKey());
         }
 
         long thisDuration = System.currentTimeMillis() - startTime;
@@ -559,32 +509,6 @@ public class JobSchedulerBean {
     }
 
     /**
-     * Puts the chunks one delivery unblocked into the same order the bulk submitter dispatches in.
-     * <p>
-     * Each of these is handed to its own transaction and each can take the last free slot of
-     * {@code QUEUED_FOR_DELIVERY}, so the order they are visited in decides which of them reach the
-     * sink now and which wait for the next sweep. Unordered, that was whatever order the set
-     * happened to iterate in.
-     * <p>
-     * Priority is not carried by the keys, so it is read per key from dependency tracking. A key
-     * whose entry has gone in the meantime drops out, which is correct, there is nothing left to
-     * unblock.
-     *
-     * @param keys chunks whose last dependency was just cleared
-     * @return the same chunks in {@code (priority DESC, jobId ASC, chunkId ASC)} order
-     */
-    private List<TrackingKey> inDispatchOrder(Set<TrackingKey> keys) {
-        return keys.stream()
-                .map(dependencyTrackingService::get)
-                .filter(Objects::nonNull)
-                .sorted(Comparator.<DependencyTrackingRO>comparingInt(DependencyTrackingRO::getPriority).reversed()
-                        .thenComparingInt(dt -> dt.getKey().getJobId())
-                        .thenComparingInt(dt -> dt.getKey().getChunkId()))
-                .map(DependencyTrackingRO::getKey)
-                .toList();
-    }
-
-    /**
      * How far past the free queue slots the candidate query reaches, to see past rows whose status
      * is stale.
      * <p>
@@ -632,9 +556,5 @@ public class JobSchedulerBean {
     public void loadSinkStatusOnBootstrap(Set<Integer> sinkIds) {
         dependencyTrackingService.recountSinkStatus(sinkIds);
         LOGGER.info("Reset sink counters");
-    }
-
-    private MetricID getBlockedMetricID(String sinkName) {
-        return new MetricID("chunks.blocked", new Tag("sink_name", sinkName));
     }
 }

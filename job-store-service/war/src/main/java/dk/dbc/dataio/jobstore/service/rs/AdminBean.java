@@ -10,7 +10,6 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
-import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
@@ -145,9 +144,6 @@ public class AdminBean {
                 }
             }
         }
-        Set<TrackingKey> keys = dependencyTrackingService.recheckBlocks();
-        if(!keys.isEmpty()) LOGGER.info("Hourly blocked check has released {}", keys);
-
         // Barriers first, gates second: lifting a barrier is what makes the gates queued behind it
         // openable in the same pass. A job whose entity was already gone above is picked up here,
         // since this reads the scope from the job row rather than from the caller.
@@ -188,7 +184,6 @@ public class AdminBean {
     public void resendIfNeeded(List<DependencyTrackingRO> list) {
         Set<DependencyTrackingRO> retries = list.stream()
                 .filter(de -> de.getRetries() < 1)
-                .filter(de -> de.getWaitingOn().isEmpty())
                 .collect(Collectors.toSet());
         if(retries.isEmpty()) return;
         LOGGER.warn("Retrying stale trackers: {}", retries.stream()
@@ -217,20 +212,13 @@ public class AdminBean {
         return Response.ok(jsonbContext.marshall(dependencyTrackingService.getCountersForSinks())).build();
     }
 
-    @GET
-    @Path(JobStoreServiceConstants.DEPENDENCY_CHECK_BLOCKED)
-    public Response checkBlocked() throws JSONBException {
-        return Response.ok(jsonbContext.marshall(dependencyTrackingService.recheckBlocks())).build();
-    }
-
     /**
      * Runs the per-job gate sweep on demand, which {@link #recheckBlocks} otherwise only runs
      * hourly.
      * <p>
-     * Not the same thing as {@link #checkBlocked}, which releases chunks left {@code BLOCKED} on
-     * dependencies that no longer exist. This opens gates closed behind a barrier that is gone and
-     * lifts the barrier of a job whose termination row was removed without one, which are the two
-     * ways a job can be left unable to complete with nothing edge triggered left to fire on.
+     * Opens gates closed behind a barrier that is gone and lifts the barrier of a job whose
+     * termination row was removed without one, which are the two ways a job can be left unable to
+     * complete with nothing edge triggered left to fire on.
      * <p>
      * Ordered barriers before gates, as {@link #recheckBlocks} orders it, since lifting a barrier is
      * what makes the gates queued behind it openable in the same pass.

@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -84,7 +83,6 @@ class JobSchedulerBeanTest {
         when(dependencyTrackingService.get(key)).thenReturn(new DependencyTracking(key, SINK_ID, SUBMITTER)
                 .setStatus(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY));
         when(dependencyTrackingService.remove(key)).thenReturn(null);
-        when(dependencyTrackingService.removeFromWaitingOn(key)).thenReturn(Set.of());
         JobSchedulerBean jobSchedulerBean = new JobSchedulerBean(null, null, null, null,
                 dependencyTrackingService, jobGateBean, null);
 

@@ -8,7 +8,6 @@ import org.mockito.InOrder;
 
 import java.util.List;
 import java.util.OptionalInt;
-import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -157,13 +156,13 @@ class JobGateBeanTest {
         when(jobGateRepository.hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(true);
 
         jobGateBean.closeDataChunkGateIfBlocked(dataChunk, SINK_ID, SUBMITTER,
-                ChunkSchedulingStatus.READY_FOR_PROCESSING, Set.of("key"));
+                ChunkSchedulingStatus.READY_FOR_PROCESSING);
 
         InOrder inOrder = inOrder(jobGateRepository);
         inOrder.verify(jobGateRepository).advisoryLock(SINK_ID, SUBMITTER);
         inOrder.verify(jobGateRepository).hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID);
         inOrder.verify(jobGateRepository).upsertGateRow(dataChunk, SINK_ID, SUBMITTER,
-                ChunkSchedulingStatus.READY_FOR_PROCESSING, Set.of("key"), false, false);
+                ChunkSchedulingStatus.READY_FOR_PROCESSING, false, false);
     }
 
     /**
@@ -177,10 +176,10 @@ class JobGateBeanTest {
         when(jobGateRepository.hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(false);
 
         jobGateBean.closeDataChunkGateIfBlocked(dataChunk, SINK_ID, SUBMITTER,
-                ChunkSchedulingStatus.READY_FOR_PROCESSING, Set.of("key"));
+                ChunkSchedulingStatus.READY_FOR_PROCESSING);
 
         verify(jobGateRepository).advisoryLock(SINK_ID, SUBMITTER);
-        verify(jobGateRepository, never()).upsertGateRow(any(), anyInt(), anyInt(), any(), any(), anyBoolean(), anyBoolean());
+        verify(jobGateRepository, never()).upsertGateRow(any(), anyInt(), anyInt(), any(), anyBoolean(), anyBoolean());
     }
 
     @Test

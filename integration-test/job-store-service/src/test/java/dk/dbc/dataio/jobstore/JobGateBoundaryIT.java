@@ -139,8 +139,8 @@ public class JobGateBoundaryIT extends AbstractJobStoreServiceContainerTest {
      * {@code JobsBean.removeFromQueues} calls
      * {@code JobProcessorMessageProducerBean.resolveProcessorQueue}, which is package private, so
      * invoking it through the bean's no-interface view throws
-     * {@code EJBException: Illegal non-business method access on no-interface view}. That happens on
-     * the first job of the loop, before the barrier lift is reached, so in a deployed service
+     * {@code EJBException: Illegal non-business method access on no-interface view}. That happens
+     * before the barrier lift is reached, so in a deployed service
      * {@code abortJob} answers 500 and aborts nothing. Making that method public is all this test
      * needs, but that is a fix to the abort path rather than to the gate, so it is left as a
      * decision rather than folded in here. This test is expected to pass unchanged once it lands.

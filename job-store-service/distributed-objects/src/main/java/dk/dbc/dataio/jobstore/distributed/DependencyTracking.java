@@ -2,9 +2,6 @@ package dk.dbc.dataio.jobstore.distributed;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter;
-import dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter;
-import org.postgresql.util.PGobject;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -13,10 +10,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Class for tracking chunk dependencies.
@@ -30,52 +24,26 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
     private final int sinkId;
     private ChunkSchedulingStatus status = ChunkSchedulingStatus.READY_FOR_PROCESSING;
     private int priority;
-    private Set<TrackingKey> waitingOn = new HashSet<>();
-    private final Set<String> matchKeys;
-    private final Set<WaitFor> waitFor;
     private final int submitter;
     private Instant lastModified = Instant.now();
     private int retries = 0;
     private boolean termination = false;
 
-    public DependencyTracking(TrackingKey key, int sinkId, int submitter, Set<String> sequenceData) {
+    public DependencyTracking(TrackingKey key, int sinkId, int submitter) {
         this.key = key;
         this.sinkId = sinkId;
         this.submitter = submitter;
-        matchKeys = makeKeys(null, sequenceData);
-        waitFor = toWaitForIndexSet(sinkId, submitter, matchKeys);
-    }
-
-    public DependencyTracking(TrackingKey key, int sinkId, int submitter, String barrierKey, Set<String> sequenceData) {
-        this(key, sinkId, submitter, makeKeys(barrierKey, sequenceData));
-    }
-
-    public DependencyTracking(TrackingKey key, int sinkId, int submitter) {
-        this(key, sinkId, submitter, Set.of());
     }
 
     public DependencyTracking(ResultSet rs) throws SQLException {
         key = new TrackingKey(rs.getInt("jobid"), rs.getInt("chunkid"));
         sinkId = rs.getInt("sinkid");
-        waitingOn = new HashSet<>(new KeySetJSONBConverter().convertToEntityAttribute((PGobject) rs.getObject("waitingon")));
         status = ChunkSchedulingStatus.from(rs.getInt("status"));
-        matchKeys = new StringSetConverter().convertToEntityAttribute((PGobject) rs.getObject("matchkeys"));
         priority = rs.getInt("priority");
         submitter = rs.getInt("submitter");
         lastModified = rs.getTimestamp("lastmodified").toInstant();
         retries = rs.getInt("retries");
         termination = rs.getBoolean("is_termination");
-        waitFor = toWaitForIndexSet(sinkId, submitter, matchKeys);
-    }
-
-    public static Set<String> makeKeys(String barrierKey, Set<String> sequenceData) {
-        Set<String> keys = sequenceData == null ? new HashSet<>() : new HashSet<>(sequenceData);
-        if (barrierKey != null) keys.add(barrierKey);
-        return keys;
-    }
-
-    public static Set<WaitFor> toWaitForIndexSet(int sinkId, int submitter, Set<String> matchKeys) {
-        return matchKeys.stream().map(k -> new WaitFor(sinkId, submitter, k)).collect(Collectors.toSet());
     }
 
     @Override
@@ -96,26 +64,6 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
     public DependencyTracking setStatus(ChunkSchedulingStatus status) {
         this.status = status;
         return this;
-    }
-
-    @Override
-    public Set<TrackingKey> getWaitingOn() {
-        return waitingOn;
-    }
-
-    @Override
-    public Set<WaitFor> getWaitFor() {
-        return waitFor;
-    }
-
-    public DependencyTracking setWaitingOn(Set<TrackingKey> waitingOn) {
-        this.waitingOn = waitingOn instanceof HashSet ? waitingOn : new HashSet<>(waitingOn);
-        return this;
-    }
-
-    @Override
-    public Set<String> getMatchKeys() {
-        return matchKeys;
     }
 
     @Override
@@ -218,4 +166,3 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
         return key.compareTo(o.getKey());
     }
 }
-

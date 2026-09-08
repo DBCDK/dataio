@@ -3,8 +3,6 @@ package dk.dbc.dataio.jobstore.distributed.hz.store;
 import com.hazelcast.map.MapStore;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter;
-import dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,14 +25,12 @@ import java.util.stream.Collectors;
 
 public class DependencyTrackingStore implements MapStore<TrackingKey, DependencyTracking> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTrackingStore.class);
-    private static final KeySetJSONBConverter KEY_SET_CONVERTER = new KeySetJSONBConverter();
-    private static final StringSetConverter STRING_SET_CONVERTER = new StringSetConverter();
     public static final String DS_JNDI = "jdbc/dataio/jobstore";
     private final DataSource dataSource;
     private static MetricRegistry metricRegistry;
 
     /**
-     * The {@code on conflict ... do update set} list names five columns, and this store cannot
+     * The {@code on conflict ... do update set} list names four columns, and this store cannot
      * clobber a column it does not name.
      * <p>
      * That is what lets job-store own {@code is_termination} and {@code gate_open} outright and
@@ -51,8 +47,8 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
      * See docs/chunk-scheduling-redesign.md, "Who writes the gate columns before Phase 9", and
      * {@code JobGateRepository} in the war module.
      */
-    private static final String UPSERT = "insert into dependencytracking(jobid, chunkid, sinkid, status, waitingon, matchkeys, priority, submitter, lastmodified, retries) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) on conflict on constraint dependencytracking_pkey do " +
-            "update set status=excluded.status, waitingon=excluded.waitingon, priority=excluded.priority, lastmodified=excluded.lastmodified, retries=excluded.retries";
+    private static final String UPSERT = "insert into dependencytracking(jobid, chunkid, sinkid, status, priority, submitter, lastmodified, retries) values(?, ?, ?, ?, ?, ?, ?, ?) on conflict on constraint dependencytracking_pkey do " +
+            "update set status=excluded.status, priority=excluded.priority, lastmodified=excluded.lastmodified, retries=excluded.retries";
     private static final String SELECT = "select * from dependencytracking where jobid=? and chunkid=?";
 
     public DependencyTrackingStore() {
@@ -159,12 +155,10 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
         setKey(ps, dte.getKey());
         ps.setInt(3, dte.getSinkId());
         ps.setInt(4, dte.getStatus().value);
-        ps.setObject(5, KEY_SET_CONVERTER.convertToDatabaseColumn(dte.getWaitingOn()));
-        ps.setObject(6, STRING_SET_CONVERTER.convertToDatabaseColumn(dte.getMatchKeys()));
-        ps.setInt(7, dte.getPriority());
-        ps.setInt(8, dte.getSubmitter());
-        ps.setTimestamp(9, new Timestamp(dte.getLastModified().toEpochMilli()));
-        ps.setInt(10, dte.getRetries());
+        ps.setInt(5, dte.getPriority());
+        ps.setInt(6, dte.getSubmitter());
+        ps.setTimestamp(7, new Timestamp(dte.getLastModified().toEpochMilli()));
+        ps.setInt(8, dte.getRetries());
     }
 
     private static void setKey(PreparedStatement ps, TrackingKey key) throws SQLException {

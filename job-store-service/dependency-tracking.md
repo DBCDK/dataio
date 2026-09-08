@@ -2,7 +2,12 @@
 
 Dependency tracking is the mechanism that prevents chunks from being delivered to a sink out of
 sequence, and prevents duplicate or orphaned processing when multiple service instances are running. 
-The authoritative state lives in Hazelcast structures shared across all instances.
+The authoritative state is the `dependencytracking` table in PostgreSQL. Every row is written
+synchronously, in the transaction that decides its contents, so a row read back is what the last
+committed writer put there.
+
+Two mechanisms do the ordering, and between them they are the whole of it: the **per-job gate**
+orders whole jobs, and the **delivery watermark** orders versions of one record.
 
 ## Terminology
 
@@ -18,7 +23,7 @@ and the last is the mechanism that lets a held chunk go:
 - **Termination chunk** - the object. A synthetic chunk appended to a job for the sink types that
   require job-level ordering (`createJobTerminationChunkEntity`, `REQUIRES_TERMINATION_CHUNK`).
 - **Barrier** - what a termination chunk imposes on *other* chunks: nothing from the same submitter
-  and sink may pass until it has been delivered. Arranged by `barrierMatchKey`, see
+  and sink may pass until it has been delivered. Enforced by the gate, see
   [Barrier chunks](#barrier-chunks) below.
 - **Barrier scope** - the `(sinkid, submitter)` pair a barrier applies within, and the unit almost
   everything about the barrier is expressed in. Jobs are ordered against each other only when they
@@ -69,18 +74,11 @@ look interchangeable and are not:
   agency qualified. Using one where the other belongs is silent: too coarse a correlation key only
   costs latency, but too coarse a `recordKey` skips an unrelated record's delivery as superseded.
 
-`waitingOn` and `barrierMatchKey`, described through the rest of this document, currently enforce
-both kinds of ordering at once. The gate and the watermark are the replacement, one for each kind,
-and both are already live. Neither is load-bearing yet, because `waitingOn` still enforces everything
-they do and more. It can be removed once the gate covers job ordering for every sink type and every
-sink has migrated to the watermark.
-
 ## The per-job gate
 
 The gate answers one question per chunk: may this chunk be delivered yet? It is a single boolean,
 `gate_open`, on the chunk's `dependencytracking` row, and both dispatch paths refuse to send a chunk
-whose gate is closed. A held chunk waits in `SCHEDULED_FOR_DELIVERY`, which has no capacity cap,
-exactly as a `BLOCKED` chunk does.
+whose gate is closed. A held chunk waits in `SCHEDULED_FOR_DELIVERY`, which has no capacity cap.
 
 **Which chunks are gated depends on the sink type.** A termination chunk is always gated. A data
 chunk is gated only on the sink types that need the full barrier width, currently tickle alone, and
@@ -105,44 +103,21 @@ query filters on.
 most of the design below: every path that removes a termination chunk has to lift its barrier, and an
 hourly sweep exists to catch the paths that somehow did not.
 
-### Who owns the gate columns
+### Who writes the table
 
-`dependencytracking` is a write-behind projection of the Hazelcast map, so ownership of its columns
-is split, and getting this wrong is the main way to break the gate.
+`dependencytracking` is job-store's outright. One writer, `DependencyTrackingRepository`, whose
+every statement runs in its caller's transaction on its caller's connection. No column is off limits
+to any statement, and a committed write is immediately visible to every reader.
 
-The MapStore owns **row lifecycle**. Rows appear and disappear on its own schedule, up to
-`write-delay-seconds` (10 in production) after the corresponding map change. Nothing in the gate may
-depend on a row existing at a particular moment.
+**An unwritten gate is an open gate.** `gate_open` is `NOT NULL DEFAULT TRUE`, and only a write that
+means to close a gate touches the column. That is what makes a data chunk on a non-full-width sink
+correct without any gate write at all.
 
-Job-store owns the **gate column values**. `DependencyTrackingStore`'s upsert names five columns in
-its `on conflict ... do update set` clause, and cannot clobber a column it does not name.
-`is_termination` and `gate_open` are outside that list, which is what lets job-store write them in
-plain synchronous SQL with no lag. **Never add those two columns to that clause**, which
-`JobGateIT.mapStoreDoesNotClobberGateColumns` is there to enforce.
-
-`is_termination` is also a field on `DependencyTracking`, and that is not a contradiction. The clause
-still does not name it, so nothing about who writes the column changes, and a copy on the map value
-cannot go stale for a value decided when the row is created and never changed. A delivery reads the
-branch off the entry it removed rather than querying a row it has just removed, see
-[Where the gate is decided](#where-the-gate-is-decided). **`gate_open` gets no such field.** Four
-sites write it over a chunk's life, so a copy would be a second answer to a question with one, and a
-stale open gate dispatches a job's end-of-job work ahead of the data it summarises.
-
-Three consequences follow:
-
-- **A writer that closes a gate creates the row itself**, rather than waiting for the MapStore.
-  Waiting means the update matches nothing and is lost, and the MapStore's later insert takes
-  `gate_open`'s default of `TRUE`, dispatching the very chunk that should have been held. Such an
-  insert must also supply `sinkid`, `matchkeys` and `submitter`, which the conflict clause would
-  never repair.
-- **A missing row means an open gate.** Between `scheduleChunk` and the next flush a chunk has no
-  row at all, so reading absence as "closed" would stall everything. Absence is safe to read as open
-  because only a writer that creates the row can close a gate.
-- **The cross-job check asks the flag, never row presence.** A delivered termination chunk's row
-  lingers for the delete delay, and the re-trigger below fires at exactly that instant, so a
-  presence check would be evaluated when the table is at its most stale about the very row it asks
-  after. It would see the blocker as still there, decline, and never fire again. A stale read there
-  does not delay the gate opening, it cancels it.
+**The cross-job check asks `job.termination_barrier_lifted`, never row presence.** Delivery is not
+the only thing that removes a chunk's row: `JobPurgeBean` compacts old jobs and the abort path drops
+a job's rows wholesale, neither of them timed by anything the barrier controls. The flag keeps the
+barrier independent of all of that, and it stays answerable once the chunk row is gone, which is what
+the sweep needs. See [When a gate is left closed](#when-a-gate-is-left-closed).
 
 ### Where the gate is decided
 
@@ -150,7 +125,7 @@ Three consequences follow:
 |---|---|---|
 | A | a data chunk is delivered (`JobGateBean.advanceGateState`) | counts the delivery, then opens its job's termination chunk if that was the last one |
 | B | the termination chunk is inserted (`createJobTerminationChunkEntity`) | that chunk's initial gate, and writes `data_chunks_expected` |
-| C | a data chunk is inserted (`scheduleChunk`) | that chunk's gate, and only for full-width sink types |
+| C | a data chunk is inserted (`scheduleChunk`) | that chunk's gate, carried by the insert itself, and only for full-width sink types |
 | re-trigger | a job's barrier is lifted (`JobGateBean.liftBarrierAndRetrigger`) | the gates of *later* jobs in the same scope |
 
 A job's own gate needs both A and B because partitioning and delivery overlap: chunks are scheduled
@@ -170,16 +145,16 @@ Five things about those sites are easy to get wrong:
   having a termination chunk, it would lose every chunk delivered before that chunk existed. As a
   read-then-write, it could lose an update and leave the counter permanently one short. Either way
   the gate never opens.
-- **Site A runs once per chunk, and what makes that true is the removal.** `chunkDeliveringDone` is
-  called again by every redelivery, and the broker's failure detection can produce two genuinely
+- **Site A runs once per chunk, and what makes that true is the `DELETE`.** `chunkDeliveringDone`
+  is called again by every redelivery, and the broker's failure detection can produce two genuinely
   concurrent calls for one chunk, so the count hangs off the one thing only one caller can do:
-  `DependencyTrackingService.remove` hands the removed entry to whichever caller removed it and null
-  to every other. The read of the entry before it is a filter on status, not the token, since
-  `get`-then-`remove` is a check-then-act two callers can both pass. Counted twice, the counter still
-  lands on `data_chunks_expected` exactly, only while a data chunk is still in flight, so the failure
-  is a job that reads as complete rather than one that stalls. The rest of `chunkDeliveringDone` runs
-  for every caller: `removeFromWaitingOn` reports only the entries it changed, so the caller that
-  lost the removal finds nothing left to unblock.
+  delete the row. `DELETE ... WHERE jobid = ? AND chunkid = ? AND status = QUEUED_FOR_DELIVERY
+  RETURNING ...` returns a row to exactly one caller whatever the interleaving, because the second
+  transaction waits on the row lock and then finds nothing to delete. A read followed by a delete
+  would be a check-then-act two callers can both pass. Counted twice, the counter still lands on
+  `data_chunks_expected` exactly, only while a data chunk is still in flight, so the failure would be
+  a job that reads as complete rather than one that stalls, which is the worse of the two. See
+  [Delivery acknowledgement](#delivery-acknowledgement).
 - **`data_chunks_expected = 0` means two opposite things**: the migration default on jobs that
   predate the gate, which must be ignored, and a genuine job with no data chunks, whose gate must be
   decided at once. `is_termination` is what tells them apart, so the gate keys on that and uses the
@@ -198,19 +173,15 @@ Five things about those sites are easy to get wrong:
 
 **Delivery is only the usual way a barrier is lifted.** `JobsBean.abortJob` and
 `AdminBean.recheckBlocks` both drop a job's rows through `removeJobId`, and both must lift and
-re-trigger. Skipping it leaves the removed job reading as still blocking for the whole delete delay,
-which is the window the re-trigger fires in, so it would decline and never fire again, stalling every
-later job from that submitter.
+re-trigger. Skipping it leaves the job holding a barrier with no termination row left to fire a lift
+on, and the re-trigger is edge-triggered, so nothing would ever look again and every later job from
+that submitter stalls.
 
 ### Barrier width per sink type
 
 Width is how much of a later job the barrier holds back.
 
-`waitingOn` makes it **full width** for every sink type: `scheduleChunk` passes the submitter's
-`barrierMatchKey` to `findChunksToWaitFor` for every chunk, so nothing at all from job B reaches the
-sink before job A's job-end has been delivered.
-
-The gate is narrower by default, **termination width**: only job B's job-end waits for job A's. For
+The gate is **termination width** by default: only job B's job-end waits for job A's. For
 ordering two versions of one record that is deliberate and sufficient, since `JMSXGroupID` and the
 [delivery watermark](#delivery-watermark) already cover it. It is not sufficient when a sink's
 job-end work depends on no later job's data having landed yet.
@@ -242,9 +213,6 @@ Full width holds delivery only. Chunks are still processed and simply accumulate
 job queued behind another is no more expensive to hold than it is today. It does mean a closed gate
 is job-sized rather than one synthetic chunk per job.
 
-Until `waitingOn` is removed it enforces full width for everything anyway, so the gate being narrower
-for marcconv and periodic-jobs has no observable effect yet.
-
 ### Locking
 
 All the sites serialise on one advisory lock, `pg_advisory_xact_lock` over `(sinkid, submitter)`,
@@ -274,7 +242,8 @@ wait is on an EJB call rather than a database lock.** It is an undetectable hang
 it would hit every job on a full-width sink.
 
 `JobGateBean.closeDataChunkGateIfBlocked` is therefore `REQUIRES_NEW` and takes no job row lock at
-all. The lock is then held briefly, once per closed chunk, and the row is committed by the time
+all. It is also where the chunk's row is inserted, so the gate verdict and the row arrive in one
+statement and there is never an instant where the row exists with a gate that should be closed. The lock is then held briefly, once per closed chunk, and the row is committed by the time
 `scheduleChunk` returns rather than at the end of partitioning, so dispatch can see it throughout the
 window it matters. `scheduleChunk` also reads the barrier once without the lock and only enters that
 transaction when something is blocking. That shortcut is safe in one direction only, which is the one
@@ -282,31 +251,38 @@ it is used in: "nothing is blocking" cannot become "blocking", since an earlier 
 created while that job partitions and the jobqueue finished it first. "Blocking" can go stale the
 other way, and that is exactly the answer that goes on to take the lock and read again.
 
+**The delivery path takes a `dependencytracking` row lock before the job row**, because the `DELETE`
+that acts as its once-only token runs first. Read against the ordering above that looks like an
+inversion, and it is not, because the two row sets are disjoint. The deleted row is always
+`gate_open = TRUE`: a chunk reaches `QUEUED_FOR_DELIVERY` only through a dispatch path that refuses a
+closed gate. Every gate write taken under the advisory lock matches closed gates, filtering
+`NOT gate_open`. So no transaction holding one wants the other.
+
+`removeJobId` is the exception, and it is why that statement runs in its own transaction. It deletes
+all of a job's rows whatever their gate, so its row set does overlap the sweep's. Left in the
+caller's transaction it produces the undetectable hang rather than a deadlock:
+`AdminBean.recheckBlocks` would hold those row locks while nesting `sweepScope`, which asks for the
+same rows on a second connection and blocks, and the outer transaction cannot commit until the
+nested call returns. `REQUIRES_NEW` releases the locks before anything nested asks for them. Aborting
+a job holds its lift and its delete in one transaction on purpose, so there the worst case is a
+detected deadlock against a concurrent sweep, and one of the two is rolled back and retried.
+
 ### When a gate is left closed
 
-Two ways a gate outlives its reason to be shut, each of them a job that never completes:
+There is one way a gate outlives its reason to be shut, and it is a job that never completes: **a
+termination row removed without its barrier being lifted.** `JobsBean.abortJob`,
+`AdminBean.recheckBlocks` and `JobPurgeBean` all remove rows, and a lift that fails or is skipped on
+any of those paths leaves the job reading as still blocking with nothing left to fire on.
 
-- A termination row removed without its barrier being lifted.
-- A lost delivery count. `chunkDeliveringDone` removes the chunk's map entry *before* the gate work,
-  and that removal is not part of the transaction. Anything failing afterwards rolls back the count
-  while the removal stands, and on redelivery `chunkDeliveringDone` finds no tracker and returns
-  immediately. The counter is then permanently one short with no delivery left to arrive. The same
-  loss on the termination branch never lifts the barrier, stalling every later job from that
-  submitter.
+A lost delivery count would be a second, and the transaction is what rules it out. The row's deletion
+and the increment commit together, so either the chunk is counted and its row gone, or neither
+happened and the row is still there for the sink's redelivery to count. See
+[Delivery acknowledgement](#delivery-acknowledgement).
 
-That second one is inherent while `dependencytracking` is a Hazelcast map, and it is accepted rather
-than overlooked. The removal is what both the count's once-only property and a redelivery's
-early return hang off, so no choice of marker closes the window: it closes when the row is deleted in
-the same transaction as the count, which is where the map goes away. Accepting it buys the far worse
-failure being gone. A count that is lost leaves a job visibly stuck and swept within the hour, while
-a count taken twice reaches the total early and lets end-of-job work run on data that never arrived,
-with nothing in the job state saying so.
-
-`AdminBean.recheckBlocks` sweeps for both hourly, which bounds the damage to one sweep interval. It
-lifts the barrier of any job left holding one with no termination row, then opens any gate closed
-with no earlier unlifted barrier, requiring additionally for a termination chunk that its own job's
-data chunks are delivered. Opened on the earlier barrier alone, a termination chunk would be
-dispatched while its own data chunks were still in flight.
+`AdminBean.recheckBlocks` sweeps hourly, which bounds the damage to one sweep interval. It lifts the barrier of any job left holding one with no termination row, then opens any
+gate closed with no earlier unlifted barrier, requiring additionally for a termination chunk that its
+own job's data chunks are delivered. Opened on the earlier barrier alone, a termination chunk would
+be dispatched while its own data chunks were still in flight.
 
 An hour is a long time to hold a job that cannot complete, so the same sweep is reachable on demand
 at `POST dependency/gate_sweep`. It runs exactly what the hourly pass runs, in the same order, and is
@@ -315,30 +291,65 @@ barrier scope is swept in its own transaction, so the advisory lock is held per 
 the whole sweep, which is what keeps an on-demand call from stalling delivery acknowledgements across
 every scope it visits.
 
-**The sweep reads that last condition from the absence of the job's data-chunk rows, never from
-`data_chunks_delivered`.** The counter is exactly what the second failure destroys, so a sweep
-reading it could not repair the case it exists for. The row removal is the half that survives.
+**The sweep reads that last condition from the absence of the job's data-chunk rows rather than from
+`data_chunks_delivered`.** The rows are the more direct evidence, and the check costs one indexed
+probe either way.
 
 The sweep needs no knowledge of sink type, since only site C closes a data chunk's gate and it runs
 only for full-width sinks, so the existence of such a row is the answer. It works one barrier scope
 at a time under that scope's lock.
 
-### Why the dispatch query is SQL
+### The dispatch queries
 
-Delivery order and `gate_open` are read from PostgreSQL, while `status` is read from the map, because
-the table's copy of it is written write-behind and lags. The bulk sweep therefore takes an ordered
-candidate list from SQL and re-checks each candidate against the map before dispatching it.
+Both phases take candidates from an ordered SQL query over `dependencytracking`, and both are served
+by an index shaped to answer them without a sort.
 
-The query cannot be a Hazelcast predicate, and the reason is the ownership split above: `gate_open`
-is a column on the table and deliberately not a field on `DependencyTracking`, so no predicate can
-see it. Putting it on the map value to make one possible is what would give a chunk two answers to
-whether it may be dispatched, one of them written behind the other's back.
+**Delivery**, `DeliveryDispatchRepository.findDeliveryCandidates`:
+
+```sql
+SELECT jobid, chunkid FROM dependencytracking
+ WHERE sinkid = ? AND status = SCHEDULED_FOR_DELIVERY AND gate_open
+ ORDER BY priority DESC, jobid, chunkid
+ LIMIT ?
+```
+
+Backed by `dependencytracking_delivery_order_index`, `(sinkid, status, gate_open, priority desc,
+jobid, chunkid)`. The first three are equality predicates and the rest is exactly the `ORDER BY`, so
+rows come back in order from the scan itself and the `LIMIT` reads no further. `priority desc` has to
+be in the index, since an all-ascending index yields neither the required order forwards nor
+backwards.
+
+**Processing**, the same shape without the gate:
+
+```sql
+SELECT jobid, chunkid, priority FROM dependencytracking
+ WHERE sinkid = ? AND status = SCHEDULED_FOR_PROCESSING
+ ORDER BY priority DESC, jobid, chunkid
+ LIMIT ?
+```
+
+Backed by `dependencytracking_processing_order_index`, `(sinkid, status, priority desc, jobid,
+chunkid)`. **The delivery index cannot serve it**: `gate_open` is its third key column, and with no
+equality predicate on that column the ordered tail no longer follows the equality columns, so the
+planner sorts.
+
+**The gate predicate is absent from the processing query on purpose, and the two must not share a
+statement.** A gate holds back delivery and nothing else. Under full barrier width a queued job's
+data chunks sit at `gate_open = FALSE` while still needing to be processed normally, so a gate filter
+here would stop the processing of exactly the chunks the barrier assumes get processed.
+
+Each query is limited to the free slots in the sink's queue, and a candidate needs no further check
+before it is dispatched. The table is the only source of `status`, so a candidate is a chunk that is
+genuinely waiting, and the order it comes back in is the order to dispatch in.
+
+For both indexes: do not expect the planner to choose them at low row counts. It prefers a narrower
+index and a sort until a sink has enough queued chunks for the sort to dominate, so verify with
+`EXPLAIN` against a realistic backlog rather than a freshly seeded table.
 
 ## Delivery watermark
 
 The gate orders whole jobs. The watermark is the other half of the picture: it stops an *older*
-version of a single record from overwriting a newer one at the sink. That is the job `waitingOn` and
-sequence analysis do today, and the watermark is what replaces them.
+version of a single record from overwriting a newer one at the sink.
 
 The problem it solves is that queue order is not delivery order. A sink runs several consumer
 threads per pod across several pods, so one thread can pick up an item from job 50 while another
@@ -376,41 +387,48 @@ result per item.
 Rows are per record and never deleted on delivery, so they accumulate. `WatermarkPurgeBean` prunes
 rows untouched for longer than `WATERMARK_RETENTION` (default 90 days) nightly.
 
-**Status.** Everything above is built and live on the job-store side: the table, the forward-only
-upsert on delivery, the read endpoint, the purge, and both JMS headers on every item sent.
-`SinkMessageConsumerAdapter` implements the sink half. **No production sink consumes it yet**, only
-tests, so the watermark is not currently preventing anything in production. `waitingOn` and `BLOCKED`
-are still what actually enforce record ordering, which is why they are still here. Each sink
-migration moves one sink onto the watermark, and `waitingOn` can only be removed once every sink has
-moved.
+**This is the only thing ordering versions of one record.** A sink that does not take part neither
+reads nor advances a watermark row, so nothing protects the records it delivers from being written
+out of order. Every sink receiving traffic must therefore implement the protocol, which
+`SinkMessageConsumerAdapter` provides, or opt out through `usesDeliveryWatermark()` because it sees a
+whole job before delivering anything.
 
 ## Hazelcast state
 
-| IMap | Key | Value | Purpose |
+Two structures, and neither holds chunk state.
+
+| Structure | Key | Value | Purpose |
 |---|---|---|---|
-| `DEPENDENCY_TRACKING` | `TrackingKey` (jobId + chunkId) | `DependencyTracking` | One entry per active chunk |
-| `SINK_STATUS` | sinkId | `Map<ChunkSchedulingStatus, Integer>` | Cached per-sink scheduling counters |
-| `LAST_TRACKER` | `WaitFor` | `TrackingKey` | Fast-path index for sequencing (opt-in via `WAIT_FOR_TRACKING_ENABLED`, default off) |
-| `ABORTED_JOBS` | - | ISet of jobId | Jobs being aborted, checked on the scheduling and unblocking paths |
+| `SINK_STATUS` | sinkId | `Map<ChunkSchedulingStatus, Integer>` | Per-sink scheduling counters, read for the queue caps |
+| `ABORTED_JOBS` | - | ISet of jobId | Jobs being aborted, checked on the scheduling path |
+
+The counters are distributed because any job-store instance can handle the callback that changes
+one. Each SQL write that changes a chunk's status applies its own delta through the
+`UpdateCounter` entry processor, and the map is rebuilt at startup, hourly, and on demand at
+`GET status/sinks/recount` from `SELECT sinkid, status, COUNT(*) ... GROUP BY sinkid, status`.
+
+**The counters can drift, and the rebuild is why that is tolerable.** The delta is not part of the
+transaction that changed the row, so a transaction that rolls back after applying its delta leaves
+the two disagreeing. The counters feed the queue caps, which are backpressure rather than
+correctness, so drift costs throughput until the next rebuild. They move to a plain JVM map in
+DI-3024, once the scheduler is a single instance.
 
 ## The `DependencyTracking` record
 
-Each entry holds:
+A detached snapshot of one row, read by a `SELECT` and used within the reading transaction. It holds:
 
 - **`key`** — `(jobId, chunkId)`, the unique identity
 - **`sinkId`** — which sink this chunk is destined for
 - **`submitter`** — the submitter ID (used for barrier scoping)
 - **`status`** — current scheduling status (see lifecycle below)
-- **`matchKeys`** — string keys derived from sequence analysis data plus an optional barrier key; used to find chunks this one must sequence after
-- **`waitFor`** — indexed form of matchKeys as `WaitFor(sinkId, submitter, key)` tuples, used for Hazelcast predicate queries
-- **`waitingOn`** — set of `TrackingKey`s this chunk is currently blocked by
-- **`termination`** - whether this chunk is its job's termination chunk, mirroring the
-  `is_termination` column. The column is the authority and this is read back from it whenever an
-  entry is loaded, which is sound because the value is decided when the row is created and never
-  changes. It is here so that the caller who removes an entry on delivery can tell the two branches
-  of the gate apart from the entry it was handed, see [Where the gate is decided](#where-the-gate-is-decided).
-  **`gate_open` has no counterpart here, and must not get one**, see below
+- **`termination`** — whether this chunk is its job's termination chunk, from `is_termination`
+- **`gateOpen`** — whether this chunk may be dispatched, from `gate_open`
 - **`priority`**, **`lastModified`**, **`retries`**
+
+`gateOpen` is here so the direct dispatch path can read the gate off the row it already fetches
+instead of paying for a second statement. Every field is a snapshot: a setter on this object writes
+to a local copy and changes no row, so the table remains the answer to every question about a
+chunk.
 
 ## Chunk lifecycle
 
@@ -424,20 +442,18 @@ SCHEDULED_FOR_PROCESSING
 QUEUED_FOR_PROCESSING
        │
        ▼  (chunkProcessingDone)
-READY_FOR_DELIVERY ──────────────────────────────┐
-       │                                          │
-       │  (waitingOn non-empty)          (no blocking deps)
-       ▼                                          │
-    BLOCKED                                       │
-       │  (RemoveWaitingOn clears last dep)        │
-       └──────────────► READY_FOR_DELIVERY ◄──────┘
-                               │
-               (bulk: SCHEDULED_FOR_DELIVERY)
-                               │
-               (direct: QUEUED_FOR_DELIVERY)
-                               │
-                (chunkDeliveringDone removes entry)
+READY_FOR_DELIVERY
+       │
+       ├──► SCHEDULED_FOR_DELIVERY   (queue full, or the chunk's gate is closed)
+       │             │
+       ▼             ▼
+   QUEUED_FOR_DELIVERY
+       │
+       ▼  (chunkDeliveringDone deletes the row)
 ```
+
+A chunk held back by its gate waits in `SCHEDULED_FOR_DELIVERY`, which is one reason that state is
+uncapped. Status value 3 is unused, see `ChunkSchedulingStatus.from`.
 
 `QUEUED_FOR_PROCESSING` and `QUEUED_FOR_DELIVERY` each have a cap of 1000 entries per sink, used for backpressure against the Artemis queues.
 
@@ -445,78 +461,118 @@ Both edges into `QUEUED_FOR_DELIVERY` are gated, and neither dispatches a chunk 
 `gate_open = FALSE`:
 
 - **bulk** — `JobSchedulerBean.bulkScheduleToDeliveringForSink` takes candidates from
-  `DeliveryDispatchRepository.findDeliveryCandidates`, an SQL query ordered by
-  `(priority DESC, jobid ASC, chunkid ASC)` with the gate filter in its `WHERE` clause, then
-  re-checks each candidate's status against the map.
-- **direct** — `submitToDeliveringIfPossible` checks the gate after the capacity check and, when it
-  is closed, parks the chunk in `SCHEDULED_FOR_DELIVERY` so the bulk sweep picks it up once the gate
-  opens. `submitToDelivering` checks again immediately before the status change, which is the choke
-  point every path funnels through.
-
-## How dependency relationships are built
-
-When `scheduleChunk` is called, `addAndBuildDependencies` runs:
-
-1. **Sequence analysis** — the chunk carries `sequenceAnalysisData` (typically bibliographic record IDs). These become `matchKeys`.
-2. **`findChunksToWaitFor`** queries the IMap for any currently active chunks for the same sink+submitter that share one or more matchKeys — i.e., chunks whose records overlap with this one that must be delivered first.
-3. **`optimizeDependencies`** prunes transitive redundancy: if chunk B already waits for A, and a new chunk would wait for both A and B, only B is kept.
-4. The resulting `waitingOn` set is stored. A non-empty set means the chunk will enter `BLOCKED` after processing completes (processing itself still proceeds).
-5. **Priority boost** — if the new chunk has higher priority than anything it is waiting on (cross-job), those predecessors get their priorities raised transitively via the `UpdatePriority` EntryProcessor.
+  `DeliveryDispatchRepository.findDeliveryCandidates`, which filters on the gate in SQL, so every
+  candidate it returns is dispatchable, see [The dispatch queries](#the-dispatch-queries).
+- **direct** — `submitToDeliveringIfPossible` reads `gate_open` off the row it fetches for the
+  capacity check and, when the gate is closed, parks the chunk in `SCHEDULED_FOR_DELIVERY` so the
+  bulk sweep picks it up once the gate opens. `submitToDelivering` reads it again immediately before
+  the status change, which is the choke point every path funnels through.
 
 ## Barrier chunks
 
-For sink types that require strict job-level ordering (MARCCONV, PERIODIC_JOBS, TICKLE), a synthetic **termination chunk** is appended at the end of each job. Its `barrierMatchKey` is the submitter ID, so it explicitly waits for all prior chunks from the same submitter that are still in flight. Future jobs from the same submitter then wait for this termination chunk, enforcing job-level ordering at the sink. Note that this holds back *every* chunk of a future job, not only its termination chunk, because `scheduleChunk` passes the barrier key to `findChunksToWaitFor` for every chunk it schedules.
+For sink types that require strict job-level ordering (MARCCONV, PERIODIC_JOBS, TICKLE), a synthetic
+**termination chunk** is appended at the end of each job, carrying the job's end-of-job work to the
+sink. It raises a barrier: no later job from the same submitter on the same sink may pass it, and how
+much of that later job is held back depends on the sink type, see
+[Barrier width per sink type](#barrier-width-per-sink-type).
 
-The gate reproduces that width without `waitingOn`, but only for the sink types that need it, which
-is what lets `waitingOn` eventually be deleted without taking tickle's dataset-wide guarantee with
-it. See [Barrier width per sink type](#barrier-width-per-sink-type), and
-[Delivery watermark](#delivery-watermark) for the record-level ordering that replaces the rest.
+The barrier is enforced entirely by the gate, and it holds back only what each sink type needs. It
+orders whole jobs and nothing finer: for ordering two versions of one record see
+[Delivery watermark](#delivery-watermark).
 
-## Unblocking — the `RemoveWaitingOn` EntryProcessor
+## Delivery acknowledgement
 
-`chunkDeliveringDone` first ignores the call outright if the chunk has no tracking entry (already
-completed) or is not in `QUEUED_FOR_DELIVERY`. Otherwise:
+One statement does the work of the guard and the token together:
 
-1. The completed chunk's entry is removed from the IMap.
-2. The per-job gate is advanced for the chunk's job: a data chunk is counted, a termination chunk
-   lifts its job's barrier and re-evaluates the jobs queued behind it, opening both the termination
-   chunks and the data chunks of later jobs in the scope. This is synchronous SQL in the caller's
-   transaction, independent of the `waitingOn` unblocking below, which is what still enforces
-   ordering. See [The per-job gate](#the-per-job-gate).
-3. `removeFromWaitingOn` runs `RemoveWaitingOn` as a Hazelcast `executeOnEntries` across all entries whose `waitingOn` contains this key. Hazelcast executes this atomically on whichever node owns each partition.
-4. `RemoveWaitingOn.process()` removes the key from `waitingOn`. If the set becomes empty and status is `BLOCKED`, it transitions to `READY_FOR_DELIVERY` and returns a `StatusChangeEvent`.
-5. Each newly unblocked chunk is handed to `attemptToUnblockChunk` in a **separate transaction** to avoid exhausting the JMS connection pool, in `(priority DESC, jobId ASC, chunkId ASC)` order. The order matters because any one of them can take the last free slot of `QUEUED_FOR_DELIVERY`, so it decides which reach the sink now and which wait for the next sweep.
+```sql
+DELETE FROM dependencytracking
+ WHERE jobid = ? AND chunkid = ? AND status = QUEUED_FOR_DELIVERY
+RETURNING sinkid, submitter, status, priority, is_termination
+```
+
+1. A returned row means this caller is the one that acknowledged the chunk. Nothing returned means
+   another caller already did, or the chunk was never in `QUEUED_FOR_DELIVERY`, and the call ends
+   there. Which of the two it was costs one extra probe on that path, and only on that path.
+2. The caller holding the returned row advances the per-job gate: a data chunk is counted, a
+   termination chunk lifts its job's barrier and re-evaluates the jobs queued behind it, opening both
+   the termination chunks and the data chunks of later jobs in the scope. See
+   [The per-job gate](#the-per-job-gate).
+
+**Both are in one transaction, and that is the point.** The delete is the once-only token for the
+count, so a count that commits without its delete would be countable twice, and a delete that
+commits without its count is the failure described under
+[When a gate is left closed](#when-a-gate-is-left-closed). Sharing the transaction makes both
+impossible: the sink's redelivery finds the row exactly when the count did not happen.
+
+Nothing else follows, and there is no fan-out. No other chunk is waiting on this one, because nothing
+records that one chunk waits on another. A chunk held by its gate is released by the re-trigger in
+step 2 or by the sweep, both of which work from the gate columns.
 
 ## Multi-instance safety
 
-- The IMap is distributed across all Hazelcast cluster members (one per Payara instance). Each `TrackingKey` is owned by exactly one partition/node.
-- EntryProcessors (`RemoveWaitingOn`, `UpdateStatus`, `UpdateCounter`, `UpdatePriority`) execute **on the owning node**, so mutations are atomic and require no network round-trip.
-- `modify()` uses `tryLock` (2-minute timeout) for cases that need a read-modify-write.
-- The `SINK_STATUS` counters IMap is maintained via `UpdateCounter` EntryProcessors, keeping per-sink scheduling counts consistent without full scans.
-- **Scheduled tasks run on one instance only.** Every `@Schedule` method on this path opens with `if (Hazelcast.isSlave()) return;`, so the recovery work below happens once per cluster rather than once per instance.
-- **Recovery tasks** live in `AdminBean` (`rs` package), not in `JobSchedulerBean`, whose only `@Schedule` method is `updateSinks()`:
+Every job-store instance runs the same code against one database, so nothing here may depend on
+being the only writer. Three mechanisms carry that, and each is a property of one SQL statement:
+
+- **A conditional `UPDATE` for every status change.** `setValidatedStatus` is one statement,
+  `UPDATE ... SET status = ? WHERE jobid = ? AND chunkid = ? AND status = ANY (<legal predecessors>)`,
+  and the affected-row count says whether this caller made the move. Under READ COMMITTED PostgreSQL
+  re-evaluates that predicate against the newest row version when it finds the row concurrently
+  updated, so two callers racing to advance one chunk produce exactly one success. **A read followed
+  by a write is not sufficient**, and this is not a theoretical concern:
+  `chunkProcessingDone` rejecting a chunk that has moved on, and `submitToDelivering` rejecting a
+  chunk already queued, are both this check, and both are called concurrently from separate
+  instances.
+- **A conditional `DELETE` for the acknowledgement**, which is the once-only token for the delivery
+  count. See [Delivery acknowledgement](#delivery-acknowledgement).
+- **The barrier scope's advisory lock** for everything that decides whether a gate opens. See
+  [Locking](#locking).
+
+The stale-chunk retry is the same shape. `AdminBean.resendIfNeeded` picks candidates from the stale
+query, and the conditions that make the retry once-only, `retries < 1` and the status having a
+successor at all, sit in the retry statement's own `WHERE` clause rather than in the caller.
+
+- **Scheduled tasks run on one instance only.** Every `@Schedule` method on this path opens with
+  `if (Hazelcast.isSlave()) return;`, so the recovery work below happens once per cluster rather than
+  once per instance. Those guards are deleted when the scheduler becomes a single-instance service.
+- **Recovery tasks** live in `AdminBean` (`rs` package):
   - `updateStaleChunks()` (every minute) re-drives chunks left behind by crashes or lost JMS messages. Entries stale in `READY_FOR_DELIVERY` for more than 5 minutes are pushed to `SCHEDULED_FOR_DELIVERY`; entries stale in `QUEUED_FOR_DELIVERY` beyond 1 hour, and in `QUEUED_FOR_PROCESSING` beyond `PROCESSOR_TIMEOUT` (default `PT1H`), are resent. It also maintains the per-sink stale-chunk metric.
-  - `recheckBlocks()` (hourly) drops trackers for jobs that are gone or already completed, lifting the barrier of each so the jobs queued behind it are released, and releases chunks left `BLOCKED` on dependencies that no longer exist. It then sweeps the gate: it lifts the barrier of any job left with one and no `is_termination` row, and opens any gate closed with no earlier unlifted barrier, requiring for a termination chunk that its own job's data chunks are delivered. That last condition is read from the absence of the job's data-chunk rows and never from `job.data_chunks_delivered`, because the counter is exactly what a rollback in `chunkDeliveringDone` loses, so a sweep reading it could not repair the failure it exists for.
+  - `recheckBlocks()` (hourly) drops the rows of jobs that are gone or already completed, lifting the barrier of each so the jobs queued behind it are released, and recounts the sink status map. It then sweeps the gate: it lifts the barrier of any job left with one and no `is_termination` row, and opens any gate closed with no earlier unlifted barrier, requiring for a termination chunk that its own job's data chunks are delivered.
   - `completeFinishedJobs()` (hourly) closes jobs whose work finished without the completion being recorded.
+
+## Write volume
+
+Every status change is its own `UPDATE`. A chunk passes through three of them on the direct path and
+up to five when it parks in either `SCHEDULED_*` state, plus an insert and a delete.
+
+**Each of those writes is a non-HOT update, and that is the part that costs.** `status` is a key
+column of both ordered indexes, and updating an indexed column rules out a heap-only tuple, which
+means a new index entry in *every* index on the table rather than only in the ones containing
+`status`. The table therefore carries no index that is a leading prefix of another: `(sinkid,
+status)` alone would be one, and every query it would serve is served by a prefix scan of an ordered
+index instead.
+
+The dead tuple rate rises by the same factor, and the table's live size is bounded by in-flight
+chunks while its churn is not, so it carries a per-table `autovacuum_vacuum_scale_factor` well below
+the 0.2 default. Fillfactor is not worth tuning here, since its benefit is to HOT updates and HOT is
+ruled out.
 
 ## Key files
 
 | File | Role |
 |---|---|
-| `distributed-objects/src/main/java/.../DependencyTracking.java` | Per-chunk state object |
+| `distributed-objects/src/main/java/.../DependencyTracking.java` | Snapshot of one row |
 | `distributed-objects/src/main/java/.../ChunkSchedulingStatus.java` | Status enum with valid transitions and capacity limits |
-| `distributed-objects/src/main/java/.../hz/processor/` | EntryProcessors for atomic in-place mutations |
-| `distributed-objects/src/main/java/.../hz/aggregator/` | Aggregators for cluster-wide stats |
-| `war/src/main/java/.../dependencytracking/DependencyTrackingService.java` | Singleton facade — primary API for all tracking operations |
-| `war/src/main/java/.../dependencytracking/Hazelcast.java` | IMap initializer and cluster membership helpers |
-| `war/src/main/java/.../ejb/JobSchedulerBean.java` | Primary caller; owns the scheduling and unblocking logic |
+| `war/src/main/java/.../ejb/DependencyTrackingRepository.java` | Every statement against the table: insert, status change, delete, the ordered processing query |
+| `war/src/main/java/.../dependencytracking/DependencyTrackingService.java` | Facade over the repository, and the `SINK_STATUS` counters |
+| `war/src/main/java/.../dependencytracking/Hazelcast.java` | Cluster membership helpers, and the two remaining structures |
+| `war/src/main/java/.../ejb/JobSchedulerBean.java` | Primary caller; owns the scheduling logic |
 | `war/src/main/java/.../ejb/JobGateBean.java` | Per-job gate: counts data chunks, lifts barriers, re-triggers later jobs, closes a data chunk's gate at schedule time, and owns the hourly gate sweep |
 | `war/src/main/java/.../ejb/JobGateRepository.java` | The gate's synchronous SQL, and the barrier-scope advisory lock |
-| `war/src/main/java/.../ejb/DeliveryDispatchRepository.java` | Ordered delivery candidates and the gate check both dispatch paths read |
+| `war/src/main/java/.../ejb/DeliveryDispatchRepository.java` | The ordered delivery candidate query |
 | `war/src/main/java/.../ejb/SinkMessageProducerBean.java` | Composes the `recordKey` and `JMSXGroupID` headers each item carries |
 | `war/src/main/java/.../rs/WatermarksBean.java` | The watermark read endpoint sinks call before each delivery |
 | `war/src/main/java/.../ejb/WatermarkPurgeBean.java` | Nightly pruning of watermark rows past `WATERMARK_RETENTION` |
 | `commons/artemis-jse-app/.../jms/SinkMessageConsumerAdapter.java` | Sink-side half of the watermark protocol, with the opt-out |
 | `war/src/main/java/.../ejb/JobSchedulerBulkSubmitterBean.java` | Per-second bulk submission of `SCHEDULED_FOR_*` chunks to the JMS queues |
-| `war/src/main/java/.../rs/AdminBean.java` | Scheduled recovery tasks: stale chunks, blocked rechecks, the gate sweep, job completion |
+| `war/src/main/java/.../rs/AdminBean.java` | Scheduled recovery tasks: stale chunks, row rechecks, the gate sweep, job completion |
 | `war/src/main/java/.../ejb/JobsBean.java` | Delivery callbacks, and the abort path that has to lift a job's barrier |

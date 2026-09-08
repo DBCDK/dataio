@@ -104,10 +104,11 @@ predicate, which keeps the ordered suffix intact, makes the filter an index cond
 instead of a heap recheck, and leaves the index usable by a query looking for closed gates.
 Direct-mode dispatch (`READY_FOR_DELIVERY → QUEUED_FOR_DELIVERY`) applies the same
 order when multiple chunks become ready simultaneously, and the same `gate_open` filter,
-see [Barrier Width](#barrier-width--per-sink-type-job-isolation). "Multiple chunks become ready
-simultaneously" has one site: the cascade in `chunkDeliveringDone` that hands each chunk unblocked
-by one delivery to its own transaction, any of which can take the last free queue slot. The other
-direct entry points handle one chunk each and have no order to apply.
+see [Barrier Width](#barrier-width--per-sink-type-job-isolation). Since the dependency graph was
+removed there is no longer any site where multiple chunks become ready at once: the cascade in
+`chunkDeliveringDone` that used to hand each newly unblocked chunk to its own transaction is gone
+with `waitingOn`, and every remaining direct entry point handles one chunk and has no order to
+apply.
 
 **Why the query has to be SQL, and what that costs before Phase 9.** The reason is not the index.
 `gate_open` and `is_termination` are columns on the table and deliberately not fields on
@@ -166,6 +167,57 @@ for live head and section records at the first hop rather than at the sink. It i
 not made worse here, only more conspicuous now that the delivery half is ordered. The broker
 mitigates it once messages are enqueued, since `submitToProcessing` passes the chunk's priority as
 the JMS priority, but not while chunks are waiting for a queue slot.
+
+### Processing Ordering
+
+The processing half is ordered the same way, and by Phase 9 it is a plain SQL query too:
+
+```sql
+SELECT jobid, chunkid, priority
+  FROM dependencytracking
+ WHERE sinkid = ?
+   AND status = SCHEDULED_FOR_PROCESSING
+ ORDER BY priority DESC, jobid ASC, chunkid ASC
+ LIMIT ?
+```
+
+Backed by `dependencytracking_processing_order_index`, `(sinkid, status, priority desc, jobid,
+chunkid)`. **The delivery index cannot serve this**, because it carries `gate_open` as its third key
+column: with no equality predicate on it the ordered tail no longer follows the equality columns and
+the planner adds a sort. As with the delivery index, the planner only prefers it once a sink has
+enough queued chunks that the sort dominates, so verify with `EXPLAIN` on a realistic backlog rather
+than on a fresh table.
+
+**The gate predicate is deliberately absent**, and this query must not share a statement with
+`findDeliveryCandidates`. A gate holds back delivery and nothing else. Under full barrier width a
+queued job's data chunks sit at `gate_open = FALSE` while still needing to be processed normally, so
+a gate filter here would stop the processing of exactly the chunks the barrier assumes get
+processed.
+
+The query returns `priority`, which is what `submitToProcessing` needs, so there is no per-chunk
+lookup. There is no over-fetch and no re-check against the map either, because by this phase the
+table is the only source of `status`.
+
+This is what fixes the priority inversion described at the end of
+[Delivery Ordering](#delivery-ordering).
+
+### Aborting no longer cascades
+
+Aborting a job used to abort every job that depended on it. `findDependingJobs` asked
+`dependencytracking` for the distinct jobs whose `waitingon` named a chunk of the aborted job, and
+`abortDependingJobs` recursed into each, with a loop-detection set to stop it coming back round.
+
+The reason was sound while the graph existed: a chunk `BLOCKED` on a chunk of an aborted job would
+never be unblocked, because the delivery that would have cleared it never happens, so the dependent
+job would stall for good. Aborting it too was the lesser evil.
+
+Nothing holds a later job back that way any more. The only cross-job hold left is the per-job gate,
+and the abort path already lifts the aborted job's barrier and re-triggers the jobs queued behind it,
+which **releases** them rather than aborting them. So the cascade is removed rather than replaced,
+and `PgJobStore.abortJob` returns one job instead of a stream.
+
+This is a deliberate behaviour change and an improvement: aborting one job stops taking unrelated
+later jobs with it.
 
 ### Barrier Chunks — Per-Job Gate
 
@@ -2031,8 +2083,8 @@ was the sole input to `addAndBuildDependencies()`. That call is removed.
 | `DefaultKeyGenerator` | Removed |
 | `ChunkEntity.sequenceAnalysisData` column | Migration drops it |
 | `SinkContent.SequenceAnalysisOption` | Removed |
-| `dependencytracking.matchkeys` (GIN-indexed text[]) | Migration drops it |
-| `dependencytracking.waitingon` (GIN-indexed int[]) | Migration drops it |
+| `dependencytracking.matchkeys` (jsonb) | Dropped by `V11`, in Phase 9 rather than here: it held the scheduler's copy of the keys, not the source |
+| `dependencytracking.waitingon` (jsonb, GIN-indexed) | Dropped by `V11`, in Phase 9 |
 
 `ItemEntity.recordInfo` already holds the record key per item. `SinkMessageProducerBean`
 reads `RecordInfo.getCorrelationKey()` directly when building item messages.
@@ -2061,6 +2113,10 @@ reads `RecordInfo.getCorrelationKey()` directly when building item messages.
 | `BlockedCounter` aggregator | Removed |
 | `SINK_STATUS` Hazelcast counters | Moved to scheduler-service as JVM `ConcurrentHashMap<Integer, AtomicInteger>` |
 | `ChunkSchedulingStatus.BLOCKED` (value 3) | Deleted; rows migrated to `SCHEDULED_FOR_DELIVERY` |
+| `JobSchedulerBean.updateSinks` and the `chunks.blocked` metric | Counted a state that no longer exists |
+| `DependencyTrackingService.recheckBlocks`, `find`, `findChunksWaitingForMe`, `findJobBarrier` | Served the graph |
+| `PgJobStoreRepository.findDependingJobs` and the abort cascade | See [Aborting no longer cascades](#aborting-no-longer-cascades) |
+| `dependency/check_blocked` endpoint | Its subject is gone |
 
 ---
 
@@ -2261,13 +2317,37 @@ complete) — see ordering constraint 1 above. Second precondition:
 full barrier width until this phase deletes it, see [Barrier Width](
 #barrier-width--per-sink-type-job-isolation).
 
+Split into three PRs, since the whole phase is far past the 500 line guideline. See
+`.claude/plans/DI-3021-remove-dependency-graph.md`.
+
+**PR 1, remove the dependency graph and keep Hazelcast.** Done.
+
 - Delete `BLOCKED` state from `ChunkSchedulingStatus`; migrate existing `BLOCKED`
-  rows to `SCHEDULED_FOR_DELIVERY`
-- Remove `DEPENDENCY_TRACKING` and `LAST_TRACKER` Hazelcast maps and all entry processors
+  rows to `SCHEDULED_FOR_DELIVERY` (`V11`)
+- Remove the `LAST_TRACKER` Hazelcast map, the `RemoveWaitingOn`, `AddTerminationWaitingOn` and
+  `UpdatePriority` entry processors, and the `LastTrackerMap` and `BlockedCounter` aggregators
 - Remove `findChunksToWaitFor`, `trackChunksToWaitFor`, `optimizeDependencies`,
   `boostPriorities`, `removeFromWaitingOn`, `addDependencies`, fan-out loop
-- Remove `LastTrackerMap` and `BlockedCounter` aggregators
-- Flyway migration: drop `waitingon`, `matchkeys` columns and their GIN indexes
+- Remove `DependencyTracking.waitingOn`, `matchKeys` and `waitFor`, and the `WaitFor` type
+- Flyway migration: drop the `waitingon` and `matchkeys` columns and the GIN index on `waitingon`
+  (`matchkeys` never had one)
+- The abort cascade goes with the graph, see [Aborting no longer cascades](#aborting-no-longer-cascades)
+
+**PR 2, make `dependencytracking` the sole store.** Outstanding.
+
+- Remove the `DEPENDENCY_TRACKING` map and `DependencyTrackingStore`; row lifecycle and `status`
+  become synchronous SQL in job-store, in a new `DependencyTrackingRepository`
+- `setValidatedStatus` becomes one conditional `UPDATE` whose affected-row count replaces the
+  `UpdateStatus` entry processor's `StatusChangeEvent`
+- The chunk's row is `DELETE`d in the same transaction as the `data_chunks_delivered` increment,
+  which makes the delete's own affected-row count the once-only token DI-3049 introduced
+- `SINK_STATUS` stays a Hazelcast map, maintained from the new SQL write sites and rebuilt at
+  startup from `COUNT(*) GROUP BY sinkid, status`. It becomes a JVM map in DI-3024
+- Ordered processing-phase candidate query and its index, see [Processing Ordering](#processing-ordering)
+
+**PR 3, simplify both dispatch paths.** Outstanding. Removes the over-fetch, `staleCandidateSlack`
+and `isStillAwaitingDelivery`, and folds `hasClosedGate` into the row the direct path already
+fetches.
 - The gate needs no change here. `dependencytracking` becomes job-store's outright, so the
   split ownership described under [Who writes the gate columns before Phase 9](
   #barrier-chunks--per-job-gate) collapses and the `do update set` constraint on

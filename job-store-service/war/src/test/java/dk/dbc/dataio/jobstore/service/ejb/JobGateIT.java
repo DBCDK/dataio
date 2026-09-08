@@ -21,7 +21,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -63,10 +62,10 @@ public class JobGateIT extends AbstractJobStoreIT {
         // dependencytracking (jobid, chunkid) is a foreign key into chunk, so the row the gate
         // writes needs its chunk. createJobTerminationChunkEntity persists that chunk first.
         newPersistedChunkEntity(new ChunkEntity.Key(key.getChunkId(), key.getJobId()));
-        DependencyTracking tracker = new DependencyTracking(key, SINK_ID, (int) SUBMITTER, "" + SUBMITTER, Set.of());
+        DependencyTracking tracker = new DependencyTracking(key, SINK_ID, (int) SUBMITTER);
 
         persistenceContext.run(() -> newJobGateRepository().upsertGateRow(
-                key, SINK_ID, (int) SUBMITTER, tracker.getStatus(), tracker.getMatchKeys(), true, false));
+                key, SINK_ID, (int) SUBMITTER, tracker.getStatus(), true, false));
 
         new DependencyTrackingStore(datasource).store(key, tracker.setStatus(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY));
 
@@ -455,7 +454,7 @@ public class JobGateIT extends AbstractJobStoreIT {
             JobGateBean closeGate = new JobGateBean(new JobGateRepository().withEntityManager(closeEm));
             Future<?> close = executor.submit(() -> runInTransaction(closeEm, () -> {
                 closeGate.closeDataChunkGateIfBlocked(laterDataChunk, SINK_ID, (int) SUBMITTER,
-                        ChunkSchedulingStatus.READY_FOR_PROCESSING, Set.of());
+                        ChunkSchedulingStatus.READY_FOR_PROCESSING);
                 return null;
             }));
             JobGateBean reTriggerGate = new JobGateBean(new JobGateRepository().withEntityManager(reTriggerEm));

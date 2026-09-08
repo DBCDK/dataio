@@ -28,14 +28,6 @@ public class AggregatorsTest extends JetTestSupport {
     }
 
     @org.junit.Test
-    public void blockedCounter() {
-        addTrackers(20);
-        Map<Integer, Integer> aggregate = map.aggregate(new BlockedCounter());
-        Map<Integer, Integer> expected = Map.of(0, 3, 1, 2, 2, 2);
-        assertEquals("We should have 3 sinks with 3, 3 and 4 blocked", expected, aggregate);
-    }
-
-    @org.junit.Test
     public void jobCounter() {
         List<DependencyTracking> list = addTrackers(50);
         Integer[] aggregate = map.aggregate(new JobCounter(0));

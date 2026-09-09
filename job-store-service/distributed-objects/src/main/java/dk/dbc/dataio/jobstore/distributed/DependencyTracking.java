@@ -26,6 +26,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
     private Instant lastModified = Instant.now();
     private int retries = 0;
     private boolean termination = false;
+    private boolean gateOpen = true;
 
     public DependencyTracking(TrackingKey key, int sinkId, int submitter) {
         this.key = key;
@@ -65,10 +66,6 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
      * because the value is decided when the row is created and never changes afterwards. It is set
      * on the entry the termination chunk is scheduled with, and read back from the column whenever
      * an entry is loaded from the table.
-     * <p>
-     * {@code gate_open} deliberately has no counterpart here. It is written by four sites over a
-     * chunk's life, so a copy on this object could be stale, and a stale open gate dispatches a
-     * job's end-of-job work ahead of the data it summarises.
      */
     @Override
     public boolean isTermination() {
@@ -77,6 +74,28 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
 
     public DependencyTracking setTermination(boolean termination) {
         this.termination = termination;
+        return this;
+    }
+
+    /**
+     * Says whether this chunk's gate is open, so whether it may be delivered.
+     * <p>
+     * Read from {@code gate_open}, which is the authority. This is a snapshot of the column as it
+     * stood when the row was selected, and it is used the way {@code status} is used: within the
+     * transaction that read it, by a dispatch path that goes on to claim the chunk with a validated
+     * status change. The gate is written by four sites over a chunk's life, so a value carried
+     * across transactions or held past the dispatch decision says nothing about the row.
+     * <p>
+     * Defaults to open, matching {@code NOT NULL DEFAULT TRUE} on the column, so an object built
+     * for a chunk whose gate nobody has closed reads the same as its row.
+     */
+    @Override
+    public boolean isGateOpen() {
+        return gateOpen;
+    }
+
+    public DependencyTracking setGateOpen(boolean gateOpen) {
+        this.gateOpen = gateOpen;
         return this;
     }
 

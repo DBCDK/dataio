@@ -56,7 +56,7 @@ public class DependencyTrackingRepository extends RepositoryBase {
 
     /** Read in the order {@link #fromRow} expects them. */
     private static final String COLUMNS =
-            "jobid, chunkid, sinkid, status, priority, submitter, lastmodified, retries, is_termination";
+            "jobid, chunkid, sinkid, status, priority, submitter, lastmodified, retries, is_termination, gate_open";
 
     public DependencyTrackingRepository withEntityManager(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -230,7 +230,7 @@ public class DependencyTrackingRepository extends RepositoryBase {
         List<Object[]> rows = entityManager.createNativeQuery(
                         "DELETE FROM dependencytracking " +
                                 " WHERE jobid = ?1 AND chunkid = ?2" + predicate +
-                                " RETURNING sinkid, submitter, priority, is_termination, status")
+                                " RETURNING sinkid, submitter, priority, is_termination, status, gate_open")
                 .setParameter(1, key.getJobId())
                 .setParameter(2, key.getChunkId())
                 .getResultList();
@@ -241,7 +241,8 @@ public class DependencyTrackingRepository extends RepositoryBase {
         return Optional.of(new DependencyTracking(key, intOf(row[0]), intOf(row[1]))
                 .setPriority(intOf(row[2]))
                 .setTermination((Boolean) row[3])
-                .setStatus(ChunkSchedulingStatus.from(intOf(row[4]))));
+                .setStatus(ChunkSchedulingStatus.from(intOf(row[4])))
+                .setGateOpen((Boolean) row[5]));
     }
 
     /**
@@ -323,7 +324,7 @@ public class DependencyTrackingRepository extends RepositoryBase {
      * <b>Deliberately unindexed, and therefore a sequential scan.</b> No index leads with
      * {@code status}, and adding one would put a fourth entry on a write path where every status
      * change is already a non-HOT update writing to every index on the table, see
-     * job-store-service/dependency-tracking.md under "Write volume". Three scans a minute of a
+     * job-store-service/dependency-tracking.md under "Write volume". Four scans a minute of a
      * table bounded by in-flight chunks is the cheaper side of that trade. Scoping the query per
      * sink would let the ordered indexes serve it, and is the thing to reach for if the scan ever
      * shows up in {@code pg_stat_statements}.
@@ -509,7 +510,8 @@ public class DependencyTrackingRepository extends RepositoryBase {
                 .setPriority(intOf(row[4]))
                 .withLastModified(((Timestamp) row[6]).toInstant())
                 .withRetries(intOf(row[7]))
-                .setTermination((Boolean) row[8]);
+                .setTermination((Boolean) row[8])
+                .setGateOpen((Boolean) row[9]);
     }
 
     private static int intOf(Object value) {

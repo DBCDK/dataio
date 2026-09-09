@@ -94,7 +94,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         }.withRepository(newDependencyTrackingRepository()).init();
         int startingCap = trackingService.getCount(1, QUEUED_FOR_PROCESSING);
         PgJobStoreRepository jobStoreRepository = newPgJobStoreRepository();
-        JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean(entityManager, jobStoreRepository, mock(SinkMessageProducerBean.class), mock(JobProcessorMessageProducerBean.class), trackingService, newDeliveryDispatchRepository());
+        JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean(entityManager, jobStoreRepository, mock(SinkMessageProducerBean.class), mock(JobProcessorMessageProducerBean.class), trackingService);
         JobSchedulerBean bean = new JobSchedulerBean(entityManager, jtbean, jobStoreRepository, null, trackingService, newJobGateBean(), newDeliveryDispatchRepository());
 
         final JobEntity jobEntity = new JobEntity(3);
@@ -145,7 +145,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         SinkMessageProducerBean sinkMessageProducer = mock(SinkMessageProducerBean.class);
         JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean(entityManager,
                 jobStoreRepository, sinkMessageProducer, mock(JobProcessorMessageProducerBean.class),
-                trackingService, newDeliveryDispatchRepository());
+                trackingService);
         JobSchedulerBean bean = new JobSchedulerBean(entityManager, jtbean, jobStoreRepository, null,
                 trackingService, newJobGateBean(), newDeliveryDispatchRepository());
 

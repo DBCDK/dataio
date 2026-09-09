@@ -9,7 +9,6 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
-import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
@@ -48,7 +47,6 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FO
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
-import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
 
 /**
  * Handles chunk scheduling as chunks pass through partitioning, processing and delivery phases.
@@ -470,14 +468,11 @@ public class JobSchedulerBean {
             if (spaceLeftInQueue > 0) {
                 LOGGER.debug("bulk scheduling for delivery - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
 
-                List<TrackingKey> chunks = deliveryDispatchRepository.findDeliveryCandidates(
-                        sinkId, spaceLeftInQueue + staleCandidateSlack());
+                List<TrackingKey> chunks = deliveryDispatchRepository.findDeliveryCandidates(sinkId, spaceLeftInQueue);
 
                 if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for delivery - found {} candidate chunks for sink {}", chunks.size(), sinkId);
                 for (TrackingKey toSchedule : chunks) {
-                    if(chunksPushedToQueue == spaceLeftInQueue) break;
                     if(JobsBean.isAborted(toSchedule.getJobId())) continue;
-                    if(!isStillAwaitingDelivery(toSchedule)) continue;
                     LOGGER.info("bulk scheduling for delivery - chunk {} to be scheduled for delivery for sink {}", toSchedule, sinkId);
                     if(jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(toSchedule)) {
                         chunksPushedToQueue++;
@@ -488,32 +483,6 @@ public class JobSchedulerBean {
             LOGGER.error("Error in bulk scheduling for delivery for sink {}", sinkId, ex);
         }
         return new AsyncResult<>(chunksPushedToQueue);
-    }
-
-    /**
-     * How far past the free queue slots the candidate query reaches.
-     * <p>
-     * <b>Both the slack and {@link #isStillAwaitingDelivery} are now redundant, and go together.</b>
-     * They existed because the MapStore wrote {@code status} write-behind, so a dispatched chunk kept
-     * a row reading {@code SCHEDULED_FOR_DELIVERY} until the next flush, those rows sorted first,
-     * and a window of exactly {@code spaceLeftInQueue} would have been filled almost entirely by
-     * chunks that had already gone. The table is now written in the transaction that decides the
-     * status, so a candidate can be neither stale nor point at a chunk that does not exist. Kept
-     * here for one release, at the cost of one redundant read per candidate, so that the conversion
-     * to SQL and the narrowing of the dispatch paths are separately reviewable.
-     */
-    private static int staleCandidateSlack() {
-        return QUEUED_FOR_DELIVERY.getMax();
-    }
-
-    /**
-     * @param key candidate returned by the candidate query
-     * @return true if the chunk is still waiting for delivery
-     * @see #staleCandidateSlack
-     */
-    private boolean isStillAwaitingDelivery(TrackingKey key) {
-        DependencyTrackingRO row = dependencyTrackingService.get(key);
-        return row != null && row.getStatus() == SCHEDULED_FOR_DELIVERY;
     }
 
     /**

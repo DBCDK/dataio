@@ -236,7 +236,7 @@ public class DeliveryDispatchIT extends AbstractJobStoreIT {
         when(jobStoreRepository.getChunkItemEntities(anyInt(), anyInt())).thenReturn(List.of(new ItemEntity()));
         when(jobStoreRepository.getJobEntityById(anyInt())).thenReturn(job);
         return new JobSchedulerTransactionsBean(entityManager, jobStoreRepository, producer,
-                mock(JobProcessorMessageProducerBean.class), trackingService, newDeliveryDispatchRepository());
+                mock(JobProcessorMessageProducerBean.class), trackingService);
     }
 
     private JobEntity newPersistedJob() {

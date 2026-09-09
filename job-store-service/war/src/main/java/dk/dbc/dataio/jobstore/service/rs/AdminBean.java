@@ -65,6 +65,7 @@ import java.util.stream.Stream;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
 
@@ -108,11 +109,7 @@ public class AdminBean {
     public void updateStaleChunks() {
         if(Hazelcast.isSlave()) return;
         try {
-            // Validated, so a chunk that left READY_FOR_DELIVERY between the query and the write is
-            // left alone. Unvalidated, this would push a chunk the sink already holds back to
-            // SCHEDULED_FOR_DELIVERY and the next bulk sweep would deliver its items again.
-            dependencyTrackingService.getStaleDependencies(READY_FOR_DELIVERY, Duration.ofMinutes(5))
-                    .forEach(dt -> dependencyTrackingService.setValidatedStatus(dt.getKey(), SCHEDULED_FOR_DELIVERY));
+            rescueChunksLeftReady();
             Stream<DependencyTrackingRO> delStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
             Stream<DependencyTrackingRO> procStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
             List<DependencyTrackingRO> list = Stream.concat(delStream, procStream).collect(Collectors.toList());
@@ -126,6 +123,37 @@ public class AdminBean {
             LOGGER.error("Caught runtime exception un update stale chunks", e);
             throw e;
         }
+    }
+
+    /**
+     * Re-drives the chunks whose dispatch attempt was fired and never arrived.
+     * <p>
+     * Both {@code READY_*} statuses mean the same thing: whoever put the chunk here went straight on
+     * to dispatch it, so the status is held for the length of one attempt and no longer. An attempt
+     * that dies leaves the chunk with nothing else watching it, since the bulk sweeps read only the
+     * {@code SCHEDULED_*} statuses, and moving it to its own {@code SCHEDULED_*} status is what hands
+     * it to the sweep that does.
+     * <p>
+     * Validated in both cases, because each target has exactly one legal predecessor, which is the
+     * status the query selected on. That makes the write the precise guard against a chunk that
+     * moved on between the query and the write: unvalidated, the delivery side would push a chunk
+     * the sink already holds back to {@code SCHEDULED_FOR_DELIVERY} and the next sweep would deliver
+     * its items a second time.
+     * <p>
+     * The two timeouts answer different questions and are deliberately not the same number. Five
+     * minutes on the delivery side covers a real round trip to a sink. The processing side's attempt
+     * is an EJB asynchronous invocation made as the chunk's row commits, so it is milliseconds in
+     * health, and its timeout is set by the other risk instead: a large partitioning burst queues
+     * those invocations, and a sweep firing while they are still draining hands the same chunks to
+     * the bulk submitter, leaving every queued invocation to find its chunk already claimed. Ten
+     * minutes sits far above any backlog that queue plausibly holds, and still bounds a stranded
+     * chunk to minutes rather than to the hourly sweeps.
+     */
+    void rescueChunksLeftReady() {
+        dependencyTrackingService.getStaleDependencies(READY_FOR_DELIVERY, Duration.ofMinutes(5))
+                .forEach(dt -> dependencyTrackingService.setValidatedStatus(dt.getKey(), SCHEDULED_FOR_DELIVERY));
+        dependencyTrackingService.getStaleDependencies(READY_FOR_PROCESSING, Duration.ofMinutes(10))
+                .forEach(dt -> dependencyTrackingService.setValidatedStatus(dt.getKey(), SCHEDULED_FOR_PROCESSING));
     }
 
     @Schedule(minute = "10", hour = "*", persistent = false)

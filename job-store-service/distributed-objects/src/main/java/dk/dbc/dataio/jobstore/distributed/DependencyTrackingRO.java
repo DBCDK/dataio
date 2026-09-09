@@ -13,6 +13,8 @@ public interface DependencyTrackingRO {
 
     boolean isTermination();
 
+    boolean isGateOpen();
+
     int getPriority();
 
     Instant getLastModified();

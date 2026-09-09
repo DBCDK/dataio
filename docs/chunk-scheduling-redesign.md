@@ -2067,6 +2067,7 @@ reads `RecordInfo.getCorrelationKey()` directly when building item messages.
 | `dependency/reload` endpoint | With no map to reload only the recount is left, which `status/sinks/recount` already offers |
 | `DependencyTracking(ResultSet)` and `DependencyTracking.resend()` | The MapStore's row mapper, and the retry the statement now carries |
 | `staleCandidateSlack`, `isStillAwaitingDelivery`, `DeliveryDispatchStaleStatusIT` | Compensated for the write-behind lag |
+| `DeliveryDispatchRepository.hasClosedGate` | The direct path reads `gate_open` off the row it already holds |
 | `dependencytracking_sinkid_status_index` | A leading prefix of both ordered indexes (`V12`) |
 | `SINK_STATUS` Hazelcast counters | Phase 11: moved to scheduler-service as JVM `ConcurrentHashMap<Integer, AtomicInteger>`. Phase 9 keeps the map and changes only where it is maintained from |
 | `ChunkSchedulingStatus.BLOCKED` (value 3) | Deleted; rows migrated to `SCHEDULED_FOR_DELIVERY` |
@@ -2317,17 +2318,26 @@ Split into three PRs, since the whole phase is far past the 500 line guideline. 
 - `DeliveryDispatchStaleStatusIT` goes here rather than with PR 3: its subject is the MapStore's
   write-behind lag, which no longer exists
 
-**PR 3, simplify both dispatch paths.** Outstanding. Removes the over-fetch, `staleCandidateSlack`
-and `isStillAwaitingDelivery`, and folds `hasClosedGate` into the row the direct path already
-fetches. Their premises are already gone, and they cost one redundant read per candidate until
-then.
+**PR 3, simplify both dispatch paths.** Done. The delivery candidate query is limited to the free
+queue slots, `staleCandidateSlack` and `isStillAwaitingDelivery` are gone with the over-fetch they
+compensated for, and `hasClosedGate` is gone with the second statement it cost: both direct-path gate
+checks read `gate_open` off the `DependencyTracking` the path already holds.
+- `gate_open` becomes a field on `DependencyTracking`, which the standing rule used to forbid. The
+  rule's premise was that the object was a cached map value written behind a projection, so a copy of
+  a column written by four sites could be stale. It is now a detached snapshot of a `SELECT`, read
+  and used inside one transaction, exactly like `status`
 - It also picks up one thing that is not part of this phase's criteria: a chunk stranded in
-  `READY_FOR_PROCESSING` has no recovery. That status is held only between a chunk's row committing
+  `READY_FOR_PROCESSING` had no recovery. That status is held only between a chunk's row committing
   and the asynchronous dispatch attempt running, but an EJB asynchronous invocation is in-memory, so
-  a crash in that window strands the chunk. The bulk sweep takes only `SCHEDULED_FOR_PROCESSING` and
-  the stale sweep covers every other status but this one. `READY_FOR_DELIVERY` has exactly this
+  a crash in that window stranded the chunk. The bulk sweep takes only `SCHEDULED_FOR_PROCESSING` and
+  the stale sweep covered every other status but this one. `READY_FOR_DELIVERY` has exactly this
   rescue, which is what marks the omission as an oversight rather than a decision. It predates the
-  phase
+  phase. `AdminBean.updateStaleChunks` now pushes a chunk stale in `READY_FOR_PROCESSING` for ten
+  minutes to `SCHEDULED_FOR_PROCESSING`, with the same validated status change the delivery side
+  uses. Ten rather than the delivery side's five: that window covers a round trip to a sink, whereas
+  this one is milliseconds in health and is sized instead to sit above the asynchronous-call backlog
+  a large partitioning burst produces, since a sweep firing into that backlog hands the same chunks
+  to the bulk submitter
 - The gate needs no change here. `dependencytracking` becomes job-store's outright, so the
   split ownership described under [Who writes the gate columns](
   #barrier-chunks--per-job-gate) collapses and the `do update set` constraint on

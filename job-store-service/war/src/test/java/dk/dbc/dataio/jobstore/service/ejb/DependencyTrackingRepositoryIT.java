@@ -348,6 +348,43 @@ public class DependencyTrackingRepositoryIT extends AbstractJobStoreIT {
                 statusOf(new TrackingKey(untouched.getId(), 0)), is(QUEUED_FOR_DELIVERY.value));
     }
 
+    // ---------------------------------------------------------------- the row read
+
+    /**
+     * The gate comes back on the row, which is what lets the direct dispatch path decide from the
+     * row it already holds instead of asking a second statement.
+     */
+    @org.junit.Test
+    public void get_carriesTheGate() throws Exception {
+        JobEntity job = newPersistedJob();
+        TrackingKey open = seed(job, 0, SCHEDULED_FOR_DELIVERY, Priority.NORMAL);
+        TrackingKey closed = seed(job, 1, SCHEDULED_FOR_DELIVERY, Priority.NORMAL, false);
+
+        DependencyTrackingRepository repository = newDependencyTrackingRepository();
+
+        assertThat("open gate", repository.get(open).orElseThrow().isGateOpen(), is(true));
+        assertThat("closed gate", repository.get(closed).orElseThrow().isGateOpen(), is(false));
+    }
+
+    /**
+     * {@link DependencyTrackingRepository#delete(TrackingKey)} builds its row from its own
+     * {@code RETURNING} list rather than through the shared row mapper, so the gate has to be named
+     * there too.
+     * <p>
+     * The unconditional overload can remove a row whose gate is shut, and a snapshot reporting the
+     * field's default instead of the column would be a quiet lie to whatever consults it next.
+     */
+    @org.junit.Test
+    public void delete_carriesTheGateOfTheRowItRemoved() throws Exception {
+        JobEntity job = newPersistedJob();
+        TrackingKey closed = seed(job, 0, SCHEDULED_FOR_DELIVERY, Priority.NORMAL, false);
+
+        DependencyTracking removed = persistenceContext.run(() ->
+                newDependencyTrackingRepository().delete(closed)).orElseThrow();
+
+        assertThat(removed.isGateOpen(), is(false));
+    }
+
     // ---------------------------------------------------------------- fixtures
 
     private List<TrackingKey> candidateKeys(int limit) {

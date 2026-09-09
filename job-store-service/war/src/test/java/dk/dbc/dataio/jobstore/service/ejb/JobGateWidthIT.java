@@ -165,8 +165,8 @@ public class JobGateWidthIT extends AbstractJobStoreIT {
 
         assertThat("held back by the gate",
                 newDeliveryDispatchRepository().findDeliveryCandidates(SINK_ID, 10), is(List.of()));
-        assertThat("and the direct path agrees",
-                newDeliveryDispatchRepository().hasClosedGate(dataChunk), is(true));
+        assertThat("and the direct path agrees, reading the gate off the chunk's own row",
+                newDependencyTrackingService().get(dataChunk).isGateOpen(), is(false));
 
         liftBarrierImposedBy(jobA);
 

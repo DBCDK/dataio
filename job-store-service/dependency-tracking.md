@@ -562,7 +562,9 @@ successor at all, sit in the retry statement's own `WHERE` clause rather than in
   `if (Hazelcast.isSlave()) return;`, so the recovery work below happens once per cluster rather than
   once per instance. Those guards are deleted when the scheduler becomes a single-instance service.
 - **Recovery tasks** live in `AdminBean` (`rs` package):
-  - `updateStaleChunks()` (every minute) re-drives chunks left behind by crashes or lost JMS messages. Entries stale in `READY_FOR_DELIVERY` for more than 5 minutes are pushed to `SCHEDULED_FOR_DELIVERY`; entries stale in `QUEUED_FOR_DELIVERY` beyond 1 hour, and in `QUEUED_FOR_PROCESSING` beyond `PROCESSOR_TIMEOUT` (default `PT1H`), are resent. It also maintains the per-sink stale-chunk metric.
+  - `updateStaleChunks()` (every minute) re-drives chunks left behind by crashes or lost JMS messages. Entries stale in `READY_FOR_PROCESSING` for more than 10 minutes are pushed to `SCHEDULED_FOR_PROCESSING` and entries stale in `READY_FOR_DELIVERY` for more than 5 minutes to `SCHEDULED_FOR_DELIVERY`, both with a validated status change so a chunk that moved on between the query and the write is left alone; entries stale in `QUEUED_FOR_DELIVERY` beyond 1 hour, and in `QUEUED_FOR_PROCESSING` beyond `PROCESSOR_TIMEOUT` (default `PT1H`), are resent. It also maintains the per-sink stale-chunk metric.
+
+    The two `READY_*` windows differ on purpose. A chunk holds either status for the length of one dispatch attempt and no longer, and the bulk submitters read only the `SCHEDULED_*` statuses, so this sweep is the only thing watching. Five minutes on the delivery side covers a real round trip to a sink. The processing side's attempt is an EJB asynchronous invocation fired as the chunk's row commits, so it is milliseconds in health, and its window is set by the opposite risk: a large partitioning burst queues those invocations, and a sweep firing while they drain hands the same chunks to the bulk submitter and leaves every queued invocation to find its chunk already claimed.
   - `recheckBlocks()` (hourly) drops the rows of jobs that are gone or already completed, lifting the barrier of each so the jobs queued behind it are released, and recounts the sink status map. It then sweeps the gate: it lifts the barrier of any job left with one and no `is_termination` row, and opens any gate closed with no earlier unlifted barrier, requiring for a termination chunk that its own job's data chunks are delivered.
   - `completeFinishedJobs()` (hourly) closes jobs whose work finished without the completion being recorded.
 
@@ -584,7 +586,7 @@ the 0.2 default. Fillfactor is not worth tuning here, since its benefit is to HO
 ruled out.
 
 **The stale-chunk query is the one read deliberately left unindexed.**
-`AdminBean.updateStaleChunks` asks `WHERE status = ? AND lastmodified < ?` three times a minute, and
+`AdminBean.updateStaleChunks` asks `WHERE status = ? AND lastmodified < ?` four times a minute, and
 no index leads with `status`, so each is a sequential scan. That is the cheaper side of the trade
 above: an index for it would be a fourth entry written on every status change. Scoping the query per
 sink would let the ordered indexes serve it and is what to reach for if the scan ever shows up in

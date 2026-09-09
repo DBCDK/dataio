@@ -19,7 +19,6 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -33,7 +32,7 @@ import static org.mockito.Mockito.mock;
  * see committed state and nothing else.
  * <p>
  * <b>What these tests cannot cover.</b> The beans are built by hand here rather than by a container,
- * so {@code REQUIRES_NEW} on {@link JobGateBean#closeDataChunkGateIfBlocked} is not honoured and
+ * so {@code REQUIRES_NEW} on {@link JobGateBean#insertDataChunkRow} is not honoured and
  * every site shares one entity manager and one connection. The verdicts and the rows written are
  * therefore exercised, but the transaction boundary that keeps the gate write from deadlocking
  * against the termination insert is not, and cannot be at this level: a single connection takes the
@@ -62,12 +61,12 @@ public class JobGateWidthIT extends AbstractJobStoreIT {
     }
 
     /**
-     * The row is written by the scheduler itself, not by the MapStore, so it is there to be read
-     * the moment the chunk has been scheduled. Waiting for the MapStore would mean up to
-     * write-delay-seconds in which the chunk carries the column default TRUE and dispatches.
+     * One statement writes the row and its gate verdict together, so there is no instant in which
+     * the chunk carries the column default TRUE and dispatches. Every column the barrier query and
+     * the dispatch query read is supplied by that same statement.
      */
     @org.junit.Test
-    public void closedDataChunkGateIsVisibleWithoutTheMapStore() throws Exception {
+    public void closedDataChunkGateIsWrittenWithTheRow() throws Exception {
         JobEntity jobA = newPersistedJob(SUBMITTER, 1, SinkContent.SinkType.TICKLE);
         markJobAsPartitioned(jobA);
 
@@ -76,7 +75,7 @@ public class JobGateWidthIT extends AbstractJobStoreIT {
 
         assertThat("gate column", gateOpen(new TrackingKey(jobB.getId(), 0)), is(false));
         assertThat("written as a data chunk", isTermination(new TrackingKey(jobB.getId(), 0)), is(false));
-        assertThat("submitter, which the barrier query reads and the MapStore never repairs",
+        assertThat("submitter, which the barrier query reads",
                 trackingColumn(new TrackingKey(jobB.getId(), 0), "submitter"), is((int) SUBMITTER));
         assertThat("sinkid, which is NOT NULL with no default",
                 trackingColumn(new TrackingKey(jobB.getId(), 0), "sinkid"), is(SINK_ID));
@@ -85,7 +84,7 @@ public class JobGateWidthIT extends AbstractJobStoreIT {
     /**
      * The narrow case. Marcconv finalizes by job id, so its job-end work is not
      * threatened by a later job's data landing first and its data chunks are dispatchable at once.
-     * Nothing at all is written here: an unwritten gate is an open gate.
+     * No barrier is even read here, and the row is inserted with its gate open.
      */
     @org.junit.Test
     public void dataChunkGateUntouchedForANarrowSinkType() throws Exception {
@@ -95,8 +94,7 @@ public class JobGateWidthIT extends AbstractJobStoreIT {
         JobEntity jobB = newPersistedJob(SUBMITTER, 1, SinkContent.SinkType.MARCCONV);
         scheduleChunk(jobB, 0);
 
-        assertThat("no row written by the scheduler at all",
-                gateOpen(new TrackingKey(jobB.getId(), 0)), is(nullValue()));
+        assertThat("dispatchable at once", gateOpen(new TrackingKey(jobB.getId(), 0)), is(true));
     }
 
     @org.junit.Test
@@ -104,8 +102,8 @@ public class JobGateWidthIT extends AbstractJobStoreIT {
         JobEntity job = newPersistedJob(SUBMITTER, 1, SinkContent.SinkType.TICKLE);
         scheduleChunk(job, 0);
 
-        assertThat("nothing ahead of it, so nothing written",
-                gateOpen(new TrackingKey(job.getId(), 0)), is(nullValue()));
+        assertThat("nothing ahead of it, so the gate is open",
+                gateOpen(new TrackingKey(job.getId(), 0)), is(true));
     }
 
     @org.junit.Test
@@ -117,7 +115,7 @@ public class JobGateWidthIT extends AbstractJobStoreIT {
         scheduleChunk(jobB, 0);
 
         assertThat("a different submitter is outside the barrier scope",
-                gateOpen(new TrackingKey(jobB.getId(), 0)), is(nullValue()));
+                gateOpen(new TrackingKey(jobB.getId(), 0)), is(true));
     }
 
     /**
@@ -163,7 +161,7 @@ public class JobGateWidthIT extends AbstractJobStoreIT {
         JobEntity jobB = newPersistedJob(SUBMITTER, 1, SinkContent.SinkType.TICKLE);
         scheduleChunk(jobB, 0);
         TrackingKey dataChunk = new TrackingKey(jobB.getId(), 0);
-        setStatusScheduledForDelivery(dataChunk);
+        setStatus(dataChunk, ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY);
 
         assertThat("held back by the gate",
                 newDeliveryDispatchRepository().findDeliveryCandidates(SINK_ID, 10), is(List.of()));
@@ -177,10 +175,10 @@ public class JobGateWidthIT extends AbstractJobStoreIT {
     }
 
     /**
-     * The gate holds delivery and nothing else, so a chunk behind one is still
-     * processed and simply accumulates in SCHEDULED_FOR_DELIVERY, which has no capacity cap. This is
-     * the same shape as BLOCKED today, and it is why the delivery candidate query pins the status
-     * rather than taking it as a parameter.
+     * The gate holds delivery and nothing else, so a chunk behind one is still processed and simply
+     * accumulates in SCHEDULED_FOR_DELIVERY, which has no capacity cap. That is why the delivery
+     * candidate query pins the status rather than taking it as a parameter, and why the processing
+     * candidate query does not mention the gate at all.
      */
     @org.junit.Test
     public void closedGateDoesNotHoldBackProcessing() throws Exception {
@@ -191,7 +189,14 @@ public class JobGateWidthIT extends AbstractJobStoreIT {
         TrackingKey dataChunk = new TrackingKey(jobB.getId(), 0);
 
         assertThat("closed", gateOpen(dataChunk), is(false));
-        setStatusScheduledForDelivery(dataChunk);
+        setStatus(dataChunk, ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING);
+
+        assertThat("a closed gate is still a processing candidate",
+                newDependencyTrackingRepository().findProcessingCandidates(SINK_ID, 10).stream()
+                        .map(DependencyTrackingRepository.ProcessingCandidate::key).toList(),
+                is(List.of(dataChunk)));
+
+        setStatus(dataChunk, ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY);
 
         assertThat("parked in SCHEDULED_FOR_DELIVERY rather than held out of processing",
                 trackingColumn(dataChunk, "status"),
@@ -215,15 +220,15 @@ public class JobGateWidthIT extends AbstractJobStoreIT {
 
     private JobSchedulerBean newSchedulingBean() {
         return new JobSchedulerBean(entityManager, mock(JobSchedulerTransactionsBean.class),
-                newPgJobStoreRepository(entityManager), null, new DependencyTrackingService().init(),
+                newPgJobStoreRepository(entityManager), null, newDependencyTrackingService(),
                 newJobGateBean(entityManager), newDeliveryDispatchRepository(entityManager));
     }
 
-    private void setStatusScheduledForDelivery(TrackingKey key) throws SQLException {
+    private void setStatus(TrackingKey key, ChunkSchedulingStatus status) throws SQLException {
         try (Connection connection = newConnection();
              PreparedStatement statement = connection.prepareStatement(
                      "update dependencytracking set status = ? where jobid = ? and chunkid = ?")) {
-            statement.setInt(1, ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY.value);
+            statement.setInt(1, status.value);
             statement.setInt(2, key.getJobId());
             statement.setInt(3, key.getChunkId());
             statement.executeUpdate();

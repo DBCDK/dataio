@@ -172,9 +172,16 @@ public class JobGateSweepIT extends AbstractJobStoreIT {
         // dependencytracking (jobid, chunkid) is a foreign key into chunk, so the row needs its
         // chunk to exist first.
         newPersistedChunkEntity(new ChunkEntity.Key(chunkId, job.getId()));
-        DependencyTracking tracker = new DependencyTracking(key, SINK_ID, (int) SUBMITTER);
-        persistenceContext.run(() -> newJobGateRepository().upsertGateRow(key, SINK_ID, (int) SUBMITTER,
-                tracker.getStatus(), isTermination, false));
+        DependencyTracking row = new DependencyTracking(key, SINK_ID, (int) SUBMITTER);
+        persistenceContext.run(() -> {
+            if (isTermination) {
+                newJobGateRepository().insertTerminationRow(key, SINK_ID, (int) SUBMITTER,
+                        row.getStatus(), row.getPriority(), false);
+            } else {
+                newDependencyTrackingRepository().insert(key, SINK_ID, (int) SUBMITTER,
+                        row.getStatus(), row.getPriority(), false);
+            }
+        });
     }
 
     /**

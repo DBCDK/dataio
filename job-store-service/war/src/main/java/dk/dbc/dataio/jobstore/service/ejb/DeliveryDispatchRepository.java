@@ -73,9 +73,11 @@ public class DeliveryDispatchRepository extends RepositoryBase {
      * <p>
      * <b>An unwritten gate is an open gate.</b> {@code gate_open} is {@code NOT NULL DEFAULT TRUE}
      * and only a writer meaning to close a gate touches the column, see
-     * {@link JobGateRepository#upsertGateRow}, so the absence of a closing write is the
-     * answer and not a missing one. A chunk with no row at all answers false for the same reason:
-     * nothing has closed its gate.
+     * {@link JobGateRepository#insertTerminationRow} and {@link DependencyTrackingRepository#insert},
+     * so the absence of a closing write is the answer and not a missing one.
+     * <p>
+     * A chunk with no row at all is no longer a case a caller has to think about. The row exists
+     * from the moment the chunk can be dispatched, so a caller that reaches this has a row to read.
      */
     public boolean hasClosedGate(TrackingKey key) {
         return !entityManager.createNativeQuery(

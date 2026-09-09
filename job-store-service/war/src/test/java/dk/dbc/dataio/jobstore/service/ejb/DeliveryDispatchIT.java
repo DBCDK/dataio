@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
-import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
@@ -17,6 +17,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
@@ -116,11 +117,10 @@ public class DeliveryDispatchIT extends AbstractJobStoreIT {
     @org.junit.Test
     public void openingAGateReleasesTheChunkToTheNextSweep() throws Exception {
         JobEntity job = newPersistedJob();
-        DependencyTrackingService trackingService = new DependencyTrackingService().init();
 
         TrackingKey gated = new TrackingKey(job.getId(), 0);
-        trackingService.add(tracker(gated, SCHEDULED_FOR_DELIVERY));
         seedCandidate(job, 0, Priority.NORMAL, SCHEDULED_FOR_DELIVERY, false, true);
+        DependencyTrackingService trackingService = newDependencyTrackingService();
 
         JobSchedulerTransactionsBean transactions = dispatchingTransactionsBean();
         bulkSchedule(trackingService, transactions);
@@ -141,16 +141,16 @@ public class DeliveryDispatchIT extends AbstractJobStoreIT {
     @org.junit.Test
     public void closedGateParksTheChunkOnTheDirectPath() throws Exception {
         JobEntity job = newPersistedJob();
-        DependencyTrackingService trackingService = new DependencyTrackingService().init();
 
         TrackingKey gated = new TrackingKey(job.getId(), 0);
-        trackingService.add(tracker(gated, READY_FOR_DELIVERY));
         seedCandidate(job, 0, Priority.NORMAL, READY_FOR_DELIVERY, false, true);
+        DependencyTrackingService trackingService = newDependencyTrackingService();
 
         SinkMessageProducerBean producer = mock(SinkMessageProducerBean.class);
         JobSchedulerTransactionsBean bean = directPathBean(trackingService, producer, job);
 
-        JobsBeanTest.notAborted(job.getId(), jb -> bean.submitToDeliveringIfPossible(gated));
+        JobsBeanTest.notAborted(job.getId(), jb ->
+                persistenceContext.run(() -> bean.submitToDeliveringIfPossible(gated)));
 
         verify(producer, never()).send(any(), any(), anyInt());
         assertThat("chunk parked for the bulk sweep",
@@ -158,27 +158,54 @@ public class DeliveryDispatchIT extends AbstractJobStoreIT {
     }
 
     /**
-     * No {@code dependencytracking} row at all means an open gate, and the chunk is dispatched.
-     * <p>
-     * A gate is only ever closed by a writer that inserts the row itself, so nothing having written
-     * a row means nothing has closed the gate. Reading it the other way would withhold a chunk on
-     * the strength of a write that never happened.
+     * An open gate on the row lets the chunk through, which is the other half of
+     * {@link #closedGateParksTheChunkOnTheDirectPath()}.
      */
     @org.junit.Test
-    public void missingRowIsAnOpenGateOnTheDirectPath() throws Exception {
+    public void openGateDispatchesOnTheDirectPath() throws Exception {
         JobEntity job = newPersistedJob();
-        DependencyTrackingService trackingService = new DependencyTrackingService().init();
 
         TrackingKey ungated = new TrackingKey(job.getId(), 0);
-        trackingService.add(tracker(ungated, READY_FOR_DELIVERY));
-        newPersistedChunkEntity(new ChunkEntity.Key(0, job.getId()));
+        seedCandidate(job, 0, Priority.NORMAL, READY_FOR_DELIVERY, true);
+        DependencyTrackingService trackingService = newDependencyTrackingService();
 
         SinkMessageProducerBean producer = mock(SinkMessageProducerBean.class);
         JobSchedulerTransactionsBean bean = directPathBean(trackingService, producer, job);
 
-        JobsBeanTest.notAborted(job.getId(), jb -> bean.submitToDeliveringIfPossible(ungated));
+        JobsBeanTest.notAborted(job.getId(), jb ->
+                persistenceContext.run(() -> bean.submitToDeliveringIfPossible(ungated)));
 
         verify(producer, times(1)).send(any(), any(), anyInt());
+    }
+
+    /**
+     * A dispatch whose claim on the chunk is declined does not send.
+     * <p>
+     * The claim is a validated status change, so of two dispatch paths reaching one chunk exactly
+     * one moves it to QUEUED_FOR_DELIVERY and only that one sends. Staged by declining the claim
+     * outright, since the interleaving that produces it is the repository's property and is proved
+     * there, see {@code DependencyTrackingRepositoryIT}.
+     */
+    @org.junit.Test
+    public void declinedClaimDoesNotSend() throws Exception {
+        JobEntity job = newPersistedJob();
+
+        TrackingKey contended = new TrackingKey(job.getId(), 0);
+        seedCandidate(job, 0, Priority.NORMAL, READY_FOR_DELIVERY, true);
+        DependencyTrackingService trackingService = new DependencyTrackingService() {
+            @Override
+            public Optional<StatusChangeEvent> setValidatedStatus(TrackingKey key, ChunkSchedulingStatus status) {
+                return Optional.empty();
+            }
+        }.withRepository(newDependencyTrackingRepository()).init();
+
+        SinkMessageProducerBean producer = mock(SinkMessageProducerBean.class);
+        JobSchedulerTransactionsBean bean = directPathBean(trackingService, producer, job);
+
+        JobsBeanTest.notAborted(job.getId(), jb ->
+                persistenceContext.run(() -> bean.submitToDeliveringIfPossible(contended)));
+
+        verify(producer, never()).send(any(), any(), anyInt());
     }
 
     // ---------------------------------------------------------------- fixtures
@@ -210,12 +237,6 @@ public class DeliveryDispatchIT extends AbstractJobStoreIT {
         when(jobStoreRepository.getJobEntityById(anyInt())).thenReturn(job);
         return new JobSchedulerTransactionsBean(entityManager, jobStoreRepository, producer,
                 mock(JobProcessorMessageProducerBean.class), trackingService, newDeliveryDispatchRepository());
-    }
-
-    private DependencyTracking tracker(TrackingKey key, ChunkSchedulingStatus status) {
-        return new DependencyTracking(key, SINK_ID, (int) SUBMITTER)
-                .setPriority(Priority.NORMAL.getValue())
-                .setStatus(status);
     }
 
     private JobEntity newPersistedJob() {

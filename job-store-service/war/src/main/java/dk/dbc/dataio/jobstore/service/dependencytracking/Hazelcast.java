@@ -84,8 +84,6 @@ public class Hazelcast implements ServletContextListener {
     }
 
     public enum Objects {
-        DEPENDENCY_TRACKING(() -> getInstance().getMap("dependencies")),
-        LAST_TRACKER(() -> getInstance().getMap("last.tracker")),
         ABORTED_JOBS(() -> getInstance().getSet("aborted.jobs")),
         SINK_STATUS(() -> getInstance().getMap("status.map"));
 

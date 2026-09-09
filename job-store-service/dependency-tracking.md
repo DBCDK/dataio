@@ -241,7 +241,7 @@ a transaction that cannot commit until the call returns. **PostgreSQL detects no
 wait is on an EJB call rather than a database lock.** It is an undetectable hang, not a deadlock, and
 it would hit every job on a full-width sink.
 
-`JobGateBean.closeDataChunkGateIfBlocked` is therefore `REQUIRES_NEW` and takes no job row lock at
+`JobGateBean.insertDataChunkRow` is therefore `REQUIRES_NEW` and takes no job row lock at
 all. It is also where the chunk's row is inserted, so the gate verdict and the row arrive in one
 statement and there is never an instant where the row exists with a gate that should be closed. The lock is then held briefly, once per closed chunk, and the row is committed by the time
 `scheduleChunk` returns rather than at the end of partitioning, so dispatch can see it throughout the
@@ -344,7 +344,26 @@ genuinely waiting, and the order it comes back in is the order to dispatch in.
 
 For both indexes: do not expect the planner to choose them at low row counts. It prefers a narrower
 index and a sort until a sink has enough queued chunks for the sort to dominate, so verify with
-`EXPLAIN` against a realistic backlog rather than a freshly seeded table.
+`EXPLAIN` against a realistic backlog rather than a freshly seeded table. That is a small-set
+artifact rather than a risk, since sorting a few thousand rows is a couple of milliseconds.
+
+**The ordering is index-backed whatever the vacuum state, and that is the part that matters.** At a
+realistic backlog the planner takes an ordered index scan either way and the `LIMIT` stops it early,
+so the cost of a sweep is bounded by the queue's free slots rather than by the size of the backlog.
+That is what these two indexes buy and it does not depend on vacuuming.
+
+What vacuum state decides is whether the scan is *index-only*, and on this table it mostly will not
+be. Measured on 300 000 rows queued for one sink, a `LIMIT 1000` costs 12 buffers with the table
+fully all-visible, 674 after one percent of rows have been updated at random, and 1011 with a cold
+visibility map. The decay is that steep because the table holds about 106 rows per heap page, so
+updating a fraction `f` of rows at random clears the all-visible bit on `1 - (1-f)^106` of the pages,
+which is 65 percent at `f = 0.01`. **No attainable
+`autovacuum_vacuum_scale_factor` keeps these scans index-only**, since the trigger is a dead-tuple
+count and by the time it fires most pages have lost the bit. The scale factor below is therefore
+justified by dead tuples and bloat, as it says, and not by the visibility map.
+
+So budget one heap buffer per candidate returned. At the `QUEUED_FOR_*` cap of 1000 that is roughly
+1000 buffer hits and well under a millisecond, per sink per sweep.
 
 ## Delivery watermark
 
@@ -487,7 +506,7 @@ One statement does the work of the guard and the token together:
 ```sql
 DELETE FROM dependencytracking
  WHERE jobid = ? AND chunkid = ? AND status = QUEUED_FOR_DELIVERY
-RETURNING sinkid, submitter, status, priority, is_termination
+RETURNING sinkid, submitter, priority, is_termination, status
 ```
 
 1. A returned row means this caller is the one that acknowledged the chunk. Nothing returned means
@@ -514,14 +533,22 @@ Every job-store instance runs the same code against one database, so nothing her
 being the only writer. Three mechanisms carry that, and each is a property of one SQL statement:
 
 - **A conditional `UPDATE` for every status change.** `setValidatedStatus` is one statement,
-  `UPDATE ... SET status = ? WHERE jobid = ? AND chunkid = ? AND status = ANY (<legal predecessors>)`,
-  and the affected-row count says whether this caller made the move. Under READ COMMITTED PostgreSQL
-  re-evaluates that predicate against the newest row version when it finds the row concurrently
-  updated, so two callers racing to advance one chunk produce exactly one success. **A read followed
-  by a write is not sufficient**, and this is not a theoretical concern:
+  `UPDATE ... SET status = ? WHERE jobid = ? AND chunkid = ? AND status IN (<legal predecessors>)`,
+  and whether it returns a row says whether this caller made the move. Under READ COMMITTED
+  PostgreSQL re-evaluates that predicate against the newest row version when it finds the row
+  concurrently updated, so two callers racing to advance one chunk produce exactly one success. **A
+  read followed by a write is not sufficient**, and this is not a theoretical concern:
   `chunkProcessingDone` rejecting a chunk that has moved on, and `submitToDelivering` rejecting a
   chunk already queued, are both this check, and both are called concurrently from separate
   instances.
+
+  The statement carries a `MATERIALIZED` CTE alongside it, and only to read the *prior* status for
+  the sink counters, since `UPDATE ... RETURNING` returns post-update values. **The decision
+  predicate must stay on the target row and never move into that CTE**: a CTE is evaluated once
+  against the transaction's snapshot, so a predicate there would be frozen at the value both racers
+  read and both would succeed. That is the check-then-act this bullet rules out, and it is the easy
+  way to write this statement wrong. The predecessor sets are computed by inverting
+  `ChunkSchedulingStatus.canChangeTo` rather than written out a second time.
 - **A conditional `DELETE` for the acknowledgement**, which is the once-only token for the delivery
   count. See [Delivery acknowledgement](#delivery-acknowledgement).
 - **The barrier scope's advisory lock** for everything that decides whether a gate opens. See
@@ -555,6 +582,13 @@ The dead tuple rate rises by the same factor, and the table's live size is bound
 chunks while its churn is not, so it carries a per-table `autovacuum_vacuum_scale_factor` well below
 the 0.2 default. Fillfactor is not worth tuning here, since its benefit is to HOT updates and HOT is
 ruled out.
+
+**The stale-chunk query is the one read deliberately left unindexed.**
+`AdminBean.updateStaleChunks` asks `WHERE status = ? AND lastmodified < ?` three times a minute, and
+no index leads with `status`, so each is a sequential scan. That is the cheaper side of the trade
+above: an index for it would be a fourth entry written on every status change. Scoping the query per
+sink would let the ordered indexes serve it and is what to reach for if the scan ever shows up in
+`pg_stat_statements`.
 
 ## Key files
 

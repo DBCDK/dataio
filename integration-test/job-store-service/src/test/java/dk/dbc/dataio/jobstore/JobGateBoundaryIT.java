@@ -28,7 +28,7 @@ import static org.junit.Assert.fail;
 /**
  * The transaction boundaries the per-job gate depends on, exercised through a deployed service.
  * <p>
- * These cover what no bean-level test can. {@code JobGateBean.closeDataChunkGateIfBlocked} and
+ * These cover what no bean-level test can. {@code JobGateBean.insertDataChunkRow} and
  * {@code JobGateBean.sweepScope} are both {@code REQUIRES_NEW}, and that annotation is the whole
  * mechanism: the advisory lock releases at commit, so taken in a caller's long transaction it is
  * held for that transaction rather than for the gate work. A test that builds the beans by hand
@@ -73,7 +73,7 @@ public class JobGateBoundaryIT extends AbstractJobStoreServiceContainerTest {
      * partitioning transaction.
      * <p>
      * Both jobs are full width on one submitter and sink, so every chunk of B is inserted with a
-     * closed gate. Were {@code closeDataChunkGateIfBlocked} to run in its caller's transaction, the
+     * closed gate. Were {@code insertDataChunkRow} to run in its caller's transaction, the
      * first of those would take the barrier scope's advisory lock and hold it for the rest of B's
      * partitioning. {@code markJobAsPartitioned} is {@code REQUIRES_NEW}, so the insert of B's own
      * termination chunk would then ask for the same lock on a second connection and wait for a

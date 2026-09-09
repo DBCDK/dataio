@@ -10,7 +10,6 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
-import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
@@ -37,10 +36,10 @@ import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -48,8 +47,8 @@ import java.util.concurrent.Future;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
-import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
 
 /**
  * Handles chunk scheduling as chunks pass through partitioning, processing and delivery phases.
@@ -197,28 +196,27 @@ public class JobSchedulerBean {
         int sinkId = job.getCachedSink().getSink().getId();
 
         TrackingKey key = new TrackingKey(chunk.getKey().getJobId(), chunk.getKey().getId());
-        DependencyTracking e = new DependencyTracking(key, sinkId, (int)job.getSpecification().getSubmitterId());
+        int submitter = (int) job.getSpecification().getSubmitterId();
         Priority priority = chunk.getContainsLiveHeadOrSectionRecord() ? Priority.HIGH : job.getPriority();
-        e.setPriority(priority.getValue());
-        closeDataChunkGateIfNeeded(e, job);
-        dependencyTrackingService.add(e);
-        jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sinkId, e.getPriority());
+        int inserted = jobGateBean.insertDataChunkRow(key, sinkId, submitter, READY_FOR_PROCESSING,
+                priority.getValue(), isBlockedByEarlierBarrier(job, sinkId, submitter));
+        if (inserted > 0) {
+            dependencyTrackingService.countInsertedChunk(sinkId, READY_FOR_PROCESSING);
+        }
+        jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sinkId, priority.getValue());
     }
 
     /**
-     * Closes a data chunk's gate when an earlier job in the same barrier scope still holds an
-     * unlifted barrier.
+     * Whether a data chunk of this job has to be held back because an earlier job in the same
+     * barrier scope still holds an unlifted barrier.
      * <p>
      * Only for the sink types in {@link #REQUIRES_FULL_WIDTH_BARRIER}. For every other type a data
      * chunk is dispatchable as soon as it is processed, which is the narrower guarantee the gate
-     * gives by default, and nothing is written here at all.
+     * gives by default, and no barrier is read at all.
      * <p>
-     * Runs before the chunk enters dependency tracking, because that is what makes it dispatchable.
-     * A gate closed afterwards is a gate closed too late.
-     * <p>
-     * The unlocked read comes first and is the whole cost in the common case, see
+     * Unlocked, and the whole cost in the common case, see
      * {@link JobGateBean#isBlockedByEarlierBarrier}. Only a chunk that has something to wait for
-     * pays for the locked re-read and the write.
+     * pays for the locked re-read in {@link JobGateBean#insertDataChunkRow}.
      * <p>
      * <b>Insert time is the only evaluation site this needs</b>, unlike a job's own termination
      * gate, and the reason sits outside the gate: the jobqueue partitions jobs with the same
@@ -229,16 +227,9 @@ public class JobSchedulerBean {
      * termination gate to be evaluated in two places. If that jobqueue invariant is ever relaxed, a
      * data chunk's gate needs evaluating in two places too.
      */
-    private void closeDataChunkGateIfNeeded(DependencyTracking chunk, JobEntity job) {
-        if (!requiresFullWidthBarrier(job.getCachedSink().getSink().getContent().getSinkType())) {
-            return;
-        }
-        int sinkId = chunk.getSinkId();
-        int submitter = chunk.getSubmitter();
-        if (!jobGateBean.isBlockedByEarlierBarrier(sinkId, submitter, job.getId())) {
-            return;
-        }
-        jobGateBean.closeDataChunkGateIfBlocked(chunk.getKey(), sinkId, submitter, chunk.getStatus());
+    private boolean isBlockedByEarlierBarrier(JobEntity job, int sinkId, int submitter) {
+        return requiresFullWidthBarrier(job.getCachedSink().getSink().getContent().getSinkType())
+                && jobGateBean.isBlockedByEarlierBarrier(sinkId, submitter, job.getId());
     }
 
     /**
@@ -334,26 +325,19 @@ public class JobSchedulerBean {
                                            ChunkItem.Status ItemStatus) throws JobStoreException {
         int sinkId = sink.getId();
         TrackingKey key = new TrackingKey(jobEntity.getId(), chunkId);
-        // Built before the chunk entity so that createJobTerminationChunkEntity can write the row
-        // to PostgreSQL with a closed gate in the same transaction that writes the counters, ahead
-        // of the map add below.
-        // The flag is set here rather than being read back from is_termination, so that the entry
-        // handed to whoever removes it on delivery answers for itself whether it was the job's
-        // termination chunk. createJobTerminationChunkEntity writes the column below.
+        // Carries what createJobTerminationChunkEntity writes into the row, which is the only
+        // insert of it.
         //
         // READY_FOR_DELIVERY is set explicitly, and it has to be. A termination chunk is created
         // already processed, its item carrying both a PARTITIONING and a PROCESSING outcome, so it
-        // never passes through the processing phase that would otherwise advance it. The status used
-        // to be set as a side effect of addDependencies, whose entry processor ended with
-        // "waitingOn.isEmpty() ? READY_FOR_DELIVERY : BLOCKED". With the graph gone nothing else
-        // moves it off READY_FOR_PROCESSING, and submitToDeliveringIfPossible would decline it
-        // because QUEUED_FOR_DELIVERY is not a valid change from there, leaving every job's
-        // end-of-job work undelivered.
+        // never passes through the processing phase that would otherwise advance it. Left at
+        // READY_FOR_PROCESSING it is silently undeliverable, because submitToDeliveringIfPossible
+        // declines it: QUEUED_FOR_DELIVERY is not a valid change from there.
         //
-        // Unconditional, where the old side effect was conditional, and that is the whole point of
-        // the gate: what holds a termination chunk back until its own job's data chunks are
-        // acknowledged is gate_open on the row written below, not a status.
-        DependencyTracking endTracker = new DependencyTracking(key, sinkId, (int)jobEntity.getSpecification().getSubmitterId())
+        // Unconditional, and that is the whole point of the gate: what holds a termination chunk
+        // back until its own job's data chunks are acknowledged is gate_open on the row written
+        // below, not a status.
+        DependencyTracking terminationRow = new DependencyTracking(key, sinkId, (int)jobEntity.getSpecification().getSubmitterId())
                 .setPriority(Priority.HIGH.getValue())
                 .setStatus(READY_FOR_DELIVERY)
                 .setTermination(true);
@@ -361,9 +345,13 @@ public class JobSchedulerBean {
         // exactly the job's data-chunk count. Passing it rather than re-reading it downstream is
         // what keeps data_chunks_expected reachable: createJobTerminationChunkEntity increments
         // numberOfChunks itself.
-        pgJobStoreRepository.createJobTerminationChunkEntity(jobEntity.getId(), chunkId, "dummyDatafileId", ItemStatus, chunkId, endTracker);
-        TrackingKey jobEndKey = dependencyTrackingService.add(endTracker);
-        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobEndKey);
+        pgJobStoreRepository.createJobTerminationChunkEntity(jobEntity.getId(), chunkId, "dummyDatafileId", ItemStatus, chunkId, terminationRow);
+        // Unconditional, unlike the data chunk path, because the insert above is an upsert and
+        // always writes a row. It is sound for the same reason the upsert's conflict clause is
+        // unreachable: the chunk row is persisted first and its primary key rejects a second call
+        // for one job, see JobGateRepository#insertTerminationRow.
+        dependencyTrackingService.countInsertedChunk(sinkId, READY_FOR_DELIVERY);
+        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(key);
     }
 
     /**
@@ -377,13 +365,8 @@ public class JobSchedulerBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void chunkProcessingDone(Chunk chunk) {
         TrackingKey key = new TrackingKey(chunk.getJobId(), (int)chunk.getChunkId());
-        StatusChangeEvent changeEvent = dependencyTrackingService.setValidatedStatus(key, READY_FOR_DELIVERY);
-        if(changeEvent == null) {
-            LOGGER.info("chunkProcessingDone: Conditional status update got undesirable result skipping");
-            return;
-        }
-        if(changeEvent.getNewStatus() != READY_FOR_DELIVERY) {
-            LOGGER.info("chunkProcessingDone: Conditional status update got undesirable result: {}, skipping", changeEvent);
+        if(dependencyTrackingService.setValidatedStatus(key, READY_FOR_DELIVERY).isEmpty()) {
+            LOGGER.info("chunkProcessingDone: chunk {} was not awaiting processing, skipping", key.toChunkIdentifier());
             return;
         }
         jobSchedulerTransactionsBean.submitToDeliveringIfPossible(key);
@@ -403,46 +386,50 @@ public class JobSchedulerBean {
     @Timed(name = "chunks", tags = "status=delivered")
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void chunkDeliveringDone(Chunk chunk) {
-        TrackingKey chunkDoneKey = new TrackingKey(chunk.getJobId(), (int)chunk.getChunkId());
-        DependencyTrackingRO chunkDone = dependencyTrackingService.get(chunkDoneKey);
-
-        if (chunkDone == null) {
-            LOGGER.info("chunkDeliveringDone: called with unknown chunk {}/{} - assuming it is already completed",
-                    chunk.getJobId(), chunk.getChunkId());
-            return;
-        }
-        if (chunkDone.getStatus() != QUEUED_FOR_DELIVERY) {
-            LOGGER.info("chunkDeliveringDone: ignoring chunk {}/{} not in state QUEUED_FOR_DELIVERY - was {}",
-                    chunk.getJobId(), chunk.getChunkId(), chunkDone.getStatus());
-            return;
-        }
-
         long startTime = System.currentTimeMillis();
+        TrackingKey key = new TrackingKey(chunk.getJobId(), (int)chunk.getChunkId());
 
-        int chunkDoneSinkId = chunkDone.getSinkId();
-        DependencyTracking removed = dependencyTrackingService.remove(chunkDoneKey);
-
-        // Per-job gate: counts this delivery against the job's own gate, or lifts the job's
-        // barrier and re-evaluates later jobs if the chunk was its termination chunk.
+        // One statement asks the question and takes the answer away with it. The row it returns is
+        // this acknowledgement's once-only token: two concurrent acknowledgements of one chunk
+        // cannot both delete it, and a counter cannot survive being told twice, since each call
+        // adds exactly 1 so the count still lands on data_chunks_expected, only too early, and the
+        // gate opens with data chunks still in flight.
         //
-        // Only the caller that removed the entry gets to do that. The get, the status check and the
-        // remove above are three separate map operations, so two concurrent acknowledgements of one
-        // chunk can both reach this point, and a counter cannot survive being told twice: each call
-        // adds exactly 1, so the count still lands on data_chunks_expected, only too early, and the
-        // gate opens with data chunks still in flight. The removal is atomic per key, which is what
-        // makes it the once-only marker.
-        //
-        if (removed != null) {
-            jobGateBean.advanceGateState(removed);
-        } else {
-            LOGGER.info("chunkDeliveringDone: chunk {}/{} was removed by a concurrent call, so this one does not count it",
-                    chunk.getJobId(), chunk.getChunkId());
+        // advanceGateState then runs in this same transaction, so the delete and the increment
+        // commit together. A failure after the delete rolls the row back with the count, and the
+        // redelivery that follows finds the chunk still there to be counted.
+        Optional<DependencyTracking> delivered = dependencyTrackingService.acknowledgeDelivery(key);
+        if (delivered.isEmpty()) {
+            logUnacknowledged(key);
+            return;
         }
+        jobGateBean.advanceGateState(delivered.get());
 
         long thisDuration = System.currentTimeMillis() - startTime;
-        maxDeliveryDurations.merge(chunkDoneSinkId, thisDuration, Math::max);
+        maxDeliveryDurations.merge(delivered.get().getSinkId(), thisDuration, Math::max);
     }
 
+    /**
+     * Says which of the two ways an acknowledgement matched nothing it was, at the cost of one
+     * extra read on a path that is rare by construction.
+     */
+    private void logUnacknowledged(TrackingKey key) {
+        if (dependencyTrackingService.contains(key)) {
+            LOGGER.info("chunkDeliveringDone: ignoring chunk {} not in state QUEUED_FOR_DELIVERY",
+                    key.toChunkIdentifier());
+        } else {
+            LOGGER.info("chunkDeliveringDone: called with unknown chunk {} - assuming it is already completed",
+                    key.toChunkIdentifier());
+        }
+    }
+
+    /**
+     * Fills a sink's processor queue in {@code (priority DESC, jobId ASC, chunkId ASC)} order.
+     * <p>
+     * The candidate query supplies the priority the dispatch needs, so there is no per-chunk read,
+     * and it does not look at {@code gate_open} at all, see
+     * {@link DependencyTrackingRepository#findProcessingCandidates}.
+     */
     @Asynchronous
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public Future<Integer> bulkScheduleToProcessingForSink(int sinkId) {
@@ -450,15 +437,16 @@ public class JobSchedulerBean {
         try {
             int spaceLeftInQueue = dependencyTrackingService.capacity(sinkId, QUEUED_FOR_PROCESSING);
             if (spaceLeftInQueue > 0) {
-                Collection<DependencyTracking> chunks = dependencyTrackingService.findDependencies(SCHEDULED_FOR_PROCESSING, sinkId, spaceLeftInQueue);
+                List<DependencyTrackingRepository.ProcessingCandidate> chunks =
+                        dependencyTrackingService.findProcessingCandidates(sinkId, spaceLeftInQueue);
 
                 if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for processing - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
-                for (DependencyTracking toSchedule : chunks) {
-                    if(!JobsBean.isAborted(toSchedule.getKey().getJobId())) {
-                        TrackingKey toScheduleKey = toSchedule.getKey();
+                for (DependencyTrackingRepository.ProcessingCandidate toSchedule : chunks) {
+                    if(!JobsBean.isAborted(toSchedule.key().getJobId())) {
+                        TrackingKey toScheduleKey = toSchedule.key();
                         LOGGER.info("bulk scheduling for processing - chunk {} to be scheduled for processing for sink {}", toScheduleKey, sinkId);
                         ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
-                        jobSchedulerTransactionsBean.submitToProcessing(chunk, toSchedule.getPriority());
+                        jobSchedulerTransactionsBean.submitToProcessing(chunk, toSchedule.priority());
                         chunksPushedToQueue++;
                     }
                 }
@@ -471,13 +459,7 @@ public class JobSchedulerBean {
 
     /**
      * Fills a sink's delivery queue in {@code (priority DESC, jobId ASC, chunkId ASC)} order, never
-     * dispatching a chunk whose gate is closed.
-     * <p>
-     * Candidates come from SQL rather than from the Hazelcast map, because no predicate over the map
-     * can see {@code gate_open}, see {@link DeliveryDispatchRepository}. The table is not the
-     * authority on {@code status} though, so each candidate is re-checked against the map before it
-     * is acted on: a row still reading {@code SCHEDULED_FOR_DELIVERY} may belong to a chunk already
-     * dispatched, or already delivered and gone.
+     * dispatching a chunk whose gate is closed, see {@link DeliveryDispatchRepository}.
      */
     @Asynchronous
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -509,43 +491,29 @@ public class JobSchedulerBean {
     }
 
     /**
-     * How far past the free queue slots the candidate query reaches, to see past rows whose status
-     * is stale.
+     * How far past the free queue slots the candidate query reaches.
      * <p>
-     * The MapStore writes {@code status} write-behind, so a chunk that has been dispatched keeps a
-     * row reading {@code SCHEDULED_FOR_DELIVERY} until the next flush. Those rows sort first, since
-     * they were queued earliest and so carry the lowest job ids, and under steady load there are far
-     * more of them than there are free slots. A window of exactly {@code spaceLeftInQueue} rows would
-     * be filled almost entirely by chunks that have already gone, and the sink would deliver close to
-     * nothing until the flush caught up.
-     * <p>
-     * The stale set is bounded by the chunks that have left {@code SCHEDULED_FOR_DELIVERY} since the
-     * last flush, and the cap on {@code QUEUED_FOR_DELIVERY} bounds how many of those can still be in
-     * flight. Rows for chunks removed inside the window are additional, so this is a good bound
-     * rather than a proof, and a sweep that comes up short costs one second: the next one runs
-     * immediately after.
-     * <p>
-     * <b>This method disappears with the Hazelcast MapStore.</b> Once {@code dependencytracking} is
-     * the sole store, {@code status} is written in the transaction that decides it, a window of
-     * exactly {@code spaceLeftInQueue} is correct, and there is no lag left to reach past. Delete
-     * this method, the call to it, {@link #isStillAwaitingDelivery} and
-     * {@code DeliveryDispatchStaleStatusIT} in the same commit as the MapStore.
+     * <b>Both the slack and {@link #isStillAwaitingDelivery} are now redundant, and go together.</b>
+     * They existed because the MapStore wrote {@code status} write-behind, so a dispatched chunk kept
+     * a row reading {@code SCHEDULED_FOR_DELIVERY} until the next flush, those rows sorted first,
+     * and a window of exactly {@code spaceLeftInQueue} would have been filled almost entirely by
+     * chunks that had already gone. The table is now written in the transaction that decides the
+     * status, so a candidate can be neither stale nor point at a chunk that does not exist. Kept
+     * here for one release, at the cost of one redundant read per candidate, so that the conversion
+     * to SQL and the narrowing of the dispatch paths are separately reviewable.
      */
     private static int staleCandidateSlack() {
         return QUEUED_FOR_DELIVERY.getMax();
     }
 
     /**
-     * @param key candidate returned by the SQL query
-     * @return true if the map, which is the authority on status, still has this chunk waiting for
-     * delivery
-     * <p>
-     * <b>This method disappears with the Hazelcast MapStore</b>, which is the only reason the table's
-     * {@code status} can be stale, see {@link #staleCandidateSlack}.
+     * @param key candidate returned by the candidate query
+     * @return true if the chunk is still waiting for delivery
+     * @see #staleCandidateSlack
      */
     private boolean isStillAwaitingDelivery(TrackingKey key) {
-        DependencyTrackingRO tracker = dependencyTrackingService.get(key);
-        return tracker != null && tracker.getStatus() == SCHEDULED_FOR_DELIVERY;
+        DependencyTrackingRO row = dependencyTrackingService.get(key);
+        return row != null && row.getStatus() == SCHEDULED_FOR_DELIVERY;
     }
 
     /**

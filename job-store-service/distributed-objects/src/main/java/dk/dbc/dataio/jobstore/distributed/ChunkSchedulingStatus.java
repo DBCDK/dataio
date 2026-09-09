@@ -89,6 +89,7 @@ public enum ChunkSchedulingStatus {
     /** {@link #value}s of the statuses a chunk may move to from this one, see {@link #isValidStatusChange}. */
     private final int[] canChangeTo;
     private Set<ChunkSchedulingStatus> validStatusChanges;
+    private Set<ChunkSchedulingStatus> validPredecessors;
     private static final Map<Integer, ChunkSchedulingStatus> VALUE_MAP = Arrays.stream(values()).collect(Collectors.toMap(c -> c.value, c -> c));
 
     ChunkSchedulingStatus(Integer value, int... canChangeTo) {
@@ -141,6 +142,24 @@ public enum ChunkSchedulingStatus {
 
     public boolean isValidStatusChange(ChunkSchedulingStatus status) {
         return validStatusChanges().contains(status);
+    }
+
+    /**
+     * The statuses a chunk may hold and still be moved to this one.
+     * <p>
+     * Computed by inverting the forward table rather than written out a second time, so the two
+     * cannot drift apart. This is what the conditional status update binds as its predicate, see
+     * {@code DependencyTrackingRepository.updateStatusValidated}.
+     *
+     * @return the statuses this one may be reached from
+     */
+    public Set<ChunkSchedulingStatus> getValidPredecessors() {
+        if (validPredecessors == null) {
+            validPredecessors = Arrays.stream(values())
+                    .filter(s -> s.isValidStatusChange(this))
+                    .collect(Collectors.toUnmodifiableSet());
+        }
+        return validPredecessors;
     }
 
     public boolean isInvalidStatusChange(ChunkSchedulingStatus status) {

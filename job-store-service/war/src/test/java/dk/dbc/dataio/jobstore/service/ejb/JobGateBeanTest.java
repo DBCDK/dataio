@@ -25,9 +25,11 @@ class JobGateBeanTest {
     private static final int SUBMITTER = 424242;
     private static final int JOB_ID = 42;
     private static final int TERMINATION_CHUNK_ID = 3;
+    private static final int PRIORITY = 4;
 
     private final JobGateRepository jobGateRepository = mock(JobGateRepository.class);
-    private final JobGateBean jobGateBean = new JobGateBean(jobGateRepository);
+    private final DependencyTrackingRepository dependencyTrackingRepository = mock(DependencyTrackingRepository.class);
+    private final JobGateBean jobGateBean = new JobGateBean(jobGateRepository, dependencyTrackingRepository);
 
     @Test
     void advanceGateState_dataChunk_isCounted() {
@@ -151,35 +153,53 @@ class JobGateBeanTest {
     }
 
     @Test
-    void closeDataChunkGateIfBlocked_stillBlocked_writesTheClosedRow() {
+    void insertDataChunkRow_stillBlocked_insertsTheRowClosed() {
         TrackingKey dataChunk = new TrackingKey(JOB_ID, 0);
         when(jobGateRepository.hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(true);
 
-        jobGateBean.closeDataChunkGateIfBlocked(dataChunk, SINK_ID, SUBMITTER,
-                ChunkSchedulingStatus.READY_FOR_PROCESSING);
+        jobGateBean.insertDataChunkRow(dataChunk, SINK_ID, SUBMITTER,
+                ChunkSchedulingStatus.READY_FOR_PROCESSING, PRIORITY, true);
 
-        InOrder inOrder = inOrder(jobGateRepository);
+        InOrder inOrder = inOrder(jobGateRepository, dependencyTrackingRepository);
         inOrder.verify(jobGateRepository).advisoryLock(SINK_ID, SUBMITTER);
         inOrder.verify(jobGateRepository).hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID);
-        inOrder.verify(jobGateRepository).upsertGateRow(dataChunk, SINK_ID, SUBMITTER,
-                ChunkSchedulingStatus.READY_FOR_PROCESSING, false, false);
+        inOrder.verify(dependencyTrackingRepository).insert(dataChunk, SINK_ID, SUBMITTER,
+                ChunkSchedulingStatus.READY_FOR_PROCESSING, PRIORITY, false);
     }
 
     /**
      * The re-read under the lock is the whole point of the second evaluation: the barrier the
-     * unlocked pre-check saw may have been lifted since. An unwritten gate is an open gate, so
-     * declining here means writing nothing at all rather than writing {@code gate_open = TRUE}.
+     * unlocked pre-check saw may have been lifted since. The row is still inserted, now with its
+     * gate open, because it is the chunk's only row and not a gate write of its own.
      */
     @Test
-    void closeDataChunkGateIfBlocked_barrierLiftedSincePreCheck_writesNothing() {
+    void insertDataChunkRow_barrierLiftedSincePreCheck_insertsTheRowOpen() {
         TrackingKey dataChunk = new TrackingKey(JOB_ID, 0);
         when(jobGateRepository.hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(false);
 
-        jobGateBean.closeDataChunkGateIfBlocked(dataChunk, SINK_ID, SUBMITTER,
-                ChunkSchedulingStatus.READY_FOR_PROCESSING);
+        jobGateBean.insertDataChunkRow(dataChunk, SINK_ID, SUBMITTER,
+                ChunkSchedulingStatus.READY_FOR_PROCESSING, PRIORITY, true);
 
         verify(jobGateRepository).advisoryLock(SINK_ID, SUBMITTER);
-        verify(jobGateRepository, never()).upsertGateRow(any(), anyInt(), anyInt(), any(), anyBoolean(), anyBoolean());
+        verify(dependencyTrackingRepository).insert(dataChunk, SINK_ID, SUBMITTER,
+                ChunkSchedulingStatus.READY_FOR_PROCESSING, PRIORITY, true);
+    }
+
+    /**
+     * Nothing to wait for, so no lock is taken and the insert is one unconditional statement. This
+     * is every chunk on a sink type outside the full barrier width, and most chunks on one inside it.
+     */
+    @Test
+    void insertDataChunkRow_notBlocked_takesNoLock() {
+        TrackingKey dataChunk = new TrackingKey(JOB_ID, 0);
+
+        jobGateBean.insertDataChunkRow(dataChunk, SINK_ID, SUBMITTER,
+                ChunkSchedulingStatus.READY_FOR_PROCESSING, PRIORITY, false);
+
+        verify(jobGateRepository, never()).advisoryLock(anyInt(), anyInt());
+        verify(jobGateRepository, never()).hasEarlierUndeliveredTermination(anyInt(), anyInt(), anyInt());
+        verify(dependencyTrackingRepository).insert(dataChunk, SINK_ID, SUBMITTER,
+                ChunkSchedulingStatus.READY_FOR_PROCESSING, PRIORITY, true);
     }
 
     @Test

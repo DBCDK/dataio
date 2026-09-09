@@ -27,8 +27,8 @@ import java.util.OptionalInt;
  * gated at all.
  * <p>
  * This bean owns three of the four evaluation sites: the one that fires on chunk delivery
- * ({@link #advanceGateState}), the one that closes a data chunk's gate as it is scheduled
- * ({@link #closeDataChunkGateIfBlocked}), and the sweep that reopens gates nothing else will
+ * ({@link #advanceGateState}), the one that decides a data chunk's gate as it is scheduled
+ * ({@link #insertDataChunkRow}), and the sweep that reopens gates nothing else will
  * ({@link #sweepClosedGates}, {@link #sweepUnliftedBarriers}). The fourth is the insert of the
  * termination chunk itself, in {@link PgJobStoreRepository#createJobTerminationChunkEntity}.
  * <p>
@@ -37,8 +37,18 @@ import java.util.OptionalInt;
  * site opens the gate. Insert last, and there is no delivery left to fire on, so the insert has to
  * evaluate the gate itself. A job with no data chunks at all has no delivery either way.
  * <p>
- * This bean writes gate state and nothing else. It dispatches no chunk and holds none back
- * directly: the dispatch path does that, by filtering on {@code gate_open}.
+ * This bean dispatches no chunk and holds none back directly: the dispatch path does that, by
+ * filtering on {@code gate_open}.
+ * <p>
+ * <b>It writes one thing that is not gate state, and only because it has to.</b>
+ * {@link #insertDataChunkRow} creates a data chunk's whole {@code dependencytracking} row, not just
+ * its gate column, because the verdict and the row must arrive in one statement and the verdict
+ * needs this bean's advisory lock in that same transaction. Row lifecycle is otherwise none of the
+ * gate's business, and the two inserts of a row are deliberately not symmetric: the termination
+ * chunk's is in {@link PgJobStoreRepository#createJobTerminationChunkEntity}, because it has to
+ * share a transaction with {@code data_chunks_expected} and {@code termination_barrier_lifted}
+ * rather than with a gate lock. Phase 11 resolves both by moving the insert next to the chunk's own
+ * creation, see docs/chunk-scheduling-redesign.md.
  * <p>
  * <b>Lock ordering.</b> Every site that touches gate state takes its locks in one order:
  * <ol>
@@ -53,6 +63,16 @@ import java.util.OptionalInt;
  * a job's termination chunk can be dispatched while an earlier data chunk of that same job is still
  * in flight.
  * <p>
+ * <b>The delivery acknowledgement inverts that order and is still safe.</b>
+ * {@link JobSchedulerBean#chunkDeliveringDone} deletes the chunk's {@code dependencytracking} row
+ * first and calls {@link #advanceGateState} afterwards in the same transaction, so it holds a
+ * {@code dependencytracking} row lock before it takes the job row and the advisory lock. What
+ * rules out the cycle there is that the two row sets are disjoint by gate state: the delete only
+ * ever matches a chunk in {@code QUEUED_FOR_DELIVERY}, which no dispatch path grants a closed gate,
+ * while every gate write taken under the advisory lock matches {@code NOT gate_open}. The one
+ * writer that does not respect the split is the wholesale drop of a job's rows, which is why it
+ * commits on its own, see {@code DependencyTrackingService.removeJobId}.
+ * <p>
  * Two consequences that look wrong until read against that rule. The re-trigger writes
  * {@code termination_barrier_lifted} <i>before</i> taking the advisory lock, and
  * {@link PgJobStoreRepository#createJobTerminationChunkEntity} takes it only after the job row lock
@@ -61,11 +81,11 @@ import java.util.OptionalInt;
  * <b>Where the lock is taken is a boundary, not an ordering.</b> The advisory lock releases at
  * commit, so a caller that takes it in a long-running transaction holds it for that whole
  * transaction rather than for the gate work. Two methods therefore run in their own transaction and
- * say so in their own comments: {@link #closeDataChunkGateIfBlocked}, reached from
+ * say so in their own comments: {@link #insertDataChunkRow}, reached from
  * {@code scheduleChunk} inside a transaction open for the whole of a job's partitioning, and
  * {@link #sweepScope}, reached from an hourly recheck that walks every scope in one transaction.
  * Neither may take the lock in its caller's transaction at all, and
- * {@link #closeDataChunkGateIfBlocked} takes no job row lock either.
+ * {@link #insertDataChunkRow} takes no job row lock either.
  * <p>
  * The nested boundary imposes an obligation on the callers rather than only on the callees: a
  * transaction that will nest one of those methods must not itself be holding the scope's lock, or
@@ -84,14 +104,18 @@ public class JobGateBean {
     @EJB
     JobGateRepository jobGateRepository;
 
+    @EJB
+    DependencyTrackingRepository dependencyTrackingRepository;
+
     @Resource
     SessionContext sessionContext;
 
     public JobGateBean() {
     }
 
-    public JobGateBean(JobGateRepository jobGateRepository) {
+    public JobGateBean(JobGateRepository jobGateRepository, DependencyTrackingRepository dependencyTrackingRepository) {
         this.jobGateRepository = jobGateRepository;
+        this.dependencyTrackingRepository = dependencyTrackingRepository;
     }
 
     /**
@@ -113,20 +137,20 @@ public class JobGateBean {
     /**
      * Advances the gate state for a chunk whose delivery has just been acknowledged.
      * <p>
-     * Called from {@link JobSchedulerBean#chunkDeliveringDone} after the chunk's dependency
-     * tracking entry has been removed, in the {@code JobsBean} transaction rather than in the
-     * {@code REQUIRES_NEW} transaction that wrote the item's delivery result. That gives two
-     * orderings: the chunk's DELIVERING write is committed before it is counted, and the
-     * transaction commits before JAX-RS writes the response, so no sink can acknowledge a message
-     * whose increment has not committed.
+     * Called from {@link JobSchedulerBean#chunkDeliveringDone} after the chunk's
+     * {@code dependencytracking} row has been deleted, in the same transaction as that delete and
+     * in the {@code JobsBean} transaction rather than in the {@code REQUIRES_NEW} transaction that
+     * wrote the item's delivery result. That gives three orderings: the chunk's DELIVERING write is
+     * committed before it is counted, the transaction commits before JAX-RS writes the response, so
+     * no sink can acknowledge a message whose increment has not committed, and a failure anywhere in
+     * here rolls the delete back with the increment, so a redelivery finds the row and counts again.
      * <p>
-     * Counts once per chunk, because it is reached only by the caller that removed the chunk's
-     * dependency tracking entry. That removal is atomic per key, so of two concurrent
-     * acknowledgements of one chunk only one arrives here and the other is told it did not remove
-     * anything. Every fact this method works from comes off the removed entry, including whether the
-     * chunk was its job's termination chunk.
+     * Counts once per chunk, because it is reached only by the caller whose delete matched. A
+     * concurrent acknowledgement of the same chunk deletes nothing and never arrives here. Every
+     * fact this method works from comes off the deleted row, including whether the chunk was its
+     * job's termination chunk.
      *
-     * @param removed the delivered chunk's removed dependency tracking entry
+     * @param removed the delivered chunk's deleted dependency tracking row
      */
     @Stopwatch
     public void advanceGateState(DependencyTracking removed) {
@@ -180,9 +204,8 @@ public class JobGateBean {
      * termination row lifts the barrier, so {@link JobsBean#abortJob} and
      * {@link dk.dbc.dataio.jobstore.service.rs.AdminBean#recheckBlocks} call this too, both of them
      * for jobs that may never have had a termination chunk at all. Skipping the lift on those paths
-     * would leave the aborted job reading as still blocking for the whole of the MapStore's delete
-     * delay, which is exactly the window the edge-triggered re-trigger fires in, so it would decline
-     * and never fire again.
+     * would hold every later job on that submitter and sink permanently, since the re-trigger is
+     * edge triggered and dropping the rows takes away the edge it would have fired on.
      *
      * @param jobId     job whose barrier is lifted
      * @param sinkId    sink the barrier applies to
@@ -231,7 +254,7 @@ public class JobGateBean {
      * insert, and the jobqueue partitions jobs in one scope strictly one at a time in job id order,
      * so that job finished partitioning before this one started. A "blocking" answer can go stale
      * the other way, which is the lost wakeup, and that is precisely the answer that goes on to take
-     * the lock and read again in {@link #closeDataChunkGateIfBlocked}.
+     * the lock and read again in {@link #insertDataChunkRow}.
      * <p>
      * It reads a fresh snapshot per statement only because the isolation level is READ COMMITTED.
      * Under REPEATABLE READ this would be pinned to the opening snapshot of a transaction that spans
@@ -247,13 +270,18 @@ public class JobGateBean {
     }
 
     /**
-     * Closes a data chunk's gate if an earlier job in its scope still holds a barrier.
+     * Creates a data chunk's {@code dependencytracking} row, with its gate closed if an earlier job
+     * in its scope still holds a barrier.
      * <p>
-     * Reached only for sink types whose job-end work is not scoped to its own job, and only after
-     * {@link #isBlockedByEarlierBarrier} has already said there is a barrier to wait for. It takes
-     * the lock, asks again, and writes the row only if the answer still holds. Nothing is written
-     * when it does not: an unwritten gate is an open gate, so there is no such thing as writing
-     * {@code gate_open = TRUE} here.
+     * One statement decides and records the gate, so there is never an instant in which the row
+     * exists with a gate that should be shut. A gate closed after the row is dispatchable is a gate
+     * closed too late.
+     * <p>
+     * {@code blocked} is the unlocked pre-check's answer, and it is what the cost turns on. False,
+     * which is every chunk on a sink type outside {@code JobSchedulerBean.REQUIRES_FULL_WIDTH_BARRIER}
+     * and most chunks on one inside it, and this is a single unconditional insert with no lock
+     * taken at all. True, and the barrier scope is locked and read again before the insert, because
+     * a "blocking" answer is the one that can go stale, see {@link #isBlockedByEarlierBarrier}.
      * <p>
      * <b>{@code REQUIRES_NEW} is essential. Do not remove it.</b> The caller's transaction is the
      * one partitioning opened, and it stays open for the whole of the job, because
@@ -270,8 +298,8 @@ public class JobGateBean {
      * Two further things the boundary buys. The lock is released at commit, so it is held for one
      * short transaction per closed chunk rather than for the job, which keeps it out of the way of
      * the delivery-side gate work of the job ahead. And the row is committed by the time
-     * {@code scheduleChunk} returns, rather than at the end of partitioning, so it is visible to
-     * dispatch for the whole window in which it is needed.
+     * {@code scheduleChunk} returns, rather than at the end of partitioning, so both dispatch paths
+     * can see it immediately.
      * <p>
      * <b>This method takes no job row lock at all</b>, which is what keeps it out of the lock
      * ordering the other sites have to observe.
@@ -282,17 +310,24 @@ public class JobGateBean {
      * @param sinkId    sink the chunk is destined for
      * @param submitter submitter the chunk's job belongs to
      * @param status    status the chunk enters dependency tracking with
+     * @param priority  the chunk's dispatch priority
+     * @param blocked   the unlocked pre-check's answer, true if an earlier barrier may still stand
+     * @return 1 if the row was created, 0 if the chunk already had one
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void closeDataChunkGateIfBlocked(TrackingKey key, int sinkId, int submitter,
-                                            ChunkSchedulingStatus status) {
-        jobGateRepository.advisoryLock(sinkId, submitter);
-        if (!jobGateRepository.hasEarlierUndeliveredTermination(sinkId, submitter, key.getJobId())) {
-            return;
+    public int insertDataChunkRow(TrackingKey key, int sinkId, int submitter, ChunkSchedulingStatus status,
+                                  int priority, boolean blocked) {
+        boolean gateOpen = true;
+        if (blocked) {
+            jobGateRepository.advisoryLock(sinkId, submitter);
+            gateOpen = !jobGateRepository.hasEarlierUndeliveredTermination(sinkId, submitter, key.getJobId());
         }
-        jobGateRepository.upsertGateRow(key, sinkId, submitter, status, false, false);
-        LOGGER.info("gate closed for data chunk {} behind an earlier barrier on sink {} submitter {}",
-                key, sinkId, submitter);
+        int inserted = dependencyTrackingRepository.insert(key, sinkId, submitter, status, priority, gateOpen);
+        if (!gateOpen) {
+            LOGGER.info("gate closed for data chunk {} behind an earlier barrier on sink {} submitter {}",
+                    key, sinkId, submitter);
+        }
+        return inserted;
     }
 
     /**

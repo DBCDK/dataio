@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -33,17 +31,6 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
         this.key = key;
         this.sinkId = sinkId;
         this.submitter = submitter;
-    }
-
-    public DependencyTracking(ResultSet rs) throws SQLException {
-        key = new TrackingKey(rs.getInt("jobid"), rs.getInt("chunkid"));
-        sinkId = rs.getInt("sinkid");
-        status = ChunkSchedulingStatus.from(rs.getInt("status"));
-        priority = rs.getInt("priority");
-        submitter = rs.getInt("submitter");
-        lastModified = rs.getTimestamp("lastmodified").toInstant();
-        retries = rs.getInt("retries");
-        termination = rs.getBoolean("is_termination");
     }
 
     @Override
@@ -107,6 +94,11 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
         lastModified = Instant.now();
     }
 
+    public DependencyTracking withLastModified(Instant lastModified) {
+        this.lastModified = lastModified;
+        return this;
+    }
+
     @Override
     @JsonIgnore
     public Instant getLastModified() {
@@ -120,15 +112,6 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
 
     @Override
     public int getRetries() {
-        return retries;
-    }
-
-    public int resend() {
-        ChunkSchedulingStatus resend = status.resend;
-        if(resend != null) {
-            setStatus(resend);
-            ++retries;
-        }
         return retries;
     }
 

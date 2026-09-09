@@ -3,7 +3,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
-import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
@@ -104,9 +103,13 @@ public class JobSchedulerTransactionsBean {
     @Stopwatch
     public void submitToProcessing(ChunkEntity chunk, int priority) {
         TrackingKey key = new TrackingKey(chunk.getKey().getJobId(), chunk.getKey().getId());
-        StatusChangeEvent changeEvent = dependencyTrackingService.setValidatedStatus(key, QUEUED_FOR_PROCESSING);
-        if(changeEvent == null) {
-            LOGGER.error("Tracker state could not be set to QUEUED_FOR_PROCESSING: {}", key);
+        if(dependencyTrackingService.setValidatedStatus(key, QUEUED_FOR_PROCESSING).isEmpty()) {
+            // WARN rather than ERROR: nothing is stranded. The chunk is already queued, already
+            // processed, or deliberately gone, and an abort or a re-entry into scheduleChunk makes
+            // that a normal outcome. WARN rather than INFO because this path selected the chunk and
+            // then found the table changed under it, unlike a callback telling us what we knew.
+            LOGGER.warn("submitToProcessing: chunk {} was not awaiting processing, not sending",
+                    key.toChunkIdentifier());
             return;
         }
         try {
@@ -199,7 +202,15 @@ public class JobSchedulerTransactionsBean {
         if(jobEntity.getState().isAborted() || JobsBean.isAborted(jobEntity.getId())) return;
         // chunk is ready for sink
         try {
-            dependencyTrackingService.setStatus(trackingKey, QUEUED_FOR_DELIVERY);
+            // Validated, so the claim on the chunk and the check that it is still claimable are one
+            // statement. The guard at the top of this method reads the same predecessor set, and a
+            // read followed by a write is a check-then-act two dispatch paths can both pass, which
+            // sends the chunk's items to the sink twice.
+            if (dependencyTrackingService.setValidatedStatus(trackingKey, QUEUED_FOR_DELIVERY).isEmpty()) {
+                LOGGER.warn("submitToDelivering: chunk {}/{} was claimed by another dispatch, not sending",
+                        trackingKey.getJobId(), trackingKey.getChunkId());
+                return;
+            }
             sinkMessageProducerBean.send(items, jobEntity, dependencyTracking.getPriority());
             LOGGER.info("submitToDelivering: chunk {}/{} scheduled for delivery for sink {}",
                     trackingKey.getJobId(), trackingKey.getChunkId(), dependencyTracking.getSinkId());

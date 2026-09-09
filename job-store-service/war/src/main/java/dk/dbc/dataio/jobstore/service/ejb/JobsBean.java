@@ -103,7 +103,8 @@ public class JobsBean {
 
     @POST
     @Path(JobStoreServiceConstants.JOB_ABORT + "/{jobId}")
-    public Response abortJob(@PathParam("jobId") int jobId) throws JobStoreException {
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response abortJob(@PathParam("jobId") int jobId) throws JobStoreException, JSONBException {
         LOGGER.warn("Aborting job {}", jobId);
         abortedJobs.add(jobId);
         JobEntity job = jobStore.abortJob(jobId);
@@ -117,7 +118,11 @@ public class JobsBean {
         // since the re-trigger is edge triggered and the edge has already passed.
         liftBarrierImposedBy(job);
         LOGGER.info("Abort job {} and removed its dependencies", jobId);
-        return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(job)).build();
+        // Marshalled here rather than handed over as a POJO, as every other endpoint on this bean
+        // does it. Left to the container's own JSON-B provider the snapshot's Date fields serialise
+        // with a zone region suffix the connector's Jackson cannot read, so an abort that had done
+        // all its work still failed its caller on the way back.
+        return Response.ok().entity(jsonbContext.marshall(JobInfoSnapshotConverter.toJobInfoSnapshot(job))).build();
     }
 
     /**

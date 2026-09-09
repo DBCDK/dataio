@@ -10,7 +10,6 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.Connection;
@@ -47,8 +46,20 @@ import static org.junit.Assert.fail;
  * outside the barrier scope under test.
  */
 public class JobGateBoundaryIT extends AbstractJobStoreServiceContainerTest {
-    /** Distinct from every other suite in this module, so the barrier scope holds only our jobs. */
-    private static final long SUBMITTER = 820010;
+    /**
+     * One submitter per test, all distinct from every other suite in this module.
+     * <p>
+     * The barrier scope is (sink, submitter), and a full-width job's barrier stands until its
+     * termination chunk is delivered, which none of these tests does. So a submitter shared between
+     * two tests here would leave the second one's jobs queued behind the first one's standing
+     * barrier, and a test asserting that a gate opens would fail for a reason that has nothing to do
+     * with what it is testing. Sharing one submitter across the class made
+     * {@link #abortLiftsTheBarrierAndOpensLaterJobs()} order dependent in exactly that way.
+     */
+    private static final long SUBMITTER_DEADLOCK = 820010;
+    private static final long SUBMITTER_SWEEP = 820011;
+    private static final long SUBMITTER_ABORT = 820012;
+    private static final long SUBMITTER_RECHECK = 820013;
 
     /**
      * How long any single wait here is given. Generous next to the work involved, which is
@@ -84,12 +95,12 @@ public class JobGateBoundaryIT extends AbstractJobStoreServiceContainerTest {
      */
     @Test(timeout = TEST_TIMEOUT_MS)
     public void dataChunkGateCloseDoesNotDeadlockAgainstTheTerminationInsert() throws Exception {
-        int jobA = addFullWidthJob();
+        int jobA = addFullWidthJob(SUBMITTER_DEADLOCK);
         awaitPartitioned(jobA, "job A");
         assertThat("job A's barrier stands, so job B's chunks have something to wait for",
                 terminationBarrierLifted(jobA), is(false));
 
-        int jobB = addFullWidthJob();
+        int jobB = addFullWidthJob(SUBMITTER_DEADLOCK);
         awaitPartitioned(jobB, "job B, which deadlocks here if the gate write joins the "
                 + "partitioning transaction");
 
@@ -109,9 +120,9 @@ public class JobGateBoundaryIT extends AbstractJobStoreServiceContainerTest {
      */
     @Test(timeout = TEST_TIMEOUT_MS)
     public void gateSweepDoesNotDeadlockAgainstItsOwnBarrierLift() throws Exception {
-        int jobA = addFullWidthJob();
+        int jobA = addFullWidthJob(SUBMITTER_SWEEP);
         awaitPartitioned(jobA, "job A");
-        int jobB = addFullWidthJob();
+        int jobB = addFullWidthJob(SUBMITTER_SWEEP);
         awaitPartitioned(jobB, "job B");
         assertThat("job B's data chunk is closed behind job A", gateOpen(jobB, 0), is(false));
 
@@ -127,6 +138,56 @@ public class JobGateBoundaryIT extends AbstractJobStoreServiceContainerTest {
     }
 
     /**
+     * The whole hourly recheck completes when it has both a job to drop and a scope to sweep.
+     * <p>
+     * This is the case the gate sweep on its own cannot reach. {@code recheckBlocks} drops the
+     * scheduling rows of a completed job through {@code DependencyTrackingService.removeJobId},
+     * which takes a row lock on every one of that job's rows whatever its gate, and then nests the
+     * barrier lift and the gate sweep, both of which run on a second connection and ask for rows in
+     * the same scope. {@code removeJobId} is {@code REQUIRES_NEW} precisely so its locks are
+     * released before anything nested asks for them.
+     * <p>
+     * <b>What this proves, measured rather than assumed.</b> It proves the recheck runs end to end
+     * through the deployed service with both halves of its work present, which nothing did before,
+     * the hourly timer having been its only caller. It does <b>not</b> prove the
+     * {@code REQUIRES_NEW} is needed: deleting that annotation leaves this test green, because the
+     * row sets here turn out to be disjoint. The sweep matches only
+     * {@code NOT gate_open AND NOT is_termination} rows with no earlier unlifted barrier, and this
+     * job's data-chunk gates are open while its termination row is excluded by the predicate.
+     * Producing the overlap needs a removed job whose own data-chunk gates are closed and every
+     * barrier ahead of it lifted, which is a narrower interleaving than this sets up.
+     * <p>
+     * The annotation is covered instead by
+     * {@code JobGateIT.droppingAJobsRowsHoldsLocksTheGateSweepWaitsFor}, which holds an uncommitted
+     * {@code deleteByJob} open and asserts a {@code sweepScope} on another connection waits for it,
+     * together with that test's reflective assertion that the annotation is present. Between the two
+     * the mechanism has a test and the wiring has a test.
+     * <p>
+     * The deadline is still this test's assertion, because the failure it would catch is a hang and
+     * not an exception. PostgreSQL sees no cycle when one side of it is an EJB call, so there is no
+     * deadlock to detect and no {@code lock_timeout} to fire.
+     */
+    @Test(timeout = TEST_TIMEOUT_MS)
+    public void recheckCompletesWithBothAJobToDropAndAScopeToSweep() throws Exception {
+        int jobA = addFullWidthJob(SUBMITTER_RECHECK);
+        awaitPartitioned(jobA, "job A");
+        int jobB = addFullWidthJob(SUBMITTER_RECHECK);
+        awaitPartitioned(jobB, "job B");
+        assertThat("job B's data chunk is closed behind job A", gateOpen(jobB, 0), is(false));
+
+        // What makes the recheck drop job A's rows rather than leave them: it removes the rows of
+        // every tracked job that is gone or already completed. Job A keeps its rows and its barrier
+        // until this point, so the drop and the sweep land in one call, which is the whole case.
+        markCompleted(jobA);
+
+        Response response = triggerRecheckBlocks();
+
+        assertThat("the recheck returned rather than hanging on locks it held itself",
+                response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("and job B was released on the way", gateOpen(jobB, 0), is(true));
+    }
+
+    /**
      * Aborting a job lifts the barrier it imposed and releases the jobs queued behind it.
      * <p>
      * An aborted job's termination chunk is never delivered, so the delivery-side lift never fires,
@@ -135,22 +196,17 @@ public class JobGateBoundaryIT extends AbstractJobStoreServiceContainerTest {
      * at bean level because the abort path goes through Artemis and Hazelcast, both of which the
      * deployed service has and a unit test does not.
      * <p>
-     * <b>Ignored because it fails on a defect that predates this gate work.</b>
-     * {@code JobsBean.removeFromQueues} calls
-     * {@code JobProcessorMessageProducerBean.resolveProcessorQueue}, which is package private, so
-     * invoking it through the bean's no-interface view throws
-     * {@code EJBException: Illegal non-business method access on no-interface view}. That happens
-     * before the barrier lift is reached, so in a deployed service
-     * {@code abortJob} answers 500 and aborts nothing. Making that method public is all this test
-     * needs, but that is a fix to the abort path rather than to the gate, so it is left as a
-     * decision rather than folded in here. This test is expected to pass unchanged once it lands.
+     * <b>This test spent time disabled against a defect it had found, and that is the point of it.</b>
+     * {@code abortJob} answered 500 and aborted nothing in the deployed service, because
+     * {@code JobProcessorMessageProducerBean.resolveProcessorQueue} was package private and
+     * {@code @PostConstruct} had bound it as a method reference on the generated no-interface view.
+     * Nothing in the bean-level suite could see it. Making the method public is the whole fix.
      */
-    @Ignore("blocked by a pre-existing defect in JobsBean.abortJob, see the javadoc")
     @Test(timeout = TEST_TIMEOUT_MS)
     public void abortLiftsTheBarrierAndOpensLaterJobs() throws Exception {
-        int jobA = addFullWidthJob();
+        int jobA = addFullWidthJob(SUBMITTER_ABORT);
         awaitPartitioned(jobA, "job A");
-        int jobB = addFullWidthJob();
+        int jobB = addFullWidthJob(SUBMITTER_ABORT);
         awaitPartitioned(jobB, "job B");
         assertThat("job B is held behind job A", gateOpen(jobB, 0), is(false));
 
@@ -166,7 +222,7 @@ public class JobGateBoundaryIT extends AbstractJobStoreServiceContainerTest {
      *
      * @return the new job's id
      */
-    private int addFullWidthJob() throws Exception {
+    private int addFullWidthJob(long submitter) throws Exception {
         JobInputStream jobInputStream = new JobInputStream(new JobSpecification()
                 .withType(JobSpecification.Type.TRANSIENT)
                 .withDataFile(FileStoreUrn.create("13613666").toString())
@@ -174,7 +230,7 @@ public class JobGateBoundaryIT extends AbstractJobStoreServiceContainerTest {
                 .withFormat("basis")
                 .withCharset("utf8")
                 .withDestination("gate-boundary-it")
-                .withSubmitterId(SUBMITTER), true, 0);
+                .withSubmitterId(submitter), true, 0);
 
         try (Client client = ClientBuilder.newClient()) {
             Response response = client.target(jobStoreBaseUrl())
@@ -186,6 +242,15 @@ public class JobGateBoundaryIT extends AbstractJobStoreServiceContainerTest {
                     is(Response.Status.CREATED.getStatusCode()));
             return JSONB_CONTEXT.unmarshall(response.readEntity(String.class),
                     dk.dbc.dataio.jobstore.types.JobInfoSnapshot.class).getJobId();
+        }
+    }
+
+    private Response triggerRecheckBlocks() {
+        try (Client client = ClientBuilder.newClient()) {
+            return client.target(jobStoreBaseUrl())
+                    .path("dependency/recheck_blocks")
+                    .request()
+                    .post(Entity.entity("", MediaType.APPLICATION_JSON));
         }
     }
 
@@ -260,6 +325,22 @@ public class JobGateBoundaryIT extends AbstractJobStoreServiceContainerTest {
                 boolean value = resultSet.getBoolean(1);
                 return resultSet.wasNull() ? null : value;
             }
+        }
+    }
+
+    /**
+     * Makes the recheck treat the job as finished, which is what puts its rows up for removal.
+     * <p>
+     * The JPA second level cache is evicted afterwards, and without that the write is invisible:
+     * the recheck asks {@code getJobEntityById}, which answers from the cached entity and reports no
+     * completion time, so it finds nothing to drop and the test passes for the wrong reason.
+     */
+    private void markCompleted(int jobId) throws Exception {
+        executeUpdate("UPDATE job SET timeofcompletion = now() WHERE id = " + jobId);
+        try (Client client = ClientBuilder.newClient()) {
+            Response response = client.target(jobStoreBaseUrl()).path("cache/clear").request().get();
+            assertThat("jpa cache evicted", response.getStatus(),
+                    is(Response.Status.OK.getStatusCode()));
         }
     }
 

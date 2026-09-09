@@ -57,6 +57,17 @@ public class JobStoreServiceConstants {
      * rather than only at minute 10 of the next hour.
      */
     public static final String DEPENDENCY_GATE_SWEEP = "dependency/gate_sweep";
+
+    /**
+     * Runs the whole of {@code AdminBean.recheckBlocks} rather than only the gate sweep half of it.
+     * <p>
+     * The half {@link #DEPENDENCY_GATE_SWEEP} does not reach is the one that drops the scheduling
+     * rows of jobs that are gone or already completed, lifts the barrier of each, and recounts the
+     * sink status map. That is where the recheck's own nested transactions are, so it is the half
+     * whose failure mode is an undetectable hang, and until this existed it was reachable only by
+     * waiting for minute 10 of the next hour.
+     */
+    public static final String DEPENDENCY_RECHECK_BLOCKS = "dependency/recheck_blocks";
     public static final String DEPENDENCIES = "dependencies/{jobId}";
 
     public static final String SINK_STATUS = "status/sinks/{sinkId}";

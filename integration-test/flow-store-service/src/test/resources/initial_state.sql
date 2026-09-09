@@ -10,7 +10,7 @@ INSERT INTO harvester_configs (id, version, type, content) VALUES (4, 1, 'dk.dbc
 INSERT INTO harvester_configs (id, version, type, content) VALUES (5, 1, 'dk.dbc.dataio.harvester.types.RRHarvesterConfig', '{"id": "basis-decentral", "format": "basis", "resource": "jdbc/dataio/rawrepo", "batchSize": 10000, "enabled": true, "consumerId": "basis-decentral", "destination": "basis", "formatOverrides": {"870970": "basis"}, "includeRelations": true}');
 INSERT INTO harvester_configs (id, version, type, content) VALUES (6, 1, 'dk.dbc.dataio.harvester.types.RRHarvesterConfig', '{"id": "broend-sync-exttest", "format": "katalog", "resource": "jdbc/dataio/rawrepo-exttest", "batchSize": 10000, "enabled": false, "consumerId": "broend-sync", "destination": "broend3-exttest", "formatOverrides": {"870970": "basis"}, "includeRelations": true}');
 
-INSERT INTO sinks(id, content, version) VALUES ( 1, '{"name": "sink-1", "queue": "queue", "timeout": 1, "sinkType": "DUMMY", "sinkConfig": null, "description": "description", "sequenceAnalysisOption": "ALL"}',1);
+INSERT INTO sinks(id, content, version) VALUES ( 1, '{"name": "sink-1", "queue": "queue", "timeout": 1, "sinkType": "DUMMY", "sinkConfig": null, "description": "description"}',1);
 
 
 INSERT INTO flow_components(id, content, version, view) VALUES (2,  '{"name": "fc-1"}', 1, '{}');

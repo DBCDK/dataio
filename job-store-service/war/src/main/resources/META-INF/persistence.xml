@@ -13,7 +13,6 @@
     <class>dk.dbc.dataio.jobstore.service.entity.JobEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkEntity</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.SequenceAnalysisDataConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ItemEntity</class>
     <class>dk.dbc.dataio.commons.partioner.entity.ChunkItemConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.FlowStoreReferencesConverter</class>
@@ -48,7 +47,6 @@
     <class>dk.dbc.dataio.jobstore.service.entity.JobEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkEntity</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.SequenceAnalysisDataConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ItemEntity</class>
     <class>dk.dbc.dataio.commons.partioner.entity.ChunkItemConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.FlowStoreReferencesConverter</class>

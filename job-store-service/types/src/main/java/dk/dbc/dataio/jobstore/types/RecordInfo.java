@@ -5,15 +5,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * This class contains information about a bibliographic record.
- * Some time in the future this will also encompass keys for sequence analysis.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public class RecordInfo {
@@ -38,15 +33,6 @@ public class RecordInfo {
     public RecordInfo withPid(String pid) {
         this.pid = pid;
         return this;
-    }
-
-    @JsonIgnore
-    public Set<String> getKeys(SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
-        final Set<String> keys = new HashSet<>();
-        if (id != null) {
-            keys.add(id);
-        }
-        return keys;
     }
 
     /**

@@ -4,9 +4,6 @@ package dk.dbc.dataio.jobstore.types;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.dataio.commons.types.SinkContent;
-
-import java.util.Set;
 
 /**
  * This class contains information about a bibliographic record
@@ -64,15 +61,6 @@ public class MarcRecordInfo extends RecordInfo {
             }
         }
         this.parentRelation = parentRelation;
-    }
-
-    @Override
-    public Set<String> getKeys(SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
-        final Set<String> keys = super.getKeys(sequenceAnalysisOption);
-        if (sequenceAnalysisOption == SinkContent.SequenceAnalysisOption.ALL && parentRelation != null) {
-            keys.add(parentRelation);
-        }
-        return keys;
     }
 
     public boolean isDelete() {

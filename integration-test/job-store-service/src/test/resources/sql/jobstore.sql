@@ -4,7 +4,7 @@ VALUES (497, 'e1cb3cc260a02d73507d6e67d27a0114',
 
 INSERT INTO sinkcache
 VALUES (70, 'ef75ae68562685f6be36f9d68aa7ac37',
-        '{"id":54,"version":3,"content":{"name":"dummy","resource":"dummy","description":"Ny tracer bullet sink","sinkType":"DUMMY","sinkConfig":{"@class":"dk.dbc.dataio.commons.types.EsSinkConfig","esAction":"INSERT"},"sequenceAnalysisOption":"ALL"}}');
+        '{"id":54,"version":3,"content":{"name":"dummy","resource":"dummy","description":"Ny tracer bullet sink","sinkType":"DUMMY","sinkConfig":{"@class":"dk.dbc.dataio.commons.types.EsSinkConfig","esAction":"INSERT"}}}');
 
 --
 --
@@ -25,9 +25,10 @@ VALUES (41434, true, 0, 1, 6, '__DATE_1__:15.775757', '__DATE_1__:20.378', '__DA
         false, NULL, 1, 0);
 
 
-INSERT INTO chunk
+INSERT INTO chunk (id, jobid, datafileid, numberofitems, timeofcreation, timeofcompletion,
+                   timeoflastmodification, state)
 VALUES (0, 41434, 'urn:dataio-fs:7512400', 6, '__DATE_1__:15.905', '__DATE_1__:20.377',
-        '__DATE_1__:20.379', '{"data":["101035","101785","101787","101777","101788","101768"]}',
+        '__DATE_1__:20.379',
         '{"states":{"PARTITIONING":{"beginDate":1639393815905,"endDate":1639393815923,"succeeded":6,"failed":0,"ignored":0},"DELIVERING":{"beginDate":1639393820376,"endDate":1639393820377,"succeeded":6,"failed":0,"ignored":0},"PROCESSING":{"beginDate":1639393820334,"endDate":1639393820335,"succeeded":6,"failed":0,"ignored":0}},"diagnostics":[]}');
 
 
@@ -86,9 +87,10 @@ VALUES (41435, true, 0, 1, 6, '__DATE_2__:15.775757', '__DATE_2__:20.378', '__DA
         false, NULL, 1, 0);
 
 
-INSERT INTO chunk
+INSERT INTO chunk (id, jobid, datafileid, numberofitems, timeofcreation, timeofcompletion,
+                   timeoflastmodification, state)
 VALUES (0, 41435, 'urn:dataio-fs:7512400', 6, '__DATE_2__:15.905', '__DATE_2__:20.377',
-        '__DATE_2__:20.379', '{"data":["101035","101785","101787","101777","101788","101768"]}',
+        '__DATE_2__:20.379',
         '{"states":{"PARTITIONING":{"beginDate":1639393815905,"endDate":1639393815923,"succeeded":6,"failed":0,"ignored":0},"DELIVERING":{"beginDate":1639393820376,"endDate":1639393820377,"succeeded":6,"failed":0,"ignored":0},"PROCESSING":{"beginDate":1639393820334,"endDate":1639393820335,"succeeded":6,"failed":0,"ignored":0}},"diagnostics":[]}');
 
 
@@ -155,9 +157,10 @@ VALUES (41436, true, 0, 1, 6, '__DATE_3__:15.775757', '__DATE_3__:20.378', '__DA
         false, NULL, 1, 0);
 
 
-INSERT INTO chunk
+INSERT INTO chunk (id, jobid, datafileid, numberofitems, timeofcreation, timeofcompletion,
+                   timeoflastmodification, state)
 VALUES (0, 41436, 'urn:dataio-fs:7512400', 6, '__DATE_3__:15.905', '__DATE_3__:20.377',
-        '__DATE_3__:20.379', '{"data":["101035","101785","101787","101777","101788","101768"]}',
+        '__DATE_3__:20.379',
         '{"states":{"PARTITIONING":{"beginDate":1639393815905,"endDate":1639393815923,"succeeded":6,"failed":0,"ignored":0},"DELIVERING":{"beginDate":1639393820376,"endDate":1639393820377,"succeeded":6,"failed":0,"ignored":0},"PROCESSING":{"beginDate":1639393820334,"endDate":1639393820335,"succeeded":6,"failed":0,"ignored":0}},"diagnostics":[]}');
 
 
@@ -216,9 +219,10 @@ VALUES (41437, true, 0, 1, 6, '__DATE_4__:15.775757', '__DATE_4__:20.378', '__DA
         false, NULL, 1, 0);
 
 
-INSERT INTO chunk
+INSERT INTO chunk (id, jobid, datafileid, numberofitems, timeofcreation, timeofcompletion,
+                   timeoflastmodification, state)
 VALUES (0, 41437, 'urn:dataio-fs:7512400', 6, '__DATE_4__:15.905', '__DATE_4__:20.377',
-        '__DATE_4__:20.379', '{"data":["101035","101785","101787","101777","101788","101768"]}',
+        '__DATE_4__:20.379',
         '{"states":{"PARTITIONING":{"beginDate":1639393815905,"endDate":1639393815923,"succeeded":6,"failed":0,"ignored":0},"DELIVERING":{"beginDate":1639393820376,"endDate":1639393820377,"succeeded":6,"failed":0,"ignored":0},"PROCESSING":{"beginDate":1639393820334,"endDate":1639393820335,"succeeded":6,"failed":0,"ignored":0}},"diagnostics":[]}');
 
 

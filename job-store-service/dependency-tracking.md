@@ -74,6 +74,11 @@ look interchangeable and are not:
   agency qualified. Using one where the other belongs is silent: too coarse a correlation key only
   costs latency, but too coarse a `recordKey` skips an unrelated record's delivery as superseded.
 
+Both are derived per item from that item's `RecordInfo`, the correlation key by
+`RecordInfo.getCorrelationKey()` and the `recordKey` by `SinkMessageProducerBean` composing the
+agency onto `RecordInfo.getId()`. `getCorrelationKey()` is the only key job-store derives from a
+record: no key is computed per chunk, and nothing in the scheduler holds a set of them.
+
 ## The per-job gate
 
 The gate answers one question per chunk: may this chunk be delivered yet? It is a single boolean,

@@ -7,13 +7,11 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.jobstore.types.ItemDeliveryResult.Status;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import jakarta.persistence.Query;
 import types.TestableJobEntityBuilder;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -185,7 +183,6 @@ public class PgJobStore_AddItemDeliveredTest extends PgJobStoreBaseTest {
         ChunkEntity chunkEntity = new ChunkEntity();
         chunkEntity.setKey(new ChunkEntity.Key(CHUNK_ID, JOB_ID));
         chunkEntity.setNumberOfItems((short) numberOfItems);
-        chunkEntity.setSequenceAnalysisData(new SequenceAnalysisData(Collections.emptySet()));
         chunkEntity.setState(closedPhases(numberOfItems, List.of(PARTITIONING, PROCESSING)));
         return chunkEntity;
     }

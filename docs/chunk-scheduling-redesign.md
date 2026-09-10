@@ -102,13 +102,26 @@ and neither matches the `ORDER BY`, so the planner adds a sort and the `LIMIT` s
 cheap. `gate_open` is a third equality column rather than a partial `WHERE gate_open`
 predicate, which keeps the ordered suffix intact, makes the filter an index condition
 instead of a heap recheck, and leaves the index usable by a query looking for closed gates.
-Direct-mode dispatch (`READY_FOR_DELIVERY → QUEUED_FOR_DELIVERY`) applies the same
-order when multiple chunks become ready simultaneously, and the same `gate_open` filter,
-see [Barrier Width](#barrier-width--per-sink-type-job-isolation). Since the dependency graph was
-removed there is no longer any site where multiple chunks become ready at once: the cascade in
-`chunkDeliveringDone` that used to hand each newly unblocked chunk to its own transaction is gone
-with `waitingOn`, and every remaining direct entry point handles one chunk and has no order to
-apply.
+Direct-mode dispatch (`READY_FOR_DELIVERY → QUEUED_FOR_DELIVERY`) applies the same `gate_open`
+filter, see [Barrier Width](#barrier-width--per-sink-type-job-isolation), and holds to the same
+order. It has no batch to sort: since the dependency graph was removed there is no site where
+several chunks become ready at once, the cascade in `chunkDeliveringDone` that used to hand each
+newly unblocked chunk to its own transaction having gone with `waitingOn`. **The order it has to
+respect is against the chunks already parked**, not against a batch of its own.
+
+Free capacity says the sink has room, not that this chunk is the one entitled to it. So before
+sending, the direct path reads the head of the parked queue with the same query at `LIMIT 1` and
+stands down when that head outranks the chunk it holds, parking it in `SCHEDULED_FOR_DELIVERY` for
+the sweep. The ordering index answers the read from its first entry, and it is the last of the
+three guards, so an idle sink pays one index probe and keeps the latency direct mode exists for.
+
+Without it the order holds only over chunks that happen to be parked. The sweep fills every free
+slot each tick, so between two ticks the only slots available are those freed by completions, and a
+job partitioning right now takes them on arrival. Where a partitioner emits chunks at least as fast
+as chunks complete, the next tick finds no capacity and the sweep dispatches nothing, for as long
+as the burst lasts. That is not a fairness question, see [Mapping](#mapping): a hierarchy is one
+broker group delivered in send order, so a volume that overtakes its head reaches the sink
+referencing a record that is not there yet.
 
 **Why the query is SQL.** The reason is not the index. `gate_open` is a column and no Hazelcast
 predicate could see it, so while the map existed a `PagingPredicate` with a comparator would have
@@ -171,6 +184,12 @@ head and section records where it was cheapest to honour, and left the broker to
 message is enqueued `submitToProcessing` has passed the chunk's priority as the JMS priority, but
 nothing ordered chunks waiting for a queue slot. The inversion predates the ordered delivery query
 and was not made worse by it, only more conspicuous.
+
+Direct dispatch to processing carries the same guard as the delivery half, for the same reason and
+at the same cost, one `LIMIT 1` read of the query above. It matters at this hop too because the
+priority override only reaches delivery through processing: a head chunk that cannot get a
+processor slot is not a delivery candidate either, so leaving the first hop unguarded would let a
+partitioning burst hold back the very chunks the override raises to `HIGH`.
 
 ### Aborting no longer cascades
 
@@ -2414,6 +2433,10 @@ since, so this phase changes no delivery ordering. One PR, planned in
   `submitToProcessingIfPossibleAsync`: the row insert stays in job-store-service, the dispatch
   attempt is dropped in favour of the poll loop, which is the direct-mode latency already accepted
   above. Site C's gate verdict travels with the insert, since it is the same statement
+- Delete the rank guard on both direct dispatch paths along with the paths themselves. It exists
+  only because two things dispatch, so with one dispatcher running one ordered query the ordering
+  holds by construction. Whatever wakes that dispatcher, a shorter poll interval or `LISTEN/NOTIFY`,
+  must not reintroduce a path that sends without consulting the ordered query
 - Leave the delivery-side `DELETE` of the chunk's `dependencytracking` row in job-store-service,
   in the same transaction as the `data_chunks_delivered` increment it is the once-only token for
 - Leave the `recheckBlocks` gate sweep in job-store-service when `AdminBean`'s scheduling parts
@@ -2445,6 +2468,7 @@ since, so this phase changes no delivery ordering. One PR, planned in
 | Exact retransmit (stale recovery) | `addChunkIgnoreDuplicates` | `incoming == watermark` → always deliver (idempotent re-delivery) |
 | Pod crash, stale watermark after rebalance | Hazelcast MapStore reloads from PostgreSQL | No local cache to become stale; `group-rebalance-pause-dispatch` ensures watermark is current before any post-rebalance dispatch |
 | Live head/section before volume delivery | Dependency tracking + barrier | Constant hierarchy group serialises all hierarchy records; priority override ensures head chunk dispatched first |
+| Lower-ranked chunk arrives while higher-ranked chunks are parked | Direct dispatch takes any free slot, so a partitioning burst streams past the backlog | Both direct paths read the head of the parked queue and park themselves when it outranks them |
 | Job completion fires exactly once, incl. jobs with a termination chunk | One `addChunk` call per chunk; `chunkCompletesJob` | One `addItemDelivered` call per item under the job row lock; `itemCompletesJob` selects the last data item, or the termination item when `numberOfItems == PARTITIONING total + 1` |
 
 ---

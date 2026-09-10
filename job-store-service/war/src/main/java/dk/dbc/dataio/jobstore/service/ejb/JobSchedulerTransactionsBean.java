@@ -30,6 +30,11 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED
 /**
  * Helper Bean for JobScheduler and JobSchedulerBulkSubmitterBean.
  * Methods needing to run in isolated transactions are pushed to this class.
+ * <p>
+ * The two {@code ...IfPossible} methods here are the direct dispatch paths, reached the moment a
+ * chunk becomes ready. Both defer to the bulk sweep when the head of the sink's parked queue
+ * outranks the chunk they hold, so that finding a free queue slot is not on its own enough to be
+ * dispatched, see {@link DispatchOrder} for why the order has to hold on this path too.
  */
 @Stateless
 public class JobSchedulerTransactionsBean {
@@ -48,22 +53,26 @@ public class JobSchedulerTransactionsBean {
     @EJB
     JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
 
+    @EJB
+    DeliveryDispatchRepository deliveryDispatchRepository;
+
     @Inject
     DependencyTrackingService dependencyTrackingService;
 
     public JobSchedulerTransactionsBean() {
     }
 
-    public JobSchedulerTransactionsBean(EntityManager entityManager, PgJobStoreRepository jobStoreRepository, SinkMessageProducerBean sinkMessageProducerBean, JobProcessorMessageProducerBean jobProcessorMessageProducerBean, DependencyTrackingService dependencyTrackingService) {
+    public JobSchedulerTransactionsBean(EntityManager entityManager, PgJobStoreRepository jobStoreRepository, SinkMessageProducerBean sinkMessageProducerBean, JobProcessorMessageProducerBean jobProcessorMessageProducerBean, DependencyTrackingService dependencyTrackingService, DeliveryDispatchRepository deliveryDispatchRepository) {
         this.entityManager = entityManager;
         this.jobStoreRepository = jobStoreRepository;
         this.sinkMessageProducerBean = sinkMessageProducerBean;
         this.jobProcessorMessageProducerBean = jobProcessorMessageProducerBean;
         this.dependencyTrackingService = dependencyTrackingService;
+        this.deliveryDispatchRepository = deliveryDispatchRepository;
     }
 
     /**
-     * Send JMS message to Processing, if queue size is lower than MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
+     * Attempt direct dispatch to processing, off the partitioning thread.
      *
      * @param chunk    chunk to send to JMS queue
      * @param sinkId   sink ID
@@ -79,7 +88,8 @@ public class JobSchedulerTransactionsBean {
 
 
     /**
-     * Send JMS message to Processing, if queue size is lower than MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
+     * Send JMS message to Processing, if the sink's processor queue has room and nothing parked
+     * ahead of this chunk outranks it.
      *
      * @param chunk    chunk to send to JMS queue
      * @param sinkId   sink ID
@@ -88,11 +98,49 @@ public class JobSchedulerTransactionsBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     @Stopwatch
     public void submitToProcessingIfPossible(ChunkEntity chunk, int sinkId, int priority) {
+        TrackingKey key = chunk.getKey().toTrackingKey();
         if (dependencyTrackingService.capacity(sinkId, QUEUED_FOR_PROCESSING) <= 0) {
-            dependencyTrackingService.setStatus(chunk.getKey().toTrackingKey(), SCHEDULED_FOR_PROCESSING);
+            dependencyTrackingService.setStatus(key, SCHEDULED_FOR_PROCESSING);
+            return;
+        }
+        if (isOutrankedForProcessing(sinkId, key, priority)) {
+            dependencyTrackingService.setStatus(key, SCHEDULED_FOR_PROCESSING);
             return;
         }
         submitToProcessing(chunk, priority);
+    }
+
+    /**
+     * Whether a chunk about to be dispatched directly should stand down for the head of the sink's
+     * parked queue.
+     * <p>
+     * A free queue slot says the sink has room, not that this chunk is the one entitled to it. The
+     * bulk sweep fills slots in {@code (priority DESC, jobId ASC, chunkId ASC)} order, and without
+     * this the direct path would take a freed slot on sight, letting a job that happens to be
+     * partitioning right now stream past a backlog that outranks it for as long as the burst lasts.
+     * <p>
+     * One {@code LIMIT 1} read of the same ordered query the sweep uses, which the ordering index
+     * answers from its first entry. Only reached when the chunk would otherwise be sent, so an idle
+     * sink pays it once and dispatches, and direct mode keeps the latency it exists for.
+     *
+     * @param sinkId   sink the chunk belongs to
+     * @param key      chunk about to be dispatched
+     * @param priority the chunk's dispatch priority
+     * @return true if the chunk should be parked for the sweep instead
+     */
+    private boolean isOutrankedForProcessing(int sinkId, TrackingKey key, int priority) {
+        List<DependencyTrackingRepository.ProcessingCandidate> parked =
+                dependencyTrackingService.findProcessingCandidates(sinkId, 1);
+        if (parked.isEmpty()) {
+            return false;
+        }
+        DependencyTrackingRepository.ProcessingCandidate head = parked.get(0);
+        if (DispatchOrder.outranks(priority, key, head.priority(), head.key())) {
+            return false;
+        }
+        LOGGER.info("submitToProcessingIfPossible: chunk {} deferring to parked chunk {}",
+                key.toChunkIdentifier(), head.key().toChunkIdentifier());
+        return true;
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -145,12 +193,57 @@ public class JobSchedulerTransactionsBean {
             return;
         }
 
+        // Last of the three guards, so the read is only paid on the path that would otherwise send.
+        if (isOutrankedForDelivery(dependencyTracking.getSinkId(), trackingKey, dependencyTracking.getPriority())) {
+            dependencyTrackingService.setStatus(trackingKey, SCHEDULED_FOR_DELIVERY);
+            return;
+        }
+
         List<ItemEntity> items = getProcessedItemsFrom(trackingKey);
         if (items.isEmpty()) {
             LOGGER.error("submitToDeliveringIfPossible: chunk {}/{} has no items to deliver", trackingKey.getJobId(), trackingKey.getChunkId());
             return;
         }
         submitToDelivering(items, trackingKey);
+    }
+
+    /**
+     * Whether a chunk about to be delivered directly should stand down for the head of the sink's
+     * parked queue.
+     * <p>
+     * The delivery counterpart of {@link #isOutrankedForProcessing}, and the more consequential of
+     * the two. Delivery order is what puts a live MARC head at a sink ahead of the volumes
+     * referencing it, since the broker serialises a hierarchy into one group and delivers it in
+     * send order, see {@link DispatchOrder}.
+     * <p>
+     * The candidate query filters on {@code gate_open}, so a gated chunk is not a candidate and
+     * holds nothing back. That matters for a full-width barrier, where a whole job's data chunks
+     * sit parked with closed gates and must not stall the sink's other traffic.
+     * <p>
+     * A chunk cannot normally meet itself here, since it is compared against
+     * {@code SCHEDULED_FOR_DELIVERY} rows while holding {@code READY_FOR_DELIVERY}. A caller that
+     * hands over an already parked chunk finds it at the head of its own order and stands down,
+     * which leaves the chunk exactly where it already was for the sweep to take. No chunk is
+     * stranded that way, so the case is left to fall out rather than be tested for.
+     *
+     * @param sinkId   sink the chunk belongs to
+     * @param key      chunk about to be dispatched
+     * @param priority the chunk's dispatch priority
+     * @return true if the chunk should be parked for the sweep instead
+     */
+    private boolean isOutrankedForDelivery(int sinkId, TrackingKey key, int priority) {
+        List<DeliveryDispatchRepository.DeliveryCandidate> parked =
+                deliveryDispatchRepository.findDeliveryCandidates(sinkId, 1);
+        if (parked.isEmpty()) {
+            return false;
+        }
+        DeliveryDispatchRepository.DeliveryCandidate head = parked.get(0);
+        if (DispatchOrder.outranks(priority, key, head.priority(), head.key())) {
+            return false;
+        }
+        LOGGER.info("submitToDeliveringIfPossible: chunk {} deferring to parked chunk {}",
+                key.toChunkIdentifier(), head.key().toChunkIdentifier());
+        return true;
     }
 
     /**

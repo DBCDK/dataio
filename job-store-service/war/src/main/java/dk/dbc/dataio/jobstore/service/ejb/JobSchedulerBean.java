@@ -60,13 +60,20 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR
  * There are two ways a chunk reaches a JMS queue, and which one it takes is decided per chunk:
  * <ul>
  * <li>directly, when {@code JobSchedulerTransactionsBean.submitToProcessingIfPossible} or
- *     {@code submitToDeliveringIfPossible} finds capacity at the moment the chunk becomes ready,</li>
+ *     {@code submitToDeliveringIfPossible} finds the sink has capacity and nothing waiting ahead of
+ *     the chunk at the moment it becomes ready,</li>
  * <li>otherwise the chunk is left in {@code SCHEDULED_FOR_PROCESSING} or
  *     {@code SCHEDULED_FOR_DELIVERY}, and {@link JobSchedulerBulkSubmitterBean}'s timers pick it up
  *     once the sink has room. Those timers call {@link #bulkScheduleToProcessingForSink} and
  *     {@link #bulkScheduleToDeliveringForSink} here.</li>
  * </ul>
- * A chunk that finds a full queue simply waits where it is for the next sweep.
+ * A chunk turned away for either reason waits where it is for the next sweep.
+ * <p>
+ * <b>Capacity alone does not entitle a chunk to a free slot.</b> Both sweeps dispatch in
+ * {@code (priority DESC, jobId ASC, chunkId ASC)} order, and the direct paths keep to it by
+ * standing down when a waiting chunk ranks above the one they hold. Otherwise a job partitioning
+ * right now takes every slot freed between two sweeps, and a backlog ranked above it waits for the
+ * burst to end. See {@link DispatchOrder}.
  * <p>
  * The counts behind the cap are held in a distributed map, so the cap applies across job-store
  * instances rather than per JVM. The timer-driven work, both sweeps in
@@ -468,10 +475,13 @@ public class JobSchedulerBean {
             if (spaceLeftInQueue > 0) {
                 LOGGER.debug("bulk scheduling for delivery - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
 
-                List<TrackingKey> chunks = deliveryDispatchRepository.findDeliveryCandidates(sinkId, spaceLeftInQueue);
+                List<DeliveryDispatchRepository.DeliveryCandidate> candidates = deliveryDispatchRepository.findDeliveryCandidates(sinkId, spaceLeftInQueue);
 
-                if(!chunks.isEmpty()) LOGGER.info("bulk scheduling for delivery - found {} candidate chunks for sink {}", chunks.size(), sinkId);
-                for (TrackingKey toSchedule : chunks) {
+                if (!candidates.isEmpty()) {
+                    LOGGER.info("bulk scheduling for delivery - found {} candidate chunks for sink {}", candidates.size(), sinkId);
+                }
+                for (DeliveryDispatchRepository.DeliveryCandidate candidate : candidates) {
+                    TrackingKey toSchedule = candidate.key();
                     if(JobsBean.isAborted(toSchedule.getJobId())) continue;
                     LOGGER.info("bulk scheduling for delivery - chunk {} to be scheduled for delivery for sink {}", toSchedule, sinkId);
                     if(jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(toSchedule)) {

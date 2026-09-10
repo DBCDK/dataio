@@ -53,6 +53,7 @@ import static org.mockito.Mockito.verify;
  */
 public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBeanIT.class);
+    private static final int SINK_ID = 1;
 
     @org.junit.Test
     public void testValidTransitions() throws Exception {
@@ -82,6 +83,123 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                 repository.get(new TrackingKey(3, i)).orElseThrow().getStatus()));
     }
 
+    /**
+     * A NORMAL chunk does not take a free processor slot while a HIGH chunk is parked for it.
+     * <p>
+     * Capacity is untouched throughout, so nothing but the rank guard can park the arriving chunk.
+     * Without it a job partitioning right now takes every slot freed between two sweeps, and a
+     * backlog that outranks it waits for the burst to end.
+     */
+    @org.junit.Test
+    public void directProcessingDefersToHigherPriorityParkedChunk() throws Exception {
+        startHazelcastWith(null);
+        JobEntity job = newPersistedJobEntity();
+        seedProcessingRow(job, 1, Priority.HIGH, SCHEDULED_FOR_PROCESSING);
+        TrackingKey arriving = seedProcessingRow(job, 2, Priority.NORMAL, READY_FOR_PROCESSING);
+        DependencyTrackingService trackingService = newDependencyTrackingService();
+
+        JobProcessorMessageProducerBean producer = mock(JobProcessorMessageProducerBean.class);
+        JobSchedulerTransactionsBean bean = directProcessingBean(trackingService, producer);
+        persistenceContext.run(() -> bean.submitToProcessingIfPossible(
+                chunkOf(job, 2), SINK_ID, Priority.NORMAL.getValue()));
+
+        verify(producer, never()).send(any(), any(), anyInt());
+        assertThat("outranked chunk parked for the sweep",
+                trackingService.get(arriving).getStatus(), is(SCHEDULED_FOR_PROCESSING));
+    }
+
+    /**
+     * At equal priority the earlier job goes first on the processing hop too.
+     */
+    @org.junit.Test
+    public void directProcessingDefersToEarlierJobAtEqualPriority() throws Exception {
+        startHazelcastWith(null);
+        JobEntity earlier = newPersistedJobEntity();
+        JobEntity later = newPersistedJobEntity();
+        seedProcessingRow(earlier, 0, Priority.NORMAL, SCHEDULED_FOR_PROCESSING);
+        TrackingKey arriving = seedProcessingRow(later, 0, Priority.NORMAL, READY_FOR_PROCESSING);
+        DependencyTrackingService trackingService = newDependencyTrackingService();
+
+        JobProcessorMessageProducerBean producer = mock(JobProcessorMessageProducerBean.class);
+        JobSchedulerTransactionsBean bean = directProcessingBean(trackingService, producer);
+        persistenceContext.run(() -> bean.submitToProcessingIfPossible(
+                chunkOf(later, 0), SINK_ID, Priority.NORMAL.getValue()));
+
+        verify(producer, never()).send(any(), any(), anyInt());
+        assertThat("later job parked behind the earlier one",
+                trackingService.get(arriving).getStatus(), is(SCHEDULED_FOR_PROCESSING));
+    }
+
+    /**
+     * An empty parked queue leaves direct dispatch exactly as it was, which is the latency the
+     * direct path exists for.
+     */
+    @org.junit.Test
+    public void directProcessingDispatchesWhenNothingIsParked() throws Exception {
+        startHazelcastWith(null);
+        JobEntity job = newPersistedJobEntity();
+        TrackingKey arriving = seedProcessingRow(job, 0, Priority.NORMAL, READY_FOR_PROCESSING);
+        DependencyTrackingService trackingService = newDependencyTrackingService();
+
+        JobProcessorMessageProducerBean producer = mock(JobProcessorMessageProducerBean.class);
+        JobSchedulerTransactionsBean bean = directProcessingBean(trackingService, producer);
+        persistenceContext.run(() -> bean.submitToProcessingIfPossible(
+                chunkOf(job, 0), SINK_ID, Priority.NORMAL.getValue()));
+
+        assertThat("chunk queued for processing",
+                trackingService.get(arriving).getStatus(), is(QUEUED_FOR_PROCESSING));
+    }
+
+    /**
+     * A chunk that outranks the parked head is dispatched, so the guard defers rather than blocks.
+     */
+    @org.junit.Test
+    public void directProcessingDispatchesWhenItOutranksTheParkedHead() throws Exception {
+        startHazelcastWith(null);
+        JobEntity job = newPersistedJobEntity();
+        seedProcessingRow(job, 1, Priority.NORMAL, SCHEDULED_FOR_PROCESSING);
+        TrackingKey arriving = seedProcessingRow(job, 0, Priority.HIGH, READY_FOR_PROCESSING);
+        DependencyTrackingService trackingService = newDependencyTrackingService();
+
+        JobProcessorMessageProducerBean producer = mock(JobProcessorMessageProducerBean.class);
+        JobSchedulerTransactionsBean bean = directProcessingBean(trackingService, producer);
+        persistenceContext.run(() -> bean.submitToProcessingIfPossible(
+                chunkOf(job, 0), SINK_ID, Priority.HIGH.getValue()));
+
+        assertThat("chunk queued for processing",
+                trackingService.get(arriving).getStatus(), is(QUEUED_FOR_PROCESSING));
+    }
+
+    /**
+     * The chunk row is persisted before the tracking row, because {@code dependencytracking} has a
+     * foreign key on {@code (jobid, chunkid)}.
+     */
+    private TrackingKey seedProcessingRow(JobEntity job, int chunkId, Priority priority,
+                                          ChunkSchedulingStatus status) {
+        newPersistedChunkEntity(new ChunkEntity.Key(chunkId, job.getId()));
+        TrackingKey key = new TrackingKey(job.getId(), chunkId);
+        DependencyTrackingRepository repository = newDependencyTrackingRepository();
+        persistenceContext.run(() -> repository.insert(key, SINK_ID, 0, status, priority.getValue(), true));
+        return key;
+    }
+
+    private ChunkEntity chunkOf(JobEntity job, int chunkId) {
+        return new ChunkEntity().withJobId(job.getId()).withChunkId(chunkId).withNumberOfItems((short) 1);
+    }
+
+    /**
+     * The chunk lookup {@code submitToProcessing} does after claiming the chunk is stubbed away, so
+     * these tests turn on the guard and on the status the chunk ends in rather than on the JMS
+     * payload.
+     */
+    private JobSchedulerTransactionsBean directProcessingBean(DependencyTrackingService trackingService,
+                                                              JobProcessorMessageProducerBean producer) {
+        PgJobStoreRepository jobStoreRepository = mock(PgJobStoreRepository.class);
+        return new JobSchedulerTransactionsBean(entityManager, jobStoreRepository,
+                mock(SinkMessageProducerBean.class), producer, trackingService,
+                newDeliveryDispatchRepository());
+    }
+
     @org.junit.Test
     public void scheduleChunk_processingQueueFull_parksTheRemainder() throws Exception {
         startHazelcastWith("JobSchedulerBeanIT_findWaitForChunks.sql");
@@ -94,7 +212,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         }.withRepository(newDependencyTrackingRepository()).init();
         int startingCap = trackingService.getCount(1, QUEUED_FOR_PROCESSING);
         PgJobStoreRepository jobStoreRepository = newPgJobStoreRepository();
-        JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean(entityManager, jobStoreRepository, mock(SinkMessageProducerBean.class), mock(JobProcessorMessageProducerBean.class), trackingService);
+        JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean(entityManager, jobStoreRepository, mock(SinkMessageProducerBean.class), mock(JobProcessorMessageProducerBean.class), trackingService, newDeliveryDispatchRepository());
         JobSchedulerBean bean = new JobSchedulerBean(entityManager, jtbean, jobStoreRepository, null, trackingService, newJobGateBean(), newDeliveryDispatchRepository());
 
         final JobEntity jobEntity = new JobEntity(3);
@@ -145,7 +263,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         SinkMessageProducerBean sinkMessageProducer = mock(SinkMessageProducerBean.class);
         JobSchedulerTransactionsBean jtbean = new JobSchedulerTransactionsBean(entityManager,
                 jobStoreRepository, sinkMessageProducer, mock(JobProcessorMessageProducerBean.class),
-                trackingService);
+                trackingService, newDeliveryDispatchRepository());
         JobSchedulerBean bean = new JobSchedulerBean(entityManager, jtbean, jobStoreRepository, null,
                 trackingService, newJobGateBean(), newDeliveryDispatchRepository());
 

@@ -312,7 +312,7 @@ by an index shaped to answer them without a sort.
 **Delivery**, `DeliveryDispatchRepository.findDeliveryCandidates`:
 
 ```sql
-SELECT jobid, chunkid FROM dependencytracking
+SELECT jobid, chunkid, priority FROM dependencytracking
  WHERE sinkid = ? AND status = SCHEDULED_FOR_DELIVERY AND gate_open
  ORDER BY priority DESC, jobid, chunkid
  LIMIT ?
@@ -346,6 +346,13 @@ here would stop the processing of exactly the chunks the barrier assumes get pro
 Each query is limited to the free slots in the sink's queue, and a candidate needs no further check
 before it is dispatched. The table is the only source of `status`, so a candidate is a chunk that is
 genuinely waiting, and the order it comes back in is the order to dispatch in.
+
+**Both queries serve the direct paths too, at `LIMIT 1`.** A direct dispatch has no batch to order,
+but it does have to place itself against the chunks already parked, so it reads the head of this
+order and stands down when that head outranks it. Both queries return `priority` alongside the key,
+because that comparison is on all three ordering keys. On the processing side it does double duty,
+saving `submitToProcessing` a per-chunk read for the JMS priority. `DispatchOrder.outranks` is
+the Java statement of the same three keys, and the two have to be changed together.
 
 For both indexes: do not expect the planner to choose them at low row counts. It prefers a narrower
 index and a sort until a sink has enough queued chunks for the sort to dominate, so verify with
@@ -491,6 +498,17 @@ Both edges into `QUEUED_FOR_DELIVERY` are gated, and neither dispatches a chunk 
   capacity check and, when the gate is closed, parks the chunk in `SCHEDULED_FOR_DELIVERY` so the
   bulk sweep picks it up once the gate opens. `submitToDelivering` reads it again immediately before
   the status change, which is the choke point every path funnels through.
+
+Both edges also hold to `(priority DESC, jobid ASC, chunkid ASC)`, and the direct one needs a guard
+to do it. Capacity tells it the sink has room, not that this chunk is the one entitled to the room,
+so it reads the head of the parked queue and parks itself when that head outranks it. The same guard
+sits on the direct edge into `QUEUED_FOR_PROCESSING`.
+
+Order is a correctness property on the delivery edge, not a fairness one. Every record of a MARC
+hierarchy carries the same `correlationKey`, so the broker puts them in one group and delivers them
+in the order they were sent, and the watermark cannot help because a head and its volumes are
+different records with different keys. Dispatch order is the only thing deciding which reaches the
+sink first.
 
 ## Barrier chunks
 

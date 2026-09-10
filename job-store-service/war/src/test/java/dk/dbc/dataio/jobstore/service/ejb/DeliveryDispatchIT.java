@@ -208,10 +208,138 @@ public class DeliveryDispatchIT extends AbstractJobStoreIT {
         verify(producer, never()).send(any(), any(), anyInt());
     }
 
+    // ------------------------------------------- the direct path defers to the parked head
+
+    /**
+     * A NORMAL chunk does not take a free delivery slot while a HIGH chunk is parked for it.
+     * <p>
+     * The case the ordering exists for is a live MARC head: every hierarchy record shares one
+     * correlation key, so the broker delivers head and volume in the order they were sent, and a
+     * volume that overtakes its head reaches the sink referencing a record that is not there yet.
+     * Capacity is free throughout, so only the rank guard can produce this outcome.
+     */
+    @org.junit.Test
+    public void directPathDefersToHigherPriorityParkedChunk() throws Exception {
+        JobEntity job = newPersistedJob();
+
+        seedCandidate(job, 0, Priority.HIGH, SCHEDULED_FOR_DELIVERY, true);
+        TrackingKey arriving = new TrackingKey(job.getId(), 1);
+        seedCandidate(job, 1, Priority.NORMAL, READY_FOR_DELIVERY, true);
+        DependencyTrackingService trackingService = newDependencyTrackingService();
+
+        SinkMessageProducerBean producer = mock(SinkMessageProducerBean.class);
+        JobSchedulerTransactionsBean bean = directPathBean(trackingService, producer, job);
+
+        JobsBeanTest.notAborted(job.getId(), jb ->
+                persistenceContext.run(() -> bean.submitToDeliveringIfPossible(arriving)));
+
+        verify(producer, never()).send(any(), any(), anyInt());
+        assertThat("outranked chunk parked for the sweep",
+                trackingService.get(arriving).getStatus(), is(SCHEDULED_FOR_DELIVERY));
+    }
+
+    /**
+     * At equal priority the earlier job goes first, so the direct path defers on job id alone.
+     * <p>
+     * This is the delete-marked hierarchy case. A delete-marked head or section keeps its job's
+     * priority rather than being raised to HIGH, so nothing but position ordering decides that the
+     * children reach the sink before the parent.
+     */
+    @org.junit.Test
+    public void directPathDefersToEarlierJobAtEqualPriority() throws Exception {
+        JobEntity earlier = newPersistedJob();
+        JobEntity later = newPersistedJob();
+
+        seedCandidate(earlier, 0, Priority.NORMAL, SCHEDULED_FOR_DELIVERY, true);
+        TrackingKey arriving = new TrackingKey(later.getId(), 0);
+        seedCandidate(later, 0, Priority.NORMAL, READY_FOR_DELIVERY, true);
+        DependencyTrackingService trackingService = newDependencyTrackingService();
+
+        SinkMessageProducerBean producer = mock(SinkMessageProducerBean.class);
+        JobSchedulerTransactionsBean bean = directPathBean(trackingService, producer, later);
+
+        JobsBeanTest.notAborted(later.getId(), jb ->
+                persistenceContext.run(() -> bean.submitToDeliveringIfPossible(arriving)));
+
+        verify(producer, never()).send(any(), any(), anyInt());
+        assertThat("later job parked behind the earlier one",
+                trackingService.get(arriving).getStatus(), is(SCHEDULED_FOR_DELIVERY));
+    }
+
+    /**
+     * A chunk that outranks the parked head is dispatched, so the guard defers rather than blocks.
+     */
+    @org.junit.Test
+    public void directPathDispatchesWhenItOutranksTheParkedHead() throws Exception {
+        JobEntity job = newPersistedJob();
+
+        seedCandidate(job, 1, Priority.NORMAL, SCHEDULED_FOR_DELIVERY, true);
+        TrackingKey arriving = new TrackingKey(job.getId(), 0);
+        seedCandidate(job, 0, Priority.HIGH, READY_FOR_DELIVERY, true);
+        DependencyTrackingService trackingService = newDependencyTrackingService();
+
+        SinkMessageProducerBean producer = mock(SinkMessageProducerBean.class);
+        JobSchedulerTransactionsBean bean = directPathBean(trackingService, producer, job);
+
+        JobsBeanTest.notAborted(job.getId(), jb ->
+                persistenceContext.run(() -> bean.submitToDeliveringIfPossible(arriving)));
+
+        verify(producer, times(1)).send(any(), any(), anyInt());
+    }
+
+    /**
+     * A parked chunk whose gate is closed holds nothing back.
+     * <p>
+     * The guard reads the candidate query, which filters on {@code gate_open}, so a chunk that
+     * cannot be dispatched does not outrank one that can. Without the filter a full-width barrier
+     * would park a whole job's data chunks and stall every other job on the sink behind them.
+     */
+    @org.junit.Test
+    public void gatedParkedChunkDoesNotHoldBackTheDirectPath() throws Exception {
+        JobEntity job = newPersistedJob();
+
+        seedCandidate(job, 1, Priority.HIGH, SCHEDULED_FOR_DELIVERY, false, true);
+        TrackingKey arriving = new TrackingKey(job.getId(), 0);
+        seedCandidate(job, 0, Priority.NORMAL, READY_FOR_DELIVERY, true);
+        DependencyTrackingService trackingService = newDependencyTrackingService();
+
+        SinkMessageProducerBean producer = mock(SinkMessageProducerBean.class);
+        JobSchedulerTransactionsBean bean = directPathBean(trackingService, producer, job);
+
+        JobsBeanTest.notAborted(job.getId(), jb ->
+                persistenceContext.run(() -> bean.submitToDeliveringIfPossible(arriving)));
+
+        verify(producer, times(1)).send(any(), any(), anyInt());
+    }
+
+    /**
+     * The sweep does not apply the guard to its own candidates.
+     * <p>
+     * The sweep reaches the sink through {@code submitToDeliveringNewTransaction}, which holds no
+     * guard, so every chunk of an ordered batch is dispatched rather than each deferring to the one
+     * ranked above it and the batch dispatching nothing.
+     */
+    @org.junit.Test
+    public void bulkPathDispatchesItsWholeOrderedBatch() throws Exception {
+        JobEntity job = newPersistedJob();
+
+        seedCandidate(job, 0, Priority.HIGH, SCHEDULED_FOR_DELIVERY, true);
+        seedCandidate(job, 1, Priority.NORMAL, SCHEDULED_FOR_DELIVERY, true);
+        seedCandidate(job, 2, Priority.NORMAL, SCHEDULED_FOR_DELIVERY, true);
+        DependencyTrackingService trackingService = newDependencyTrackingService();
+
+        JobSchedulerTransactionsBean transactions = dispatchingTransactionsBean();
+        bulkSchedule(trackingService, transactions);
+
+        verify(transactions, times(3)).submitToDeliveringNewTransaction(any());
+    }
+
     // ---------------------------------------------------------------- fixtures
 
     private List<TrackingKey> candidates(int limit) {
-        return newDeliveryDispatchRepository().findDeliveryCandidates(SINK_ID, limit);
+        return newDeliveryDispatchRepository().findDeliveryCandidates(SINK_ID, limit).stream()
+                .map(DeliveryDispatchRepository.DeliveryCandidate::key)
+                .toList();
     }
 
     private void bulkSchedule(DependencyTrackingService trackingService, JobSchedulerTransactionsBean transactions) {
@@ -236,7 +364,8 @@ public class DeliveryDispatchIT extends AbstractJobStoreIT {
         when(jobStoreRepository.getChunkItemEntities(anyInt(), anyInt())).thenReturn(List.of(new ItemEntity()));
         when(jobStoreRepository.getJobEntityById(anyInt())).thenReturn(job);
         return new JobSchedulerTransactionsBean(entityManager, jobStoreRepository, producer,
-                mock(JobProcessorMessageProducerBean.class), trackingService);
+                mock(JobProcessorMessageProducerBean.class), trackingService,
+                newDeliveryDispatchRepository());
     }
 
     private JobEntity newPersistedJob() {

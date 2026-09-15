@@ -29,8 +29,14 @@ LABEL org.opencontainers.image.authors="${team}"
 # at image build time is discarded at container start.  The only options that file can carry
 # come from payara-configreader's hardcoded profiles, and none of them fit.
 # JvmOptionsIT asserts this actually reaches the JVM.
+# JOBQUEUE_STUCK_THRESHOLD: how long JobQueueWatchdogBean lets a job queue entry stay
+# IN_PROGRESS before reporting it.  An entry is IN_PROGRESS for the whole of its partitioning,
+# so this has to clear the slowest legitimate one: the worst observed took 45 minutes for a
+# 264763 item job.  An hour keeps headroom above that and still catches a stall in hours rather
+# than the days the September stalls ran for.
 ENV APP_NAME=${app-name} \
     TZ=Europe/Copenhagen \
+    JOBQUEUE_STUCK_THRESHOLD=PT1H \
     JAVA_TOOL_OPTIONS=-Declipselink.concurrency.manager.waittime=5000
 
 RUN printf '%s\n' \

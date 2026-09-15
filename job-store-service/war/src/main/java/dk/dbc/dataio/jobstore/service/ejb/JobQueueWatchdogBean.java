@@ -9,6 +9,7 @@ import jakarta.ejb.Schedule;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 
 /**
  * Reports job queue entries that have been stuck in
- * {@link JobQueueEntity.State#IN_PROGRESS} for longer than {@link #STUCK_THRESHOLD}.
+ * {@link JobQueueEntity.State#IN_PROGRESS} for longer than {@code stuckThreshold}.
  * <p>
  * A partitioning that never completes leaves its queue entry IN_PROGRESS, and the seize query's
  * prior-entry guard then blocks every later entry for the same sink and submitter. Other
@@ -39,13 +40,20 @@ import java.util.stream.Collectors;
 public class JobQueueWatchdogBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobQueueWatchdogBean.class);
 
-    static final Duration STUCK_THRESHOLD = Duration.ofMinutes(15);
-
     @EJB
     JobQueueRepository jobQueueRepository;
 
     @Inject
     MetricRegistry metricRegistry;
+
+    /* How long an entry may stay IN_PROGRESS before it is reported.  An entry is IN_PROGRESS for
+       the whole of its partitioning, so any value has to clear the slowest legitimate one.
+       Deliberately has no defaultValue: the default lives in the Dockerfile next to the other
+       operational settings, and a missing value should fail deployment rather than silently
+       pick a number. */
+    @Inject
+    @ConfigProperty(name = "JOBQUEUE_STUCK_THRESHOLD")
+    Duration stuckThreshold;
 
     /* Queue entry id -> first tick at which this bean saw it IN_PROGRESS.
        JobQueueEntity.timeOfEntry is the queue insertion time, not the time the entry was seized,
@@ -89,7 +97,7 @@ public class JobQueueWatchdogBean {
         for (JobQueueEntity entry : inProgress) {
             final Instant firstSeen = firstSeenInProgress.computeIfAbsent(entry.getId(), id -> now);
             final Duration age = Duration.between(firstSeen, now);
-            if (age.compareTo(STUCK_THRESHOLD) >= 0) {
+            if (age.compareTo(stuckThreshold) >= 0) {
                 stuck++;
                 LOGGER.error("Job queue entry {} for job {} on sink {} has been IN_PROGRESS for {} minutes." +
                                 " Partitioning for this sink and submitter is stalled until it is resolved.",

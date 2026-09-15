@@ -4,16 +4,19 @@ import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 
+import java.time.Duration;
 import java.time.Instant;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class JobQueueWatchdogBeanIT extends AbstractJobStoreIT {
+    private static final Duration THRESHOLD = Duration.ofMinutes(15);
 
     private JobQueueWatchdogBean newWatchdog() {
         final JobQueueWatchdogBean watchdog = new JobQueueWatchdogBean();
         watchdog.jobQueueRepository = newJobQueueRepository();
+        watchdog.stuckThreshold = THRESHOLD;
         return watchdog;
     }
 
@@ -74,7 +77,7 @@ public class JobQueueWatchdogBeanIT extends AbstractJobStoreIT {
         assertThat("stuck entries on first tick", watchdog.checkForStuckEntries(firstTick), is(0));
 
         // When...
-        final Instant laterTick = firstTick.plus(JobQueueWatchdogBean.STUCK_THRESHOLD).plusSeconds(1);
+        final Instant laterTick = firstTick.plus(THRESHOLD).plusSeconds(1);
         final int stuck = watchdog.checkForStuckEntries(laterTick);
 
         // Then...
@@ -100,7 +103,7 @@ public class JobQueueWatchdogBeanIT extends AbstractJobStoreIT {
 
         // When...
         persistenceContext.run(() -> entry1.withState(JobQueueEntity.State.WAITING));
-        final Instant laterTick = firstTick.plus(JobQueueWatchdogBean.STUCK_THRESHOLD).plusSeconds(1);
+        final Instant laterTick = firstTick.plus(THRESHOLD).plusSeconds(1);
 
         // Then...
         assertThat("stuck entries once the entry is no longer in progress",

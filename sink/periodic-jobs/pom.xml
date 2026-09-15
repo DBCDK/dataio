@@ -148,6 +148,17 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- UserAgent.forInternalRequests(), called when the message consumer
+                         builds its connectors, reads APP_NAME -->
+                    <environmentVariables>
+                        <APP_NAME>${app-name}</APP_NAME>
+                    </environmentVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
                     <environmentVariables>

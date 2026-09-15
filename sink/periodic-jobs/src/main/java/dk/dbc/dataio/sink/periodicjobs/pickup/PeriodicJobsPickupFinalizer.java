@@ -1,7 +1,7 @@
 package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
-import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -26,12 +26,15 @@ public abstract class PeriodicJobsPickupFinalizer {
     JobStoreServiceConnector jobStoreServiceConnector;
 
 
-    public boolean isEmptyJob(Chunk endChunk) throws InvalidMessageException  {
-        if (endChunk.getChunkId() == 0) {
-            // End chunk having ID 0 means job is empty
+    /**
+     * @param chunkId id of the job's termination chunk, which job-store sets to the job's
+     *                data-chunk count, so zero means the job has no data
+     */
+    public boolean isEmptyJob(int jobId, int chunkId) throws InvalidMessageException  {
+        if (chunkId == 0) {
             return true;
         }
-        return isIgnoredJob(endChunk.getJobId());
+        return isIgnoredJob(jobId);
     }
 
     public MacroSubstitutor getMacroSubstitutor(PeriodicJobsDelivery delivery) {
@@ -108,7 +111,14 @@ public abstract class PeriodicJobsPickupFinalizer {
         }
     }
 
-    public abstract Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery, EntityManager entityManager) throws InvalidMessageException;
+    /**
+     * Delivers the job's accumulated datablocks to its pickup destination
+     *
+     * @return the job's delivering outcome, as the JOB_END item reported for its
+     * termination item
+     */
+    public abstract ChunkItem deliver(int jobId, int chunkId, PeriodicJobsDelivery delivery,
+                                      EntityManager entityManager) throws InvalidMessageException;
 
     public PeriodicJobsPickupFinalizer withJobStoreServiceConnector(JobStoreServiceConnector jobStoreServiceConnector) {
         this.jobStoreServiceConnector = jobStoreServiceConnector;

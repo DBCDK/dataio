@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.commons.conversion.ConversionMetadata;
 import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
@@ -34,8 +33,9 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
     public FileStoreServiceConnector fileStoreServiceConnector;
 
     @Override
-    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery, EntityManager entityManager) throws InvalidMessageException {
-        boolean isEmptyJob = isEmptyJob(chunk);
+    public ChunkItem deliver(int jobId, int chunkId, PeriodicJobsDelivery delivery,
+                             EntityManager entityManager) throws InvalidMessageException {
+        boolean isEmptyJob = isEmptyJob(jobId, chunkId);
         HttpPickup httpPickup = (HttpPickup) delivery.getConfig().getContent().getPickup();
         ConversionMetadata fileMetadata = new ConversionMetadata(ORIGIN)
                 .withJobId(delivery.getJobId())
@@ -63,7 +63,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
                 uploadMetadata(fileStoreServiceConnector, fileId, fileMetadata, delivery);
             }
         }
-        return newResultChunk(fileStoreServiceConnector, chunk, fileId, fileMetadata);
+        return newResultItem(fileStoreServiceConnector, fileId, fileMetadata);
     }
 
     private Optional<ExistingFile> fileAlreadyExists(FileStoreServiceConnector fileStoreServiceConnector,
@@ -166,9 +166,8 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
         return this;
     }
 
-    private Chunk newResultChunk(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk,
-                                 String fileId, ConversionMetadata fileMetadata) {
-        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+    private ChunkItem newResultItem(FileStoreServiceConnector fileStoreServiceConnector,
+                                    String fileId, ConversionMetadata fileMetadata) {
         ChunkItem chunkItem = ChunkItem.successfulChunkItem()
                 .withId(0)
                 .withType(ChunkItem.Type.JOB_END)
@@ -180,8 +179,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
         } else {
             chunkItem.withData("No file uploaded");
         }
-        result.insertItem(chunkItem);
-        return result;
+        return chunkItem;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

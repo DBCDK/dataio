@@ -3,7 +3,6 @@ package dk.dbc.dataio.sink.periodicjobs.pickup;
 import dk.dbc.commons.sftpclient.SFTPConfig;
 import dk.dbc.commons.sftpclient.SFtpClient;
 import dk.dbc.commons.sftpclient.SFtpClientException;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.harvester.types.SFtpPickup;
@@ -30,24 +29,26 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     @Timed
     @Override
-    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery, EntityManager entityManager) throws InvalidMessageException {
-        if (isEmptyJob(chunk)) {
-            return deliverEmptyFile(chunk, delivery);
+    public ChunkItem deliver(int jobId, int chunkId, PeriodicJobsDelivery delivery,
+                             EntityManager entityManager) throws InvalidMessageException {
+        if (isEmptyJob(jobId, chunkId)) {
+            return deliverEmptyFile(delivery);
         }
-        return deliverDatablocks(chunk, delivery, entityManager);
+        return deliverDatablocks(jobId, delivery, entityManager);
     }
 
-    private Chunk deliverEmptyFile(Chunk chunk, PeriodicJobsDelivery delivery) {
+    private ChunkItem deliverEmptyFile(PeriodicJobsDelivery delivery) {
         final String remoteFile = getRemoteFilename(delivery) + ".EMPTY";
         final SFtpPickup sFtpPickup = (SFtpPickup) delivery.getConfig().getContent().getPickup();
         try (SFtpClient sFtpClient = open(sFtpPickup)) {
             sFtpClient.putContent(remoteFile, new ByteArrayInputStream("".getBytes()));
         }
-        return newResultChunk(chunk,
+        return newResultItem(
                 String.format("Empty file %s uploaded to sftp host '%s'", remoteFile, sFtpPickup.getsFtpHost()));
     }
 
-    private Chunk deliverDatablocks(Chunk chunk, PeriodicJobsDelivery delivery, EntityManager entityManager) throws InvalidMessageException {
+    private ChunkItem deliverDatablocks(int jobId, PeriodicJobsDelivery delivery,
+                                        EntityManager entityManager) throws InvalidMessageException {
         final String remoteFile = getRemoteFilename(delivery);
         final SFtpPickup sftpPickup = (SFtpPickup) delivery.getConfig().getContent().getPickup();
         File localFile = null;
@@ -61,17 +62,17 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
                     .createLocalFile();
             if (localFile.length() > 0) {
                 uploadLocalFileToSFtp(sftpPickup, localFile, remoteFile);
-                LOGGER.info("jobId '{}' uploaded to sftp host '{}'.", chunk.getJobId(), sftpPickup.getsFtpHost());
+                LOGGER.info("jobId '{}' uploaded to sftp host '{}'.", jobId, sftpPickup.getsFtpHost());
             } else {
                 LOGGER.warn("jobId '{}' NOT uploaded to sftp host '{}' - no datablocks",
-                        chunk.getJobId(), sftpPickup.getsFtpHost());
+                        jobId, sftpPickup.getsFtpHost());
             }
         } catch (IOException e) {
             throw new InvalidMessageException(String.format("Unable to deliver datablocks for:%d", delivery.getJobId()),e);
         } finally {
             if (localFile != null && !localFile.delete()) LOGGER.warn("Unable to delete file " + localFile);
         }
-        return newResultChunk(chunk,
+        return newResultItem(
                 String.format("File %s uploaded to sftp host '%s'", remoteFile, sftpPickup.getsFtpHost()));
     }
 
@@ -97,15 +98,12 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
         }
     }
 
-    private Chunk newResultChunk(Chunk chunk, String data) {
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        final ChunkItem chunkItem = ChunkItem.successfulChunkItem()
+    private ChunkItem newResultItem(String data) {
+        return ChunkItem.successfulChunkItem()
                 .withId(0)
                 .withType(ChunkItem.Type.JOB_END)
                 .withData(data)
                 .withEncoding(StandardCharsets.UTF_8);
-        result.insertItem(chunkItem);
-        return result;
     }
 
     public PeriodicJobsSFtpFinalizerBean withProxyBean(ProxyBean proxyBean) {

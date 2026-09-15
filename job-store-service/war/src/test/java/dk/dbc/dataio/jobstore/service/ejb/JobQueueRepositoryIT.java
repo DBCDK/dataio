@@ -15,6 +15,7 @@ import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class JobQueueRepositoryIT extends AbstractJobStoreIT {
@@ -121,6 +122,66 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
         // Then...
         assertThat("Number of waiting queue entries", jobQueueRepository.getWaiting().size(), is(0));
         assertThat("Number of in-progress queue entries", jobQueueRepository.getInProgress().size(), is(0));
+    }
+
+    /**
+     * Given: a job queue entry which is detached from the persistence context
+     * When : remove is called
+     * Then : the entry is deleted
+     * <p>
+     * This is the shape of the real call site: seizeHeadOfQueueIfWaiting and remove each run in
+     * their own REQUIRES_NEW transaction, so the entry handed to remove is detached. The previous
+     * implementation reattached it with merge(), which is the call that could park forever on an
+     * EclipseLink cache-key lock. The bulk delete needs only the primary key.
+     */
+    @org.junit.Test
+    public void remove_detachedEntity() {
+        // Given...
+        final JobEntity job = newPersistedJobEntity();
+        final JobQueueEntity jobQueueEntity = newPersistedJobQueueEntity(job);
+        entityManager.clear();
+        assertThat("entry is detached", entityManager.contains(jobQueueEntity), is(false));
+
+        // When...
+        final JobQueueRepository jobQueueRepository = newJobQueueRepository();
+        persistenceContext.run(() -> jobQueueRepository.remove(jobQueueEntity));
+
+        // Then...
+        assertThat("entry is gone from the database",
+                entityManager.find(JobQueueEntity.class, jobQueueEntity.getId()), is(nullValue()));
+    }
+
+    /**
+     * Given: a job queue with two entries
+     * When : remove is called for one of them
+     * Then : the other is untouched, and no stale instance of the removed entry is returned
+     * <p>
+     * A bulk delete bypasses the persistence context, so this guards the one risk that carries:
+     * a subsequent read handing back an entry that no longer exists.
+     */
+    @org.junit.Test
+    public void remove_leavesNoStaleInstance() {
+        // Given...
+        final JobEntity job1 = newPersistedJobEntity();
+        final JobEntity job2 = newPersistedJobEntity();
+        final JobQueueEntity entry1 = newPersistedJobQueueEntity(job1);
+        final JobQueueEntity entry2 = newPersistedJobQueueEntity(job2);
+
+        persistenceContext.run(() -> {
+            entry1.withState(JobQueueEntity.State.IN_PROGRESS);
+            entry2.withState(JobQueueEntity.State.WAITING);
+        });
+
+        // When...
+        final JobQueueRepository jobQueueRepository = newJobQueueRepository();
+        persistenceContext.run(() -> jobQueueRepository.remove(entry1));
+
+        // Then...
+        assertThat("removed entry is not returned as in-progress",
+                jobQueueRepository.getInProgress().size(), is(0));
+        final List<JobQueueEntity> waiting = jobQueueRepository.getWaiting();
+        assertThat("remaining entry is untouched", waiting.size(), is(1));
+        assertThat("remaining entry id", waiting.get(0).getId(), is(entry2.getId()));
     }
 
     /**

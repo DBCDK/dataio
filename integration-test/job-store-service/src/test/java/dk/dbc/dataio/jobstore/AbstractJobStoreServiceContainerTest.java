@@ -65,7 +65,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
     private static final GenericContainer<?> artemisContainer = startArtemisContainer(network);
     static final JmsQueueTester jmsQueueServiceConnector = makeJmsQueueTester(artemisContainer);
     private static final DBCPostgreSQLContainer jobstoreDBContainer = startJobstoreDB(network);
-    private static final GenericContainer<?> jobStoreServiceContainer = startJobStoreServiceContainer(network);
+    static final GenericContainer<?> jobStoreServiceContainer = startJobStoreServiceContainer(network);
     static final JobStoreServiceConnector jobStoreServiceConnector = makeJobStoreConnector(jobStoreServiceContainer);
 
     private static JobStoreServiceConnector makeJobStoreConnector(GenericContainer<?> jobStoreContainer) {

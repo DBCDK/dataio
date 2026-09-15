@@ -40,15 +40,21 @@ public class JobQueueRepository extends RepositoryBase {
 
     /**
      * Removes given {@link JobQueueEntity} from queue
+     * <p>
+     * Deliberately a bulk delete by primary key rather than merge()+remove().  merge() on a
+     * detached entry goes through EclipseLink's WriteLockManager.acquireLocksForClone, which
+     * waits on a cache-key lock with no timeout.  A leaked lock there parks the thread forever
+     * and leaves the entry IN_PROGRESS, which the seize query's prior-entry guard then turns
+     * into a permanent stall for that sink and submitter.  A bulk delete does not clone through
+     * the identity map, so removal cannot reach that method at all.
      *
      * @param jobQueueEntity entry to be removed
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void remove(JobQueueEntity jobQueueEntity) {
-        if (!entityManager.contains(jobQueueEntity)) {
-            jobQueueEntity = entityManager.merge(jobQueueEntity);
-        }
-        entityManager.remove(jobQueueEntity);
+        entityManager.createNamedQuery(JobQueueEntity.DELETE_BY_ID)
+                .setParameter(JobQueueEntity.FIELD_ID, jobQueueEntity.getId())
+                .executeUpdate();
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)

@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.types.RecordSplitter;
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -23,11 +24,23 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "jobQueue")
+// persistence.xml uses shared-cache-mode DISABLE_SELECTIVE, so every entity is shared-cached
+// unless it opts out here.  A job queue entry is a short-lived work-queue row with no read-mostly
+// benefit, and keeping it in the shared identity map puts every seize and remove on
+// EclipseLink's cache-key locking path (its EAGER job mapping makes the descriptor acquire
+// cascaded locks).  Opting out removes this entity from that path entirely, and also removes the
+// stale-instance risk that the bulk delete in JobQueueRepository.remove() would otherwise carry.
+@Cacheable(false)
 @NamedQueries({
         @NamedQuery(name = JobQueueEntity.NQ_FIND_BY_STATE,
                 query = "SELECT jq FROM JobQueueEntity jq WHERE jq.state = :" + JobQueueEntity.FIELD_STATE),
         @NamedQuery(name = JobQueueEntity.DELETE_BY_JOBID,
-                query = "DELETE FROM JobQueueEntity jq WHERE jq.job.id=:jobId")
+                query = "DELETE FROM JobQueueEntity jq WHERE jq.job.id=:jobId"),
+        // Bulk delete by primary key.  Used by JobQueueRepository.remove() instead of
+        // merge()+remove() so that removing a queue entry never enters EclipseLink's
+        // WriteLockManager.acquireLocksForClone.  See the comment on remove() for why.
+        @NamedQuery(name = JobQueueEntity.DELETE_BY_ID,
+                query = "DELETE FROM JobQueueEntity jq WHERE jq.id=:" + JobQueueEntity.FIELD_ID)
 })
 @NamedNativeQueries({
         @NamedNativeQuery(name = JobQueueEntity.NQ_FIND_BY_SINK_AND_AVAILABLE_SUBMITTER, query =
@@ -134,9 +147,11 @@ public class JobQueueEntity {
     // The original NOT IN subquery is now logically redundant but kept as belt-and-braces defence.
     public static final String NQ_FIND_BY_SINK_AND_AVAILABLE_SUBMITTER = "NQ_FIND_BY_SINK_AND_AVAILABLE_SUBMITTER";
     public static final String DELETE_BY_JOBID = "JobQueueEntity.deleteByJobId";
+    public static final String DELETE_BY_ID = "JobQueueEntity.deleteById";
 
     public static final String FIELD_SINK_ID = "sinkId";
     public static final String FIELD_STATE = "state";
+    public static final String FIELD_ID = "id";
 
     public enum State {IN_PROGRESS, WAITING}
 

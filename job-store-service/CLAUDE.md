@@ -64,6 +64,9 @@ Integration tests use Testcontainers (PostgreSQL). The base class is `AbstractJo
 
 **JUnit4 / JUnit5 coexistence** — Hazelcast test helpers (`JetTestSupport`, `HazelcastTestSupport`) depend on JUnit 4. To avoid ambiguity, JUnit 4 annotations are always written with full qualifiers: `@org.junit.Test`. All test classes run in either JUnit 4 mode **or** JUnit 5 mode; never mixed in the same class.
 
+When implementing significant changes in the job-store-service, remember to also run container tests in
+the integration-test/job-store-service module. Also investigate if more tests are needed in those test suites.
+
 ## Local Development
 
 The `developer-tools/` module provides a Docker Compose stack:

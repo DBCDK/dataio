@@ -173,22 +173,6 @@ public class JobGateRepository extends RepositoryBase {
     }
 
     /**
-     * @param key tracking key to ask about
-     * @return true if the chunk is its job's termination chunk
-     * <p>
-     * A missing row answers false, which is correct either way round: a chunk with no row is not a
-     * termination chunk, and a data chunk has to be counted whether or not its row is there.
-     */
-    public boolean isTerminationChunk(TrackingKey key) {
-        return !entityManager.createNativeQuery(
-                        "SELECT 1 FROM dependencytracking WHERE jobid = ?1 AND chunkid = ?2 AND is_termination")
-                .setParameter(1, key.getJobId())
-                .setParameter(2, key.getChunkId())
-                .getResultList()
-                .isEmpty();
-    }
-
-    /**
      * @param sinkId    sink the job delivers to
      * @param submitter the job's submitter
      * @param jobId     job to ask about
@@ -299,8 +283,8 @@ public class JobGateRepository extends RepositoryBase {
      * <p>
      * Leaving the width out buys two things. The set is read in one place, the scheduler, where the
      * job and its cached sink are already in hand, rather than at every call site that lifts a
-     * barrier, one of which holds only a {@code DependencyTrackingRO} and would need an extra job
-     * load per delivered termination chunk. And a row stays reopenable after the width that closed
+     * barrier, one of which holds only the removed dependency tracking entry and would need an extra
+     * job load per delivered termination chunk. And a row stays reopenable after the width that closed
      * it has gone: one closed by an earlier deployment, or by a sink whose type has since changed,
      * would otherwise be stranded closed with only the sweep to rescue it.
      * <p>

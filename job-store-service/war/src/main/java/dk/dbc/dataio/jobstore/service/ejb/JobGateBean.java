@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import jakarta.annotation.Resource;
 import jakarta.ejb.EJB;
@@ -121,21 +122,21 @@ public class JobGateBean {
      * transaction commits before JAX-RS writes the response, so no sink can acknowledge a message
      * whose increment has not committed.
      * <p>
-     * Not idempotent, and nothing here detects a repeat. The caller arrives after a {@code get}, a
-     * status check and a {@code remove} on the chunk's dependency tracking entry, and those three
-     * are not atomic, so two concurrent acknowledgements of one chunk can both pass them and both
-     * be counted.
+     * Counts once per chunk, because it is reached only by the caller that removed the chunk's
+     * dependency tracking entry. That removal is atomic per key, so of two concurrent
+     * acknowledgements of one chunk only one arrives here and the other is told it did not remove
+     * anything. Every fact this method works from comes off the removed entry, including whether the
+     * chunk was its job's termination chunk.
      *
-     * @param key       delivered chunk
-     * @param sinkId    sink the chunk was delivered to
-     * @param submitter submitter the chunk's job belongs to
+     * @param removed the delivered chunk's removed dependency tracking entry
      */
     @Stopwatch
-    public void advanceGateState(TrackingKey key, int sinkId, int submitter) {
-        if (jobGateRepository.isTerminationChunk(key)) {
-            liftBarrierAndRetrigger(key.getJobId(), sinkId, submitter);
+    public void advanceGateState(DependencyTracking removed) {
+        int jobId = removed.getKey().getJobId();
+        if (removed.isTermination()) {
+            liftBarrierAndRetrigger(jobId, removed.getSinkId(), removed.getSubmitter());
         } else {
-            countDataChunk(key.getJobId(), sinkId, submitter);
+            countDataChunk(jobId, removed.getSinkId(), removed.getSubmitter());
         }
     }
 

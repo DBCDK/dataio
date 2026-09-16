@@ -36,6 +36,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
     private final int submitter;
     private Instant lastModified = Instant.now();
     private int retries = 0;
+    private boolean termination = false;
 
     public DependencyTracking(TrackingKey key, int sinkId, int submitter, Set<String> sequenceData) {
         this.key = key;
@@ -63,6 +64,7 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
         submitter = rs.getInt("submitter");
         lastModified = rs.getTimestamp("lastmodified").toInstant();
         retries = rs.getInt("retries");
+        termination = rs.getBoolean("is_termination");
         waitFor = toWaitForIndexSet(sinkId, submitter, matchKeys);
     }
 
@@ -119,6 +121,28 @@ public class DependencyTracking implements DependencyTrackingRO, Serializable, C
     @Override
     public int getSubmitter() {
         return submitter;
+    }
+
+    /**
+     * Says whether this chunk is its job's termination chunk.
+     * <p>
+     * The {@code is_termination} column is the authority and this is a copy of it, which is sound
+     * because the value is decided when the row is created and never changes afterwards. It is set
+     * on the entry the termination chunk is scheduled with, and read back from the column whenever
+     * an entry is loaded from the table.
+     * <p>
+     * {@code gate_open} deliberately has no counterpart here. It is written by four sites over a
+     * chunk's life, so a copy on this object could be stale, and a stale open gate dispatches a
+     * job's end-of-job work ahead of the data it summarises.
+     */
+    @Override
+    public boolean isTermination() {
+        return termination;
+    }
+
+    public DependencyTracking setTermination(boolean termination) {
+        this.termination = termination;
+        return this;
     }
 
     @Override

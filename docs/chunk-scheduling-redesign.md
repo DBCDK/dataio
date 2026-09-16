@@ -285,10 +285,13 @@ what covers the ordinary case where they finish after. Both apply the cross-job 
 both are no-ops for a job that has no termination chunk at all.
 
 Site A has to know whether the chunk it just removed was the termination chunk, so that the
-job's barrier does not count itself. That falls out of the removal token if
+job's barrier does not count itself. That falls out of the removal token, because
 `DependencyTrackingService.remove(TrackingKey)` returns the removed `DependencyTracking`
-rather than a boolean: the winning caller gets the proof it won *and* the `is_termination`
-flag of the row it removed, in one call and with no extra read.
+rather than void: the winning caller gets the proof it won *and* the `is_termination`
+flag of the entry it removed, in one call and with no extra read. The flag is a field on that
+object as well as a column on the row, which is sound for a value decided when the row is created
+and never changed afterwards. `gate_open` has no such field, deliberately, see [Who writes the gate
+columns before Phase 9](#barrier-chunks--per-job-gate).
 
 **Who writes the gate columns before Phase 9.** Everything above is written as if
 `dependencytracking` were already a plain PostgreSQL table. It becomes one at [Phase 9](
@@ -422,13 +425,14 @@ why the increment must be a single atomic statement
 (`SET data_chunks_delivered = data_chunks_delivered + 1`) rather than a read followed by
 a write.
 
-The removal of the chunk's `dependencytracking` row is the natural token, since exactly
-one concurrent caller can perform it. The increment must therefore be conditioned on
-having won that removal, not on a preceding read of the row - the current
-`get`-then-`remove` sequence in `chunkDeliveringDone` is a non-atomic check-then-act that
-two callers can both pass. Harmless for the idempotent work that follows it today, not
-harmless for a counter. See [Phase 1](#phase-1--gate-and-ordered-dispatch-job-store-service)
-for the required signature change. The `>=` in the pseudocode above is defensive only:
+The removal of the chunk's `dependencytracking` row is the token, since exactly one
+concurrent caller can perform it, and the increment is conditioned on having won that
+removal rather than on a preceding read of the row. `chunkDeliveringDone` still reads the
+entry first, to answer "is this chunk in `QUEUED_FOR_DELIVERY`" and to turn an unknown chunk
+away, but that read is a filter and not the token: `get`-then-`remove` is a non-atomic
+check-then-act that two callers can both pass. Harmless for the idempotent work that follows
+it, not harmless for a counter. See [Phase 1](#phase-1--gate-and-ordered-dispatch-job-store-service)
+for the signature. The `>=` in the pseudocode above is defensive only:
 it does not mitigate either hazard above, since double counting reaches the total exactly
 and a lost update leaves the counter below it forever. It guards only against the counter
 being pushed above `data_chunks_expected` by something other than the increment, such as a
@@ -2095,7 +2099,11 @@ Two ordering constraints shape the sequence:
   transaction
 - **DI-3049** Change `DependencyTrackingService.remove(TrackingKey)` to return the removed
   `DependencyTracking`, so the caller learns whether *this* call
-  performed the removal, and condition the `data_chunks_delivered` increment on it.
+  performed the removal, and condition the `data_chunks_delivered` increment on it. Carry
+  `is_termination` on `DependencyTracking` as well, so the caller that won the removal reads the
+  branch off the entry it was handed rather than querying the row it has just removed. That is the
+  shape Phase 9 arrives at anyway, once the row is deleted synchronously and a read after the
+  removal would return nothing.
   It already computes this and discards it: `dependencyTracker.remove(key)` returns the
   previous value atomically per key and the method checks `removed == null`, but returns
   `void`, so no caller can learn it won the race. Without this the increment sits behind

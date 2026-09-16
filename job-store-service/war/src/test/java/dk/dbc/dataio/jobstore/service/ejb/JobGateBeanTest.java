@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
@@ -32,10 +33,9 @@ class JobGateBeanTest {
     @Test
     void advanceGateState_dataChunk_isCounted() {
         TrackingKey dataChunk = new TrackingKey(JOB_ID, 0);
-        when(jobGateRepository.isTerminationChunk(dataChunk)).thenReturn(false);
         when(jobGateRepository.dataChunksAccountedFor(JOB_ID)).thenReturn(false);
 
-        jobGateBean.advanceGateState(dataChunk, SINK_ID, SUBMITTER);
+        jobGateBean.advanceGateState(dataChunkEntry(dataChunk));
 
         verify(jobGateRepository).incrementDataChunksDelivered(JOB_ID);
         verify(jobGateRepository, never()).markTerminationBarrierLifted(anyInt());
@@ -44,11 +44,10 @@ class JobGateBeanTest {
     @Test
     void advanceGateState_terminationChunk_isNotCounted() {
         TrackingKey terminationChunk = new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID);
-        when(jobGateRepository.isTerminationChunk(terminationChunk)).thenReturn(true);
         when(jobGateRepository.markTerminationBarrierLifted(JOB_ID)).thenReturn(1);
         when(jobGateRepository.laterClosedGates(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(List.of());
 
-        jobGateBean.advanceGateState(terminationChunk, SINK_ID, SUBMITTER);
+        jobGateBean.advanceGateState(terminationChunkEntry(terminationChunk));
 
         verify(jobGateRepository, never()).incrementDataChunksDelivered(anyInt());
         verify(jobGateRepository).markTerminationBarrierLifted(JOB_ID);
@@ -57,11 +56,10 @@ class JobGateBeanTest {
     @Test
     void advanceGateState_jobWithoutTerminationChunk_countsButDoesNotEvaluate() {
         TrackingKey dataChunk = new TrackingKey(JOB_ID, 0);
-        when(jobGateRepository.isTerminationChunk(dataChunk)).thenReturn(false);
         when(jobGateRepository.dataChunksAccountedFor(JOB_ID)).thenReturn(true);
         when(jobGateRepository.closedTerminationChunkId(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(OptionalInt.empty());
 
-        jobGateBean.advanceGateState(dataChunk, SINK_ID, SUBMITTER);
+        jobGateBean.advanceGateState(dataChunkEntry(dataChunk));
 
         verify(jobGateRepository).incrementDataChunksDelivered(JOB_ID);
         verify(jobGateRepository, never()).advisoryLock(anyInt(), anyInt());
@@ -71,13 +69,12 @@ class JobGateBeanTest {
     @Test
     void advanceGateState_lastDataChunk_opensGate() {
         TrackingKey dataChunk = new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID - 1);
-        when(jobGateRepository.isTerminationChunk(dataChunk)).thenReturn(false);
         when(jobGateRepository.dataChunksAccountedFor(JOB_ID)).thenReturn(true);
         when(jobGateRepository.closedTerminationChunkId(SINK_ID, SUBMITTER, JOB_ID))
                 .thenReturn(OptionalInt.of(TERMINATION_CHUNK_ID));
         when(jobGateRepository.hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(false);
 
-        jobGateBean.advanceGateState(dataChunk, SINK_ID, SUBMITTER);
+        jobGateBean.advanceGateState(dataChunkEntry(dataChunk));
 
         verify(jobGateRepository).advisoryLock(SINK_ID, SUBMITTER);
         verify(jobGateRepository).openGate(new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID));
@@ -86,13 +83,12 @@ class JobGateBeanTest {
     @Test
     void advanceGateState_lastDataChunkButEarlierBarrierHolds_gateStaysClosed() {
         TrackingKey dataChunk = new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID - 1);
-        when(jobGateRepository.isTerminationChunk(dataChunk)).thenReturn(false);
         when(jobGateRepository.dataChunksAccountedFor(JOB_ID)).thenReturn(true);
         when(jobGateRepository.closedTerminationChunkId(SINK_ID, SUBMITTER, JOB_ID))
                 .thenReturn(OptionalInt.of(TERMINATION_CHUNK_ID));
         when(jobGateRepository.hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID)).thenReturn(true);
 
-        jobGateBean.advanceGateState(dataChunk, SINK_ID, SUBMITTER);
+        jobGateBean.advanceGateState(dataChunkEntry(dataChunk));
 
         verify(jobGateRepository).advisoryLock(SINK_ID, SUBMITTER);
         verify(jobGateRepository, never()).openGate(new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID));
@@ -102,14 +98,13 @@ class JobGateBeanTest {
     void advanceGateState_terminationChunk_reTriggersLaterJobs() {
         TrackingKey terminationChunk = new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID);
         TrackingKey laterJobTermination = new TrackingKey(JOB_ID + 1, 5);
-        when(jobGateRepository.isTerminationChunk(terminationChunk)).thenReturn(true);
         when(jobGateRepository.markTerminationBarrierLifted(JOB_ID)).thenReturn(1);
         when(jobGateRepository.laterClosedGates(SINK_ID, SUBMITTER, JOB_ID))
                 .thenReturn(List.of(laterJobTermination));
         when(jobGateRepository.dataChunksAccountedFor(JOB_ID + 1)).thenReturn(true);
         when(jobGateRepository.hasEarlierUndeliveredTermination(SINK_ID, SUBMITTER, JOB_ID + 1)).thenReturn(false);
 
-        jobGateBean.advanceGateState(terminationChunk, SINK_ID, SUBMITTER);
+        jobGateBean.advanceGateState(terminationChunkEntry(terminationChunk));
 
         verify(jobGateRepository).advisoryLock(SINK_ID, SUBMITTER);
         verify(jobGateRepository).markTerminationBarrierLifted(JOB_ID);
@@ -120,13 +115,12 @@ class JobGateBeanTest {
     void advanceGateState_terminationChunk_laterJobWithIncompleteCounterStaysClosed() {
         TrackingKey terminationChunk = new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID);
         TrackingKey laterJobTermination = new TrackingKey(JOB_ID + 1, 5);
-        when(jobGateRepository.isTerminationChunk(terminationChunk)).thenReturn(true);
         when(jobGateRepository.markTerminationBarrierLifted(JOB_ID)).thenReturn(1);
         when(jobGateRepository.laterClosedGates(SINK_ID, SUBMITTER, JOB_ID))
                 .thenReturn(List.of(laterJobTermination));
         when(jobGateRepository.dataChunksAccountedFor(JOB_ID + 1)).thenReturn(false);
 
-        jobGateBean.advanceGateState(terminationChunk, SINK_ID, SUBMITTER);
+        jobGateBean.advanceGateState(terminationChunkEntry(terminationChunk));
 
         verify(jobGateRepository, never()).openGate(laterJobTermination);
     }
@@ -252,5 +246,30 @@ class JobGateBeanTest {
         assertThat(lifted, is(1));
         verify(jobGateRepository).markTerminationBarrierLifted(JOB_ID);
         verify(jobGateRepository).openLaterDataChunkGates(SINK_ID, SUBMITTER, JOB_ID);
+    }
+
+    /**
+     * A termination chunk delivered again, after its barrier has already been lifted, still takes
+     * the termination branch and is still not counted. What stops it doing the work twice is the
+     * guarded update reporting no rows, not the branch declining to run.
+     */
+    @Test
+    void advanceGateState_terminationChunkAgain_isStillNotCounted() {
+        TrackingKey terminationChunk = new TrackingKey(JOB_ID, TERMINATION_CHUNK_ID);
+        when(jobGateRepository.markTerminationBarrierLifted(JOB_ID)).thenReturn(0);
+
+        jobGateBean.advanceGateState(terminationChunkEntry(terminationChunk));
+
+        verify(jobGateRepository, never()).incrementDataChunksDelivered(anyInt());
+        verify(jobGateRepository, never()).advisoryLock(anyInt(), anyInt());
+        verify(jobGateRepository, never()).openLaterDataChunkGates(anyInt(), anyInt(), anyInt());
+    }
+
+    private DependencyTracking dataChunkEntry(TrackingKey key) {
+        return new DependencyTracking(key, SINK_ID, SUBMITTER);
+    }
+
+    private DependencyTracking terminationChunkEntry(TrackingKey key) {
+        return dataChunkEntry(key).setTermination(true);
     }
 }

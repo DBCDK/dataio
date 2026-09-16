@@ -378,8 +378,12 @@ public class JobSchedulerBean {
         // to PostgreSQL with a closed gate in the same transaction that writes the counters, ahead
         // of the map add below. A termination chunk carries no sequence analysis data, so its match
         // keys are the barrier key alone.
+        // The flag is set here rather than being read back from is_termination, so that the entry
+        // handed to whoever removes it on delivery answers for itself whether it was the job's
+        // termination chunk. createJobTerminationChunkEntity writes the column below.
         DependencyTracking endTracker = new DependencyTracking(key, sinkId, (int)jobEntity.getSpecification().getSubmitterId(), barrierMatchKey, Set.of())
-                .setPriority(Priority.HIGH.getValue());
+                .setPriority(Priority.HIGH.getValue())
+                .setTermination(true);
         // chunkId is numberOfChunks as read in markJobAsPartitioned before this call, which is
         // exactly the job's data-chunk count. Passing it rather than re-reading it downstream is
         // what keeps data_chunks_expected reachable: createJobTerminationChunkEntity increments
@@ -444,11 +448,27 @@ public class JobSchedulerBean {
         long startTime = System.currentTimeMillis();
 
         int chunkDoneSinkId = chunkDone.getSinkId();
-        dependencyTrackingService.remove(chunkDoneKey);
+        DependencyTracking removed = dependencyTrackingService.remove(chunkDoneKey);
 
         // Per-job gate: counts this delivery against the job's own gate, or lifts the job's
         // barrier and re-evaluates later jobs if the chunk was its termination chunk.
-        jobGateBean.advanceGateState(chunkDoneKey, chunkDoneSinkId, chunkDone.getSubmitter());
+        //
+        // Only the caller that removed the entry gets to do that. The get, the status check and the
+        // remove above are three separate map operations, so two concurrent acknowledgements of one
+        // chunk can both reach this point, and a counter cannot survive being told twice: each call
+        // adds exactly 1, so the count still lands on data_chunks_expected, only too early, and the
+        // gate opens with data chunks still in flight. The removal is atomic per key, which is what
+        // makes it the once-only marker.
+        //
+        // The work below stays unconditional. removeFromWaitingOn reports only the entries it
+        // actually changed, so the caller that lost the removal finds nothing left to unblock and
+        // its dispatch loop does not run.
+        if (removed != null) {
+            jobGateBean.advanceGateState(removed);
+        } else {
+            LOGGER.info("chunkDeliveringDone: chunk {}/{} was removed by a concurrent call, so this one does not count it",
+                    chunk.getJobId(), chunk.getChunkId());
+        }
 
         StopWatch findChunksWaitingForMeStopWatch = new StopWatch();
         Set<TrackingKey> unblocked = dependencyTrackingService.removeFromWaitingOn(chunkDoneKey);

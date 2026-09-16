@@ -18,6 +18,8 @@ public interface DependencyTrackingRO {
 
     int getSubmitter();
 
+    boolean isTermination();
+
     int getPriority();
 
     Instant getLastModified();

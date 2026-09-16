@@ -43,6 +43,11 @@ public class DependencyTrackingStore implements MapStore<TrackingKey, Dependency
      * update list.</b> Adding them would reset every termination chunk's gate on its next status
      * transition, dispatching job-end work ahead of the data it summarises.
      * <p>
+     * {@link DependencyTracking#isTermination()} carries {@code is_termination} on the value object
+     * and does not change that. The column is written where the termination row is created and read
+     * back by {@link DependencyTracking#DependencyTracking(java.sql.ResultSet)}, so this store has
+     * no reason to name it in either list.
+     * <p>
      * See docs/chunk-scheduling-redesign.md, "Who writes the gate columns before Phase 9", and
      * {@code JobGateRepository} in the war module.
      */

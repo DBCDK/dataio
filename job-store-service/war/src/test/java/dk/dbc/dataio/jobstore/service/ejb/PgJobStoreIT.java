@@ -1025,39 +1025,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("job has fatal error", jobEntityAfterDeliveryOfChunk1.hasFatalError(), is(true));
     }
 
-    /**
-     * Given: a job store containing a job
-     * <p>
-     * When : requesting next processing outcome
-     * Then : the next processing outcome returned contains the the correct data.
-     */
-    @org.junit.Test
-    public void getNextProcessingOutcome() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException, IOException {
-        // Given...
-        final int chunkId = 1;                  // second chunk is used, hence the chunk id is 1.
-        final PgJobStore pgJobStore = newPgJobStore();
-
-        setupExpectationOnGetByteSize(defaultByteSize);
-
-        final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
-
-        Chunk chunk = buildChunkWithNextItems(jobInfoSnapshot.getJobId(), chunkId, 1, Chunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
-
-        final EntityTransaction chunkTransaction = entityManager.getTransaction();
-        chunkTransaction.begin();
-        pgJobStore.addChunk(chunk);
-        chunkTransaction.commit();
-
-        // When...
-        final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, (short) 0);
-        final ItemEntity successfulItemEntity = entityManager.find(ItemEntity.class, successfulItemKey);
-        ChunkItem chunkItem = pgJobStore.jobStoreRepository.getNextProcessingOutcome(successfulItemKey.getJobId(), successfulItemKey.getChunkId(), successfulItemKey.getId());
-
-        // Then...
-        assertThat("chunkItem", chunkItem, not(nullValue()));
-        assertThat("chunkItem.data", chunkItem.getData(), is(successfulItemEntity.getNextProcessingOutcome().getData()));
-    }
-
     /*
      * Private methods
      */

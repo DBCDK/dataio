@@ -23,11 +23,12 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
 import dk.dbc.dataio.jobstore.service.ejb.DeliveryDispatchRepository;
+import dk.dbc.dataio.jobstore.service.ejb.DependencyTrackingRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobGateBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobGateRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobQueueRepository;
@@ -64,6 +65,8 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -71,6 +74,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
@@ -93,7 +97,8 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     protected static final String RERUN_TABLE_NAME = "rerun";
     protected static final String SINK_RECORD_DELIVERY_WATERMARK_TABLE_NAME = "sink_record_delivery_watermark";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobStoreIT.class);
-    protected static final DataSource datasource = dbContainer.bindDatasource(DependencyTrackingStore.DS_JNDI).datasource();
+    private static final String JOBSTORE_DS_JNDI = "jdbc/dataio/jobstore";
+    protected static final DataSource datasource = dbContainer.bindDatasource(JOBSTORE_DS_JNDI).datasource();
     private static final long SUBMITTERID = 123456;
     protected final FileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
     protected final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
@@ -278,16 +283,78 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
         return jobQueueEntity;
     }
 
-    protected DependencyTracking newDependencyTrackingEntity(TrackingKey key) {
-        DependencyTracking dependencyTracking = new DependencyTracking(key, 1, 0);
-        dependencyTracking.setStatus(ChunkSchedulingStatus.READY_FOR_PROCESSING);
-        return dependencyTracking;
+    protected void awaitAdvisoryLockWaiters(int expected) throws Exception {
+        awaitLockWaiters("backends waiting on the barrier scope", expected, "advisory");
     }
 
-    protected DependencyTracking newPersistedDependencyTrackingEntity(TrackingKey key) {
-        DependencyTracking dependencyTracking = newDependencyTrackingEntity(key);
-        persist(dependencyTracking);
-        return dependencyTracking;
+    /**
+     * A waiter for a row held by an uncommitted transaction queues on that transaction and reports
+     * {@code transactionid}. A second waiter for the same row first takes a {@code tuple} lock to
+     * establish its place in the queue and reports that instead, so matching {@code transactionid}
+     * alone would undercount a test with two contenders for one row.
+     */
+    protected void awaitRowLockWaiters(int expected) throws Exception {
+        awaitLockWaiters("backends waiting on a row lock", expected, "transactionid", "tuple");
+    }
+
+    /**
+     * Blocks until the expected number of backends are waiting on one of the given lock wait
+     * events, so a test asserts on the interleaving it set up rather than on a sleep having been
+     * long enough. A backend that never blocks fails the assertion instead of passing unnoticed,
+     * which a sleep followed by {@code isDone()} cannot tell apart from a task the pool has yet to
+     * start.
+     */
+    protected void awaitLockWaiters(String description, int expected, String... waitEvents) throws Exception {
+        for (int attempt = 0; attempt < 100 && lockWaiters(waitEvents) < expected; attempt++) {
+            Thread.sleep(100);
+        }
+        Assert.assertEquals(description, expected, lockWaiters(waitEvents));
+    }
+
+    private int lockWaiters(String... waitEvents) throws SQLException {
+        try (Connection connection = newConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "select count(*) from pg_stat_activity " +
+                             " where datname = current_database() and wait_event = any (?)")) {
+            statement.setArray(1, connection.createArrayOf("text", waitEvents));
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getInt(1);
+            }
+        }
+    }
+
+    /**
+     * Runs a block in its own transaction on the given entity manager, rolling back rather than
+     * committing when it throws.
+     * <p>
+     * Without the rollback a failing block leaves the transaction active, and the caller's
+     * {@code close()} then returns the connection to the pool still holding its row locks, which
+     * hangs the next test's cleanup instead of failing this one.
+     */
+    protected <T> T runInTransaction(EntityManager em, Callable<T> callable) throws Exception {
+        em.getTransaction().begin();
+        try {
+            T result = callable.call();
+            em.getTransaction().commit();
+            return result;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Rolls back before closing, since a transaction left active returns its connection to the pool
+     * still holding its row locks, which hangs the next test's cleanup rather than failing this one.
+     */
+    protected void rollbackAndClose(EntityManager em) {
+        if (em.getTransaction().isActive()) {
+            em.getTransaction().rollback();
+        }
+        em.close();
     }
 
     protected JobQueueRepository newJobQueueRepository() {
@@ -327,11 +394,46 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
     }
 
     protected JobGateBean newJobGateBean() {
-        return new JobGateBean(newJobGateRepository());
+        return newJobGateBean(entityManager);
     }
 
     protected JobGateBean newJobGateBean(EntityManager em) {
-        return new JobGateBean(newJobGateRepository(em));
+        return new JobGateBean(newJobGateRepository(em), newDependencyTrackingRepository(em));
+    }
+
+    protected DependencyTrackingRepository newDependencyTrackingRepository() {
+        return newDependencyTrackingRepository(entityManager);
+    }
+
+    /**
+     * For a test that schedules from another thread, see {@link #newJobGateRepository(EntityManager)}.
+     */
+    protected DependencyTrackingRepository newDependencyTrackingRepository(EntityManager em) {
+        return new DependencyTrackingRepository().withEntityManager(em);
+    }
+
+    protected DependencyTrackingService newDependencyTrackingService() {
+        return newDependencyTrackingService(entityManager);
+    }
+
+    protected DependencyTrackingService newDependencyTrackingService(EntityManager em) {
+        return new DependencyTrackingService().withRepository(newDependencyTrackingRepository(em)).init();
+    }
+
+    /**
+     * Writes a chunk's {@code dependencytracking} row the way the scheduler would.
+     * <p>
+     * The chunk row has to exist first: {@code dependencytracking_jobid_fkey} is a foreign key on
+     * {@code (jobid, chunkid)}.
+     */
+    protected void scheduleChunk(DependencyTrackingService trackingService, DependencyTracking chunk) {
+        persistenceContext.run(() -> {
+            int inserted = newDependencyTrackingRepository().insert(chunk.getKey(), chunk.getSinkId(),
+                    chunk.getSubmitter(), chunk.getStatus(), chunk.getPriority(), true);
+            if (inserted > 0) {
+                trackingService.countInsertedChunk(chunk.getSinkId(), chunk.getStatus());
+            }
+        });
     }
 
     public interface RequiresNewFunction<T> {
@@ -369,8 +471,8 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
 
             @Override
             public ChunkEntity createJobTerminationChunkEntity(int jobId, int chunkId, String dataFileId, ChunkItem.Status itemStatus,
-                                                               int dataChunksExpected, DependencyTracking terminationTracker) throws JobStoreException {
-                return handleRequiresNew(() -> super.createJobTerminationChunkEntity(jobId, chunkId, dataFileId, itemStatus, dataChunksExpected, terminationTracker));
+                                                               int dataChunksExpected, DependencyTracking terminationRow) throws JobStoreException {
+                return handleRequiresNew(() -> super.createJobTerminationChunkEntity(jobId, chunkId, dataFileId, itemStatus, dataChunksExpected, terminationRow));
             }
 
             @Override

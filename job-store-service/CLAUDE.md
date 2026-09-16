@@ -17,7 +17,7 @@ mvn -pl war test
 - `war/` — the deployable service (Payara 6 Micro WAR)
 - `types/` — shared types and exceptions used by both this service and its connector (`dataio-job-store-service-types`)
 - `test/` — shared test fixtures and builders used by integration tests
-- `distributed-objects/` — Hazelcast distributed data structures for dependency tracking
+- `distributed-objects/` — chunk scheduling state objects, shared between job-store and the scheduler
 - `developer-tools/` — Docker Compose stack for local development and a no-op job processor
 
 ## Architecture
@@ -44,11 +44,15 @@ The job-store-service is the central orchestration point in the DataIO pipeline.
 - `JobPurgeBean` / `ScheduledJobPurgeBean` — periodic cleanup of completed jobs
 - `JobRerunnerBean` / `RerunsBean` — rerun flow
 
-### Dependency tracking (`distributed-objects/`)
+### Dependency tracking
 
-Hazelcast IMap-backed distributed state prevents duplicate or orphaned chunks across multiple service instances. `DependencyTrackingService` (in `war/`) manages the lifecycle. The distributed-objects module holds the Hazelcast `EntryProcessor` and `Aggregator` implementations used by the service.
+Prevents chunks from being delivered to a sink out of sequence, and prevents duplicate or orphaned
+processing when multiple service instances run. `DependencyTrackingService` (in `war/`) is the entry
+point.
 
-See [`dependency-tracking.md`](dependency-tracking.md) for a detailed description of the state machine, how ordering constraints are built and resolved, barrier chunks, and multi-instance safety.
+See [`dependency-tracking.md`](dependency-tracking.md) for the mechanism. It is part of the
+scheduling redesign in `docs/chunk-scheduling-redesign.md`, whose Phase 9 records how much has
+merged.
 
 ### Database
 

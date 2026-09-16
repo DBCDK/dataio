@@ -104,68 +104,91 @@ predicate, which keeps the ordered suffix intact, makes the filter an index cond
 instead of a heap recheck, and leaves the index usable by a query looking for closed gates.
 Direct-mode dispatch (`READY_FOR_DELIVERY → QUEUED_FOR_DELIVERY`) applies the same
 order when multiple chunks become ready simultaneously, and the same `gate_open` filter,
-see [Barrier Width](#barrier-width--per-sink-type-job-isolation). "Multiple chunks become ready
-simultaneously" has one site: the cascade in `chunkDeliveringDone` that hands each chunk unblocked
-by one delivery to its own transaction, any of which can take the last free queue slot. The other
-direct entry points handle one chunk each and have no order to apply.
+see [Barrier Width](#barrier-width--per-sink-type-job-isolation). Since the dependency graph was
+removed there is no longer any site where multiple chunks become ready at once: the cascade in
+`chunkDeliveringDone` that used to hand each newly unblocked chunk to its own transaction is gone
+with `waitingOn`, and every remaining direct entry point handles one chunk and has no order to
+apply.
 
-**Why the query has to be SQL, and what that costs before Phase 9.** The reason is not the index.
-`gate_open` and `is_termination` are columns on the table and deliberately not fields on
-`DependencyTracking`, so that the MapStore cannot clobber them, see [Who writes the gate columns
-before Phase 9](#barrier-chunks--per-job-gate). No Hazelcast predicate can see the gate at all, and
-putting it on the map value to make one possible is the thing that ownership split forbids. A
-`PagingPredicate` with a comparator would give the ordering and still not give the filter.
+**Why the query is SQL.** The reason is not the index. `gate_open` is a column and no Hazelcast
+predicate could see it, so while the map existed a `PagingPredicate` with a comparator would have
+given the ordering and still not the filter. The table is now the only store, so the question no
+longer arises and a candidate the query returns is a chunk genuinely awaiting delivery with an open
+gate.
 
-That splits the source of truth while the table is still a projection of the map. Order and gate come
-from PostgreSQL and are exact: the gate columns are written synchronously by job-store, and the
-ordering keys do not change. `status` stays the map's, because the table's copy of it is written
-write-behind and lags by up to `write-delay-seconds`. Two consequences for the bulk sweep, neither
-optional:
+Historical, and the reason the delivery half was converted first: until Phase 9 the table was a
+write-behind projection of the map, so `status` lagged by up to `write-delay-seconds`. The bulk sweep
+compensated by over-fetching past the free slots and re-checking each candidate against the map, both
+of which end with the projection. They are removed in Phase 9's third PR.
 
-- **Each candidate is re-checked against the map before it is acted on.** A row still reading
-  `SCHEDULED_FOR_DELIVERY` may belong to a chunk already dispatched, or already delivered and
-  removed. Dispatching the first wastes a slot; dispatching the second delivers the chunk twice.
-- **The candidate window reaches past the free slots**, by the cap on `QUEUED_FOR_DELIVERY`. Stale
-  rows sort first, because they were queued earliest and so carry the lowest job ids, and under
-  steady load there are more of them than there are free slots. A window of exactly the free slots
-  would be filled by chunks that have already gone, every sweep, until the MapStore caught up. The
-  bound is the chunks that can have left `SCHEDULED_FOR_DELIVERY` since the last flush, which the cap
-  bounds; rows for chunks removed inside the window are additional, so it is a good bound rather than
-  a proof, and a sweep that comes up short costs one second.
+### Processing Ordering
 
-The map lookup is `IMap.get`, which is a read-through: `DependencyTrackingStore` implements `load`,
-so a key with no in-memory entry can in principle be rebuilt from a row that outlived its chunk,
-producing a tracker carrying the row's stale status. Measured, it is not: Hazelcast consults the
-write-behind staging area on load and answers null for a key whose `DELETE` is still queued, which is
-exactly the case that arises here. `DeliveryDispatchIT.deliveredCandidateIsSkippedAndNotResurrected`
-pins that behaviour, and is what fails if a Hazelcast upgrade changes it.
+The processing half is ordered the same way, by the same shape of query:
 
-The residual is the other direction of the same lag: a chunk that has just entered
-`SCHEDULED_FOR_DELIVERY` is invisible to the query until the next flush, so its bulk dispatch is
-delayed by up to `write-delay-seconds`. Latency, not a stall, and bounded, since coalescing writes
-the entry's latest state at flush time. All of this — the re-check, the over-fetch, and the delay —
-ends at Phase 9, when the table stops being a projection.
+```sql
+SELECT jobid, chunkid, priority
+  FROM dependencytracking
+ WHERE sinkid = ?
+   AND status = SCHEDULED_FOR_PROCESSING
+ ORDER BY priority DESC, jobid ASC, chunkid ASC
+ LIMIT ?
+```
 
-**The processing phase is not converted with it, and the two are now asymmetric.**
-`bulkScheduleToProcessingForSink` still takes its candidates from the map through
-`DependencyTrackingService.findDependencies`, unordered. Nothing forces it to move yet: processing
-has no gate, so there is no column only PostgreSQL can see. Moving it is not free either. The
-`gate_open` predicate must not be applied to a processing query at all — a gate holds back delivery
-only, so under full barrier width a queued job's data chunks are processed normally while sitting at
-`gate_open = FALSE` — which means it cannot share the delivery statement, and cannot share the
-delivery index either: with `gate_open` absent from the predicate the ordered suffix
-`(priority desc, jobid, chunkid)` no longer follows the equality columns, so the query sorts. An
-ordered processing query therefore needs its own index, `(sinkid, status, priority desc, jobid,
-chunkid)`, and so a migration of its own. That is Phase 9 work, where the same conversion has to
-happen anyway and where none of the staleness compensation above is needed.
+Backed by `dependencytracking_processing_order_index`, `(sinkid, status, priority desc, jobid,
+chunkid)`. **The delivery index cannot serve this**, because it carries `gate_open` as its third key
+column: with no equality predicate on it the ordered tail no longer follows the equality columns and
+the planner adds a sort. As with the delivery index, the planner only prefers it once a sink has
+enough queued chunks that the sort dominates, so verify with `EXPLAIN` on a realistic backlog rather
+than on a fresh table.
 
-What is left in the meantime is a **priority inversion in processing candidate selection**: the
-`PagingPredicate` truncates to an arbitrary page, so a `HIGH` priority chunk can sit behind
-lower-priority ones while `QUEUED_FOR_PROCESSING` is at its cap, which defeats the priority override
-for live head and section records at the first hop rather than at the sink. It is pre-existing and
-not made worse here, only more conspicuous now that the delivery half is ordered. The broker
-mitigates it once messages are enqueued, since `submitToProcessing` passes the chunk's priority as
-the JMS priority, but not while chunks are waiting for a queue slot.
+Measured, the ordering is index-backed whatever the vacuum state, and that is what these two indexes
+are for: with 300 000 rows queued for one sink the planner takes an ordered index scan either way and
+the `LIMIT` stops it early, so a sweep costs the free queue slots rather than the backlog.
+
+What vacuum state decides is whether the scan is *index-only*. The same `LIMIT 1000` costs 12
+buffers fully all-visible, 674 after one percent of rows have been updated at random, and 1011 with a
+cold visibility map. The decay is steep because the table holds about 106 rows per heap page, so
+updating a fraction `f` of rows at random clears the all-visible bit on `1 - (1-f)^106` of the pages,
+65 percent at `f = 0.01`. **No attainable `autovacuum_vacuum_scale_factor` keeps these scans
+index-only**, since its trigger is a dead-tuple count and by the time it fires most pages have lost
+the bit. The per-table setting is justified by dead tuples and bloat, not by the visibility map, and
+the steady-state budget is one heap buffer per candidate returned.
+
+**The gate predicate is deliberately absent**, and this query must not share a statement with
+`findDeliveryCandidates`. A gate holds back delivery and nothing else. Under full barrier width a
+queued job's data chunks sit at `gate_open = FALSE` while still needing to be processed normally, so
+a gate filter here would stop the processing of exactly the chunks the barrier assumes get
+processed.
+
+The query returns `priority`, which is what `submitToProcessing` needs, so there is no per-chunk
+lookup. There is no over-fetch and no re-check against a map either, because the table is the only
+source of `status`.
+
+**This is what fixes a priority inversion at the first hop.** The `PagingPredicate` it replaces
+truncated to an arbitrary page, so a `HIGH` priority chunk could sit behind lower-priority ones for
+as long as `QUEUED_FOR_PROCESSING` stood at its cap. That defeated the priority override for live
+head and section records where it was cheapest to honour, and left the broker to mitigate it: once a
+message is enqueued `submitToProcessing` has passed the chunk's priority as the JMS priority, but
+nothing ordered chunks waiting for a queue slot. The inversion predates the ordered delivery query
+and was not made worse by it, only more conspicuous.
+
+### Aborting no longer cascades
+
+Aborting a job used to abort every job that depended on it. `findDependingJobs` asked
+`dependencytracking` for the distinct jobs whose `waitingon` named a chunk of the aborted job, and
+`abortDependingJobs` recursed into each, with a loop-detection set to stop it coming back round.
+
+The reason was sound while the graph existed: a chunk `BLOCKED` on a chunk of an aborted job would
+never be unblocked, because the delivery that would have cleared it never happens, so the dependent
+job would stall for good. Aborting it too was the lesser evil.
+
+Nothing holds a later job back that way any more. The only cross-job hold left is the per-job gate,
+and the abort path already lifts the aborted job's barrier and re-triggers the jobs queued behind it,
+which **releases** them rather than aborting them. So the cascade is removed rather than replaced,
+and `PgJobStore.abortJob` returns one job instead of a stream.
+
+This is a deliberate behaviour change and an improvement: aborting one job stops taking unrelated
+later jobs with it.
 
 ### Barrier Chunks — Per-Job Gate
 
@@ -290,61 +313,39 @@ job's barrier does not count itself. That falls out of the removal token, becaus
 rather than void: the winning caller gets the proof it won *and* the `is_termination`
 flag of the entry it removed, in one call and with no extra read. The flag is a field on that
 object as well as a column on the row, which is sound for a value decided when the row is created
-and never changed afterwards. `gate_open` has no such field, deliberately, see [Who writes the gate
-columns before Phase 9](#barrier-chunks--per-job-gate).
+and never changed afterwards. See [Who writes the gate columns](#barrier-chunks--per-job-gate).
 
-**Who writes the gate columns before Phase 9.** Everything above is written as if
-`dependencytracking` were already a plain PostgreSQL table. It becomes one at [Phase 9](
-#phase-9--remove-dependency-tracking-job-store-service). Until then the table is a write-behind
-projection of the Hazelcast map, so ownership has to be split, and the split is what makes the
-gate implementable in Phase 1 rather than Phase 9:
+**Who writes the gate columns.** `dependencytracking` is job-store's outright. One writer,
+`DependencyTrackingRepository`, whose every statement runs in its caller's transaction on its
+caller's connection, so no column is off limits to any statement and a committed write is visible to
+every reader at once.
 
-- **The MapStore owns row lifecycle.** `INSERT` and `DELETE` happen on its own schedule, up to
-  `write-delay-seconds` (10 in production) after the corresponding map mutation. Nothing in the
-  gate may depend on a row appearing or disappearing at a particular moment.
-- **Job-store owns the gate column values.** `DependencyTrackingStore`'s `UPSERT` names exactly
-  five columns in its `on conflict ... do update set` clause (`status`, `waitingon`, `priority`,
-  `lastmodified`, `retries`), and cannot clobber a column it does not name. `is_termination` and
-  `gate_open` are therefore written and read by ordinary synchronous SQL in job-store's own
-  transactions, with no lag and no map involvement. **This is a standing constraint: those columns
-  must never be added to that clause.**
+One convention governs the gate columns, and it is the whole of it: **`gate_open` is
+`NOT NULL DEFAULT TRUE`, and only a write that means to close a gate touches the column.** That is
+what makes site B and site C correct with a single statement each, a data chunk on a non-full-width
+sink getting no gate write at all, and it is why the two inserts that create a row take the verdict
+as a value rather than writing it afterwards. A closed gate has nowhere to be recorded until the row
+exists, so a gate closed in a second statement is a gate closed too late.
 
-Two consequences. Site B must perform the row's `INSERT` itself, as
-`insert ... on conflict ... do update set is_termination, gate_open`, rather than waiting for the
-MapStore. Waiting means the `UPDATE` matches no row and is lost, and the MapStore's later `INSERT`
-takes `gate_open`'s column default `TRUE`, dispatching the termination chunk immediately. The
-statement is order-independent against the MapStore: whichever runs first, the other takes the
-conflict path, and each writes only its own columns. That insert must also supply every column the
-`do update set` clause will never repair, namely `sinkid`, `matchkeys` and `submitter`. `matchkeys`
-carries the termination chunk's `barrierMatchKey`, and leaving it null would break the `waitingOn`
-barrier across a restart, for as long as that mechanism is the one enforcing it.
+*Historical, up to Phase 9.* The table used to be a write-behind projection of the Hazelcast map, so
+ownership was split: the MapStore owned row lifecycle on its own schedule, and job-store owned the
+two gate column values because `DependencyTrackingStore`'s `on conflict ... do update set` clause
+named neither and could not clobber a column it did not name. Two rules followed and both have
+lapsed. "Never add those columns to the `do update set` clause" went with the clause. "A missing row
+is an open gate" went with the MapStore's ownership of row lifecycle: the row now exists from the
+moment the chunk can be dispatched, so absence is no longer a case any reader has to interpret. What
+survives unchanged is the `NOT NULL DEFAULT TRUE` convention above, which never depended on the
+projection.
 
-**The read side: a missing row is an open gate.** Everything above is about who writes the gate.
-The dispatch paths that read it ask "is there a row saying this chunk's gate is closed", and answer
-absence with "open". That is the rule, not a shortcut. Row creation belongs to the MapStore, so
-between `scheduleChunk` and the next flush every chunk of every job has no row at all, and reading
-that as a closed gate would withhold every freshly scheduled chunk on every path — a system-wide
-stall wearing the costume of a safety check. Reading it as open is sound because a gate is only ever
-closed by a writer that creates the row itself, in the transaction that decides the verdict.
-
-Two layers with different lifespans, worth keeping apart. The tolerance of a *missing row* is
-transitional and ends at Phase 9: the table is written synchronously from then on, a chunk becomes
-visible to dispatch when its row commits, and the separate existence probe disappears rather than
-being fixed, since the filter is already `AND gate_open` in the query that selects the candidate. The
-convention underneath outlives it: `gate_open` is `NOT NULL DEFAULT TRUE` and only a writer meaning
-to close a gate touches the column, so an *unwritten* gate is an open gate. That is what makes site B
-and site C correct — a data chunk on a non-full-width sink never gets an explicit gate write at all —
-and it holds before and after.
-
-It also has to run after the termination chunk's own `chunk` row exists.
+Site B has to run after the termination chunk's own `chunk` row exists.
 `dependencytracking_jobid_fkey` is a foreign key on `(jobid, chunkid)` into `chunk`, so the insert
 fails outright otherwise. That falls out of the existing order in
 `createJobTerminationChunkEntity`, which persists and flushes the chunk before it takes the job row
 lock, but it is the reason the gate write belongs at the end of that method rather than at its top.
 
-And the cross-job barrier cannot answer from row *presence*, which is the one thing job-store does
-not control. That is why `job.termination_barrier_lifted` exists, see **Cross-job submitter
-barrier** below.
+And the cross-job barrier answers from `job.termination_barrier_lifted` rather than from row
+*presence*, which keeps it independent of when a row is deleted and leaves it answerable once the row
+is gone. See **Cross-job submitter barrier** below.
 
 **Partitioning and delivery overlap.** Chunks are scheduled from inside the partitioning
 loop - `partitionJobIntoChunksAndItems` calls `jobSchedulerBean.scheduleChunk` per chunk - so
@@ -438,13 +439,11 @@ and a lost update leaves the counter below it forever. It guards only against th
 being pushed above `data_chunks_expected` by something other than the increment, such as a
 backfill or a revised total.
 
-Note that full transactional atomicity between the increment and the row removal only
-arrives once `dependencytracking` is read and written directly in PostgreSQL. While it
-remains a Hazelcast map with a Postgres MapStore, map mutations are not enrolled in the
-JTA transaction, so a rollback after the removal reverts the increment without restoring
-the row, leaving the chunk uncounted and unrecoverable. That window is pre-existing (it
-already applies to the unblock cascade), but the gate is the first logic whose
-correctness depends on closing it.
+The increment and the row's removal are transactionally atomic from Phase 9 onwards, which is what
+makes the `>=` defensive rather than load-bearing. Until then the row lived in a Hazelcast map whose
+mutations were not enrolled in the JTA transaction, so a rollback after the removal reverted the
+increment without restoring the row and the chunk was uncounted and unrecoverable. The gate was the
+first logic whose correctness depended on closing that window.
 
 **Cross-job submitter barrier.** When job B's per-job counter completes, check whether
 any earlier job with the same submitter and same sink still has an undelivered termination
@@ -468,11 +467,13 @@ job" comparison is part of the range scan rather than a heap filter. Note that a
 does not supersede the existing `dependencytracking_sinkid_submitter_index`, which still covers
 non-termination rows.
 
-**Why the check is not "a row is present".** Presence would be the obvious formulation, and it is
-the right one once `dependencytracking` is a plain table. Before Phase 9 it is unusable, because
-row deletion belongs to the MapStore and lands up to `write-delay-seconds` after the chunk leaves
-the map. During that window the table still shows a row for a termination chunk that has been
-delivered, and the barrier answers "still blocked".
+**Why the check is not "a row is present".** Presence is the obvious formulation and it is still not
+the right one. Delivery is not the only thing that removes a chunk's row: `JobPurgeBean` compacts old
+jobs and the abort and recheck paths drop a job's rows wholesale, none of them timed by anything the
+barrier controls, and the flag is what keeps the barrier answerable once the row is gone. Before
+Phase 9 there was a second reason: row deletion belonged to the MapStore and landed up to
+`write-delay-seconds` after the chunk left the map, so the table showed a row for a termination chunk
+that had been delivered and the barrier answered "still blocked".
 
 That looks like the safe direction, a gate that opens late rather than early, and it is not. The
 re-trigger below is edge-triggered: it fires once, from the removal of the earlier termination
@@ -682,13 +683,12 @@ C. On data-chunk insert - scheduleChunk(chunk, job), only for a sink type in
 ```
 
 Two things the shape of that is deliberate about. It asks
-`job.termination_barrier_lifted` rather than whether a `dependencytracking` row is present, for
-the reason **Cross-job submitter barrier** gives above: row lifetime belongs to the MapStore until
-Phase 9, and a barrier that answers from presence reads a delivered chunk as still blocking for the
-whole delete delay. And it writes only to *close*. There is no such thing as writing
-`gate_open = TRUE` here, since an unwritten gate is already an open one, see **The read side: a
-missing row is an open gate** above. Site B is the exception that proves it: it has to create the
-row whichever way its verdict falls, because there may be no row otherwise.
+`job.termination_barrier_lifted` rather than whether a `dependencytracking` row is present, for the
+reason **Cross-job submitter barrier** gives above: a barrier that answers from presence stops being
+answerable the moment the row is purged or dropped. And it decides the gate *in the insert that
+creates the chunk's row*, rather than writing the gate afterwards, since a closed gate has nowhere to
+be recorded until the row exists. Site B does the same for the termination chunk, which is why it
+creates the row whichever way its verdict falls.
 
 Insert time alone is enough on this path, and for a reason outside the gate: the jobqueue
 partitions jobs with the same submitter on the same sink strictly one at a time in job id
@@ -798,9 +798,9 @@ and `AdminBean.recheckBlocks` (`AdminBean.java:132`) both drop a job's rows thro
 re-trigger strands every later same-submitter job's data chunks permanently.
 
 Both paths must `SET job.termination_barrier_lifted = TRUE` *before* running the re-trigger, and
-not merely run it. The row itself lingers for the MapStore's delete delay, so a re-trigger that
-fires without lifting the flag reads the aborted job as still blocking, declines, and never fires
-again. That is the same failure the flag exists to prevent, arriving by the abort path instead of
+not merely run it. Dropping the rows is what takes away the edge a lift would otherwise have fired
+on, and the re-trigger is edge-triggered, so a pass that fires without lifting the flag reads the
+aborted job as still blocking, declines, and never fires again. That is the same failure the flag exists to prevent, arriving by the abort path instead of
 the delivery path. It is also why the flag is named for the barrier rather than for delivery: an
 aborted termination chunk was never delivered, but its barrier is genuinely lifted.
 
@@ -2031,8 +2031,8 @@ was the sole input to `addAndBuildDependencies()`. That call is removed.
 | `DefaultKeyGenerator` | Removed |
 | `ChunkEntity.sequenceAnalysisData` column | Migration drops it |
 | `SinkContent.SequenceAnalysisOption` | Removed |
-| `dependencytracking.matchkeys` (GIN-indexed text[]) | Migration drops it |
-| `dependencytracking.waitingon` (GIN-indexed int[]) | Migration drops it |
+| `dependencytracking.matchkeys` (jsonb) | Dropped by `V11`, in Phase 9 rather than here: it held the scheduler's copy of the keys, not the source |
+| `dependencytracking.waitingon` (jsonb, GIN-indexed) | Dropped by `V11`, in Phase 9 |
 
 `ItemEntity.recordInfo` already holds the record key per item. `SinkMessageProducerBean`
 reads `RecordInfo.getCorrelationKey()` directly when building item messages.
@@ -2059,8 +2059,22 @@ reads `RecordInfo.getCorrelationKey()` directly when building item messages.
 | `JobSchedulerBean.chunkDeliveringDone()` fan-out loop | Replaced by counter increment |
 | `LastTrackerMap` aggregator | Removed |
 | `BlockedCounter` aggregator | Removed |
-| `SINK_STATUS` Hazelcast counters | Moved to scheduler-service as JVM `ConcurrentHashMap<Integer, AtomicInteger>` |
+| `DependencyTrackingStore` | The write-behind projection itself. Row lifecycle is synchronous SQL in `DependencyTrackingRepository` |
+| `UpdateStatus` entry processor | Replaced by one conditional `UPDATE` whose predicate sits on the target row |
+| `StatusCounter`, `SinkStatusCounter` and `JobCounter` aggregators | Replaced by `COUNT(*) GROUP BY` and `COUNT(DISTINCT jobid)` |
+| `TrackingKeySer`, `StatusChangeSer`, `UpdateStatusSer` | Their types stopped crossing the wire |
+| `DependencyTrackingService.find`, `findDependencies`, `makeDependencyPredicate`, `modify`, `reload` | The map's candidate and mutation machinery |
+| `dependency/reload` endpoint | With no map to reload only the recount is left, which `status/sinks/recount` already offers |
+| `DependencyTracking(ResultSet)` and `DependencyTracking.resend()` | The MapStore's row mapper, and the retry the statement now carries |
+| `staleCandidateSlack`, `isStillAwaitingDelivery`, `DeliveryDispatchStaleStatusIT` | Compensated for the write-behind lag |
+| `DeliveryDispatchRepository.hasClosedGate` | The direct path reads `gate_open` off the row it already holds |
+| `dependencytracking_sinkid_status_index` | A leading prefix of both ordered indexes (`V12`) |
+| `SINK_STATUS` Hazelcast counters | Phase 11: moved to scheduler-service as JVM `ConcurrentHashMap<Integer, AtomicInteger>`. Phase 9 keeps the map and changes only where it is maintained from |
 | `ChunkSchedulingStatus.BLOCKED` (value 3) | Deleted; rows migrated to `SCHEDULED_FOR_DELIVERY` |
+| `JobSchedulerBean.updateSinks` and the `chunks.blocked` metric | Counted a state that no longer exists |
+| `DependencyTrackingService.recheckBlocks`, `find`, `findChunksWaitingForMe`, `findJobBarrier` | Served the graph |
+| `PgJobStoreRepository.findDependingJobs` and the abort cascade | See [Aborting no longer cascades](#aborting-no-longer-cascades) |
+| `dependency/check_blocked` endpoint | Its subject is gone |
 
 ---
 
@@ -2094,7 +2108,7 @@ Two ordering constraints shape the sequence:
   adding `job.termination_barrier_lifted`, since the cross-job barrier cannot answer from row
   presence while the MapStore owns row lifecycle. Job-store writes `is_termination` and
   `gate_open` in synchronous SQL and performs the termination row's own `INSERT`, see [Who writes
-  the gate columns before Phase 9](#barrier-chunks--per-job-gate). Takes
+  the gate columns](#barrier-chunks--per-job-gate). Takes
   `pg_advisory_xact_lock` over `(sinkid, submitter)` at site B and in the removal plus re-trigger
   transaction
 - **DI-3049** Change `DependencyTrackingService.remove(TrackingKey)` to return the removed
@@ -2261,15 +2275,71 @@ complete) — see ordering constraint 1 above. Second precondition:
 full barrier width until this phase deletes it, see [Barrier Width](
 #barrier-width--per-sink-type-job-isolation).
 
+Split into three PRs, since the whole phase is far past the 500 line guideline. See
+`.claude/plans/DI-3021-remove-dependency-graph.md`.
+
+**PR 1, remove the dependency graph and keep Hazelcast.** Done.
+
 - Delete `BLOCKED` state from `ChunkSchedulingStatus`; migrate existing `BLOCKED`
-  rows to `SCHEDULED_FOR_DELIVERY`
-- Remove `DEPENDENCY_TRACKING` and `LAST_TRACKER` Hazelcast maps and all entry processors
+  rows to `SCHEDULED_FOR_DELIVERY` (`V11`)
+- Remove the `LAST_TRACKER` Hazelcast map, the `RemoveWaitingOn`, `AddTerminationWaitingOn` and
+  `UpdatePriority` entry processors, and the `LastTrackerMap` and `BlockedCounter` aggregators
 - Remove `findChunksToWaitFor`, `trackChunksToWaitFor`, `optimizeDependencies`,
   `boostPriorities`, `removeFromWaitingOn`, `addDependencies`, fan-out loop
-- Remove `LastTrackerMap` and `BlockedCounter` aggregators
-- Flyway migration: drop `waitingon`, `matchkeys` columns and their GIN indexes
+- Remove `DependencyTracking.waitingOn`, `matchKeys` and `waitFor`, and the `WaitFor` type
+- Flyway migration: drop the `waitingon` and `matchkeys` columns and the GIN index on `waitingon`
+  (`matchkeys` never had one)
+- The abort cascade goes with the graph, see [Aborting no longer cascades](#aborting-no-longer-cascades)
+
+**PR 2, make `dependencytracking` the sole store.** Done.
+
+- Remove the `DEPENDENCY_TRACKING` map and `DependencyTrackingStore`; row lifecycle and `status`
+  become synchronous SQL in job-store, in a new `DependencyTrackingRepository`
+- `setValidatedStatus` becomes one conditional `UPDATE` whose predicate on the target row decides
+  whether the move happens, replacing the `UpdateStatus` entry processor. A `MATERIALIZED` CTE
+  alongside it supplies the prior status for the counters and nothing else, and the decision
+  predicate must never move into it
+- The chunk's row is `DELETE`d in the same transaction as the `data_chunks_delivered` increment,
+  which makes the returned row the once-only token DI-3049 introduced and closes the window where a
+  failure after the removal left the count lost and the gate shut
+- `DependencyTrackingService` becomes `@Lock(READ)`. Without it the conversion would turn a
+  serialised sequence of microsecond map operations into a serialised sequence of database calls
+- Row lifecycle moves to the site that owns the transaction boundary it needs: a data chunk's row is
+  inserted by `JobGateBean.insertDataChunkRow` carrying its gate verdict, and the termination row by
+  `JobGateRepository.insertTerminationRow`, which becomes the only insert of it
+- `removeJobId` becomes `REQUIRES_NEW`, or `AdminBean.recheckBlocks` hangs undetectably on its own
+  nested transactions
+- `SINK_STATUS` stays a Hazelcast map, maintained from the new SQL write sites and rebuilt at
+  startup, hourly from `recheckBlocks`, and on demand from `COUNT(*) GROUP BY sinkid, status`. It
+  becomes a JVM map in DI-3024
+- Ordered processing-phase candidate query and its index (`V12`), see
+  [Processing Ordering](#processing-ordering). The same migration drops
+  `dependencytracking_sinkid_status_index`, now a leading prefix of both ordered indexes
+- `DeliveryDispatchStaleStatusIT` goes here rather than with PR 3: its subject is the MapStore's
+  write-behind lag, which no longer exists
+
+**PR 3, simplify both dispatch paths.** Done. The delivery candidate query is limited to the free
+queue slots, `staleCandidateSlack` and `isStillAwaitingDelivery` are gone with the over-fetch they
+compensated for, and `hasClosedGate` is gone with the second statement it cost: both direct-path gate
+checks read `gate_open` off the `DependencyTracking` the path already holds.
+- `gate_open` becomes a field on `DependencyTracking`, which the standing rule used to forbid. The
+  rule's premise was that the object was a cached map value written behind a projection, so a copy of
+  a column written by four sites could be stale. It is now a detached snapshot of a `SELECT`, read
+  and used inside one transaction, exactly like `status`
+- It also picks up one thing that is not part of this phase's criteria: a chunk stranded in
+  `READY_FOR_PROCESSING` had no recovery. That status is held only between a chunk's row committing
+  and the asynchronous dispatch attempt running, but an EJB asynchronous invocation is in-memory, so
+  a crash in that window stranded the chunk. The bulk sweep takes only `SCHEDULED_FOR_PROCESSING` and
+  the stale sweep covered every other status but this one. `READY_FOR_DELIVERY` has exactly this
+  rescue, which is what marks the omission as an oversight rather than a decision. It predates the
+  phase. `AdminBean.updateStaleChunks` now pushes a chunk stale in `READY_FOR_PROCESSING` for ten
+  minutes to `SCHEDULED_FOR_PROCESSING`, with the same validated status change the delivery side
+  uses. Ten rather than the delivery side's five: that window covers a round trip to a sink, whereas
+  this one is milliseconds in health and is sized instead to sit above the asynchronous-call backlog
+  a large partitioning burst produces, since a sweep firing into that backlog hands the same chunks
+  to the bulk submitter
 - The gate needs no change here. `dependencytracking` becomes job-store's outright, so the
-  split ownership described under [Who writes the gate columns before Phase 9](
+  split ownership described under [Who writes the gate columns](
   #barrier-chunks--per-job-gate) collapses and the `do update set` constraint on
   `is_termination` and `gate_open` lapses with the MapStore. Site B's `INSERT` becomes the only
   insert rather than a race-free duplicate of one. `job.termination_barrier_lifted` stays:
@@ -2300,7 +2370,7 @@ full barrier width until this phase deletes it, see [Barrier Width](
   transaction that creates the chunk, and scheduler-service picks it up on its next poll. Together
   with the `DELETE` below that gives job-store the row lifecycle and scheduler-service `status`
   and dispatch, which is the inverse of the split that held while the table was a projection, see
-  [Who writes the gate columns before Phase 9](#barrier-chunks--per-job-gate)
+  [Who writes the gate columns](#barrier-chunks--per-job-gate)
 - Split `JobSchedulerBean.scheduleChunk` rather than moving it. It is called synchronously per
   chunk from `partitionJobIntoChunksAndItems`, which stays in job-store-service, so moving it
   whole would need exactly the synchronous call into the scheduler that the interaction model

@@ -133,23 +133,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new JobListQuery(entityManager).count(query);
     }
 
-    public List<Integer> findDependingJobs(int jobId) {
-        Query query = entityManager.createNativeQuery("select distinct jobid from dependencytracking where waitingon::jsonb @@ '$[*].jobId==" + jobId + "'");
-        query.setParameter(1, jobId);
-        @SuppressWarnings("unchecked")
-        List<Integer> list = new ArrayList<Integer>(query.getResultList());
-        list.remove(Integer.valueOf(jobId));
-        return list;
-    }
-
     public int resetStatus(Set<Integer> jobIds, ChunkSchedulingStatus fromStatus, ChunkSchedulingStatus toStatus) {
-        return dependencyTrackingService.resetStatus(fromStatus, toStatus, jobIds.toArray(Integer[]::new));
-    }
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void resetChunk(DependencyTracking e, ChunkSchedulingStatus status) {
-        e.setStatus(status);
-        entityManager.persist(e);
+        return dependencyTrackingService.resetStatus(fromStatus, toStatus, jobIds);
     }
 
     public List<ItemInfoSnapshot> listItems(String query)
@@ -397,9 +382,9 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @param dataChunksExpected the job's data-chunk count as read in {@code markJobAsPartitioned}
      *                           before this method runs, which for a job with a termination chunk
      *                           is the same value as {@code chunkId}
-     * @param terminationTracker the dependency tracking entry the caller is about to add to the
-     *                           map, written to PostgreSQL here so that the row carries a closed
-     *                           gate from the moment it exists
+     * @param terminationRow the values the termination chunk's row is created from, written to
+     *                           PostgreSQL here so that the row carries its gate verdict from the
+     *                           moment it exists. This is the only insert of that row
      * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion*
      * @throws JobStoreException on referenced entities not found
      */
@@ -410,7 +395,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             int chunkId,
             String dataFileId, ChunkItem.Status itemStatus,
             int dataChunksExpected,
-            DependencyTracking terminationTracker) throws JobStoreException {
+            DependencyTracking terminationRow) throws JobStoreException {
 
         final Date chunkBegin = new Date();
 
@@ -477,8 +462,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         // JobGateBean. It serializes this verdict against a concurrent re-trigger for the same
         // (sink, submitter), which would otherwise let both decline and leave the gate closed with
         // nothing left to open it.
-        final int sinkId = terminationTracker.getSinkId();
-        final int submitter = terminationTracker.getSubmitter();
+        final int sinkId = terminationRow.getSinkId();
+        final int submitter = terminationRow.getSubmitter();
         jobGateRepository.advisoryLock(sinkId, submitter);
 
         // The job row lock is held across the verdict, so a concurrent delivery of the job's last
@@ -493,8 +478,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         final boolean gateOpen =
                 jobGateRepository.dataChunksDelivered(jobId) >= dataChunksExpected
                         && !jobGateRepository.hasEarlierUndeliveredTermination(sinkId, submitter, jobId);
-        jobGateRepository.upsertGateRow(terminationTracker.getKey(), sinkId, submitter,
-                terminationTracker.getStatus(), terminationTracker.getMatchKeys(), true, gateOpen);
+        jobGateRepository.insertTerminationRow(terminationRow.getKey(), sinkId, submitter,
+                terminationRow.getStatus(), terminationRow.getPriority(), gateOpen);
 
         return chunkEntity;
     }

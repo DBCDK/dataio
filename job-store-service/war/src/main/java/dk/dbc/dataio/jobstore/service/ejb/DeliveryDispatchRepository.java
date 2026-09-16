@@ -8,17 +8,20 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 
 /**
- * The delivery dispatch queries against {@code dependencytracking}.
+ * The bulk delivery dispatch query against {@code dependencytracking}.
  * <p>
  * Delivery order is {@code (priority DESC, jobId ASC, chunkId ASC)} and a chunk whose gate is closed
  * is not dispatched at all. Both are decided here, in SQL, over the {@code gate_open} and
  * {@code is_termination} columns and the ordering keys, with an index shaped to serve exactly that.
  * <p>
- * The table is the authority on every column the queries here read: {@code status} is advanced by
+ * The table is the authority on every column the query here reads: {@code status} is advanced by
  * the scheduler, the gate columns are written by job-store, and both are written in the transaction
  * that decides them. A candidate this class returns is therefore a chunk that is genuinely awaiting
  * delivery with an open gate, and the order it comes back in is the order it should be dispatched
- * in.
+ * in, so the caller dispatches it without asking anything further.
+ * <p>
+ * The direct dispatch path runs no query of its own. It holds the chunk's row already, and reads
+ * {@code gate_open} off it, see {@code JobSchedulerTransactionsBean.submitToDeliveringIfPossible}.
  * <p>
  * See docs/chunk-scheduling-redesign.md, "Delivery Ordering", and the comment block on
  * {@code V9__dependencytracking_delivery_indexes.sql}, which carries the candidate query verbatim
@@ -65,25 +68,5 @@ public class DeliveryDispatchRepository extends RepositoryBase {
         return rows.stream()
                 .map(row -> new TrackingKey(((Number) row[0]).intValue(), ((Number) row[1]).intValue()))
                 .toList();
-    }
-
-    /**
-     * @param key chunk to ask about
-     * @return true only if a row exists saying this chunk's gate is closed
-     * <p>
-     * <b>An unwritten gate is an open gate.</b> {@code gate_open} is {@code NOT NULL DEFAULT TRUE}
-     * and only a writer meaning to close a gate touches the column, see
-     * {@link JobGateRepository#upsertGateRow}, so the absence of a closing write is the
-     * answer and not a missing one. A chunk with no row at all answers false for the same reason:
-     * nothing has closed its gate.
-     */
-    public boolean hasClosedGate(TrackingKey key) {
-        return !entityManager.createNativeQuery(
-                        "SELECT 1 FROM dependencytracking " +
-                                " WHERE jobid = ?1 AND chunkid = ?2 AND NOT gate_open")
-                .setParameter(1, key.getJobId())
-                .setParameter(2, key.getChunkId())
-                .getResultList()
-                .isEmpty();
     }
 }

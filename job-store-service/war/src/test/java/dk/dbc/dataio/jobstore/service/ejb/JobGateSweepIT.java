@@ -4,7 +4,6 @@ import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
@@ -15,7 +14,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -174,9 +172,16 @@ public class JobGateSweepIT extends AbstractJobStoreIT {
         // dependencytracking (jobid, chunkid) is a foreign key into chunk, so the row needs its
         // chunk to exist first.
         newPersistedChunkEntity(new ChunkEntity.Key(chunkId, job.getId()));
-        DependencyTracking tracker = new DependencyTracking(key, SINK_ID, (int) SUBMITTER, null, Set.of());
-        persistenceContext.run(() -> newJobGateRepository().upsertGateRow(key, SINK_ID, (int) SUBMITTER,
-                tracker.getStatus(), tracker.getMatchKeys(), isTermination, false));
+        DependencyTracking row = new DependencyTracking(key, SINK_ID, (int) SUBMITTER);
+        persistenceContext.run(() -> {
+            if (isTermination) {
+                newJobGateRepository().insertTerminationRow(key, SINK_ID, (int) SUBMITTER,
+                        row.getStatus(), row.getPriority(), false);
+            } else {
+                newDependencyTrackingRepository().insert(key, SINK_ID, (int) SUBMITTER,
+                        row.getStatus(), row.getPriority(), false);
+            }
+        });
     }
 
     /**

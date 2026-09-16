@@ -2,15 +2,13 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
-import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -69,22 +67,18 @@ class JobSchedulerBeanTest {
     }
 
     /**
-     * A delivery that did not remove the chunk's tracking entry does not reach the gate at all.
+     * A delivery whose delete matched nothing does not reach the gate at all.
      * <p>
-     * Every caller of chunkDeliveringDone sees the entry before removing it, so a concurrent pair
-     * can both find it and both ask to remove it. Only one removal takes effect, and the count of
-     * the job's delivered data chunks belongs to that one: counted twice, it reaches
+     * Two concurrent acknowledgements of one chunk both issue the delete, and only one row goes.
+     * The count of the job's delivered data chunks belongs to that one: counted twice, it reaches
      * data_chunks_expected while a data chunk is still in flight, and the gate opens early.
      */
     @Test
-    void chunkDeliveringDone_removalLost_doesNotAdvanceTheGate() {
+    void chunkDeliveringDone_nothingDeleted_doesNotAdvanceTheGate() {
         TrackingKey key = new TrackingKey(JOB_ID, CHUNK_ID);
         DependencyTrackingService dependencyTrackingService = mock(DependencyTrackingService.class);
         JobGateBean jobGateBean = mock(JobGateBean.class);
-        when(dependencyTrackingService.get(key)).thenReturn(new DependencyTracking(key, SINK_ID, SUBMITTER)
-                .setStatus(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY));
-        when(dependencyTrackingService.remove(key)).thenReturn(null);
-        when(dependencyTrackingService.removeFromWaitingOn(key)).thenReturn(Set.of());
+        when(dependencyTrackingService.acknowledgeDelivery(key)).thenReturn(Optional.empty());
         JobSchedulerBean jobSchedulerBean = new JobSchedulerBean(null, null, null, null,
                 dependencyTrackingService, jobGateBean, null);
 

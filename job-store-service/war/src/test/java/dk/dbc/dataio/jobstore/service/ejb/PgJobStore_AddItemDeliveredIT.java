@@ -419,26 +419,6 @@ public class PgJobStore_AddItemDeliveredIT extends AbstractJobStoreIT {
         assertThat("item0 delivering outcome", refreshedItem0.getDeliveringOutcome(), is(notNullValue()));
     }
 
-    private <T> T runInTransaction(EntityManager em, Callable<T> callable) throws Exception {
-        em.getTransaction().begin();
-        try {
-            T result = callable.call();
-            em.getTransaction().commit();
-            return result;
-        } catch (Exception e) {
-            // Without this, a failing callable leaves the transaction active; the
-            // caller's em.close() then returns the underlying connection to the pool
-            // still "idle in transaction" at the Postgres level, holding whatever
-            // row locks it acquired forever (no lock/statement timeout is configured
-            // anywhere in this test setup) - which then hangs the NEXT test's @After
-            // DELETE FROM cleanup instead of failing this one.
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
-            throw e;
-        }
-    }
-
     /*
      * Fixture helpers
      */

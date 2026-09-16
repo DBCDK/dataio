@@ -37,7 +37,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Set;
 
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.commons.types.ChunkItem.Type.JOB_END;
@@ -419,16 +418,16 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         // Given...
         final JobEntity jobEntity = newPersistedJobEntity();
         final int jobId = jobEntity.getId();
-        // The tracker's submitter is the job's own. The gate writes the row from the tracker, and
-        // the cross-job barrier keys on that column, so a tracker carrying someone else's submitter
+        // The submitter is the job's own. The gate writes the row from these values, and
+        // the cross-job barrier keys on that column, so a row carrying someone else's submitter
         // would leave the row unreachable by the barrier for the job it belongs to.
         final int submitter = (int) jobEntity.getSpecification().getSubmitterId();
 
         // When...
-        final DependencyTracking terminationTracker = new DependencyTracking(
-                new TrackingKey(jobId, chunkId), sinkId, submitter, String.valueOf(submitter), Set.of());
+        final DependencyTracking terminationRow = new DependencyTracking(
+                new TrackingKey(jobId, chunkId), sinkId, submitter);
         final ChunkEntity chunkEntity = persistenceContext.run(() -> pgJobStoreRepository.createJobTerminationChunkEntity(
-                jobId, chunkId, TEST_FILE_NAME, SUCCESS, chunkId, terminationTracker));
+                jobId, chunkId, TEST_FILE_NAME, SUCCESS, chunkId, terminationRow));
 
 
         // Then ChunkEntity is

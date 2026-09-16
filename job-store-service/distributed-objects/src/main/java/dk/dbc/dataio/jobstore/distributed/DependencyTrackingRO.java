@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobstore.distributed;
 
 import java.time.Instant;
-import java.util.Set;
 
 public interface DependencyTrackingRO {
     TrackingKey getKey();
@@ -10,15 +9,11 @@ public interface DependencyTrackingRO {
 
     ChunkSchedulingStatus getStatus();
 
-    Set<TrackingKey> getWaitingOn();
-
-    Set<WaitFor> getWaitFor();
-
-    Set<String> getMatchKeys();
-
     int getSubmitter();
 
     boolean isTermination();
+
+    boolean isGateOpen();
 
     int getPriority();
 

@@ -67,8 +67,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * This stateless Enterprise Java Bean (EJB) facilitates access to the job-store database through persistence layer
@@ -107,10 +105,22 @@ public class PgJobStore {
     @Resource
     SessionContext sessionContext;
 
+    /**
+     * Aborts one job.
+     * <p>
+     * Aborting no longer cascades to other jobs. It used to, through {@code findDependingJobs},
+     * because a job whose chunks were {@code BLOCKED} on an aborted job's chunks would never be
+     * unblocked and so would stall for good. Nothing holds a later job back that way any more: the
+     * only cross-job hold left is the per-job gate, and {@code JobsBean.abortJob} lifts this job's
+     * barrier and re-triggers the jobs queued behind it, which releases them rather than aborting
+     * them.
+     *
+     * @param jobId job to abort
+     * @return the aborted job
+     */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public Stream<JobEntity> abortJob(int jobId, Set<Integer> loopDetection) {
+    public JobEntity abortJob(int jobId) {
         JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
-        if(!loopDetection.add(jobId)) return Stream.empty();
         LOGGER.info("Obtaining lock on job {} for abort", jobId);
         Map<String, Object> map = Map.of("javax.persistence.lock.timeout", 60000);
         entityManager.lock(jobEntity, LockModeType.NONE, map);
@@ -120,15 +130,13 @@ public class PgJobStore {
         abortJob(jobEntity, diagnostics);
         jobStoreRepository.flushEntityManager();
         jobStoreRepository.refreshFromDatabase(jobEntity);
-        LOGGER.info("Aborting job {}", jobId);
-        Stream<JobEntity> jobs = abortDependingJobs(jobId, loopDetection);
         LOGGER.info("Removing {} from job queue", jobId);
         jobQueueRepository.deleteByJobId(jobId);
         LOGGER.info("Removing {} from dependency tracking", jobId);
 
         jobSchedulerBean.loadSinkStatusOnBootstrap(Set.of(jobEntity.getCachedSink().getSink().getId()));
         LOGGER.info("Aborting job {} done", jobId);
-        return Stream.concat(Stream.of(jobEntity), jobs);
+        return jobEntity;
     }
 
     /**
@@ -392,12 +400,6 @@ public class PgJobStore {
 
         entityManager.flush();
         return jobEntity;
-    }
-
-    private Stream<JobEntity> abortDependingJobs(int jobId, Set<Integer> jobids) {
-        List<Integer> dependingJobs = jobStoreRepository.findDependingJobs(jobId).stream().filter(id -> !jobids.contains(id)).collect(Collectors.toList());
-        if(!dependingJobs.isEmpty()) LOGGER.info("Aborting {} will also abort dependent jobs {}", jobId, dependingJobs);
-        return dependingJobs.stream().flatMap(j -> abortJob(j, jobids));
     }
 
     private State endPartitioningPhase(JobEntity job) {

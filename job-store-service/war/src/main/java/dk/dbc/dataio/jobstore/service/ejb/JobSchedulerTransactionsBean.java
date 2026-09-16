@@ -3,7 +3,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
-import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
@@ -22,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Set;
 
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
@@ -53,35 +51,16 @@ public class JobSchedulerTransactionsBean {
     @Inject
     DependencyTrackingService dependencyTrackingService;
 
-    @EJB
-    DeliveryDispatchRepository deliveryDispatchRepository;
-
     public JobSchedulerTransactionsBean() {
     }
 
-    public JobSchedulerTransactionsBean(EntityManager entityManager, PgJobStoreRepository jobStoreRepository, SinkMessageProducerBean sinkMessageProducerBean, JobProcessorMessageProducerBean jobProcessorMessageProducerBean, DependencyTrackingService dependencyTrackingService, DeliveryDispatchRepository deliveryDispatchRepository) {
+    public JobSchedulerTransactionsBean(EntityManager entityManager, PgJobStoreRepository jobStoreRepository, SinkMessageProducerBean sinkMessageProducerBean, JobProcessorMessageProducerBean jobProcessorMessageProducerBean, DependencyTrackingService dependencyTrackingService) {
         this.entityManager = entityManager;
         this.jobStoreRepository = jobStoreRepository;
         this.sinkMessageProducerBean = sinkMessageProducerBean;
         this.jobProcessorMessageProducerBean = jobProcessorMessageProducerBean;
         this.dependencyTrackingService = dependencyTrackingService;
-        this.deliveryDispatchRepository = deliveryDispatchRepository;
     }
-
-    /**
-     * Force new Chunk to Store before Async SubmitIfPossibleForProcessing.
-     * New Transaction to ensure Record is on Disk before async submit
-     * <p>
-     * Updates WaitingOn with chunks with matching keys
-     *
-     * @param e Dependency tracking Entity
-     */
-    @Stopwatch
-    public void addDependencies(DependencyTrackingRO e) {
-        Set<TrackingKey> chunksToWaitFor = dependencyTrackingService.findJobBarrier(e.getSinkId(), e.getKey().getJobId(), e.getMatchKeys());
-        dependencyTrackingService.addToChunksToWaitFor(e.getKey(), chunksToWaitFor);
-    }
-
 
     /**
      * Send JMS message to Processing, if queue size is lower than MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
@@ -120,9 +99,13 @@ public class JobSchedulerTransactionsBean {
     @Stopwatch
     public void submitToProcessing(ChunkEntity chunk, int priority) {
         TrackingKey key = new TrackingKey(chunk.getKey().getJobId(), chunk.getKey().getId());
-        StatusChangeEvent changeEvent = dependencyTrackingService.setValidatedStatus(key, QUEUED_FOR_PROCESSING);
-        if(changeEvent == null) {
-            LOGGER.error("Tracker state could not be set to QUEUED_FOR_PROCESSING: {}", key);
+        if(dependencyTrackingService.setValidatedStatus(key, QUEUED_FOR_PROCESSING).isEmpty()) {
+            // WARN rather than ERROR: nothing is stranded. The chunk is already queued, already
+            // processed, or deliberately gone, and an abort or a re-entry into scheduleChunk makes
+            // that a normal outcome. WARN rather than INFO because this path selected the chunk and
+            // then found the table changed under it, unlike a callback telling us what we knew.
+            LOGGER.warn("submitToProcessing: chunk {} was not awaiting processing, not sending",
+                    key.toChunkIdentifier());
             return;
         }
         try {
@@ -156,7 +139,7 @@ public class JobSchedulerTransactionsBean {
         // Park rather than return, exactly as the capacity branch above does. The bulk submitter
         // only looks at SCHEDULED_FOR_DELIVERY, so a chunk left in READY_FOR_DELIVERY would not be
         // reconsidered when its gate opens until the five minute stale sweep noticed it.
-        if (deliveryDispatchRepository.hasClosedGate(trackingKey)) {
+        if (!dependencyTracking.isGateOpen()) {
             dependencyTrackingService.setStatus(trackingKey, SCHEDULED_FOR_DELIVERY);
             LOGGER.info("submitToDeliveringIfPossible: chunk {}/{} held back by a closed gate", trackingKey.getJobId(), trackingKey.getChunkId());
             return;
@@ -203,9 +186,11 @@ public class JobSchedulerTransactionsBean {
         if (dependencyTracking.getStatus().isInvalidStatusChange(QUEUED_FOR_DELIVERY)) return;
 
         // The choke point every dispatch path reaches, which is what makes "no chunk with a closed
-        // gate leaves the scheduler" true by construction rather than by enumerating callers. The
-        // bulk path has already filtered in SQL, so this is a near certain pass for it.
-        if (deliveryDispatchRepository.hasClosedGate(trackingKey)) {
+        // gate leaves the scheduler" true by construction rather than by enumerating callers. Read
+        // off the row fetched just above, in this transaction, so it is as current as the status
+        // read from the same row. The bulk path has already filtered in SQL, so this is a near
+        // certain pass for it.
+        if (!dependencyTracking.isGateOpen()) {
             LOGGER.info("submitToDelivering: chunk {}/{} held back by a closed gate", trackingKey.getJobId(), trackingKey.getChunkId());
             dependencyTrackingService.setStatus(trackingKey, SCHEDULED_FOR_DELIVERY);
             return;
@@ -215,7 +200,15 @@ public class JobSchedulerTransactionsBean {
         if(jobEntity.getState().isAborted() || JobsBean.isAborted(jobEntity.getId())) return;
         // chunk is ready for sink
         try {
-            dependencyTrackingService.setStatus(trackingKey, QUEUED_FOR_DELIVERY);
+            // Validated, so the claim on the chunk and the check that it is still claimable are one
+            // statement. The guard at the top of this method reads the same predecessor set, and a
+            // read followed by a write is a check-then-act two dispatch paths can both pass, which
+            // sends the chunk's items to the sink twice.
+            if (dependencyTrackingService.setValidatedStatus(trackingKey, QUEUED_FOR_DELIVERY).isEmpty()) {
+                LOGGER.warn("submitToDelivering: chunk {}/{} was claimed by another dispatch, not sending",
+                        trackingKey.getJobId(), trackingKey.getChunkId());
+                return;
+            }
             sinkMessageProducerBean.send(items, jobEntity, dependencyTracking.getPriority());
             LOGGER.info("submitToDelivering: chunk {}/{} scheduled for delivery for sink {}",
                     trackingKey.getJobId(), trackingKey.getChunkId(), dependencyTracking.getSinkId());

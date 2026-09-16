@@ -2,7 +2,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
-import java.util.Set;
 
 /**
  * The per-job gate's queries against {@code job} and {@code dependencytracking}.
@@ -20,19 +18,21 @@ import java.util.Set;
  * The gate state is split across two tables. {@code job} ({@code data_chunks_delivered},
  * {@code data_chunks_expected}, {@code termination_barrier_lifted}) carries the per-job half.
  * {@code is_termination} and {@code gate_open} sit on {@code dependencytracking}, where the
- * dispatch query needs them. Both halves are job-store's: job-store decides whether a chunk may be
- * dispatched and writes that into {@code gate_open}, and the scheduler reads {@code gate_open} to
- * order dispatch and never writes it. Always a termination chunk, and on a full-width sink type a
- * data chunk too.
- * <b>No other writer of a {@code dependencytracking} row may write {@code is_termination} or
- * {@code gate_open}.</b>
+ * dispatch query needs them. This class decides whether a chunk may be dispatched and writes that
+ * into {@code gate_open}; the dispatch path reads the column to order dispatch and never writes it.
+ * Always a termination chunk, and on a full-width sink type a data chunk too.
  * <p>
- * Two consequences run through the whole class. The cross-job barrier answers from
+ * {@code gate_open} is {@code NOT NULL DEFAULT TRUE} and only a write that means to close a gate
+ * touches the column. That convention is what lets every other writer of a
+ * {@code dependencytracking} row leave the column out of its statement, and it is why the two
+ * inserts that create a row, {@link #insertTerminationRow} and
+ * {@link DependencyTrackingRepository#insert}, both take the verdict as a value: a closed gate has
+ * nowhere to be recorded until the row exists, so a gate closed in a second statement is a gate
+ * closed too late.
+ * <p>
+ * One consequence runs through the whole class. The cross-job barrier answers from
  * {@code job.termination_barrier_lifted} rather than from a {@code dependencytracking} row being
  * present, so it does not depend on when that row is deleted and stays answerable once it is gone.
- * And {@link #upsertGateRow} creates the gated chunk's row itself, whether that is a termination
- * chunk or, on a full-width sink type, a data chunk. {@code gate_open} is a column on that row, so
- * until the row exists there is nowhere to record that the gate is closed.
  * <p>
  * Everything here is a native query on the caller's {@link EntityManager}, so it runs in the
  * caller's transaction and on its connection. Native rather than JPQL or entity access because
@@ -46,7 +46,6 @@ import java.util.Set;
 @Stateless
 public class JobGateRepository extends RepositoryBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobGateRepository.class);
-    private static final StringSetConverter MATCH_KEYS_CONVERTER = new StringSetConverter();
 
     /**
      * "No job earlier than this row's still holds a barrier on this row's scope."
@@ -126,49 +125,47 @@ public class JobGateRepository extends RepositoryBase {
     }
 
     /**
-     * Creates a chunk's {@code dependencytracking} row, with {@code gate_open} set to whether the
-     * chunk may be dispatched right away.
+     * Creates the job's termination chunk row, with {@code gate_open} set to whether the chunk may
+     * be dispatched right away.
      * <p>
-     * An insert rather than an update, because {@code gate_open} is a column on that row and a
-     * closed gate cannot be recorded before the row exists. The conflict clause writes the two gate
-     * columns and nothing else, leaving the rest of an existing row alone.
+     * The only insert of that row, and the only writer of {@code is_termination}. Every column is
+     * supplied here, since nothing else writes this row into existence.
      * <p>
-     * Creating the row means supplying more than the gate columns. {@code status} and
-     * {@code sinkid} are NOT NULL with no default, and {@code submitter} is what the cross-job
-     * barrier reads. The rest take defaults or nulls, since the scheduler writes them as the chunk
-     * advances. {@code matchkeys} is supplied for the {@code waitingOn} barrier, which reads it
-     * after a restart.
+     * <b>The conflict clause is defensive, and writes only the two gate columns.</b> No caller
+     * reaches it: {@link PgJobStoreRepository#createJobTerminationChunkEntity} persists the
+     * termination chunk's own {@code chunk} row first, which fails on its primary key before this
+     * statement runs, so a second call for one job cannot get here. It writes the gate columns
+     * anyway because a row that somehow existed with an open gate has to be shut, and it must
+     * <b>not</b> be widened to {@code status}: reaching it against a chunk already in
+     * {@code QUEUED_FOR_DELIVERY} would reset it to {@code READY_FOR_DELIVERY} and send the job's
+     * end-of-job item to the sink a second time.
      * <p>
-     * Two writers reach this: {@link PgJobStoreRepository#createJobTerminationChunkEntity} inserts
-     * the termination chunk's row, and {@link JobGateBean#closeDataChunkGateIfBlocked} inserts a
-     * data chunk's. Only ever call it to <i>close</i> a gate: an unwritten gate is already an open
-     * one, see {@link DeliveryDispatchRepository#hasClosedGate}. The termination insert is the one
-     * exception, since it must create the row whichever way the verdict falls.
+     * Data chunks are inserted by {@link DependencyTrackingRepository#insert} instead. They carry
+     * their gate verdict the same way, but they are the scheduler's ordinary rows and there is no
+     * reason for the gate to own their statement.
      *
-     * @param key           chunk's tracking key
-     * @param sinkId        sink the chunk is destined for
-     * @param submitter     submitter the barrier is scoped to
-     * @param status        status the chunk enters dependency tracking with
-     * @param matchKeys     the chunk's match keys, carrying its barrier key where it has one
-     * @param isTermination true if the chunk is its job's termination chunk
-     * @param gateOpen      true only if this chunk may be dispatched right away
+     * @param key       termination chunk's tracking key
+     * @param sinkId    sink the chunk is destined for
+     * @param submitter submitter the barrier is scoped to
+     * @param status    status the chunk enters dependency tracking with
+     * @param priority  the chunk's dispatch priority
+     * @param gateOpen  true only if this chunk may be dispatched right away
      */
-    public void upsertGateRow(TrackingKey key, int sinkId, int submitter, ChunkSchedulingStatus status,
-                              Set<String> matchKeys, boolean isTermination, boolean gateOpen) {
+    public void insertTerminationRow(TrackingKey key, int sinkId, int submitter, ChunkSchedulingStatus status,
+                                     int priority, boolean gateOpen) {
         entityManager.createNativeQuery(
                         "INSERT INTO dependencytracking " +
-                                "       (jobid, chunkid, sinkid, status, matchkeys, submitter, is_termination, gate_open) " +
-                                "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) " +
+                                "       (jobid, chunkid, sinkid, status, priority, submitter, lastmodified, is_termination, gate_open) " +
+                                "VALUES (?1, ?2, ?3, ?4, ?5, ?6, now(), TRUE, ?7) " +
                                 "ON CONFLICT ON CONSTRAINT dependencytracking_pkey DO UPDATE " +
                                 "  SET is_termination = excluded.is_termination, gate_open = excluded.gate_open")
                 .setParameter(1, key.getJobId())
                 .setParameter(2, key.getChunkId())
                 .setParameter(3, sinkId)
                 .setParameter(4, status.value)
-                .setParameter(5, MATCH_KEYS_CONVERTER.convertToDatabaseColumn(matchKeys))
+                .setParameter(5, priority)
                 .setParameter(6, submitter)
-                .setParameter(7, isTermination)
-                .setParameter(8, gateOpen)
+                .setParameter(7, gateOpen)
                 .executeUpdate();
     }
 
@@ -197,13 +194,19 @@ public class JobGateRepository extends RepositoryBase {
 
     /**
      * Opens the gate of an already inserted termination chunk.
+     * <p>
+     * <b>{@code NOT gate_open} is what keeps this off open rows</b>, and with it every gate write
+     * taken under the barrier scope's advisory lock matches closed gates only. That disjointness is
+     * what makes the delivery acknowledgement's lock order safe, see the note on {@link JobGateBean}.
+     * It also makes the statement a no-op against a gate that is already open, which is what a
+     * second caller finds.
      *
      * @param key termination chunk's tracking key
      */
     public void openGate(TrackingKey key) {
         entityManager.createNativeQuery(
                         "UPDATE dependencytracking SET gate_open = true " +
-                                " WHERE jobid = ?1 AND chunkid = ?2 AND is_termination")
+                                " WHERE jobid = ?1 AND chunkid = ?2 AND is_termination AND NOT gate_open")
                 .setParameter(1, key.getJobId())
                 .setParameter(2, key.getChunkId())
                 .executeUpdate();
@@ -275,7 +278,7 @@ public class JobGateRepository extends RepositoryBase {
      * it, where a termination chunk needs its own job's data chunks accounted for as well.
      * <p>
      * <b>Does not consult {@code REQUIRES_FULL_WIDTH_BARRIER}.</b> It does not need to: a data chunk's
-     * gate is only ever closed by {@link JobGateBean#closeDataChunkGateIfBlocked}, which does read
+     * gate is only ever closed by {@link JobGateBean#insertDataChunkRow}, which does read
      * that set, so on a sink type outside it there is no closed data chunk to find and this matches
      * nothing. Reached only from {@link JobGateBean#liftBarrierAndRetrigger}, which returns before
      * this on a job that held no barrier, so in practice the sink types that pay the no-op are the
@@ -363,17 +366,13 @@ public class JobGateRepository extends RepositoryBase {
     /**
      * Whether any of the job's data chunks are still in dependency tracking.
      * <p>
-     * <b>Deliberately not read from {@code data_chunks_delivered}.</b> The sweep exists to repair a
-     * gate left closed because that counter was lost, so a check that reads it cannot repair the one
-     * failure it is there for. {@code chunkDeliveringDone} removes the chunk's map entry before the
-     * gate work and outside the JTA transaction, so anything throwing afterwards rolls the increment
-     * back while the removal stands, and redelivery finds no tracker and returns at once. The
-     * removal is the half that survives, so the sweep reads that instead.
+     * <b>Deliberately not read from {@code data_chunks_delivered}.</b> The counter and the rows are
+     * written in one transaction now, so they cannot disagree by a delivery being counted without
+     * its row going or the other way round. What is left for the sweep to repair is a job whose
+     * rows were dropped wholesale, by an abort or by the recheck, and for those the counter says
+     * nothing while the absence of rows says everything.
      * <p>
-     * Absence therefore means every data chunk has been acknowledged. The MapStore's delete delay
-     * makes this lag by up to {@code write-delay-seconds}, which is immaterial at the sweep's hourly
-     * cadence and errs towards leaving a gate closed for one more sweep rather than opening it
-     * early.
+     * Absence therefore means every data chunk has been acknowledged or dropped.
      *
      * @param jobId job to ask about
      * @return true if the job still has at least one data chunk in dependency tracking
@@ -432,7 +431,7 @@ public class JobGateRepository extends RepositoryBase {
      * lift would have fired on is already gone.
      * <p>
      * Reached when a job's rows are dropped through {@code removeJobId} on a path that did not lift
-     * the barrier, or when the lift rolled back after the map entry was already removed. Left alone,
+     * the barrier, or when the lift rolled back after that removal had committed on its own. Left alone,
      * every later job on that submitter and sink is held behind a barrier whose job no longer
      * exists in dependency tracking at all.
      * <p>

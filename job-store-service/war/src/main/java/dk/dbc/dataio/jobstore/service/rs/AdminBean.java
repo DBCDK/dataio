@@ -10,7 +10,6 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
-import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
@@ -66,6 +65,7 @@ import java.util.stream.Stream;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
 
@@ -109,10 +109,9 @@ public class AdminBean {
     public void updateStaleChunks() {
         if(Hazelcast.isSlave()) return;
         try {
-            Stream<DependencyTrackingRO> readyStream = dependencyTrackingService.getStaleDependencies(READY_FOR_DELIVERY, Duration.ofMinutes(5));
-            readyStream.forEach(dt -> dependencyTrackingService.setStatus(dt.getKey(), SCHEDULED_FOR_DELIVERY));
-            Stream<DependencyTrackingRO> delStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).filter(this::isTimeout);
-            Stream<DependencyTrackingRO> procStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout);
+            rescueChunksLeftReady();
+            Stream<DependencyTrackingRO> delStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
+            Stream<DependencyTrackingRO> procStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
             List<DependencyTrackingRO> list = Stream.concat(delStream, procStream).collect(Collectors.toList());
             resendIfNeeded(list);
             list.stream().map(s -> getSinkName(s.getSinkId())).distinct().filter(s -> staleChunks.putIfAbsent(s, new AtomicInteger(0)) == null).forEach(this::registerChunkMetric);
@@ -126,6 +125,37 @@ public class AdminBean {
         }
     }
 
+    /**
+     * Re-drives the chunks whose dispatch attempt was fired and never arrived.
+     * <p>
+     * Both {@code READY_*} statuses mean the same thing: whoever put the chunk here went straight on
+     * to dispatch it, so the status is held for the length of one attempt and no longer. An attempt
+     * that dies leaves the chunk with nothing else watching it, since the bulk sweeps read only the
+     * {@code SCHEDULED_*} statuses, and moving it to its own {@code SCHEDULED_*} status is what hands
+     * it to the sweep that does.
+     * <p>
+     * Validated in both cases, because each target has exactly one legal predecessor, which is the
+     * status the query selected on. That makes the write the precise guard against a chunk that
+     * moved on between the query and the write: unvalidated, the delivery side would push a chunk
+     * the sink already holds back to {@code SCHEDULED_FOR_DELIVERY} and the next sweep would deliver
+     * its items a second time.
+     * <p>
+     * The two timeouts answer different questions and are deliberately not the same number. Five
+     * minutes on the delivery side covers a real round trip to a sink. The processing side's attempt
+     * is an EJB asynchronous invocation made as the chunk's row commits, so it is milliseconds in
+     * health, and its timeout is set by the other risk instead: a large partitioning burst queues
+     * those invocations, and a sweep firing while they are still draining hands the same chunks to
+     * the bulk submitter, leaving every queued invocation to find its chunk already claimed. Ten
+     * minutes sits far above any backlog that queue plausibly holds, and still bounds a stranded
+     * chunk to minutes rather than to the hourly sweeps.
+     */
+    void rescueChunksLeftReady() {
+        dependencyTrackingService.getStaleDependencies(READY_FOR_DELIVERY, Duration.ofMinutes(5))
+                .forEach(dt -> dependencyTrackingService.setValidatedStatus(dt.getKey(), SCHEDULED_FOR_DELIVERY));
+        dependencyTrackingService.getStaleDependencies(READY_FOR_PROCESSING, Duration.ofMinutes(10))
+                .forEach(dt -> dependencyTrackingService.setValidatedStatus(dt.getKey(), SCHEDULED_FOR_PROCESSING));
+    }
+
     @Schedule(minute = "10", hour = "*", persistent = false)
     public void recheckBlocks() {
         if(Hazelcast.isSlave()) return;
@@ -134,20 +164,17 @@ public class AdminBean {
             JobEntity entity = jobStoreRepository.getJobEntityById(jobId);
             if(entity == null || entity.getTimeOfCompletion() != null) {
                 dependencyTrackingService.removeJobId(jobId);
-                LOGGER.info("Trackers for finished Job id: {} was removed", jobId);
+                LOGGER.info("Dropped the scheduling rows of job {}, which is gone or already completed", jobId);
                 // Dropping the rows takes away the termination row a barrier lift would have fired
-                // on, so the lift has to happen here. Without it the removed job reads as still
-                // blocking for the whole of the MapStore's delete delay and every later job on its
-                // submitter is held behind a barrier nothing can lift. A job with no barrier is a
-                // single no-op update, see JobGateRepository#markTerminationBarrierLifted.
+                // on, so the lift has to happen here. Without it every later job on that submitter
+                // is held behind a barrier nothing can lift, since the re-trigger is edge triggered
+                // and the edge has already passed. A job with no barrier is a single no-op update,
+                // see JobGateRepository#markTerminationBarrierLifted.
                 if (entity != null) {
                     liftBarrierImposedBy(entity);
                 }
             }
         }
-        Set<TrackingKey> keys = dependencyTrackingService.recheckBlocks();
-        if(!keys.isEmpty()) LOGGER.info("Hourly blocked check has released {}", keys);
-
         // Barriers first, gates second: lifting a barrier is what makes the gates queued behind it
         // openable in the same pass. A job whose entity was already gone above is picked up here,
         // since this reads the scope from the job row rather than from the caller.
@@ -156,6 +183,11 @@ public class AdminBean {
         if (lifted > 0 || opened > 0) {
             LOGGER.info("Hourly gate sweep lifted {} barriers and opened {} gates", lifted, opened);
         }
+        // The sink chunk counts are maintained from the write sites rather than derived, and the
+        // mutation is not transactional, so a rolled back transaction leaves a counter moved and
+        // the table not. Drift accumulates and the queue caps are read from these counters, so
+        // recount them here. One scan of a table bounded by in-flight chunks, hourly.
+        dependencyTrackingService.recountSinkStatus(Set.of());
     }
 
     /**
@@ -186,16 +218,18 @@ public class AdminBean {
     }
 
     public void resendIfNeeded(List<DependencyTrackingRO> list) {
+        // The filter picks what to log. What makes the retry once-only is the retry statement's own
+        // WHERE clause, which carries the same condition, so two callers reaching one chunk here
+        // still produce one retry between them.
         Set<DependencyTrackingRO> retries = list.stream()
                 .filter(de -> de.getRetries() < 1)
-                .filter(de -> de.getWaitingOn().isEmpty())
                 .collect(Collectors.toSet());
         if(retries.isEmpty()) return;
-        LOGGER.warn("Retrying stale trackers: {}", retries.stream()
+        LOGGER.warn("Retrying stale chunks: {}", retries.stream()
                 .map(e -> e.getKey().toChunkIdentifier())
                 .collect(Collectors.joining(", ")));
 
-        retries.forEach(dt -> dependencyTrackingService.modify(dt.getKey(), DependencyTracking::resend));
+        retries.forEach(dt -> dependencyTrackingService.resend(dt.getKey()));
         Set<Integer> sinks = list.stream().map(DependencyTrackingRO::getSinkId).collect(Collectors.toSet());
         jobSchedulerBean.loadSinkStatusOnBootstrap(sinks);
     }
@@ -217,20 +251,13 @@ public class AdminBean {
         return Response.ok(jsonbContext.marshall(dependencyTrackingService.getCountersForSinks())).build();
     }
 
-    @GET
-    @Path(JobStoreServiceConstants.DEPENDENCY_CHECK_BLOCKED)
-    public Response checkBlocked() throws JSONBException {
-        return Response.ok(jsonbContext.marshall(dependencyTrackingService.recheckBlocks())).build();
-    }
-
     /**
      * Runs the per-job gate sweep on demand, which {@link #recheckBlocks} otherwise only runs
      * hourly.
      * <p>
-     * Not the same thing as {@link #checkBlocked}, which releases chunks left {@code BLOCKED} on
-     * dependencies that no longer exist. This opens gates closed behind a barrier that is gone and
-     * lifts the barrier of a job whose termination row was removed without one, which are the two
-     * ways a job can be left unable to complete with nothing edge triggered left to fire on.
+     * Opens gates closed behind a barrier that is gone and lifts the barrier of a job whose
+     * termination row was removed without one, which are the two ways a job can be left unable to
+     * complete with nothing edge triggered left to fire on.
      * <p>
      * Ordered barriers before gates, as {@link #recheckBlocks} orders it, since lifting a barrier is
      * what makes the gates queued behind it openable in the same pass.
@@ -246,13 +273,6 @@ public class AdminBean {
         LOGGER.info("Requested gate sweep lifted {} barriers and opened {} gates", lifted, opened);
         return Response.ok(jsonbContext.marshall(
                 Map.of("barriersLifted", lifted, "gatesOpened", opened))).build();
-    }
-
-    @GET
-    @Path(JobStoreServiceConstants.DEPENDENCY_RELOAD)
-    public Response reload() {
-        dependencyTrackingService.reload();
-        return Response.ok().build();
     }
 
     @GET

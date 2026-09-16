@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.flowstore.entity.HarvesterConfig;
+import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PeriodicJobsV3HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
@@ -27,6 +29,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,6 +43,7 @@ public class HarvestersBeanTest {
     private final long id = 123;
     private final long version = 42;
     private final String rrHarvesterConfigType = "dk.dbc.dataio.harvester.types.RRHarvesterConfig";
+    private final String periodicJobsV3HarvesterConfigType = "dk.dbc.dataio.harvester.types.PeriodicJobsV3HarvesterConfig";
 
     @BeforeEach
     public void setup() throws URISyntaxException {
@@ -78,6 +82,19 @@ public class HarvestersBeanTest {
     public void createHarvesterConfig_contentArgIsNotCompatibleWithTypeArg_throws() {
         HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
         assertThat(() -> harvestersBean.createHarvesterConfig(null, rrHarvesterConfigType, "{\"key\": \"value\"}"), isThrowing(JSONBException.class));
+    }
+
+    @Test
+    void createHarvesterConfig_typeArgInheritsContentFromSuperType_returnsResponseWithHttpStatusCreated() throws JSONBException, ClassNotFoundException {
+        doAnswer(invocation -> ((HarvesterConfig) invocation.getArgument(0)).withVersion(version))
+                .when(entityManager).persist(any(HarvesterConfig.class));
+
+        HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
+        Response response = harvestersBean.createHarvesterConfig(uriInfo, periodicJobsV3HarvesterConfigType,
+                jsonbContext.marshall(new PeriodicJobsHarvesterConfig.Content().withName("test")));
+
+        assertThat("response status", response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        assertThat("response has entity", response.hasEntity(), is(true));
     }
 
     @Test
@@ -151,6 +168,40 @@ public class HarvestersBeanTest {
         assertThat("response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat("response has entity", response.hasEntity(), is(true));
         assertThat("response has ETAG", response.getEntityTag().getValue(), is(Long.toString(version)));
+    }
+
+    /**
+     * {@link PeriodicJobsV3HarvesterConfig} declares no Content of its own, but inherits
+     * it from {@link PeriodicJobsHarvesterConfig}. This is the update performed by the
+     * periodic jobs harvester whenever it records the time of its last harvest.
+     */
+    @Test
+    void updateHarvesterConfig_typeArgInheritsContentFromSuperType_returnsResponseWithHttpStatusOk() throws JSONBException, ClassNotFoundException {
+        HarvesterConfig harvesterConfig = new HarvesterConfig()
+                .withType(periodicJobsV3HarvesterConfigType)
+                .withVersion(version);
+        when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
+        when(entityManager.merge(any(HarvesterConfig.class))).thenReturn(harvesterConfig);
+
+        HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
+        Response response = harvestersBean.updateHarvesterConfig(id, version, null,
+                jsonbContext.marshall(new PeriodicJobsV3HarvesterConfig.Content().withName("test")));
+
+        assertThat("response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("response has entity", response.hasEntity(), is(true));
+        assertThat("response has ETAG", response.getEntityTag().getValue(), is(Long.toString(version)));
+    }
+
+    @Test
+    void updateHarvesterConfig_contentArgIsNotCompatibleWithInheritedContent_throws() {
+        HarvesterConfig harvesterConfig = new HarvesterConfig()
+                .withType(periodicJobsV3HarvesterConfigType)
+                .withVersion(version);
+        when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
+
+        HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
+        assertThat(() -> harvestersBean.updateHarvesterConfig(id, version, null, "{\"enabled\": \"not a boolean\"}"),
+                isThrowing(JSONBException.class));
     }
 
     @Test

@@ -131,7 +131,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
             }
             return recordDataCollection.stream().collect(Collectors.groupingBy(e -> e.getRecordId().getBibliographicRecordId(), Collectors.reducing(null, (e1, e2) -> e1 == null ? e2 : e1)));
         } catch (RecordServiceConnectorNoContentStatusCodeException e) {
-            throw new HarvesterNoContentException(recordId.toString() + " - fetchRecordCollection");
+            return Collections.emptyMap();
         } catch (RecordServiceConnectorException e) {
             throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
         }

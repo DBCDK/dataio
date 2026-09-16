@@ -53,9 +53,6 @@ public class ItemEntity {
     private ChunkItem processingOutcome;
 
     @Convert(converter = ChunkItemConverter.class)
-    private ChunkItem nextProcessingOutcome;
-
-    @Convert(converter = ChunkItemConverter.class)
     private ChunkItem deliveringOutcome;
 
     @Convert(converter = WorkflowNoteConverter.class)
@@ -136,19 +133,6 @@ public class ItemEntity {
 
     public ItemEntity withProcessingOutcome(ChunkItem processingOutcome) {
         this.processingOutcome = processingOutcome;
-        return this;
-    }
-
-    public ChunkItem getNextProcessingOutcome() {
-        return nextProcessingOutcome;
-    }
-
-    public void setNextProcessingOutcome(ChunkItem nextProcessingOutcome) {
-        this.nextProcessingOutcome = nextProcessingOutcome;
-    }
-
-    public ItemEntity withNextProcessingOutcome(ChunkItem nextProcessingOutcome) {
-        this.nextProcessingOutcome = nextProcessingOutcome;
         return this;
     }
 

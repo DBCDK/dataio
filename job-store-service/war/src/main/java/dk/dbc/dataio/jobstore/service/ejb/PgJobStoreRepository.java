@@ -67,12 +67,10 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 import static java.lang.String.format;
 
 /**
@@ -606,12 +604,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                 profiler.start("Loop itemEntities");
                 final Chunk chunk = new Chunk(jobId, chunkId, type);
                 for (ItemEntity itemEntity : itemEntities) {
-                    if (PROCESSED == type) {
-                        // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
-                        chunk.insertItem(itemEntity.getProcessingOutcome(), itemEntity.getNextProcessingOutcome());
-                    } else {
-                        chunk.insertItem(itemEntity.getChunkItemForPhase(phase));
-                    }
+                    chunk.insertItem(itemEntity.getChunkItemForPhase(phase));
                 }
                 return chunk;
             }
@@ -675,7 +668,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         final PgJobStoreRepository.ChunkItemEntities chunkItemEntities = new PgJobStoreRepository.ChunkItemEntities();
         chunkItemEntities.chunkStateChange.setPhase(phase);
 
-        final Iterator<ChunkItem> nextIterator = chunk.nextIterator();
         try {
             for (ChunkItem chunkItem : chunk) {
                 if(JobsBean.isAborted(chunk.getJobId())) throw new JobAborted(chunk.getJobId());
@@ -700,9 +692,6 @@ public class PgJobStoreRepository extends RepositoryBase {
                         .setEndDate(new Date());                                                // ToDo: Chunk type must contain endDate
 
                 setOutcomeOnItemEntityFromPhase(chunk, phase, itemEntity, chunkItem);
-                if (nextIterator.hasNext()) {
-                    itemEntity.setNextProcessingOutcome(nextIterator.next());
-                }
 
                 setItemStateOnChunkItemFromStatus(chunkItemEntities, chunkItem, itemStateChange);
 

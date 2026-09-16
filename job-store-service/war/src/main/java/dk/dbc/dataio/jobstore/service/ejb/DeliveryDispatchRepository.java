@@ -20,8 +20,10 @@ import java.util.List;
  * delivery with an open gate, and the order it comes back in is the order it should be dispatched
  * in, so the caller dispatches it without asking anything further.
  * <p>
- * The direct dispatch path runs no query of its own. It holds the chunk's row already, and reads
- * {@code gate_open} off it, see {@code JobSchedulerTransactionsBean.submitToDeliveringIfPossible}.
+ * The direct dispatch path reads {@code gate_open} off the row it already holds, and asks this
+ * class one further question: whether anything parked outranks the chunk it is about to send. That
+ * is the same query with {@code limit} 1, so the ordering is stated once,
+ * see {@code JobSchedulerTransactionsBean.submitToDeliveringIfPossible} and {@link DispatchOrder}.
  * <p>
  * See docs/chunk-scheduling-redesign.md, "Delivery Ordering", and the comment block on
  * {@code V9__dependencytracking_delivery_indexes.sql}, which carries the candidate query verbatim
@@ -49,15 +51,22 @@ public class DeliveryDispatchRepository extends RepositoryBase {
      * normally. A caller that passed {@code SCHEDULED_FOR_PROCESSING} here would stop processing
      * exactly those chunks, which is the opposite of what the barrier asks for. The processing phase
      * needs its own query, without the gate predicate and with its own index.
+     * <p>
+     * <b>The query returns {@code priority} alongside the key, and the sweep never looks at it.</b>
+     * The direct dispatch path is what needs it. Before sending a chunk it calls this with
+     * {@code limit} 1 to get the highest ranked chunk already waiting, and then compares that chunk
+     * against the one it holds to decide which of the two should go first. The comparison is on all
+     * three ordering keys, so the priority has to come back with the job and chunk id or the caller
+     * would have to read the row a second time to get it.
      *
      * @param sinkId sink to dispatch for
      * @param limit  maximum number of candidates to return
-     * @return candidate keys, highest priority first and lowest job then chunk id within a priority
+     * @return candidates, highest priority first and lowest job then chunk id within a priority
      */
-    public List<TrackingKey> findDeliveryCandidates(int sinkId, int limit) {
+    public List<DeliveryCandidate> findDeliveryCandidates(int sinkId, int limit) {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = entityManager.createNativeQuery(
-                        "SELECT jobid, chunkid FROM dependencytracking " +
+                        "SELECT jobid, chunkid, priority FROM dependencytracking " +
                                 " WHERE sinkid = ?1 AND status = ?2 AND gate_open " +
                                 " ORDER BY priority DESC, jobid, chunkid " +
                                 " LIMIT ?3")
@@ -66,7 +75,18 @@ public class DeliveryDispatchRepository extends RepositoryBase {
                 .setParameter(3, limit)
                 .getResultList();
         return rows.stream()
-                .map(row -> new TrackingKey(((Number) row[0]).intValue(), ((Number) row[1]).intValue()))
+                .map(row -> new DeliveryCandidate(
+                        new TrackingKey(((Number) row[0]).intValue(), ((Number) row[1]).intValue()),
+                        ((Number) row[2]).intValue()))
                 .toList();
+    }
+
+    /**
+     * A chunk awaiting delivery with an open gate, so a chunk that may be dispatched now.
+     *
+     * @param key      chunk to dispatch
+     * @param priority the chunk's dispatch priority, which becomes the JMS priority
+     */
+    public record DeliveryCandidate(TrackingKey key, int priority) {
     }
 }

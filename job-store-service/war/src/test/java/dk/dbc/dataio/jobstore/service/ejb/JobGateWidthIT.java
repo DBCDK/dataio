@@ -163,15 +163,19 @@ public class JobGateWidthIT extends AbstractJobStoreIT {
         TrackingKey dataChunk = new TrackingKey(jobB.getId(), 0);
         setStatus(dataChunk, ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY);
 
-        assertThat("held back by the gate",
-                newDeliveryDispatchRepository().findDeliveryCandidates(SINK_ID, 10), is(List.of()));
+        assertThat("held back by the gate", deliveryCandidateKeys(), is(List.of()));
         assertThat("and the direct path agrees, reading the gate off the chunk's own row",
                 newDependencyTrackingService().get(dataChunk).isGateOpen(), is(false));
 
         liftBarrierImposedBy(jobA);
 
-        assertThat("dispatchable once the barrier lifts",
-                newDeliveryDispatchRepository().findDeliveryCandidates(SINK_ID, 10), is(List.of(dataChunk)));
+        assertThat("dispatchable once the barrier lifts", deliveryCandidateKeys(), is(List.of(dataChunk)));
+    }
+
+    private List<TrackingKey> deliveryCandidateKeys() {
+        return newDeliveryDispatchRepository().findDeliveryCandidates(SINK_ID, 10).stream()
+                .map(DeliveryDispatchRepository.DeliveryCandidate::key)
+                .toList();
     }
 
     /**

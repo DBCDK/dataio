@@ -68,7 +68,7 @@ public class ChunkProcessor {
                 LOGGER.info("process(): processing chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
                 try {
-                    result.addAllItems(processItemsWithCurrentRevision(chunk, flowCacheEntry, additionalArgs), null);
+                    result.addAllItems(processItemsWithCurrentRevision(chunk, flowCacheEntry, additionalArgs));
                 } catch (OutOfMemoryError t) {
                         healthService.signal(HealthFlag.OUT_OF_MEMORY);
                         throw t;

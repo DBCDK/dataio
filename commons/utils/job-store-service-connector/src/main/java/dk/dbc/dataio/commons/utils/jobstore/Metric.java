@@ -5,7 +5,6 @@ import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.Timer;
 
 public enum Metric {
-    ADD_ACC_TEST_JOB,
     ADD_CHUNK,
     ADD_EMPTY_JOB,
     ABORT_JOB,
@@ -18,7 +17,6 @@ public enum Metric {
     GET_CACHED_FLOW,
     GET_WATERMARK,
     GET_CHUNK_ITEM,
-    GET_PROCESSED_NEXT_RESULT,
     GET_SINK_STATUS_LIST,
     LIST_INVALID_TRANSFILE_NOTIFICATIONS,
     LIST_ITEMS,

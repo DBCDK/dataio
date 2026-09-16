@@ -24,7 +24,6 @@ import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
-import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
@@ -145,49 +144,6 @@ public class JobsBeanTest extends HazelcastTestSupport {
         when(jobsBean.jobStore.addAndScheduleJob(any(JobInputStream.class))).thenReturn(jobInfoSnapshot);
 
         Response response = jobsBean.addJob(mockedUriInfo, jobInputStreamJson);
-        assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
-        assertThat(response.getLocation().toString(), is(LOCATION));
-        assertThat(response.hasEntity(), is(true));
-
-        JobInfoSnapshot returnedJobInfoSnapshot = jsonbContext.unmarshall((String) response.getEntity(), JobInfoSnapshot.class);
-        assertThat(returnedJobInfoSnapshot, is(notNullValue()));
-        assertThat(returnedJobInfoSnapshot.hasFatalError(), is(false));
-        assertThat(returnedJobInfoSnapshot.getJobId(), is(jobInfoSnapshot.getJobId()));
-        assertThat(returnedJobInfoSnapshot.getSpecification(), is(jobInfoSnapshot.getSpecification()));
-        assertThat(returnedJobInfoSnapshot.getState(), is(jobInfoSnapshot.getState()));
-        assertThat(returnedJobInfoSnapshot.getFlowStoreReferences(), is(jobInfoSnapshot.getFlowStoreReferences()));
-    }
-
-    // ********************************** ADD ACCTEST JOB TESTS ********************************************************
-
-    @org.junit.Test
-    public void addAccTestJob_addAndScheduleJobFailure_throwsJobStoreException() throws Exception {
-        AccTestJobInputStream jobInputStream = new AccTestJobInputStream(
-                new JobSpecification(),
-                new FlowBuilder().build(),
-                RecordSplitter.XML);
-
-        when(jobsBean.jobStore.addAndScheduleAccTestJob(any(AccTestJobInputStream.class))).thenThrow(new JobStoreException("Error"));
-        assertThat(() -> jobsBean.addAccTestJob(mockedUriInfo, asJson(jobInputStream)), isThrowing(JobStoreException.class));
-    }
-
-    @org.junit.Test
-    public void addAccTestJob_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception {
-        Response response = jobsBean.addJob(mockedUriInfo, "invalid JSON");
-
-        assertBadRequestResponse(response, JobError.Code.INVALID_JSON);
-    }
-
-    @org.junit.Test
-    public void addAccTestJob_returnsResponseWithHttpStatusCreated_returnsJobInfoSnapshot() throws Exception {
-        JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot().withSpecification(new JobSpecification()).withJobId(JOB_ID);
-        Flow flow = new FlowBuilder().build();
-        AccTestJobInputStream jobInputStream = new AccTestJobInputStream(jobInfoSnapshot.getSpecification(), flow, RecordSplitter.DANMARC2_LINE_FORMAT);
-        String jobInputStreamJson = asJson(jobInputStream);
-
-        when(jobsBean.jobStore.addAndScheduleAccTestJob(any(AccTestJobInputStream.class))).thenReturn(jobInfoSnapshot);
-
-        Response response = jobsBean.addAccTestJob(mockedUriInfo, jobInputStreamJson);
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
         assertThat(response.getLocation().toString(), is(LOCATION));
         assertThat(response.hasEntity(), is(true));
@@ -548,28 +504,6 @@ public class JobsBeanTest extends HazelcastTestSupport {
         when(jobsBean.jobStoreRepository.getChunkItemForPhase(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(invalidInputException);
 
         assertNotFoundResponse(jobsBean.getChunkItemForPhase(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING));
-    }
-
-    // ************************************* getProcessedNextResult() tests ***********************************************************
-
-    @org.junit.Test
-    public void getProcessedNextResult_itemEntityLocated_returnsStatusOkResponseWithDataAsString() throws JSONBException, JobStoreException {
-        ChunkItem chunkItem = new ChunkItemBuilder().setData("Next data").build();
-
-        when(jobsBean.jobStoreRepository.getNextProcessingOutcome(anyInt(), anyInt(), anyShort())).thenReturn(chunkItem);
-
-        assertOkResponse(jobsBean.getProcessedNextResult(JOB_ID, CHUNK_ID, ITEM_ID));
-    }
-
-
-    @org.junit.Test
-    public void getProcessedNextResult_itemEntityNotFound_returnsStatusNotFoundResponse() throws Exception {
-        JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "job not found", null);
-        InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
-
-        when(jobsBean.jobStoreRepository.getNextProcessingOutcome(anyInt(), anyInt(), anyShort())).thenThrow(invalidInputException);
-
-        assertNotFoundResponse(jobsBean.getProcessedNextResult(JOB_ID, CHUNK_ID, ITEM_ID));
     }
 
     @org.junit.Test

@@ -6,7 +6,6 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
-import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -45,7 +44,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ABORT_JOB;
-import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_ACC_TEST_JOB;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_CHUNK;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_EMPTY_JOB;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_ITEM_DELIVERED;
@@ -55,7 +53,6 @@ import static dk.dbc.dataio.commons.utils.jobstore.Metric.COUNT_ITEMS;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.COUNT_JOBS;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.GET_CACHED_FLOW;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.GET_CHUNK_ITEM;
-import static dk.dbc.dataio.commons.utils.jobstore.Metric.GET_PROCESSED_NEXT_RESULT;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.GET_SINK_STATUS_LIST;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.GET_WATERMARK;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.LIST_INVALID_TRANSFILE_NOTIFICATIONS;
@@ -140,24 +137,6 @@ public class JobStoreServiceConnector {
         InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
         try {
             return post(jobInputStream, Response.Status.CREATED, JobInfoSnapshot.class, ADD_JOB, JobStoreServiceConstants.JOB_COLLECTION);
-        } catch (ProcessingException e) {
-            throw new JobStoreServiceConnectorException("job-store communication error", e);
-        }
-    }
-
-    /**
-     * Creates new acceptance test job defined by given job specification in the job-store
-     *
-     * @param jobInputStream containing the job specification
-     * @return JobInfoSnapshot displaying job information from one exact moment in time.
-     * @throws NullPointerException                                  if given null-valued argument
-     * @throws JobStoreServiceConnectorException                     on general communication failure
-     * @throws JobStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
-     */
-    public JobInfoSnapshot addAccTestJob(AccTestJobInputStream jobInputStream) throws NullPointerException, JobStoreServiceConnectorException {
-        try {
-            InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
-            return post(jobInputStream, Response.Status.CREATED, JobInfoSnapshot.class, ADD_ACC_TEST_JOB, JobStoreServiceConstants.JOB_COLLECTION_ACCTESTS);
         } catch (ProcessingException e) {
             throw new JobStoreServiceConnectorException("job-store communication error", e);
         }
@@ -391,26 +370,6 @@ public class JobStoreServiceConnector {
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
                 .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, itemId);
         return get(ChunkItem.class, Response.Status.OK, GET_CHUNK_ITEM, path.build());
-    }
-
-    /**
-     * Retrieves processed next result: Representing the the data stored within the next chunk item as String
-     *
-     * @param jobId   job id
-     * @param chunkId chunk id
-     * @param itemId  item id
-     * @return processed next result
-     * @throws JobStoreServiceConnectorException on general failure to retrieve processed next result
-     * @throws IllegalArgumentException          on job id less than bound value
-     */
-    public ChunkItem getProcessedNextResult(int jobId, int chunkId, short itemId) throws JobStoreServiceConnectorException, IllegalArgumentException {
-        log.trace("JobStoreServiceConnector: getProcessedNextResult({}, {}, {});", jobId, chunkId, itemId);
-        InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT)
-                .bind(JobStoreServiceConstants.JOB_ID, jobId)
-                .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
-                .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, itemId);
-        return get(ChunkItem.class, Response.Status.OK, GET_PROCESSED_NEXT_RESULT, path.build());
     }
 
     /**

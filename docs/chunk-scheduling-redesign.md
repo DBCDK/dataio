@@ -1040,11 +1040,7 @@ and `chunkId` is a **long** property, not an int: that is what `MessageIdentifie
 `getObjectProperty` and unbox it, so an item message has to carry the identical property
 type. `jobId` is an int and `itemId` a short, as shown.
 
-The body is the item's processing outcome alone. `ItemEntity` also carries a
-`nextProcessingOutcome`, populated only for acceptance-test runs, and `sink/diff` is its
-sole consumer. It is deliberately not carried onto the item message: the diff sink is
-being deprecated, so it does not shape the wire format, and adding a wrapper body for it
-would put a second shape in front of every other sink.
+The body is the item's processing outcome alone, so every sink sees one shape.
 
 ### Items of a chunk are sent in ascending `itemId` order
 

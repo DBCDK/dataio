@@ -16,7 +16,6 @@ import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
-import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
@@ -182,42 +181,6 @@ public class JobsBean {
         try {
             jobInputStream = jsonbContext.unmarshall(jobInputStreamData, JobInputStream.class);
             jobInfoSnapshot = jobStore.addAndScheduleJob(jobInputStream);
-            return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.getJobId())))
-                    .entity(jsonbContext.marshall(jobInfoSnapshot))
-                    .build();
-
-        } catch (JSONBException e) {
-            return Response.status(BAD_REQUEST)
-                    .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
-                    .build();
-        } catch (InvalidInputException e) {
-            return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
-        }
-    }
-
-    /**
-     * Adds new acceptance test job based on POSTed job input stream, and persists it in the underlying data store
-     *
-     * @param uriInfo            application and request URI information
-     * @param jobInputStreamData job input stream data as json
-     * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
-     * a HTTP 400 BAD_REQUEST response on invalid json content,
-     * a HTTP 400 BAD_REQUEST response on referenced entities not found,
-     * @throws JSONBException    on marshalling failure
-     * @throws JobStoreException on failure to add job
-     */
-    @POST
-    @Path(JobStoreServiceConstants.JOB_COLLECTION_ACCTESTS)
-    @Consumes({MediaType.APPLICATION_JSON})
-    @Produces({MediaType.APPLICATION_JSON})
-    @Stopwatch
-    public Response addAccTestJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JSONBException, JobStoreException {
-        final AccTestJobInputStream jobInputStream;
-        JobInfoSnapshot jobInfoSnapshot;
-
-        try {
-            jobInputStream = jsonbContext.unmarshall(jobInputStreamData, AccTestJobInputStream.class);
-            jobInfoSnapshot = jobStore.addAndScheduleAccTestJob(jobInputStream);
             return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.getJobId())))
                     .entity(jsonbContext.marshall(jobInfoSnapshot))
                     .build();
@@ -820,34 +783,6 @@ public class JobsBean {
     Response getChunkItemForPhase(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException, JSONBException {
         try {
             ChunkItem chunkItem = jobStoreRepository.getChunkItemForPhase(jobId, chunkId, itemId, phase);
-            return Response.ok().entity(jsonbContext.marshall(chunkItem)).build();
-        } catch (InvalidInputException e) {
-            return Response.status(NOT_FOUND).build();
-        }
-    }
-
-    /**
-     * Retrieves processed next chunk item
-     *
-     * @param jobId   the job id
-     * @param chunkId the chunk id
-     * @param itemId  the itemId
-     * @return a HTTP 200 OK response with processed next chunk item as entity,
-     * a HTTP 400 BAD_REQUEST response on failure to retrieve item
-     * @throws JSONBException    on marshalling failure
-     * @throws JobStoreException on failure to retrieve item
-     */
-    @GET
-    @Path(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT)
-    @Produces({MediaType.APPLICATION_JSON})
-    @Stopwatch
-    public Response getProcessedNextResult(
-            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
-            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
-            @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
-
-        try {
-            ChunkItem chunkItem = jobStoreRepository.getNextProcessingOutcome(jobId, chunkId, itemId);
             return Response.ok().entity(jsonbContext.marshall(chunkItem)).build();
         } catch (InvalidInputException e) {
             return Response.status(NOT_FOUND).build();

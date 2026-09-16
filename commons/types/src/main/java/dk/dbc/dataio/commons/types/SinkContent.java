@@ -28,8 +28,7 @@ public class SinkContent implements Serializable {
         TICKLE,
         VIP,
         WORLDCAT,
-        DMAT,
-        DIFF_SINK
+        DMAT
     }
 
     private static final SinkType NULL_TYPE = null;

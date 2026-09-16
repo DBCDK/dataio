@@ -156,6 +156,25 @@ public class AdminBean {
                 .forEach(dt -> dependencyTrackingService.setValidatedStatus(dt.getKey(), SCHEDULED_FOR_PROCESSING));
     }
 
+    /**
+     * Runs {@link #recheckBlocks} on demand, which the hourly timer otherwise only does at minute 10.
+     * <p>
+     * Exists for the same reason {@link #gateSweep} does, a recovery mechanism has to be reachable
+     * when something is actually stranded. It reaches more than {@link #gateSweep}: the row drop for
+     * jobs that are gone or already completed, the barrier lift for each, and the sink status
+     * recount, all of which nest transactions inside this one and so are the part with a hang for a
+     * failure mode.
+     *
+     * @return the number of barriers lifted and gates opened by the sweep the recheck ends with
+     */
+    @POST
+    @Path(JobStoreServiceConstants.DEPENDENCY_RECHECK_BLOCKS)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response requestRecheckBlocks() throws JSONBException {
+        recheckBlocks();
+        return Response.ok(jsonbContext.marshall(Map.of("recheckCompleted", true))).build();
+    }
+
     @Schedule(minute = "10", hour = "*", persistent = false)
     public void recheckBlocks() {
         if(Hazelcast.isSlave()) return;

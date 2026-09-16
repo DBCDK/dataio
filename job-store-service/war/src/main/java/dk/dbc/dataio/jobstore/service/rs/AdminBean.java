@@ -382,7 +382,6 @@ public class AdminBean {
     }
 
     Sink getSink(int id) {
-        if(id == 1) return Sink.DIFF;
         Sink sink = sinkMap.getIfPresent(id);
         if(sink == null) {
             sink = getFromFlowstore(id);

@@ -82,8 +82,7 @@ public class Developer {
             jobInputStream = jsonbContext.unmarshall(jobInputStreamData, JobInputStream.class);
             Flow flow = new Flow(flowId, 1, new FlowContent("Passthrough", "Passthrough flow for developer endpoint"));
             Sink sink = new Sink(1, 1, new SinkContent("sink 1", "sinkqueue1",
-                    "descibe 1", sinkType, null,
-                    SinkContent.SequenceAnalysisOption.ID_ONLY));
+                    "descibe 1", sinkType, null));
 
             Submitter submitter = new Submitter(1, 1,
                     new SubmitterContent(1, "submitter 1", "describe 1",

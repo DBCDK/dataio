@@ -78,8 +78,7 @@ else
             "name": "dev-null-sink",
             "queue": "sinkqueue::sinkqueue",
             "description": "Local dev sink — chunks are acknowledged but not delivered",
-            "sinkType": "DUMMY",
-            "sequenceAnalysisOption": "ID_ONLY"
+            "sinkType": "DUMMY"
         }')
     SINK_ID=$(echo "$sink_response" | jq -r '.id')
     echo "  Sink ID: $SINK_ID"

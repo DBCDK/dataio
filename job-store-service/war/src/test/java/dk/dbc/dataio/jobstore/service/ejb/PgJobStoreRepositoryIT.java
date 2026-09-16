@@ -12,8 +12,6 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DefaultKeyGenerator;
-import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -202,7 +200,6 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
         final long submitter = jobEntity.getSpecification().getSubmitterId();
         final String dataFileId = jobEntity.getSpecification().getDataFile();
-        final KeyGenerator keyGenerator = new DefaultKeyGenerator();
 
         final BitSet includeFilter = new BitSet();
         includeFilter.set(2);
@@ -213,8 +210,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
                 IncludeFilterDataPartitioner.newInstance(wrappedDataPartitioner, includeFilter);
 
         persistenceContext.run(() -> pgJobStoreRepository.createChunkEntity(
-                submitter, jobEntity.getId(), 0, (short) 10, dataPartitioner,
-                keyGenerator, dataFileId)
+                submitter, jobEntity.getId(), 0, (short) 10, dataPartitioner, dataFileId)
         );
         entityManager.refresh(jobEntity); // pgJobStoreRepository runs stuff with TransactionAttributeType.REQUIRES_NEW
 
@@ -532,7 +528,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
                 new ByteArrayInputStream(lineFormat.getBytes(StandardCharsets.ISO_8859_1)), "latin1");
         return persistenceContext.run(() -> pgJobStoreRepository.createChunkEntity(
                 jobEntity.getSpecification().getSubmitterId(), jobEntity.getId(), 0, (short) 10,
-                dataPartitioner, new DefaultKeyGenerator(), jobEntity.getSpecification().getDataFile()));
+                dataPartitioner, jobEntity.getSpecification().getDataFile()));
     }
 
     /* Reads the raw column to assert that the migration and the entity mapping line up */

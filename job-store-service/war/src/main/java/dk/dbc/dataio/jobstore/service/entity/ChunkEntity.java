@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -40,10 +39,6 @@ public class ChunkEntity {
     private Timestamp timeOfCreation;
     private Timestamp timeOfLastModification;
     private Timestamp timeOfCompletion;
-
-    @Column(columnDefinition = "json", nullable = false)
-    @Convert(converter = SequenceAnalysisDataConverter.class)
-    private SequenceAnalysisData sequenceAnalysisData;
 
     @Column(columnDefinition = "json", nullable = false)
     @Convert(converter = StateConverter.class)
@@ -97,14 +92,6 @@ public class ChunkEntity {
         this.timeOfCompletion = timeOfCompletion;
     }
 
-    public SequenceAnalysisData getSequenceAnalysisData() {
-        return sequenceAnalysisData;
-    }
-
-    public void setSequenceAnalysisData(SequenceAnalysisData sequenceAnalysisData) {
-        this.sequenceAnalysisData = sequenceAnalysisData;
-    }
-
     public State getState() {
         return state;
     }
@@ -121,11 +108,6 @@ public class ChunkEntity {
 
     public ChunkEntity withChunkId(int chunkId) {
         this.key.setId(chunkId);
-        return this;
-    }
-
-    public ChunkEntity withSequenceAnalysisData(SequenceAnalysisData sequenceAnalysisData) {
-        this.sequenceAnalysisData = sequenceAnalysisData;
         return this;
     }
 

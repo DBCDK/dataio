@@ -970,9 +970,7 @@ between the watermark GET and the target delivery is then a read-then-act race: 
 pods can read a watermark older than both versions and both deliver, and the older
 version may reach the target last. This requires the same record to be in-flight in two
 jobs *and* to have changed type between them *and* the deliveries to interleave within a
-sub-second window — a very rare occurrence, accepted as a known limitation. (The current
-dependency-tracking system covers this case only when sequence analysis happens to emit
-overlapping match keys for both versions.)
+sub-second window — a very rare occurrence, accepted as a known limitation.
 
 ---
 
@@ -2027,15 +2025,29 @@ was the sole input to `addAndBuildDependencies()`. That call is removed.
 
 | Artefact | Fate |
 |---|---|
-| `SequenceAnalysisData` / `SequenceAnalysisOption` | Removed |
-| `DefaultKeyGenerator` | Removed |
-| `ChunkEntity.sequenceAnalysisData` column | Migration drops it |
-| `SinkContent.SequenceAnalysisOption` | Removed |
+| `SequenceAnalysisData` | Removed |
+| `SequenceAnalysisDataConverter` | Removed, with both its `<class>` entries in `persistence.xml` |
+| `SinkContent.SequenceAnalysisOption` | Removed, together with the field, the constructor parameter, the accessor and the field's part in `equals`/`hashCode` |
+| `KeyGenerator` and `DefaultKeyGenerator` | Removed. The interface goes with its only implementation, its only caller being the key set |
+| `ChunkEntity.sequenceAnalysisData` column | Dropped by `V13` |
+| `PgJobStoreRepository.createChunkEntity`'s `KeyGenerator` parameter | Removed, with `PartitioningParam.keyGenerator` and its accessor, which supplied the argument |
+| `ChunkItemEntities.keys`, `getSequenceAnalysisData`, `getSequenceAnalysisOption` | Removed. The last was a `JobEntity` lookup per chunk during partitioning, purely to read the option |
+| `RecordInfo.getKeys` and the `MarcRecordInfo` override | Removed rather than reduced to a no-argument method, which would have no caller |
 | `dependencytracking.matchkeys` (jsonb) | Dropped by `V11`, in Phase 9 rather than here: it held the scheduler's copy of the keys, not the source |
 | `dependencytracking.waitingon` (jsonb, GIN-indexed) | Dropped by `V11`, in Phase 9 |
 
 `ItemEntity.recordInfo` already holds the record key per item. `SinkMessageProducerBean`
-reads `RecordInfo.getCorrelationKey()` directly when building item messages.
+reads `RecordInfo.getCorrelationKey()` directly when building item messages. That method is
+what survives on the producer side: after this removal it is the only key job-store derives
+from a record, and there is no chunk-level key set at all.
+
+Flow-store needs no change and no migration. `SinksBean` stores the sink definition as the
+JSON string it was posted as and unmarshalls to `SinkContent` only to validate, and
+`SinkContent` carries `@JsonIgnoreProperties(ignoreUnknown = true)`, so an existing stored
+definition and one posted by a client still sending `sequenceAnalysisOption` both keep
+validating. The member survives in `sinks.content` and stops being read. Stripping it from
+live flow configuration would be a write against every sink definition for no reader's
+benefit, so it is deliberately left in place.
 
 ---
 
@@ -2075,6 +2087,12 @@ reads `RecordInfo.getCorrelationKey()` directly when building item messages.
 | `DependencyTrackingService.recheckBlocks`, `find`, `findChunksWaitingForMe`, `findJobBarrier` | Served the graph |
 | `PgJobStoreRepository.findDependingJobs` and the abort cascade | See [Aborting no longer cascades](#aborting-no-longer-cascades) |
 | `dependency/check_blocked` endpoint | Its subject is gone |
+| `SequenceAnalysisData` and `SequenceAnalysisDataConverter` | Nothing has read the per-chunk key set since the graph went |
+| `SinkContent.SequenceAnalysisOption` | It steered a computation that no longer happens |
+| `KeyGenerator` and `DefaultKeyGenerator` | The interface had one implementation and one caller, both the key set's |
+| `RecordInfo.getKeys` / `MarcRecordInfo.getKeys` | `getCorrelationKey()` is the surviving per-record key |
+| `PartitioningParam.keyGenerator`, `ChunkItemEntities.keys`, `PgJobStoreRepository.getSequenceAnalysisData` and `getSequenceAnalysisOption` | The plumbing between the option and the column |
+| `chunk.sequenceanalysisdata` | Dropped by `V13` |
 
 ---
 
@@ -2350,9 +2368,27 @@ checks read `gate_open` off the `DependencyTracking` the path already holds.
 
 ### Phase 10 — Sequence analysis removal (job-store-service)
 
-- Remove `SequenceAnalysisData`, `SequenceAnalysisOption`, `DefaultKeyGenerator`
-- Remove `SinkContent.SequenceAnalysisOption`
-- Flyway migration: drop `sequenceAnalysisData` column from `chunk` table
+Precondition: Phase 9, which removed the graph that read the keys. Nothing has read them
+since, so this phase changes no delivery ordering. One PR, planned in
+`.claude/plans/DI-3022-remove-sequence-analysis.md`.
+
+- **DI-3022** Remove the eleven artefacts listed under [Sequence Analysis Removal](
+  #sequence-analysis-removal): the key set, its converter, the key generator interface and
+  its implementation, the option on `SinkContent`, `RecordInfo.getKeys` and the plumbing
+  between them
+- Flyway migration `V13` drops `chunk.sequenceanalysisdata`
+- Accepted for the duration of one deploy: the column is `NOT NULL` and the previous build
+  names it in every `INSERT INTO chunk`, so an instance still partitioning when `V13` runs
+  fails its next chunk transaction. Nothing is lost, since
+  `BootstrapBean.resetJobsInterruptedDuringPartitioning` returns the job queue entry to
+  `WAITING` and partitioning resumes from `job.numberofchunks`, but that reset runs at
+  instance startup rather than on a timer, so the deploy belongs at a quiet partitioning
+  moment. Splitting the drop across two releases, `V13` relaxing `NOT NULL` and a later
+  migration dropping the column, was considered and rejected: it closes a one-window
+  exposure at the price of leaving a dead column in the schema across a release boundary,
+  and `V11` took the same window for `waitingon` and `matchkeys`
+- Flow-store keeps `sequenceAnalysisOption` in its stored sink definitions, see
+  [Sequence Analysis Removal](#sequence-analysis-removal)
 
 ### Phase 11 — Extract scheduler-service, drop Hazelcast
 

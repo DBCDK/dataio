@@ -15,12 +15,10 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashSet;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -52,12 +50,6 @@ public class JsonMarshallingTest {
     public void verify_jsonMarshallingForState() throws Exception {
         final String json = jsonbContext.marshall(new State());
         jsonbContext.unmarshall(json, State.class);
-    }
-
-    @Test
-    public void verify_jsonMarshallingForSequenceAnalysisData() throws Exception {
-        final String json = jsonbContext.marshall(new SequenceAnalysisData(new HashSet<>()));
-        jsonbContext.unmarshall(json, SequenceAnalysisData.class);
     }
 
     @Test

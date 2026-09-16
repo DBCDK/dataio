@@ -443,7 +443,6 @@ public class PgJobStore {
                 // transactional scope to enable external visibility of job creation progress
                 chunkEntity = jobStoreRepository.createChunkEntity(submitterId, job.getId(), chunkId, Constants.CHUNK_MAX_SIZE,
                         partitioningParam.getDataPartitioner(),
-                        partitioningParam.getKeyGenerator(),
                         job.getSpecification().getDataFile());
 
                 if (chunkEntity == null) { // no more chunks

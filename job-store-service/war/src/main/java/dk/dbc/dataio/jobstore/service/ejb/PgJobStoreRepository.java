@@ -9,13 +9,11 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.ObjectFactory;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
-import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
@@ -38,7 +36,6 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
-import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
@@ -70,7 +67,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -304,7 +300,6 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @param chunkId         id of the chunk to be created
      * @param maxChunkSize    maximum number of items to be associated to the chunk
      * @param dataPartitioner data partitioner used for item data extraction
-     * @param keyGenerator    dependency tracking key generator
      * @param dataFileId      id of data file from where the items of the chunk originated
      * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion
      * @throws JobStoreException on referenced entities not found
@@ -313,7 +308,7 @@ public class PgJobStoreRepository extends RepositoryBase {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Timed
     public ChunkEntity createChunkEntity(long submitterId, int jobId, int chunkId, short maxChunkSize,
-                                         DataPartitioner dataPartitioner, KeyGenerator keyGenerator, String dataFileId)
+                                         DataPartitioner dataPartitioner, String dataFileId)
             throws JobStoreException {
 
         final ChunkEntity chunkEntity = persistChunk(jobId, chunkId, dataFileId);
@@ -323,7 +318,6 @@ public class PgJobStoreRepository extends RepositoryBase {
                 createChunkItemEntities(submitterId, jobId, chunkId, maxChunkSize, dataPartitioner);
         if (chunkItemEntities.size() > 0) {
             chunkEntity.setNumberOfItems(chunkItemEntities.size());
-            chunkEntity.setSequenceAnalysisData(getSequenceAnalysisData(keyGenerator, chunkItemEntities));
             chunkEntity.setContainsLiveHeadOrSectionRecord(containsLiveHeadOrSectionRecord(chunkItemEntities));
 
             final State chunkState = chunkItemEntities.getChunkState();
@@ -437,14 +431,13 @@ public class PgJobStoreRepository extends RepositoryBase {
 
         // Items were created, so now create the chunk to which they belong
         final StateChange chunkStateChange = chunkItemEntities.chunkStateChange.setBeginDate(chunkBegin);
-        SequenceAnalysisData sequenceAnalysisData = new SequenceAnalysisData(new HashSet<>());
 
         final State chunkState = new State();
         final Date now = new Date();
         chunkState.updateState(new StateChange().setPhase(State.Phase.PARTITIONING).setBeginDate(chunkBegin).setEndDate(now).setSucceeded(1));
         chunkState.updateState(new StateChange().setPhase(State.Phase.PROCESSING).setBeginDate(now).setEndDate(now).setSucceeded(1));
 
-        final ChunkEntity chunkEntity = initializeChunkEntityAndSetValues(jobId, chunkId, dataFileId, chunkItemEntities, sequenceAnalysisData, chunkState);
+        final ChunkEntity chunkEntity = initializeChunkEntityAndSetValues(jobId, chunkId, dataFileId, chunkItemEntities, chunkState);
         entityManager.persist(chunkEntity);
         entityManager.flush();
         entityManager.refresh(chunkEntity);
@@ -799,7 +792,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         final ChunkItemEntities chunkItemEntities = new ChunkItemEntities();
         chunkItemEntities.chunkStateChange.setPhase(State.Phase.PARTITIONING);
         try {
-            final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = getSequenceAnalysisOption(jobId);
             for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
                 if(JobsBean.isAborted(jobId)) throw new JobAborted(jobId);
                 if (dataPartitionerResult == null || dataPartitionerResult.isEmpty()) {
@@ -845,10 +837,6 @@ public class PgJobStoreRepository extends RepositoryBase {
                         .withPositionInDatafile(dataPartitionerResult.getPositionInDatafile());
                 entityManager.persist(itemEntity);
                 chunkItemEntities.entities.add(itemEntity);
-
-                if (dataPartitionerResult.getRecordInfo() != null) {
-                    chunkItemEntities.keys.addAll(dataPartitionerResult.getRecordInfo().getKeys(sequenceAnalysisOption));
-                }
 
                 if (itemCounter == maxChunkSize) {
                     break;
@@ -930,19 +918,17 @@ public class PgJobStoreRepository extends RepositoryBase {
         chunkEntity.setDataFileId(dataFileId);
         chunkEntity.setNumberOfItems((short) 0);
         chunkEntity.setState(new State());
-        chunkEntity.setSequenceAnalysisData(new SequenceAnalysisData(Collections.emptySet()));
         entityManager.persist(chunkEntity);
         return chunkEntity;
     }
 
     // // TODO: 4/4/17 deprecate this method - use persistChunk() + local changes instead
-    private ChunkEntity initializeChunkEntityAndSetValues(int jobId, int chunkId, String dataFileId, ChunkItemEntities chunkItemEntities, SequenceAnalysisData sequenceAnalysisData, State chunkState) {
+    private ChunkEntity initializeChunkEntityAndSetValues(int jobId, int chunkId, String dataFileId, ChunkItemEntities chunkItemEntities, State chunkState) {
         ChunkEntity chunkEntity;
         chunkEntity = new ChunkEntity();
         chunkEntity.setKey(new ChunkEntity.Key(chunkId, jobId));
         chunkEntity.setNumberOfItems(chunkItemEntities.size());
         chunkEntity.setDataFileId(dataFileId);
-        chunkEntity.setSequenceAnalysisData(sequenceAnalysisData);
         chunkEntity.setState(chunkState);
         if (chunkState.fatalDiagnosticExists()) {
             chunkEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
@@ -1005,10 +991,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         }
     }
 
-    private SequenceAnalysisData getSequenceAnalysisData(KeyGenerator keyGenerator, ChunkItemEntities chunkItemEntities) {
-        return new SequenceAnalysisData(keyGenerator.getKeys(chunkItemEntities.keys));
-    }
-
     boolean containsLiveHeadOrSectionRecord(ChunkItemEntities chunkItemEntities) {
         return chunkItemEntities.entities.stream()
                 .map(ItemEntity::getRecordInfo)
@@ -1044,13 +1026,11 @@ public class PgJobStoreRepository extends RepositoryBase {
     public static class ChunkItemEntities {
         public final List<ItemEntity> entities;
         public final StateChange chunkStateChange;
-        public final List<String> keys;
 
         public ChunkItemEntities() {
             entities = new ArrayList<>();
             chunkStateChange = new StateChange();
             chunkStateChange.setBeginDate(new Date());
-            keys = new ArrayList<>();
         }
 
         public short size() {
@@ -1070,10 +1050,5 @@ public class PgJobStoreRepository extends RepositoryBase {
             }
             return chunkState;
         }
-    }
-
-    private SinkContent.SequenceAnalysisOption getSequenceAnalysisOption(int jobId) {
-        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
-        return jobEntity.getCachedSink().getSink().getContent().getSequenceAnalysisOption();
     }
 }

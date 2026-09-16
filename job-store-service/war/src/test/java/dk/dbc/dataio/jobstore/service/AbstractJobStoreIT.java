@@ -25,7 +25,6 @@ import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
-import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
 import dk.dbc.dataio.jobstore.service.ejb.DeliveryDispatchRepository;
 import dk.dbc.dataio.jobstore.service.ejb.DependencyTrackingRepository;
@@ -47,7 +46,6 @@ import dk.dbc.dataio.jobstore.service.entity.WatermarkEntity;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import jakarta.ejb.SessionContext;
 import jakarta.persistence.EntityManager;
@@ -70,7 +68,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -216,7 +213,6 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
         ChunkEntity chunkEntity = new ChunkEntity();
         chunkEntity.setKey(key);
         chunkEntity.setState(new State());
-        chunkEntity.setSequenceAnalysisData(new SequenceAnalysisData(Collections.emptySet()));
         chunkEntity.setDataFileId("");
         return chunkEntity;
     }
@@ -487,8 +483,8 @@ public class AbstractJobStoreIT extends JetTestSupport implements PostgresContai
 
             @Override
             public ChunkEntity createChunkEntity(long submitterId, int jobId, int chunkId, short maxChunkSize,
-                                                 DataPartitioner dataPartitioner, KeyGenerator keyGenerator, String dataFileId) throws JobStoreException {
-                return handleRequiresNew(() -> super.createChunkEntity(submitterId, jobId, chunkId, maxChunkSize, dataPartitioner, keyGenerator, dataFileId));
+                                                 DataPartitioner dataPartitioner, String dataFileId) throws JobStoreException {
+                return handleRequiresNew(() -> super.createChunkEntity(submitterId, jobId, chunkId, maxChunkSize, dataPartitioner, dataFileId));
             }
         }
         .withJobGateRepository(jobGateRepository)

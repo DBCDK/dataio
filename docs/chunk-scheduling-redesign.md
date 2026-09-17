@@ -1964,6 +1964,45 @@ All scheduling state lives in PostgreSQL (`dependencytracking`, `item`, `chunk` 
 job-store-service carries no in-memory scheduling state and no Hazelcast dependency —
 it is immediately consistent the moment it accepts requests.
 
+### Cross-instance visibility of job state
+
+PostgreSQL holds the scheduling state, but a JPA read does not necessarily reach it. The
+persistence unit runs under `shared-cache-mode DISABLE_SELECTIVE`, so an entity that does not
+opt out with `@Cacheable(false)` is held in EclipseLink's shared identity map. That map belongs
+to one ServerSession, so it is per instance, and every read path here goes through it: a native
+query with an entity result class hands back the instance it has cached and discards the row it
+just fetched, and `find` does not reach the database at all on a hit.
+
+Writes are unaffected, since they take a pessimistic lock and so force a database read. Reads
+are what diverge. One instance handles the call that completes a job, and only that instance's
+cache learns of it.
+
+Cross-instance invalidation is configured, through
+`eclipselink.cache.coordination.protocol` set to Payara's
+`HazelcastPublishingTransportManager`. It rides on Payara's data grid, which is a different
+Hazelcast instance from the one job-store-service starts for itself in
+`dependencytracking.Hazelcast`, and both halves of its bus are guarded by
+`if (hzCore.isEnabled())` with no else branch and no logging. With that grid disabled, or
+enabled but not clustered, every coordination message is dropped silently, and EclipseLink
+never inspects the result. **This transport cannot report its own failure**, so no log confirms
+it is working and no design may depend on it.
+
+`JobEntity`, `ChunkEntity` and `ItemEntity` are therefore `@Cacheable(false)`, alongside
+`JobQueueEntity` and `WatermarkEntity`. A read of one of those rows is current on any instance
+without depending on cache coordination, which is what keeps job status, the hourly sweeps in
+`AdminBean`, and the per-item delivery dispatch consistent across instances. The listings pay
+nothing for it: their `SELECT *` runs either way and only object building changes.
+`FlowCacheEntity` and `SinkCacheEntity` stay cached, being written once and read many times.
+
+Two limits survive. The persistence context still serves the instance it loaded, so a native
+statement against a row stays invisible to an entity read earlier in the same transaction,
+which is why `JobGateRepository` reads `data_chunks_delivered` with its own SQL. And a read
+that is current is still a read: anything that reads and then acts remains check-then-act, and
+where that matters the guard is a lock, not the cache.
+
+`SharedCacheStalenessIT` covers all three entities, modelling a second instance with a second
+`EntityManagerFactory` under its own `eclipselink.session-name`.
+
 ### Scheduler-service restart
 
 On startup the scheduler-service rebuilds its `SINK_STATUS` counters from a
@@ -2498,7 +2537,11 @@ since, so this phase changes no delivery ordering. One PR, planned in
   startup from `COUNT(*) GROUP BY sinkid, status` (safe only now — single instance)
 - Resolve remaining Hazelcast usages (see [Hazelcast fate](#scheduler-as-a-standalone-service)):
   `ABORTED_JOBS` → `job` table column; `executeOnMaster` partitioning routing → run on
-  the receiving instance; `ScheduledJobPurgeBean` → move to scheduler-service
+  the receiving instance; `ScheduledJobPurgeBean` → move to scheduler-service. `ABORTED_JOBS` is
+  what `JobSchedulerTransactionsBean.submitToDelivering` consults alongside the job's own state,
+  so the table column replacing it has to be as current across instances as the set was. That
+  holds because `JobEntity` is `@Cacheable(false)`, see [Cross-instance visibility of job state](
+  #cross-instance-visibility-of-job-state)
 - Drop the Hazelcast dependency from job-store-service; scheduler-service never adds it
 - Integration test: scheduler-service starts, picks up a chunk from DB, dispatches to JMS
 

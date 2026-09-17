@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -22,6 +23,18 @@ import jakarta.persistence.Table;
 import java.sql.Timestamp;
 import java.util.Optional;
 
+/* Not cacheable, so a read of a job row is current no matter which instance serves it. The
+   persistence unit's DISABLE_SELECTIVE shared-cache-mode caches every entity that does not opt out
+   here, and that cache is per JVM, while a job row is advanced by whichever instance handles the
+   call that writes it. Cached, this entity would leave every other instance reporting a finished
+   job as still running, and would leave the hourly sweeps in AdminBean deciding on what they last
+   saw. The reads this covers are JobListQuery.execute, RepositoryBase.getJobEntityById and those
+   sweeps, none of which refreshes.
+
+   The persistence context is a separate matter and still serves the instance it loaded, so a
+   native statement against this row stays invisible to an entity read earlier in the same
+   transaction. See the note on dataChunksDelivered. */
+@Cacheable(false)
 @Entity
 @Table(name = "job")
 public class JobEntity {
@@ -55,8 +68,9 @@ public class JobEntity {
        naming strategy would look for "datachunksdelivered". See
        docs/chunk-scheduling-redesign.md, "Barrier Chunks - Per-Job Gate".
 
-       data_chunks_delivered is also incremented by a native statement in JobGateRepository, so
-       a JobEntity read through this field can be stale. Read it there, not here, wherever the
+       data_chunks_delivered is also incremented by a native statement in JobGateRepository, which
+       the persistence context does not see, so this field is stale on an entity that was loaded
+       before that statement ran in the same transaction. Read it there, not here, wherever the
        gate verdict depends on it. */
     @Column(name = "data_chunks_delivered")
     private int dataChunksDelivered;

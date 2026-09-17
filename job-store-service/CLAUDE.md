@@ -56,7 +56,7 @@ merged.
 
 ### Database
 
-PostgreSQL + Flyway migrations under `war/src/main/resources/db/migration/`. JPA persistence unit `jobstorePU` uses EclipseLink with Hazelcast L2 cache coordination.
+PostgreSQL + Flyway migrations under `war/src/main/resources/db/migration/`. JPA persistence unit `jobstorePU` uses EclipseLink with Hazelcast L2 cache coordination, which rides on Payara's data grid rather than on the Hazelcast instance the application starts for itself. `JobEntity`, `ChunkEntity`, `ItemEntity`, `JobQueueEntity` and `WatermarkEntity` are `@Cacheable(false)`, so a read of one of those rows is current across instances without depending on that coordination.
 
 ## Testing Notes
 

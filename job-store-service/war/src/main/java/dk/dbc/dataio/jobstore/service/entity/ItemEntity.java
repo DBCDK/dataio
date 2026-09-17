@@ -9,6 +9,7 @@ import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Embeddable;
@@ -21,6 +22,14 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Optional;
 
+/* Not cacheable, so a read of an item row is current no matter which instance serves it. The
+   persistence unit's DISABLE_SELECTIVE shared-cache-mode caches every entity that does not opt out
+   here, and that cache is per JVM, while an item row gains its processing outcome on whichever
+   instance handles the processed chunk. Delivery dispatch builds one message per item from
+   PgJobStoreRepository.getChunkItemEntities; cached, this entity would hand that dispatch a row
+   with no outcome to deliver, failing SinkMessageProducerBean.verifyDeliverable and returning the
+   chunk to SCHEDULED_FOR_DELIVERY to be retried against the same answer. */
+@Cacheable(false)
 @Entity
 @Table(name = "item")
 public class ItemEntity {

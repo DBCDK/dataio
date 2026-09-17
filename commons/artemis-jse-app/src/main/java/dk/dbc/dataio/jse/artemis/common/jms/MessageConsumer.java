@@ -98,13 +98,24 @@ public interface MessageConsumer extends MessageListener {
                 return;
             }
             int jobId = JMSHeader.jobId.getHeader(message);
+            Object chunkId = JMSHeader.chunkId.getHeader(message);
+            Short itemId = JMSHeader.itemId.getHeader(message, Short.class);
             tags.add(destination.is(getFQN()));
             tags.add(redelivery.is(Boolean.toString(message.getJMSRedelivered())));
             if(ABORTED_JOBS.contains(jobId)) {
-                LOGGER.info("Discarding chunk {}/{} for aborted job", jobId, JMSHeader.chunkId.getHeader(message));
+                if (itemId == null) {
+                    LOGGER.info("Discarding chunk {}/{} for aborted job", jobId, chunkId);
+                } else {
+                    LOGGER.info("Discarding item {}/{}/{} for aborted job", jobId, chunkId, itemId);
+                }
                 return;
             }
-            LOGGER.info("Received chunk {}/{} with uid: {}", jobId, JMSHeader.chunkId.getHeader(message), JMSHeader.trackingId.getHeader(message));
+            if (itemId == null) {
+                LOGGER.info("Received chunk {}/{}", jobId, chunkId);
+            } else {
+                LOGGER.info("Received item {}/{}/{} with trackingId {}", jobId, chunkId, itemId,
+                        JMSHeader.trackingId.getHeader(message));
+            }
             ConsumedMessage consumedMessage = validateMessage(message);
             handleConsumedMessage(consumedMessage);
         } catch (InvalidMessageException e) {

@@ -136,6 +136,10 @@ public class SinkMessageProducerBean extends AbstractMessageProducer implements 
      * with a warning and no rollback, so the item is lost with no retry, and a missing
      * {@code sinkId}, {@code sinkVersion}, {@code flowBinderId} or {@code flowBinderVersion}
      * is an NPE in the sinks that unbox them during config refresh.
+     * <p>
+     * The one header that is not the chunk message's is {@code trackingId}, which is the
+     * item's own rather than the chunk level {@code jobId/chunkId}, so that a sink log line
+     * names the record it concerns.
      *
      * @param context             active JMS context
      * @param item                item whose processing outcome is added as JSON string payload
@@ -155,7 +159,8 @@ public class SinkMessageProducerBean extends AbstractMessageProducer implements 
         JMSHeader.payload.addHeader(message, JMSHeader.ITEM_PAYLOAD_TYPE);
         JMSHeader.sinkId.addHeader(message, sinkReference.getId());
         JMSHeader.sinkVersion.addHeader(message, sinkReference.getVersion());
-        addItemIdentifiers(message, key.getJobId(), key.getChunkId(), key.getId());
+        addItemIdentifiers(message, key.getJobId(), key.getChunkId(), key.getId(),
+                item.getProcessingOutcome().getTrackingId());
         // if the execution is towards the diff sink during an acceptance test run
         if (flowBinderReference != null) {
             JMSHeader.flowBinderId.addHeader(message, flowBinderReference.getId());

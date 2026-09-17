@@ -1014,12 +1014,13 @@ for (ItemEntity item : chunkItems) {
         JMSHeader.flowBinderId.addHeader(msg, flowBinderReference.getId());
         JMSHeader.flowBinderVersion.addHeader(msg, flowBinderReference.getVersion());
     }
-    JMSHeader.trackingId.addHeader(msg, chunk.getTrackingId());
 
-    // item identity
+    // item identity, including the item's own tracking id rather than the chunk's
+    // (see "The tracking id on an item message" below)
     msg.setIntProperty(JMSHeader.jobId,    jobId);
     msg.setIntProperty(JMSHeader.chunkId,  chunkId);
     msg.setShortProperty(JMSHeader.itemId, item.getKey().getId());
+    JMSHeader.trackingId.addHeader(msg, item.getProcessingOutcome().getTrackingId());
     RecordInfo ri = item.getRecordInfo();
     if (ri != null) {
         if (ri.getId() != null) {
@@ -1074,7 +1075,7 @@ already, and the failure modes are silent rather than loud:
 | `payload` | `validateMessage` | `InvalidMessageException`, and `onMessage` catches it and **discards the message with a warning**. Not a rollback, so the item is lost with no retry |
 | `jobId` | `onMessage`, unboxed to `int` | NPE inside `onMessage`, rethrown as `IllegalStateException`, transaction rolls back and the message is redelivered forever |
 | `chunkId` | `onMessage` (logging), result reporting | Item cannot be attributed to a chunk when reporting delivery |
-| `trackingId` | `onMessage` (logging) | Loses the correlation id that ties log lines across components together |
+| `trackingId` | `onMessage` (logging) | Loses the correlation id that ties log lines across components together. Unlike the rest of this table, its value is not the chunk message's - see [The tracking id on an item message](#the-tracking-id-on-an-item-message) |
 | `sinkId`, `sinkVersion` | config refresh in `ims`, `vip`, `dpf`, `openupdate`, `rawrepo-update-v3`, each unboxed to `long` | NPE on every message, so those five sinks stop delivering entirely |
 | `flowBinderId`, `flowBinderVersion` | queue-provider lookup in `dpf` (`ConfigBean`) and `openupdate` (`UpdateMessageConsumer`), each unboxed to `long` | NPE in those two sinks whenever the job has a flow-binder reference |
 
@@ -1204,6 +1205,55 @@ semantic some sink's `deliverItem` could still end up depending on by accident. 
 opaque pass-through token has no internal structure for a sink to depend on in the
 first place — the same rationale as carrying the id itself instead of re-deriving it,
 one dimension further.
+
+### The tracking id on an item message
+
+`trackingId` is the one header on an item message whose value is not the chunk message's.
+It is the item's own tracking id, read from the processing outcome that forms the message
+body, where the chunk message carries `Chunk.getTrackingId()` — which returns
+`jobId + "/" + chunkId` and so restates two numbers the message already carries as
+properties of their own.
+
+That restatement was harmless while one message meant one chunk. Under per-item dispatch
+it is repeated once per item, and the sink framework's receive line in
+`MessageConsumer.onMessage` becomes a run of identical lines that name neither the item
+nor the record:
+
+```
+Received chunk 518575/0 with uid: 518575/0     (x10, one per item of the chunk)
+```
+
+The "uid" naming is from the same line: the value is a tracking id, and is called one by
+the header, by `TrackingIdGenerator` and by the log context key.
+
+An item level tracking id already exists for exactly this purpose. `TrackingIdGenerator`
+assigns one to every item at partitioning time — `{recordId:submitterId}-jobId-chunkId-itemId`
+for a MARC record, `ip-jobId-chunkId-itemId` otherwise, and `<jobId>.JOB_END` for the job
+termination item — and both job processors carry it onto the processing outcome. It is the
+value `DBCTrackedLogContext` puts in the log context, and therefore the one that ties a
+single record's log lines together across harvester, job-store, processor and sink. The
+sink framework already reads it off the message body to open that context around
+`deliverItem`; putting it on the message makes it available to `onMessage` as well, which
+logs before the body is unmarshalled.
+
+The receive line becomes one line per item, each naming a different item and a different
+record:
+
+```
+Received item 518575/0/0 with trackingId {51806731:870970}-518575-0-0
+Received item 518575/0/1 with trackingId {51806758:870970}-518575-0-1
+```
+
+`onMessage` tells the two message shapes apart by the presence of the `itemId` header,
+which is absent on a chunk message, and keeps the chunk wording for the chunk consumers
+that remain. The chunk branch drops the tracking id rather than printing `jobId/chunkId` a
+second time. The discard line for an aborted job is split the same way.
+
+`addIdentifiers(Message, int, long)` is unchanged, so the chunk messages job-store sends
+to the job processors keep the tracking id they have. An item whose processing outcome
+arrives without a tracking id falls back to `jobId/chunkId/itemId`: job-store assigns one
+to every item it partitions and both processors copy it forward, but the value crosses a
+service boundary, and a blank header is worse than a derivable one.
 
 ---
 
@@ -2253,10 +2303,14 @@ Two ordering constraints shape the sequence:
   (see [Items of a chunk are sent in ascending `itemId` order](
   #items-of-a-chunk-are-sent-in-ascending-itemid-order))
 - Carry every routing and validation header from the chunk message onto each item
-  message (`payload`, `jobId`, `chunkId`, `trackingId`, `sinkId`, `sinkVersion`, and
+  message (`payload`, `jobId`, `chunkId`, `sinkId`, `sinkVersion`, and
   `flowBinderId`/`flowBinderVersion` when the job has a flow-binder reference) - see
   [Headers on an item message](#headers-on-an-item-message) for what each one breaks
   when it is missing
+- Set `trackingId` from the item's own tracking id on the processing outcome, not from
+  the chunk level `jobId/chunkId`, and split the sink framework's receive and discard
+  lines in `MessageConsumer.onMessage` on the presence of `itemId` - see [The tracking id
+  on an item message](#the-tracking-id-on-an-item-message)
 - Iterate items; set `JMSHeader.recordKey` from `<agencyId>:RecordInfo.getId()`
   (the job's `job.getSpecification().getSubmitterId()`, not `RecordInfo.getId()` alone —
   see "Why `recordKey` is carried on the message" under Per-Item Dispatch) and

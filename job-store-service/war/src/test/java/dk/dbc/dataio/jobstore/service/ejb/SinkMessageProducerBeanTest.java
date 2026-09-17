@@ -139,7 +139,7 @@ class SinkMessageProducerBeanTest {
         assertThat("payload", message.getObjectProperty(JMSHeader.payload.name), is(JMSHeader.ITEM_PAYLOAD_TYPE));
         assertThat("jobId", message.getObjectProperty(JMSHeader.jobId.name), is(JOB_ID));
         assertThat("chunkId", message.getObjectProperty(JMSHeader.chunkId.name), is((long) CHUNK_ID));
-        assertThat("trackingId", message.getObjectProperty(JMSHeader.trackingId.name), is(JOB_ID + "/" + CHUNK_ID));
+        assertThat("trackingId", message.getObjectProperty(JMSHeader.trackingId.name), is(trackingId(1)));
         assertThat("itemId", message.getObjectProperty(JMSHeader.itemId.name), is((short) 1));
         assertThat("sinkId", message.getObjectProperty(JMSHeader.sinkId.name), is(sinkReference.getId()));
         assertThat("sinkVersion", message.getObjectProperty(JMSHeader.sinkVersion.name), is(sinkReference.getVersion()));
@@ -207,6 +207,14 @@ class SinkMessageProducerBeanTest {
     }
 
     @Test
+    void createItemMessage_processingOutcomeHasNoTrackingId_fallsBackToTheItemIdentifiers() throws JMSException, JSONBException {
+        TextMessage message = createItemMessage(item(1, recordInfo("record-1"), null));
+
+        assertThat("trackingId", message.getObjectProperty(JMSHeader.trackingId.name),
+                is(JOB_ID + "/" + CHUNK_ID + "/" + 1));
+    }
+
+    @Test
     void sendAbort_keepsAbortPayloadType() throws JobStoreException, JMSException {
         when(jmsContext.createTextMessage()).thenReturn(new MockedJmsTextMessage());
 
@@ -232,10 +240,22 @@ class SinkMessageProducerBeanTest {
     }
 
     private ItemEntity item(int itemId, RecordInfo recordInfo) {
+        return item(itemId, recordInfo, trackingId(itemId));
+    }
+
+    private ItemEntity item(int itemId, RecordInfo recordInfo, String trackingId) {
         return new ItemEntity()
                 .withKey(new ItemEntity.Key(JOB_ID, CHUNK_ID, (short) itemId))
-                .withProcessingOutcome(new ChunkItemBuilder().setId(itemId).setData("item " + itemId).build())
+                .withProcessingOutcome(new ChunkItemBuilder()
+                        .setId(itemId)
+                        .setData("item " + itemId)
+                        .setTrackingId(trackingId)
+                        .build())
                 .withRecordInfo(recordInfo);
+    }
+
+    private String trackingId(int itemId) {
+        return String.format("{record-%d:%d}-%d-%d-%d", itemId, SUBMITTER_ID, JOB_ID, CHUNK_ID, itemId);
     }
 
     private RecordInfo recordInfo(String id) {

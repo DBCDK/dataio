@@ -320,8 +320,9 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
                     is(notNullValue()));
             assertThat("itemId header", header(message, JMSHeader.itemId),
                     is(notNullValue()));
-            assertThat("trackingId header", header(message, JMSHeader.trackingId),
-                    is(jobId + "/" + header(message, JMSHeader.chunkId)));
+            assertThat("trackingId header names the item, not its chunk",
+                    header(message, JMSHeader.trackingId),
+                    is(getChunkItem(message).getTrackingId()));
             assertThat("sinkId header", header(message, JMSHeader.sinkId),
                     is(notNullValue()));
             assertThat("sinkVersion header", header(message, JMSHeader.sinkVersion),

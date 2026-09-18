@@ -24,52 +24,6 @@
         <property name="hazelcast.operation.thread.count">16</property>
         <property name="hazelcast.operation.generic.thread.count">16</property>
     </properties>
-    <map name="dependencies">
-        <in-memory-format>OBJECT</in-memory-format>
-        <metadata-policy>CREATE_ON_UPDATE</metadata-policy>
-        <backup-count>0</backup-count>
-        <async-backup-count>0</async-backup-count>
-        <time-to-live-seconds>0</time-to-live-seconds>
-        <max-idle-seconds>0</max-idle-seconds>
-        <eviction eviction-policy="NONE"/>
-        <statistics-enabled>true</statistics-enabled>
-        <map-store initial-mode="EAGER">
-            <class-name>dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore</class-name>
-            <write-delay-seconds>10</write-delay-seconds>
-            <write-batch-size>5000</write-batch-size>
-            <write-coalescing>true</write-coalescing>
-        </map-store>
-        <indexes>
-            <index type="HASH">
-                <attributes>
-                    <attribute>waitingOn[any]</attribute>
-                </attributes>
-            </index>
-            <index type="HASH">
-                <attributes>
-                    <attribute>waitFor[any]</attribute>
-                </attributes>
-            </index>
-        </indexes>
-    </map>
-    <map name="last.tracker">
-        <in-memory-format>BINARY</in-memory-format>
-        <metadata-policy>CREATE_ON_UPDATE</metadata-policy>
-        <backup-count>0</backup-count>
-        <async-backup-count>0</async-backup-count>
-        <time-to-live-seconds>0</time-to-live-seconds>
-        <max-idle-seconds>0</max-idle-seconds>
-        <eviction eviction-policy="NONE"/>
-        <statistics-enabled>true</statistics-enabled>
-        <indexes>
-            <index type="HASH">
-                <attributes>
-                    <attribute>jobId</attribute>
-                    <attribute>chunkId</attribute>
-                </attributes>
-            </index>
-        </indexes>
-    </map>
     <map name="sink.status">
         <in-memory-format>OBJECT</in-memory-format>
         <metadata-policy>CREATE_ON_UPDATE</metadata-policy>
@@ -95,13 +49,7 @@
     <serialization>
         <compact-serialization>
             <classes>
-                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.RemoveWaitingOnSer</class>
-                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.StatusChangeSer</class>
-                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.TrackingKeySer</class>
                 <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateCounterSer</class>
-                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdateStatusSer</class>
-                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.UpdatePrioritySer</class>
-                <class>dk.dbc.dataio.jobstore.distributed.hz.serializer.WaitForSer</class>
             </classes>
         </compact-serialization>
     </serialization>

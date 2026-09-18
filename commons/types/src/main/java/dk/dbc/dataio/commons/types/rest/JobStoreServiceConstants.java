@@ -6,10 +6,10 @@ public class JobStoreServiceConstants {
     public static final String CHUNK_ID_VARIABLE = "chunkId";
     public static final String ITEM_ID_VARIABLE = "itemId";
     public static final String SINK_ID_VARIABLE = "sinkId";
+    public static final String RECORD_KEY_QUERY_PARAM = "recordKey";
 
 
     public static final String JOB_COLLECTION = "jobs";
-    public static final String JOB_COLLECTION_ACCTESTS = "jobs/acctests";
     public static final String JOB_ABORT = "jobs/abort";
     public static final String JOB_RESEND = "dependency/retransmit";
     public static final String JOB_COLLECTION_EMPTY = "jobs/empty";
@@ -25,7 +25,6 @@ public class JobStoreServiceConstants {
     public static final String JOB_CHUNK_DELIVERED = "jobs/{jobId}/chunks/{chunkId}/delivered";
     public static final String CHUNK_ITEM_PARTITIONED = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/partitioned";
     public static final String CHUNK_ITEM_PROCESSED = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/processed/current";
-    public static final String CHUNK_ITEM_PROCESSED_NEXT = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/processed/next";
     public static final String CHUNK_ITEM_DELIVERED = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivered";
     public static final String JOB_NOTIFICATIONS = "jobs/{jobId}/notifications";
     public static final String JOB_WORKFLOW_NOTE = "jobs/{jobId}/workflownote";
@@ -50,11 +49,27 @@ public class JobStoreServiceConstants {
     public static final String SCHEDULER_SINK_FORCE_TRANSITION_MODE = "dependency/sinks/{" + SINK_ID_VARIABLE + "}/forceTransitionMode";
     public static final String FORCE_DEPENDENCY_TRACKING_RETRANSMIT = "dependency/retransmit";
     public static final String FORCE_DEPENDENCY_TRACKING_RETRANSMIT_ID = "dependency/retransmit/{jobIds}";
-    public static final String DEPENDENCY_CHECK_BLOCKED = "dependency/check_blocked";
-    public static final String DEPENDENCY_RELOAD = "dependency/reload";
+    /**
+     * Runs the per-job gate sweep that {@code AdminBean.recheckBlocks} otherwise only runs hourly.
+     * The sweep is a recovery mechanism, so it has to be reachable when a gate is actually stranded
+     * rather than only at minute 10 of the next hour.
+     */
+    public static final String DEPENDENCY_GATE_SWEEP = "dependency/gate_sweep";
+
+    /**
+     * Runs the whole of {@code AdminBean.recheckBlocks} rather than only the gate sweep half of it.
+     * <p>
+     * The half {@link #DEPENDENCY_GATE_SWEEP} does not reach is the one that drops the scheduling
+     * rows of jobs that are gone or already completed, lifts the barrier of each, and recounts the
+     * sink status map. That is where the recheck's own nested transactions are, so it is the half
+     * whose failure mode is an undetectable hang, and until this existed it was reachable only by
+     * waiting for minute 10 of the next hour.
+     */
+    public static final String DEPENDENCY_RECHECK_BLOCKS = "dependency/recheck_blocks";
     public static final String DEPENDENCIES = "dependencies/{jobId}";
 
     public static final String SINK_STATUS = "status/sinks/{sinkId}";
+    public static final String SINK_WATERMARK = "sinks/{" + SINK_ID_VARIABLE + "}/watermarks";
     public static final String SINKS_STATUS = "status/sinks";
     public static final String SINKS_STATUS_RECOUNT = "status/sinks/recount";
     public static final String CLEAR_CACHE = "cache/clear";

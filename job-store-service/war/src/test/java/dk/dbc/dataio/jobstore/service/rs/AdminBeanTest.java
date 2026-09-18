@@ -34,7 +34,7 @@ public class AdminBeanTest {
     }
 
     public static SinkContent newSinkContent(String name, int timeout) {
-        return new SinkContent(name, "queue", "description", SinkContent.SinkType.DUMMY, null, SinkContent.SequenceAnalysisOption.ALL, timeout);
+        return new SinkContent(name, "queue", "description", SinkContent.SinkType.DUMMY, null, timeout);
     }
 
     private static class TestDependencyTracking extends DependencyTracking {

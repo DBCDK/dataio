@@ -16,7 +16,7 @@ import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
-import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -51,10 +51,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static jakarta.ws.rs.core.Response.Status.ACCEPTED;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -93,28 +91,53 @@ public class JobsBean {
 
     @EJB
     SinkMessageProducerBean sinkMessageProducerBean;
+
     @EJB
     JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
 
-
+    @EJB
+    JobGateBean jobGateBean;
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
 
     @POST
     @Path(JobStoreServiceConstants.JOB_ABORT + "/{jobId}")
-    public Response abortJob(@PathParam("jobId") int jobId) throws JobStoreException {
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response abortJob(@PathParam("jobId") int jobId) throws JobStoreException, JSONBException {
         LOGGER.warn("Aborting job {}", jobId);
         abortedJobs.add(jobId);
-        Set<Integer> abortedIds = new HashSet<>();
-        List<JobEntity> jobs = jobStore.abortJob(jobId, abortedIds).collect(Collectors.toList());
-        for (JobEntity job : jobs) {
-            removeFromQueues(job);
-            jobProcessorMessageProducerBean.sendAbort(job);
-            sinkMessageProducerBean.sendAbort(job);
-            dependencyTrackingService.removeJobId(job.getId());
-        }
+        JobEntity job = jobStore.abortJob(jobId);
+        removeFromQueues(job);
+        jobProcessorMessageProducerBean.sendAbort(job);
+        sinkMessageProducerBean.sendAbort(job);
+        dependencyTrackingService.removeJobId(job.getId());
+        // An aborted job's termination chunk is never delivered, but its barrier is genuinely
+        // lifted, and removing the rows above takes away the only thing a lift would have fired
+        // on. Skipping this holds every later job on the same submitter and sink permanently,
+        // since the re-trigger is edge triggered and the edge has already passed.
+        liftBarrierImposedBy(job);
         LOGGER.info("Abort job {} and removed its dependencies", jobId);
-        return Response.ok(JobInfoSnapshotConverter.toJobInfoSnapshot(jobs.stream().findFirst().orElse(null))).build();
+        // Marshalled here rather than handed over as a POJO, as every other endpoint on this bean
+        // does it. Left to the container's own JSON-B provider the snapshot's Date fields serialise
+        // with a zone region suffix the connector's Jackson cannot read, so an abort that had done
+        // all its work still failed its caller on the way back.
+        return Response.ok().entity(jsonbContext.marshall(JobInfoSnapshotConverter.toJobInfoSnapshot(job))).build();
+    }
+
+    /**
+     * Lifts the barrier an aborted job imposes on later jobs, and re-triggers those behind it.
+     * <p>
+     * A no-op single update for a job that never had a termination chunk, which is the majority, see
+     * {@link JobGateRepository#markTerminationBarrierLifted}.
+     *
+     * @param job job being aborted
+     */
+    private void liftBarrierImposedBy(JobEntity job) {
+        if (job.getCachedSink() == null) {
+            return;
+        }
+        jobGateBean.liftBarrierAndRetrigger(job.getId(), job.getCachedSink().getSink().getId(),
+                (int) job.getSpecification().getSubmitterId());
     }
 
     private void removeFromQueues(JobEntity job) {
@@ -158,42 +181,6 @@ public class JobsBean {
         try {
             jobInputStream = jsonbContext.unmarshall(jobInputStreamData, JobInputStream.class);
             jobInfoSnapshot = jobStore.addAndScheduleJob(jobInputStream);
-            return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.getJobId())))
-                    .entity(jsonbContext.marshall(jobInfoSnapshot))
-                    .build();
-
-        } catch (JSONBException e) {
-            return Response.status(BAD_REQUEST)
-                    .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
-                    .build();
-        } catch (InvalidInputException e) {
-            return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
-        }
-    }
-
-    /**
-     * Adds new acceptance test job based on POSTed job input stream, and persists it in the underlying data store
-     *
-     * @param uriInfo            application and request URI information
-     * @param jobInputStreamData job input stream data as json
-     * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
-     * a HTTP 400 BAD_REQUEST response on invalid json content,
-     * a HTTP 400 BAD_REQUEST response on referenced entities not found,
-     * @throws JSONBException    on marshalling failure
-     * @throws JobStoreException on failure to add job
-     */
-    @POST
-    @Path(JobStoreServiceConstants.JOB_COLLECTION_ACCTESTS)
-    @Consumes({MediaType.APPLICATION_JSON})
-    @Produces({MediaType.APPLICATION_JSON})
-    @Stopwatch
-    public Response addAccTestJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JSONBException, JobStoreException {
-        final AccTestJobInputStream jobInputStream;
-        JobInfoSnapshot jobInfoSnapshot;
-
-        try {
-            jobInputStream = jsonbContext.unmarshall(jobInputStreamData, AccTestJobInputStream.class);
-            jobInfoSnapshot = jobStore.addAndScheduleAccTestJob(jobInputStream);
             return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.getJobId())))
                     .entity(jsonbContext.marshall(jobInfoSnapshot))
                     .build();
@@ -368,9 +355,13 @@ public class JobsBean {
             return buildBadRequestResponse(e);
         }
 
+        // The chunk must be persisted before it is scheduled for delivery. Delivery
+        // dispatch reads the chunk's ItemEntity rows to build one message per item, and
+        // until addChunk has run, those rows carry no processing outcome.
+        Response response = addChunk(uriInfo, jobId, chunkId, Chunk.Type.PROCESSED, processedChunk);
         jobSchedulerBean.chunkProcessingDone(processedChunk);
 
-        return addChunk(uriInfo, jobId, chunkId, Chunk.Type.PROCESSED, processedChunk);
+        return response;
     }
 
     /**
@@ -733,6 +724,53 @@ public class JobsBean {
     }
 
     /**
+     * Records the outcome of a single item's delivery attempt (see
+     * docs/chunk-scheduling-redesign.md, "Delivery Watermark"). Idempotent: a repeated
+     * call for an item whose delivery outcome is already recorded is a silent no-op.
+     *
+     * @param requestBody delivery result as json: {"sinkId", "recordKey", "status"}
+     * @param jobId       the job id
+     * @param chunkId     the chunk id
+     * @param itemId      the item id
+     * @return a HTTP 200 OK response
+     * @throws JSONBException    on marshalling failure
+     * @throws JobStoreException on failure to retrieve the referenced item, chunk or job
+     */
+    @POST
+    @Path(JobStoreServiceConstants.CHUNK_ITEM_DELIVERED)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    @Stopwatch
+    public Response addItemDelivered(
+            String requestBody,
+            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
+            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
+            @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
+
+        final ItemDeliveryResult result;
+        try {
+            result = jsonbContext.unmarshall(requestBody, ItemDeliveryResult.class);
+        } catch (JSONBException e) {
+            return buildBadRequestResponse(e);
+        }
+        if (result.status() == null) {
+            return buildBadRequestResponse(JobError.Code.INVALID_INPUT, "status must not be null");
+        }
+        if (result.chunkItem() == null) {
+            return buildBadRequestResponse(JobError.Code.INVALID_INPUT, "chunkItem must not be null");
+        }
+        if (result.sinkId() <= 0 || result.sinkId() > Integer.MAX_VALUE) {
+            return buildBadRequestResponse(JobError.Code.INVALID_INPUT,
+                    String.format("sinkId must be a positive value representable as int, was %d", result.sinkId()));
+        }
+        final boolean chunkDeliveringDone = jobStore.addItemDelivered(jobId, chunkId, itemId, result);
+        if (chunkDeliveringDone) {
+            jobSchedulerBean.chunkDeliveringDone(new Chunk(jobId, chunkId, Chunk.Type.DELIVERED));
+        }
+        return Response.status(Response.Status.OK).build();
+    }
+
+    /**
      * @param jobId   the job id
      * @param chunkId the chunk id
      * @param itemId  the item idjobs/{jobId}/chunks/{chunkId}/processed
@@ -745,34 +783,6 @@ public class JobsBean {
     Response getChunkItemForPhase(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException, JSONBException {
         try {
             ChunkItem chunkItem = jobStoreRepository.getChunkItemForPhase(jobId, chunkId, itemId, phase);
-            return Response.ok().entity(jsonbContext.marshall(chunkItem)).build();
-        } catch (InvalidInputException e) {
-            return Response.status(NOT_FOUND).build();
-        }
-    }
-
-    /**
-     * Retrieves processed next chunk item
-     *
-     * @param jobId   the job id
-     * @param chunkId the chunk id
-     * @param itemId  the itemId
-     * @return a HTTP 200 OK response with processed next chunk item as entity,
-     * a HTTP 400 BAD_REQUEST response on failure to retrieve item
-     * @throws JSONBException    on marshalling failure
-     * @throws JobStoreException on failure to retrieve item
-     */
-    @GET
-    @Path(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT)
-    @Produces({MediaType.APPLICATION_JSON})
-    @Stopwatch
-    public Response getProcessedNextResult(
-            @PathParam(JobStoreServiceConstants.JOB_ID) int jobId,
-            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
-            @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
-
-        try {
-            ChunkItem chunkItem = jobStoreRepository.getNextProcessingOutcome(jobId, chunkId, itemId);
             return Response.ok().entity(jsonbContext.marshall(chunkItem)).build();
         } catch (InvalidInputException e) {
             return Response.status(NOT_FOUND).build();
@@ -872,6 +882,12 @@ public class JobsBean {
     private Response buildBadRequestResponse(JSONBException e) throws JSONBException {
         return Response.status(BAD_REQUEST).entity(
                         jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                .build();
+    }
+
+    private Response buildBadRequestResponse(JobError.Code code, String message) throws JSONBException {
+        return Response.status(BAD_REQUEST).entity(
+                        jsonbContext.marshall(new JobError(code, message, JobError.NO_STACKTRACE)))
                 .build();
     }
 

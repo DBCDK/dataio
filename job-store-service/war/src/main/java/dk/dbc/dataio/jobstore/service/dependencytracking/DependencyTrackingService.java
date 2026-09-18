@@ -1,85 +1,81 @@
 package dk.dbc.dataio.jobstore.service.dependencytracking;
 
 import com.hazelcast.map.IMap;
-import com.hazelcast.query.Predicate;
-import com.hazelcast.query.PredicateBuilder;
-import com.hazelcast.query.Predicates;
-import dk.dbc.dataio.commons.types.Priority;
-import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.distributed.WaitFor;
-import dk.dbc.dataio.jobstore.distributed.hz.aggregator.BlockedCounter;
-import dk.dbc.dataio.jobstore.distributed.hz.aggregator.JobCounter;
-import dk.dbc.dataio.jobstore.distributed.hz.aggregator.LastTrackerMap;
-import dk.dbc.dataio.jobstore.distributed.hz.aggregator.SinkStatusCounter;
-import dk.dbc.dataio.jobstore.distributed.hz.aggregator.StatusCounter;
-import dk.dbc.dataio.jobstore.distributed.hz.processor.AddTerminationWaitingOn;
-import dk.dbc.dataio.jobstore.distributed.hz.processor.RemoveWaitingOn;
 import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateCounter;
-import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdatePriority;
-import dk.dbc.dataio.jobstore.distributed.hz.processor.UpdateStatus;
-import dk.dbc.dataio.jobstore.distributed.hz.query.JobChunksWaitForKey;
-import dk.dbc.dataio.jobstore.distributed.hz.query.WaitingOn;
-import dk.dbc.dataio.jobstore.distributed.hz.store.DependencyTrackingStore;
+import dk.dbc.dataio.jobstore.service.ejb.DependencyTrackingRepository;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.ejb.DependsOn;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Lock;
+import jakarta.ejb.LockType;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
-import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
-import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.EnumMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants.JOB_ID;
-import static dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants.STATUS;
-
+/**
+ * The scheduler's view of chunk scheduling state, and the sink chunk counts the queue caps are read
+ * from.
+ * <p>
+ * State lives in {@code dependencytracking} and is read and written through
+ * {@link DependencyTrackingRepository}, in the caller's own transaction. This class adds the two
+ * things that sit outside a single statement: the {@code SINK_STATUS} counters, which are a
+ * distributed Hazelcast map so that a cap applies across job-store instances rather than per JVM,
+ * and the readiness check.
+ * <p>
+ * <b>{@code @Lock(READ)} is not cosmetic.</b> A singleton's default write lock serialises every
+ * business method one at a time per JVM, which was tolerable while these were microsecond map
+ * operations and is not now that each is a database round trip. Sound here because this class holds
+ * no mutable state of its own: the counters live in Hazelcast and the rows live in PostgreSQL.
+ * <p>
+ * The counters are maintained from the write sites rather than derived, so a rolled back
+ * transaction can leave one off by one. They are backpressure rather than correctness, so drift
+ * costs throughput, and {@link #recountSinkStatus} corrects it: at startup, hourly from
+ * {@code AdminBean.recheckBlocks}, and on demand from the {@code SINKS_STATUS_RECOUNT} endpoint.
+ */
 @Singleton
 @Startup
 @DependsOn("DatabaseMigrator")
+@Lock(LockType.READ)
 public class DependencyTrackingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyTrackingService.class);
-    private final IMap<TrackingKey, DependencyTracking> dependencyTracker = Hazelcast.Objects.DEPENDENCY_TRACKING.get();
     private final IMap<Integer, Map<ChunkSchedulingStatus, Integer>> countersMap = Hazelcast.Objects.SINK_STATUS.get();
-    private final IMap<WaitFor, TrackingKey> lastTracker = Hazelcast.Objects.LAST_TRACKER.get();
-    @Inject
-    @ConfigProperty(name = "WAIT_FOR_TRACKING_ENABLED", defaultValue = "false")
-    private boolean enableWaitForTracking;
-    @Inject
-    private MetricRegistry metricRegistry;
+
+    @EJB
+    DependencyTrackingRepository repository;
 
     @PostConstruct
     public void config() {
-        DependencyTrackingStore.setMetricRegistry(metricRegistry);
-        init(enableWaitForTracking);
+        init();
+    }
+
+    public DependencyTrackingService init() {
+        recountSinkStatus(Set.of());
+        return this;
     }
 
     @PreDestroy
@@ -89,196 +85,162 @@ public class DependencyTrackingService {
         LOGGER.info("Hazelcast node shutdown completed");
     }
 
-    public DependencyTrackingService init() {
-        return init(false);
-    }
-
-    public DependencyTrackingService init(boolean enableWaitForTracking) {
-        this.enableWaitForTracking = enableWaitForTracking;
-        if(enableWaitForTracking && Hazelcast.isMaster()) lastTracker.putAll(rebuildTrackerMap());
-        recountSinkStatus(Set.of());
+    public DependencyTrackingService withRepository(DependencyTrackingRepository repository) {
+        this.repository = repository;
         return this;
     }
 
-    @Timed
-    public TrackingKey add(DependencyTracking entity) {
-        int sinkId = entity.getSinkId();
-        Set<TrackingKey> waitingOn = entity.getWaitingOn();
-        TrackingKey key = entity.getKey();
-        dependencyTracker.set(key, entity);
-        countersMap.putIfAbsent(sinkId, new EnumMap<>(ChunkSchedulingStatus.class));
-        countersMap.executeOnKey(entity.getSinkId(), new UpdateCounter(entity.getStatus(), 1));
-        removeDeadWOs(key, waitingOn);
-        return key;
-    }
-
-    @Timed
-    public void addAndBuildDependencies(DependencyTracking dt, String barrierMatchKey) {
-        Set<TrackingKey> chunksToWaitFor = enableWaitForTracking ? trackChunksToWaitFor(dt, barrierMatchKey) : findChunksToWaitFor(dt, barrierMatchKey);
-        dt.setWaitingOn(chunksToWaitFor);
-        add(dt);
-        boostPriorities(dt.getKey().getJobId(), chunksToWaitFor, dt.getPriority(), new HashSet<>());
-    }
-
+    /**
+     * Timed here rather than on the repository, unlike every other method on this class. It reads
+     * the Hazelcast counters and never reaches the database, so no repository timer covers it, and
+     * it is on the direct dispatch path once per chunk.
+     */
     @Timed
     public int capacity(int sinkId, ChunkSchedulingStatus status) {
         if(status.getMax() == null) throw new IllegalArgumentException("This status does not have a capacity");
         return status.getMax() - getCount(sinkId, status);
     }
 
-    public boolean isEmpty() {
-        return dependencyTracker.isEmpty();
-    }
-
-    public void modify(TrackingKey key, Consumer<DependencyTracking> consumer) {
-        try {
-            dependencyTracker.tryLock(key, 2, TimeUnit.MINUTES);
-            DependencyTracking entity = dependencyTracker.get(key);
-            if(entity == null) {
-                LOGGER.info("Unable to modify tracker {} as it has been deleted", key);
-                return;
-            }
-            ChunkSchedulingStatus oldStatus = entity.getStatus();
-            consumer.accept(entity);
-            ChunkSchedulingStatus status = entity.getStatus();
-            if(oldStatus != status) {
-                countersMap.executeOnKey(entity.getSinkId(), new UpdateCounter(Map.of(oldStatus, -1, status, 1)));
-            }
-            entity.updateLastModified();
-            dependencyTracker.set(key, entity);
-            removeDeadWOs(key, entity.getWaitingOn());
-        } catch (InterruptedException ignored) {
-            Thread.currentThread().interrupt();
-        } finally {
-            try {
-                dependencyTracker.unlock(key);
-            } catch (Exception ignored) {}
-        }
+    /**
+     * Counts a row that has just been created against the sink's chunk counts.
+     * <p>
+     * <b>Every chunk is counted, gated or not.</b> {@code JobSchedulerBean.scheduleChunk} reaches
+     * this for every data chunk it creates a row for, whatever that row's {@code gate_open}, and
+     * {@code createAndScheduleTerminationChunk} for every termination chunk.
+     * <p>
+     * The gate has no bearing on it, because these counters are a census of rows by status and the
+     * gate is a column rather than a status. {@link #recountSinkStatus} recomputes that same census
+     * with {@code count(*) group by sinkid, status} and no gate predicate, so a gated row left
+     * uncounted here would put the incremental counters and the recount permanently at odds, and
+     * the hourly recount would move a counter rather than confirm it.
+     * <p>
+     * No cap is involved at this point either way. A data chunk is inserted in
+     * {@code READY_FOR_PROCESSING} and a termination chunk in {@code READY_FOR_DELIVERY}, and only
+     * the two {@code QUEUED_*} statuses carry one. A gated chunk does go on to consume a capped
+     * processing slot, since a gate holds back delivery and not processing, but it never reaches
+     * {@code QUEUED_FOR_DELIVERY} at all: every dispatch path refuses a closed gate.
+     * <p>
+     * The insert itself is not done here, and the reason is the transaction boundary rather than the
+     * gate. A row has to carry its gate verdict from the moment it exists, so the insert has to
+     * happen where that verdict is decided: {@code JobGateBean.insertDataChunkRow}, in its own
+     * {@code REQUIRES_NEW} transaction, and
+     * {@code PgJobStoreRepository.createJobTerminationChunkEntity}, under the job row lock. What is
+     * left for this class is the counter.
+     *
+     * @param sinkId sink the chunk is destined for
+     * @param status status the chunk was inserted with
+     */
+    public void countInsertedChunk(int sinkId, ChunkSchedulingStatus status) {
+        countersMap.putIfAbsent(sinkId, new EnumMap<>(ChunkSchedulingStatus.class));
+        countersMap.executeOnKey(sinkId, new UpdateCounter(status, 1));
     }
 
     public List<DependencyTracking> getSnapshot(int jobId) {
-        PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
-        Predicate<TrackingKey, DependencyTracking> p = e.key().get(JOB_ID).equal(jobId);
-        Collection<DependencyTracking> values = dependencyTracker.values(p);
-        return values.stream().sorted(Comparator.comparing(k -> k.getKey().getChunkId())).collect(Collectors.toList());
+        return repository.findByJob(jobId);
     }
 
-    public Stream<DependencyTrackingRO> getStaleDependencies(ChunkSchedulingStatus status, Duration timeout) {
-        PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
-        @SuppressWarnings("unchecked")
-        Predicate<TrackingKey, DependencyTracking> p = e.get(STATUS).equal(status).and(e.get("lastModified").lessThan(Instant.now().minus(timeout)));
-        return dependencyTracker.values(p).stream().map(DependencyTrackingRO.class::cast);
+    public List<DependencyTrackingRO> getStaleDependencies(ChunkSchedulingStatus status, Duration timeout) {
+        return repository.findStale(status, Instant.now().minus(timeout)).stream()
+                .map(DependencyTrackingRO.class::cast)
+                .toList();
     }
 
-    @Timed
     public DependencyTrackingRO get(TrackingKey key) {
-        return dependencyTracker.get(key);
+        return repository.get(key).orElse(null);
     }
 
     public boolean contains(TrackingKey key) {
-        return dependencyTracker.containsKey(key);
+        return repository.exists(key);
     }
 
-    public int resetStatus(ChunkSchedulingStatus from, ChunkSchedulingStatus to, Integer... jobIds) {
-        PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
-        @SuppressWarnings("unchecked")
-        Predicate<TrackingKey, DependencyTracking> p = e.get(STATUS).equal(from).and(e.key().get(JOB_ID).in(jobIds));
-        Set<TrackingKey> entries = dependencyTracker.keySet(p);
-        entries.forEach(key -> setStatus(key, to));
-        return entries.size();
+    public int resetStatus(ChunkSchedulingStatus from, ChunkSchedulingStatus to, Collection<Integer> jobIds) {
+        return repository.resetStatus(from, to, jobIds);
     }
 
-    @Timed
-    @SuppressWarnings("unchecked")
+    /**
+     * Drops every row of a job.
+     * <p>
+     * <b>{@code REQUIRES_NEW} is essential. Do not remove it.</b> The delete takes a row lock on
+     * every row of the job, closed gates included, and holds it until the transaction it runs in
+     * commits. {@code AdminBean.recheckBlocks} calls this once per finished job and then, in the
+     * same transaction, nests the barrier lift and the gate sweep, both {@code REQUIRES_NEW}. Those
+     * run on a different connection and ask for rows this delete has removed but not committed, so
+     * they wait for a transaction that cannot commit until they return. PostgreSQL sees no cycle,
+     * because one side of it is an EJB call rather than a database lock, so it is an undetectable
+     * hang rather than a detected deadlock, and the hourly recheck is the one thing that must not
+     * stop running.
+     * <p>
+     * Committing per job loses nothing. Jobs share no invariant here, so a recheck that dies
+     * halfway leaves the jobs it finished correctly removed rather than rolling all of them back.
+     * It also narrows the deadlock window {@code JobsBean.abortJob} accepts against a concurrent
+     * gate sweep, since the abort then holds only the rows its own re-trigger writes.
+     *
+     * @param jobId job whose rows are dropped
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void removeJobId(int jobId) {
-        remove(Predicates.newPredicateBuilder().getEntryObject().key().get(JOB_ID).equal(jobId));
-        if(enableWaitForTracking) lastTracker.removeAll(Predicates.newPredicateBuilder().getEntryObject().get(JOB_ID).equal(jobId));
+        Map<Integer, Map<ChunkSchedulingStatus, Integer>> removed = repository.deleteByJob(jobId);
+        removed.forEach((sinkId, counts) -> {
+            EnumMap<ChunkSchedulingStatus, Integer> deltas = new EnumMap<>(ChunkSchedulingStatus.class);
+            counts.forEach((status, count) -> deltas.put(status, -count));
+            countersMap.executeOnKey(sinkId, new UpdateCounter(deltas));
+        });
+        LOGGER.info("Removed every tracked chunk of job {}", jobId);
     }
 
-    @Timed
-    public void addToChunksToWaitFor(TrackingKey key, Set<TrackingKey> chunksToWaitFor) {
-        Set<DependencyTrackingRO> allWOs = chunksToWaitFor.stream().filter(k -> !key.equals(k)).map(this::get).filter(Objects::nonNull).collect(Collectors.toSet());
-        Set<TrackingKey> reducedWOs = optimizeDependencies(allWOs);
-        StatusChangeEvent changeEvent = dependencyTracker.executeOnKey(key, new AddTerminationWaitingOn(reducedWOs));
-        updateCounters(Stream.of(changeEvent));
-        removeDeadWOs(key, reducedWOs);
+    public Optional<StatusChangeEvent> setStatus(TrackingKey key, ChunkSchedulingStatus status) {
+        return applyCounters(repository.updateStatus(key, status));
     }
 
-    @Timed(name = "removeWaitingOn")
-    public Set<TrackingKey> removeFromWaitingOn(TrackingKey key) {
-        RemoveWaitingOn processor = new RemoveWaitingOn(key);
-        Map<TrackingKey, StatusChangeEvent> map = dependencyTracker.executeOnEntries(processor, Predicates.equal("waitingOn[any]", key));
-        updateCounters(map.values().stream());
-        return map.entrySet().stream()
-                .filter(e -> e.getValue() != null)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
+    public Optional<StatusChangeEvent> setValidatedStatus(TrackingKey key, ChunkSchedulingStatus status) {
+        return applyCounters(repository.updateStatusValidated(key, status));
     }
 
-    @Timed
-    public StatusChangeEvent setStatus(TrackingKey key, ChunkSchedulingStatus status) {
-        return setStatus(key, status, false);
+    /**
+     * Sends a stale chunk to its queue again, once.
+     *
+     * @param key chunk to send again
+     * @return what changed, or empty if the chunk had already been retried or held a status with no
+     * successor
+     */
+    public Optional<StatusChangeEvent> resend(TrackingKey key) {
+        return applyCounters(repository.resend(key));
     }
 
-    @Timed
-    public StatusChangeEvent setValidatedStatus(TrackingKey key, ChunkSchedulingStatus status) {
-        return setStatus(key, status, true);
+    /**
+     * Removes a delivered chunk's row and hands it to the caller that removed it.
+     * <p>
+     * The returned row is the once-only token for that chunk's delivery, so the caller that gets it
+     * is the one that counts the chunk against its job's gate. See
+     * {@link DependencyTrackingRepository#delete(TrackingKey, ChunkSchedulingStatus)}.
+     *
+     * @param key chunk whose delivery has been acknowledged
+     * @return the removed row, or empty if the chunk was not out for delivery or another caller
+     * acknowledged it first
+     */
+    public Optional<DependencyTracking> acknowledgeDelivery(TrackingKey key) {
+        Optional<DependencyTracking> removed = repository.delete(key, ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
+        removed.ifPresent(this::countRemovedChunk);
+        return removed;
     }
 
-    public Map<WaitFor, TrackingKey> rebuildTrackerMap() {
-        return dependencyTracker.aggregate(new LastTrackerMap());
-    }
-
-    private StatusChangeEvent setStatus(TrackingKey key, ChunkSchedulingStatus newStatus, boolean validate) {
-        StatusChangeEvent statusChangeEvent = dependencyTracker.executeOnKey(key, new UpdateStatus(newStatus, validate));
-        updateCounters(Stream.of(statusChangeEvent));
-        return statusChangeEvent;
-    }
-
+    /**
+     * Drops a chunk that is not going to be delivered at all.
+     *
+     * @param key chunk to drop
+     */
     public void remove(TrackingKey key) {
-        DependencyTracking removed = dependencyTracker.remove(key);
-        if(removed == null) return;
-        countersMap.executeOnKey(removed.getSinkId(), new UpdateCounter(removed.getStatus(), -1));
-        if(enableWaitForTracking) {
-            PredicateBuilder.EntryObject o = Predicates.newPredicateBuilder().getEntryObject();
-            lastTracker.removeAll(o.get("jobId").equal(key.getJobId()).and(o.get("chunkId").equal(key.getChunkId())));
-        }
-        LOGGER.info("Removed tracking key {} from dependency tracker", key.toChunkIdentifier());
-    }
-
-    public void remove(Predicate<TrackingKey, DependencyTracking> predicate) {
-        dependencyTracker.removeAll(predicate);
-        recountSinkStatus(Set.of());
-        LOGGER.info("Removed tracking keys matched by predicate: {}", predicate);
-    }
-
-    public void boostPriorities(int jobOrigin, Set<TrackingKey> keys, int priority, Set<TrackingKey> boostedKeys) {
-        if (priority > Priority.LOW.getValue()) {
-            try {
-                Set<TrackingKey> boostKeys = keys.stream().filter(tk -> tk.getJobId() != jobOrigin).collect(Collectors.toSet());
-                Map<TrackingKey, Set<TrackingKey>> map = dependencyTracker.executeOnKeys(boostKeys, new UpdatePriority(priority, true));
-                Set<TrackingKey> waitingOn = map.values().stream().filter(Objects::nonNull).flatMap(Collection::stream).filter(boostedKeys::add).collect(Collectors.toSet());
-                if(!waitingOn.isEmpty()) boostPriorities(jobOrigin, waitingOn, priority, boostedKeys);
-            } catch (Exception e) {
-                LOGGER.error("Got exception while boosting key", e);
-            }
-        }
-    }
-
-    public Map<WaitFor, TrackingKey> getLastTrackerMapSnapshot() {
-        return lastTracker.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    public void reload() {
-        dependencyTracker.loadAll(true);
-        recountSinkStatus(Set.of());
+        repository.delete(key).ifPresent(removed -> {
+            countRemovedChunk(removed);
+            LOGGER.info("Removed tracking key {} from dependency tracking", key.toChunkIdentifier());
+        });
     }
 
     public void recountSinkStatus(Set<Integer> sinkIds) {
-        Map<Integer, Map<ChunkSchedulingStatus, Integer>> map = statusCount(sinkIds);
+        Map<Integer, Map<ChunkSchedulingStatus, Integer>> counts = repository.countByStatus(sinkIds);
         if(sinkIds.isEmpty()) countersMap.clear();
         else sinkIds.forEach(countersMap::remove);
-        countersMap.putAll(map);
+        countersMap.putAll(counts);
         LOGGER.info("Completed status map recount for {}", sinkIds);
     }
 
@@ -297,57 +259,8 @@ public class DependencyTrackingService {
         return Optional.ofNullable(countersMap.get(sinkId)).map(m -> m.get(cs)).orElse(0);
     }
 
-    public int statusCount(int sinkId, ChunkSchedulingStatus status) {
-        return dependencyTracker.aggregate(new SinkStatusCounter(sinkId, status));
-    }
-
-    public Map<Integer, Map<ChunkSchedulingStatus, Integer>> statusCount(Set<Integer> sinkIds) {
-        StatusCounter statusCounter = new StatusCounter(sinkIds);
-        return dependencyTracker.aggregate(statusCounter);
-    }
-
-    public Map<Integer, Integer> sinkBlockedCount() {
-        return dependencyTracker.aggregate(new BlockedCounter());
-    }
-
-    @Timed
-    public Collection<DependencyTracking> findDependencies(ChunkSchedulingStatus status, Integer sinkId, Integer limit) {
-        return dependencyTracker.values(makeDependencyPredicate(status, sinkId, limit));
-    }
-
-    @Timed
-    public Set<TrackingKey> find(ChunkSchedulingStatus status, Integer sinkId, Integer limit) {
-        return dependencyTracker.keySet(makeDependencyPredicate(status, sinkId, limit));
-    }
-
-    @SuppressWarnings("unchecked")
-    private Predicate<TrackingKey, DependencyTracking> makeDependencyPredicate(ChunkSchedulingStatus status, Integer sinkId, Integer limit) {
-        PredicateBuilder.EntryObject e = Predicates.newPredicateBuilder().getEntryObject();
-        Predicate<TrackingKey, DependencyTracking> p;
-        if(sinkId != null) p = e.get("sinkId").equal(sinkId).and(e.get(STATUS).equal(status));
-        else p = e.get(STATUS).equal(status);
-        return Predicates.pagingPredicate(p, limit == null ? Integer.MAX_VALUE : limit);
-    }
-
-    @Timed
-    public List<TrackingKey> findChunksWaitingForMe(TrackingKey key, int sinkId) {
-        return dependencyTracker.keySet(new WaitingOn(sinkId, key)).stream()
-                .sorted(Comparator.comparing(TrackingKey::getJobId).thenComparing(TrackingKey::getChunkId))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Finding lists of chunks in dependency Tracking with this jobId and MatchKey.
-     * Note only First key in waitForKey is checked.
-     *
-     * @param sinkId     sinkId
-     * @param jobId      jobId for which chunks to wait for barrier
-     * @param waitForKey dataSetID
-     * @return Returns List of Chunks To wait for.
-     */
-    @Timed
-    public Set<TrackingKey> findJobBarrier(int sinkId, int jobId, Set<String> waitForKey) {
-        return dependencyTracker.keySet(new JobChunksWaitForKey(sinkId, jobId, waitForKey));
+    public List<DependencyTrackingRepository.ProcessingCandidate> findProcessingCandidates(int sinkId, int limit) {
+        return repository.findProcessingCandidates(sinkId, limit);
     }
 
     /**
@@ -357,57 +270,15 @@ public class DependencyTrackingService {
      * @return true if scheduled, false if not
      */
     public boolean isScheduled(ChunkEntity chunkEntity) {
-        return dependencyTracker.containsKey(new TrackingKey(chunkEntity.getKey().getJobId(), chunkEntity.getKey().getId()));
-    }
-
-    @Stopwatch
-    public Set<TrackingKey> recheckBlocks() {
-        Collection<DependencyTracking> deps = findDependencies(ChunkSchedulingStatus.BLOCKED, null, null);
-        return deps.stream().flatMap(this::checkBlocks).collect(Collectors.toSet());
-    }
-
-    public Set<TrackingKey> trackChunksToWaitFor(DependencyTracking dt, String barrierMatchKey) {
-        Set<WaitFor> waitFors = barrierMatchKey == null ?
-                dt.getWaitFor() :
-                Stream.concat(dt.getWaitFor().stream(), Stream.of(new WaitFor(dt.getSinkId(), dt.getSubmitter(), barrierMatchKey))).collect(Collectors.toSet());
-        Set<TrackingKey> result = waitFors.stream().map(lastTracker::get).filter(Objects::nonNull).collect(Collectors.toSet());
-        waitFors.forEach(wf -> lastTracker.put(wf, dt.getKey()));
-        return result;
-    }
-
-    /**
-     * Finds chunks matching keys in given dependency tracking entity
-     * and given barrier match key
-     *
-     * @param entity          dependency tracking entity
-     * @param barrierMatchKey special key for barrier chunks
-     * @return Returns set of chunks to wait for.
-     */
-    public Set<TrackingKey> findChunksToWaitFor(DependencyTracking entity, String barrierMatchKey) {
-        if (entity.getMatchKeys().isEmpty() && barrierMatchKey == null) return Set.of();
-        WaitFor[] waitFor = barrierMatchKey == null ? entity.getWaitFor().toArray(WaitFor[]::new) :
-                Stream.concat(entity.getWaitFor().stream(), Stream.of(new WaitFor(entity.getSinkId(), entity.getSubmitter(), barrierMatchKey))).toArray(WaitFor[]::new);
-        Predicate<TrackingKey, DependencyTracking> query = Predicates.in("waitFor[any]", waitFor);
-        Collection<DependencyTracking> values = new ArrayList<>(dependencyTracker.values(query));
-        return optimizeDependencies(values);
-    }
-
-    public static Set<TrackingKey> optimizeDependencies(Collection<? extends DependencyTrackingRO> dependencies) {
-        if(dependencies.isEmpty()) return Set.of();
-        Set<TrackingKey> keys = dependencies.stream()
-                .map(DependencyTrackingRO::getWaitingOn)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
-        return dependencies.stream().map(DependencyTrackingRO::getKey).filter(k -> !keys.contains(k)).collect(Collectors.toSet());
+        return repository.exists(new TrackingKey(chunkEntity.getKey().getJobId(), chunkEntity.getKey().getId()));
     }
 
     public Set<Integer> getAllJobIs() {
-        return dependencyTracker.keySet().stream().map(TrackingKey::getJobId).collect(Collectors.toSet());
+        return repository.distinctJobIds();
     }
 
     public Integer[] jobCount(int sinkId) {
-        return dependencyTracker.aggregate(new JobCounter(sinkId));
+        return repository.countJobsAndChunks(sinkId);
     }
 
     @Readiness
@@ -415,32 +286,20 @@ public class DependencyTrackingService {
         return () -> HealthCheckResponse.named("hazelcast-ready").status(Hazelcast.isReady()).build();
     }
 
-    private Stream<TrackingKey> checkBlocks(DependencyTracking dt) {
-        boolean unblock = dt.getWaitingOn().stream().anyMatch(d -> !dependencyTracker.containsKey(d));
-        if(unblock) {
-            dt.setWaitingOn(dt.getWaitingOn().stream().filter(dependencyTracker::containsKey).collect(Collectors.toSet()));
-            if(dt.getWaitingOn().isEmpty()) dt.setStatus(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
-            dependencyTracker.set(dt.getKey(), dt);
-            return Stream.of(dt.getKey());
-        }
-        return Stream.of();
+    private void countRemovedChunk(DependencyTracking removed) {
+        countersMap.executeOnKey(removed.getSinkId(), new UpdateCounter(removed.getStatus(), -1));
     }
 
-    private void removeDeadWOs(TrackingKey key, Set<TrackingKey> waitingOn) {
-        Stream<StatusChangeEvent> changes = waitingOn.stream()
-                .filter(k -> !dependencyTracker.containsKey(k))
-                .map(k -> dependencyTracker.executeOnKey(key, new RemoveWaitingOn(k)));
-        updateCounters(changes);
-    }
-
-    private void updateCounters(Stream<StatusChangeEvent> changes) {
-        Map<Integer, List<StatusChangeEvent>> bySink = changes.filter(Objects::nonNull).collect(Collectors.groupingBy(StatusChangeEvent::getSinkId));
-        bySink.forEach(this::updateCounters);
-    }
-
-    private void updateCounters(Integer sinkId, List<StatusChangeEvent> statusChangeEvents) {
-        EnumMap<ChunkSchedulingStatus, Integer> deltas = new EnumMap<>(ChunkSchedulingStatus.class);
-        statusChangeEvents.forEach(e -> e.apply(deltas));
-        countersMap.executeOnKey(sinkId, new UpdateCounter(deltas));
+    /**
+     * Applies a status change's counter delta, always after the statement that caused it and never
+     * before, so a statement that affected nothing moves no counter.
+     */
+    private Optional<StatusChangeEvent> applyCounters(Optional<StatusChangeEvent> change) {
+        change.ifPresent(event -> {
+            EnumMap<ChunkSchedulingStatus, Integer> deltas = new EnumMap<>(ChunkSchedulingStatus.class);
+            event.apply(deltas);
+            countersMap.executeOnKey(event.getSinkId(), new UpdateCounter(deltas));
+        });
+        return change;
     }
 }

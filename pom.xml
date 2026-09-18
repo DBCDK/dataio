@@ -490,6 +490,11 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
+                <artifactId>dataio-cli-diff</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
                 <artifactId>dataio-cli-job-replicator</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -588,11 +593,6 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-partitioner</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-sink-diff</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1242,6 +1242,7 @@
                            Property value seems to magically default to false -->
                     <!--suppress UnresolvedMavenProperty, MavenModelInspection -->
                     <skipTests>${skip.surefire.tests}</skipTests>
+                    <argLine>-Djava.io.tmpdir=${project.build.directory} -Djna.tmpdir=${project.build.directory}</argLine>
                 </configuration>
                 <dependencies>
                     <dependency>

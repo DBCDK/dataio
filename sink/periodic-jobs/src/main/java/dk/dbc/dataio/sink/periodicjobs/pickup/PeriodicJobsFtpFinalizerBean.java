@@ -1,6 +1,5 @@
 package dk.dbc.dataio.sink.periodicjobs.pickup;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.harvester.types.FtpPickup;
@@ -31,14 +30,15 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     @Timed
     @Override
-    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery, EntityManager entityManager) throws InvalidMessageException {
-        if (isEmptyJob(chunk)) {
-            return deliverEmptyFile(chunk, delivery);
+    public ChunkItem deliver(int jobId, int chunkId, PeriodicJobsDelivery delivery,
+                             EntityManager entityManager) throws InvalidMessageException {
+        if (isEmptyJob(jobId, chunkId)) {
+            return deliverEmptyFile(delivery);
         }
-        return deliverDatablocks(chunk, delivery, entityManager);
+        return deliverDatablocks(jobId, chunkId, delivery, entityManager);
     }
 
-    private Chunk deliverEmptyFile(Chunk chunk, PeriodicJobsDelivery delivery) {
+    private ChunkItem deliverEmptyFile(PeriodicJobsDelivery delivery) {
         String remoteFile = getRemoteFilename(delivery) + ".EMPTY";
         FtpPickup ftpPickup = (FtpPickup) delivery.getConfig().getContent().getPickup();
         FtpClient ftpClient = null;
@@ -50,11 +50,12 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
                 ftpClient.close();
             }
         }
-        return newResultChunk(chunk,
+        return newResultItem(
                 String.format("Empty file %s uploaded to ftp host '%s'", remoteFile, ftpPickup.getFtpHost()));
     }
 
-    private Chunk deliverDatablocks(Chunk chunk, PeriodicJobsDelivery delivery, EntityManager entityManager) throws InvalidMessageException {
+    private ChunkItem deliverDatablocks(int jobId, int chunkId, PeriodicJobsDelivery delivery,
+                                        EntityManager entityManager) throws InvalidMessageException {
         String remoteFile = getRemoteFilename(delivery);
         FtpPickup ftpPickup = (FtpPickup) delivery.getConfig().getContent().getPickup();
         File localFile = null;
@@ -68,20 +69,20 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
                     .createLocalFile();
             if (localFile.length() > 0) {
                 uploadLocalFileToFtp(ftpPickup, localFile, remoteFile);
-                LOGGER.info("jobId '{}' uploaded to ftp host '{}'.", chunk.getJobId(), ftpPickup.getFtpHost());
+                LOGGER.info("jobId '{}' uploaded to ftp host '{}'.", jobId, ftpPickup.getFtpHost());
             } else {
                 LOGGER.warn("jobId '{}' NOT uploaded to ftp host '{}' - no datablocks",
-                        chunk.getJobId(), ftpPickup.getFtpHost());
+                        jobId, ftpPickup.getFtpHost());
             }
         } catch (IOException e) {
             throw new InvalidMessageException(String.format("Unable to deliver datablocks for chuk: %d/%d",
-                    chunk.getJobId(), chunk.getChunkId()),e);
+                    jobId, chunkId),e);
         } finally {
             if (localFile != null) {
                 if(!localFile.delete()) LOGGER.warn("Unable to delete file " + localFile);
             }
         }
-        return newResultChunk(chunk,
+        return newResultItem(
                 String.format("File %s uploaded to ftp host '%s'", remoteFile, ftpPickup.getFtpHost()));
     }
 
@@ -100,15 +101,12 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
         }
     }
 
-    private Chunk newResultChunk(Chunk chunk, String data) {
-        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        ChunkItem chunkItem = ChunkItem.successfulChunkItem()
+    private ChunkItem newResultItem(String data) {
+        return ChunkItem.successfulChunkItem()
                 .withId(0)
                 .withType(ChunkItem.Type.JOB_END)
                 .withData(data)
                 .withEncoding(StandardCharsets.UTF_8);
-        result.insertItem(chunkItem);
-        return result;
     }
 
     FtpClient open(FtpPickup ftpPickup) {

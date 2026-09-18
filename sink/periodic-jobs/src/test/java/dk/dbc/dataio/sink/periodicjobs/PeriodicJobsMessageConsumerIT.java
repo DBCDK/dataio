@@ -2,9 +2,7 @@ package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.conversion.ConversionParam;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import org.junit.Test;
@@ -12,8 +10,8 @@ import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingExcept
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -24,8 +22,13 @@ public class PeriodicJobsMessageConsumerIT extends IntegrationTest {
     private final AddiRecord addiRecord1 = newAddiRecord(new ConversionParam(), "record-1");
     private final AddiRecord addiRecord2 = newAddiRecord(new PeriodicJobsConversionParam().withSortkey("custom-sortkey").withRecordHeader("custom-header\n"), "record-2");
 
+    /**
+     * The datablock keys asserted here are what pins the record number against the item
+     * ids the message headers carry, since they decide where each converted record lands
+     * in the sort order of the file delivered when the job ends.
+     */
     @Test
-    public void handleChunk() {
+    public void convertItems() {
         PeriodicJobsMessageConsumer periodicJobsMessageConsumer = newMessageConsumerBean();
 
         List<ChunkItem> chunkItems = Arrays.asList(
@@ -35,15 +38,23 @@ public class PeriodicJobsMessageConsumerIT extends IntegrationTest {
                 new ChunkItemBuilder().setId(3L).setStatus(ChunkItem.Status.SUCCESS).setData(addiRecord1.getBytes()).build(),
                 new ChunkItemBuilder().setId(4L).setStatus(ChunkItem.Status.SUCCESS).setData(addiRecord2.getBytes()).build());
         final int jobId = 42;
-        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(jobId).setChunkId(0L).setItems(chunkItems).build();
+        final int chunkId = 0;
 
-        Chunk result = env().getPersistenceContext().run(() -> periodicJobsMessageConsumer.handleChunk(chunk, env().getEntityManager()));
-        assertThat("number of chunk items", result.size(), is(5));
-        assertThat("1st chunk item", result.getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat("2nd chunk item", result.getItems().get(1).getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("3rd chunk item", result.getItems().get(2).getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat("4th chunk item", result.getItems().get(3).getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("5th chunk item", result.getItems().get(4).getStatus(), is(ChunkItem.Status.SUCCESS));
+        List<ChunkItem> outcomes = env().getPersistenceContext().run(() -> {
+            List<ChunkItem> results = new ArrayList<>();
+            for (ChunkItem chunkItem : chunkItems) {
+                results.add(periodicJobsMessageConsumer.convertItem(chunkItem, jobId, chunkId,
+                        (short) chunkItem.getId(), env().getEntityManager()));
+            }
+            return results;
+        });
+
+        assertThat("number of outcomes", outcomes.size(), is(5));
+        assertThat("1st outcome", outcomes.get(0).getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("2nd outcome", outcomes.get(1).getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("3rd outcome", outcomes.get(2).getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("4th outcome", outcomes.get(3).getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("5th outcome", outcomes.get(4).getStatus(), is(ChunkItem.Status.SUCCESS));
 
         PeriodicJobsDataBlock.Key key1 = new PeriodicJobsDataBlock.Key(jobId, 1, 0);
         PeriodicJobsDataBlock datablock1 = env().getPersistenceContext().run(() -> env().getEntityManager().find(PeriodicJobsDataBlock.class, key1));
@@ -73,8 +84,9 @@ public class PeriodicJobsMessageConsumerIT extends IntegrationTest {
     @Test
     public void overwriteExistingDataBlock() {
         final int jobId = 42;
-        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(jobId).setChunkId(7L)
-                .setItems(Collections.singletonList(new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.SUCCESS).setData(addiRecord1.getBytes()).build())).build();
+        final int chunkId = 7;
+        ChunkItem chunkItem = new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.SUCCESS)
+                .setData(addiRecord1.getBytes()).build();
 
         PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(jobId, 70, 0);
         PeriodicJobsDataBlock existingDatablock = new PeriodicJobsDataBlock();
@@ -88,20 +100,25 @@ public class PeriodicJobsMessageConsumerIT extends IntegrationTest {
 
         PeriodicJobsMessageConsumer periodicJobsMessageConsumer = newMessageConsumerBean();
 
-        Chunk result = env().getPersistenceContext().run(() -> periodicJobsMessageConsumer.handleChunk(chunk, env().getEntityManager()));
+        ChunkItem outcome = env().getPersistenceContext().run(() ->
+                periodicJobsMessageConsumer.convertItem(chunkItem, jobId, chunkId, (short) 0,
+                        env().getEntityManager()));
 
-        assertThat("1st chunk item", result.getItems().get(0).getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("outcome", outcome.getStatus(), is(ChunkItem.Status.SUCCESS));
     }
 
     @Test
     public void emptyConversionResultsFails() {
         final int jobId = 42;
+        final int chunkId = 0;
         PeriodicJobsMessageConsumer periodicJobsMessageConsumer = newMessageConsumerBean();
-        List<ChunkItem> chunkItems = Collections.singletonList(new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.SUCCESS).setData(newAddiRecord(new ConversionParam(), "").getBytes()).build());
-        Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(jobId).setChunkId(0L).setItems(chunkItems).build();
+        ChunkItem chunkItem = new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.SUCCESS)
+                .setData(newAddiRecord(new ConversionParam(), "").getBytes()).build();
 
-        Chunk result = env().getPersistenceContext().run(() -> periodicJobsMessageConsumer.handleChunk(chunk, env().getEntityManager()));
-        assertThat("1st chunk item", result.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
+        ChunkItem outcome = env().getPersistenceContext().run(() ->
+                periodicJobsMessageConsumer.convertItem(chunkItem, jobId, chunkId, (short) 0,
+                        env().getEntityManager()));
+        assertThat("outcome", outcome.getStatus(), is(ChunkItem.Status.FAILURE));
 
         PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(jobId, 0, 0);
         PeriodicJobsDataBlock datablock = env().getPersistenceContext().run(() -> env().getEntityManager().find(PeriodicJobsDataBlock.class, key));

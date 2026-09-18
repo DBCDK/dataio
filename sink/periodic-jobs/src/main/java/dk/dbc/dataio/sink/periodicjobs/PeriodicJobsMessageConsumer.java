@@ -9,15 +9,15 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.conversion.Conversion;
 import dk.dbc.dataio.commons.conversion.ConversionException;
 import dk.dbc.dataio.commons.conversion.ConversionFactory;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.Tools;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
-import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
+import dk.dbc.dataio.jse.artemis.common.jms.SinkMessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.periodicjobs.mail.MailSession;
 import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsFtpFinalizerBean;
@@ -25,7 +25,6 @@ import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsHttpFinalizerBean;
 import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsMailFinalizerBean;
 import dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsSFtpFinalizerBean;
 import dk.dbc.httpclient.FailSafeHttpClient;
-import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.proxy.ProxyBean;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import jakarta.persistence.EntityManager;
@@ -48,7 +47,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
-public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
+public class PeriodicJobsMessageConsumer extends SinkMessageConsumerAdapter {
 
     private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
             .handle(ProcessingException.class)
@@ -119,33 +118,58 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
                         .withWeekResolverConnector(weekResolverConnector));
     }
 
-
+    /**
+     * An item here is converted and persisted as a datablock rather than sent to a target
+     * system, and nothing leaves this sink until the job's termination item triggers the
+     * pickup, so there is no "a newer version of this record was already delivered"
+     * question to ask about a single item
+     * <p>
+     * See docs/chunk-scheduling-redesign.md, Watermark opt-out.
+     */
     @Override
-    public void handleConsumedMessage(ConsumedMessage consumedMessage)
-            throws InvalidMessageException, NullPointerException {
-        Chunk chunk = unmarshallPayload(consumedMessage);
+    protected boolean usesDeliveryWatermark() {
+        return false;
+    }
+
+    /**
+     * Converts one item into datablocks, or, for the job's termination item, delivers the
+     * datablocks accumulated by every preceding item to the job's pickup destination
+     * <p>
+     * The transaction is committed before this method returns, and only then does
+     * {@link SinkMessageConsumerAdapter} report the result. That order is what lets the
+     * job-end finalization run against complete data: a reported item is an item whose
+     * datablocks are durable, and the termination chunk is released only once every data
+     * item of the job has reported.
+     */
+    @Override
+    protected ItemDeliveryResult deliverItem(ConsumedMessage message, ChunkItem item) {
+        // Not null-checked: SinkMessageConsumerAdapter has already rejected the message as
+        // invalid if any of the three is missing.
+        int jobId = JMSHeader.jobId.getHeader(message, Integer.class);
+        int chunkId = JMSHeader.chunkId.getHeader(message, Long.class).intValue();
+        short itemId = JMSHeader.itemId.getHeader(message, Short.class);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
         try {
-            Chunk result;
             transaction.begin();
-            if (chunk.isTerminationChunk()) {
-                // Give the before-last message enough time to commit
-                // its datablocks to the database before initiating
-                // the finalization process.
-                // (The result is uploaded to the job-store before the
-                // implicit commit, so without the sleep pause, there was a
-                // small risk that the end-chunk would reach this bean
-                // before all data was available.)
-                Tools.sleep(5000);
-                result = periodicJobsFinalizerBean.handleTerminationChunk(chunk, entityManager);
-            } else {
-                result = handleChunk(chunk, entityManager);
-            }
-            sendResultToJobStore(result);
+            ChunkItem outcome = isTerminationItem(item)
+                    ? periodicJobsFinalizerBean.finalizeJob(jobId, chunkId, entityManager)
+                    : convertItem(item, jobId, chunkId, itemId, entityManager);
             transaction.commit();
+            return ItemDeliveryResult.of(verdictOf(outcome), outcome);
+        } catch (InvalidMessageException e) {
+            // Thrown by the job-end finalization alone, and reported as failed rather than
+            // rethrown. A failed termination item completes the job and sets its fatal error
+            // flag. Nothing is committed, since the delivery it was rejected by did not happen.
+            LOGGER.error("Finalization of periodic job {} was rejected", jobId, e);
+            transaction.rollback();
+            return ItemDeliveryResult.of(ItemDeliveryResult.Status.FAILED, jobEndFailure(item, e));
         } finally {
-            if(transaction.isActive()) transaction.rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            entityManager.close();
         }
     }
 
@@ -160,6 +184,7 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
             LOGGER.info("Aborted job {}", jobId);
         } finally {
             if(transaction.isActive()) transaction.commit();
+            entityManager.close();
         }
     }
 
@@ -173,57 +198,87 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
         return ADDRESS;
     }
 
-    Chunk handleChunk(Chunk chunk, EntityManager entityManager) {
-        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        try {
-            for (ChunkItem chunkItem : chunk.getItems()) {
-                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                result.insertItem(handleChunkItem(chunkItem, chunk, entityManager));
-            }
-        } finally {
-            DBCTrackedLogContext.remove();
-        }
-        return result;
+    /**
+     * Recognizes the job termination item the same way job-store does on its own side of
+     * the protocol ({@code PgJobStore.isTerminationItem})
+     */
+    private static boolean isTerminationItem(ChunkItem item) {
+        return item.isTyped() && item.getType().getFirst() == ChunkItem.Type.JOB_END;
     }
 
-    private ChunkItem handleChunkItem(ChunkItem chunkItem, Chunk chunk, EntityManager entityManager) {
-        ChunkItem result = new ChunkItem()
-                .withId(chunkItem.getId())
-                .withTrackingId(chunkItem.getTrackingId())
+    /**
+     * Maps a delivering outcome onto the verdict job-store counts the item by
+     * <p>
+     * The mapping belongs here rather than in job-store, which reads the verdict alone:
+     * this sink owns both the outcome item and the verdict and is free to derive one from
+     * the other.
+     */
+    private static ItemDeliveryResult.Status verdictOf(ChunkItem outcome) {
+        return switch (outcome.getStatus()) {
+            case SUCCESS -> ItemDeliveryResult.Status.DELIVERED;
+            case IGNORE -> ItemDeliveryResult.Status.IGNORED;
+            case FAILURE -> ItemDeliveryResult.Status.FAILED;
+        };
+    }
+
+    /**
+     * The delivering outcome recorded for a job whose finalization was rejected, keeping
+     * the item's JOB_END type so the job view still shows it for what it is
+     */
+    private static ChunkItem jobEndFailure(ChunkItem item, Exception cause) {
+        return new ChunkItem()
+                .withId(item.getId())
+                .withStatus(ChunkItem.Status.FAILURE)
+                .withType(ChunkItem.Type.JOB_END)
+                .withTrackingId(item.getTrackingId())
+                .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, cause.getMessage(), cause))
+                .withData(cause.getMessage());
+    }
+
+    /**
+     * Converts one processed item into datablocks, to be delivered when the job ends
+     *
+     * @return delivering outcome for the item, which {@link #verdictOf(ChunkItem)} turns
+     * into the verdict reported for it
+     */
+    ChunkItem convertItem(ChunkItem item, int jobId, int chunkId, short itemId, EntityManager entityManager) {
+        ChunkItem outcome = new ChunkItem()
+                .withId(itemId)
+                .withTrackingId(item.getTrackingId())
                 .withType(ChunkItem.Type.STRING)
                 .withEncoding(StandardCharsets.UTF_8);
         try {
-            switch (chunkItem.getStatus()) {
-                case FAILURE:
-                    return result
-                            .withStatus(ChunkItem.Status.IGNORE)
-                            .withData("Failed by processor");
-                case IGNORE:
-                    return result
-                            .withStatus(ChunkItem.Status.IGNORE)
-                            .withData("Ignored by processor");
-                default:
-                    convertChunkItem(chunkItem, chunk, entityManager);
-                    return result
+            return switch (item.getStatus()) {
+                case FAILURE -> outcome
+                        .withStatus(ChunkItem.Status.IGNORE)
+                        .withData("Failed by processor");
+                case IGNORE -> outcome
+                        .withStatus(ChunkItem.Status.IGNORE)
+                        .withData("Ignored by processor");
+                case SUCCESS -> {
+                    convertToDataBlocks(item, jobId, chunkId, itemId, entityManager);
+                    yield outcome
                             .withStatus(ChunkItem.Status.SUCCESS)
                             .withData("Converted");
-            }
+                }
+            };
         } catch (RuntimeException e) {
-            return result
+            return outcome
                     .withStatus(ChunkItem.Status.FAILURE)
                     .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, e.getMessage(), e))
                     .withData(e.getMessage());
         }
     }
 
-    private void convertChunkItem(ChunkItem chunkItem, Chunk chunk, EntityManager entityManager) {
+    private void convertToDataBlocks(ChunkItem item, int jobId, int chunkId, short itemId,
+                                     EntityManager entityManager) {
+        int recordNumber = getRecordNumber(chunkId, itemId);
         try {
-            AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
+            AddiReader addiReader = new AddiReader(new ByteArrayInputStream(item.getData()));
             byte[] data;
             int recordPart = 0;
             while (addiReader != null && addiReader.hasNext()) {
-                PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(chunk.getJobId(),
-                        getRecordNumber((int) chunk.getChunkId(), (int) chunkItem.getId()), recordPart);
+                PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(jobId, recordNumber, recordPart);
                 AddiRecord addiRecord;
                 PeriodicJobsConversionParam conversionParam;
                 String sortkey;
@@ -241,7 +296,7 @@ public class PeriodicJobsMessageConsumer extends MessageConsumerAdapter {
                 } catch (IOException e) {
                     // We assume that the IOException was caused by non-addi chunk item content
                     addiReader = null;
-                    data = chunkItem.getData();
+                    data = item.getData();
                     if (data == null || data.length == 0) {
                         throw new IOException("Chunk item has empty data");
                     }

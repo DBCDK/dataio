@@ -1,0 +1,33 @@
+-- Completes the per-job gate state added in V8.
+--
+-- The gate's other two flags, is_termination and gate_open, are columns on dependencytracking
+-- because the dispatch query filters chunks by them. This one is read only by the cross-job
+-- barrier, so it goes where job-store has unambiguous ownership.
+--
+-- It exists because the barrier cannot answer from row presence. A dependencytracking row does not
+-- disappear the moment its chunk is delivered, and its deletion is not timed by anything the
+-- barrier controls, so "an earlier job still has a termination chunk" read as "a row exists" is
+-- stale in the direction that keeps a gate closed. The re-trigger that would open it is
+-- edge-triggered on exactly that removal, so it reads the stale answer once, declines, and never
+-- fires again, which is a permanent stall rather than a delayed open. Narrowing by this flag makes
+-- a lingering row inert and takes deletion timing out of the barrier entirely.
+--
+-- On job rather than dependencytracking for three reasons. It is a per-job fact, one termination
+-- chunk per job, and it belongs beside the counters it is evaluated with. job is job-store's
+-- outright, so the flag depends on nothing about how dependencytracking rows are written. And it
+-- survives the dependencytracking row's deletion, so the question stays answerable afterwards.
+--
+-- Named for the barrier rather than for delivery because delivery is only the usual cause. The flag
+-- answers "does this job's termination chunk still hold back later jobs", which is the barrier as
+-- job-store-service/dependency-tracking.md defines it under Terminology. Aborting a job lifts the
+-- barrier too, and that chunk was never delivered, so a column called ..._delivered would be either
+-- set untruthfully on the abort path or left false, and left false it strands every later job on
+-- that submitter.
+--
+-- Nullable, with no default, because the column has three meanings and they are worth keeping
+-- apart: NULL means this job has no termination chunk and never imposes a barrier, FALSE means it
+-- has one that is not lifted, TRUE means it has been lifted by delivery or by abort. Only
+-- REQUIRES_TERMINATION_CHUNK sink types get a termination chunk, so NULL is the common case by a
+-- wide margin.
+--
+alter table job add termination_barrier_lifted boolean;

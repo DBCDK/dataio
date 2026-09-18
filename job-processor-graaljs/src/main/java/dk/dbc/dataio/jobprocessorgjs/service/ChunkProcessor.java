@@ -43,7 +43,7 @@ public class ChunkProcessor {
                 mdcPut(entry.flow);
                 LOGGER.info("process(): processing chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
                 try {
-                    result.addAllItems(processItems(chunk, entry, additionalArgs), null);
+                    result.addAllItems(processItems(chunk, entry, additionalArgs));
                 } catch (OutOfMemoryError e) {
                     health.signalOutOfMemory();
                     throw e;

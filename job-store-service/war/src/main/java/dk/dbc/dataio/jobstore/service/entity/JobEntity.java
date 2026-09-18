@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -22,6 +23,18 @@ import jakarta.persistence.Table;
 import java.sql.Timestamp;
 import java.util.Optional;
 
+/* Not cacheable, so a read of a job row is current no matter which instance serves it. The
+   persistence unit's DISABLE_SELECTIVE shared-cache-mode caches every entity that does not opt out
+   here, and that cache is per JVM, while a job row is advanced by whichever instance handles the
+   call that writes it. Cached, this entity would leave every other instance reporting a finished
+   job as still running, and would leave the hourly sweeps in AdminBean deciding on what they last
+   saw. The reads this covers are JobListQuery.execute, RepositoryBase.getJobEntityById and those
+   sweeps, none of which refreshes.
+
+   The persistence context is a separate matter and still serves the instance it loaded, so a
+   native statement against this row stays invisible to an entity read earlier in the same
+   transaction. See the note on dataChunksDelivered. */
+@Cacheable(false)
 @Entity
 @Table(name = "job")
 public class JobEntity {
@@ -49,6 +62,27 @@ public class JobEntity {
     private int numberOfItems;
     private int priority;
     private int skipped;
+
+    /* The per-job gate counters and the cross-job barrier flag. Explicit @Column names are
+       required: every other column in this entity is single-word lowercase, so the default
+       naming strategy would look for "datachunksdelivered". See
+       docs/chunk-scheduling-redesign.md, "Barrier Chunks - Per-Job Gate".
+
+       data_chunks_delivered is also incremented by a native statement in JobGateRepository, which
+       the persistence context does not see, so this field is stale on an entity that was loaded
+       before that statement ran in the same transaction. Read it there, not here, wherever the
+       gate verdict depends on it. */
+    @Column(name = "data_chunks_delivered")
+    private int dataChunksDelivered;
+
+    @Column(name = "data_chunks_expected")
+    private int dataChunksExpected;
+
+    /* Nullable on purpose: NULL means this job has no termination chunk and never imposes a
+       barrier, FALSE means it has one that is not lifted, TRUE means it has been lifted by
+       delivery or by abort. */
+    @Column(name = "termination_barrier_lifted")
+    private Boolean terminationBarrierLifted;
 
     // TODO: 4/4/17 Drop timeOfLastModification db trigger and use @PrePersist and @PreUpdate callbacks instead (to avoid unnecessary flush() and refresh() calls)
 
@@ -201,6 +235,30 @@ public class JobEntity {
 
     public void setCachedSink(SinkCacheEntity cachedSink) {
         this.cachedSink = cachedSink;
+    }
+
+    public int getDataChunksDelivered() {
+        return dataChunksDelivered;
+    }
+
+    public void setDataChunksDelivered(int dataChunksDelivered) {
+        this.dataChunksDelivered = dataChunksDelivered;
+    }
+
+    public int getDataChunksExpected() {
+        return dataChunksExpected;
+    }
+
+    public void setDataChunksExpected(int dataChunksExpected) {
+        this.dataChunksExpected = dataChunksExpected;
+    }
+
+    public Boolean getTerminationBarrierLifted() {
+        return terminationBarrierLifted;
+    }
+
+    public void setTerminationBarrierLifted(Boolean terminationBarrierLifted) {
+        this.terminationBarrierLifted = terminationBarrierLifted;
     }
 
     public int getSkipped() {

@@ -17,7 +17,7 @@ import dk.dbc.dataio.jobprocessor2.Metric;
 import dk.dbc.dataio.jobprocessor2.ProcessorConfig;
 import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
 import dk.dbc.dataio.jobprocessor2.service.HealthFlag;
-import dk.dbc.dataio.jse.artemis.common.JobProcessorException;
+import dk.dbc.dataio.jse.artemis.common.ResultReportingException;
 import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.HealthService;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
@@ -76,8 +76,8 @@ public class JobStoreMessageConsumer extends MessageConsumerAdapter {
      * Processes Chunk received in consumed message
      *
      * @param consumedMessage message to be handled
-     * @throws InvalidMessageException if message payload can not be unmarshalled to chunk instance
-     * @throws JobProcessorException   on general handling error
+     * @throws InvalidMessageException  if message payload can not be unmarshalled to chunk instance
+     * @throws ResultReportingException if the processed chunk could not be reported to job-store
      */
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {

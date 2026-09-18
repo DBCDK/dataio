@@ -14,9 +14,9 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
-import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -24,6 +24,8 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.Watermark;
+import dk.dbc.dataio.jobstore.types.WatermarkResponse;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -39,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -114,54 +117,6 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
 
         return jobStoreServiceConnector.addJob(jobInputStream);
-    }
-
-    // **************************************** add accTestJob tests *****************************************
-
-    @Test
-    public void addJAccTestJob_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
-        assertThat(() -> callAddAccTestJobWithMockedHttpResponse(getNewAccTestJobInputStream(), Response.Status.CREATED, null),
-                isThrowing(JobStoreServiceConnectorException.class));
-    }
-
-    @Test
-    public void addAccTestJob_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
-        JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
-        try {
-            callAddAccTestJobWithMockedHttpResponse(getNewAccTestJobInputStream(), Response.Status.BAD_REQUEST, jobError);
-        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
-            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-            assertThat("Exception JobError entity", e.getJobError(), is(jobError));
-        }
-    }
-
-    @Test
-    public void addAccTestJob_onProcessingException_throws() {
-        AccTestJobInputStream jobInputStream = getNewAccTestJobInputStream();
-        when(httpClient.execute(any(HttpPost.class)))
-                .thenThrow(new ProcessingException("Connection reset"));
-        assertThrows(JobStoreServiceConnectorException.class, () -> jobStoreServiceConnector.addAccTestJob(jobInputStream));
-    }
-
-    @Test
-    public void addAccTestJob_jobIsAdded_returnsJobInfoSnapshot() throws JobStoreServiceConnectorException {
-        JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshot();
-        JobInfoSnapshot jobInfoSnapshot = callAddAccTestJobWithMockedHttpResponse(getNewAccTestJobInputStream(), Response.Status.CREATED, expectedJobInfoSnapshot);
-        assertThat(jobInfoSnapshot, is(expectedJobInfoSnapshot));
-    }
-
-    private JobInfoSnapshot callAddAccTestJobWithMockedHttpResponse(AccTestJobInputStream jobInputStream, Response.Status statusCode, Object returnValue)
-            throws JobStoreServiceConnectorException {
-
-        HttpPost httpPost = new HttpPost(httpClient)
-                .withBaseUrl(JOB_STORE_URL)
-                .withPathElements(JobStoreServiceConstants.JOB_COLLECTION_ACCTESTS)
-                .withJsonData(jobInputStream);
-
-        when(httpClient.execute(httpPost))
-                .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
-
-        return jobStoreServiceConnector.addAccTestJob(jobInputStream);
     }
 
     // ******************************************* add empty job tests ********************************************
@@ -546,35 +501,6 @@ public class JobStoreServiceConnectorTest {
         return jobStoreServiceConnector.getChunkItem(jobId, chunkId, itemId, phase);
     }
 
-    // ***************************************** getNextItemData() tests *****************************************
-
-    @Test
-    public void getProcessedNextResult_notFoundResponse_throws() throws JobStoreServiceConnectorException {
-        assertThat(() -> callProcessedNextResultWithMockedHttpResponse(JOB_ID, CHUNK_ID, ITEM_ID, Response.Status.NOT_FOUND, null),
-                isThrowing(JobStoreServiceConnectorUnexpectedStatusCodeException.class));
-    }
-
-    @Test
-    public void getProcessedNextResult_itemFound_returnsProcessedNextResult() throws JobStoreServiceConnectorException {
-        ChunkItem chunkItem = callProcessedNextResultWithMockedHttpResponse(
-                JOB_ID, CHUNK_ID, ITEM_ID, Response.Status.OK, CHUNK_ITEM);
-
-        assertThat(chunkItem, is(CHUNK_ITEM));
-    }
-
-    private ChunkItem callProcessedNextResultWithMockedHttpResponse(int jobId, int chunkId, short itemId, Response.Status statusCode, Object returnValue)
-            throws JobStoreServiceConnectorException {
-
-        HttpGet httpGet = new HttpGet(httpClient)
-                .withBaseUrl(JOB_STORE_URL)
-                .withPathElements(buildGetChunkItemPath(jobId, chunkId, itemId, JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT));
-
-        when(httpClient.execute(httpGet))
-                .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
-
-        return jobStoreServiceConnector.getProcessedNextResult(jobId, chunkId, itemId);
-    }
-
     // ******************************************* listJobNotificationsForJob() tests *******************************************
 
     @Test
@@ -820,21 +746,107 @@ public class JobStoreServiceConnectorTest {
         return jobStoreServiceConnector.setWorkflowNote(workflowNote, jobId, chunkId, itemId);
     }
 
+    // ******************************************* getWatermark tests ********************************************
+
+    private static final long SINK_ID = 42L;
+    private static final String RECORD_KEY = "870970:12345678";
+
+    @Test
+    public void getWatermark_watermarkExists_returnsOptionalWithValue() throws JobStoreServiceConnectorException {
+        Watermark expected = new Watermark(JOB_ID, CHUNK_ID, ITEM_ID);
+        Optional<Watermark> watermark = callGetWatermarkWithMockedHttpResponse((int) SINK_ID, RECORD_KEY, Response.Status.OK,
+                new WatermarkResponse(expected));
+        assertThat(watermark, is(Optional.of(expected)));
+    }
+
+    @Test
+    public void getWatermark_watermarkDoesNotExist_returnsEmptyOptional() throws JobStoreServiceConnectorException {
+        Optional<Watermark> watermark = callGetWatermarkWithMockedHttpResponse((int) SINK_ID, RECORD_KEY, Response.Status.OK,
+                new WatermarkResponse(null));
+        assertThat(watermark, is(Optional.empty()));
+    }
+
+    @Test
+    public void getWatermark_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
+        JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
+        try {
+            callGetWatermarkWithMockedHttpResponse((int) SINK_ID, RECORD_KEY, Response.Status.BAD_REQUEST, jobError);
+            Assertions.fail("No exception thrown");
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        }
+    }
+
+    @Test
+    public void getWatermark_nullRecordKey_throws() {
+        assertThrows(NullPointerException.class, () -> jobStoreServiceConnector.getWatermark((int) SINK_ID, null));
+    }
+
+    @Test
+    public void getWatermark_emptyRecordKey_throws() {
+        assertThrows(IllegalArgumentException.class, () -> jobStoreServiceConnector.getWatermark((int) SINK_ID, " "));
+    }
+
+    private Optional<Watermark> callGetWatermarkWithMockedHttpResponse(int sinkId, String recordKey, Response.Status statusCode, Object returnValue)
+            throws JobStoreServiceConnectorException {
+
+        PathBuilder path = new PathBuilder(JobStoreServiceConstants.SINK_WATERMARK)
+                .bind(JobStoreServiceConstants.SINK_ID_VARIABLE, sinkId);
+        HttpGet httpGet = new HttpGet(httpClient)
+                .withBaseUrl(JOB_STORE_URL)
+                .withPathElements(path.build())
+                .withQueryParameter(JobStoreServiceConstants.RECORD_KEY_QUERY_PARAM, recordKey);
+
+        when(httpClient.execute(httpGet))
+                .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
+
+        return jobStoreServiceConnector.getWatermark(sinkId, recordKey);
+    }
+
+    // ******************************************* addItemDelivered tests ********************************************
+
+    @Test
+    public void addItemDelivered_nullItemDeliveryResult_throws() {
+        assertThrows(NullPointerException.class, () -> jobStoreServiceConnector.addItemDelivered(null, JOB_ID, CHUNK_ID, ITEM_ID));
+    }
+
+    @Test
+    public void addItemDelivered_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
+        JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
+        ItemDeliveryResult itemDeliveryResult = new ItemDeliveryResult(SINK_ID, RECORD_KEY, ItemDeliveryResult.Status.DELIVERED, CHUNK_ITEM);
+        try {
+            callAddItemDeliveredWithMockedHttpResponse(itemDeliveryResult, JOB_ID, CHUNK_ID, ITEM_ID, Response.Status.BAD_REQUEST, jobError);
+            Assertions.fail("No exception thrown");
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+            assertThat("Exception JobError entity", e.getJobError(), is(jobError));
+        }
+    }
+
+    @Test
+    public void addItemDelivered_itemDeliveredReported_returnsNormally() throws JobStoreServiceConnectorException {
+        ItemDeliveryResult itemDeliveryResult = new ItemDeliveryResult(SINK_ID, RECORD_KEY, ItemDeliveryResult.Status.DELIVERED, CHUNK_ITEM);
+        callAddItemDeliveredWithMockedHttpResponse(itemDeliveryResult, JOB_ID, CHUNK_ID, ITEM_ID, Response.Status.OK, null);
+    }
+
+    private void callAddItemDeliveredWithMockedHttpResponse(ItemDeliveryResult itemDeliveryResult, int jobId, int chunkId, short itemId, Response.Status statusCode, Object returnValue)
+            throws JobStoreServiceConnectorException {
+
+        HttpPost httpPost = new HttpPost(httpClient)
+                .withBaseUrl(JOB_STORE_URL)
+                .withPathElements(buildGetChunkItemPath(jobId, chunkId, itemId, JobStoreServiceConstants.CHUNK_ITEM_DELIVERED))
+                .withJsonData(itemDeliveryResult);
+
+        when(httpClient.execute(httpPost))
+                .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
+
+        jobStoreServiceConnector.addItemDelivered(itemDeliveryResult, jobId, chunkId, itemId);
+    }
+
     private static JobInputStream getNewJobInputStream() {
         try {
             JobSpecification jobSpecification = new JobSpecification();
             return new JobInputStream(jobSpecification, false, PART_NUMBER);
-        } catch (Exception e) {
-            Assertions.fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private static AccTestJobInputStream getNewAccTestJobInputStream() {
-        try {
-            JobSpecification jobSpecification = new JobSpecification();
-            Flow flow = new FlowBuilder().build();
-            return new AccTestJobInputStream(jobSpecification, flow, RecordSplitter.XML);
         } catch (Exception e) {
             Assertions.fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
             throw new IllegalStateException(e);

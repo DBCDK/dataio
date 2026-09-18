@@ -6,6 +6,8 @@ import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import jakarta.persistence.LockModeType;
 import org.junit.jupiter.api.Assertions;
@@ -120,5 +122,60 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
         PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         Flow cachedFlow = pgJobStoreRepository.getCachedFlow(DEFAULT_JOB_ID);
         assertThat("flow", cachedFlow, is(expectedFlow));
+    }
+
+    @org.junit.Test
+    public void containsLiveHeadOrSectionRecord_liveHead_returnsTrue() {
+        assertContainsLiveHeadOrSectionRecord(
+                new MarcRecordInfo("id", MarcRecordInfo.RecordType.HEAD, false, null), true);
+    }
+
+    @org.junit.Test
+    public void containsLiveHeadOrSectionRecord_liveSection_returnsTrue() {
+        assertContainsLiveHeadOrSectionRecord(
+                new MarcRecordInfo("id", MarcRecordInfo.RecordType.SECTION, false, null), true);
+    }
+
+    @org.junit.Test
+    public void containsLiveHeadOrSectionRecord_deleteMarkedHead_returnsFalse() {
+        assertContainsLiveHeadOrSectionRecord(
+                new MarcRecordInfo("id", MarcRecordInfo.RecordType.HEAD, true, null), false);
+    }
+
+    @org.junit.Test
+    public void containsLiveHeadOrSectionRecord_deleteMarkedSection_returnsFalse() {
+        assertContainsLiveHeadOrSectionRecord(
+                new MarcRecordInfo("id", MarcRecordInfo.RecordType.SECTION, true, null), false);
+    }
+
+    @org.junit.Test
+    public void containsLiveHeadOrSectionRecord_liveVolume_returnsFalse() {
+        assertContainsLiveHeadOrSectionRecord(
+                new MarcRecordInfo("id", MarcRecordInfo.RecordType.VOLUME, false, null), false);
+    }
+
+    @org.junit.Test
+    public void containsLiveHeadOrSectionRecord_standaloneRecord_returnsFalse() {
+        assertContainsLiveHeadOrSectionRecord(
+                new MarcRecordInfo("id", MarcRecordInfo.RecordType.STANDALONE, false, null), false);
+    }
+
+    @org.junit.Test
+    public void containsLiveHeadOrSectionRecord_nonMarcRecordInfo_returnsFalse() {
+        assertContainsLiveHeadOrSectionRecord(new RecordInfo("id"), false);
+    }
+
+    @org.junit.Test
+    public void containsLiveHeadOrSectionRecord_noItems_returnsFalse() {
+        PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        PgJobStoreRepository.ChunkItemEntities chunkItemEntities = new PgJobStoreRepository.ChunkItemEntities();
+        assertThat(pgJobStoreRepository.containsLiveHeadOrSectionRecord(chunkItemEntities), is(false));
+    }
+
+    private void assertContainsLiveHeadOrSectionRecord(RecordInfo recordInfo, boolean expected) {
+        PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        PgJobStoreRepository.ChunkItemEntities chunkItemEntities = new PgJobStoreRepository.ChunkItemEntities();
+        chunkItemEntities.entities.add(new ItemEntity().withRecordInfo(recordInfo));
+        assertThat(pgJobStoreRepository.containsLiveHeadOrSectionRecord(chunkItemEntities), is(expected));
     }
 }

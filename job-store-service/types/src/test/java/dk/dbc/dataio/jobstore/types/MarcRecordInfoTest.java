@@ -2,11 +2,8 @@ package dk.dbc.dataio.jobstore.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.dataio.commons.types.SinkContent;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -86,65 +83,64 @@ public class MarcRecordInfoTest {
     }
 
     @Test
-    public void getKeys_idIsNullAndParentRelationIsNull_returnsEmptySet() {
-        MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, null);
-        Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ALL);
-        assertThat("keys", keys, is(Collections.emptySet()));
+    public void getCorrelationKey_typeIsStandalone_returnsId() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.STANDALONE, false, parentRelation);
+        assertThat(recordInfo.getCorrelationKey(), is(id));
     }
 
     @Test
-    public void getKeys_idIsNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsAll_returnsSetWithParentRelationAsKey() {
-        MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, parentRelation);
-        Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ALL);
-        assertThat("keys.size", keys.size(), is(1));
-        assertThat("keys.parentRelation", keys.contains(parentRelation), is(true));
+    public void getCorrelationKey_typeIsHead_returnsHierarchyConstant() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.HEAD, false, parentRelation);
+        assertThat(recordInfo.getCorrelationKey(), is(MarcRecordInfo.HIERARCHY_CORRELATION_KEY));
     }
 
     @Test
-    public void getKeys_idIsNullAndParentRelationIsNotNullAndSequenceAnalysisIsNull_returnsEmptySet() {
-        MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, parentRelation);
-        Set<String> keys = recordInfo.getKeys(null);
-        assertThat("keys", keys, is(Collections.emptySet()));
+    public void getCorrelationKey_typeIsSection_returnsHierarchyConstant() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.SECTION, false, parentRelation);
+        assertThat(recordInfo.getCorrelationKey(), is(MarcRecordInfo.HIERARCHY_CORRELATION_KEY));
     }
 
     @Test
-    public void getKeys_idIsNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsIdOnly_returnsEmptySet() {
-        MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, parentRelation);
-        Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ID_ONLY);
-        assertThat("keys", keys, is(Collections.emptySet()));
+    public void getCorrelationKey_typeIsVolume_returnsHierarchyConstant() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.VOLUME, false, parentRelation);
+        assertThat(recordInfo.getCorrelationKey(), is(MarcRecordInfo.HIERARCHY_CORRELATION_KEY));
     }
 
     @Test
-    public void getKeys_idIsNotNullAndParentRelationIsNull_returnsSetWithIdAsKey() {
-        MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, null);
-        Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ALL);
-        assertThat("keys.size", keys.size(), is(1));
-        assertThat("keys.id", keys.contains(id), is(true));
+    public void getCorrelationKey_typeIsDeleteMarked_isUnaffectedByDeleteFlag() {
+        MarcRecordInfo live = new MarcRecordInfo(id, MarcRecordInfo.RecordType.VOLUME, false, parentRelation);
+        MarcRecordInfo deleted = new MarcRecordInfo(id, MarcRecordInfo.RecordType.VOLUME, true, parentRelation);
+        assertThat(deleted.getCorrelationKey(), is(live.getCorrelationKey()));
     }
 
     @Test
-    public void getKeys_idIsNotNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsAll_returnsSetWithIdAndParentRelationAsKeys() {
-        MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, parentRelation);
-        Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ALL);
-        assertThat("keys.size", keys.size(), is(2));
-        assertThat("keys.id", keys.contains(id), is(true));
-        assertThat("keys.parentRelation", keys.contains(parentRelation), is(true));
+    public void getCorrelationKey_typeIsNullAndParentRelationIsNull_returnsIdInsteadOfThrowing() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, null, false, null);
+        assertThat(recordInfo.getCorrelationKey(), is(id));
     }
 
     @Test
-    public void getKeys_idIsNotNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsIdOnly_returnsSetWithIdAsKey() {
-        MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, parentRelation);
-        Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ID_ONLY);
-        assertThat("keys.size", keys.size(), is(1));
-        assertThat("keys.id", keys.contains(id), is(true));
+    public void getCorrelationKey_typeIsNullAndParentRelationIsPresent_returnsHierarchyConstant() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(id, null, false, parentRelation);
+        assertThat(recordInfo.getCorrelationKey(), is(MarcRecordInfo.HIERARCHY_CORRELATION_KEY));
     }
 
     @Test
-    public void getKeys_idIsNotNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsNull_returnsSetWithIdAsKey() {
-        MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, parentRelation);
-        Set<String> keys = recordInfo.getKeys(null);
-        assertThat("keys.size", keys.size(), is(1));
-        assertThat("keys.id", keys.contains(id), is(true));
+    public void getCorrelationKey_typeIsStandaloneAndIdIsNull_returnsNull() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(null, MarcRecordInfo.RecordType.STANDALONE, false, parentRelation);
+        assertThat(recordInfo.getCorrelationKey(), is(nullValue()));
+    }
+
+    @Test
+    public void getCorrelationKey_typeIsNullAndParentRelationIsNullAndIdIsNull_returnsNull() {
+        MarcRecordInfo recordInfo = new MarcRecordInfo(null, null, false, null);
+        assertThat(recordInfo.getCorrelationKey(), is(nullValue()));
+    }
+
+    @Test
+    public void marshalling_correlationKeyIsNotSerialized() throws JSONBException {
+        JSONBContext jsonbContext = new JSONBContext();
+        assertThat(jsonbContext.marshall(recordInfo).contains("correlationKey"), is(false));
     }
 
     @Test

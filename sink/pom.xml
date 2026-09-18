@@ -15,7 +15,6 @@
 
     <modules>
         <module>batch-exchange</module>
-        <module>diff</module>
         <module>dmat</module>
         <module>dmat-dm3</module>
         <module>dpf</module>

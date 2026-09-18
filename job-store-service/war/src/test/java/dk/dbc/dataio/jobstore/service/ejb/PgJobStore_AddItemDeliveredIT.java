@@ -17,6 +17,7 @@ import dk.dbc.dataio.jobstore.types.StateChange;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -131,6 +132,7 @@ public class PgJobStore_AddItemDeliveredIT extends AbstractJobStoreIT {
         entityManager.clear();
         ItemEntity refreshedItem = entityManager.find(ItemEntity.class, item.getKey());
         assertThat("item delivering outcome", refreshedItem.getDeliveringOutcome(), is(notNullValue()));
+        assertThat("item time of completion", refreshedItem.getTimeOfCompletion(), is(notNullValue()));
 
         ChunkEntity refreshedChunk = entityManager.find(ChunkEntity.class, chunk.getKey());
         assertThat("chunk DELIVERING closed", refreshedChunk.getState().getPhase(DELIVERING).getEndDate(), is(notNullValue()));
@@ -204,6 +206,57 @@ public class PgJobStore_AddItemDeliveredIT extends AbstractJobStoreIT {
         assertThat("item succeeded in delivering",
                 refreshedItem.getState().getPhase(DELIVERING).getSucceeded(), is(0));
         assertThat("no watermark row", findWatermark(), is(nullValue()));
+    }
+
+    /**
+     * Delivering is the item's last phase whatever the outcome, so a failed item is as
+     * complete as a delivered one. Completion says the item is done being worked on, not
+     * that it succeeded, which is the meaning the chunk-level path gave it.
+     */
+    @org.junit.Test
+    public void addItemDelivered_failedStatus_setsItemTimeOfCompletion() throws JobStoreException {
+        JobEntity job = newJob(1);
+        ChunkEntity chunk = newChunk(job.getId(), 1);
+        ItemEntity item = newDeliverableItem(job.getId(), chunk.getKey().getId(), (short) 0);
+        PgJobStore pgJobStore = newPgJobStore();
+
+        persistenceContext.run(() ->
+                pgJobStore.addItemDelivered(job.getId(), chunk.getKey().getId(), item.getKey().getId(),
+                        new ItemDeliveryResult(SINK_ID, RECORD_KEY, Status.FAILED,
+                                ChunkItem.failedChunkItem().withId(item.getKey().getId()).withData("boom"))));
+
+        entityManager.clear();
+        ItemEntity refreshedItem = entityManager.find(ItemEntity.class, item.getKey());
+        assertThat("item time of completion", refreshedItem.getTimeOfCompletion(), is(notNullValue()));
+    }
+
+    /**
+     * The idempotence checks return before the state update, so a redelivery leaves the
+     * timestamp the first report wrote rather than moving it to the time of the replay.
+     */
+    @org.junit.Test
+    public void addItemDelivered_redeliveredItem_keepsFirstTimeOfCompletion() throws JobStoreException {
+        JobEntity job = newJob(1);
+        ChunkEntity chunk = newChunk(job.getId(), 1);
+        ItemEntity item = newDeliverableItem(job.getId(), chunk.getKey().getId(), (short) 0);
+        PgJobStore pgJobStore = newPgJobStore();
+        ItemDeliveryResult result = new ItemDeliveryResult(SINK_ID, RECORD_KEY, Status.DELIVERED,
+                ChunkItem.successfulChunkItem().withId(item.getKey().getId()).withData("data"));
+
+        persistenceContext.run(() ->
+                pgJobStore.addItemDelivered(job.getId(), chunk.getKey().getId(), item.getKey().getId(), result));
+
+        entityManager.clear();
+        Timestamp firstTimeOfCompletion =
+                entityManager.find(ItemEntity.class, item.getKey()).getTimeOfCompletion();
+
+        persistenceContext.run(() ->
+                pgJobStore.addItemDelivered(job.getId(), chunk.getKey().getId(), item.getKey().getId(), result));
+
+        entityManager.clear();
+        ItemEntity refreshedItem = entityManager.find(ItemEntity.class, item.getKey());
+        assertThat("item time of completion unchanged by the redelivery",
+                refreshedItem.getTimeOfCompletion(), is(firstTimeOfCompletion));
     }
 
     // ******************** jobs with a termination chunk ********************

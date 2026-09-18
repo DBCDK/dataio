@@ -637,7 +637,15 @@ public class PgJobStore {
                 .setEndDate(now);
         // The sink's own outcome, stored verbatim.
         lockedItemEntity.setDeliveringOutcome(deliveryResult.chunkItem().withId(itemId));
-        jobStoreRepository.updateItemEntityState(lockedItemEntity, itemStateChange);
+        // Delivering is the item's last phase, so this report is what completes it,
+        // whichever status it carries: completion means the item is done being worked on,
+        // not that it succeeded. The guard covers an item reaching delivery with an
+        // earlier phase still open, which must not be stamped as complete. The
+        // idempotence checks above keep a redelivered report from moving the timestamp.
+        final State itemState = jobStoreRepository.updateItemEntityState(lockedItemEntity, itemStateChange);
+        if (itemState.allPhasesAreDone()) {
+            lockedItemEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+        }
 
         // This item's contribution as a delta.
         // The chunk/job phase must stay open until every item

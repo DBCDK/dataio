@@ -14,18 +14,31 @@ import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * Covers what this sink itself decides, which is what {@code deliverItem} returns and what it
@@ -38,6 +51,8 @@ class BatchExchangeMessageConsumerIT extends IntegrationTest {
     private static final int JOB_ID = 42;
     private static final long CHUNK_ID = 0;
     private static final short ITEM_ID = 7;
+
+    private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
 
     private final String addiMetadata = "<referenceData><info submitter=\"424242\"/></referenceData>";
     private final AddiRecord addiRecordX = new AddiRecord(addiMetadata.getBytes(), "contentX".getBytes());
@@ -178,8 +193,10 @@ class BatchExchangeMessageConsumerIT extends IntegrationTest {
         assertThat("the newer version alone is staged", batchCount(), is(1L));
     }
 
+    /* Staging both would leave the consumer system to apply them in whatever order its thread
+       pool arrives at, and the target could end up holding the older one. */
     @Test
-    void olderVersionOfTheRecordAlreadyStaged_itemIsStaged() {
+    void olderVersionOfTheRecordInFlight_itemIsHeldRatherThanStagedAlongsideIt() {
         BatchExchangeMessageConsumer consumer = consumer();
         consumer.deliverItem(message(RECORD_KEY, Priority.NORMAL, JOB_ID - 1, (short) 0),
                 successItem(addiRecordX.getBytes()));
@@ -187,11 +204,79 @@ class BatchExchangeMessageConsumerIT extends IntegrationTest {
         ItemDeliveryResult result = consumer.deliverItem(message(RECORD_KEY), successItem(addiRecordX.getBytes()));
 
         assertThat("result is deferred", result, is(nullValue()));
-        assertThat("both versions staged", batchCount(), is(2L));
+        assertThat("the older version alone is staged", batchCount(), is(1L));
+        assertThat("the newer version is held", heldItems().size(), is(1));
+        assertThat("and it is the newer one", heldItems().get(0).getJobId(), is(JOB_ID));
     }
 
-    /* The staged names are matched on a literal prefix, and one record key can be another with
-       a hyphen and more appended. Only the parsed key decides. */
+    @Test
+    void itemAlreadyHeld_isNotHeldTwiceAndNothingIsReportedForIt() throws Exception {
+        BatchExchangeMessageConsumer consumer = consumer();
+        consumer.deliverItem(message(RECORD_KEY, Priority.NORMAL, JOB_ID - 1, (short) 0),
+                successItem(addiRecordX.getBytes()));
+        consumer.deliverItem(message(RECORD_KEY), successItem(addiRecordX.getBytes()));
+
+        ItemDeliveryResult result = consumer.deliverItem(message(RECORD_KEY), successItem(addiRecordX.getBytes()));
+
+        assertThat("still deferred", result, is(nullValue()));
+        assertThat("one held item", heldItems().size(), is(1));
+        assertThat("nothing staged for it", batchCount(), is(1L));
+        verify(jobStoreServiceConnector, never()).addItemDelivered(any(), anyInt(), anyInt(), anyShort());
+    }
+
+    @Test
+    void newerVersionOfTheRecordAlreadyHeld_itemIsSuperseded() {
+        BatchExchangeMessageConsumer consumer = consumer();
+        consumer.deliverItem(message(RECORD_KEY, Priority.NORMAL, JOB_ID - 1, (short) 0),
+                successItem(addiRecordX.getBytes()));
+        consumer.deliverItem(message(RECORD_KEY, Priority.NORMAL, JOB_ID + 1, ITEM_ID),
+                successItem(addiRecordX.getBytes()));
+
+        ItemDeliveryResult result = consumer.deliverItem(message(RECORD_KEY), successItem(addiRecordX.getBytes()));
+
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.SUPERSEDED));
+        assertThat("outcome names the version that won", StringUtil.asString(result.chunkItem().getData()),
+                is("Item was skipped, version 43/0/7 of this record is already held for delivery"));
+        assertThat("the held version is untouched", heldItems().get(0).getJobId(), is(JOB_ID + 1));
+    }
+
+    /* Only the newest version of a record ever waits. Applying the ones it overtook would
+       reach a state immediately overwritten, which is the rule the delivery watermark already
+       applies to versions that reached the target. */
+    @Test
+    void severalVersionsArrivingWhileOneIsInFlight_collapseToTheNewest() throws Exception {
+        BatchExchangeMessageConsumer consumer = consumer();
+        consumer.deliverItem(message(RECORD_KEY), successItem(addiRecordX.getBytes()));
+
+        consumer.deliverItem(message(RECORD_KEY, Priority.NORMAL, JOB_ID + 1, ITEM_ID),
+                successItem(addiRecordX.getBytes()));
+        assertThat("one held after the 2nd version", heldItems().size(), is(1));
+
+        consumer.deliverItem(message(RECORD_KEY, Priority.NORMAL, JOB_ID + 2, ITEM_ID),
+                successItem(addiRecordX.getBytes()));
+        assertThat("one held after the 3rd version", heldItems().size(), is(1));
+
+        consumer.deliverItem(message(RECORD_KEY, Priority.NORMAL, JOB_ID + 3, ITEM_ID),
+                successItem(addiRecordX.getBytes()));
+
+        assertThat("one held after the 4th version", heldItems().size(), is(1));
+        assertThat("the newest version is the one held", heldItems().get(0).getJobId(), is(JOB_ID + 3));
+        assertThat("only the in-flight version is staged", batchCount(), is(1L));
+
+        HeldItem held = heldItems().get(0);
+        assertThat("versions skipped to arrive at it", held.getCollapsedCount(), is(2));
+        assertThat("the oldest of them", held.getCollapsedFrom(), is("43/0/7"));
+
+        ArgumentCaptor<ItemDeliveryResult> reported = ArgumentCaptor.forClass(ItemDeliveryResult.class);
+        verify(jobStoreServiceConnector, times(2))
+                .addItemDelivered(reported.capture(), anyInt(), anyInt(), anyShort());
+        assertThat("both displaced versions reported as superseded",
+                reported.getAllValues().stream().map(ItemDeliveryResult::status).toList(),
+                is(List.of(ItemDeliveryResult.Status.SUPERSEDED, ItemDeliveryResult.Status.SUPERSEDED)));
+    }
+
+    /* Record keys are compared for equality, so one key being another with more appended is
+       simply a different record. */
     @Test
     void recordKeyThatIsAnotherWithMoreAppended_doesNotSupersedeIt() {
         BatchExchangeMessageConsumer consumer = consumer();
@@ -230,8 +315,37 @@ class BatchExchangeMessageConsumerIT extends IntegrationTest {
         assertThat("and it is the one that was kept", onlyBatch().getName(), is("15-870970:other-43-0-1"));
     }
 
-    /* A record key containing the aborted job's id between hyphens matches the same pattern,
-       and deleting it would destroy work that job is still waiting on. */
+    @Test
+    void abortJob_deletesTheItemsThatJobWasHolding() {
+        BatchExchangeMessageConsumer consumer = consumer();
+        consumer.deliverItem(message(RECORD_KEY, Priority.NORMAL, JOB_ID - 1, (short) 0),
+                successItem(addiRecordX.getBytes()));
+        consumer.deliverItem(message(RECORD_KEY), successItem(addiRecordX.getBytes()));
+
+        consumer.abortJob(JOB_ID);
+
+        assertThat("nothing held for the aborted job", heldItems().size(), is(0));
+        assertThat("the other job's batch remains", batchCount(), is(1L));
+    }
+
+    /* Discarding it with the batch it waited behind would leave its own job unable to finish,
+       since nothing else would ever release it. */
+    @Test
+    void abortJob_stagesAnotherJobsItemItWasHoldingBack() {
+        BatchExchangeMessageConsumer consumer = consumer();
+        consumer.deliverItem(message(RECORD_KEY), successItem(addiRecordX.getBytes()));
+        consumer.deliverItem(message(RECORD_KEY, Priority.NORMAL, JOB_ID + 1, ITEM_ID),
+                successItem(addiRecordX.getBytes()));
+
+        consumer.abortJob(JOB_ID);
+
+        assertThat("nothing left held", heldItems().size(), is(0));
+        assertThat("the released version is staged", batchCount(), is(1L));
+        assertThat("and it is the one that was held", onlyBatch().getName(), is("15-870970:12345678-43-0-7"));
+    }
+
+    /* A record key containing the aborted job's id between hyphens is still a different job's
+       work, and deleting it would destroy work that job is waiting on. */
     @Test
     void abortJob_leavesABatchWhoseRecordKeyMerelyLooksLikeTheJobId() {
         BatchExchangeMessageConsumer consumer = consumer();
@@ -243,19 +357,72 @@ class BatchExchangeMessageConsumerIT extends IntegrationTest {
         assertThat("batch kept", batchCount(), is(1L));
     }
 
-    /* The lookup before staging runs once per delivered item, so it has to be a range scan
-       over this index rather than a scan of the batch table. */
+    /* The check before staging is what keeps a record to one version in flight, and it is a
+       check rather than an invariant unless the database refuses the second row. */
     @Test
-    void theSinkOwnedMigrationCreatesTheIndexTheStagedLookupNeeds() {
+    void twoVersionsOfOneRecordCannotBeStagedAtOnce() {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            @SuppressWarnings("unchecked") List<String> definitions = entityManager
-                    .createNativeQuery("SELECT indexdef FROM pg_indexes WHERE indexname = 'batch_name_pattern_index'")
-                    .getResultList();
-            assertThat("index exists", definitions.size(), is(1));
-            assertThat("index serves prefix matching", definitions.get(0).contains("text_pattern_ops"), is(true));
+            entityManager.getTransaction().begin();
+            entityManager.createNativeQuery(
+                            "INSERT INTO batch (name) VALUES ('a'), ('b')").executeUpdate();
+            entityManager.createNativeQuery("INSERT INTO staged_item"
+                            + " (batch, sink_id, record_key, job_id, chunk_id, item_id)"
+                            + " VALUES (1, 15, '870970:1', 1, 0, 0)").executeUpdate();
+            assertThrows(RuntimeException.class, () -> entityManager.createNativeQuery("INSERT INTO staged_item"
+                    + " (batch, sink_id, record_key, job_id, chunk_id, item_id)"
+                    + " VALUES (2, 15, '870970:1', 2, 0, 0)").executeUpdate());
         } finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
             entityManager.close();
+        }
+    }
+
+    /* Two items without a record key have no record identity to share, so neither can block
+       the other. Null record keys compare as distinct, which is what allows that. */
+    @Test
+    void itemsWithoutARecordKey_doNotBlockEachOther() {
+        BatchExchangeMessageConsumer consumer = consumer();
+        consumer.deliverItem(message(null, Priority.NORMAL, JOB_ID, (short) 0),
+                successItem(addiRecordX.getBytes()));
+        consumer.deliverItem(message(null, Priority.NORMAL, JOB_ID, (short) 1),
+                successItem(addiRecordX.getBytes()));
+        consumer.deliverItem(message(null, Priority.NORMAL, JOB_ID, (short) 2),
+                successItem(addiRecordX.getBytes()));
+
+        assertThat("all staged", batchCount(), is(3L));
+        assertThat("none held", heldItems().size(), is(0));
+    }
+
+    /* Grouping orders the consumers of one record against each other and says nothing about
+       the finalizer, which is a timer. Both decide on what they read and then act, so both have
+       to take the record first. */
+    @Test
+    void stagingWaitsForWhoeverElseHoldsTheRecord() throws Exception {
+        EntityManager holder = entityManagerFactory.createEntityManager();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            holder.getTransaction().begin();
+            RecordLock.acquire(holder, SINK_ID, RECORD_KEY);
+
+            Future<ItemDeliveryResult> staging = executor.submit(() ->
+                    consumer().deliverItem(message(RECORD_KEY), successItem(addiRecordX.getBytes())));
+
+            assertThrows(TimeoutException.class, () -> staging.get(2, TimeUnit.SECONDS));
+            assertThat("nothing staged while the record is held", batchCount(), is(0L));
+
+            holder.getTransaction().commit();
+
+            assertThat("result once the record is released", staging.get(20, TimeUnit.SECONDS), is(nullValue()));
+            assertThat("staged once the record is released", batchCount(), is(1L));
+        } finally {
+            executor.shutdownNow();
+            if (holder.getTransaction().isActive()) {
+                holder.getTransaction().rollback();
+            }
+            holder.close();
         }
     }
 
@@ -270,7 +437,7 @@ class BatchExchangeMessageConsumerIT extends IntegrationTest {
     private BatchExchangeMessageConsumer consumer() {
         return new BatchExchangeMessageConsumer(
                 new ServiceHub.Builder()
-                        .withJobStoreServiceConnector(mock(JobStoreServiceConnector.class))
+                        .withJobStoreServiceConnector(jobStoreServiceConnector)
                         .test(),
                 entityManagerFactory);
     }
@@ -325,6 +492,17 @@ class BatchExchangeMessageConsumerIT extends IntegrationTest {
                     .createNamedQuery(BatchEntry.GET_BATCH_ENTRIES_QUERY_NAME)
                     .setParameter(1, batch.getId())
                     .setHint("eclipselink.refresh", true)
+                    .getResultList();
+        } finally {
+            entityManager.close();
+        }
+    }
+
+    private List<HeldItem> heldItems() {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            return entityManager
+                    .createQuery("select d from HeldItem d order by d.id", HeldItem.class)
                     .getResultList();
         } finally {
             entityManager.close();

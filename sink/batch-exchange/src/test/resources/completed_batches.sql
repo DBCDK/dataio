@@ -1,4 +1,4 @@
--- One batch per item, named <sinkId>-<recordKey>-<jobId>-<chunkId>-<itemId>.
+-- One batch per item, each with the bookkeeping row naming the item it was staged for.
 -- Item 5 holds three records and so three entries, chained with isContinued.
 
 INSERT INTO batch(name) VALUES ('15-870970:1-42-0-1');
@@ -6,6 +6,12 @@ INSERT INTO batch(name) VALUES ('15-870970:2-42-0-2');
 INSERT INTO batch(name) VALUES ('15-870970:3-42-0-3');
 INSERT INTO batch(name) VALUES ('15-870970:4-42-0-4');
 INSERT INTO batch(name) VALUES ('15-870970:5-42-0-5');
+
+INSERT INTO staged_item(batch,sink_id,record_key,job_id,chunk_id,item_id) VALUES (1, 15, '870970:1', 42, 0, 1);
+INSERT INTO staged_item(batch,sink_id,record_key,job_id,chunk_id,item_id) VALUES (2, 15, '870970:2', 42, 0, 2);
+INSERT INTO staged_item(batch,sink_id,record_key,job_id,chunk_id,item_id) VALUES (3, 15, '870970:3', 42, 0, 3);
+INSERT INTO staged_item(batch,sink_id,record_key,job_id,chunk_id,item_id) VALUES (4, 15, '870970:4', 42, 0, 4);
+INSERT INTO staged_item(batch,sink_id,record_key,job_id,chunk_id,item_id) VALUES (5, 15, '870970:5', 42, 0, 5);
 
 INSERT INTO entry(batch,trackingId,content,metadata,isContinued) VALUES (1, '42-0-1', 'data42-0-1', '{"id": "42-0-1"}', false);
 INSERT INTO entry(batch,trackingId,content,metadata,isContinued) VALUES (2, '42-0-2', 'data42-0-2', '{"id": "42-0-2"}', false);

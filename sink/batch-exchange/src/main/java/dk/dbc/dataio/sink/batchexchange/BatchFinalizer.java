@@ -10,6 +10,7 @@ import dk.dbc.log.DBCTrackedLogContext;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.TypedQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,10 +19,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.destination;
-import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.status;
-import static dk.dbc.dataio.jse.artemis.common.Metric.dataio_item_delivery_count;
-
 /**
  * Reports the delivery of items whose batches the consumer system has finished with.
  * <p>
@@ -29,18 +26,20 @@ import static dk.dbc.dataio.jse.artemis.common.Metric.dataio_item_delivery_count
  * {@code BatchExchangeMessageConsumer} could not give when it accepted the item. This class
  * is therefore where the item is reported, and it is what
  * {@code SinkMessageConsumerAdapter.defersDeliveryResult} refers to.
+ * <p>
+ * Finishing with a batch also releases the record it belonged to. A version of that record
+ * held back while this one was in flight is staged here, in the transaction that removes the
+ * completed batch, so that a record never has two versions staged at once.
  */
 public class BatchFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(BatchFinalizer.class);
     private final EntityManagerFactory entityManagerFactory;
-    private final JobStoreServiceConnector jobStoreServiceConnector;
-    private final String fqn;
+    private final DeliveryReporter deliveryReporter;
 
     public BatchFinalizer(EntityManagerFactory entityManagerFactory,
                           JobStoreServiceConnector jobStoreServiceConnector, String fqn) {
         this.entityManagerFactory = entityManagerFactory;
-        this.jobStoreServiceConnector = jobStoreServiceConnector;
-        this.fqn = fqn;
+        this.deliveryReporter = new DeliveryReporter(jobStoreServiceConnector, fqn);
     }
 
     /**
@@ -53,54 +52,67 @@ public class BatchFinalizer {
      */
     public boolean finalizeNextCompletedBatch() {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction transaction = entityManager.getTransaction();
         try {
+            transaction.begin();
+            /* The row lock taken by get_completed_batch is what stops two instances finalizing
+               the same batch, and it lasts only as long as the transaction holding it. Claiming
+               the batch outside this transaction would release it again immediately. */
             Batch batch = findCompletedBatch(entityManager);
             if (batch == null) {
                 return false;
             }
-            EntityTransaction transaction = entityManager.getTransaction();
-            try {
-                transaction.begin();
-                finalizeBatch(batch, entityManager);
-                transaction.commit();
-            } finally {
-                if (transaction.isActive()) {
-                    transaction.rollback();
-                }
-            }
+            finalizeBatch(batch, entityManager);
+            transaction.commit();
             return true;
         } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
             entityManager.close();
         }
     }
 
     /**
-     * Reports one completed batch's item and removes the batch
+     * Reports one completed batch's item, removes the batch, and stages whatever its record
+     * was holding
      * <p>
-     * A batch whose name does not name an item is removed without being reported. Its item
-     * cannot be addressed, so there is nothing to report it against, and leaving it in place
-     * would have the finalizer meet it again on every pass and reach nothing behind it.
+     * Everything after the record is locked runs with no other instance deciding anything for
+     * that record.
+     * <p>
+     * A batch with no bookkeeping row is removed without being reported. Its item cannot be
+     * addressed, so there is nothing to report it against, and leaving it in place would have
+     * the finalizer meet it again on every pass and reach nothing behind it.
      */
     private void finalizeBatch(Batch batch, EntityManager entityManager) {
-        BatchName batchName;
-        try {
-            batchName = BatchName.fromString(batch.getName());
-        } catch (IllegalArgumentException e) {
-            LOGGER.warn("Discarding batch {} , its name {} does not name an item",
-                    batch.getId(), batch.getName(), e);
+        StagedItem stagedItem = entityManager.find(StagedItem.class, batch.getId());
+        if (stagedItem == null) {
+            LOGGER.warn("Discarding batch {} named {}, no item is recorded as staged for it",
+                    batch.getId(), batch.getName());
             entityManager.remove(batch);
             return;
         }
+        BatchName batchName = stagedItem.batchName();
+        /* Taken before anything is changed, so that a consumer deciding what to do with a new
+           version of this record is either finished or has not started. Without it the held
+           version can be staged here while a consumer is midway through replacing it, and the
+           consumer then reports as superseded a version already on its way to the target. */
+        RecordLock.acquire(entityManager, batchName);
 
         List<BatchEntry> batchEntries = getBatchEntries(batch, entityManager);
         LOGGER.info("Finalizing batch {} for item {}", batch.getId(), batchName);
         try {
             DBCTrackedLogContext.setTrackingId(trackingId(batchEntries));
-            report(batchName, createOutcome(batchName, batchEntries));
+            ChunkItem outcome = createOutcome(batchName, stagedItem, batchEntries);
+            deliveryReporter.report(batchName, verdict(outcome), outcome);
         } finally {
             DBCTrackedLogContext.remove();
         }
         entityManager.remove(batch);
+        /* Removing the batch cascades to the bookkeeping row, which is what frees the record
+           for the held version staged below to take its place. */
+        entityManager.flush();
+        stageHeldItem(batchName, entityManager);
 
         for (BatchEntry batchEntry : batchEntries) {
             if (batchEntry.getTimeOfCompletion() != null) {
@@ -108,6 +120,29 @@ public class BatchFinalizer {
                         batchEntry.getTimeOfCompletion().getTime() - batchEntry.getTimeOfCreation().getTime()));
             }
         }
+    }
+
+    /**
+     * Stages the version of the record that was held back while the finalized batch was in
+     * flight, if there is one
+     */
+    private void stageHeldItem(BatchName batchName, EntityManager entityManager) {
+        if (batchName.getRecordKey() == null) {
+            /* An item with no record key has no record identity, so no version of it can have
+               been held behind this batch. */
+            return;
+        }
+        TypedQuery<HeldItem> query = entityManager.createQuery(
+                "select d from HeldItem d where d.sinkId = :sinkId and d.recordKey = :recordKey",
+                HeldItem.class);
+        query.setParameter("sinkId", batchName.getSinkId());
+        query.setParameter("recordKey", batchName.getRecordKey());
+        HeldItem held = query.getResultStream().findFirst().orElse(null);
+        if (held == null) {
+            return;
+        }
+        int batch = BatchStager.stageHeldItem(entityManager, held);
+        LOGGER.info("Staged held item {} as batch {}", held.batchName(), batch);
     }
 
     private Batch findCompletedBatch(EntityManager entityManager) {
@@ -139,9 +174,11 @@ public class BatchFinalizer {
      * records
      * <p>
      * All of a batch's entries belong to one item, so their status messages are concatenated
-     * into one outcome and their diagnostics appended to it.
+     * into one outcome and their diagnostics appended to it. Versions of the record skipped to
+     * arrive at this one are named alongside them, so that an outcome can be read without
+     * reconstructing what happened from other jobs' items.
      */
-    private ChunkItem createOutcome(BatchName batchName, List<BatchEntry> batchEntries) {
+    private ChunkItem createOutcome(BatchName batchName, StagedItem stagedItem, List<BatchEntry> batchEntries) {
         ChunkItemDataBuffer dataBuffer = new ChunkItemDataBuffer();
         ChunkItem chunkItem = new ChunkItem()
                 .withId(batchName.getItemId())
@@ -155,6 +192,11 @@ public class BatchFinalizer {
             if (diagnostics.stream().anyMatch(diagnostic -> diagnostic.getLevel() != Diagnostic.Level.WARNING)) {
                 Metric.dataio_batch_error_counter.counter().inc();
             }
+        }
+        if (stagedItem.getCollapsedCount() > 0) {
+            dataBuffer.add(String.format(
+                    "%d version(s) of this record were skipped to arrive at this one, from version %s",
+                    stagedItem.getCollapsedCount(), stagedItem.getCollapsedFrom()));
         }
         if (chunkItem.getStatus() == null) {
             chunkItem.withStatus(entryStatus(batchEntries));
@@ -238,27 +280,6 @@ public class BatchFinalizer {
 
     private String getStatusMessage(dk.dbc.batchexchange.dto.Diagnostic entryDiag) {
         return String.format("Consumer system responded with %s: %s", entryDiag.getLevel(), entryDiag.getMessage());
-    }
-
-    /**
-     * Reports the item's delivery to job-store, naming the watermark row it may advance
-     * <p>
-     * The sink id and record key come from the batch name, which is where the message that
-     * staged the item put them. A record key the item arrived without stays null, which is
-     * what tells job-store the item has no watermark row rather than that this outcome must
-     * not advance one.
-     */
-    private void report(BatchName batchName, ChunkItem outcome) {
-        ItemDeliveryResult.Status verdict = verdict(outcome);
-        ItemDeliveryResult result = ItemDeliveryResult.of(verdict, outcome)
-                .withWatermarkKey(batchName.getSinkId(), batchName.getRecordKey());
-        try {
-            jobStoreServiceConnector.addItemDelivered(result,
-                    batchName.getJobId(), (int) batchName.getChunkId(), batchName.getItemId());
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Error in communication with job-store for item %s", batchName), e);
-        }
-        dataio_item_delivery_count.counter(destination.is(fqn), status.is(verdict.name())).inc();
     }
 
     private static class ChunkItemDataBuffer {

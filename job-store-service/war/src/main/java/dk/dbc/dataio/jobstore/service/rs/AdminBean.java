@@ -349,7 +349,7 @@ public class AdminBean {
      * stale-chunk count, which says only that a sink is behind and is expected while one is down.
      * <p>
      * Reported once per chunk. The record of what has been reported is pruned against the chunks
-     * still stale, so it cannot outgrow them, and a chunk that recovers and strands again is
+     * still stale, so it cannot outgrow them, and a chunk that recovers and gets stuck again is
      * reported again.
      *
      * @param stale the stale chunks this sweep found

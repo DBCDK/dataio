@@ -8,7 +8,9 @@ import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
@@ -84,6 +86,8 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR
 @SuppressWarnings("PMD.TooManyStaticImports")
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
+    /** Counts the chunks whose work completed while their scheduling row stayed behind. */
+    private static final String STUCK_CHUNKS = "dataio_stuck_chunks";
     private static final Tag PROC_TAG = new Tag("state", "processing");
     private static final Tag DEL_TAG = new Tag("state", "delivering");
 
@@ -371,12 +375,56 @@ public class JobSchedulerBean {
     public void chunkProcessingDone(Chunk chunk) {
         TrackingKey key = new TrackingKey(chunk.getJobId(), (int)chunk.getChunkId());
         if(dependencyTrackingService.setValidatedStatus(key, READY_FOR_DELIVERY).isEmpty()) {
-            LOGGER.info("chunkProcessingDone: chunk {} was not awaiting processing, skipping", key.toChunkIdentifier());
+            logUnadvanced(key);
             return;
         }
         jobSchedulerTransactionsBean.submitToDeliveringIfPossible(key);
     }
 
+    /**
+     * Logs why the advance to {@code READY_FOR_DELIVERY} moved no row, and counts the one case
+     * that leaves a chunk stuck.
+     * <p>
+     * Three things bring a caller here. The row is gone, or it has already reached the delivery
+     * half, and in both the chunk needed nothing from this call. Or the row is still in the
+     * processing half, which means the chunk's items carry their processing outcome while the row
+     * that would take them into delivery has not moved. Nothing further arrives for that chunk,
+     * so it waits for the stale sweep, and here is where that becomes true.
+     * <p>
+     * Costs one read, on a path that is rare by construction.
+     */
+    private void logUnadvanced(TrackingKey key) {
+        DependencyTrackingRO tracking = dependencyTrackingService.get(key);
+        if (tracking == null) {
+            LOGGER.info("chunkProcessingDone: called with unknown chunk {} - assuming it is already completed",
+                    key.toChunkIdentifier());
+            return;
+        }
+        if (isPastProcessing(tracking.getStatus())) {
+            LOGGER.info("chunkProcessingDone: ignoring chunk {} already past processing in state {}",
+                    key.toChunkIdentifier(), tracking.getStatus());
+            return;
+        }
+        metricRegistry.counter(STUCK_CHUNKS, PROC_TAG).inc();
+        LOGGER.warn("chunkProcessingDone: chunk {} is processed and its row is still {}, so nothing will carry it into delivery",
+                key.toChunkIdentifier(), tracking.getStatus());
+    }
+
+    /**
+     * Whether a chunk's scheduling row has left the processing half.
+     * <p>
+     * Exhaustive rather than defaulted, so a status added later is a compile error here instead of
+     * a chunk quietly counted on the wrong side.
+     *
+     * @param status status the chunk's row holds
+     * @return true if the row is in the delivery half
+     */
+    private static boolean isPastProcessing(ChunkSchedulingStatus status) {
+        return switch (status) {
+            case READY_FOR_DELIVERY, SCHEDULED_FOR_DELIVERY, QUEUED_FOR_DELIVERY -> true;
+            case READY_FOR_PROCESSING, SCHEDULED_FOR_PROCESSING, QUEUED_FOR_PROCESSING -> false;
+        };
+    }
 
     /**
      * Registers a chunk as delivered and removes it from dependency tracking
@@ -415,17 +463,26 @@ public class JobSchedulerBean {
     }
 
     /**
-     * Says which of the two ways an acknowledgement matched nothing it was, at the cost of one
-     * extra read on a path that is rare by construction.
+     * Logs why the acknowledgement removed no row, and counts the one case that leaves a chunk
+     * stuck.
+     * <p>
+     * A missing row is the ordinary case. The row is this acknowledgement's once-only token, and
+     * a redelivery re-triggers the call for a chunk already counted. A row that is still there
+     * means the sink has reported the chunk delivered and nothing recorded it, so the sweep will
+     * hand the same items to the sink a second time.
+     * <p>
+     * Costs one read, on a path that is rare by construction.
      */
     private void logUnacknowledged(TrackingKey key) {
-        if (dependencyTrackingService.contains(key)) {
-            LOGGER.info("chunkDeliveringDone: ignoring chunk {} not in state QUEUED_FOR_DELIVERY",
-                    key.toChunkIdentifier());
-        } else {
+        DependencyTrackingRO tracking = dependencyTrackingService.get(key);
+        if (tracking == null) {
             LOGGER.info("chunkDeliveringDone: called with unknown chunk {} - assuming it is already completed",
                     key.toChunkIdentifier());
+            return;
         }
+        metricRegistry.counter(STUCK_CHUNKS, DEL_TAG).inc();
+        LOGGER.warn("chunkDeliveringDone: chunk {} is delivered and its row is still {}, so it will be sent again",
+                key.toChunkIdentifier(), tracking.getStatus());
     }
 
     /**

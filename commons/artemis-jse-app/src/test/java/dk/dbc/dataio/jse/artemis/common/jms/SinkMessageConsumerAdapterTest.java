@@ -203,6 +203,54 @@ class SinkMessageConsumerAdapterTest {
     }
 
     @Test
+    void deferringSinkReturnsNoResult_nothingIsReported() throws Exception {
+        givenWatermark(null);
+        TestSink deferring = deferringSink();
+        deferring.deferred = true;
+
+        deferring.handleConsumedMessage(itemMessage());
+
+        assertThat("item delivered", deferring.delivered, is(notNullValue()));
+        verify(jobStoreServiceConnector, never()).addItemDelivered(any(), anyInt(), anyInt(), anyShort());
+    }
+
+    @Test
+    void deferringSinkReturnsAResult_itIsReportedAsUsual() throws Exception {
+        givenWatermark(null);
+        TestSink deferring = deferringSink();
+
+        deferring.handleConsumedMessage(itemMessage());
+
+        assertThat("reported result", reportedResult(),
+                is(new ItemDeliveryResult(SINK_ID, RECORD_KEY, Status.DELIVERED, deferring.outcome)));
+    }
+
+    @Test
+    void deferringSinkIsSuperseded_supersessionIsReportedHereAndTheSinkIsNotCalled() throws Exception {
+        givenWatermark(new Watermark(JOB_ID + 1, 0, (short) 0));
+        TestSink deferring = deferringSink();
+        deferring.deferred = true;
+
+        deferring.handleConsumedMessage(itemMessage());
+
+        assertThat("item not delivered", deferring.delivered, is(nullValue()));
+        assertThat("reported status", reportedResult().status(), is(Status.SUPERSEDED));
+    }
+
+    @Test
+    void nonDeferringSinkReturnsNoResult_messageIsRolledBackAndNothingIsReported() throws Exception {
+        givenWatermark(null);
+        sink.deferred = true;
+
+        ItemDeliveryException e = assertThrows(ItemDeliveryException.class,
+                () -> sink.handleConsumedMessage(itemMessage()));
+
+        assertThat("names the item", e.getMessage(),
+                is("Sink returned no result for item 42/7/3 without deferring it"));
+        verify(jobStoreServiceConnector, never()).addItemDelivered(any(), anyInt(), anyInt(), anyShort());
+    }
+
+    @Test
     void resultIsReportedAfterDelivery() throws Exception {
         givenWatermark(null);
 
@@ -212,6 +260,15 @@ class SinkMessageConsumerAdapterTest {
         inOrder.verify(jobStoreServiceConnector).getWatermark(anyInt(), anyString());
         inOrder.verify(jobStoreServiceConnector).addItemDelivered(any(), anyInt(), anyInt(), anyShort());
         assertThat("delivery happened before the report", sink.deliveredBeforeReport, is(true));
+    }
+
+    private TestSink deferringSink() {
+        return new TestSink(jobStoreServiceConnector) {
+            @Override
+            protected boolean defersDeliveryResult() {
+                return true;
+            }
+        };
     }
 
     private void givenWatermark(Watermark watermark) throws JobStoreServiceConnectorException {
@@ -263,6 +320,7 @@ class SinkMessageConsumerAdapterTest {
         private Status status = Status.DELIVERED;
         private RuntimeException failure;
         private boolean deliveredBeforeReport;
+        private boolean deferred;
 
         TestSink(JobStoreServiceConnector jobStoreServiceConnector) {
             super(new ServiceHub.Builder().withJobStoreServiceConnector(jobStoreServiceConnector).test());
@@ -275,6 +333,9 @@ class SinkMessageConsumerAdapterTest {
             }
             delivered = item;
             deliveredBeforeReport = true;
+            if (deferred) {
+                return null;
+            }
             return ItemDeliveryResult.of(status, outcome);
         }
 

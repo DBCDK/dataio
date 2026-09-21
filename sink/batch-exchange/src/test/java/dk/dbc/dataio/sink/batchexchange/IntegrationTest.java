@@ -24,6 +24,7 @@ public abstract class IntegrationTest implements PostgresContainerJPAUtils {
     public static void migrateDatabase() {
         BatchExchangeDatabaseMigrator dbMigrator = new BatchExchangeDatabaseMigrator(dbContainer.datasource());
         dbMigrator.migrate();
+        BatchExchangeSchema.migrate(dbContainer.datasource());
     }
 
     protected static void executeScriptResource(String resourcePath) {

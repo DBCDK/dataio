@@ -1,11 +1,11 @@
 package dk.dbc.dataio.sink.batchexchange;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.jse.artemis.common.service.ZombieWatch;
 import org.junit.jupiter.api.Test;
@@ -13,6 +13,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -21,134 +22,201 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyShort;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-public class BatchFinalizerIT extends IntegrationTest {
-    final private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+class BatchFinalizerIT extends IntegrationTest {
+    private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
 
-    /*  When: no completed batch exists in the batch-exchange
-     *  Then: finalizer returns false
-     */
     @Test
-    public void finalizeNextCompletedBatch_noBatchFound() {
-        BatchFinalizer batchFinalizer = createBatchFinalizerBean();
-        assertThat(batchFinalizer.finalizeNextCompletedBatch(), is(false));
+    void noCompletedBatch_nothingIsFinalized() {
+        assertThat(finalizer().finalizeNextCompletedBatch(), is(false));
     }
 
-    /*  Given: a completed batch
-     *   When: job-store upload throws
-     *   Then: finalizer throws SinkException
-     */
     @Test
-    public void finalizeNextCompletedBatch_jobStoreUploadThrows() throws JobStoreServiceConnectorException {
-        executeScriptResource("/completed_batch.sql");
+    void reportingThrows_theBatchIsLeftForTheNextPass() throws JobStoreServiceConnectorException {
+        executeScriptResource("/completed_batches.sql");
+        doThrow(new JobStoreServiceConnectorException("Died"))
+                .when(jobStoreServiceConnector).addItemDelivered(any(), anyInt(), anyInt(), anyShort());
 
-        when(jobStoreServiceConnector.addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong()))
-                .thenThrow(new JobStoreServiceConnectorException("Died"));
-        BatchFinalizer batchFinalizer = createBatchFinalizerBean();
-        assertThat(batchFinalizer::finalizeNextCompletedBatch, isThrowing(RuntimeException.class));
+        assertThat(finalizer()::finalizeNextCompletedBatch, isThrowing(RuntimeException.class));
     }
 
-    /*  Given: a completed batch
-     *   When: batch name does not match [JOB_ID]-[CHUNK_ID] pattern
-     *   Then: finalizer throws IllegalArgumentException
-     */
+    /* Leaving it would have the finalizer meet it again on every pass and reach nothing
+       behind it, and its item cannot be addressed, so there is nothing to report it against. */
     @Test
-    public void finalizeNextCompletedBatch_batchIsWronglyNamed() {
+    void batchNameDoesNotNameAnItem_theBatchIsDiscardedWithoutBeingReported()
+            throws JobStoreServiceConnectorException {
         executeScriptResource("/invalid_named_batch.sql");
-        BatchFinalizer batchFinalizer = createBatchFinalizerBean();
-        assertThat(batchFinalizer::finalizeNextCompletedBatch, isThrowing(IllegalArgumentException.class));
+
+        assertThat("batch was handled", finalizer().finalizeNextCompletedBatch(), is(true));
+
+        verify(jobStoreServiceConnector, never()).addItemDelivered(any(), anyInt(), anyInt(), anyShort());
+        assertThat("batch removed", finalizer().finalizeNextCompletedBatch(), is(false));
     }
 
-    /*  Given: a completed batch
-     *   When: finalized
-     *   Then: the corresponding chunk is uploaded to the job-store
-     */
     @Test
-    public void finalizeNextCompletedBatch() throws JobStoreServiceConnectorException {
-        executeScriptResource("/completed_batch.sql");
+    void ignoredEntry_itemIsReportedIgnored() throws JobStoreServiceConnectorException {
+        executeScriptResource("/completed_batches.sql");
 
-        BatchFinalizer batchFinalizer = createBatchFinalizerBean();
-        assertThat("batch was finalized", batchFinalizer.finalizeNextCompletedBatch(), is(true));
+        assertThat("batch was finalized", finalizer().finalizeNextCompletedBatch(), is(true));
 
-        ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyInt(), anyLong());
+        ItemDeliveryResult result = reported(JOB_ID, 0, (short) 1);
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.IGNORED));
+        assertThat("watermark row sink id", result.sinkId(), is(15L));
+        assertThat("watermark row record key", result.recordKey(), is("870970:1"));
 
-        Chunk chunk = chunkArgumentCaptor.getValue();
-        assertThat("chunk job ID", chunk.getJobId(), is(42));
-        assertThat("chunk ID", chunk.getChunkId(), is(0L));
-        assertThat("chunk size", chunk.size(), is(5));
-
-        ChunkItem chunkItem = chunk.getItems().get(0);
-        assertThat("1st chunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat("1st chunkItem trackingId", chunkItem.getTrackingId(), is("42-0-1"));
-        assertThat("1st chunkItem diagnostics", chunkItem.getDiagnostics(), is(nullValue()));
-        assertThat("1st chunkItem data", StringUtil.asString(chunkItem.getData()),
+        ChunkItem outcome = result.chunkItem();
+        assertThat("outcome item id", outcome.getId(), is(1L));
+        assertThat("outcome status", outcome.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("outcome tracking id", outcome.getTrackingId(), is("42-0-1"));
+        assertThat("outcome diagnostics", outcome.getDiagnostics(), is(nullValue()));
+        assertThat("outcome data", StringUtil.asString(outcome.getData()),
                 is("Consumer system responded with OK: ok42-0-1\n"));
-
-        chunkItem = chunk.getItems().get(1);
-        assertThat("2nd chunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("2nd chunkItem trackingId", chunkItem.getTrackingId(), is("42-0-2"));
-        assertThat("2nd chunkItem diagnostics", chunkItem.getDiagnostics().size(), is(1));
-        assertThat("2nd chunkItem 1st diagnostic level", chunkItem.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.WARNING));
-        assertThat("2nd chunkItem 1st diagnostic message", chunkItem.getDiagnostics().get(0).getMessage(), is("warning42-0-2"));
-        assertThat("2nd chunkItem data", StringUtil.asString(chunkItem.getData()),
-                is("Consumer system responded with OK: ok42-0-2\nConsumer system responded with WARNING: warning42-0-2\n"));
-
-        chunkItem = chunk.getItems().get(2);
-        assertThat("3rd chunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("3rd chunkItem trackingId", chunkItem.getTrackingId(), is("42-0-3"));
-        assertThat("3rd chunkItem diagnostics", chunkItem.getDiagnostics().size(), is(1));
-        assertThat("3rd chunkItem 1st diagnostic level", chunkItem.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat("3rd chunkItem 1st diagnostic message", chunkItem.getDiagnostics().get(0).getMessage(), is("error42-0-3"));
-        assertThat("3rd chunkItem data", StringUtil.asString(chunkItem.getData()),
-                is("Consumer system responded with ERROR: error42-0-3\n"));
-
-        chunkItem = chunk.getItems().get(3);
-        assertThat("4th chunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("4th chunkItem trackingId", chunkItem.getTrackingId(), is("42-0-4"));
-        assertThat("4th chunkItem diagnostics", chunkItem.getDiagnostics().size(), is(1));
-        assertThat("4th chunkItem 1st diagnostic level", chunkItem.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat("4th chunkItem 1st diagnostic message", chunkItem.getDiagnostics().get(0).getMessage(), is("error42-0-4"));
-        assertThat("4th chunkItem data", StringUtil.asString(chunkItem.getData()),
-                is("Consumer system responded with ERROR: error42-0-4\n"));
-
-        chunkItem = chunk.getItems().get(4);
-        assertThat("5th chunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("5th chunkItem trackingId", chunkItem.getTrackingId(), is("42-0-5"));
-        assertThat("5th chunkItem diagnostics", chunkItem.getDiagnostics().size(), is(2));
-        assertThat("5th chunkItem 1st diagnostic level", chunkItem.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat("5th chunkItem 1st diagnostic message", chunkItem.getDiagnostics().get(0).getMessage(), is("error42-0-5a"));
-        assertThat("5th chunkItem 2nd diagnostic level", chunkItem.getDiagnostics().get(1).getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat("5th chunkItem 2nd diagnostic message", chunkItem.getDiagnostics().get(1).getMessage(), is("error42-0-5b"));
-        assertThat("5th chunkItem data", StringUtil.asString(chunkItem.getData()),
-                is("Consumer system responded with ERROR: error42-0-5a\nConsumer system responded with ERROR: error42-0-5b\nConsumer system responded with OK: ok42-0-5c\n"));
     }
 
     @Test
-    public void isUpTest() {
-        ScheduledBatchFinalizer batchFinalizerBean = new MockScheduledBatchFinalizer(Instant.now().minus(SinkConfig.FINALIZER_LIVENESS_THRESHOLD.asDuration()).plus(Duration.ofSeconds(1)));
+    void acceptedEntryWithAWarning_itemIsReportedDelivered() throws JobStoreServiceConnectorException {
+        executeScriptResource("/completed_batches.sql");
+        finalizeAll();
+
+        ItemDeliveryResult result = reported(JOB_ID, 0, (short) 2);
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.DELIVERED));
+        assertThat("watermark row record key", result.recordKey(), is("870970:2"));
+
+        ChunkItem outcome = result.chunkItem();
+        assertThat("outcome status", outcome.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("outcome diagnostics", outcome.getDiagnostics().size(), is(1));
+        assertThat("diagnostic level", outcome.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.WARNING));
+        assertThat("outcome data", StringUtil.asString(outcome.getData()),
+                is("Consumer system responded with OK: ok42-0-2\n"
+                        + "Consumer system responded with WARNING: warning42-0-2\n"));
+    }
+
+    /* The entry status says OK, the diagnostic says otherwise. Counting this as succeeded
+       would also advance the record's watermark for a version the consumer system objected
+       to, so the diagnostic decides. */
+    @Test
+    void acceptedEntryCarryingAnErrorDiagnostic_itemIsReportedFailed() throws JobStoreServiceConnectorException {
+        executeScriptResource("/completed_batches.sql");
+        finalizeAll();
+
+        ItemDeliveryResult result = reported(JOB_ID, 0, (short) 3);
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.FAILED));
+        assertThat("outcome status", result.chunkItem().getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("diagnostic level", result.chunkItem().getDiagnostics().get(0).getLevel(),
+                is(Diagnostic.Level.FATAL));
+    }
+
+    @Test
+    void rejectedEntry_itemIsReportedFailed() throws JobStoreServiceConnectorException {
+        executeScriptResource("/completed_batches.sql");
+        finalizeAll();
+
+        ItemDeliveryResult result = reported(JOB_ID, 0, (short) 4);
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.FAILED));
+        assertThat("outcome status", result.chunkItem().getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("outcome data", StringUtil.asString(result.chunkItem().getData()),
+                is("Consumer system responded with ERROR: error42-0-4\n"));
+    }
+
+    /* A partial success is failed, so the watermark is left where it was and a later version
+       of the record is free to reach the consumer system. */
+    @Test
+    void itemWhoseRecordsFaredDifferently_isReportedFailedAsOneItem() throws JobStoreServiceConnectorException {
+        executeScriptResource("/completed_batches.sql");
+        finalizeAll();
+
+        ItemDeliveryResult result = reported(JOB_ID, 0, (short) 5);
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.FAILED));
+
+        ChunkItem outcome = result.chunkItem();
+        assertThat("one outcome for the whole item", outcome.getId(), is(5L));
+        assertThat("outcome status", outcome.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("every record's diagnostics", outcome.getDiagnostics().size(), is(2));
+        assertThat("1st diagnostic", outcome.getDiagnostics().get(0).getMessage(), is("error42-0-5a"));
+        assertThat("2nd diagnostic", outcome.getDiagnostics().get(1).getMessage(), is("error42-0-5b"));
+        assertThat("every record's answer", StringUtil.asString(outcome.getData()),
+                is("Consumer system responded with ERROR: error42-0-5a\n"
+                        + "Consumer system responded with ERROR: error42-0-5b\n"
+                        + "Consumer system responded with OK: ok42-0-5c\n"));
+    }
+
+    @Test
+    void itemWithoutARecordKey_isReportedWithoutOne() throws JobStoreServiceConnectorException {
+        executeScriptResource("/batch_without_record_key.sql");
+
+        assertThat("batch was finalized", finalizer().finalizeNextCompletedBatch(), is(true));
+
+        ItemDeliveryResult result = reported(JOB_ID, 0, (short) 9);
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.DELIVERED));
+        assertThat("no watermark row to advance", result.recordKey(), is(nullValue()));
+        assertThat("watermark row sink id", result.sinkId(), is(15L));
+    }
+
+    @Test
+    void everyCompletedBatchIsFinalized() throws JobStoreServiceConnectorException {
+        executeScriptResource("/completed_batches.sql");
+
+        assertThat("number of batches finalized", finalizeAll(), is(5));
+
+        verify(jobStoreServiceConnector, atLeastOnce())
+                .addItemDelivered(any(), anyInt(), anyInt(), anyShort());
+        assertThat("nothing left", finalizer().finalizeNextCompletedBatch(), is(false));
+    }
+
+    @Test
+    void isUpTest() {
+        ScheduledBatchFinalizer batchFinalizerBean = new MockScheduledBatchFinalizer(Instant.now()
+                .minus(SinkConfig.FINALIZER_LIVENESS_THRESHOLD.asDuration()).plus(Duration.ofSeconds(1)));
         assertThat("Bean should be up", !batchFinalizerBean.isDown());
     }
 
     @Test
-    public void isDownTest() {
-        ScheduledBatchFinalizer batchFinalizerBean = new MockScheduledBatchFinalizer(Instant.now().minus(SinkConfig.FINALIZER_LIVENESS_THRESHOLD.asDuration()).minus(Duration.ofSeconds(1)));
+    void isDownTest() {
+        ScheduledBatchFinalizer batchFinalizerBean = new MockScheduledBatchFinalizer(Instant.now()
+                .minus(SinkConfig.FINALIZER_LIVENESS_THRESHOLD.asDuration()).minus(Duration.ofSeconds(1)));
         assertThat("Bean should be down", batchFinalizerBean.isDown());
     }
 
-    private BatchFinalizer createBatchFinalizerBean() {
-        return new BatchFinalizer(entityManagerFactory, jobStoreServiceConnector);
+    private static final int JOB_ID = 42;
+
+    private int finalizeAll() {
+        BatchFinalizer batchFinalizer = finalizer();
+        int finalized = 0;
+        while (batchFinalizer.finalizeNextCompletedBatch()) {
+            finalized++;
+        }
+        return finalized;
+    }
+
+    private ItemDeliveryResult reported(int jobId, int chunkId, short itemId)
+            throws JobStoreServiceConnectorException {
+        ArgumentCaptor<ItemDeliveryResult> captor = ArgumentCaptor.forClass(ItemDeliveryResult.class);
+        verify(jobStoreServiceConnector, atLeastOnce())
+                .addItemDelivered(captor.capture(), anyInt(), anyInt(), anyShort());
+        List<ItemDeliveryResult> results = captor.getAllValues();
+        return results.stream()
+                .filter(result -> result.chunkItem().getId() == itemId)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no result reported for item " + jobId + "/" + chunkId + "/" + itemId));
+    }
+
+    private BatchFinalizer finalizer() {
+        return new BatchFinalizer(entityManagerFactory, jobStoreServiceConnector, BatchExchangeMessageConsumer.fqn());
     }
 
     public static class MockScheduledBatchFinalizer extends ScheduledBatchFinalizer {
         Instant lastRun;
 
         public MockScheduledBatchFinalizer(Instant lastRun) {
-            super(new ServiceHub.Builder().withJobStoreServiceConnector(mock(JobStoreServiceConnector.class)).withZombieWatch(mock(ZombieWatch.class)).test(), null);
+            super(new ServiceHub.Builder()
+                    .withJobStoreServiceConnector(mock(JobStoreServiceConnector.class))
+                    .withZombieWatch(mock(ZombieWatch.class)).test(), null);
             this.lastRun = lastRun;
         }
 

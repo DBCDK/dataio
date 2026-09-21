@@ -15,6 +15,10 @@ package dk.dbc.dataio.jse.artemis.common;
  * its job can complete. Throwing means "ask again later", not "this item failed".
  */
 public class ItemDeliveryException extends RuntimeException {
+    public ItemDeliveryException(String message) {
+        super(message);
+    }
+
     public ItemDeliveryException(String message, Exception cause) {
         super(message, cause);
     }

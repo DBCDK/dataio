@@ -45,13 +45,14 @@ All sinks share the same structure, built on the `jse-artemis` framework:
    | `DELIVERED` | sent to the target | succeeded | the sink |
    | `IGNORED` | not sent, nothing to send | ignored | the sink |
    | `FAILED` | attempted, rejected in a way retrying will not fix | failed | the sink |
-   | `SUPERSEDED` | a newer version of the record was already delivered | ignored | the framework only |
+   | `SUPERSEDED` | a newer version of the record was already delivered | ignored | the framework, and `batch-exchange` |
 
    Rules that are easy to get wrong:
    - **Throwing means "retry"** — it rolls the JMS session back and the item is redelivered until the broker gives up. A terminal failure must be returned as `FAILED`, not thrown.
    - **A processing outcome passed through without being sent is `IGNORED`, not `DELIVERED` with an `IGNORE` item.** `DELIVERED` is the only verdict that advances the watermark, so using it for an unsent item both overstates the succeeded count and makes a false claim about what is at the target.
    - **Commit your own writes before returning.** The framework reports the result after `deliverItem` returns, so a reported item is an item whose writes are durable — which is what lets an aggregating sink's job-end work run against complete data.
    - Sinks that aggregate a whole job before delivering anything (`periodic-jobs`, `marcconv`) override `usesDeliveryWatermark()` to `false`. They still report every item individually: the phase counters and the per-job gate are driven by those reports.
+   - A sink whose target answers only *after* `deliverItem` returns overrides `defersDeliveryResult()` to `true` and returns `null` for an item whose outcome is still outstanding. The framework then reports nothing and lets the session commit, and the sink calls `addItemDelivered` itself once the outcome arrives. `batch-exchange` is the only one: it stages an item's records for a consumer system and `BatchFinalizer` reports them. Returning `null` without that override is an `ItemDeliveryException`. Reporting `DELIVERED` at staging time instead is wrong twice over — `addItemDelivered` records an outcome once per item, and `DELIVERED` advances the watermark for a delivery that may still fail.
    - The job termination item arrives as an ordinary item message carrying `ChunkItem.Type.JOB_END`; sinks needing job-end work branch on that.
 
    `dlq-errorhandler` and `job-processor2` are not sinks in this sense and stay on the chunk-level `MessageConsumerAdapter` by design: they implement `handleConsumedMessage(ConsumedMessage)` themselves and report whole `Chunk`s via `sendResultToJobStore`.

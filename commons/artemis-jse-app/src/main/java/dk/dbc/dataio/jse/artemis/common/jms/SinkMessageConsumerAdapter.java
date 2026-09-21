@@ -43,6 +43,13 @@ import static dk.dbc.dataio.jse.artemis.common.Metric.ATag.status;
  * Sinks with no bibliographic record identity to protect, such as those aggregating a
  * whole job before delivering anything, opt out with {@link #usesDeliveryWatermark()}.
  * <p>
+ * A sink whose target answers only after {@code deliverItem} has returned reports its own
+ * results instead, through {@link #defersDeliveryResult()}. The result cannot be reported
+ * here at the moment such a sink accepts an item: the delivery endpoint records an outcome
+ * once per item, so an outcome reported before the target has answered is the only one that
+ * item will ever have, and reporting it delivered would advance the record's watermark for
+ * a delivery that may still fail.
+ * <p>
  * The watermark key is taken from {@link JMSHeader#recordKey} rather than re-derived from
  * the delivered content, and no sink is given a say in it: {@code RecordInfo} whitespace
  * normalizes the record ID, so a key composed from raw record bytes can differ from the
@@ -82,6 +89,14 @@ public abstract class SinkMessageConsumerAdapter extends MessageConsumerAdapter 
                 : null;
 
         ItemDeliveryResult result = deliverUnlessSuperseded(consumedMessage, item, incoming, sinkId, recordKey);
+        if (result == null) {
+            if (!defersDeliveryResult()) {
+                throw new ItemDeliveryException(String.format(
+                        "Sink returned no result for item %d/%d/%d without deferring it",
+                        incoming.jobId(), incoming.chunkId(), incoming.itemId()));
+            }
+            return;
+        }
         report(result.withWatermarkKey(sinkId, recordKey), incoming);
     }
 
@@ -131,10 +146,35 @@ public abstract class SinkMessageConsumerAdapter extends MessageConsumerAdapter 
      *                off it
      * @param item    processing outcome to deliver, unmarshalled from the message body
      * @return outcome of the delivery, as {@link ItemDeliveryResult#of(ItemDeliveryResult.Status, ChunkItem)}.
-     * The returned chunk item is stored verbatim as the item's delivering outcome
+     * The returned chunk item is stored verbatim as the item's delivering outcome. Null
+     * only from a sink overriding {@link #defersDeliveryResult()} to true, meaning that
+     * this item's outcome is still outstanding and that the sink will report it. Null from
+     * any other sink is an error and is thrown rather than silently leaving the item
+     * unreported
      * @throws Exception when the delivery attempt should be retried
      */
     protected abstract ItemDeliveryResult deliverItem(ConsumedMessage message, ChunkItem item) throws Exception;
+
+    /**
+     * Whether this sink may defer a delivery result to a report of its own
+     * <p>
+     * Overridden to true by a sink whose target answers only after {@link #deliverItem} has
+     * returned, typically one staging an item for a system that collects it later. Such a
+     * sink returns null from {@code deliverItem} for an item whose outcome is still
+     * outstanding, and calls
+     * {@link dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector#addItemDelivered}
+     * itself once the outcome is known. An item it decided on its own, such as one it found
+     * nothing to stage for, is still returned as a result and reported here.
+     * <p>
+     * A supersession is reported here whatever the answer, since the sink is not called at
+     * all for a superseded item and has therefore taken charge of nothing.
+     *
+     * @return true to leave a null result for the sink to report, false to report every
+     * item here and treat a null result as an error
+     */
+    protected boolean defersDeliveryResult() {
+        return false;
+    }
 
     /**
      * Whether deliveries from this sink are subject to the delivery watermark

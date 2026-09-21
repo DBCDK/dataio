@@ -1730,9 +1730,13 @@ Both halves follow from the verdict, so one value fixes both.
 `SUPERSEDED` and `IGNORED` are indistinguishable to job-store, which counts both as ignored
 and advances neither watermark. They are two values because they are two different answers
 to "why is this record not at the target", which is the question asked when investigating
-one, and because they have different authors: only `SinkMessageConsumerAdapter` returns
-`SUPERSEDED`, since a sink does not read the watermark and therefore cannot detect
-supersession. That split is documented rather than enforced — a sink returning it wrongly
+one, and because they have different authors: `SinkMessageConsumerAdapter` returns
+`SUPERSEDED` for a version the watermark has already been advanced past, since a sink does
+not read the watermark and therefore cannot detect that itself. A sink returns it only for a
+supersession the watermark cannot see, which today means `batch-exchange` finding a newer
+version of the record among its own staged but unreported work (see
+[Sinks whose target answers after the item is accepted](#sinks-whose-target-answers-after-the-item-is-accepted)).
+Which of the two writes it is documented rather than enforced — a sink returning it wrongly
 produces the same counter and the same watermark behaviour as `IGNORED`, so the mistake is
 misleading in metrics and harmless in effect, and enforcing it would add a failure mode to
 catch something that cannot corrupt anything.
@@ -1809,6 +1813,52 @@ termination chunk could be released against an incomplete set. `periodic-jobs` c
 that window with a fixed five second sleep before finalizing, removed in DI-3015 along
 with the ordering problem it guessed at. `marcconv` has the same shape and the same
 argument applies to it.
+
+#### Sinks whose target answers after the item is accepted
+
+`batch-exchange` delivers nothing itself. It writes an item's records to the batch exchange
+database as pending entries, an external consumer system claims and applies them in its own
+time, and `BatchFinalizer` learns the outcome seconds to hours later. There is no verdict to
+return when `deliverItem` returns.
+
+Such a sink overrides `defersDeliveryResult()` to true and returns `null` from `deliverItem`
+for an item whose outcome is still outstanding. `SinkMessageConsumerAdapter` then reports
+nothing and lets the session commit, and the sink calls `addItemDelivered` itself once the
+outcome is known. A `null` from a sink that has not declared this is thrown as an
+`ItemDeliveryException`, so the mistake costs a redelivery rather than a job that never
+finishes. An item the sink decided on its own, such as one it found nothing to stage for, is
+still returned as a result and reported by the framework as usual.
+
+The obvious alternative, reporting `DELIVERED` when the item is accepted, is wrong twice
+over. `addItemDelivered` records an outcome once per item (`ItemEntity.deliveringOutcome`
+short-circuits every later call), so the outcome reported at staging time is the only one
+that item will ever have, and the consumer system's diagnostics would never reach the job.
+Worse, `DELIVERED` is the one verdict that advances the watermark, so a record the consumer
+system later rejects would have advanced it anyway, and a genuinely older but valid version
+arriving afterwards would be judged stale and skipped — leaving the target with neither.
+
+**The finalizer cannot ask the watermark instead.** Reading the watermark a second time
+before reporting looks like a cheaper way to catch a stale delivery, and it does not work.
+The content is already at the target by then, so supersession, which is a pre-delivery
+filter, has nothing left to prevent. Reporting `SUPERSEDED` at that point would also state
+the opposite of what happened: the item *was* sent, and it overwrote a newer version. And
+the one thing such a check could protect is already protected, since the upsert advances
+only on `(EXCLUDED...) > (existing...)` and an older `DELIVERED` report therefore leaves a
+newer watermark alone.
+
+What the sink does instead is ask the watermark's own question against its own staged work,
+before staging: is a higher `(jobId, chunkId, itemId)` already staged for this
+`(sinkId, recordKey)`? Between that and the framework's watermark check, both halves are
+covered — the watermark answers for versions already reported, the staged-work check for
+versions still pending — and a version is in one state or the other. Without it the sink
+would have a supersession blind spot as wide as the consumer system's queue, and one that
+does not heal: once two versions are staged, applied in the wrong order and reported, the
+watermark holds the newer version while the target holds the older one, so every later
+version below the watermark is correctly skipped and nothing corrects the target.
+
+`batch-exchange` carries the five values it needs to report with in the batch name
+(`<sinkId>-<recordKey>-<jobId>-<chunkId>-<itemId>`), the record key leading so that one
+record's staged batches are an indexed prefix range rather than a table scan.
 
 ### Watermark calls (`job-store-service-connector`)
 
@@ -2389,6 +2439,8 @@ Two ordering constraints shape the sequence:
   is not advanced by an item that was never sent (see [The four verdicts](#the-four-verdicts)).
   The first migration, `dummy` under DI-3017, added the verdict and is the worked example
 - `periodic-jobs` and `marcconv` additionally override `usesDeliveryWatermark()`
+- `batch-exchange` additionally overrides `defersDeliveryResult()`, being the one sink whose
+  target answers after the item has been accepted
 - Deployment is big-bang: job-store and every sink go live together against drained,
   re-created queues, so no sink needs to handle both payload types during a rollout
   window. Until the last of these merges, master builds but is not deployable

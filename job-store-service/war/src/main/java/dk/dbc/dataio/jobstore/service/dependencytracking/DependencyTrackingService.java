@@ -197,14 +197,15 @@ public class DependencyTrackingService {
     }
 
     /**
-     * Sends a stale chunk to its queue again, once.
+     * Sends a stale chunk to its queue again, up to the given number of times.
      *
-     * @param key chunk to send again
-     * @return what changed, or empty if the chunk had already been retried or held a status with no
+     * @param key        chunk to send again
+     * @param retryLimit how many times one chunk may be sent again
+     * @return what changed, or empty if the chunk had used its retries or held a status with no
      * successor
      */
-    public Optional<StatusChangeEvent> resend(TrackingKey key) {
-        return applyCounters(repository.resend(key));
+    public Optional<StatusChangeEvent> resend(TrackingKey key, int retryLimit) {
+        return applyCounters(repository.resend(key, retryLimit));
     }
 
     /**

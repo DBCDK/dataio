@@ -260,8 +260,8 @@ public class DependencyTrackingRepositoryIT extends AbstractJobStoreIT {
         TrackingKey delivering = seed(job, 1, QUEUED_FOR_DELIVERY, Priority.NORMAL);
 
         persistenceContext.run(() -> {
-            newDependencyTrackingRepository().resend(processing);
-            newDependencyTrackingRepository().resend(delivering);
+            newDependencyTrackingRepository().resend(processing, 1);
+            newDependencyTrackingRepository().resend(delivering, 1);
         });
 
         assertThat("processing goes back to the processing queue",
@@ -272,22 +272,48 @@ public class DependencyTrackingRepositoryIT extends AbstractJobStoreIT {
     }
 
     /**
-     * Once, and only once. The second call finds {@code retries} already at one and matches nothing,
-     * which is what the caller's own filter used to do outside the statement.
+     * The statement carries the limit, so two callers reaching one chunk produce one retry between
+     * them rather than relying on a filter outside it.
      */
     @org.junit.Test
-    public void resend_secondCall_isANoOp() throws Exception {
+    public void resend_limitOfOne_secondCallIsANoOp() throws Exception {
         JobEntity job = newPersistedJob();
         TrackingKey key = seed(job, 0, QUEUED_FOR_PROCESSING, Priority.NORMAL);
 
         Optional<StatusChangeEvent> first = persistenceContext.run(() ->
-                newDependencyTrackingRepository().resend(key));
+                newDependencyTrackingRepository().resend(key, 1));
         Optional<StatusChangeEvent> second = persistenceContext.run(() ->
-                newDependencyTrackingRepository().resend(key));
+                newDependencyTrackingRepository().resend(key, 1));
 
         assertThat("the first call retried", first.isPresent(), is(true));
         assertThat("the second did not", second.isPresent(), is(false));
         assertThat("one retry", retriesOf(key), is(1));
+    }
+
+    /**
+     * A chunk stranded again after a retry is sent again, up to the limit, so recovery is not spent
+     * on the first attempt. Each retry parks the chunk, and the sweep that re-dispatches it is what
+     * puts it back in a status this statement will act on, which is why the test does the same.
+     */
+    @org.junit.Test
+    public void resend_belowTheLimit_sendsAgain() throws Exception {
+        JobEntity job = newPersistedJob();
+        TrackingKey key = seed(job, 0, QUEUED_FOR_PROCESSING, Priority.NORMAL);
+
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            Optional<StatusChangeEvent> change = persistenceContext.run(() ->
+                    newDependencyTrackingRepository().resend(key, 3));
+            assertThat("retry " + attempt + " was sent", change.isPresent(), is(true));
+            persistenceContext.run(() ->
+                    newDependencyTrackingRepository().updateStatus(key, QUEUED_FOR_PROCESSING));
+        }
+
+        Optional<StatusChangeEvent> beyondLimit = persistenceContext.run(() ->
+                newDependencyTrackingRepository().resend(key, 3));
+
+        assertThat("the fourth attempt was declined", beyondLimit.isPresent(), is(false));
+        assertThat("three retries", retriesOf(key), is(3));
+        assertThat("left where the sweep can reach it", statusOf(key), is(QUEUED_FOR_PROCESSING.value));
     }
 
     /**
@@ -300,7 +326,7 @@ public class DependencyTrackingRepositoryIT extends AbstractJobStoreIT {
         TrackingKey key = seed(job, 0, READY_FOR_PROCESSING, Priority.NORMAL);
 
         Optional<StatusChangeEvent> change = persistenceContext.run(() ->
-                newDependencyTrackingRepository().resend(key));
+                newDependencyTrackingRepository().resend(key, 1));
 
         assertThat("declined", change.isPresent(), is(false));
         assertThat("status untouched", statusOf(key), is(READY_FOR_PROCESSING.value));

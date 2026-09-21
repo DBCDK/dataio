@@ -355,13 +355,15 @@ public class JobsBean {
             return buildBadRequestResponse(e);
         }
 
-        // The chunk must be persisted before it is scheduled for delivery. Delivery
-        // dispatch reads the chunk's ItemEntity rows to build one message per item, and
-        // until addChunk has run, those rows carry no processing outcome.
-        Response response = addChunk(uriInfo, jobId, chunkId, Chunk.Type.PROCESSED, processedChunk);
-        jobSchedulerBean.chunkProcessingDone(processedChunk);
+        // Only a persisted chunk is scheduled on. Delivery dispatch builds one message per item
+        // from the chunk's ItemEntity rows, and a refused chunk leaves those rows without a
+        // processing outcome.
+        ChunkResult result = addChunk(uriInfo, jobId, chunkId, Chunk.Type.PROCESSED, processedChunk);
+        if (result.isPersisted()) {
+            jobSchedulerBean.chunkProcessingDone(processedChunk);
+        }
 
-        return response;
+        return result.response();
     }
 
     /**
@@ -398,11 +400,16 @@ public class JobsBean {
             return buildBadRequestResponse(e);
         }
 
-        Response response = addChunk(uriInfo, jobId, chunkId, Chunk.Type.DELIVERED, deliveredChunk);
-        jobSchedulerBean.chunkDeliveringDone(deliveredChunk);
+        // Only a persisted chunk is scheduled on. The delivery callback removes the chunk's
+        // dependency tracking row and counts it against its job's gate, and neither can be undone,
+        // so a refused chunk would be recorded as delivered with nothing left to resend it from.
+        ChunkResult result = addChunk(uriInfo, jobId, chunkId, Chunk.Type.DELIVERED, deliveredChunk);
+        if (result.isPersisted()) {
+            jobSchedulerBean.chunkDeliveringDone(deliveredChunk);
+        }
 
         // Todo check hvordan job afsluttes.
-        return response;
+        return result.response();
     }
 
     @POST
@@ -822,32 +829,80 @@ public class JobsBean {
     }
 
     /**
+     * Adds a chunk to its job, and reports whether the chunk's items reached the database.
+     *
      * @param uriInfo application and request URI information
      * @param jobId   job id
      * @param chunkId chunk id
      * @param type    chunk type (PARTITIONED, PROCESSED, DELIVERED)
      * @param chunk   chunk data
-     * @return HTTP 201 CREATED response on success, HTTP 400 BAD_REQUEST response on failure to update job
+     * @return the outcome, and the response for the caller to return
      * @throws JSONBException    on marshalling failure
      * @throws JobStoreException on referenced entities not found
      */
-    Response addChunk(UriInfo uriInfo, int jobId, long chunkId, Chunk.Type type, Chunk chunk) throws JobStoreException, JSONBException {
-        if(isAborted(jobId)) return Response.accepted().build();
+    ChunkResult addChunk(UriInfo uriInfo, int jobId, long chunkId, Chunk.Type type, Chunk chunk) throws JobStoreException, JSONBException {
+        if (isAborted(jobId)) {
+            return new ChunkResult(ChunkOutcome.ABORTED, Response.accepted().build());
+        }
         try {
             JobError jobError = getChunkInputDataError(jobId, chunkId, chunk, type);
-            if (jobError == null) {
-                JobInfoSnapshot jobInfoSnapshot = jobStore.addChunk(chunk);
-                return Response.created(getUri(uriInfo, Long.toString(chunk.getChunkId())))
-                        .entity(jsonbContext.marshall(jobInfoSnapshot))
-                        .build();
-            } else {
-                return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(jobError)).build();
+            if (jobError != null) {
+                return new ChunkResult(ChunkOutcome.REJECTED,
+                        Response.status(BAD_REQUEST).entity(jsonbContext.marshall(jobError)).build());
             }
-
+            JobInfoSnapshot jobInfoSnapshot = jobStore.addChunk(chunk);
+            return new ChunkResult(ChunkOutcome.PERSISTED,
+                    Response.created(getUri(uriInfo, Long.toString(chunk.getChunkId())))
+                            .entity(jsonbContext.marshall(jobInfoSnapshot))
+                            .build());
         } catch (InvalidInputException e) {
-            return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
+            return new ChunkResult(ChunkOutcome.REJECTED,
+                    Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build());
         } catch (DuplicateChunkException e) {
-            return Response.status(ACCEPTED).entity(jsonbContext.marshall(e.getJobError())).build();
+            return new ChunkResult(ChunkOutcome.ALREADY_PERSISTED,
+                    Response.status(ACCEPTED).entity(jsonbContext.marshall(e.getJobError())).build());
+        }
+    }
+
+    /**
+     * What became of a chunk handed to {@link #addChunk}.
+     * <p>
+     * Scheduling a chunk onward hands its item rows to the next phase. The processing callback
+     * sends those rows to a sink, one message per item, and the delivery callback removes the
+     * chunk's dependency tracking row and counts it against its job's gate. Both read rows that
+     * carry an outcome only once the chunk has been added, so this is what the endpoints test
+     * before scheduling.
+     */
+    enum ChunkOutcome {
+        /** The chunk's items were written by this call. */
+        PERSISTED,
+        /** The chunk's items were already written, by an earlier call for the same chunk. */
+        ALREADY_PERSISTED,
+        /** The chunk was refused and no item row was written. */
+        REJECTED,
+        /** The job has been aborted, and the chunk was not looked at. */
+        ABORTED
+    }
+
+    /**
+     * Pairs a chunk submission's outcome with the response its caller returns.
+     * <p>
+     * The response status does not carry the outcome on its own. HTTP 202 answers both a chunk
+     * that was already added and a chunk of an aborted job, and those two differ in whether the
+     * items are in the database.
+     *
+     * @param outcome  what became of the chunk's items
+     * @param response response for the endpoint to return
+     */
+    record ChunkResult(ChunkOutcome outcome, Response response) {
+        /**
+         * Tells whether the chunk's item rows carry their outcome, written by this call or an
+         * earlier one.
+         *
+         * @return true if the chunk may be scheduled onward
+         */
+        boolean isPersisted() {
+            return outcome == ChunkOutcome.PERSISTED || outcome == ChunkOutcome.ALREADY_PERSISTED;
         }
     }
 

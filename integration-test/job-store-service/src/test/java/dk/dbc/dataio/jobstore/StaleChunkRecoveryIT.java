@@ -26,13 +26,19 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 /**
- * The minutely stale-chunk sweep, running as the deployed service actually runs it.
+ * The two minutely sweeps that pick up a chunk nothing else is watching, running as the deployed
+ * service actually runs them.
  * <p>
  * {@code AdminBean.updateStaleChunks} is the only thing watching a chunk whose dispatch attempt was
  * fired and never arrived. A chunk holds {@code READY_FOR_PROCESSING} only between its row
  * committing and the asynchronous dispatch call running, and that call is in-memory, so a crash or a
  * redeploy in that window strands it. The two bulk submitters read only the {@code SCHEDULED_*}
  * statuses, so nothing else would ever look at it again.
+ * <p>
+ * {@code JobSchedulerBulkSubmitterBean.sweepSinksWithParkedChunks} is what watches a chunk that did
+ * reach a {@code SCHEDULED_*} status but whose sink the chunk counts have lost. Those counts are
+ * what the once-a-second dispatch sweeps read, so a sink missing from them is a sink nothing
+ * dispatches for.
  * <p>
  * <b>Driven by the real {@code @Schedule} rather than by a call.</b> No endpoint runs this sweep,
  * and adding one purely to test it would leave the part that only a container can show, that the
@@ -60,6 +66,7 @@ public class StaleChunkRecoveryIT extends AbstractJobStoreServiceContainerTest {
 
     private static final int READY_FOR_PROCESSING = 1;
     private static final int QUEUED_FOR_PROCESSING = 2;
+    private static final int SCHEDULED_FOR_PROCESSING = 6;
 
     /**
      * A chunk stranded in {@code READY_FOR_PROCESSING} is rescued and dispatched.
@@ -85,7 +92,48 @@ public class StaleChunkRecoveryIT extends AbstractJobStoreServiceContainerTest {
         awaitStatus(jobId, 0, QUEUED_FOR_PROCESSING);
     }
 
+    /**
+     * A chunk parked in {@code SCHEDULED_FOR_PROCESSING} that the sink chunk counts do not know
+     * about is dispatched all the same.
+     * <p>
+     * Those counts are what the once-a-second dispatch sweeps read, and they can lose a chunk: a
+     * recount replaces them with a census of the table, and a move whose transaction is still open
+     * when that census is taken is not in it. Nothing else reads a parked chunk, so the sink stops
+     * dispatching entirely until the next hourly recount, and because the direct paths stand down
+     * for the head of a sink's parked queue, every chunk partitioned afterwards parks behind this
+     * one.
+     * <p>
+     * Writing the row directly is what produces that state, since the counts are moved by the
+     * scheduler rather than derived from the table. What has to pick the chunk up is
+     * {@code JobSchedulerBulkSubmitterBean.sweepSinksWithParkedChunks}, which asks the table once a
+     * minute, so the deadline is again what reports the defect.
+     */
+    @Test
+    public void chunkParkedWithoutBeingCountedIsStillDispatched() throws Exception {
+        int jobId = addJob();
+        awaitPartitioned(jobId, "the job whose chunk is parked uncounted");
+        park(jobId, 0);
+
+        awaitStatus(jobId, 0, QUEUED_FOR_PROCESSING);
+    }
+
     // ---------------------------------------------------------------- fixtures
+
+    /**
+     * Parks a chunk the way a lost counter delta leaves one: the row says the chunk is waiting for
+     * the bulk sweep, and the sink chunk counts, which this does not touch, do not say so.
+     */
+    private void park(int jobId, int chunkId) throws SQLException {
+        try (Connection connection = connectToDB(jobstoreDBContainer);
+             PreparedStatement statement = connection.prepareStatement(
+                     "UPDATE dependencytracking SET status = ?, lastmodified = now(), retries = 0 " +
+                             " WHERE jobid = ? AND chunkid = ?")) {
+            statement.setInt(1, SCHEDULED_FOR_PROCESSING);
+            statement.setInt(2, jobId);
+            statement.setInt(3, chunkId);
+            assertThat("the chunk's row was there to park", statement.executeUpdate(), is(1));
+        }
+    }
 
     /**
      * Puts a chunk into the state a crash between its row's commit and the asynchronous dispatch

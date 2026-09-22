@@ -25,6 +25,7 @@ import jakarta.jms.Message;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.junit.Test;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -48,6 +49,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 public class SinkDeliveryProtocolIT extends AbstractJobStoreServiceContainerTest {
     private static final int ITEMS_PER_JOB = 15;
+
+    /** The fixture data file splits into this many chunks. */
+    private static final int CHUNKS_PER_JOB = 2;
+
+    private static final long QUEUE_WAIT_MS = 20_000;
+    private static final long POLL_INTERVAL_MS = 200;
     private final JSONBContext jsonbContext = new JSONBContext();
 
     /**
@@ -185,18 +192,52 @@ public class SinkDeliveryProtocolIT extends AbstractJobStoreServiceContainerTest
      */
     private JobInfoSnapshot processedJob() throws JobStoreServiceConnectorException {
         JobInfoSnapshot job = jobStoreServiceConnector.addJob(newJobInputStream());
-        List<Chunk> chunks = jmsQueueServiceConnector.awaitQueueSizeAndList(
-                        JmsQueueTester.Queue.PROCESSING_BUSINESS, 2, 20000)
-                .stream().map(this::getChunk)
-                .sorted(Comparator.comparing(Chunk::getChunkId))
-                .toList();
-        for (Chunk chunk : chunks) {
+        for (Chunk chunk : awaitOwnChunks(job.getJobId())) {
             Chunk processed = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.PROCESSED);
             processed.addAllItems(chunk.getItems());
             jobStoreServiceConnector.addChunk(processed, job.getJobId(), chunk.getChunkId());
         }
         jmsQueueServiceConnector.emptyQueue(JmsQueueTester.Queue.PROCESSING_BUSINESS);
         return job;
+    }
+
+    /**
+     * Waits for a job's own chunks to reach the processor queue, ignoring whatever else is on it.
+     * <p>
+     * The job-store container is shared with the other suites of this module, and a suite that
+     * submits many jobs can still be draining when this one starts, so the queue holds their chunks
+     * too. Selecting by job id is what makes this independent of them, where asserting on the
+     * queue's total size makes the outcome depend on which suite ran before.
+     *
+     * @param jobId job whose chunks to wait for
+     * @return the job's chunks, lowest chunk id first
+     */
+    private List<Chunk> awaitOwnChunks(int jobId) {
+        Instant deadline = Instant.now().plusMillis(QUEUE_WAIT_MS);
+        List<Chunk> own = List.of();
+        while (Instant.now().isBefore(deadline)) {
+            own = jmsQueueServiceConnector.listQueue(JmsQueueTester.Queue.PROCESSING_BUSINESS).stream()
+                    .map(this::getChunk)
+                    .filter(chunk -> chunk.getJobId() == jobId)
+                    .sorted(Comparator.comparing(Chunk::getChunkId))
+                    .toList();
+            if (own.size() == CHUNKS_PER_JOB) {
+                return own;
+            }
+            sleep();
+        }
+        throw new IllegalStateException("job " + jobId + " put " + own.size() + " of " + CHUNKS_PER_JOB
+                + " chunks on " + JmsQueueTester.Queue.PROCESSING_BUSINESS.getQueueName()
+                + " within " + QUEUE_WAIT_MS + " ms");
+    }
+
+    private void sleep() {
+        try {
+            Thread.sleep(POLL_INTERVAL_MS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("interrupted while waiting for the processor queue", e);
+        }
     }
 
     /**

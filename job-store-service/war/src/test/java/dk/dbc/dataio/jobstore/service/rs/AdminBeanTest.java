@@ -7,6 +7,7 @@ import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.types.State;
@@ -191,9 +192,49 @@ public class AdminBeanTest {
         }
     }
 
+    /**
+     * A lost delta is silent once the recount has replaced the number, so what the recount had to
+     * correct is the only thing left to report it by.
+     */
+    @Test
+    void recountAndReportDrift_countersWereWrong_theCorrectionIsCounted() {
+        TestAdminBean adminBean = new TestAdminBean();
+        adminBean.dependencyTrackingService = mock(DependencyTrackingService.class);
+        when(adminBean.dependencyTrackingService.recountSinkStatus(any())).thenReturn(4);
+
+        adminBean.recountAndReportDrift();
+
+        Assertions.assertEquals(4, adminBean.correctedCounted);
+    }
+
+    /**
+     * Counters that agree with the table produce no metric at all, so the series stays a signal
+     * rather than an hourly zero.
+     */
+    @Test
+    void recountAndReportDrift_countersAgreed_nothingIsCounted() {
+        TestAdminBean adminBean = new TestAdminBean();
+        adminBean.dependencyTrackingService = mock(DependencyTrackingService.class);
+        when(adminBean.dependencyTrackingService.recountSinkStatus(any())).thenReturn(0);
+
+        adminBean.recountAndReportDrift();
+
+        Assertions.assertEquals(-1, adminBean.correctedCounted, "nothing was counted");
+    }
+
     private static class TestAdminBean extends AdminBean {
+        private int correctedCounted = -1;
+
         private TestAdminBean() {
             chunkResendLimit = 3;
+        }
+
+        /**
+         * Records rather than increments, which needs a metric registry the container injects.
+         */
+        @Override
+        void countCorrectedCounters(int corrected) {
+            correctedCounted = corrected;
         }
 
         @Override

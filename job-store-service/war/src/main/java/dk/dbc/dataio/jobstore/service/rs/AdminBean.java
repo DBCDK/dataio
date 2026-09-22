@@ -77,6 +77,8 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED
 @Path("/")
 public class AdminBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminBean.class);
+    /** Counts the sink and status pairs the hourly recount found the counters had wrong. */
+    private static final String SINK_STATUS_COUNTER_DRIFT = "dataio_sink_status_counter_drift";
     @EJB
     JobSchedulerBean jobSchedulerBean;
     @EJB
@@ -223,11 +225,33 @@ public class AdminBean {
         if (lifted > 0 || opened > 0) {
             LOGGER.info("Hourly gate sweep lifted {} barriers and opened {} gates", lifted, opened);
         }
-        // The sink chunk counts are maintained from the write sites rather than derived, and the
-        // mutation is not transactional, so a rolled back transaction leaves a counter moved and
-        // the table not. Drift accumulates and the queue caps are read from these counters, so
-        // recount them here. One scan of a table bounded by in-flight chunks, hourly.
-        dependencyTrackingService.recountSinkStatus(Set.of());
+        recountAndReportDrift();
+    }
+
+    /**
+     * Replaces the sink chunk counts with a census of the table, and counts what had to be
+     * corrected.
+     * <p>
+     * The counts are maintained from the write sites rather than derived, and the mutation is not
+     * transactional, so a transaction that does not commit can leave a count moved and the table
+     * not. One scan of a table bounded by in-flight chunks, hourly.
+     * <p>
+     * What is corrected is worth a metric even though the recount repairs it. A count that says a
+     * sink holds nothing parked costs that sink a minute of dispatch, until
+     * {@code JobSchedulerBulkSubmitterBean.sweepSinksWithParkedChunks} asks the table instead, and
+     * the repair itself says nothing, so this number is the only standing signal that deltas are
+     * being lost. {@link DependencyTrackingService#recountSinkStatus} logs which sink and status
+     * each was.
+     */
+    void recountAndReportDrift() {
+        int corrected = dependencyTrackingService.recountSinkStatus(Set.of());
+        if (corrected > 0) {
+            countCorrectedCounters(corrected);
+        }
+    }
+
+    void countCorrectedCounters(int corrected) {
+        metricRegistry.counter(SINK_STATUS_COUNTER_DRIFT).inc(corrected);
     }
 
     /**

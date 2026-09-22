@@ -500,6 +500,32 @@ public class DependencyTrackingRepository extends RepositoryBase {
     }
 
     /**
+     * Names the sinks holding at least one chunk in a status, from the table rather than the
+     * counters.
+     * <p>
+     * The sink chunk counts are maintained from the write sites and can lose a delta, and a sink
+     * whose count says zero is a sink the bulk submitters do not look at. This answers the same
+     * question from the rows themselves, so a lost delta cannot hide a sink that has chunks
+     * waiting.
+     * <p>
+     * No index serves it. Both ordered indexes lead on {@code sinkid}, so a predicate on status
+     * alone scans, which is why {@code JobSchedulerBulkSubmitterBean} asks once a minute rather
+     * than on its once-a-second dispatch tick.
+     *
+     * @param status status to look for
+     * @return every sink with at least one chunk in that status
+     */
+    @Timed
+    public Set<Integer> distinctSinkIdsWithStatus(ChunkSchedulingStatus status) {
+        @SuppressWarnings("unchecked")
+        List<Number> rows = entityManager.createNativeQuery(
+                        "SELECT DISTINCT sinkid FROM dependencytracking WHERE status = ?1")
+                .setParameter(1, status.value)
+                .getResultList();
+        return rows.stream().map(Number::intValue).collect(Collectors.toSet());
+    }
+
+    /**
      * @return every job with at least one chunk in the scheduler
      */
     public Set<Integer> distinctJobIds() {

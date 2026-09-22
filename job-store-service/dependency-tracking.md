@@ -438,11 +438,31 @@ one. Each SQL write that changes a chunk's status applies its own delta through 
 `UpdateCounter` entry processor, and the map is rebuilt at startup, hourly, and on demand at
 `GET status/sinks/recount` from `SELECT sinkid, status, COUNT(*) ... GROUP BY sinkid, status`.
 
-**The counters can drift, and the rebuild is why that is tolerable.** The delta is not part of the
-transaction that changed the row, so a transaction that rolls back after applying its delta leaves
-the two disagreeing. The counters feed the queue caps, which are backpressure rather than
-correctness, so drift costs throughput until the next rebuild. They move to a plain JVM map in
-DI-3024, once the scheduler is a single instance.
+**The counters can drift, and two things keep that tolerable.** The delta is not part of the
+transaction that changed the row, so the two can disagree. A transaction that does not commit has
+its delta reversed from a transaction synchronisation, which covers the rollback case without
+waiting for a rebuild. The delta is still applied as the statement returns rather than on commit,
+because `capacity` is read by concurrent dispatchers in between and a delta they cannot see is a
+queue slot handed out twice, so a rebuild whose read runs while another transaction is open still
+replaces the counters with a census that does not include it.
+
+**A counter that is wrong cannot hide work.** `getActiveSinks` answers from the counters, so it is
+what the once-a-second dispatch sweeps ask, and a sink whose count says zero would otherwise stop
+dispatching entirely until the next rebuild: nothing else reads a `SCHEDULED_*` chunk, and because
+the direct paths stand down for the head of a sink's parked queue, every chunk partitioned
+afterwards parks behind the one left behind. `JobSchedulerBulkSubmitterBean.sweepSinksWithParkedChunks`
+therefore asks the table once a minute, through
+`DependencyTrackingRepository.distinctSinkIdsWithStatus`, and dispatches for whatever it names.
+That bounds the delay to one sweep whatever the counters hold. It runs once a minute rather than on
+the dispatch tick because the query filters on status alone and neither ordered index leads with
+it.
+
+What the rebuild had to correct is counted in `dataio_sink_status_counter_drift` and the sink and
+status of each is logged, since the repair is otherwise silent.
+
+The counters feed the queue caps, which are backpressure rather than correctness, so drift costs
+throughput until the next rebuild. They move to a plain JVM map in DI-3024, once the scheduler is a
+single instance.
 
 ## The `DependencyTracking` record
 
@@ -590,7 +610,7 @@ successor at all, sit in the retry statement's own `WHERE` clause rather than in
     A chunk that gets stuck is also reported where that happens. `chunkProcessingDone` and `chunkDeliveringDone` both re-read the row when their status change matches nothing, and tell a duplicate apart from a chunk left behind: a row that is gone or already past the phase is an acknowledgement of something the instance knew, and a row still waiting for the phase that has just completed is a chunk nothing will move on. The second is logged at warning with the status the row holds and counted in `dataio_stuck_chunks`, tagged `state=processing` or `state=delivering`.
 
     The two `READY_*` windows differ on purpose. A chunk holds either status for the length of one dispatch attempt and no longer, and the bulk submitters read only the `SCHEDULED_*` statuses, so this sweep is the only thing watching. Five minutes on the delivery side covers a real round trip to a sink. The processing side's attempt is an EJB asynchronous invocation fired as the chunk's row commits, so it is milliseconds in health, and its window is set by the opposite risk: a large partitioning burst queues those invocations, and a sweep firing while they drain hands the same chunks to the bulk submitter and leaves every queued invocation to find its chunk already claimed.
-  - `recheckBlocks()` (hourly) drops the rows of jobs that are gone or already completed, lifting the barrier of each so the jobs queued behind it are released, and recounts the sink status map. It then sweeps the gate: it lifts the barrier of any job left with one and no `is_termination` row, and opens any gate closed with no earlier unlifted barrier, requiring for a termination chunk that its own job's data chunks are delivered.
+  - `recheckBlocks()` (hourly) drops the rows of jobs that are gone or already completed, lifting the barrier of each so the jobs queued behind it are released, and recounts the sink status map, counting what it had to correct in `dataio_sink_status_counter_drift`. It then sweeps the gate: it lifts the barrier of any job left with one and no `is_termination` row, and opens any gate closed with no earlier unlifted barrier, requiring for a termination chunk that its own job's data chunks are delivered.
   - `completeFinishedJobs()` (hourly) closes jobs whose work finished without the completion being recorded.
 
 ## Write volume
@@ -634,6 +654,6 @@ sink would let the ordered indexes serve it and is what to reach for if the scan
 | `war/src/main/java/.../rs/WatermarksBean.java` | The watermark read endpoint sinks call before each delivery |
 | `war/src/main/java/.../ejb/WatermarkPurgeBean.java` | Nightly pruning of watermark rows past `WATERMARK_RETENTION` |
 | `commons/artemis-jse-app/.../jms/SinkMessageConsumerAdapter.java` | Sink-side half of the watermark protocol, with the opt-out |
-| `war/src/main/java/.../ejb/JobSchedulerBulkSubmitterBean.java` | Per-second bulk submission of `SCHEDULED_FOR_*` chunks to the JMS queues |
+| `war/src/main/java/.../ejb/JobSchedulerBulkSubmitterBean.java` | Per-second bulk submission of `SCHEDULED_FOR_*` chunks to the JMS queues, and the minutely sweep of the sinks the table says hold them |
 | `war/src/main/java/.../rs/AdminBean.java` | Scheduled recovery tasks: stale chunks, row rechecks, the gate sweep, job completion |
 | `war/src/main/java/.../ejb/JobsBean.java` | Delivery callbacks, and the abort path that has to lift a job's barrier |

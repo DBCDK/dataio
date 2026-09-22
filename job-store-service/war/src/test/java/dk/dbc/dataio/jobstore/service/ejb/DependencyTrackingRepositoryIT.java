@@ -18,6 +18,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -409,6 +410,39 @@ public class DependencyTrackingRepositoryIT extends AbstractJobStoreIT {
                 newDependencyTrackingRepository().delete(closed)).orElseThrow();
 
         assertThat(removed.isGateOpen(), is(false));
+    }
+
+    // ---------------------------------------------------------------- discovery from the table
+
+    /**
+     * Which sinks hold a status is answered from the rows, which is what lets the bulk submitter
+     * find work the sink chunk counts have lost.
+     */
+    @org.junit.Test
+    public void distinctSinkIdsWithStatus_namesTheSinksHoldingThatStatus() throws Exception {
+        JobEntity job = newPersistedJob();
+        seed(job, 0, SCHEDULED_FOR_PROCESSING, Priority.NORMAL);
+        seed(job, 1, QUEUED_FOR_PROCESSING, Priority.NORMAL);
+
+        DependencyTrackingRepository repository = newDependencyTrackingRepository();
+
+        assertThat("the sink holds a chunk parked for processing",
+                repository.distinctSinkIdsWithStatus(SCHEDULED_FOR_PROCESSING), is(Set.of(SINK_ID)));
+        assertThat("and none parked for delivery",
+                repository.distinctSinkIdsWithStatus(SCHEDULED_FOR_DELIVERY), is(Set.of()));
+    }
+
+    /**
+     * One sink is named once however many chunks it holds, since the caller dispatches per sink.
+     */
+    @org.junit.Test
+    public void distinctSinkIdsWithStatus_namesASinkOnce() throws Exception {
+        JobEntity job = newPersistedJob();
+        seed(job, 0, SCHEDULED_FOR_PROCESSING, Priority.NORMAL);
+        seed(job, 1, SCHEDULED_FOR_PROCESSING, Priority.NORMAL);
+
+        assertThat(newDependencyTrackingRepository().distinctSinkIdsWithStatus(SCHEDULED_FOR_PROCESSING),
+                is(Set.of(SINK_ID)));
     }
 
     // ---------------------------------------------------------------- fixtures

@@ -176,7 +176,8 @@ public class DependencyTrackingRepository extends RepositoryBase {
         List<Object[]> rows = entityManager.createNativeQuery(
                         "WITH prev AS MATERIALIZED (" +
                                 "  SELECT status FROM dependencytracking WHERE jobid = ?1 AND chunkid = ?2) " +
-                                "UPDATE dependencytracking d SET status = ?3, lastmodified = now() " +
+                                "UPDATE dependencytracking d SET status = ?3, lastmodified = now()" +
+                                retriesReset(status) +
                                 "  FROM prev " +
                                 " WHERE d.jobid = ?1 AND d.chunkid = ?2" + predicate +
                                 " RETURNING d.sinkid, prev.status")
@@ -544,6 +545,28 @@ public class DependencyTrackingRepository extends RepositoryBase {
                 .withRetries(intOf(row[7]))
                 .setTermination((Boolean) row[8])
                 .setGateOpen((Boolean) row[9]);
+    }
+
+    /**
+     * Clears the retry count as a chunk enters the delivery half.
+     * <p>
+     * The budget {@link #resend} spends is per phase. A chunk that needed every retry to get
+     * through processing would otherwise arrive in delivery with the count already at the limit,
+     * and the first delivery stall would be reported as beyond repair without a single delivery
+     * attempt having been retried.
+     * <p>
+     * {@code READY_FOR_DELIVERY} is the only way into that half, so it is the only status that
+     * resets. The processing half needs no equivalent, since a row is inserted with the count at
+     * zero and never returns to processing.
+     *
+     * @param status status the chunk is moving to
+     * @return the assignment to append, or empty where the count carries over
+     */
+    private static String retriesReset(ChunkSchedulingStatus status) {
+        if (status != ChunkSchedulingStatus.READY_FOR_DELIVERY) {
+            return " ";
+        }
+        return ", retries = 0 ";
     }
 
     private static int intOf(Object value) {

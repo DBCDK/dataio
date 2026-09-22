@@ -412,6 +412,45 @@ public class DependencyTrackingRepositoryIT extends AbstractJobStoreIT {
         assertThat(removed.isGateOpen(), is(false));
     }
 
+    /**
+     * The retry budget is per phase, so entering the delivery half clears what processing spent.
+     * <p>
+     * Without this a chunk that needed every retry to get through processing arrives in delivery
+     * with the count already at the limit, and its first delivery stall is reported as beyond
+     * repair without one delivery attempt having been retried.
+     */
+    @org.junit.Test
+    public void validatedStatusChange_intoTheDeliveryHalf_clearsTheRetryCount() throws Exception {
+        JobEntity job = newPersistedJob();
+        TrackingKey key = seed(job, 0, QUEUED_FOR_PROCESSING, Priority.NORMAL);
+        persistenceContext.run(() -> newDependencyTrackingRepository().resend(key, 3));
+        assertThat("the chunk spent a retry in processing", retriesOf(key), is(1));
+        persistenceContext.run(() -> newDependencyTrackingRepository()
+                .updateStatusValidated(key, QUEUED_FOR_PROCESSING));
+
+        persistenceContext.run(() -> newDependencyTrackingRepository()
+                .updateStatusValidated(key, READY_FOR_DELIVERY));
+
+        assertThat("status", statusOf(key), is(READY_FOR_DELIVERY.value));
+        assertThat("the delivery half starts with a full budget", retriesOf(key), is(0));
+    }
+
+    /**
+     * A move within one phase carries the count, or the budget the resend spends would reset
+     * itself every time it was spent.
+     */
+    @org.junit.Test
+    public void validatedStatusChange_withinThePhase_keepsTheRetryCount() throws Exception {
+        JobEntity job = newPersistedJob();
+        TrackingKey key = seed(job, 0, QUEUED_FOR_PROCESSING, Priority.NORMAL);
+        persistenceContext.run(() -> newDependencyTrackingRepository().resend(key, 3));
+
+        persistenceContext.run(() -> newDependencyTrackingRepository()
+                .updateStatusValidated(key, QUEUED_FOR_PROCESSING));
+
+        assertThat(retriesOf(key), is(1));
+    }
+
     // ---------------------------------------------------------------- discovery from the table
 
     /**

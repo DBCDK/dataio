@@ -309,13 +309,17 @@ public class AdminBean {
                 outstanding.add(dt);
                 continue;
             }
-            advanced.add(dt.getKey().toChunkIdentifier() + " (" + finished + ")");
-            if (finished == State.Phase.PROCESSING) {
-                jobSchedulerBean.chunkProcessingDone(
-                        new Chunk(dt.getKey().getJobId(), dt.getKey().getChunkId(), Chunk.Type.PROCESSED));
-            } else {
-                jobSchedulerBean.chunkDeliveringDone(
-                        new Chunk(dt.getKey().getJobId(), dt.getKey().getChunkId(), Chunk.Type.DELIVERED));
+            Chunk.Type type = finished == State.Phase.PROCESSING ? Chunk.Type.PROCESSED : Chunk.Type.DELIVERED;
+            try {
+                jobSchedulerBean.advanceCompletedChunk(
+                        new Chunk(dt.getKey().getJobId(), dt.getKey().getChunkId(), type), finished);
+                advanced.add(dt.getKey().toChunkIdentifier() + " (" + finished + ")");
+            } catch (RuntimeException e) {
+                // The chunk is left out of the outstanding list on purpose. Its phase has finished,
+                // so resending it repeats work already recorded, and the next sweep attempts the
+                // advance again. This line is the only report of a chunk that keeps failing here.
+                LOGGER.error("Could not advance stale chunk {} whose {} had already finished",
+                        dt.getKey().toChunkIdentifier(), finished, e);
             }
         }
         if (!advanced.isEmpty()) {

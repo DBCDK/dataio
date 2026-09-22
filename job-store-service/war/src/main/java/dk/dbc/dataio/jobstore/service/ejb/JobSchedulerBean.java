@@ -364,6 +364,33 @@ public class JobSchedulerBean {
     }
 
     /**
+     * Runs a stale chunk's completion call again, in a transaction of its own.
+     * <p>
+     * The stale sweep re-drives every chunk whose phase has already finished, and both completion
+     * calls write: one advances the scheduling row and dispatches, the other removes the row and
+     * counts it against its job's gate. Run in the sweep's own transaction, one chunk that throws
+     * would roll back the whole sweep, including the rescue that ran before it, and no chunk would
+     * be resent. The same chunk is stale again a minute later, so the sweep would stay dead and
+     * nothing is watching it.
+     * <p>
+     * Its own transaction is what bounds a failure to the chunk that caused it, and the caller then
+     * only has to catch the exception. Safe against the sweep's uncommitted writes because the two
+     * touch disjoint rows, the rescue moving only the {@code READY_*} statuses and this only the
+     * {@code QUEUED_*} ones, and because nothing on either dispatch path locks a row it reads.
+     *
+     * @param chunk chunk to re-drive, typed for the phase it has finished
+     * @param phase phase the chunk's row already reports finished
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void advanceCompletedChunk(Chunk chunk, State.Phase phase) {
+        if (phase == State.Phase.PROCESSING) {
+            chunkProcessingDone(chunk);
+        } else {
+            chunkDeliveringDone(chunk);
+        }
+    }
+
+    /**
      * Register Chunk Processing is Done.
      * Chunks not i state QUEUED_FOR_PROCESSING is ignored.
      *

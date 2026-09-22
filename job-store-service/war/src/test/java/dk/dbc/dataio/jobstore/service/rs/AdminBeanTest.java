@@ -26,6 +26,8 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FO
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -61,8 +63,7 @@ public class AdminBeanTest {
         List<DependencyTrackingRO> outstanding = adminBean.advanceChunksWhosePhaseFinished(List.of(stale));
 
         Assertions.assertTrue(outstanding.isEmpty(), "the chunk is dealt with, not left to be resent");
-        verify(adminBean.jobSchedulerBean).chunkProcessingDone(any(Chunk.class));
-        verify(adminBean.jobSchedulerBean, never()).chunkDeliveringDone(any(Chunk.class));
+        verify(adminBean.jobSchedulerBean).advanceCompletedChunk(any(Chunk.class), eq(State.Phase.PROCESSING));
     }
 
     @Test
@@ -73,8 +74,7 @@ public class AdminBeanTest {
         List<DependencyTrackingRO> outstanding = adminBean.advanceChunksWhosePhaseFinished(List.of(stale));
 
         Assertions.assertTrue(outstanding.isEmpty());
-        verify(adminBean.jobSchedulerBean).chunkDeliveringDone(any(Chunk.class));
-        verify(adminBean.jobSchedulerBean, never()).chunkProcessingDone(any(Chunk.class));
+        verify(adminBean.jobSchedulerBean).advanceCompletedChunk(any(Chunk.class), eq(State.Phase.DELIVERING));
     }
 
     /**
@@ -88,7 +88,7 @@ public class AdminBeanTest {
         List<DependencyTrackingRO> outstanding = adminBean.advanceChunksWhosePhaseFinished(List.of(stale));
 
         Assertions.assertEquals(List.of(stale), outstanding);
-        verify(adminBean.jobSchedulerBean, never()).chunkProcessingDone(any(Chunk.class));
+        verify(adminBean.jobSchedulerBean, never()).advanceCompletedChunk(any(Chunk.class), any());
     }
 
     @Test
@@ -99,7 +99,32 @@ public class AdminBeanTest {
         List<DependencyTrackingRO> outstanding = adminBean.advanceChunksWhosePhaseFinished(List.of(stale));
 
         Assertions.assertEquals(List.of(stale), outstanding);
-        verify(adminBean.jobSchedulerBean, never()).chunkProcessingDone(any(Chunk.class));
+        verify(adminBean.jobSchedulerBean, never()).advanceCompletedChunk(any(Chunk.class), any());
+    }
+
+    /**
+     * One chunk that cannot be advanced does not take the sweep down with it.
+     * <p>
+     * The advance writes, and the sweep runs in one transaction, so without isolation a single
+     * throw would roll back the rescue that ran before it and stop the resend that runs after. The
+     * same chunk is stale again a minute later, so the sweep would never complete again.
+     */
+    @Test
+    void advanceChunksWhosePhaseFinished_oneChunkThrows_theRestAreStillAdvanced() {
+        TestAdminBean adminBean = newAdminBeanSeeing(chunkWithPhaseDone(State.Phase.PROCESSING));
+        DependencyTrackingRO failing = stale(30, 0, QUEUED_FOR_PROCESSING, 0);
+        DependencyTrackingRO following = stale(31, 0, QUEUED_FOR_PROCESSING, 0);
+        doThrow(new IllegalStateException("gate work failed"))
+                .when(adminBean.jobSchedulerBean)
+                .advanceCompletedChunk(argThat(chunk -> chunk != null && chunk.getJobId() == 30), any());
+
+        List<DependencyTrackingRO> outstanding =
+                adminBean.advanceChunksWhosePhaseFinished(List.of(failing, following));
+
+        verify(adminBean.jobSchedulerBean).advanceCompletedChunk(
+                argThat(chunk -> chunk != null && chunk.getJobId() == 31), eq(State.Phase.PROCESSING));
+        Assertions.assertTrue(outstanding.isEmpty(),
+                "a chunk whose phase finished is not resent, whether or not the advance worked");
     }
 
     @Test

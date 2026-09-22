@@ -17,6 +17,7 @@ import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingServi
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
 import dk.dbc.dataio.jobstore.service.ejb.JobGateBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
+import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBulkSubmitterBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -85,6 +86,8 @@ public class AdminBean {
     PgJobStoreRepository jobStoreRepository;
     @EJB
     JobGateBean jobGateBean;
+    @EJB
+    JobSchedulerBulkSubmitterBean jobSchedulerBulkSubmitterBean;
 
     private Instant nextJobCheckFrom = null;
 
@@ -196,6 +199,31 @@ public class AdminBean {
     public Response requestRecheckBlocks() throws JSONBException {
         recheckBlocks();
         return Response.ok(jsonbContext.marshall(Map.of("recheckCompleted", true))).build();
+    }
+
+    /**
+     * Runs the two sweeps that re-drive a chunk nothing else is watching, on demand.
+     * <p>
+     * Exists for the same reason {@link #requestRecheckBlocks} and {@link #gateSweep} do, a
+     * recovery mechanism has to be reachable when something is actually stranded rather than only
+     * at the top of the next minute. Both sweeps are guarded by {@code Hazelcast.isSlave} inside
+     * themselves, so calling them here keeps that guard.
+     * <p>
+     * The stale sweep runs first, since what it rescues is what the parked sweep then has to
+     * dispatch. Neither dispatch happens during this call: both go through an asynchronous
+     * invocation that runs in its own transaction and so cannot see what this one has yet to
+     * commit. A chunk this reaches is therefore sent a moment after the response, by that
+     * invocation or by the once-a-second sweep behind it.
+     *
+     * @return an acknowledgement that both sweeps ran
+     */
+    @POST
+    @Path(JobStoreServiceConstants.DEPENDENCY_STALE_SWEEP)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response requestStaleSweep() throws JSONBException {
+        updateStaleChunks();
+        jobSchedulerBulkSubmitterBean.sweepSinksWithParkedChunks();
+        return Response.ok(jsonbContext.marshall(Map.of("staleSweepCompleted", true))).build();
     }
 
     @Schedule(minute = "10", hour = "*", persistent = false)

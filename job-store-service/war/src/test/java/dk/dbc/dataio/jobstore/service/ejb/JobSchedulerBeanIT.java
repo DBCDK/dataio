@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
@@ -145,11 +146,15 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     }
 
     /**
-     * A delivery result for a chunk whose row is still there means the sink has taken the items
-     * and nothing recorded it, so the sweep will hand them over a second time.
+     * A chunk the stale sweep has already sent again is on its way rather than stuck.
+     * <p>
+     * The resend moves a chunk out of {@code QUEUED_FOR_DELIVERY}, so the late report from the
+     * attempt it superseded finds the row present in another status. Counting that would make the
+     * metric fire on a path that recovers by itself, which is what it exists to be distinguished
+     * from.
      */
     @org.junit.Test
-    public void chunkDeliveringDone_rowStillPresent_countsAStuckChunk() throws Exception {
+    public void chunkDeliveringDone_rowSentAgainSince_countsNothing() throws Exception {
         startHazelcastWith(null);
         JobEntity job = newPersistedJobEntity();
         seedProcessingRow(job, 0, Priority.NORMAL, SCHEDULED_FOR_DELIVERY);
@@ -160,6 +165,37 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                 .setJobId(job.getId()).setChunkId(0)
                 .appendItem(new ChunkItemBuilder().setData("DeliveredChunk").build())
                 .build()));
+
+        verify(stuckChunks, never()).inc();
+    }
+
+    /**
+     * A delivery result for a chunk whose row is back out for delivery means the sink has taken
+     * the items and nothing recorded it, so it will be handed them a second time.
+     * <p>
+     * The acknowledgement removes exactly {@code QUEUED_FOR_DELIVERY}, so this needs the row to
+     * hold that status at the read and not at the delete, which is what the dispatch of a resent
+     * chunk produces between the two. Arranged with a stubbed service, since the window cannot be
+     * hit from a single thread.
+     */
+    @org.junit.Test
+    public void chunkDeliveringDone_rowBackOutForDelivery_countsAStuckChunk() throws Exception {
+        startHazelcastWith(null);
+        TrackingKey key = new TrackingKey(7, 0);
+        DependencyTrackingService trackingService = mock(DependencyTrackingService.class);
+        when(trackingService.acknowledgeDelivery(key)).thenReturn(Optional.empty());
+        when(trackingService.get(key)).thenReturn(
+                new DependencyTracking(key, 1, 0).setStatus(QUEUED_FOR_DELIVERY));
+        Counter stuckChunks = mock(Counter.class);
+        JobSchedulerBean bean = new JobSchedulerBean(entityManager, mock(JobSchedulerTransactionsBean.class),
+                null, null, trackingService, newJobGateBean(), newDeliveryDispatchRepository());
+        bean.metricRegistry = mock(MetricRegistry.class);
+        when(bean.metricRegistry.counter(anyString(), any(Tag[].class))).thenReturn(stuckChunks);
+
+        bean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
+                .setJobId(key.getJobId()).setChunkId(key.getChunkId())
+                .appendItem(new ChunkItemBuilder().setData("DeliveredChunk").build())
+                .build());
 
         verify(stuckChunks).inc();
     }

@@ -493,10 +493,15 @@ public class JobSchedulerBean {
      * Logs why the acknowledgement removed no row, and counts the one case that leaves a chunk
      * stuck.
      * <p>
-     * A missing row is the ordinary case. The row is this acknowledgement's once-only token, and
-     * a redelivery re-triggers the call for a chunk already counted. A row that is still there
-     * means the sink has reported the chunk delivered and nothing recorded it, so the sweep will
-     * hand the same items to the sink a second time.
+     * Three things bring a caller here. A missing row is the ordinary case: the row is this
+     * acknowledgement's once-only token, and a redelivery re-triggers the call for a chunk already
+     * counted. A row the stale sweep has put back for another attempt, which is any status other
+     * than {@code QUEUED_FOR_DELIVERY}, means this report belongs to an attempt that has been
+     * superseded, and the chunk is on its way rather than stuck. Both stay at info.
+     * <p>
+     * A row still in {@code QUEUED_FOR_DELIVERY} is the case worth a warning. The acknowledgement
+     * removes exactly that status, so a delete that matched nothing against a row still holding it
+     * means the sink has reported the chunk delivered and nothing recorded it.
      * <p>
      * Costs one read, on a path that is rare by construction.
      */
@@ -505,6 +510,11 @@ public class JobSchedulerBean {
         if (tracking == null) {
             LOGGER.info("chunkDeliveringDone: called with unknown chunk {} - assuming it is already completed",
                     key.toChunkIdentifier());
+            return;
+        }
+        if (tracking.getStatus() != ChunkSchedulingStatus.QUEUED_FOR_DELIVERY) {
+            LOGGER.info("chunkDeliveringDone: ignoring chunk {}, sent again since and now in state {}",
+                    key.toChunkIdentifier(), tracking.getStatus());
             return;
         }
         metricRegistry.counter(STUCK_CHUNKS, DEL_TAG).inc();

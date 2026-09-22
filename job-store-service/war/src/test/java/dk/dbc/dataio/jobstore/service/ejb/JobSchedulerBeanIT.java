@@ -18,12 +18,16 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.State;
+import org.eclipse.microprofile.metrics.Counter;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
@@ -38,9 +42,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Chunk states
@@ -55,6 +61,18 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBeanIT.class);
     private static final int SINK_ID = 1;
 
+    /**
+     * A registry whose counters accept increments. Needed by any test that drives
+     * {@code chunkProcessingDone} or {@code chunkDeliveringDone} onto a chunk they cannot move,
+     * since that is where the stuck-chunk counter is incremented, and the constructor these tests
+     * use leaves the injected registry null.
+     */
+    private static MetricRegistry countingRegistry() {
+        MetricRegistry registry = mock(MetricRegistry.class);
+        when(registry.counter(anyString(), any(Tag[].class))).thenReturn(mock(Counter.class));
+        return registry;
+    }
+
     @org.junit.Test
     public void testValidTransitions() throws Exception {
         startHazelcastWith(null);
@@ -68,6 +86,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         persistenceContext.run(() -> IntStream.range(1, 8).forEach(i -> repository.insert(
                 new TrackingKey(3, i), 1, 0, initial.get(i - 1), Priority.NORMAL.getValue(), true)));
         JobSchedulerBean bean = new JobSchedulerBean(null, mock(JobSchedulerTransactionsBean.class), null, null, newDependencyTrackingService(), newJobGateBean(), newDeliveryDispatchRepository());
+        bean.metricRegistry = countingRegistry();
 
         persistenceContext.run(() -> IntStream.range(1, 8).forEach(chunkId -> {
             bean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
@@ -81,6 +100,112 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         List<ChunkSchedulingStatus> expected = List.of(READY_FOR_PROCESSING, READY_FOR_DELIVERY, SCHEDULED_FOR_DELIVERY, READY_FOR_DELIVERY, QUEUED_FOR_DELIVERY, SCHEDULED_FOR_PROCESSING, SCHEDULED_FOR_DELIVERY);
         IntStream.range(1, 8).forEach(i -> Assert.assertEquals(expected.get(i - 1),
                 repository.get(new TrackingKey(3, i)).orElseThrow().getStatus()));
+    }
+
+    /**
+     * A processed result arriving for a chunk whose row is still on the processing side leaves
+     * that chunk stuck, and is counted and warned about rather than folded into the line every
+     * duplicate produces.
+     */
+    @org.junit.Test
+    public void chunkProcessingDone_rowLeftBehindOnTheProcessingSide_countsAStuckChunk() throws Exception {
+        startHazelcastWith(null);
+        JobEntity job = newPersistedJobEntity();
+        TrackingKey parked = seedProcessingRow(job, 0, Priority.NORMAL, SCHEDULED_FOR_PROCESSING);
+        Counter stuckChunks = mock(Counter.class);
+        JobSchedulerBean bean = stuckChunkCountingBean(stuckChunks);
+
+        persistenceContext.run(() -> bean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
+                .setJobId(job.getId()).setChunkId(0)
+                .appendItem(new ChunkItemBuilder().setData("ProcessedChunk").build())
+                .build()));
+
+        verify(stuckChunks).inc();
+        assertThat("the row is left where it was, for the stale sweep to advance",
+                newDependencyTrackingService().get(parked).getStatus(), is(SCHEDULED_FOR_PROCESSING));
+    }
+
+    /**
+     * The ordinary duplicate. A chunk already past processing is not stuck and must not be
+     * counted as such, or the count says nothing.
+     */
+    @org.junit.Test
+    public void chunkProcessingDone_rowAlreadyPastProcessing_countsNothing() throws Exception {
+        startHazelcastWith(null);
+        JobEntity job = newPersistedJobEntity();
+        seedProcessingRow(job, 0, Priority.NORMAL, QUEUED_FOR_DELIVERY);
+        Counter stuckChunks = mock(Counter.class);
+        JobSchedulerBean bean = stuckChunkCountingBean(stuckChunks);
+
+        persistenceContext.run(() -> bean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
+                .setJobId(job.getId()).setChunkId(0)
+                .appendItem(new ChunkItemBuilder().setData("ProcessedChunk").build())
+                .build()));
+
+        verify(stuckChunks, never()).inc();
+    }
+
+    /**
+     * A chunk the stale sweep has already sent again is on its way rather than stuck.
+     * <p>
+     * The resend moves a chunk out of {@code QUEUED_FOR_DELIVERY}, so the late report from the
+     * attempt it superseded finds the row present in another status. Counting that would make the
+     * metric fire on a path that recovers by itself, which is what it exists to be distinguished
+     * from.
+     */
+    @org.junit.Test
+    public void chunkDeliveringDone_rowSentAgainSince_countsNothing() throws Exception {
+        startHazelcastWith(null);
+        JobEntity job = newPersistedJobEntity();
+        seedProcessingRow(job, 0, Priority.NORMAL, SCHEDULED_FOR_DELIVERY);
+        Counter stuckChunks = mock(Counter.class);
+        JobSchedulerBean bean = stuckChunkCountingBean(stuckChunks);
+
+        persistenceContext.run(() -> bean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
+                .setJobId(job.getId()).setChunkId(0)
+                .appendItem(new ChunkItemBuilder().setData("DeliveredChunk").build())
+                .build()));
+
+        verify(stuckChunks, never()).inc();
+    }
+
+    /**
+     * A delivery result for a chunk whose row is back out for delivery means the sink has taken
+     * the items and nothing recorded it, so it will be handed them a second time.
+     * <p>
+     * The acknowledgement removes exactly {@code QUEUED_FOR_DELIVERY}, so this needs the row to
+     * hold that status at the read and not at the delete, which is what the dispatch of a resent
+     * chunk produces between the two. Arranged with a stubbed service, since the window cannot be
+     * hit from a single thread.
+     */
+    @org.junit.Test
+    public void chunkDeliveringDone_rowBackOutForDelivery_countsAStuckChunk() throws Exception {
+        startHazelcastWith(null);
+        TrackingKey key = new TrackingKey(7, 0);
+        DependencyTrackingService trackingService = mock(DependencyTrackingService.class);
+        when(trackingService.acknowledgeDelivery(key)).thenReturn(Optional.empty());
+        when(trackingService.get(key)).thenReturn(
+                new DependencyTracking(key, 1, 0).setStatus(QUEUED_FOR_DELIVERY));
+        Counter stuckChunks = mock(Counter.class);
+        JobSchedulerBean bean = new JobSchedulerBean(entityManager, mock(JobSchedulerTransactionsBean.class),
+                null, null, trackingService, newJobGateBean(), newDeliveryDispatchRepository());
+        bean.metricRegistry = mock(MetricRegistry.class);
+        when(bean.metricRegistry.counter(anyString(), any(Tag[].class))).thenReturn(stuckChunks);
+
+        bean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
+                .setJobId(key.getJobId()).setChunkId(key.getChunkId())
+                .appendItem(new ChunkItemBuilder().setData("DeliveredChunk").build())
+                .build());
+
+        verify(stuckChunks).inc();
+    }
+
+    private JobSchedulerBean stuckChunkCountingBean(Counter stuckChunks) {
+        JobSchedulerBean bean = new JobSchedulerBean(entityManager, mock(JobSchedulerTransactionsBean.class),
+                null, null, newDependencyTrackingService(), newJobGateBean(), newDeliveryDispatchRepository());
+        bean.metricRegistry = mock(MetricRegistry.class);
+        when(bean.metricRegistry.counter(anyString(), any(Tag[].class))).thenReturn(stuckChunks);
+        return bean;
     }
 
     /**

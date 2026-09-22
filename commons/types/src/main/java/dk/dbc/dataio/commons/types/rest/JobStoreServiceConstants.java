@@ -66,6 +66,21 @@ public class JobStoreServiceConstants {
      * waiting for minute 10 of the next hour.
      */
     public static final String DEPENDENCY_RECHECK_BLOCKS = "dependency/recheck_blocks";
+
+    /**
+     * Runs the two sweeps that re-drive a chunk nothing else is watching, which otherwise run only
+     * once a minute.
+     * <p>
+     * {@code AdminBean.updateStaleChunks} rescues a chunk whose dispatch attempt was fired and
+     * never arrived, and re-drives one whose phase finished without its row moving.
+     * {@code JobSchedulerBulkSubmitterBean.sweepSinksWithParkedChunks} then dispatches for the
+     * sinks the table says hold parked chunks, which is what reaches a chunk the sink chunk counts
+     * have lost. An operator with a stranded chunk wants both, so this runs both.
+     * <p>
+     * The dispatch each sweep triggers is asynchronous and runs in its own transaction, so a chunk
+     * this call rescues is sent shortly after it returns rather than during it.
+     */
+    public static final String DEPENDENCY_STALE_SWEEP = "dependency/stale_sweep";
     public static final String DEPENDENCIES = "dependencies/{jobId}";
 
     public static final String SINK_STATUS = "status/sinks/{sinkId}";

@@ -11,6 +11,7 @@ import dk.dbc.dataio.jobstore.service.ejb.DependencyTrackingRepository;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 import jakarta.ejb.DependsOn;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Lock;
@@ -19,6 +20,9 @@ import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.TransactionSynchronizationRegistry;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
@@ -28,13 +32,16 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -68,6 +75,19 @@ public class DependencyTrackingService {
     @EJB
     DependencyTrackingRepository repository;
 
+    /**
+     * Used to undo a counter move whose transaction rolls back, see {@link #applyDeltas}. Null
+     * outside a container, where there is no transaction to roll back.
+     */
+    @Resource
+    TransactionSynchronizationRegistry transactionSynchronizationRegistry;
+
+    /**
+     * Bumped by every recount, so a pending rollback reversal can tell that the counters it meant
+     * to correct have been replaced by a census of the table.
+     */
+    private final AtomicLong recountGeneration = new AtomicLong();
+
     @PostConstruct
     public void config() {
         init();
@@ -87,6 +107,11 @@ public class DependencyTrackingService {
 
     public DependencyTrackingService withRepository(DependencyTrackingRepository repository) {
         this.repository = repository;
+        return this;
+    }
+
+    public DependencyTrackingService withTransactionSynchronizationRegistry(TransactionSynchronizationRegistry registry) {
+        this.transactionSynchronizationRegistry = registry;
         return this;
     }
 
@@ -126,13 +151,100 @@ public class DependencyTrackingService {
      * {@code REQUIRES_NEW} transaction, and
      * {@code PgJobStoreRepository.createJobTerminationChunkEntity}, under the job row lock. What is
      * left for this class is the counter.
+     * <p>
+     * <b>No rollback reversal here, unlike every other counter move.</b> Both callers count a row
+     * written by a {@code REQUIRES_NEW} insert that has already committed, so the caller's
+     * transaction rolling back leaves the row in the table. Reversing the count against that
+     * transaction would take the chunk out of the counters while its row sits in the table, which
+     * is the drift {@link #applyDeltas} exists to prevent, in the direction that makes a sink look
+     * idle. The caller for a data chunk is {@code JobSchedulerBean.scheduleChunk}, inside the one
+     * transaction partitioning holds for a whole job.
      *
      * @param sinkId sink the chunk is destined for
      * @param status status the chunk was inserted with
      */
     public void countInsertedChunk(int sinkId, ChunkSchedulingStatus status) {
+        moveCounters(sinkId, Map.of(status, 1));
+    }
+
+    /**
+     * Moves a sink's counters, and undoes the move if the transaction that asked for it rolls back.
+     * <p>
+     * The move is applied at once rather than on commit. {@code capacity} is read by concurrent
+     * dispatchers in the window between a chunk being counted and its transaction committing, and a
+     * delta they cannot see is a queue slot handed out twice.
+     * <p>
+     * The counters are a Hazelcast map and take no part in the JTA transaction, so a rollback
+     * leaves the counter moved and the table not unless something puts it back. That is what the
+     * synchronisation does, and it is why {@link #recountSinkStatus} finds less to correct.
+     * Outside a transaction there is nothing to roll back and the move simply stands.
+     * <p>
+     * Only for a move whose row is written in the caller's own transaction. A row already
+     * committed by a nested transaction is counted with {@link #moveCounters}, see
+     * {@link #countInsertedChunk}.
+     *
+     * @param sinkId sink whose counters move
+     * @param deltas change per status
+     */
+    private void applyDeltas(int sinkId, Map<ChunkSchedulingStatus, Integer> deltas) {
+        moveCounters(sinkId, deltas);
+        reverseOnRollback(sinkId, deltas);
+    }
+
+    /**
+     * Moves a sink's counters, with no reversal registered.
+     * <p>
+     * The entry is created first because {@link UpdateCounter} leaves a key it does not find alone,
+     * so a delta for a sink absent from the map would otherwise be dropped. A sink is absent
+     * whenever it has no rows, which is every sink immediately after a full recount.
+     *
+     * @param sinkId sink whose counters move
+     * @param deltas change per status
+     */
+    private void moveCounters(int sinkId, Map<ChunkSchedulingStatus, Integer> deltas) {
         countersMap.putIfAbsent(sinkId, new EnumMap<>(ChunkSchedulingStatus.class));
-        countersMap.executeOnKey(sinkId, new UpdateCounter(status, 1));
+        countersMap.executeOnKey(sinkId, new UpdateCounter(deltas));
+    }
+
+    /**
+     * Registers the reversal of a counter move against the current transaction.
+     * <p>
+     * The reversal stands down if the counters have been recounted in the meantime, since a census
+     * of the table already accounts for whatever the transaction did or did not commit, and
+     * subtracting from it would corrupt a number that is correct. {@code AdminBean.resendIfNeeded}
+     * reaches both in one transaction: it moves counters through {@code resend} and then recounts
+     * through {@code loadSinkStatusOnBootstrap}.
+     *
+     * @param sinkId sink whose counters moved
+     * @param deltas change to undo if the transaction does not commit
+     */
+    private void reverseOnRollback(int sinkId, Map<ChunkSchedulingStatus, Integer> deltas) {
+        if (transactionSynchronizationRegistry == null
+                || transactionSynchronizationRegistry.getTransactionKey() == null) {
+            return;
+        }
+        EnumMap<ChunkSchedulingStatus, Integer> reversed = new EnumMap<>(ChunkSchedulingStatus.class);
+        deltas.forEach((status, delta) -> reversed.put(status, -delta));
+        long countedAt = recountGeneration.get();
+        transactionSynchronizationRegistry.registerInterposedSynchronization(new Synchronization() {
+            @Override
+            public void beforeCompletion() {
+            }
+
+            @Override
+            public void afterCompletion(int status) {
+                if (status == Status.STATUS_COMMITTED) {
+                    return;
+                }
+                if (recountGeneration.get() != countedAt) {
+                    LOGGER.info("Left the counters of sink {} alone, recounted since the move", sinkId);
+                    return;
+                }
+                moveCounters(sinkId, reversed);
+                LOGGER.warn("Undid the counter move of a transaction that did not commit, sink {}: {}",
+                        sinkId, reversed);
+            }
+        });
     }
 
     public List<DependencyTracking> getSnapshot(int jobId) {
@@ -183,7 +295,7 @@ public class DependencyTrackingService {
         removed.forEach((sinkId, counts) -> {
             EnumMap<ChunkSchedulingStatus, Integer> deltas = new EnumMap<>(ChunkSchedulingStatus.class);
             counts.forEach((status, count) -> deltas.put(status, -count));
-            countersMap.executeOnKey(sinkId, new UpdateCounter(deltas));
+            applyDeltas(sinkId, deltas);
         });
         LOGGER.info("Removed every tracked chunk of job {}", jobId);
     }
@@ -197,14 +309,15 @@ public class DependencyTrackingService {
     }
 
     /**
-     * Sends a stale chunk to its queue again, once.
+     * Sends a stale chunk to its queue again, up to the given number of times.
      *
-     * @param key chunk to send again
-     * @return what changed, or empty if the chunk had already been retried or held a status with no
+     * @param key        chunk to send again
+     * @param retryLimit how many times one chunk may be sent again
+     * @return what changed, or empty if the chunk had used its retries or held a status with no
      * successor
      */
-    public Optional<StatusChangeEvent> resend(TrackingKey key) {
-        return applyCounters(repository.resend(key));
+    public Optional<StatusChangeEvent> resend(TrackingKey key, int retryLimit) {
+        return applyCounters(repository.resend(key, retryLimit));
     }
 
     /**
@@ -236,14 +349,85 @@ public class DependencyTrackingService {
         });
     }
 
-    public void recountSinkStatus(Set<Integer> sinkIds) {
+    /**
+     * Replaces the sink chunk counts with a census of the table, and says how far they had drifted.
+     *
+     * @param sinkIds sinks to recount, empty for every sink
+     * @return how many sink and status pairs the counters had wrong
+     */
+    public int recountSinkStatus(Set<Integer> sinkIds) {
         Map<Integer, Map<ChunkSchedulingStatus, Integer>> counts = repository.countByStatus(sinkIds);
+        int disagreements = reportDisagreements(sinkIds, counts);
         if(sinkIds.isEmpty()) countersMap.clear();
         else sinkIds.forEach(countersMap::remove);
         countersMap.putAll(counts);
+        recountGeneration.incrementAndGet();
         LOGGER.info("Completed status map recount for {}", sinkIds);
+        return disagreements;
     }
 
+    /**
+     * Names where the counters and the table disagree, before the recount overwrites the evidence.
+     * <p>
+     * A counter is maintained from the write sites, so a disagreement means a delta was lost or
+     * counted twice. The recount corrects the number either way and says nothing further about it,
+     * so this is the only place a lost delta leaves a trace.
+     * <p>
+     * A transaction that has moved a chunk and not yet committed disagrees legitimately and is
+     * reported all the same, since the two are not distinguishable from here. A recount is hourly
+     * or operator driven, so the noise that costs is bounded.
+     *
+     * @param sinkIds sinks being recounted, empty for every sink
+     * @param counted the table's census, per sink and status
+     * @return how many sink and status pairs disagreed
+     */
+    private int reportDisagreements(Set<Integer> sinkIds, Map<Integer, Map<ChunkSchedulingStatus, Integer>> counted) {
+        Set<Integer> sinks = new HashSet<>(counted.keySet());
+        sinks.addAll(sinkIds.isEmpty() ? countersMap.keySet() : sinkIds);
+        List<String> differences = new ArrayList<>();
+        for (Integer sinkId : sinks) {
+            Map<ChunkSchedulingStatus, Integer> held =
+                    Optional.ofNullable(countersMap.get(sinkId)).orElseGet(Map::of);
+            Map<ChunkSchedulingStatus, Integer> found = counted.getOrDefault(sinkId, Map.of());
+            for (ChunkSchedulingStatus status : ChunkSchedulingStatus.values()) {
+                int wasHeld = held.getOrDefault(status, 0);
+                int wasFound = found.getOrDefault(status, 0);
+                if (wasHeld != wasFound) {
+                    differences.add(sinkId + " " + status + " held " + wasHeld + " found " + wasFound);
+                }
+            }
+        }
+        if (!differences.isEmpty()) {
+            LOGGER.warn("Sink chunk counts disagreed with the table and are being replaced: {}",
+                    String.join(", ", differences));
+        }
+        return differences.size();
+    }
+
+    /**
+     * Names the sinks holding chunks in a status, from the table rather than the counters.
+     * <p>
+     * What {@link #getActiveSinks} answers from a cache, this answers from the rows. See
+     * {@link DependencyTrackingRepository#distinctSinkIdsWithStatus} for why the caller asks
+     * sparingly.
+     *
+     * @param status status to look for
+     * @return every sink with at least one chunk in that status
+     */
+    public Set<Integer> findSinksWithChunksIn(ChunkSchedulingStatus status) {
+        return repository.distinctSinkIdsWithStatus(status);
+    }
+
+    /**
+     * Names the sinks the counters say hold chunks in a status.
+     * <p>
+     * Read on the dispatch tick, so it reads the counters rather than the table. The counters can
+     * lose a delta, and a sink missing from the answer is a sink nothing dispatches for, so the
+     * bulk submitter also asks {@link #findSinksWithChunksIn} on a slower schedule.
+     *
+     * @param status status to look for
+     * @return every sink the counters say has at least one chunk in that status
+     */
     public Set<Integer> getActiveSinks(ChunkSchedulingStatus status) {
         return countersMap.entrySet().stream()
                 .filter(e -> e.getValue().get(status) != null && e.getValue().get(status) > 0)
@@ -287,7 +471,7 @@ public class DependencyTrackingService {
     }
 
     private void countRemovedChunk(DependencyTracking removed) {
-        countersMap.executeOnKey(removed.getSinkId(), new UpdateCounter(removed.getStatus(), -1));
+        applyDeltas(removed.getSinkId(), Map.of(removed.getStatus(), -1));
     }
 
     /**
@@ -298,7 +482,7 @@ public class DependencyTrackingService {
         change.ifPresent(event -> {
             EnumMap<ChunkSchedulingStatus, Integer> deltas = new EnumMap<>(ChunkSchedulingStatus.class);
             event.apply(deltas);
-            countersMap.executeOnKey(event.getSinkId(), new UpdateCounter(deltas));
+            applyDeltas(event.getSinkId(), deltas);
         });
         return change;
     }

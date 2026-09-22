@@ -176,7 +176,8 @@ public class DependencyTrackingRepository extends RepositoryBase {
         List<Object[]> rows = entityManager.createNativeQuery(
                         "WITH prev AS MATERIALIZED (" +
                                 "  SELECT status FROM dependencytracking WHERE jobid = ?1 AND chunkid = ?2) " +
-                                "UPDATE dependencytracking d SET status = ?3, lastmodified = now() " +
+                                "UPDATE dependencytracking d SET status = ?3, lastmodified = now()" +
+                                retriesReset(status) +
                                 "  FROM prev " +
                                 " WHERE d.jobid = ?1 AND d.chunkid = ?2" + predicate +
                                 " RETURNING d.sinkid, prev.status")
@@ -406,19 +407,24 @@ public class DependencyTrackingRepository extends RepositoryBase {
     }
 
     /**
-     * Sends a stale chunk again, once.
+     * Sends a stale chunk again, up to the given number of times.
      * <p>
-     * The status change and the retry increment are one statement, so a chunk cannot be sent again
-     * twice: the second caller finds {@code retries} already at one and matches nothing. The
-     * successor is per status rather than constant, and is generated from
+     * The status change and the retry increment are one statement, so two callers reaching one
+     * chunk produce one retry between them: the second finds {@code retries} already counted and
+     * matches nothing. The successor is per status rather than constant, and is generated from
      * {@link ChunkSchedulingStatus#resend} rather than written out, so the two cannot drift.
+     * <p>
+     * The limit is a parameter because it is configuration, which a repository does not read, and
+     * because the caller filters on the same number to decide what to log. Both readings have to
+     * be of one value.
      *
-     * @param key chunk to send again
-     * @return what changed, or empty if the chunk had already been retried or held a status with no
+     * @param key        chunk to send again
+     * @param retryLimit how many times one chunk may be sent again
+     * @return what changed, or empty if the chunk had used its retries or held a status with no
      * successor
      */
     @Timed
-    public Optional<StatusChangeEvent> resend(TrackingKey key) {
+    public Optional<StatusChangeEvent> resend(TrackingKey key, int retryLimit) {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = entityManager.createNativeQuery(
                         "WITH prev AS MATERIALIZED (" +
@@ -429,11 +435,12 @@ public class DependencyTrackingRepository extends RepositoryBase {
                                 "       lastmodified = now() " +
                                 "  FROM prev " +
                                 " WHERE d.jobid = ?1 AND d.chunkid = ?2 " +
-                                "   AND d.retries < 1 " +
+                                "   AND d.retries < ?3 " +
                                 "   AND d.status IN (" + valueList(resendable()) + ") " +
                                 " RETURNING d.sinkid, prev.status, d.status")
                 .setParameter(1, key.getJobId())
                 .setParameter(2, key.getChunkId())
+                .setParameter(3, retryLimit)
                 .getResultList();
         if (rows.isEmpty()) {
             return Optional.empty();
@@ -494,6 +501,32 @@ public class DependencyTrackingRepository extends RepositoryBase {
     }
 
     /**
+     * Names the sinks holding at least one chunk in a status, from the table rather than the
+     * counters.
+     * <p>
+     * The sink chunk counts are maintained from the write sites and can lose a delta, and a sink
+     * whose count says zero is a sink the bulk submitters do not look at. This answers the same
+     * question from the rows themselves, so a lost delta cannot hide a sink that has chunks
+     * waiting.
+     * <p>
+     * No index serves it. Both ordered indexes lead on {@code sinkid}, so a predicate on status
+     * alone scans, which is why {@code JobSchedulerBulkSubmitterBean} asks once a minute rather
+     * than on its once-a-second dispatch tick.
+     *
+     * @param status status to look for
+     * @return every sink with at least one chunk in that status
+     */
+    @Timed
+    public Set<Integer> distinctSinkIdsWithStatus(ChunkSchedulingStatus status) {
+        @SuppressWarnings("unchecked")
+        List<Number> rows = entityManager.createNativeQuery(
+                        "SELECT DISTINCT sinkid FROM dependencytracking WHERE status = ?1")
+                .setParameter(1, status.value)
+                .getResultList();
+        return rows.stream().map(Number::intValue).collect(Collectors.toSet());
+    }
+
+    /**
      * @return every job with at least one chunk in the scheduler
      */
     public Set<Integer> distinctJobIds() {
@@ -512,6 +545,28 @@ public class DependencyTrackingRepository extends RepositoryBase {
                 .withRetries(intOf(row[7]))
                 .setTermination((Boolean) row[8])
                 .setGateOpen((Boolean) row[9]);
+    }
+
+    /**
+     * Clears the retry count as a chunk enters the delivery half.
+     * <p>
+     * The budget {@link #resend} spends is per phase. A chunk that needed every retry to get
+     * through processing would otherwise arrive in delivery with the count already at the limit,
+     * and the first delivery stall would be reported as beyond repair without a single delivery
+     * attempt having been retried.
+     * <p>
+     * {@code READY_FOR_DELIVERY} is the only way into that half, so it is the only status that
+     * resets. The processing half needs no equivalent, since a row is inserted with the count at
+     * zero and never returns to processing.
+     *
+     * @param status status the chunk is moving to
+     * @return the assignment to append, or empty where the count carries over
+     */
+    private static String retriesReset(ChunkSchedulingStatus status) {
+        if (status != ChunkSchedulingStatus.READY_FOR_DELIVERY) {
+            return " ";
+        }
+        return ", retries = 0 ";
     }
 
     private static int intOf(Object value) {

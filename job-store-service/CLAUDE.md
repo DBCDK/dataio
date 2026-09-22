@@ -87,6 +87,7 @@ This starts the service on port 8080 (debug on 9009), PostgreSQL on 5432, and Ac
 | `FLOWSTORE_URL` | Flow store service URL                                                      |
 | `FILESTORE_URL` | File store service URL                                                      |
 | `PROCESSOR_TIMEOUT` | ISO-8601 duration before a chunk is considered stale (default `PT1H`)       |
+| `CHUNK_RESEND_LIMIT` | How many times one stale chunk whose work is still outstanding may be sent again, per phase, before `AdminBean` reports it as beyond repair (default `3`) |
 | `JOBQUEUE_STUCK_THRESHOLD` | ISO-8601 duration a job queue entry may stay `IN_PROGRESS` before `JobQueueWatchdogBean` reports it (required, set to `PT1H` in the Dockerfile) |
 | `PROCESSOR_NASHORN_QUEUE` | Artemis queue for the Nashorn processor (default `processor::business`)     |
 | `PROCESSOR_GRAALJS_QUEUE` | Artemis queue for the GraalJS processor (default `processor-graaljs::main`) |

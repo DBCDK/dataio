@@ -29,7 +29,8 @@ public class ScheduledBatchFinalizer {
     private final AtomicInteger THREAD_ID = new AtomicInteger();
 
     public ScheduledBatchFinalizer(ServiceHub serviceHub, EntityManagerFactory entityManagerFactory) {
-        batchFinalizer = new BatchFinalizer(entityManagerFactory, serviceHub.jobStoreServiceConnector);
+        batchFinalizer = new BatchFinalizer(entityManagerFactory, serviceHub.jobStoreServiceConnector,
+                BatchExchangeMessageConsumer.fqn());
         healthService = serviceHub.healthService;
         serviceHub.zombieWatch.addCheck("batch-finalizer", this::healthcheck);
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "batch-finalizer-" + THREAD_ID.getAndIncrement()));

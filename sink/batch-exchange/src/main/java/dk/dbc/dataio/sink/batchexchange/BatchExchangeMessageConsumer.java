@@ -232,6 +232,11 @@ public class BatchExchangeMessageConsumer extends SinkMessageConsumerAdapter {
      * <p>
      * Nothing is staged for the record at this point, so a held version has nothing left to
      * wait for and is folded into this one rather than left for a drain that will never run.
+     * <p>
+     * A record with a version held and nothing staged comes from {@link #abortJob(int)}, which
+     * discards a job's batches and stages the versions they were holding back in separate
+     * transactions. An item arriving in between finds the record free and its held version
+     * still in place.
      *
      * @return null once the item is staged, or an outcome for an item a newer held version
      * already displaced

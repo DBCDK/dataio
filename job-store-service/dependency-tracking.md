@@ -9,6 +9,9 @@ committed writer put there.
 Two mechanisms do the ordering, and between them they are the whole of it: the **per-job gate**
 orders whole jobs, and the **delivery watermark** orders versions of one record.
 
+The decisions behind this mechanism, and the alternatives weighed against each of them, are
+recorded as architecture decision records in `docs/adr`.
+
 ## Terminology
 
 Two different things get ordered here, and they have separate vocabularies and separate mechanisms.

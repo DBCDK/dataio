@@ -5,7 +5,7 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.DpfSinkConfig;
 import dk.dbc.dataio.commons.types.FlowBinder;
@@ -13,7 +13,6 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
@@ -40,7 +39,7 @@ import static org.mockito.Mockito.when;
 public class ConfigBeanTest {
     private final FlowStoreServiceConnector flowStore = mock(FlowStoreServiceConnector.class);
 
-    private final String payload = newPayload(new ChunkBuilder(Chunk.Type.PROCESSED).build());
+    private final String payload = newPayload(ChunkItem.successfulChunkItem().withId(0L));
     private final Sink sink = newSink(new DpfSinkConfig()
             .withUpdateServiceUserId("userId")
             .withUpdateServicePassword("password")
@@ -146,9 +145,9 @@ public class ConfigBeanTest {
         return new FlowBinderBuilder().setContent(flowBinderContent).build();
     }
 
-    private String newPayload(Chunk chunk) {
+    private String newPayload(ChunkItem chunkItem) {
         try {
-            return new JSONBContext().marshall(chunk);
+            return new JSONBContext().marshall(chunkItem);
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }

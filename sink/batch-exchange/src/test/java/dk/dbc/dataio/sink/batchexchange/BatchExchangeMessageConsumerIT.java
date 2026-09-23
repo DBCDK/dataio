@@ -357,6 +357,36 @@ class BatchExchangeMessageConsumerIT extends IntegrationTest {
         assertThat("batch kept", batchCount(), is(1L));
     }
 
+    /* Discarding a batch without the record lets a consumer read that batch on its way out
+       and hold its item behind it, and the item then waits for a batch that is gone. */
+    @Test
+    void abortJob_waitsForWhoeverElseHoldsTheRecord() throws Exception {
+        BatchExchangeMessageConsumer consumer = consumer();
+        consumer.deliverItem(message(RECORD_KEY), successItem(addiRecordX.getBytes()));
+        EntityManager holder = entityManagerFactory.createEntityManager();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            holder.getTransaction().begin();
+            RecordLock.acquire(holder, SINK_ID, RECORD_KEY);
+
+            Future<?> aborting = executor.submit(() -> consumer.abortJob(JOB_ID));
+
+            assertThrows(TimeoutException.class, () -> aborting.get(2, TimeUnit.SECONDS));
+            assertThat("nothing discarded while the record is held", batchCount(), is(1L));
+
+            holder.getTransaction().commit();
+
+            aborting.get(20, TimeUnit.SECONDS);
+            assertThat("discarded once the record is released", batchCount(), is(0L));
+        } finally {
+            executor.shutdownNow();
+            if (holder.getTransaction().isActive()) {
+                holder.getTransaction().rollback();
+            }
+            holder.close();
+        }
+    }
+
     /* The check before staging is what keeps a record to one version in flight, and it is a
        check rather than an invariant unless the database refuses the second row. */
     @Test

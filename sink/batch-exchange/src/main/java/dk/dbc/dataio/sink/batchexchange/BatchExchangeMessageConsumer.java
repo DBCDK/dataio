@@ -17,7 +17,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Stages one item's records in the batch exchange for a consumer system to collect.
@@ -98,24 +101,26 @@ public class BatchExchangeMessageConsumer extends SinkMessageConsumerAdapter {
      * A version of another job's record held behind one of the discarded batches is staged
      * rather than discarded with it, since nothing would be left to release it otherwise and
      * its own job would never finish.
+     * <p>
+     * A record is locked while its work is discarded, so that a consumer deciding what to do
+     * with a version of that record is either finished or has not started. Without the lock a
+     * consumer can read a batch that is on its way out and hold its item behind it, and the
+     * pass that stages released items lists what to stage before that item is there to be
+     * listed, leaving it waiting for a batch that no longer exists.
+     * <p>
+     * One record is locked at a time, so that this never waits on a record a consumer holds
+     * while that consumer waits on a record held here.
      */
     @Override
     public void abortJob(int jobId) {
-        int batches;
-        int held;
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction transaction = entityManager.getTransaction();
-        try {
-            transaction.begin();
-            batches = deleteBatches(jobId, entityManager);
-            held = deleteHeld(jobId, entityManager);
-            transaction.commit();
-        } finally {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-            entityManager.close();
+        int batches = 0;
+        int held = 0;
+        for (SinkRecord record : recordsOf(jobId)) {
+            Discarded discarded = discardRecord(jobId, record);
+            batches += discarded.batches();
+            held += discarded.held();
         }
+        batches += discardKeylessBatches(jobId);
         int released = stageReleasedItems();
         LOGGER.warn("Aborted job {}, deleted {} batches and {} held items, staged {} held items"
                 + " of other jobs", jobId, batches, held, released);
@@ -370,11 +375,106 @@ public class BatchExchangeMessageConsumer extends SinkMessageConsumerAdapter {
         }
     }
 
-    private int deleteBatches(int jobId, EntityManager entityManager) {
+    /**
+     * Gives the records the job has work for, staged or held
+     * <p>
+     * A staged item without a record key is left out. It has no record identity, so nothing
+     * serializes on it and no version of anything can be held behind it.
+     *
+     * @return one entry per record, in no particular order
+     */
+    private List<SinkRecord> recordsOf(int jobId) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            Set<SinkRecord> records = new LinkedHashSet<>(recordsOf(entityManager.createQuery(
+                            "select distinct s.sinkId, s.recordKey from StagedItem s"
+                                    + " where s.jobId = :jobId and s.recordKey is not null", Object[].class)
+                    .setParameter("jobId", jobId)
+                    .getResultList()));
+            records.addAll(recordsOf(entityManager.createQuery(
+                            "select distinct d.sinkId, d.recordKey from HeldItem d where d.jobId = :jobId",
+                            Object[].class)
+                    .setParameter("jobId", jobId)
+                    .getResultList()));
+            return new ArrayList<>(records);
+        } finally {
+            entityManager.close();
+        }
+    }
+
+    private List<SinkRecord> recordsOf(List<Object[]> rows) {
+        List<SinkRecord> records = new ArrayList<>(rows.size());
+        for (Object[] row : rows) {
+            records.add(new SinkRecord(((Number) row[0]).longValue(), (String) row[1]));
+        }
+        return records;
+    }
+
+    /**
+     * Discards the job's staged and held work for one record, with that record locked
+     *
+     * @return what the record gave up
+     */
+    private Discarded discardRecord(int jobId, SinkRecord record) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+            RecordLock.acquire(entityManager, record.sinkId(), record.recordKey());
+            Discarded discarded = new Discarded(
+                    deleteBatches(jobId, record, entityManager),
+                    deleteHeld(jobId, record, entityManager));
+            transaction.commit();
+            return discarded;
+        } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            entityManager.close();
+        }
+    }
+
+    /**
+     * Discards the job's staged items that arrived without a record key
+     * <p>
+     * They are discarded in one transaction and without a lock. There is no record to lock,
+     * and nothing can be held behind them to release.
+     *
+     * @return number of batches deleted
+     */
+    private int discardKeylessBatches(int jobId) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+            List<Integer> batches = entityManager.createQuery(
+                            "select s.batch from StagedItem s where s.jobId = :jobId"
+                                    + " and s.recordKey is null", Integer.class)
+                    .setParameter("jobId", jobId)
+                    .getResultList();
+            int deleted = deleteBatches(batches, entityManager);
+            transaction.commit();
+            return deleted;
+        } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            entityManager.close();
+        }
+    }
+
+    private int deleteBatches(int jobId, SinkRecord record, EntityManager entityManager) {
         List<Integer> batches = entityManager.createQuery(
-                        "select s.batch from StagedItem s where s.jobId = :jobId", Integer.class)
+                        "select s.batch from StagedItem s where s.jobId = :jobId"
+                                + " and s.sinkId = :sinkId and s.recordKey = :recordKey", Integer.class)
                 .setParameter("jobId", jobId)
+                .setParameter("sinkId", record.sinkId())
+                .setParameter("recordKey", record.recordKey())
                 .getResultList();
+        return deleteBatches(batches, entityManager);
+    }
+
+    private int deleteBatches(List<Integer> batches, EntityManager entityManager) {
         if (batches.isEmpty()) {
             return 0;
         }
@@ -384,9 +484,12 @@ public class BatchExchangeMessageConsumer extends SinkMessageConsumerAdapter {
                 .executeUpdate();
     }
 
-    private int deleteHeld(int jobId, EntityManager entityManager) {
-        return entityManager.createQuery("delete from HeldItem d where d.jobId = :jobId")
+    private int deleteHeld(int jobId, SinkRecord record, EntityManager entityManager) {
+        return entityManager.createQuery("delete from HeldItem d where d.jobId = :jobId"
+                        + " and d.sinkId = :sinkId and d.recordKey = :recordKey")
                 .setParameter("jobId", jobId)
+                .setParameter("sinkId", record.sinkId())
+                .setParameter("recordKey", record.recordKey())
                 .executeUpdate();
     }
 
@@ -468,5 +571,17 @@ public class BatchExchangeMessageConsumer extends SinkMessageConsumerAdapter {
                 .withTrackingId(item.getTrackingId())
                 .withType(ChunkItem.Type.STRING)
                 .withEncoding(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * The record one version of it belongs to, as {@link RecordLock} identifies it
+     */
+    private record SinkRecord(long sinkId, String recordKey) {
+    }
+
+    /**
+     * What discarding one record's work for a job removed
+     */
+    private record Discarded(int batches, int held) {
     }
 }

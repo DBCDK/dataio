@@ -7,6 +7,10 @@ Replaces the dependency-tracking mechanism and chunk-level sink dispatch with:
 - Durable delivery watermark in PostgreSQL, read via REST before every delivery
 - No per-sink inflight map; no Hazelcast
 
+The decisions behind this design, and the alternatives weighed against each of them, are
+recorded as architecture decision records in `docs/adr`. This document describes the
+mechanism, those records say why it is the one chosen.
+
 ---
 
 ## Why Replace Dependency Tracking
@@ -459,7 +463,7 @@ being pushed above `data_chunks_expected` by something other than the increment,
 backfill or a revised total.
 
 The increment and the row's removal are transactionally atomic from Phase 9 onwards, which is what
-makes the `>=` defensive rather than load-bearing. Until then the row lived in a Hazelcast map whose
+leaves the `>=` defensive rather than relied upon. Until then the row lived in a Hazelcast map whose
 mutations were not enrolled in the JTA transaction, so a rollback after the removal reverted the
 increment without restoring the row and the chunk was uncounted and unrecoverable. The gate was the
 first logic whose correctness depended on closing that window.

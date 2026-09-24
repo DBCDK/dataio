@@ -135,7 +135,7 @@ public class ServiceBroker {
     }
 
     public List<DataField> getUpdateErrors(String errorFieldTag, UpdateRecordResult result, DpfRecord dpfRecord) {
-        return openUpdateConnector.toErrorFields(errorFieldTag, result, dpfRecord.getBody());
+        return getOpenUpdateConnector().toErrorFields(errorFieldTag, result, dpfRecord.getBody());
     }
 
     private boolean isConfigUpdated() {
@@ -147,7 +147,17 @@ public class ServiceBroker {
         return false;
     }
 
-    private OpenUpdateServiceConnector getOpenUpdateConnector() {
+    /**
+     * Rebuilds the update service connector when the sink config has changed, and hands back the
+     * one to send through
+     * <p>
+     * Several consumer threads share this broker, so the connector is handed back rather than left
+     * for each caller to read off the field. Reading the field lets a thread pick up a connector
+     * another thread is in the middle of replacing, or none at all before the first config has
+     * been seen. Synchronizing the whole method is what makes the config comparison and the
+     * replacement it decides one step.
+     */
+    private synchronized OpenUpdateServiceConnector getOpenUpdateConnector() {
         if (isConfigUpdated()) {
             LOGGER.debug("Updating update service connector");
             openUpdateConnector = new OpenUpdateServiceConnector(UPDATE_SERVICE_WS, config.getUpdateServiceUserId(), config.getUpdateServicePassword());

@@ -67,6 +67,7 @@ public class HarvestOperationTest {
     private JobStoreServiceConnector jobStoreServiceConnector;
     private MockedFileStoreServiceConnector fileStoreServiceConnector;
     private TagStackConnector tagStackConnector;
+    private boolean tagStackEnabled;
     private MetricRegistry metricRegistry;
     private Path harvesterTmpFile;
 
@@ -87,6 +88,7 @@ public class HarvestOperationTest {
         retrieverConnector = mock(RetrieverConnector.class);
         creatorDetectorConnector = mock(CreatorDetectorConnector.class);
         tagStackConnector = mock(TagStackConnector.class);
+        tagStackEnabled = true;
 
         Timer mockTimer = mock(Timer.class);
         when(mockTimer.time()).thenReturn(mock(Timer.Context.class));
@@ -495,9 +497,53 @@ public class HarvestOperationTest {
         addiFileVerifier.verify(harvesterTmpFile.toFile(), addiMetadataExpectations, addiContentExpectations);
     }
 
+    @Test
+    public void noTagsWhenTagStackIsDisabled() throws HarvesterException, RetrieverConnectorException,
+            FlowStoreServiceConnectorException, JobStoreServiceConnectorException, TagStackConnectorException {
+        tagStackEnabled = false;
+
+        Article article = new Article();
+        article.set("DOC_ID", "tags-disabled");
+        article.set("PUBLISHING_DATE", "2026-03-21T02:00:00");
+        article.set("FULLTEXT", "Article text that would otherwise be tagged");
+
+        RetrieverHarvesterConfig config = newConfig();
+        LocalDate today = LocalDate.now(HarvestOperation.getTimezone());
+        config.getContent().withNextPublicationDate(Date.from(
+                today.atStartOfDay(HarvestOperation.getTimezone()).toInstant()));
+
+        ArticlesRequest articlesRequest = ArticlesRequest.builder()
+                .fromDate(today)
+                .toDate(today)
+                .query("srcid:" + config.getContent().getRetrieverSourceId())
+                .page(1)
+                .size(2)
+                .formatFulltextHtml(false)
+                .build();
+        when(retrieverConnector.searchArticles(articlesRequest))
+                .thenReturn(new ArticlesResponse(1, List.of(article)));
+
+        List<AddiMetaData> addiMetadataExpectations = List.of(new AddiMetaData()
+                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
+                .withFormat("test-format")
+                .withBibliographicRecordId("tags-disabled")
+                .withTrackingId("Retriever.35010.tags-disabled")
+                .withDeleted(false));
+
+        List<Expectation> addiContentExpectations = List.of(new Expectation(
+                "{\"article\":{\"DOC_ID\":\"tags-disabled\",\"PUBLISHING_DATE\":\"2026-03-21T02:00:00\",\"FULLTEXT\":\"Article text that would otherwise be tagged\"}}"));
+
+        createHarvestOperation(config).execute();
+
+        AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
+        addiFileVerifier.verify(harvesterTmpFile.toFile(), addiMetadataExpectations, addiContentExpectations);
+
+        verify(tagStackConnector, never()).tag(any());
+    }
+
     private HarvestOperation createHarvestOperation(RetrieverHarvesterConfig config) {
         try {
-            return new HarvestOperation(config, new BinaryFileStoreFsImpl(Files.createDirectory(tmpFolder.resolve("im-op-test-" + UUID.randomUUID()))), flowStoreServiceConnector, fileStoreServiceConnector, jobStoreServiceConnector, retrieverConnector, creatorDetectorConnector, tagStackConnector, metricRegistry);
+            return new HarvestOperation(config, new BinaryFileStoreFsImpl(Files.createDirectory(tmpFolder.resolve("im-op-test-" + UUID.randomUUID()))), flowStoreServiceConnector, fileStoreServiceConnector, jobStoreServiceConnector, retrieverConnector, creatorDetectorConnector, tagStackConnector, tagStackEnabled, metricRegistry);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

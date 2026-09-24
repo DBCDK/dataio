@@ -65,7 +65,8 @@ import java.util.function.Supplier;
  * The operation integrates with multiple external services:
  * - Retriever platform for fetching articles
  * - Creator-Detector service for enriching articles with creator name suggestions
- * - Tag-Stack service for enriching articles with tag suggestions
+ * - Tag-Stack service for enriching articles with tag suggestions, which can be
+ *   switched off via the TAG_STACK_ENABLED configuration property
  * <p>
  * Each harvested article is transformed into an ADDI record with associated metadata including
  * tracking information, bibliographic record identifiers, and diagnostic information if
@@ -171,6 +172,7 @@ public class HarvestOperation {
     private final RetrieverConnector retrieverConnector;
     private final CreatorDetectorConnector creatorDetectorConnector;
     private final TagStackConnector tagStackConnector;
+    private final boolean tagStackEnabled;
     private final MetricRegistry metricRegistry;
     private final JSONBContext jsonbContext = new JSONBContext();
 
@@ -182,6 +184,7 @@ public class HarvestOperation {
                             RetrieverConnector retrieverConnector,
                             CreatorDetectorConnector creatorDetectorConnector,
                             TagStackConnector tagStackConnector,
+                            boolean tagStackEnabled,
                             MetricRegistry metricRegistry) {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
@@ -191,6 +194,7 @@ public class HarvestOperation {
         this.retrieverConnector = retrieverConnector;
         this.creatorDetectorConnector = creatorDetectorConnector;
         this.tagStackConnector = tagStackConnector;
+        this.tagStackEnabled = tagStackEnabled;
         this.metricRegistry = metricRegistry;
     }
 
@@ -198,6 +202,9 @@ public class HarvestOperation {
         final StopWatch stopwatch = new StopWatch();
         int recordsHarvested = 0;
         try {
+            if (!tagStackEnabled) {
+                LOGGER.info("Tag-stack enrichment is disabled, no tags will be added to harvested articles");
+            }
             final List<LocalDate> publicationDates = getPublicationDatesToHarvest(config);
             for (LocalDate publicationDate : publicationDates) {
                 LOGGER.info("Harvesting publication date {}", publicationDate);
@@ -232,7 +239,9 @@ public class HarvestOperation {
         final ArticlePayload payload = new ArticlePayload();
         payload.setArticle(article);
         enrichWithCreatorNames(article, addiMetaData, payload);
-        enrichWithTags(article, addiMetaData, payload);
+        if (tagStackEnabled) {
+            enrichWithTags(article, addiMetaData, payload);
+        }
         return payload;
     }
 

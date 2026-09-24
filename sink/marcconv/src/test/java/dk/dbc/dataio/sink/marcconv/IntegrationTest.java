@@ -30,6 +30,7 @@ public abstract class IntegrationTest extends JpaIntegrationTest implements Post
     public void resetDatabase() throws SQLException {
         try (Connection conn = jpaTestEnvironment.getDatasource().getConnection(); Statement statement = conn.createStatement()) {
             statement.executeUpdate("DELETE FROM block");
+            statement.executeUpdate("DELETE FROM param");
         }
     }
 

@@ -24,6 +24,7 @@ public class ScheduledBatchFinalizer {
 
     private final BatchFinalizer batchFinalizer;
     private static final Duration LIVENESS_THRESHOLD = SinkConfig.FINALIZER_LIVENESS_THRESHOLD.asDuration();
+    private static final Duration MAX_RUN_DURATION = Duration.ofMinutes(1);
     private static final AtomicReference<Instant> LAST_RUN = new AtomicReference<>(Instant.now());
     private final HealthService healthService;
     private final AtomicInteger THREAD_ID = new AtomicInteger();
@@ -41,8 +42,14 @@ public class ScheduledBatchFinalizer {
         try {
             // Keep finalizing until we run out of completed batches.
             int numberOfBatchesCompleted = 0;
+            Instant runStart = Instant.now();
             while (batchFinalizer.finalizeNextCompletedBatch()) {
                 numberOfBatchesCompleted++;
+                if (Duration.between(runStart, Instant.now()).compareTo(MAX_RUN_DURATION) > 0) {
+                    LOGGER.warn("Batch finalizer run exceeded {} after completing {} batches, yielding to next scheduled run",
+                            MAX_RUN_DURATION, numberOfBatchesCompleted);
+                    break;
+                }
             }
             if(numberOfBatchesCompleted > 0) LOGGER.info("Finalized {} batches", numberOfBatchesCompleted);
             LAST_RUN.set(Instant.now());

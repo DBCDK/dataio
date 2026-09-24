@@ -9,23 +9,23 @@ import dk.dbc.dataio.commons.conversion.Conversion;
 import dk.dbc.dataio.commons.conversion.ConversionException;
 import dk.dbc.dataio.commons.conversion.ConversionFactory;
 import dk.dbc.dataio.commons.conversion.ConversionParam;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.Tools;
-import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
-import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
+import dk.dbc.dataio.jse.artemis.common.jms.SinkMessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.marcconv.SinkConfig;
 import dk.dbc.dataio.sink.marcconv.entity.ConversionBlock;
 import dk.dbc.dataio.sink.marcconv.entity.ConversionFinalizer;
 import dk.dbc.dataio.sink.marcconv.entity.StoredConversionParam;
-import dk.dbc.log.DBCTrackedLogContext;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,7 +33,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-public class MessageConsumer extends MessageConsumerAdapter {
+public class MessageConsumer extends SinkMessageConsumerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumer.class);
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -48,31 +49,51 @@ public class MessageConsumer extends MessageConsumerAdapter {
         conversionFinalizer = new ConversionFinalizer(serviceHub, fileStore);
     }
 
+    /**
+     * An item here is converted and persisted as a conversion block rather than sent to a
+     * target system, and nothing leaves this sink until the job's termination item uploads
+     * the job's blocks to file-store as one file, so there is no "a newer version of this
+     * record was already delivered" question to ask about a single item
+     * <p>
+     * See docs/chunk-scheduling-redesign.md, Watermark opt-out.
+     */
     @Override
-    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
-        Chunk chunk = unmarshallPayload(consumedMessage);
+    protected boolean usesDeliveryWatermark() {
+        return false;
+    }
+
+    /**
+     * Converts one item into a conversion block, or, for the job's termination item,
+     * uploads the blocks accumulated by every preceding item to file-store
+     * <p>
+     * The transaction is committed before this method returns, and only then does
+     * {@link SinkMessageConsumerAdapter} report the result. That order is what lets the
+     * job-end finalization run against complete data: a reported item is an item whose
+     * block is durable, and the termination item is released only once every data item of
+     * the job has reported.
+     */
+    @Override
+    protected ItemDeliveryResult deliverItem(ConsumedMessage message, ChunkItem item) {
+        // Not null-checked: SinkMessageConsumerAdapter has already rejected the message as
+        // invalid if any of the three is missing.
+        int jobId = JMSHeader.jobId.getHeader(message, Integer.class);
+        int chunkId = JMSHeader.chunkId.getHeader(message, Long.class).intValue();
+        short itemId = JMSHeader.itemId.getHeader(message, Short.class);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
         try {
-            Chunk result;
             transaction.begin();
-            if (chunk.isTerminationChunk()) {
-                // Give the before-last message enough time to commit
-                // its blocks to the database before initiating
-                // the finalization process.
-                // (The result is uploaded to the job-store before the
-                // implicit commit, so without the sleep pause, there was a
-                // small risk that the end-chunk would reach this bean
-                // before all data was available.)
-                Tools.sleep(5000);
-                result = conversionFinalizer.handleTerminationChunk(chunk, entityManager);
-            } else {
-                result = handleChunk(chunk, entityManager);
-            }
-            sendResultToJobStore(result);
+            ChunkItem outcome = isTerminationItem(item)
+                    ? conversionFinalizer.finalizeJob(jobId, item, entityManager)
+                    : convertItem(item, jobId, chunkId, itemId, entityManager);
             transaction.commit();
+            return ItemDeliveryResult.of(verdictOf(outcome), outcome);
         } finally {
-            if(transaction.isActive()) transaction.rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            entityManager.close();
         }
     }
 
@@ -80,9 +101,17 @@ public class MessageConsumer extends MessageConsumerAdapter {
     public void abortJob(int jobId) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        conversionFinalizer.deleteJob(jobId, entityManager);
-        transaction.commit();
+        try {
+            transaction.begin();
+            conversionFinalizer.deleteJob(jobId, entityManager);
+            transaction.commit();
+            LOGGER.info("Aborted job {}", jobId);
+        } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            entityManager.close();
+        }
     }
 
     @Override
@@ -95,45 +124,74 @@ public class MessageConsumer extends MessageConsumerAdapter {
         return ADDRESS;
     }
 
-    Chunk handleChunk(Chunk chunk, EntityManager entityManager) {
-        Integer jobId = Math.toIntExact(chunk.getJobId());
-        long chunkId = chunk.getChunkId();
-        Chunk result = new Chunk(jobId, chunkId, Chunk.Type.DELIVERED);
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        try {
-            for (ChunkItem chunkItem : chunk.getItems()) {
-                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                result.insertItem(handleChunkItem(jobId, chunkItem, buffer));
-            }
-            storeConversion(jobId, Math.toIntExact(chunkId), buffer.toByteArray(), entityManager);
-            Conversion cachedConversion = conversionCache.getIfPresent(jobId);
-            if (cachedConversion != null) {
-                ConversionParam param = cachedConversion.getParam();
-                if (param != null) {
-                    storeConversionParam(jobId, param, entityManager);
-                }
-            }
-        } finally {
-            DBCTrackedLogContext.remove();
+    /**
+     * Converts one processed item, persisting the conversion output as the block the job's
+     * termination item later uploads
+     *
+     * @return delivering outcome for the item, which {@link #verdictOf(ChunkItem)} turns
+     * into the verdict reported for it
+     */
+    ChunkItem convertItem(ChunkItem item, int jobId, int chunkId, short itemId, EntityManager entityManager) {
+        ChunkItem outcome = convert(item, jobId, chunkId, itemId, entityManager);
+        if (outcome.getStatus() == ChunkItem.Status.SUCCESS) {
+            // Kept outside the conversion's own error handling, since a failure to store
+            // the job's conversion parameters is not this item's outcome. It rolls the
+            // item back to be redelivered rather than reporting a converted item failed.
+            storeConversionParam(jobId, entityManager);
         }
-        return result;
+        return outcome;
     }
 
-    private ChunkItem handleChunkItem(Integer jobId, ChunkItem chunkItem, ByteArrayOutputStream buffer) {
-        ChunkItem result = new ChunkItem().withId(chunkItem.getId()).withTrackingId(chunkItem.getTrackingId()).withType(ChunkItem.Type.STRING).withEncoding(StandardCharsets.UTF_8);
+    private ChunkItem convert(ChunkItem item, int jobId, int chunkId, short itemId, EntityManager entityManager) {
+        ChunkItem outcome = new ChunkItem()
+                .withId(itemId)
+                .withTrackingId(item.getTrackingId())
+                .withType(ChunkItem.Type.STRING)
+                .withEncoding(StandardCharsets.UTF_8);
         try {
-            switch (chunkItem.getStatus()) {
-                case FAILURE:
-                    return result.withStatus(ChunkItem.Status.IGNORE).withData("Failed by processor");
-                case IGNORE:
-                    return result.withStatus(ChunkItem.Status.IGNORE).withData("Ignored by processor");
-                default:
-                    appendToBuffer(buffer, convertChunkItem(jobId, chunkItem));
-                    return result.withStatus(ChunkItem.Status.SUCCESS).withData("Converted");
-            }
+            return switch (item.getStatus()) {
+                case FAILURE -> outcome
+                        .withStatus(ChunkItem.Status.IGNORE)
+                        .withData("Failed by processor");
+                case IGNORE -> outcome
+                        .withStatus(ChunkItem.Status.IGNORE)
+                        .withData("Ignored by processor");
+                case SUCCESS -> {
+                    storeConversion(jobId, chunkId, itemId, convertChunkItem(jobId, item), entityManager);
+                    yield outcome
+                            .withStatus(ChunkItem.Status.SUCCESS)
+                            .withData("Converted");
+                }
+            };
         } catch (RuntimeException e) {
-            return result.withStatus(ChunkItem.Status.FAILURE).withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, e.getMessage(), e)).withData(e.getMessage());
+            return outcome
+                    .withStatus(ChunkItem.Status.FAILURE)
+                    .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, e.getMessage(), e))
+                    .withData(e.getMessage());
         }
+    }
+
+    /**
+     * Recognizes the job termination item the same way job-store does on its own side of
+     * the protocol ({@code PgJobStore.isTerminationItem})
+     */
+    private static boolean isTerminationItem(ChunkItem item) {
+        return item.isTyped() && item.getType().getFirst() == ChunkItem.Type.JOB_END;
+    }
+
+    /**
+     * Maps a delivering outcome onto the verdict job-store counts the item by
+     * <p>
+     * The mapping belongs here rather than in job-store, which reads the verdict alone:
+     * this sink owns both the outcome item and the verdict and is free to derive one from
+     * the other.
+     */
+    private static ItemDeliveryResult.Status verdictOf(ChunkItem outcome) {
+        return switch (outcome.getStatus()) {
+            case SUCCESS -> ItemDeliveryResult.Status.DELIVERED;
+            case IGNORE -> ItemDeliveryResult.Status.IGNORED;
+            case FAILURE -> ItemDeliveryResult.Status.FAILED;
+        };
     }
 
     private void appendToBuffer(ByteArrayOutputStream buffer, byte[] bytes) {
@@ -166,9 +224,9 @@ public class MessageConsumer extends MessageConsumerAdapter {
         return conversionCache.asMap().computeIfAbsent(jobId, id -> conversionFactory.newConversion(conversionParam));
     }
 
-    private void storeConversion(Integer jobId, Integer chunkId, byte[] conversionBytes, EntityManager entityManager) {
+    private void storeConversion(int jobId, int chunkId, short itemId, byte[] conversionBytes, EntityManager entityManager) {
         if (conversionBytes.length != 0) {
-            ConversionBlock.Key key = new ConversionBlock.Key(jobId, chunkId);
+            ConversionBlock.Key key = new ConversionBlock.Key(jobId, chunkId, itemId);
             ConversionBlock conversionBlock = entityManager.find(ConversionBlock.class, key);
             if (conversionBlock == null) {
                 conversionBlock = new ConversionBlock();
@@ -176,21 +234,31 @@ public class MessageConsumer extends MessageConsumerAdapter {
                 conversionBlock.setBytes(conversionBytes);
                 entityManager.persist(conversionBlock);
             } else {
-                // This should only happen if something by
-                // accident caused multiple messages referencing
-                // the same chunk to be enqueued.
+                // This happens when an item is redelivered, either because the message was
+                // redelivered before its session committed or because the same item was
+                // dispatched twice. The conversion is deterministic, so the row is simply
+                // written again.
                 conversionBlock.setBytes(conversionBytes);
             }
         }
     }
 
-    private void storeConversionParam(Integer jobId, ConversionParam param, EntityManager entityManager) {
-        StoredConversionParam storedConversionParam = entityManager.find(StoredConversionParam.class, jobId);
-        if (storedConversionParam == null) {
-            storedConversionParam = new StoredConversionParam(jobId);
-            storedConversionParam.setParam(param);
-            entityManager.persist(storedConversionParam);
-            entityManager.flush();
+    /**
+     * Stores the conversion parameters of the job, once, for the finalization to read the
+     * submitter off
+     * <p>
+     * Attempted for every converted item rather than once per job: the parameters come
+     * from the first record this instance converted for the job, and there is no point in
+     * the per-item protocol at which an instance knows it is holding that first record.
+     * Which of the racing writers stores its parameters is therefore not decided here, and
+     * never was. The finalization reads the submitter alone off them and falls back to the
+     * job specification.
+     */
+    private void storeConversionParam(int jobId, EntityManager entityManager) {
+        Conversion cachedConversion = conversionCache.getIfPresent(jobId);
+        if (cachedConversion == null || cachedConversion.getParam() == null) {
+            return;
         }
+        StoredConversionParam.insertIfAbsent(entityManager, jobId, cachedConversion.getParam());
     }
 }

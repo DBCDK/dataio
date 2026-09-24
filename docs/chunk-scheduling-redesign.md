@@ -1815,8 +1815,28 @@ The chunk protocol had this the other way round: each sink called
 see a chunk as delivered while that chunk's data was still uncommitted, and the
 termination chunk could be released against an incomplete set. `periodic-jobs` covered
 that window with a fixed five second sleep before finalizing, removed in DI-3015 along
-with the ordering problem it guessed at. `marcconv` has the same shape and the same
-argument applies to it.
+with the ordering problem it guessed at. `marcconv` carried the same sleep for the same
+reason, removed in DI-3014.
+
+##### An aggregating sink keys its stored work per item
+
+What an aggregating sink accumulates has to be keyed by the item it came from, not by the
+chunk. Two items of one chunk share a broker group only when they share a
+`correlationKey`, so in general they are handled concurrently, on different threads and
+different pods, and in any order. A row holding a whole chunk's output therefore has no
+writer that can produce it, and one written a piece at a time is both a race between those
+writers and a record order that follows arrival rather than item id.
+
+The order the job's records are read back in has to come from the key as well, since the
+order the rows were written in no longer carries it. Ascending chunk id then item id
+reproduces what the chunk protocol produced, that being the order job-store partitioned
+the records in.
+
+`periodic-jobs` needed no change for this: `PeriodicJobsDataBlock` was already keyed
+`(jobId, recordNumber, recordPart)`. `marcconv`'s `ConversionBlock` moved from
+`(jobId, chunkId)` to `(jobId, chunkId, itemId)` in DI-3014, and `ConversionFinalizer`
+buffers the blocks it uploads, one row per item being ten times as many file-store calls
+as one row per chunk.
 
 #### Sinks whose target answers after the item is accepted
 

@@ -13,6 +13,7 @@ import dk.dbc.tagstack.connector.TagStackConnector;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
@@ -40,6 +41,14 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Retrieve
     @Inject
     TagStackConnector tagStackConnector;
 
+    /* Whether harvested articles are enriched with tag suggestions from the tag-stack service.
+       Deliberately has no defaultValue: the default lives in the Dockerfile next to the other
+       operational settings, and a missing value should fail deployment rather than silently
+       pick a behaviour. */
+    @Inject
+    @ConfigProperty(name = "TAG_STACK_ENABLED")
+    boolean tagStackEnabled;
+
     @Inject
     MetricRegistry metricRegistry;
 
@@ -54,6 +63,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Retrieve
                     retrieverConnector,
                     creatorDetectorConnector,
                     tagStackConnector,
+                    tagStackEnabled,
                     metricRegistry)
                     .execute();
         } catch (HarvesterException e) {

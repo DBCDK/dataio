@@ -1,7 +1,7 @@
 package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.HttpPickup;
@@ -23,6 +23,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
+    /* Id of the job's termination chunk, non-zero so the job counts as having data */
+    private static final int CHUNK_ID = 3;
+
     private final PeriodicJobsConfigurationBean periodicJobsConfigurationBean =
             mock(PeriodicJobsConfigurationBean.class);
     private final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean =
@@ -60,13 +63,12 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withPickup(new HttpPickup())));
-        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
-        when(periodicJobsConfigurationBean.getDelivery(chunk, env().getEntityManager()))
+        when(periodicJobsConfigurationBean.getDelivery(jobId, CHUNK_ID, env().getEntityManager()))
                 .thenReturn(delivery);
 
         PeriodicJobsFinalizerBean periodicJobsFinalizerBean = newPeriodicJobsFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsFinalizerBean.handleTerminationChunk(chunk, env().getEntityManager()));
+                periodicJobsFinalizerBean.finalizeJob(jobId, CHUNK_ID, env().getEntityManager()));
 
         try (Connection conn = connectToPeriodicJobsDB()) {
             assertThat("number of remaining persisted data blocks",
@@ -97,13 +99,12 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
             env().getEntityManager().persist(delivery1);
         });
 
-        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
-        when(periodicJobsConfigurationBean.getDelivery(chunk, env().getEntityManager()))
+        when(periodicJobsConfigurationBean.getDelivery(jobId, CHUNK_ID, env().getEntityManager()))
                 .thenReturn(delivery1);
 
         PeriodicJobsFinalizerBean periodicJobsFinalizerBean = newPeriodicJobsFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsFinalizerBean.handleTerminationChunk(chunk, env().getEntityManager()));
+                periodicJobsFinalizerBean.finalizeJob(jobId, CHUNK_ID, env().getEntityManager()));
 
         try (Connection conn = connectToPeriodicJobsDB()) {
             assertThat("number of remaining persisted deliveries",
@@ -123,19 +124,20 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
                 new PeriodicJobsHarvesterConfig.Content()
                         .withPickup(new HttpPickup())));
 
-        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
-        when(periodicJobsConfigurationBean.getDelivery(chunk, env().getEntityManager()))
+        when(periodicJobsConfigurationBean.getDelivery(jobId, CHUNK_ID, env().getEntityManager()))
                 .thenReturn(delivery);
 
-        Chunk expectedResult = new Chunk(jobId, 3, Chunk.Type.DELIVERED);
-        when(periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()))
+        ChunkItem expectedResult = ChunkItem.successfulChunkItem()
+                .withId(0)
+                .withType(ChunkItem.Type.JOB_END);
+        when(periodicJobsHttpFinalizerBean.deliver(jobId, CHUNK_ID, delivery, env().getEntityManager()))
                 .thenReturn(expectedResult);
 
         PeriodicJobsFinalizerBean periodicJobsFinalizerBean = newPeriodicJobsFinalizerBean();
-        Chunk result = env().getPersistenceContext().run(() ->
-                periodicJobsFinalizerBean.handleTerminationChunk(chunk, env().getEntityManager()));
+        ChunkItem result = env().getPersistenceContext().run(() ->
+                periodicJobsFinalizerBean.finalizeJob(jobId, CHUNK_ID, env().getEntityManager()));
 
-        assertThat("result chunk", result, is(sameInstance(expectedResult)));
+        assertThat("result item", result, is(sameInstance(expectedResult)));
     }
 
     private PeriodicJobsFinalizerBean newPeriodicJobsFinalizerBean() {

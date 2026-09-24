@@ -9,6 +9,8 @@
         <class>dk.dbc.batchexchange.dto.BatchEntryMetadataConverter</class>
         <class>dk.dbc.batchexchange.dto.BatchEntryStatusConverter</class>
         <class>dk.dbc.batchexchange.dto.BatchEntry</class>
+        <class>dk.dbc.dataio.sink.batchexchange.StagedItem</class>
+        <class>dk.dbc.dataio.sink.batchexchange.HeldItem</class>
         <properties>
             <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
         </properties>
@@ -20,6 +22,8 @@
         <class>dk.dbc.batchexchange.dto.BatchEntryMetadataConverter</class>
         <class>dk.dbc.batchexchange.dto.BatchEntryStatusConverter</class>
         <class>dk.dbc.batchexchange.dto.BatchEntry</class>
+        <class>dk.dbc.dataio.sink.batchexchange.StagedItem</class>
+        <class>dk.dbc.dataio.sink.batchexchange.HeldItem</class>
         <properties>
             <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
             <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>

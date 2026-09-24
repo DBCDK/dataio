@@ -1,8 +1,8 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
-import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Embeddable;
@@ -16,6 +16,14 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 
+/* Not cacheable, so a read of a chunk row is current no matter which instance serves it. The
+   persistence unit's DISABLE_SELECTIVE shared-cache-mode caches every entity that does not opt out
+   here, and that cache is per JVM, while a chunk row is advanced by whichever instance handles the
+   item delivery that writes it. Cached, this entity would report a DELIVERING phase that is
+   already done as still open, to ChunkListQuery.execute and to the unlocked read at the top of
+   PgJobStore.addItemDelivered alike. That read stays unlocked and keeps its locked re-check, which
+   is about concurrency rather than about which instance is asking. */
+@Cacheable(false)
 @Entity
 @Table(name = "chunk")
 public class ChunkEntity {
@@ -34,13 +42,12 @@ public class ChunkEntity {
     @Column(nullable = false)
     private short numberOfItems;
 
+    @Column(nullable = false)
+    private boolean containsLiveHeadOrSectionRecord;
+
     private Timestamp timeOfCreation;
     private Timestamp timeOfLastModification;
     private Timestamp timeOfCompletion;
-
-    @Column(columnDefinition = "json", nullable = false)
-    @Convert(converter = SequenceAnalysisDataConverter.class)
-    private SequenceAnalysisData sequenceAnalysisData;
 
     @Column(columnDefinition = "json", nullable = false)
     @Convert(converter = StateConverter.class)
@@ -70,6 +77,14 @@ public class ChunkEntity {
         this.numberOfItems = numberOfItems;
     }
 
+    public boolean getContainsLiveHeadOrSectionRecord() {
+        return containsLiveHeadOrSectionRecord;
+    }
+
+    public void setContainsLiveHeadOrSectionRecord(boolean containsLiveHeadOrSectionRecord) {
+        this.containsLiveHeadOrSectionRecord = containsLiveHeadOrSectionRecord;
+    }
+
     public Timestamp getTimeOfCreation() {
         return timeOfCreation;
     }
@@ -84,14 +99,6 @@ public class ChunkEntity {
 
     public void setTimeOfCompletion(Timestamp timeOfCompletion) {
         this.timeOfCompletion = timeOfCompletion;
-    }
-
-    public SequenceAnalysisData getSequenceAnalysisData() {
-        return sequenceAnalysisData;
-    }
-
-    public void setSequenceAnalysisData(SequenceAnalysisData sequenceAnalysisData) {
-        this.sequenceAnalysisData = sequenceAnalysisData;
     }
 
     public State getState() {
@@ -113,11 +120,6 @@ public class ChunkEntity {
         return this;
     }
 
-    public ChunkEntity withSequenceAnalysisData(SequenceAnalysisData sequenceAnalysisData) {
-        this.sequenceAnalysisData = sequenceAnalysisData;
-        return this;
-    }
-
     public ChunkEntity withState(State state) {
         this.state = state;
         return this;
@@ -125,6 +127,11 @@ public class ChunkEntity {
 
     public ChunkEntity withNumberOfItems(short numberOfItems) {
         this.numberOfItems = numberOfItems;
+        return this;
+    }
+
+    public ChunkEntity withContainsLiveHeadOrSectionRecord(boolean containsLiveHeadOrSectionRecord) {
+        this.containsLiveHeadOrSectionRecord = containsLiveHeadOrSectionRecord;
         return this;
     }
 

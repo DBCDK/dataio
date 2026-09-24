@@ -2,6 +2,9 @@ delete from job;
 delete from sinkcache;
 delete from dependencytracking;
 
+-- The sequenceAnalysisOption member is deliberate: it is what a sink cached before that option was
+-- removed looks like, and every such row in production still carries it. SinkContent ignores unknown
+-- members, so this row has to keep deserializing.
 insert into sinkcache (id, checksum, sink ) values ( 0 , '927d164ba5baedff9e54cdb9a81fc5ce', '{"id":4,"version":3,"content":{"name":"FBS","resource":"url/dataio/fbs/ws","sequenceAnalysisOption":"ALL"}}'::JSON );
 
 
@@ -22,9 +25,9 @@ DECLARE
 BEGIN
 WHILE _counter < 100
 LOOP
-   insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (1,_counter,'','{"data":[]}'::JSON,'{}'::JSON);
-   insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (2,_counter,'','{"data":[]}'::JSON,'{}'::JSON);
-   insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (3,_counter,'','{"data":[]}'::JSON,'{}'::JSON);
+   insert into chunk (jobid, id, datafileid, state) values (1,_counter,'','{}'::JSON);
+   insert into chunk (jobid, id, datafileid, state) values (2,_counter,'','{}'::JSON);
+   insert into chunk (jobid, id, datafileid, state) values (3,_counter,'','{}'::JSON);
 
     insert into item ( jobid, chunkid, id, state, partitioningoutcome, processingoutcome ) values
         ( 1, _counter ,0, '{}'::JSON,

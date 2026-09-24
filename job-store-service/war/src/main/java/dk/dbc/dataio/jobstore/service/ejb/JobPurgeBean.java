@@ -45,7 +45,6 @@ import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN
  * If the original data file is used only by the job to be deleted, the data file is deleted from
  * file store as well.
  * <p>
- * Jobs of type ACCTEST are deleted 5 days after time of creation
  * Jobs of type TRANSIENT and TEST are deleted 90 days after time of creation
  * Jobs of type PERSISTENT are not deleted
  * Jobs of type INFOMEDIA are deleted 14 days after time of creation

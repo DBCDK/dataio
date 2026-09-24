@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.jobstore.types.JobError;
-import dk.dbc.dataio.jse.artemis.common.JobProcessorException;
+import dk.dbc.dataio.jse.artemis.common.ResultReportingException;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.jse.artemis.common.service.ZombieWatch;
 import dk.dbc.dataio.registry.PrometheusMetricRegistry;
@@ -25,7 +25,7 @@ public abstract class MessageConsumerAdapter implements MessageConsumer {
         return zombieWatch;
     }
 
-    protected void sendResultToJobStore(Chunk chunk) throws JobProcessorException {
+    protected void sendResultToJobStore(Chunk chunk) throws ResultReportingException {
         try {
             jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
         } catch (RuntimeException | JobStoreServiceConnectorException e) {
@@ -35,7 +35,7 @@ public abstract class MessageConsumerAdapter implements MessageConsumer {
                     LOGGER.error("job-store returned error: {}", jobError.getDescription());
                 }
             }
-            throw new JobProcessorException("Error while sending result to job-store", e);
+            throw new ResultReportingException("Error while sending result to job-store", e);
         }
     }
 }

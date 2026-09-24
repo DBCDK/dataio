@@ -4,6 +4,7 @@ import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
@@ -14,8 +15,11 @@ import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
+import dk.dbc.dataio.jobstore.service.ejb.JobGateBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
+import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBulkSubmitterBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
+import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -49,6 +53,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -65,6 +70,7 @@ import java.util.stream.Stream;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
 
@@ -72,10 +78,17 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED
 @Path("/")
 public class AdminBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminBean.class);
+    /** Counts the sink and status pairs the hourly recount found the counters had wrong. */
+    private static final String SINK_STATUS_COUNTER_DRIFT = "dataio_sink_status_counter_drift";
     @EJB
     JobSchedulerBean jobSchedulerBean;
     @EJB
     PgJobStoreRepository jobStoreRepository;
+    @EJB
+    JobGateBean jobGateBean;
+    @EJB
+    JobSchedulerBulkSubmitterBean jobSchedulerBulkSubmitterBean;
+
     private Instant nextJobCheckFrom = null;
 
     @EJB
@@ -86,6 +99,17 @@ public class AdminBean {
     @Inject
     @ConfigProperty(name = "PROCESSOR_TIMEOUT", defaultValue = "PT1H")
     private Duration processorTimeout;
+
+    /**
+     * How many times one chunk may be sent again before it is reported as beyond repair.
+     * <p>
+     * Each retry sets {@code lastmodified}, and a chunk becomes stale again only once that is
+     * older than the phase's timeout, so the retries are already a timeout apart and need no
+     * backoff of their own.
+     */
+    @Inject
+    @ConfigProperty(name = "CHUNK_RESEND_LIMIT", defaultValue = "3")
+    int chunkResendLimit;
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -98,6 +122,8 @@ public class AdminBean {
 
     AdminClient adminClient = AdminClientFactory.getAdminClient();
     private static final Map<String, AtomicInteger> staleChunks = new ConcurrentHashMap<>();
+    private static final Map<String, AtomicInteger> exhaustedRetries = new ConcurrentHashMap<>();
+    private static final Set<TrackingKey> exhaustedRetriesReported = ConcurrentHashMap.newKeySet();
     private final org.glassfish.jersey.internal.guava.Cache<Integer, Sink> sinkMap = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
 
     @SuppressWarnings("unused")
@@ -105,12 +131,15 @@ public class AdminBean {
     public void updateStaleChunks() {
         if(Hazelcast.isSlave()) return;
         try {
-            Stream<DependencyTrackingRO> readyStream = dependencyTrackingService.getStaleDependencies(READY_FOR_DELIVERY, Duration.ofMinutes(5));
-            readyStream.forEach(dt -> dependencyTrackingService.setStatus(dt.getKey(), SCHEDULED_FOR_DELIVERY));
-            Stream<DependencyTrackingRO> delStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).filter(this::isTimeout);
-            Stream<DependencyTrackingRO> procStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout);
-            List<DependencyTrackingRO> list = Stream.concat(delStream, procStream).collect(Collectors.toList());
+            rescueChunksLeftReady();
+            Stream<DependencyTrackingRO> delStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
+            Stream<DependencyTrackingRO> procStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
+            List<DependencyTrackingRO> stale = Stream.concat(delStream, procStream).collect(Collectors.toList());
+            // Advancing costs nothing and always succeeds, so it goes first and the resend below
+            // sees only the chunks whose work really is outstanding.
+            List<DependencyTrackingRO> list = advanceChunksWhosePhaseFinished(stale);
             resendIfNeeded(list);
+            reportExhaustedRetries(list);
             list.stream().map(s -> getSinkName(s.getSinkId())).distinct().filter(s -> staleChunks.putIfAbsent(s, new AtomicInteger(0)) == null).forEach(this::registerChunkMetric);
             Map<Integer, List<DependencyTrackingRO>> map = list.stream().collect(Collectors.groupingBy(DependencyTrackingRO::getSinkId));
             Map<String, Integer> counters = map.entrySet().stream().collect(Collectors.toMap(e -> getSinkName(e.getKey()), e -> e.getValue().size()));
@@ -122,6 +151,81 @@ public class AdminBean {
         }
     }
 
+    /**
+     * Re-drives the chunks whose dispatch attempt was fired and never arrived.
+     * <p>
+     * Both {@code READY_*} statuses mean the same thing: whoever put the chunk here went straight on
+     * to dispatch it, so the status is held for the length of one attempt and no longer. An attempt
+     * that dies leaves the chunk with nothing else watching it, since the bulk sweeps read only the
+     * {@code SCHEDULED_*} statuses, and moving it to its own {@code SCHEDULED_*} status is what hands
+     * it to the sweep that does.
+     * <p>
+     * Validated in both cases, because each target has exactly one legal predecessor, which is the
+     * status the query selected on. That makes the write the precise guard against a chunk that
+     * moved on between the query and the write: unvalidated, the delivery side would push a chunk
+     * the sink already holds back to {@code SCHEDULED_FOR_DELIVERY} and the next sweep would deliver
+     * its items a second time.
+     * <p>
+     * The two timeouts answer different questions and are deliberately not the same number. Five
+     * minutes on the delivery side covers a real round trip to a sink. The processing side's attempt
+     * is an EJB asynchronous invocation made as the chunk's row commits, so it is milliseconds in
+     * health, and its timeout is set by the other risk instead: a large partitioning burst queues
+     * those invocations, and a sweep firing while they are still draining hands the same chunks to
+     * the bulk submitter, leaving every queued invocation to find its chunk already claimed. Ten
+     * minutes sits far above any backlog that queue plausibly holds, and still bounds a stranded
+     * chunk to minutes rather than to the hourly sweeps.
+     */
+    void rescueChunksLeftReady() {
+        dependencyTrackingService.getStaleDependencies(READY_FOR_DELIVERY, Duration.ofMinutes(5))
+                .forEach(dt -> dependencyTrackingService.setValidatedStatus(dt.getKey(), SCHEDULED_FOR_DELIVERY));
+        dependencyTrackingService.getStaleDependencies(READY_FOR_PROCESSING, Duration.ofMinutes(10))
+                .forEach(dt -> dependencyTrackingService.setValidatedStatus(dt.getKey(), SCHEDULED_FOR_PROCESSING));
+    }
+
+    /**
+     * Runs {@link #recheckBlocks} on demand, which the hourly timer otherwise only does at minute 10.
+     * <p>
+     * Exists for the same reason {@link #gateSweep} does, a recovery mechanism has to be reachable
+     * when something is actually stranded. It reaches more than {@link #gateSweep}: the row drop for
+     * jobs that are gone or already completed, the barrier lift for each, and the sink status
+     * recount, all of which nest transactions inside this one and so are the part with a hang for a
+     * failure mode.
+     *
+     * @return the number of barriers lifted and gates opened by the sweep the recheck ends with
+     */
+    @POST
+    @Path(JobStoreServiceConstants.DEPENDENCY_RECHECK_BLOCKS)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response requestRecheckBlocks() throws JSONBException {
+        recheckBlocks();
+        return Response.ok(jsonbContext.marshall(Map.of("recheckCompleted", true))).build();
+    }
+
+    /**
+     * Runs the two sweeps that re-drive a chunk nothing else is watching, on demand.
+     * <p>
+     * Exists for the same reason {@link #requestRecheckBlocks} and {@link #gateSweep} do, a
+     * recovery mechanism has to be reachable when something is actually stranded rather than only
+     * at the top of the next minute. Both sweeps are guarded by {@code Hazelcast.isSlave} inside
+     * themselves, so calling them here keeps that guard.
+     * <p>
+     * The stale sweep runs first, since what it rescues is what the parked sweep then has to
+     * dispatch. Neither dispatch happens during this call: both go through an asynchronous
+     * invocation that runs in its own transaction and so cannot see what this one has yet to
+     * commit. A chunk this reaches is therefore sent a moment after the response, by that
+     * invocation or by the once-a-second sweep behind it.
+     *
+     * @return an acknowledgement that both sweeps ran
+     */
+    @POST
+    @Path(JobStoreServiceConstants.DEPENDENCY_STALE_SWEEP)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response requestStaleSweep() throws JSONBException {
+        updateStaleChunks();
+        jobSchedulerBulkSubmitterBean.sweepSinksWithParkedChunks();
+        return Response.ok(jsonbContext.marshall(Map.of("staleSweepCompleted", true))).build();
+    }
+
     @Schedule(minute = "10", hour = "*", persistent = false)
     public void recheckBlocks() {
         if(Hazelcast.isSlave()) return;
@@ -130,11 +234,70 @@ public class AdminBean {
             JobEntity entity = jobStoreRepository.getJobEntityById(jobId);
             if(entity == null || entity.getTimeOfCompletion() != null) {
                 dependencyTrackingService.removeJobId(jobId);
-                LOGGER.info("Trackers for finished Job id: {} was removed", jobId);
+                LOGGER.info("Dropped the scheduling rows of job {}, which is gone or already completed", jobId);
+                // Dropping the rows takes away the termination row a barrier lift would have fired
+                // on, so the lift has to happen here. Without it every later job on that submitter
+                // is held behind a barrier nothing can lift, since the re-trigger is edge triggered
+                // and the edge has already passed. A job with no barrier is a single no-op update,
+                // see JobGateRepository#markTerminationBarrierLifted.
+                if (entity != null) {
+                    liftBarrierImposedBy(entity);
+                }
             }
         }
-        Set<TrackingKey> keys = dependencyTrackingService.recheckBlocks();
-        if(!keys.isEmpty()) LOGGER.info("Hourly blocked check has released {}", keys);
+        // Barriers first, gates second: lifting a barrier is what makes the gates queued behind it
+        // openable in the same pass. A job whose entity was already gone above is picked up here,
+        // since this reads the scope from the job row rather than from the caller.
+        int lifted = jobGateBean.sweepUnliftedBarriers();
+        int opened = jobGateBean.sweepClosedGates();
+        if (lifted > 0 || opened > 0) {
+            LOGGER.info("Hourly gate sweep lifted {} barriers and opened {} gates", lifted, opened);
+        }
+        recountAndReportDrift();
+    }
+
+    /**
+     * Replaces the sink chunk counts with a census of the table, and counts what had to be
+     * corrected.
+     * <p>
+     * The counts are maintained from the write sites rather than derived, and the mutation is not
+     * transactional, so a transaction that does not commit can leave a count moved and the table
+     * not. One scan of a table bounded by in-flight chunks, hourly.
+     * <p>
+     * What is corrected is worth a metric even though the recount repairs it. A count that says a
+     * sink holds nothing parked costs that sink a minute of dispatch, until
+     * {@code JobSchedulerBulkSubmitterBean.sweepSinksWithParkedChunks} asks the table instead, and
+     * the repair itself says nothing, so this number is the only standing signal that deltas are
+     * being lost. {@link DependencyTrackingService#recountSinkStatus} logs which sink and status
+     * each was.
+     */
+    void recountAndReportDrift() {
+        int corrected = dependencyTrackingService.recountSinkStatus(Set.of());
+        if (corrected > 0) {
+            countCorrectedCounters(corrected);
+        }
+    }
+
+    void countCorrectedCounters(int corrected) {
+        metricRegistry.counter(SINK_STATUS_COUNTER_DRIFT).inc(corrected);
+    }
+
+    /**
+     * Lifts the barrier imposed by a job whose dependency tracking rows have just been removed,
+     * and re-triggers the jobs queued behind it.
+     * <p>
+     * In its own transaction, so this method's advisory lock is released here rather than at the end
+     * of the recheck. The gate sweep further down locks the same scopes from a nested transaction,
+     * and would wait forever on one this transaction was still holding.
+     *
+     * @param job job whose rows were removed
+     */
+    private void liftBarrierImposedBy(JobEntity job) {
+        if (job.getCachedSink() == null) {
+            return;
+        }
+        jobGateBean.liftBarrierForRemovedJob(job.getId(), job.getCachedSink().getSink().getId(),
+                (int) job.getSpecification().getSubmitterId());
     }
 
     @Schedule(minute = "15", hour = "*", persistent = false)
@@ -146,19 +309,136 @@ public class AdminBean {
         completeFinishedJobs(from, to);
     }
 
+    /**
+     * Advances the stale chunks whose phase has already finished, and returns the rest.
+     * <p>
+     * A chunk sits in a {@code QUEUED_*} status until the completion its phase reports moves it
+     * on. That completion writes the chunk's items in one call and moves the scheduling row in
+     * another, so a lost second half leaves a chunk whose work is done and whose row still says
+     * it is out. Nothing arrives to move it, and re-sending it repeats work already recorded:
+     * the job processor runs the chunk again for a result the database refuses as a duplicate,
+     * or a sink is handed items it has already taken.
+     * <p>
+     * The repair is the completion call itself, run again. Both are idempotent by construction,
+     * one behind a validated status change and the other behind a delete that returns the row it
+     * removed, so a chunk that has since moved on is left alone. Neither sends anything outside
+     * job-store, which is what makes this worth attempting on every sweep with no limit, ahead of
+     * the bounded resend in {@link #resendIfNeeded}.
+     *
+     * @param stale the stale chunks this sweep found
+     * @return the chunks whose work really is outstanding
+     */
+    List<DependencyTrackingRO> advanceChunksWhosePhaseFinished(List<DependencyTrackingRO> stale) {
+        List<DependencyTrackingRO> outstanding = new ArrayList<>(stale.size());
+        List<String> advanced = new ArrayList<>();
+        for (DependencyTrackingRO dt : stale) {
+            State.Phase finished = finishedPhaseOf(dt);
+            if (finished == null) {
+                outstanding.add(dt);
+                continue;
+            }
+            Chunk.Type type = finished == State.Phase.PROCESSING ? Chunk.Type.PROCESSED : Chunk.Type.DELIVERED;
+            try {
+                jobSchedulerBean.advanceCompletedChunk(
+                        new Chunk(dt.getKey().getJobId(), dt.getKey().getChunkId(), type), finished);
+                advanced.add(dt.getKey().toChunkIdentifier() + " (" + finished + ")");
+            } catch (RuntimeException e) {
+                // The chunk is left out of the outstanding list on purpose. Its phase has finished,
+                // so resending it repeats work already recorded, and the next sweep attempts the
+                // advance again. This line is the only report of a chunk that keeps failing here.
+                LOGGER.error("Could not advance stale chunk {} whose {} had already finished",
+                        dt.getKey().toChunkIdentifier(), finished, e);
+            }
+        }
+        if (!advanced.isEmpty()) {
+            LOGGER.warn("Advanced stale chunks whose phase had already finished: {}",
+                    String.join(", ", advanced));
+        }
+        return outstanding;
+    }
+
+    /**
+     * Tells which phase a chunk has finished while its scheduling row still waits for it.
+     *
+     * @param dt stale chunk to examine
+     * @return the finished phase, or null if the chunk's work is genuinely outstanding
+     */
+    private State.Phase finishedPhaseOf(DependencyTrackingRO dt) {
+        State.Phase phase = switch (dt.getStatus()) {
+            case QUEUED_FOR_PROCESSING -> State.Phase.PROCESSING;
+            case QUEUED_FOR_DELIVERY -> State.Phase.DELIVERING;
+            default -> null;
+        };
+        if (phase == null) {
+            return null;
+        }
+        ChunkEntity chunk = entityManager.find(ChunkEntity.class,
+                new ChunkEntity.Key(dt.getKey().getChunkId(), dt.getKey().getJobId()));
+        if (chunk == null || !chunk.getState().phaseIsDone(phase)) {
+            return null;
+        }
+        return phase;
+    }
+
     public void resendIfNeeded(List<DependencyTrackingRO> list) {
+        // The filter picks what to log. What bounds the retries is the retry statement's own
+        // WHERE clause, which carries the same limit, so two callers reaching one chunk here
+        // still produce one retry between them.
         Set<DependencyTrackingRO> retries = list.stream()
-                .filter(de -> de.getRetries() < 1)
-                .filter(de -> de.getWaitingOn().isEmpty())
+                .filter(de -> de.getRetries() < chunkResendLimit)
                 .collect(Collectors.toSet());
         if(retries.isEmpty()) return;
-        LOGGER.warn("Retrying stale trackers: {}", retries.stream()
+        LOGGER.warn("Retrying stale chunks: {}", retries.stream()
                 .map(e -> e.getKey().toChunkIdentifier())
                 .collect(Collectors.joining(", ")));
 
-        retries.forEach(dt -> dependencyTrackingService.modify(dt.getKey(), DependencyTracking::resend));
+        retries.forEach(dt -> dependencyTrackingService.resend(dt.getKey(), chunkResendLimit));
         Set<Integer> sinks = list.stream().map(DependencyTrackingRO::getSinkId).collect(Collectors.toSet());
         jobSchedulerBean.loadSinkStatusOnBootstrap(sinks);
+    }
+
+    /**
+     * Reports the stale chunks that have used every retry, once each.
+     * <p>
+     * A chunk here is one no further sweep will touch, so its job cannot complete and its items
+     * are never delivered. That is worth an error rather than another line of the per-minute
+     * stale-chunk count, which says only that a sink is behind and is expected while one is down.
+     * <p>
+     * Reported once per chunk. The record of what has been reported is pruned against the chunks
+     * still stale, so it cannot outgrow them, and a chunk that recovers and gets stuck again is
+     * reported again.
+     *
+     * @param stale the stale chunks this sweep found
+     * @return how many chunks this sweep reported for the first time
+     */
+    int reportExhaustedRetries(List<DependencyTrackingRO> stale) {
+        Set<TrackingKey> exhausted = stale.stream()
+                .filter(de -> de.getRetries() >= chunkResendLimit)
+                .map(DependencyTrackingRO::getKey)
+                .collect(Collectors.toSet());
+
+        List<DependencyTrackingRO> newlyExhausted = stale.stream()
+                .filter(de -> exhausted.contains(de.getKey()))
+                .filter(de -> !exhaustedRetriesReported.contains(de.getKey()))
+                .toList();
+        if (!newlyExhausted.isEmpty()) {
+            LOGGER.error("Chunks beyond repair after {} retries, their jobs cannot complete: {}",
+                    chunkResendLimit, newlyExhausted.stream()
+                            .map(e -> e.getKey().toChunkIdentifier())
+                            .collect(Collectors.joining(", ")));
+        }
+        exhaustedRetriesReported.retainAll(exhausted);
+        exhaustedRetriesReported.addAll(exhausted);
+
+        Map<String, Integer> perSink = stale.stream()
+                .filter(de -> exhausted.contains(de.getKey()))
+                .collect(Collectors.groupingBy(de -> getSinkName(de.getSinkId()),
+                        Collectors.summingInt(de -> 1)));
+        perSink.keySet().stream()
+                .filter(s -> exhaustedRetries.putIfAbsent(s, new AtomicInteger(0)) == null)
+                .forEach(this::registerExhaustedRetriesMetric);
+        exhaustedRetries.forEach((sinkName, count) -> count.set(perSink.getOrDefault(sinkName, 0)));
+        return newlyExhausted.size();
     }
 
     @SuppressWarnings("unused")
@@ -178,17 +458,28 @@ public class AdminBean {
         return Response.ok(jsonbContext.marshall(dependencyTrackingService.getCountersForSinks())).build();
     }
 
-    @GET
-    @Path(JobStoreServiceConstants.DEPENDENCY_CHECK_BLOCKED)
-    public Response checkBlocked() throws JSONBException {
-        return Response.ok(jsonbContext.marshall(dependencyTrackingService.recheckBlocks())).build();
-    }
-
-    @GET
-    @Path(JobStoreServiceConstants.DEPENDENCY_RELOAD)
-    public Response reload() {
-        dependencyTrackingService.reload();
-        return Response.ok().build();
+    /**
+     * Runs the per-job gate sweep on demand, which {@link #recheckBlocks} otherwise only runs
+     * hourly.
+     * <p>
+     * Opens gates closed behind a barrier that is gone and lifts the barrier of a job whose
+     * termination row was removed without one, which are the two ways a job can be left unable to
+     * complete with nothing edge triggered left to fire on.
+     * <p>
+     * Ordered barriers before gates, as {@link #recheckBlocks} orders it, since lifting a barrier is
+     * what makes the gates queued behind it openable in the same pass.
+     *
+     * @return the number of barriers lifted and gates opened
+     */
+    @POST
+    @Path(JobStoreServiceConstants.DEPENDENCY_GATE_SWEEP)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response gateSweep() throws JSONBException {
+        int lifted = jobGateBean.sweepUnliftedBarriers();
+        int opened = jobGateBean.sweepClosedGates();
+        LOGGER.info("Requested gate sweep lifted {} barriers and opened {} gates", lifted, opened);
+        return Response.ok(jsonbContext.marshall(
+                Map.of("barriersLifted", lifted, "gatesOpened", opened))).build();
     }
 
     @GET
@@ -274,12 +565,17 @@ public class AdminBean {
         metricRegistry.gauge(metricID, () -> staleChunks.get(sinkName));
     }
 
+    void registerExhaustedRetriesMetric(String sinkName) {
+        MetricID metricID = new MetricID("dataio_chunks_retries_exhausted", new Tag("sink", sinkName));
+        LOGGER.info("Registering metric: {}", metricID);
+        metricRegistry.gauge(metricID, () -> exhaustedRetries.get(sinkName));
+    }
+
     private String getSinkName(int id) {
         return getSink(id).getContent().getName();
     }
 
     Sink getSink(int id) {
-        if(id == 1) return Sink.DIFF;
         Sink sink = sinkMap.getIfPresent(id);
         if(sink == null) {
             sink = getFromFlowstore(id);

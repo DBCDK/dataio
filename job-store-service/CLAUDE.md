@@ -17,7 +17,7 @@ mvn -pl war test
 - `war/` — the deployable service (Payara 6 Micro WAR)
 - `types/` — shared types and exceptions used by both this service and its connector (`dataio-job-store-service-types`)
 - `test/` — shared test fixtures and builders used by integration tests
-- `distributed-objects/` — Hazelcast distributed data structures for dependency tracking
+- `distributed-objects/` — chunk scheduling state objects, shared between job-store and the scheduler
 - `developer-tools/` — Docker Compose stack for local development and a no-op job processor
 
 ## Architecture
@@ -44,21 +44,28 @@ The job-store-service is the central orchestration point in the DataIO pipeline.
 - `JobPurgeBean` / `ScheduledJobPurgeBean` — periodic cleanup of completed jobs
 - `JobRerunnerBean` / `RerunsBean` — rerun flow
 
-### Dependency tracking (`distributed-objects/`)
+### Dependency tracking
 
-Hazelcast IMap-backed distributed state prevents duplicate or orphaned chunks across multiple service instances. `DependencyTrackingService` (in `war/`) manages the lifecycle. The distributed-objects module holds the Hazelcast `EntryProcessor` and `Aggregator` implementations used by the service.
+Prevents chunks from being delivered to a sink out of sequence, and prevents duplicate or orphaned
+processing when multiple service instances run. `DependencyTrackingService` (in `war/`) is the entry
+point.
 
-See [`dependency-tracking.md`](dependency-tracking.md) for a detailed description of the state machine, how ordering constraints are built and resolved, barrier chunks, and multi-instance safety.
+See [`dependency-tracking.md`](dependency-tracking.md) for the mechanism. It is part of the
+scheduling redesign in `docs/chunk-scheduling-redesign.md`, whose Phase 9 records how much has
+merged.
 
 ### Database
 
-PostgreSQL + Flyway migrations under `war/src/main/resources/db/migration/`. JPA persistence unit `jobstorePU` uses EclipseLink with Hazelcast L2 cache coordination.
+PostgreSQL + Flyway migrations under `war/src/main/resources/db/migration/`. JPA persistence unit `jobstorePU` uses EclipseLink with Hazelcast L2 cache coordination, which rides on Payara's data grid rather than on the Hazelcast instance the application starts for itself. `JobEntity`, `ChunkEntity`, `ItemEntity`, `JobQueueEntity` and `WatermarkEntity` are `@Cacheable(false)`, so a read of one of those rows is current across instances without depending on that coordination.
 
 ## Testing Notes
 
 Integration tests use Testcontainers (PostgreSQL). The base class is `AbstractJobStoreIT`.
 
 **JUnit4 / JUnit5 coexistence** — Hazelcast test helpers (`JetTestSupport`, `HazelcastTestSupport`) depend on JUnit 4. To avoid ambiguity, JUnit 4 annotations are always written with full qualifiers: `@org.junit.Test`. All test classes run in either JUnit 4 mode **or** JUnit 5 mode; never mixed in the same class.
+
+When implementing significant changes in the job-store-service, remember to also run container tests in
+the integration-test/job-store-service module. Also investigate if more tests are needed in those test suites.
 
 ## Local Development
 
@@ -80,7 +87,9 @@ This starts the service on port 8080 (debug on 9009), PostgreSQL on 5432, and Ac
 | `FLOWSTORE_URL` | Flow store service URL                                                      |
 | `FILESTORE_URL` | File store service URL                                                      |
 | `PROCESSOR_TIMEOUT` | ISO-8601 duration before a chunk is considered stale (default `PT1H`)       |
+| `CHUNK_RESEND_LIMIT` | How many times one stale chunk whose work is still outstanding may be sent again, per phase, before `AdminBean` reports it as beyond repair (default `3`) |
 | `JOBQUEUE_STUCK_THRESHOLD` | ISO-8601 duration a job queue entry may stay `IN_PROGRESS` before `JobQueueWatchdogBean` reports it (required, set to `PT1H` in the Dockerfile) |
 | `PROCESSOR_NASHORN_QUEUE` | Artemis queue for the Nashorn processor (default `processor::business`)     |
 | `PROCESSOR_GRAALJS_QUEUE` | Artemis queue for the GraalJS processor (default `processor-graaljs::main`) |
 | `DEVELOPER` | Set to `on` to enable developer endpoints                                   |
+| `WATERMARK_RETENTION` | ISO-8601 duration a `sink_record_delivery_watermark` row may go unmodified before nightly pruning removes it (default `P90D`) |

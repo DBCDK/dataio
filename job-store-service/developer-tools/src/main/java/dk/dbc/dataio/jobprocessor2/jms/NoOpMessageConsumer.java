@@ -40,7 +40,7 @@ public class NoOpMessageConsumer extends  JobStoreMessageConsumer {
                     .collect(Collectors.toList());
             Chunk.Type stage = Chunk.Type.valueOf(Config.STAGE.asString());
             Chunk done = new Chunk(chunk.getJobId(), chunk.getChunkId(), stage);
-            done.addAllItems(items, items);
+            done.addAllItems(items);
             sendResultToJobStore(done);
         } catch (JsonProcessingException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid Chunk type %s",

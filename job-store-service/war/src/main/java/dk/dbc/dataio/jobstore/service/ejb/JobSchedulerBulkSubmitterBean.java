@@ -13,8 +13,10 @@ import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
@@ -43,13 +45,7 @@ public class JobSchedulerBulkSubmitterBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void bulkScheduleChunksForDelivering() {
         if(Hazelcast.isSlave()) return;
-        dependencyTrackingService.getActiveSinks(SCHEDULED_FOR_DELIVERY).forEach(sinkId-> {
-            try {
-                doBulkJmsQueueSubmit(sinkId, SCHEDULED_FOR_DELIVERY);
-            } catch (Exception e) {
-                LOGGER.error("Error in sink for sink {}", sinkId, e);
-            }
-        });
+        submitForSinks(dependencyTrackingService.getActiveSinks(SCHEDULED_FOR_DELIVERY), SCHEDULED_FOR_DELIVERY);
     }
 
 
@@ -58,11 +54,47 @@ public class JobSchedulerBulkSubmitterBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void bulkScheduleChunksForProcessing() {
         if(Hazelcast.isSlave()) return;
-        dependencyTrackingService.getActiveSinks(SCHEDULED_FOR_PROCESSING).forEach(sinkId-> {
+        submitForSinks(dependencyTrackingService.getActiveSinks(SCHEDULED_FOR_PROCESSING), SCHEDULED_FOR_PROCESSING);
+    }
+
+    /**
+     * Dispatches for the sinks the table says hold parked chunks, once a minute.
+     * <p>
+     * The dispatch sweeps above ask {@code getActiveSinks}, which reads the sink chunk counts. A
+     * count that has lost a delta reports a sink as holding nothing parked, and no other timer
+     * looks at a {@code SCHEDULED_*} chunk, so that sink stops dispatching entirely: its chunks
+     * wait for the next hourly recount, and because the direct paths stand down for the head of a
+     * sink's parked queue, every chunk partitioned afterwards parks behind them. Reading the table
+     * bounds that to a minute whatever the counts hold.
+     * <p>
+     * Once a minute rather than on the dispatch tick because the query filters on status alone and
+     * neither ordered index leads with it, see
+     * {@link DependencyTrackingRepository#distinctSinkIdsWithStatus}. It costs nothing when the
+     * counts are right: {@link #doBulkJmsQueueSubmit} keeps one dispatch in flight per sink and
+     * phase, and a sink with no candidates returns on its capacity read.
+     * <p>
+     * This is a singleton with the default write lock, so the two scans hold off the dispatch
+     * sweeps for as long as they take. That is the reason to keep the interval at a minute rather
+     * than shorten it: the cost is paid against dispatch latency, not in the background.
+     */
+    @Schedule(second = "0", minute = "*", hour = "*", persistent = false)
+    @Stopwatch
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void sweepSinksWithParkedChunks() {
+        if (Hazelcast.isSlave()) {
+            return;
+        }
+        for (ChunkSchedulingStatus phase : List.of(SCHEDULED_FOR_PROCESSING, SCHEDULED_FOR_DELIVERY)) {
+            submitForSinks(dependencyTrackingService.findSinksWithChunksIn(phase), phase);
+        }
+    }
+
+    private void submitForSinks(Set<Integer> sinkIds, ChunkSchedulingStatus phase) {
+        sinkIds.forEach(sinkId -> {
             try {
-                doBulkJmsQueueSubmit(sinkId, SCHEDULED_FOR_PROCESSING);
+                doBulkJmsQueueSubmit(sinkId, phase);
             } catch (Exception e) {
-                LOGGER.error("Error in Processing for sink {}", sinkId, e);
+                LOGGER.error("Error in {} for sink {}", phase, sinkId, e);
             }
         });
     }

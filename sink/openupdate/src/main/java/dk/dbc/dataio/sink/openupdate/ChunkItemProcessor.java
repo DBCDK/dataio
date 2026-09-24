@@ -4,6 +4,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.util.AddiUtil;
 import dk.dbc.invariant.InvariantUtil;
@@ -57,13 +58,17 @@ public class ChunkItemProcessor {
     }
 
     /**
-     * Calls the update web service for all ADDI records contained in this chunk item and combines
-     * the results to into a single result chunk item.
+     * Calls the update web service for all Addi records contained in this chunk item and combines
+     * the results into a single delivery result
+     * <p>
+     * The outcome item is stored verbatim as the item's delivering outcome, and the verdict
+     * accompanying it decides how job-store counts the item and whether the record's delivery
+     * watermark advances.
      *
      * @param queueProvider name of queue provider to be included in request
-     * @return resulting chunk item
+     * @return delivery verdict and the outcome item recorded for it
      */
-    public ChunkItem processForQueueProvider(String queueProvider) {
+    public ItemDeliveryResult processForQueueProvider(String queueProvider) {
         addiRecordIndex = 1;
         diagnostics = new ArrayList<>();
         crossAddiRecordsMessage = new StringBuilder();
@@ -74,12 +79,13 @@ public class ChunkItemProcessor {
             totalNumberOfAddiRecords = addiRecordsForItem.size();
         } catch (Throwable t) {
             String message = "Failed to read Addi record(s) from chunk item: " + t.getMessage();
-            return ChunkItem.failedChunkItem()
-                    .withId(chunkItem.getId())
-                    .withType(ChunkItem.Type.STRING)
-                    .withTrackingId(chunkItem.getTrackingId())
-                    .withData(message)
-                    .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, message, t));
+            return ItemDeliveryResult.of(ItemDeliveryResult.Status.FAILED,
+                    ChunkItem.failedChunkItem()
+                            .withId(chunkItem.getId())
+                            .withType(ChunkItem.Type.STRING)
+                            .withTrackingId(chunkItem.getTrackingId())
+                            .withData(message)
+                            .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, message, t)));
         }
 
         Optional<AddiStatus> failed = addiRecordsForItem.stream()
@@ -98,7 +104,26 @@ public class ChunkItemProcessor {
         if (failed.isPresent()) {
             result.appendDiagnostics(diagnostics);
         }
-        return result;
+        return ItemDeliveryResult.of(verdict(), result);
+    }
+
+    /**
+     * Decides the delivery verdict from the diagnostics collected across the item's Addi records
+     * <p>
+     * A diagnostic at any level but WARNING means the update service rejected one of the records,
+     * so nothing was delivered for the item. An answer the error interpreter discarded, as it does
+     * for a validation error the sink is configured to ignore and for a deletion of a record that
+     * is not there, leaves no diagnostic behind and counts as delivered.
+     *
+     * @return FAILED when a rejection survived interpretation, DELIVERED otherwise
+     */
+    private ItemDeliveryResult.Status verdict() {
+        boolean rejected = diagnostics.stream()
+                .anyMatch(diagnostic -> diagnostic.getLevel() != Diagnostic.Level.WARNING);
+        if (rejected) {
+            return ItemDeliveryResult.Status.FAILED;
+        }
+        return ItemDeliveryResult.Status.DELIVERED;
     }
 
     private AddiStatus addDiagnosticsForError(Throwable t) {

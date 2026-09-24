@@ -3,7 +3,6 @@ package dk.dbc.dataio.sink.periodicjobs.pickup;
 import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.common.utils.io.UncheckedByteArrayOutputStream;
 import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -42,33 +41,34 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     @Timed
     @Override
-    public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery, EntityManager entityManager) throws InvalidMessageException {
+    public ChunkItem deliver(int jobId, int chunkId, PeriodicJobsDelivery delivery,
+                             EntityManager entityManager) throws InvalidMessageException {
         final MacroSubstitutor macroSubstitutor = getMacroSubstitutor(delivery);
         final MailPickup mailPickup = (MailPickup) delivery.getConfig().getContent().getPickup();
 
         try {
             InternetAddress.parse(mailPickup.getRecipients());
         } catch (AddressException e) {
-            return newFailedResultChunk(chunk, "Invalid mail recipient: " + e.getMessage());
+            return newFailedResultItem("Invalid mail recipient: " + e.getMessage());
         }
 
         final String content;
-        if (isEmptyJob(chunk)) {
+        if (isEmptyJob(jobId, chunkId)) {
             content = I18n.get("mail.empty_job.body");
         } else {
             try {
                 content = datablocksMailBody(delivery, macroSubstitutor, entityManager);
             } catch (IllegalStateException e) {
-                return newFailedResultChunk(chunk, "IllegalStateException: " + e.getMessage());
+                return newFailedResultItem("IllegalStateException: " + e.getMessage());
             }
         }
         if (!content.trim().isEmpty()) {
             sendMail(mailPickup, content, macroSubstitutor);
-            LOGGER.info("Job {}: mail sent to {}", chunk.getJobId(), mailPickup.getRecipients());
+            LOGGER.info("Job {}: mail sent to {}", jobId, mailPickup.getRecipients());
         } else {
-            LOGGER.warn("Job {}: no mail sent", chunk.getJobId());
+            LOGGER.warn("Job {}: no mail sent", jobId);
         }
-        return newResultChunk(chunk, mailPickup);
+        return newResultItem(mailPickup);
     }
 
     private String datablocksMailBody(PeriodicJobsDelivery delivery, MacroSubstitutor macroSubstitutor, EntityManager entityManager) throws InvalidMessageException {
@@ -171,26 +171,20 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         return this;
     }
 
-    private Chunk newResultChunk(Chunk chunk, MailPickup mailPickup) {
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        final ChunkItem chunkItem = ChunkItem.successfulChunkItem()
+    private ChunkItem newResultItem(MailPickup mailPickup) {
+        return ChunkItem.successfulChunkItem()
                 .withId(0)
                 .withType(ChunkItem.Type.JOB_END)
                 .withEncoding(StandardCharsets.UTF_8)
                 .withData(String.format("Mail sent to '%s' with subject '%s'",
                         mailPickup.getRecipients(), mailPickup.getSubject()));
-        result.insertItem(chunkItem);
-        return result;
     }
 
-    private Chunk newFailedResultChunk(Chunk chunk, String cause) {
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        final ChunkItem chunkItem = ChunkItem.failedChunkItem()
+    private ChunkItem newFailedResultItem(String cause) {
+        return ChunkItem.failedChunkItem()
                 .withId(0)
                 .withType(ChunkItem.Type.JOB_END)
                 .withEncoding(StandardCharsets.UTF_8)
                 .withData(cause);
-        result.insertItem(chunkItem);
-        return result;
     }
 }

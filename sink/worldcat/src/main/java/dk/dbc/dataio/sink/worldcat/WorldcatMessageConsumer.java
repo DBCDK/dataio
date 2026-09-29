@@ -2,17 +2,13 @@ package dk.dbc.dataio.sink.worldcat;
 
 import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
-import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.commons.types.jms.JMSHeader;
-import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
+import dk.dbc.dataio.jse.artemis.common.jms.SinkMessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
-import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
@@ -32,7 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 
 
-public class WorldcatMessageConsumer extends MessageConsumerAdapter {
+public class WorldcatMessageConsumer extends SinkMessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorldcatMessageConsumer.class);
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
@@ -52,54 +48,36 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
         worldCatConfigBean = new WorldCatConfigBean(flowStoreServiceConnector);
     }
 
-    @Stopwatch
+    /**
+     * Pushes the record of a successfully processed item to WorldCat through the WCIRU service
+     * <p>
+     * The entity manager is scoped to the item and closed on the way out, since the ocn-repo
+     * transaction the push runs in is committed before this method returns and nothing reads
+     * the persistence context afterwards.
+     */
     @Override
-    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, NullPointerException {
-        try {
-            final Chunk chunk = unmarshallPayload(consumedMessage);
-            LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            refreshConfigIfOutdated(consumedMessage);
+    protected ItemDeliveryResult deliverItem(ConsumedMessage message, ChunkItem item) {
+        try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
+            return deliverItem(message, item, new OcnRepo(entityManager));
+        }
+    }
 
-            final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-            try {
-                Instant chunkStart = Instant.now();
-                for (ChunkItem chunkItem : chunk.getItems()) {
-                    DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                    switch (chunkItem.getStatus()) {
-                        case FAILURE:
-                            result.insertItem(ChunkItem.ignoredChunkItem()
-                                    .withId(chunkItem.getId())
-                                    .withTrackingId(chunkItem.getTrackingId())
-                                    .withType(ChunkItem.Type.STRING)
-                                    .withEncoding(StandardCharsets.UTF_8)
-                                    .withData("Failed by job-processor"));
-                            break;
-                        case IGNORE:
-                            result.insertItem(ChunkItem.ignoredChunkItem()
-                                    .withId(chunkItem.getId())
-                                    .withTrackingId(chunkItem.getTrackingId())
-                                    .withType(ChunkItem.Type.STRING)
-                                    .withEncoding(StandardCharsets.UTF_8)
-                                    .withData("Ignored by job-processor"));
-                            break;
-                        default:
-                            result.insertItem(handleChunkItem(chunkItem, new OcnRepo(entityManager)));
-                    }
-                }
-                Duration duration = Duration.between(chunkStart, Instant.now());
-                Metric.WCIRU_CHUNK_UPDATE.timer().update(duration);
-                LOGGER.info("{} upload to worldcat took {}", chunk, duration);
-            } finally {
-                DBCTrackedLogContext.remove();
-            }
-            Instant start = Instant.now();
-            sendResultToJobStore(result);
-            LOGGER.info("Upload {} to jobstore took {}", result, Duration.between(start, Instant.now()));
-        } catch (Exception e) {
-            LOGGER.error("Caught unhandled exception while processing jobId: {}, chunkId: {}", JMSHeader.jobId.getHeader(consumedMessage, Integer.class), JMSHeader.chunkId.getHeader(consumedMessage, Long.class), e);
-            Metric.UNHANDLED_EXCEPTIONS.counter().inc();
-            throw new InvalidMessageException(String.format("Uncaught exception: %s", e.getMessage()), e);
+    /**
+     * Delivers one item against the given ocn-repo, so that a test can supply a repository of
+     * its own and read back what the delivery wrote
+     * <p>
+     * An item the processor failed or ignored is reported as ignored rather than as delivered,
+     * so that it counts towards the job's ignored items and advances no delivery watermark for
+     * a record nothing was sent for.
+     */
+    ItemDeliveryResult deliverItem(ConsumedMessage message, ChunkItem item, OcnRepo ocnRepo) {
+        switch (item.getStatus()) {
+            case FAILURE:
+                return ignored(item, "Failed by job-processor");
+            case IGNORE:
+                return ignored(item, "Ignored by job-processor");
+            default:
+                return push(refreshState(worldCatConfigBean.getConfig(message)), item, ocnRepo);
         }
     }
 
@@ -113,15 +91,23 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
         return ADDRESS;
     }
 
-
-    private void refreshConfigIfOutdated(ConsumedMessage consumedMessage) {
-        final WorldCatSinkConfig latestConfig = worldCatConfigBean.getConfig(consumedMessage);
+    /**
+     * Rebuilds the WCIRU connector and broker when the sink config has changed, and hands back
+     * the broker to deliver with
+     * <p>
+     * Synchronized, and returning the broker rather than leaving the caller to read the field,
+     * so that a delivery uses one broker for the whole item. Several consumer threads call this
+     * concurrently, and reading the field would otherwise expose a broker built from one config
+     * next to a config field already holding the next.
+     */
+    private synchronized WciruServiceBroker refreshState(WorldCatSinkConfig latestConfig) {
         if (!latestConfig.equals(config)) {
             LOGGER.debug("Updating WCIRU connector");
             connector = getWciruServiceConnector(latestConfig);
             wciruServiceBroker = new WciruServiceBroker(connector);
             config = latestConfig;
         }
+        return wciruServiceBroker;
     }
 
     private WciruServiceConnector getWciruServiceConnector(WorldCatSinkConfig config) {
@@ -138,12 +124,23 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
                 retryScheme);
     }
 
-    ChunkItem handleChunkItem(ChunkItem chunkItem, OcnRepo ocnRepo) {
+    /**
+     * Pushes one record to WorldCat and updates the ocn-repo entry for it
+     * <p>
+     * A record whose checksum matches the one held for it is reported as ignored, since nothing
+     * is sent for it. Reporting it delivered would count it among the job's succeeded items and
+     * advance the record's delivery watermark for a push that never happened.
+     * <p>
+     * A WCIRU rejection arrives as a failed broker result rather than as an exception, and fails
+     * the item. The ocn-repo entry is then left as it was, so the next version of the record
+     * pushes cleanly.
+     */
+    ItemDeliveryResult push(WciruServiceBroker broker, ChunkItem item, OcnRepo ocnRepo) {
         EntityTransaction transaction = ocnRepo.getEntityManager().getTransaction();
         try {
             transaction.begin();
             final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
-                    ChunkItemWithWorldCatAttributes.of(chunkItem);
+                    ChunkItemWithWorldCatAttributes.of(item);
             final Pid pid = Pid.of(chunkItemWithWorldCatAttributes.getWorldCatAttributes().getPid());
             final WorldCatEntity worldCatEntity = getWorldCatEntity(pid, ocnRepo);
 
@@ -151,18 +148,13 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
 
             final String checksum = Checksum.of(chunkItemWithWorldCatAttributes);
             if (checksum.equals(worldCatEntity.getChecksum())) {
-                return ChunkItem.ignoredChunkItem()
-                        .withId(chunkItem.getId())
-                        .withTrackingId(chunkItem.getTrackingId())
-                        .withType(ChunkItem.Type.STRING)
-                        .withEncoding(StandardCharsets.UTF_8)
-                        .withData("Checksum indicated no change");
+                return ignored(item, "Checksum indicated no change");
             }
 
-            Instant handleChunkItemStartTime = Instant.now();
+            Instant pushStartTime = Instant.now();
             WciruServiceBroker.Result brokerResult = null;
             try {
-                brokerResult = wciruServiceBroker.push(chunkItemWithWorldCatAttributes, worldCatEntity);
+                brokerResult = broker.push(chunkItemWithWorldCatAttributes, worldCatEntity);
                 if (!brokerResult.isFailed()) {
                     if (brokerResult.getLastEvent().getAction() == WciruServiceBroker.Event.Action.DELETE) {
                         LOGGER.info("Deletion of PID '{}' triggered WorldCat entry removal in repository", pid);
@@ -171,19 +163,28 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
                         worldCatEntity.withOcn(brokerResult.getOcn()).withChecksum(checksum).withActiveHoldingSymbols(chunkItemWithWorldCatAttributes.getActiveHoldingSymbols()).setHasLHR(chunkItemWithWorldCatAttributes.getWorldCatAttributes().hasLhr());
                     }
                 }
-                return FormattedOutput.of(pid, brokerResult).withId(chunkItem.getId()).withTrackingId(chunkItem.getTrackingId());
+                return ItemDeliveryResult.of(
+                        brokerResult.isFailed()
+                                ? ItemDeliveryResult.Status.FAILED
+                                : ItemDeliveryResult.Status.DELIVERED,
+                        FormattedOutput.of(pid, brokerResult)
+                                .withId(item.getId())
+                                .withTrackingId(item.getTrackingId()));
             } finally {
                 transaction.commit();
                 Tag tag = new Tag("status", brokerResult == null ? "timeout" : brokerResult.isFailed() ? "failed" : "success");
                 Metric.WCIRU_UPDATE.counter(tag).inc();
-                Metric.WCIRU_SERVICE_REQUESTS.timer().update(Duration.between(handleChunkItemStartTime, Instant.now()));
+                Metric.WCIRU_SERVICE_REQUESTS.timer().update(Duration.between(pushStartTime, Instant.now()));
             }
         } catch (IllegalArgumentException e) {
-            return FormattedOutput.of(e)
-                    .withId(chunkItem.getId())
-                    .withTrackingId(chunkItem.getTrackingId());
+            return ItemDeliveryResult.of(ItemDeliveryResult.Status.FAILED,
+                    FormattedOutput.of(e)
+                            .withId(item.getId())
+                            .withTrackingId(item.getTrackingId()));
         } finally {
-            if (transaction.isActive()) transaction.rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
         }
     }
 
@@ -204,4 +205,13 @@ public class WorldcatMessageConsumer extends MessageConsumerAdapter {
         return worldCatEntities.get(0);
     }
 
+    private ItemDeliveryResult ignored(ChunkItem item, String reason) {
+        return ItemDeliveryResult.of(ItemDeliveryResult.Status.IGNORED,
+                ChunkItem.ignoredChunkItem()
+                        .withId(item.getId())
+                        .withTrackingId(item.getTrackingId())
+                        .withType(ChunkItem.Type.STRING)
+                        .withEncoding(StandardCharsets.UTF_8)
+                        .withData(reason));
+    }
 }

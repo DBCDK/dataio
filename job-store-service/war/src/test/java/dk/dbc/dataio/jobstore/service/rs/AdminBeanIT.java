@@ -10,6 +10,7 @@ import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.ejb.DependencyTrackingRepository;
+import dk.dbc.dataio.jobstore.service.ejb.SweepMetrics;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 
@@ -29,6 +30,7 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.mockito.Mockito.mock;
 
 /**
  * The recovery sweep that re-drives a chunk whose dispatch attempt was fired and never arrived.
@@ -130,6 +132,7 @@ public class AdminBeanIT extends AbstractJobStoreIT {
     private AdminBean newAdminBean(DependencyTrackingService trackingService) {
         AdminBean adminBean = new AdminBean();
         adminBean.dependencyTrackingService = trackingService;
+        adminBean.sweepMetrics = mock(SweepMetrics.class);
         return adminBean;
     }
 

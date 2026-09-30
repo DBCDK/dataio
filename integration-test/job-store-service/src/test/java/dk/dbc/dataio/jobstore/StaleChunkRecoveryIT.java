@@ -20,6 +20,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -96,6 +97,7 @@ public class StaleChunkRecoveryIT extends AbstractJobStoreServiceContainerTest {
         triggerStaleSweep();
 
         awaitStatus(jobId, 0, QUEUED_FOR_PROCESSING);
+        assertRepairCounted("stale", "ready_rescued_processing");
     }
 
     /**
@@ -123,6 +125,36 @@ public class StaleChunkRecoveryIT extends AbstractJobStoreServiceContainerTest {
         triggerStaleSweep();
 
         awaitStatus(jobId, 0, QUEUED_FOR_PROCESSING);
+        assertRepairCounted("parked", "sink_missing_from_counts_processing");
+    }
+
+    /**
+     * Every repair series is exported before its repair has happened, so the first repair after a
+     * restart is a step from 0 that a rate can see, and the dashboard shows 0 rather than no data.
+     * <p>
+     * Only the presence of each series is asserted. The service container is shared between test
+     * classes, so some of these repairs may already have happened.
+     */
+    @Test
+    public void everyRepairIsExportedBeforeItHappens() {
+        String metrics = fetchMetrics();
+        for (String[] repair : List.of(
+                new String[] {"stale", "ready_rescued_processing"},
+                new String[] {"stale", "ready_rescued_delivery"},
+                new String[] {"stale", "phase_advanced"},
+                new String[] {"stale", "resent"},
+                new String[] {"stale", "retries_exhausted"},
+                new String[] {"parked", "sink_missing_from_counts_processing"},
+                new String[] {"parked", "sink_missing_from_counts_delivery"},
+                new String[] {"recheck", "rows_dropped"},
+                new String[] {"recheck", "barrier_lifted"},
+                new String[] {"recheck", "gate_opened"},
+                new String[] {"complete", "job_completed"})) {
+            assertThat("repair " + repair[0] + "/" + repair[1] + " is exported",
+                    repairSeries(repair[0], repair[1], "[0-9]").matcher(metrics).find(), is(true));
+        }
+        assertThat("counter corrections are exported",
+                Pattern.compile("(?m)^dataio_sink_status_counter_drift_total\\{").matcher(metrics).find(), is(true));
     }
 
     // ---------------------------------------------------------------- fixtures
@@ -139,6 +171,34 @@ public class StaleChunkRecoveryIT extends AbstractJobStoreServiceContainerTest {
                     .post(Entity.entity("", MediaType.APPLICATION_JSON));
             assertThat("stale sweep accepted", response.getStatus(),
                     is(Response.Status.OK.getStatusCode()));
+        }
+    }
+
+    /**
+     * Asserts that the service has counted at least one of the repair.
+     * <p>
+     * At least one, rather than an exact number, since the service container is shared between
+     * test classes and an earlier test may have made the same repair.
+     */
+    private void assertRepairCounted(String sweep, String action) {
+        assertThat("repair " + sweep + "/" + action + " is counted",
+                repairSeries(sweep, action, "[1-9]").matcher(fetchMetrics()).find(), is(true));
+    }
+
+    /**
+     * Matches the {@code dataio_sweep_repairs} series for one repair whose value starts with a
+     * digit the given character class allows.
+     */
+    private static Pattern repairSeries(String sweep, String action, String firstDigit) {
+        return Pattern.compile("(?m)^dataio_sweep_repairs_total\\{(?=[^}]*sweep=\"" + sweep
+                + "\")(?=[^}]*action=\"" + action + "\")[^}]*} " + firstDigit);
+    }
+
+    private String fetchMetrics() {
+        String metricsUrl = "http://" + jobStoreServiceContainer.getHost() + ":"
+                + jobStoreServiceContainer.getMappedPort(8080) + "/metrics";
+        try (Client client = ClientBuilder.newClient()) {
+            return client.target(metricsUrl).request(MediaType.TEXT_PLAIN).get(String.class);
         }
     }
 

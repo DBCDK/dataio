@@ -46,6 +46,15 @@ import java.util.stream.Collectors;
 public class TickleMessageConsumer extends SinkMessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(TickleMessageConsumer.class);
     private final Batch.Type tickleBehaviour = Batch.Type.valueOf(SinkConfig.TICKLE_BEHAVIOUR.asString().toUpperCase());
+    /**
+     * Holds the batch of each job seen recently, so that every item of a job resolves the same
+     * batch without a lookup of its own
+     * <p>
+     * A cached batch is detached, since the entity manager that read it is closed once the item
+     * that read it has been delivered. Every use a cached batch is put to reads its id, dataset or
+     * type, and {@link TickleRepo#closeBatch} merges what it is handed, so nothing here needs a
+     * managed instance.
+     */
     static final Cache<Integer, Batch> batchCache = CacheBuilder.newBuilder().maximumSize(50).expireAfterAccess(Duration.ofHours(1)).build();
     private final EntityManagerFactory entityManagerFactory;
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
@@ -59,10 +68,13 @@ public class TickleMessageConsumer extends SinkMessageConsumerAdapter {
         registerMetrics(PrometheusMetricRegistry.create());
     }
 
-    @SuppressWarnings({"java:S2095", "unchecked"})
+    @SuppressWarnings("unchecked")
     public void registerMetrics(MetricRegistry metricRegistry) {
-        Query query = entityManagerFactory.createEntityManager().createNativeQuery("SELECT * FROM dataset", DataSet.class);
-        List<DataSet> dataSets = query.getResultList();
+        List<DataSet> dataSets;
+        try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
+            Query query = entityManager.createNativeQuery("SELECT * FROM dataset", DataSet.class);
+            dataSets = query.getResultList();
+        }
         for (DataSet dataSet : dataSets) {
             Tag dataSetTag = new Tag("dataset_name", dataSet.getName());
             MetricID metricID = new MetricID("dataio_tickle_repo_oldest_batch_in_hours", dataSetTag);
@@ -72,23 +84,28 @@ public class TickleMessageConsumer extends SinkMessageConsumerAdapter {
         }
     }
 
-    @SuppressWarnings("java:S2095")
     private long getOldestOpenBatch(int dataSetId) {
         String timeZone = SinkConfig.TIMEZONE.asString();
-        Query query = entityManagerFactory.createEntityManager().createNativeQuery("select * from batch where dataset = ? and timeofcompletion is null order by timeofcreation", Batch.class);
-        query.setHint(QueryHints.READ_ONLY, true);
-        query.setParameter(1, dataSetId);
-        @SuppressWarnings("unchecked")
-        List<Batch> batches = query.getResultList();
-        if (batches.isEmpty()) return 0;
-        ZonedDateTime now = LocalDateTime.now().atZone(ZoneId.of(timeZone));
-        ZonedDateTime then = batches.get(0).getTimeOfCreation().toLocalDateTime().atZone(ZoneId.of(timeZone));
-        return ChronoUnit.HOURS.between(then, now);
+        try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
+            Query query = entityManager.createNativeQuery("select * from batch where dataset = ? and timeofcompletion is null order by timeofcreation", Batch.class);
+            query.setHint(QueryHints.READ_ONLY, true);
+            query.setParameter(1, dataSetId);
+            @SuppressWarnings("unchecked")
+            List<Batch> batches = query.getResultList();
+            if (batches.isEmpty()) {
+                return 0;
+            }
+            ZonedDateTime now = LocalDateTime.now().atZone(ZoneId.of(timeZone));
+            ZonedDateTime then = batches.get(0).getTimeOfCreation().toLocalDateTime().atZone(ZoneId.of(timeZone));
+            return ChronoUnit.HOURS.between(then, now);
+        }
     }
 
     @Override
     protected ItemDeliveryResult deliverItem(ConsumedMessage message, ChunkItem item) {
-        return deliverItem(message, item, new TickleRepo(entityManagerFactory.createEntityManager()));
+        try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
+            return deliverItem(message, item, new TickleRepo(entityManager));
+        }
     }
 
     ItemDeliveryResult deliverItem(ConsumedMessage message, ChunkItem item, TickleRepo tickleRepo) {
@@ -214,15 +231,19 @@ public class TickleMessageConsumer extends SinkMessageConsumerAdapter {
 
     @Override
     public void abortJob(int jobId) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        try {
-            Batch batch = getBatch(jobId, new TickleRepo(entityManager));
-            entityManager.remove(batch);
-            batchCache.invalidate(jobId);
-        } finally {
-            if(transaction.isActive()) transaction.commit();
+        try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
+            EntityTransaction transaction = entityManager.getTransaction();
+            try {
+                transaction.begin();
+                Batch batch = getBatch(jobId, new TickleRepo(entityManager));
+                entityManager.remove(batch);
+                batchCache.invalidate(jobId);
+                transaction.commit();
+            } finally {
+                if (transaction.isActive()) {
+                    transaction.rollback();
+                }
+            }
         }
     }
 

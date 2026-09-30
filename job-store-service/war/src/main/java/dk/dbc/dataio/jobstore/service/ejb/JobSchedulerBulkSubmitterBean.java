@@ -4,12 +4,15 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
 import dk.dbc.dataio.jobstore.service.dependencytracking.Hazelcast;
+import dk.dbc.dataio.jobstore.service.ejb.SweepMetrics.Repair;
+import dk.dbc.dataio.jobstore.service.ejb.SweepMetrics.Sweep;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Schedule;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.metrics.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +22,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
@@ -35,6 +39,8 @@ public class JobSchedulerBulkSubmitterBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBulkSubmitterBean.class);
     @Inject
     DependencyTrackingService dependencyTrackingService;
+    @Inject
+    SweepMetrics sweepMetrics;
     private final Map<BulkSchedulerKey, Future<Integer>> bulkFutures = new ConcurrentHashMap<>();
 
     @EJB
@@ -84,9 +90,39 @@ public class JobSchedulerBulkSubmitterBean {
         if (Hazelcast.isSlave()) {
             return;
         }
-        for (ChunkSchedulingStatus phase : List.of(SCHEDULED_FOR_PROCESSING, SCHEDULED_FOR_DELIVERY)) {
-            submitForSinks(dependencyTrackingService.findSinksWithChunksIn(phase), phase);
+        try (Timer.Context ignored = sweepMetrics.time(Sweep.PARKED)) {
+            for (ChunkSchedulingStatus phase : List.of(SCHEDULED_FOR_PROCESSING, SCHEDULED_FOR_DELIVERY)) {
+                Set<Integer> sinkIds = dependencyTrackingService.findSinksWithChunksIn(phase);
+                reportSinksMissingFromCounts(sinkIds, phase);
+                submitForSinks(sinkIds, phase);
+            }
         }
+    }
+
+    /**
+     * Logs and counts the sinks the table says hold parked chunks while the sink chunk counts say
+     * they hold none, which are the sinks the per-second sweeps had stopped dispatching for.
+     * <p>
+     * A single count can be transient rather than lost. A status move changes the counts before its
+     * transaction commits, so a chunk leaving a {@code SCHEDULED_*} status between the table read
+     * and the count read is seen in the first and already gone from the second. A sustained rate is
+     * what says the counts are losing deltas.
+     *
+     * @param sinkIds sinks the table says hold chunks in the phase
+     * @param phase   the {@code SCHEDULED_*} status read
+     */
+    void reportSinksMissingFromCounts(Set<Integer> sinkIds, ChunkSchedulingStatus phase) {
+        Set<Integer> counted = dependencyTrackingService.getActiveSinks(phase);
+        Set<Integer> missing = sinkIds.stream()
+                .filter(sinkId -> !counted.contains(sinkId))
+                .collect(Collectors.toSet());
+        if (missing.isEmpty()) {
+            return;
+        }
+        LOGGER.warn("Sinks {} hold chunks in {} that the sink chunk counts do not show", missing, phase);
+        sweepMetrics.countRepairs(phase == SCHEDULED_FOR_PROCESSING
+                ? Repair.SINK_MISSING_FROM_COUNTS_PROCESSING
+                : Repair.SINK_MISSING_FROM_COUNTS_DELIVERY, missing.size());
     }
 
     private void submitForSinks(Set<Integer> sinkIds, ChunkSchedulingStatus phase) {

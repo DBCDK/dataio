@@ -6,10 +6,16 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
+import dk.dbc.dataio.jobstore.distributed.StatusChangeEvent;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
+import dk.dbc.dataio.jobstore.service.ejb.JobGateBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
+import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
+import dk.dbc.dataio.jobstore.service.ejb.SweepMetrics;
+import dk.dbc.dataio.jobstore.service.ejb.SweepMetrics.Repair;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import jakarta.persistence.EntityManager;
@@ -21,9 +27,15 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY;
 import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.READY_FOR_PROCESSING;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY;
+import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED_FOR_PROCESSING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -233,8 +245,8 @@ public class AdminBeanTest {
     }
 
     /**
-     * Counters that agree with the table produce no metric at all, so the series stays a signal
-     * rather than an hourly zero.
+     * Counters that agree with the table add nothing, so the series stays at 0 between
+     * corrections.
      */
     @Test
     void recountAndReportDrift_countersAgreed_nothingIsCounted() {
@@ -247,15 +259,108 @@ public class AdminBeanTest {
         Assertions.assertEquals(-1, adminBean.correctedCounted, "nothing was counted");
     }
 
+    @Test
+    void advanceChunksWhosePhaseFinished_chunkAdvanced_isCountedAsARepair() {
+        TestAdminBean adminBean = newAdminBeanSeeing(chunkWithPhaseDone(State.Phase.PROCESSING));
+
+        adminBean.advanceChunksWhosePhaseFinished(List.of(stale(40, 0, QUEUED_FOR_PROCESSING, 0)));
+
+        verify(adminBean.sweepMetrics).countRepairs(Repair.PHASE_ADVANCED, 1);
+    }
+
+    /**
+     * A chunk that moved on between the query and the write was not rescued by the sweep, so only
+     * the moves the validated status change made are counted.
+     */
+    @Test
+    void rescueChunksLeftReady_countsOnlyTheChunksActuallyMoved() {
+        TestAdminBean adminBean = new TestAdminBean();
+        adminBean.dependencyTrackingService = mock(DependencyTrackingService.class);
+        DependencyTrackingRO moved = stale(50, 0, READY_FOR_DELIVERY, 0);
+        DependencyTrackingRO movedOn = stale(50, 1, READY_FOR_DELIVERY, 0);
+        DependencyTrackingRO processing = stale(51, 0, READY_FOR_PROCESSING, 0);
+        when(adminBean.dependencyTrackingService.getStaleDependencies(eq(READY_FOR_DELIVERY), any()))
+                .thenReturn(List.of(moved, movedOn));
+        when(adminBean.dependencyTrackingService.getStaleDependencies(eq(READY_FOR_PROCESSING), any()))
+                .thenReturn(List.of(processing));
+        when(adminBean.dependencyTrackingService.setValidatedStatus(moved.getKey(), SCHEDULED_FOR_DELIVERY))
+                .thenReturn(Optional.of(mock(StatusChangeEvent.class)));
+        when(adminBean.dependencyTrackingService.setValidatedStatus(movedOn.getKey(), SCHEDULED_FOR_DELIVERY))
+                .thenReturn(Optional.empty());
+        when(adminBean.dependencyTrackingService.setValidatedStatus(processing.getKey(), SCHEDULED_FOR_PROCESSING))
+                .thenReturn(Optional.of(mock(StatusChangeEvent.class)));
+
+        adminBean.rescueChunksLeftReady();
+
+        verify(adminBean.sweepMetrics).countRepairs(Repair.READY_RESCUED_DELIVERY, 1);
+        verify(adminBean.sweepMetrics).countRepairs(Repair.READY_RESCUED_PROCESSING, 1);
+    }
+
+    @Test
+    void resendIfNeeded_countsOnlyTheChunksActuallySent() {
+        TestAdminBean adminBean = new TestAdminBean();
+        adminBean.dependencyTrackingService = mock(DependencyTrackingService.class);
+        adminBean.jobSchedulerBean = mock(JobSchedulerBean.class);
+        DependencyTrackingRO sent = stale(60, 0, QUEUED_FOR_DELIVERY, 0);
+        DependencyTrackingRO refused = stale(60, 1, QUEUED_FOR_DELIVERY, 1);
+        DependencyTrackingRO exhausted = stale(60, 2, QUEUED_FOR_DELIVERY, 3);
+        when(adminBean.dependencyTrackingService.resend(sent.getKey(), 3))
+                .thenReturn(Optional.of(mock(StatusChangeEvent.class)));
+        when(adminBean.dependencyTrackingService.resend(refused.getKey(), 3))
+                .thenReturn(Optional.empty());
+
+        adminBean.resendIfNeeded(List.of(sent, refused, exhausted));
+
+        verify(adminBean.sweepMetrics).countRepairs(Repair.RESENT, 1);
+        verify(adminBean.dependencyTrackingService, never()).resend(exhausted.getKey(), 3);
+    }
+
+    @Test
+    void recheck_countsDroppedRowsLiftedBarriersAndOpenedGates() {
+        TestAdminBean adminBean = new TestAdminBean();
+        adminBean.dependencyTrackingService = mock(DependencyTrackingService.class);
+        adminBean.jobStoreRepository = mock(PgJobStoreRepository.class);
+        adminBean.jobGateBean = mock(JobGateBean.class);
+        when(adminBean.dependencyTrackingService.getAllJobIs()).thenReturn(Set.of(70, 71));
+        when(adminBean.jobStoreRepository.getJobEntityById(70)).thenReturn(null);
+        when(adminBean.jobStoreRepository.getJobEntityById(71)).thenReturn(mock(JobEntity.class));
+        when(adminBean.jobGateBean.sweepUnliftedBarriers()).thenReturn(2);
+        when(adminBean.jobGateBean.sweepClosedGates()).thenReturn(3);
+
+        adminBean.recheck();
+
+        verify(adminBean.dependencyTrackingService).removeJobId(70);
+        verify(adminBean.sweepMetrics).countRepairs(Repair.ROWS_DROPPED, 1);
+        verify(adminBean.sweepMetrics).countRepairs(Repair.BARRIER_LIFTED, 2);
+        verify(adminBean.sweepMetrics).countRepairs(Repair.GATE_OPENED, 3);
+    }
+
+    /**
+     * The on-demand sweep makes the same repairs as the hourly one, so they count the same.
+     */
+    @Test
+    void gateSweep_countsLiftedBarriersAndOpenedGates() throws Exception {
+        TestAdminBean adminBean = new TestAdminBean();
+        adminBean.jobGateBean = mock(JobGateBean.class);
+        when(adminBean.jobGateBean.sweepUnliftedBarriers()).thenReturn(1);
+        when(adminBean.jobGateBean.sweepClosedGates()).thenReturn(0);
+
+        adminBean.gateSweep();
+
+        verify(adminBean.sweepMetrics).countRepairs(Repair.BARRIER_LIFTED, 1);
+        verify(adminBean.sweepMetrics).countRepairs(Repair.GATE_OPENED, 0);
+    }
+
     private static class TestAdminBean extends AdminBean {
         private int correctedCounted = -1;
 
         private TestAdminBean() {
             chunkResendLimit = 3;
+            sweepMetrics = mock(SweepMetrics.class);
         }
 
         /**
-         * Records rather than increments, which needs a metric registry the container injects.
+         * Records the count, so the test can assert it without a metric registry.
          */
         @Override
         void countCorrectedCounters(int corrected) {

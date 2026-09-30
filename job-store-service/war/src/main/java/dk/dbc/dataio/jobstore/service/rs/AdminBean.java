@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.distributed.DependencyTrackingRO;
 import dk.dbc.dataio.jobstore.distributed.TrackingKey;
@@ -19,6 +20,9 @@ import dk.dbc.dataio.jobstore.service.ejb.JobGateBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBulkSubmitterBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
+import dk.dbc.dataio.jobstore.service.ejb.SweepMetrics;
+import dk.dbc.dataio.jobstore.service.ejb.SweepMetrics.Repair;
+import dk.dbc.dataio.jobstore.service.ejb.SweepMetrics.Sweep;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
@@ -45,6 +49,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.glassfish.jersey.internal.guava.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,8 +83,6 @@ import static dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus.SCHEDULED
 @Path("/")
 public class AdminBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminBean.class);
-    /** Counts the sink and status pairs the hourly recount found the counters had wrong. */
-    private static final String SINK_STATUS_COUNTER_DRIFT = "dataio_sink_status_counter_drift";
     @EJB
     JobSchedulerBean jobSchedulerBean;
     @EJB
@@ -120,6 +123,9 @@ public class AdminBean {
     @Inject
     private MetricRegistry metricRegistry;
 
+    @Inject
+    SweepMetrics sweepMetrics;
+
     AdminClient adminClient = AdminClientFactory.getAdminClient();
     private static final Map<String, AtomicInteger> staleChunks = new ConcurrentHashMap<>();
     private static final Map<String, AtomicInteger> exhaustedRetries = new ConcurrentHashMap<>();
@@ -130,7 +136,7 @@ public class AdminBean {
     @Schedule(minute = "*", hour = "*", persistent = false)
     public void updateStaleChunks() {
         if(Hazelcast.isSlave()) return;
-        try {
+        try (Timer.Context ignored = sweepMetrics.time(Sweep.STALE)) {
             rescueChunksLeftReady();
             Stream<DependencyTrackingRO> delStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_DELIVERY, Duration.ofHours(1)).stream().filter(this::isTimeout);
             Stream<DependencyTrackingRO> procStream = dependencyTrackingService.getStaleDependencies(QUEUED_FOR_PROCESSING, processorTimeout).stream();
@@ -139,7 +145,7 @@ public class AdminBean {
             // sees only the chunks whose work really is outstanding.
             List<DependencyTrackingRO> list = advanceChunksWhosePhaseFinished(stale);
             resendIfNeeded(list);
-            reportExhaustedRetries(list);
+            sweepMetrics.countRepairs(Repair.RETRIES_EXHAUSTED, reportExhaustedRetries(list));
             list.stream().map(s -> getSinkName(s.getSinkId())).distinct().filter(s -> staleChunks.putIfAbsent(s, new AtomicInteger(0)) == null).forEach(this::registerChunkMetric);
             Map<Integer, List<DependencyTrackingRO>> map = list.stream().collect(Collectors.groupingBy(DependencyTrackingRO::getSinkId));
             Map<String, Integer> counters = map.entrySet().stream().collect(Collectors.toMap(e -> getSinkName(e.getKey()), e -> e.getValue().size()));
@@ -176,10 +182,28 @@ public class AdminBean {
      * chunk to minutes rather than to the hourly sweeps.
      */
     void rescueChunksLeftReady() {
-        dependencyTrackingService.getStaleDependencies(READY_FOR_DELIVERY, Duration.ofMinutes(5))
-                .forEach(dt -> dependencyTrackingService.setValidatedStatus(dt.getKey(), SCHEDULED_FOR_DELIVERY));
-        dependencyTrackingService.getStaleDependencies(READY_FOR_PROCESSING, Duration.ofMinutes(10))
-                .forEach(dt -> dependencyTrackingService.setValidatedStatus(dt.getKey(), SCHEDULED_FOR_PROCESSING));
+        sweepMetrics.countRepairs(Repair.READY_RESCUED_DELIVERY,
+                rescue(READY_FOR_DELIVERY, Duration.ofMinutes(5), SCHEDULED_FOR_DELIVERY));
+        sweepMetrics.countRepairs(Repair.READY_RESCUED_PROCESSING,
+                rescue(READY_FOR_PROCESSING, Duration.ofMinutes(10), SCHEDULED_FOR_PROCESSING));
+    }
+
+    /**
+     * Moves the chunks stale in one {@code READY_*} status to their {@code SCHEDULED_*} status.
+     *
+     * @param ready     status the chunks are stranded in
+     * @param staleFor  how long a chunk has to have been in that status
+     * @param scheduled status the sweep that dispatches reads
+     * @return how many chunks were moved, leaving out those that moved on before the write
+     */
+    private int rescue(ChunkSchedulingStatus ready, Duration staleFor, ChunkSchedulingStatus scheduled) {
+        int rescued = 0;
+        for (DependencyTrackingRO dt : dependencyTrackingService.getStaleDependencies(ready, staleFor)) {
+            if (dependencyTrackingService.setValidatedStatus(dt.getKey(), scheduled).isPresent()) {
+                rescued++;
+            }
+        }
+        return rescued;
     }
 
     /**
@@ -229,11 +253,19 @@ public class AdminBean {
     @Schedule(minute = "10", hour = "*", persistent = false)
     public void recheckBlocks() {
         if(Hazelcast.isSlave()) return;
+        try (Timer.Context ignored = sweepMetrics.time(Sweep.RECHECK)) {
+            recheck();
+        }
+    }
+
+    void recheck() {
         Set<Integer> trackedJobIds = dependencyTrackingService.getAllJobIs();
+        int dropped = 0;
         for (Integer jobId : trackedJobIds) {
             JobEntity entity = jobStoreRepository.getJobEntityById(jobId);
             if(entity == null || entity.getTimeOfCompletion() != null) {
                 dependencyTrackingService.removeJobId(jobId);
+                dropped++;
                 LOGGER.info("Dropped the scheduling rows of job {}, which is gone or already completed", jobId);
                 // Dropping the rows takes away the termination row a barrier lift would have fired
                 // on, so the lift has to happen here. Without it every later job on that submitter
@@ -250,10 +282,17 @@ public class AdminBean {
         // since this reads the scope from the job row rather than from the caller.
         int lifted = jobGateBean.sweepUnliftedBarriers();
         int opened = jobGateBean.sweepClosedGates();
+        sweepMetrics.countRepairs(Repair.ROWS_DROPPED, dropped);
+        countGateRepairs(lifted, opened);
         if (lifted > 0 || opened > 0) {
             LOGGER.info("Hourly gate sweep lifted {} barriers and opened {} gates", lifted, opened);
         }
         recountAndReportDrift();
+    }
+
+    private void countGateRepairs(int lifted, int opened) {
+        sweepMetrics.countRepairs(Repair.BARRIER_LIFTED, lifted);
+        sweepMetrics.countRepairs(Repair.GATE_OPENED, opened);
     }
 
     /**
@@ -279,7 +318,7 @@ public class AdminBean {
     }
 
     void countCorrectedCounters(int corrected) {
-        metricRegistry.counter(SINK_STATUS_COUNTER_DRIFT).inc(corrected);
+        sweepMetrics.countCounterCorrections(corrected);
     }
 
     /**
@@ -354,6 +393,7 @@ public class AdminBean {
             LOGGER.warn("Advanced stale chunks whose phase had already finished: {}",
                     String.join(", ", advanced));
         }
+        sweepMetrics.countRepairs(Repair.PHASE_ADVANCED, advanced.size());
         return outstanding;
     }
 
@@ -392,7 +432,13 @@ public class AdminBean {
                 .map(e -> e.getKey().toChunkIdentifier())
                 .collect(Collectors.joining(", ")));
 
-        retries.forEach(dt -> dependencyTrackingService.resend(dt.getKey(), chunkResendLimit));
+        int resent = 0;
+        for (DependencyTrackingRO dt : retries) {
+            if (dependencyTrackingService.resend(dt.getKey(), chunkResendLimit).isPresent()) {
+                resent++;
+            }
+        }
+        sweepMetrics.countRepairs(Repair.RESENT, resent);
         Set<Integer> sinks = list.stream().map(DependencyTrackingRO::getSinkId).collect(Collectors.toSet());
         jobSchedulerBean.loadSinkStatusOnBootstrap(sinks);
     }
@@ -478,6 +524,7 @@ public class AdminBean {
         int lifted = jobGateBean.sweepUnliftedBarriers();
         int opened = jobGateBean.sweepClosedGates();
         LOGGER.info("Requested gate sweep lifted {} barriers and opened {} gates", lifted, opened);
+        countGateRepairs(lifted, opened);
         return Response.ok(jsonbContext.marshall(
                 Map.of("barriersLifted", lifted, "gatesOpened", opened))).build();
     }
@@ -530,6 +577,7 @@ public class AdminBean {
                 .where(new ListFilter<>(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, ListFilter.Op.GREATER_THAN_OR_EQUAL_TO, new Timestamp(from.toEpochMilli())))
                 .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, ListFilter.Op.LESS_THAN, new Timestamp(to.toEpochMilli())))
                 .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL)));
+        int completed = 0;
         for (JobInfoSnapshot job : jobs) {
             JobEntity entity = jobStoreRepository.getJobEntityById(job.getJobId());
             if(entity.getState().phaseIsDone(State.Phase.PARTITIONING)) {
@@ -540,9 +588,11 @@ public class AdminBean {
                             .forEach(p -> entity.getState().getPhase(p).withEndDate(new Date()));
                     entity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
                     LOGGER.info("completeFinishedJobs marked {} as completed, all chunks are accounted for", job.getJobId());
+                    completed++;
                 }
             }
         }
+        sweepMetrics.countRepairs(Repair.JOB_COMPLETED, completed);
     }
 
     private Response retransmitJobs(Set<Integer> jobIds) {

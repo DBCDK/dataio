@@ -129,7 +129,7 @@ pipeline {
         }
         stage("update staging version") {
             when {
-                branch "master_DISABLED"
+                branch "master"
             }
             steps {
                 script {

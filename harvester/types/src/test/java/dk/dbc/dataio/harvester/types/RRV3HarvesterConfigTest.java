@@ -59,6 +59,19 @@ class RRV3HarvesterConfigTest {
     }
 
     @Test
+    void roundTripWithSubmitterFilter() throws JSONBException {
+        final SubmitterFilter submitterFilter =
+                new SubmitterFilter(SubmitterFilter.Type.ACCEPT_ALL_EXCEPT, List.of(190002, 190008));
+        final RRV3HarvesterConfig config = new RRV3HarvesterConfig(42, 1,
+                new RRV3HarvesterConfig.Content().withSubmitterFilter(submitterFilter));
+
+        final RRV3HarvesterConfig roundTripped =
+                jsonbContext.unmarshall(jsonbContext.marshall(config), RRV3HarvesterConfig.class);
+
+        assertThat(roundTripped.getContent().getSubmitterFilter(), is(submitterFilter));
+    }
+
+    @Test
     void getHarvesterToken() {
         final RRV3HarvesterConfig config = new RRV3HarvesterConfig(42, 1, new RRV3HarvesterConfig.Content());
         assertThat(config.getHarvesterToken(), is("raw-repo:42:1"));

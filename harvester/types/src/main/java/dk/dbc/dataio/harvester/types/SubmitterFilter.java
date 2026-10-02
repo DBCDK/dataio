@@ -57,6 +57,7 @@ public class SubmitterFilter implements Serializable {
         return type;
     }
 
+    @JsonProperty("submitterNumber")
     public Set<Integer> getSubmitterNumbers() {
         return Collections.unmodifiableSet(submitterNumbers);
     }

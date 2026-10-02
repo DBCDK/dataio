@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.types;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
@@ -7,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -215,5 +217,28 @@ public class SubmitterFilterTest {
         assertThat(filter.getSubmitterNumbers(), containsInAnyOrder(424242, 434343));
         assertThat(filter.shouldSkip(424242), is(true));
         assertThat(filter.shouldSkip(999999), is(false));
+    }
+
+    @Test
+    void jacksonSerialize() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        SubmitterFilter filter = new SubmitterFilter(SubmitterFilter.Type.SKIP_ALL_EXCEPT, List.of(424242));
+
+        JsonNode json = mapper.readTree(mapper.writeValueAsString(filter));
+
+        assertThat(json.get("type").asText(), is("SKIP_ALL_EXCEPT"));
+        assertThat(json.get("submitterNumber").get(0).asInt(), is(424242));
+        assertThat(json.has("submitterNumbers"), is(false));
+    }
+
+    @Test
+    void jacksonRoundTrip() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        SubmitterFilter filter = new SubmitterFilter(SubmitterFilter.Type.ACCEPT_ALL_EXCEPT,
+                List.of(SUBMITTER_111111, SUBMITTER_222222));
+
+        SubmitterFilter roundTripped = mapper.readValue(mapper.writeValueAsString(filter), SubmitterFilter.class);
+
+        assertThat(roundTripped, is(filter));
     }
 }
